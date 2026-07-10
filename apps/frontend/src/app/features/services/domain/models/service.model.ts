@@ -5,4 +5,7 @@ export interface Service {
     id: string;
     name: string;
     projectId: string;
+    repositoryId?: string;
+    deploymentBranch?: string;
+    composerPath?: string;
 }

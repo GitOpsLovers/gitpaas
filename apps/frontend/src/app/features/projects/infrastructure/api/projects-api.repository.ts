@@ -22,11 +22,26 @@ export class ProjectsApiRepository {
     public readonly projects = httpResource<Project[]>(() => this.url);
 
     /**
-     * Get a project by id
+     * Resource with a single project by id
      *
      * @param id Accessor returning the project identifier
      *
      * @returns Resource that resolves to the found project
+     */
+    public projectById(id: () => string | undefined) {
+        return httpResource<Project>(() => {
+            const projectId = id();
+
+            return projectId ? `${this.url}/${projectId}` : undefined;
+        });
+    }
+
+    /**
+     * Get a project by id
+     *
+     * @param id Project identifier
+     *
+     * @returns Observable that resolves to the found project
      */
     public getById(id: string): Observable<Project> {
         return this.http.get<Project>(`${this.url}/${id}`);

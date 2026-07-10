@@ -1,0 +1,9 @@
+<div class="border-b border-gray-200 dark:border-gray-800">
+    <nav class="flex gap-6">
+        @for (tab of tabs(); track tab.id) {
+            <button type="button" (click)="select(tab.id)" [class]="tabButtonClass(tab.id)">
+                {{ tab.label }}
+            </button>
+        }
+    </nav>
+</div>

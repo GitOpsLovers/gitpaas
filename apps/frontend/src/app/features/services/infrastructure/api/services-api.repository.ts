@@ -28,6 +28,21 @@ export class ServicesApiRepository {
         this.projectId() ? `${this.url}?projectId=${this.projectId()}` : undefined);
 
     /**
+     * Resource with a single service by id
+     *
+     * @param id Accessor returning the service identifier
+     *
+     * @returns Resource that resolves to the found service
+     */
+    public serviceById(id: () => string | undefined) {
+        return httpResource<Service>(() => {
+            const serviceId = id();
+
+            return serviceId ? `${this.url}/${serviceId}` : undefined;
+        });
+    }
+
+    /**
      * Get a service by id
      *
      * @param id Service identifier

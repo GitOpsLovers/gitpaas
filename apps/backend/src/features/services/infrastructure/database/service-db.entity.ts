@@ -16,6 +16,15 @@ export class ServiceDbEntity {
     @Column('uuid')
     public projectId!: string;
 
+    @Column({ type: 'text', default: '' })
+    public repositoryId!: string;
+
+    @Column({ type: 'text', default: '' })
+    public deploymentBranch!: string;
+
+    @Column({ type: 'text', default: '' })
+    public composerPath!: string;
+
     @ManyToOne(() => ProjectDbEntity, (project) => project.services, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'projectId' })
     public project?: ProjectDbEntity;

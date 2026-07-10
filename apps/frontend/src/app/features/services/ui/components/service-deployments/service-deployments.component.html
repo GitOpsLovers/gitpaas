@@ -1,0 +1,41 @@
+<app-component-card title="Deployments">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+            <thead
+                class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+            >
+                <tr>
+                    <th class="px-3 py-3 font-medium">Version</th>
+                    <th class="px-3 py-3 font-medium">Environment</th>
+                    <th class="px-3 py-3 font-medium">Status</th>
+                    <th class="px-3 py-3 font-medium">Triggered by</th>
+                    <th class="px-3 py-3 font-medium">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                @for (deployment of deployments; track deployment.version) {
+                    <tr>
+                        <td class="px-3 py-3 font-medium text-gray-800 dark:text-white/90">
+                            {{ deployment.version }}
+                        </td>
+                        <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
+                            {{ deployment.environment }}
+                        </td>
+                        <td class="px-3 py-3">
+                            <span
+                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                [class]="statusBadgeClass(deployment.status)"
+                            >
+                                {{ deployment.status }}
+                            </span>
+                        </td>
+                        <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
+                            {{ deployment.triggeredBy }}
+                        </td>
+                        <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{{ deployment.date }}</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</app-component-card>

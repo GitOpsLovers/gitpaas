@@ -4,12 +4,12 @@ import { LucideCircleStop, LucideRocket, LucideRotateCw, LucideTerminal } from '
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 
 @Component({
-    selector: 'app-deploy-actions',
-    templateUrl: './deploy-actions.component.html',
+    selector: 'app-service-deploy-actions',
+    templateUrl: './service-deploy-actions.component.html',
     imports: [ComponentCardComponent, LucideRocket, LucideRotateCw, LucideCircleStop, LucideTerminal],
 })
 
 /**
  * Presentational card exposing the service deploy actions.
  */
-export class DeployActionsComponent {}
+export class ServiceDeployActionsComponent {}

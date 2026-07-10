@@ -3,4 +3,7 @@
  */
 export interface UpdateServiceDto {
     name: string;
+    repositoryId?: string;
+    deploymentBranch?: string;
+    composerPath?: string;
 }
