@@ -1,0 +1,38 @@
+{
+  "build": {
+    "context": "..",
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "sleistner.vscode-fileutils",
+        "eamodio.gitlens",
+        "firsttris.vscode-jest-runner",
+        "GitHub.vscode-github-actions",
+        "redhat.vscode-yaml",
+        "angular.ng-template",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "http.proxyStrictSSL": false
+      }
+    }
+  },
+  "name": "Artifactory Development container",
+  "remoteEnv": {
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+  },
+  "runArgs": [
+    "--name", "artifactory-devcontainer",
+    "--network", "host"
+  ],
+  "mounts": [
+    "source=artifactory-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=artifactory-frontend-node-modules,target=${containerWorkspaceFolder}/apps/frontend/node_modules,type=volume",
+    "source=artifactory-backend-node-modules,target=${containerWorkspaceFolder}/apps/backend/node_modules,type=volume"
+  ],
+  "postCreateCommand": "pnpm install"
+}
+  
