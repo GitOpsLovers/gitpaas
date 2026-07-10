@@ -4,7 +4,7 @@ export const routes: Routes = [
     {
         path: '',
         loadComponent: () =>
-            import('@layout/ui/containers/layout/layout').then((m) => m.LayoutComponent),
+            import('@layout/ui/containers/layout/layout.component').then((m) => m.LayoutComponent),
         children: [
             {
                 path: '',

@@ -2,24 +2,26 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { BackdropComponent } from '@layout/ui/components/backdrop/backdrop';
-import { HeaderComponent } from '@layout/ui/components/header/header';
-import { SidebarComponent } from '@layout/ui/components/sidebar/sidebar';
-import { SidebarService } from '@layout/ui/services/sidebar.service';
+import { BackdropComponent } from '../../components/backdrop/backdrop';
+import { HeaderComponent } from '../../components/header/header';
+import { SidebarComponent } from '../../components/sidebar/sidebar.component';
+import { SidebarService } from '../../services/sidebar.service';
 
-/**
- * Application shell: fixed sidebar + mobile backdrop, sticky header and the
- * routed page content. The content column shifts to make room for the sidebar.
- */
 @Component({
     selector: 'app-layout',
-    templateUrl: './layout.html',
+    templateUrl: './layout.component.html',
     imports: [CommonModule, RouterModule, HeaderComponent, SidebarComponent, BackdropComponent],
 })
+
+/**
+ * Layout component
+ */
 export class LayoutComponent {
     readonly #sidebarService = inject(SidebarService);
 
     public readonly isExpanded$ = this.#sidebarService.isExpanded$;
+
     public readonly isHovered$ = this.#sidebarService.isHovered$;
+
     public readonly isMobileOpen$ = this.#sidebarService.isMobileOpen$;
 }
