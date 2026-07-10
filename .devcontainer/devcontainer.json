@@ -21,9 +21,6 @@
     }
   },
   "name": "Artifactory Development container",
-  "remoteEnv": {
-    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
-  },
   "runArgs": [
     "--name", "artifactory-devcontainer",
     "--network", "host"
