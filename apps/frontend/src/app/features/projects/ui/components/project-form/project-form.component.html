@@ -1,0 +1,26 @@
+<app-component-card title="Project details">
+    <form (submit)="onSubmit($event)" class="space-y-6">
+        <div>
+            <app-label for="project-name">Name</app-label>
+            <app-input-field
+                id="project-name"
+                name="project-name"
+                placeholder="my-project"
+                [value]="name()"
+                (valueChange)="onValueChange($event)"
+            />
+        </div>
+
+        <div class="flex gap-3">
+            <app-button type="submit" [disabled]="submitting() || !name().trim()">
+                {{ submitLabel() }}
+            </app-button>
+            <a
+                routerLink="/projects"
+                class="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3.5 text-sm transition bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300"
+            >
+                Cancel
+            </a>
+        </div>
+    </form>
+</app-component-card>

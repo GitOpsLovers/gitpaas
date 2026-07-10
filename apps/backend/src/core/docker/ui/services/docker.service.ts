@@ -2,7 +2,18 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
-import Docker, { DockerInfo } from 'dockerode';
+import Docker from 'dockerode';
+
+/**
+ * Subset of the Docker daemon's `/info` payload that we consume.
+ * Dockerode types `info()` as `Promise<any>`, so we narrow it here.
+ */
+export interface DockerInfo {
+    ServerVersion: string;
+    OperatingSystem: string;
+    Containers: number;
+    Images: number;
+}
 
 @Injectable()
 

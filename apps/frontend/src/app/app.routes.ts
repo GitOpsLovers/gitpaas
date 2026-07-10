@@ -13,7 +13,7 @@ export const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                loadComponent: () => import('@pages/dashboard/dashboard').then((m) => m.DashboardPage),
+                loadComponent: () => import('@pages/dashboard/dashboard.component').then((m) => m.DashboardPage),
                 title: 'Dashboard | Artifactory',
             },
             {
@@ -21,17 +21,17 @@ export const routes: Routes = [
                 children: [
                     {
                         path: '',
-                        loadComponent: () => import('@pages/projects/list/list').then((m) => m.ProjectsListPage),
+                        loadComponent: () => import('@pages/projects/list/projects-list.component').then((m) => m.ProjectsListPage),
                         title: 'Projects | Artifactory',
                     },
                     {
                         path: 'add',
-                        loadComponent: () => import('@pages/projects/add/add').then((m) => m.ProjectsAddPage),
+                        loadComponent: () => import('@pages/projects/add/project-add.component').then((m) => m.ProjectsAddPage),
                         title: 'Add project | Artifactory',
                     },
                     {
                         path: 'edit/:id',
-                        loadComponent: () => import('@pages/projects/edit/edit').then((m) => m.ProjectsEditPage),
+                        loadComponent: () => import('@pages/projects/edit/project-edit.component').then((m) => m.ProjectsEditPage),
                         title: 'Edit project | Artifactory',
                     },
                 ],

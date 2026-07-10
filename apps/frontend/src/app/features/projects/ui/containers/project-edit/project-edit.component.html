@@ -1,0 +1,10 @@
+@if (loading()) {
+    <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+} @else {
+    <app-project-form
+        [initialName]="initialName()"
+        submitLabel="Save changes"
+        [submitting]="submitting()"
+        (save)="update($event)"
+    />
+}

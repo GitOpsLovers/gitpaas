@@ -1,10 +1,15 @@
 import { Component, input, linkedSignal, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { ButtonComponent } from '@shared/components/button/button.component';
+import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { InputFieldComponent } from '@shared/components/input/input-field.component';
+import { LabelComponent } from '@shared/components/label/label.component';
+
 @Component({
     selector: 'app-project-form',
     templateUrl: './project-form.component.html',
-    imports: [RouterLink],
+    imports: [RouterLink, ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
 })
 export class ProjectFormComponent {
     public readonly initialName = input('');
@@ -27,7 +32,7 @@ export class ProjectFormComponent {
         }
     }
 
-    protected onInput(event: Event): void {
-        this.name.set((event.target as HTMLInputElement).value);
+    protected onValueChange(value: string | number): void {
+        this.name.set(value.toString());
     }
 }

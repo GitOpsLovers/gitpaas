@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
 
-import { ComponentCardComponent } from '@shared/components/component-card/component-card';
-
 interface DashboardStat {
     readonly title: string;
     readonly value: string;
@@ -19,15 +17,22 @@ interface DeploymentUsage {
  */
 @Component({
     selector: 'app-dashboard',
-    templateUrl: './dashboard.html',
-    imports: [ComponentCardComponent],
+    templateUrl: './dashboard.component.html',
 })
 export class DashboardPage {
     public readonly stats: DashboardStat[] = [
-        { title: 'Deployments', value: '12', delta: '+3', up: true },
-        { title: 'Running', value: '9', delta: '+1', up: true },
-        { title: 'Repositories', value: '5', delta: '0', up: true },
-        { title: 'Alerts', value: '2', delta: '-1', up: false },
+        {
+            title: 'Deployments', value: '12', delta: '+3', up: true,
+        },
+        {
+            title: 'Running', value: '9', delta: '+1', up: true,
+        },
+        {
+            title: 'Repositories', value: '5', delta: '0', up: true,
+        },
+        {
+            title: 'Alerts', value: '2', delta: '-1', up: false,
+        },
     ];
 
     public readonly usage: DeploymentUsage[] = [

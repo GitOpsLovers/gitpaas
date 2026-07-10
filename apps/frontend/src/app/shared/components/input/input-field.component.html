@@ -1,0 +1,19 @@
+<div class="relative">
+    <input
+        [type]="type()"
+        [id]="id()"
+        [name]="name()"
+        [placeholder]="placeholder()"
+        [value]="value()"
+        [min]="min()"
+        [max]="max()"
+        [step]="step()"
+        [disabled]="disabled()"
+        [class]="inputClasses"
+        (input)="onInput($event)"
+    />
+
+    @if (hint(); as hintText) {
+        <p [class]="hintClasses">{{ hintText }}</p>
+    }
+</div>
