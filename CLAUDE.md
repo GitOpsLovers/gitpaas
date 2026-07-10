@@ -125,7 +125,7 @@ apps/backoffice/src/
 
 ### More information
 
-If the agent needs more information about the backoffice application, refer to the [backoffice-architecture document](./docs/backoffice-architecture.md) document.
+If the agent needs more information about the frontend application, refer to the [frontend-architecture document](./docs/frontend-architecture.md) document.
 
 ---
 
