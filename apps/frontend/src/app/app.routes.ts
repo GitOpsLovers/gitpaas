@@ -49,6 +49,11 @@ export const routes: Routes = [
                         loadComponent: () => import('@pages/services/edit/service-edit.component').then((m) => m.ServicesEditPage),
                         title: 'Edit service | Artifactory',
                     },
+                    {
+                        path: ':id/services/:serviceId',
+                        loadComponent: () => import('@pages/services/detail/service-detail.component').then((m) => m.ServiceDetailPage),
+                        title: 'Service | Artifactory',
+                    },
                 ],
             },
         ],

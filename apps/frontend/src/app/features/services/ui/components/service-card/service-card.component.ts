@@ -16,6 +16,8 @@ import { DropdownComponent } from '@shared/components/dropdown/dropdown.componen
 export class ServiceCardComponent {
     public readonly service = input.required<Service>();
 
+    public readonly view = output<Service>();
+
     public readonly edit = output<Service>();
 
     public readonly delete = output<Service>();

@@ -1,0 +1,46 @@
+<app-component-card title="Provider">
+    <form class="space-y-6" (submit)="$event.preventDefault()">
+        <div>
+            <app-label for="provider-repository">GitHub repository</app-label>
+            <select
+                id="provider-repository"
+                name="provider-repository"
+                [value]="repository()"
+                (change)="onRepositoryChange($event)"
+                class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+            >
+                @for (repo of repositories; track repo) {
+                    <option [value]="repo">{{ repo }}</option>
+                }
+            </select>
+        </div>
+
+        <div>
+            <app-label for="provider-branch">Deployment branch</app-label>
+            <select
+                id="provider-branch"
+                name="provider-branch"
+                [value]="branch()"
+                (change)="onBranchChange($event)"
+                class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+            >
+                @for (name of branches; track name) {
+                    <option [value]="name">{{ name }}</option>
+                }
+            </select>
+        </div>
+
+        <div>
+            <app-label for="provider-compose-path">Docker Compose path</app-label>
+            <app-input-field
+                id="provider-compose-path"
+                name="provider-compose-path"
+                placeholder="docker-compose.yml"
+                [value]="composePath()"
+                (valueChange)="onComposePathChange($event)"
+            />
+        </div>
+
+        <app-button type="submit">Save</app-button>
+    </form>
+</app-component-card>

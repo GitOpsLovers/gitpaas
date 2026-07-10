@@ -9,7 +9,12 @@
 } @else if (services.hasValue() && services.value()!.length > 0) {
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         @for (service of services.value(); track service.id) {
-            <app-service-card [service]="service" (edit)="edit($event)" (delete)="delete($event.id)" />
+            <app-service-card
+                [service]="service"
+                (view)="view($event)"
+                (edit)="edit($event)"
+                (delete)="delete($event.id)"
+            />
         }
     </div>
 } @else {

@@ -37,3 +37,6 @@ yarn-error.log*
 
 # Local dev environment (emulated VPS certs & state)
 .dev
+
+# AI
+.claude/settings.local.json

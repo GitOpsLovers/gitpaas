@@ -30,6 +30,10 @@ export class ServicesListComponent {
         });
     }
 
+    protected view(service: Service): void {
+        this.router.navigate(['/projects', this.projectId(), 'services', service.id]);
+    }
+
     protected edit(service: Service): void {
         this.router.navigate(['/projects', this.projectId(), 'services', 'edit', service.id]);
     }

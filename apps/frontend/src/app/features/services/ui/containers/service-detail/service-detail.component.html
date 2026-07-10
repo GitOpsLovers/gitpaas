@@ -1,0 +1,81 @@
+<app-breadcrumb [items]="breadcrumb()" />
+
+<div class="border-b border-gray-200 dark:border-gray-800">
+    <nav class="flex gap-6">
+        @for (tab of tabs; track tab.id) {
+            <button type="button" (click)="activeTab.set(tab.id)" [class]="tabButtonClass(tab.id)">
+                {{ tab.label }}
+            </button>
+        }
+    </nav>
+</div>
+
+<div class="mt-6">
+    @switch (activeTab()) {
+        @case ('general') {
+            <app-deploy-actions class="mb-6 block" />
+
+            <app-provider />
+        }
+
+        @case ('deployments') {
+            <app-component-card title="Deployments">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead
+                            class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+                        >
+                            <tr>
+                                <th class="px-3 py-3 font-medium">Version</th>
+                                <th class="px-3 py-3 font-medium">Environment</th>
+                                <th class="px-3 py-3 font-medium">Status</th>
+                                <th class="px-3 py-3 font-medium">Triggered by</th>
+                                <th class="px-3 py-3 font-medium">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @for (deployment of deployments; track deployment.version) {
+                                <tr>
+                                    <td class="px-3 py-3 font-medium text-gray-800 dark:text-white/90">
+                                        {{ deployment.version }}
+                                    </td>
+                                    <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
+                                        {{ deployment.environment }}
+                                    </td>
+                                    <td class="px-3 py-3">
+                                        <span
+                                            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                            [class]="statusBadgeClass(deployment.status)"
+                                        >
+                                            {{ deployment.status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
+                                        {{ deployment.triggeredBy }}
+                                    </td>
+                                    <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{{ deployment.date }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </app-component-card>
+        }
+
+        @case ('logs') {
+            <app-component-card title="Logs">
+                <div class="overflow-x-auto rounded-lg bg-gray-900 p-4 font-mono text-xs leading-relaxed">
+                    @for (log of logs; track $index) {
+                        <div class="flex gap-3 whitespace-nowrap">
+                            <span class="text-gray-500">{{ log.time }}</span>
+                            <span class="w-12 shrink-0 font-semibold" [class]="logLevelClass(log.level)">
+                                {{ log.level }}
+                            </span>
+                            <span class="text-gray-300">{{ log.message }}</span>
+                        </div>
+                    }
+                </div>
+            </app-component-card>
+        }
+    }
+</div>

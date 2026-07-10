@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pnpm --filter backend build)",
-      "Bash(pnpm --filter frontend build)"
+      "Bash(pnpm --filter frontend build)",
+      "WebFetch(domain:angular-demo.tailadmin.com)"
     ]
   }
 }
