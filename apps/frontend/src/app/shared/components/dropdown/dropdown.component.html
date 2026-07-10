@@ -1,0 +1,22 @@
+<div class="relative">
+    <button
+        type="button"
+        (click)="toggle()"
+        [attr.aria-expanded]="isOpen()"
+        aria-haspopup="menu"
+        aria-label="Open menu"
+        class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+    >
+        <svg lucideEllipsisVertical class="h-5 w-5"></svg>
+    </button>
+
+    @if (isOpen()) {
+        <div
+            (click)="close()"
+            role="menu"
+            class="absolute right-0 z-40 mt-2 w-40 rounded-xl border border-gray-200 bg-white p-1.5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
+        >
+            <ng-content></ng-content>
+        </div>
+    }
+</div>

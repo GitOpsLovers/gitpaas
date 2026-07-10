@@ -152,3 +152,4 @@ If the agent needs more information about the frontend application, refer to the
 
 - The agent should never run ESLint; this is the user's responsibility.
 - If new dependencies need to be installed, ask the user to install them, specifying which ones.
+- For any pure refactoring task delegate to the `refactorer` subagent instead of doing it inline. Give it the complete scope (exact goal + file paths) in the prompt, since it starts with no conversation history. Do not delegate bug fixes or new features to it.

@@ -132,6 +132,9 @@ importers:
       '@angular/router':
         specifier: 22.0.0
         version: 22.0.0(@angular/common@22.0.0(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))(rxjs@7.8.0))(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))(@angular/platform-browser@22.0.0(@angular/common@22.0.0(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))(rxjs@7.8.0))(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0)))(rxjs@7.8.0)
+      '@lucide/angular':
+        specifier: 1.23.0
+        version: 1.23.0(@angular/common@22.0.0(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))(rxjs@7.8.0))(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))
       rxjs:
         specifier: 7.8.0
         version: 7.8.0
@@ -1614,6 +1617,12 @@ packages:
     resolution: {integrity: sha512-JF1BmLCm9kGEVZgYmJq43zeQVdHVgAJnTi/NURWEsy6L1ZrrlSmdltS+D17QN4LODwf+1LMXAA9auIZVXtWwzw==}
     cpu: [x64]
     os: [win32]
+
+  '@lucide/angular@1.23.0':
+    resolution: {integrity: sha512-zLt2s9EynuYO/kUd+b8dVeAER/ra8Pwcl5LVH31XRSc5TIoSNXCPQINN9LjTMqaZAeAw2ghwOTWO5FVumB8Ppw==}
+    peerDependencies:
+      '@angular/common': '>=17.0.0'
+      '@angular/core': '>=17.0.0'
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -8330,6 +8339,12 @@ snapshots:
 
   '@lmdb/lmdb-win32-x64@3.5.4':
     optional: true
+
+  '@lucide/angular@1.23.0(@angular/common@22.0.0(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))(rxjs@7.8.0))(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))':
+    dependencies:
+      '@angular/common': 22.0.0(@angular/core@22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0))(rxjs@7.8.0)
+      '@angular/core': 22.0.0(@angular/compiler@22.0.0)(rxjs@7.8.0)
+      tslib: 2.3.0
 
   '@lukeed/csprng@1.1.0': {}
 
