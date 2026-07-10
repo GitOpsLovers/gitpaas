@@ -20,8 +20,17 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         private readonly repository: Repository<ProjectDbEntity>,
     ) {}
 
-    public getAll(): Promise<Project[]> {
-        return this.repository.find({ order: { id: 'DESC' } });
+    public async getAll(): Promise<Project[]> {
+        const projects = await this.repository.find({
+            relations: { services: true },
+            order: { id: 'DESC' },
+        });
+
+        return projects.map((project) => ({
+            id: project.id,
+            name: project.name,
+            servicesCount: project.services?.length ?? 0,
+        }));
     }
 
     public findById(id: string): Promise<Project | null> {

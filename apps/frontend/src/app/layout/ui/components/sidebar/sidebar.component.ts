@@ -76,10 +76,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
             name: 'Repositories',
             path: '/dashboard',
         },
-    ];
-
-    // Others nav items
-    public othersItems: NavItem[] = [
         {
             icon: 'settings',
             name: 'Settings',
@@ -177,10 +173,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
 
     private setActiveMenuFromRoute(currentUrl: string): void {
-        const menuGroups = [
-            { items: this.navItems, prefix: 'main' },
-            { items: this.othersItems, prefix: 'others' },
-        ];
+        const menuGroups = [{ items: this.navItems, prefix: 'main' }];
 
         menuGroups.forEach((group) => {
             group.items.forEach((nav, i) => {

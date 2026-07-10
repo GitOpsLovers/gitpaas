@@ -16,7 +16,7 @@ export class ServiceDbEntity {
     @Column('uuid')
     public projectId!: string;
 
-    @ManyToOne(() => ProjectDbEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => ProjectDbEntity, (project) => project.services, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'projectId' })
     public project?: ProjectDbEntity;
 }
