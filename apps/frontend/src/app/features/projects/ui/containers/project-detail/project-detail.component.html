@@ -1,10 +1,7 @@
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-    <div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-            {{ project()?.name ?? 'Project' }}
-        </h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Services in this project</p>
-    </div>
+<app-breadcrumb [items]="breadcrumb()" />
+
+<div class="mb-6 flex items-center justify-between gap-3">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Services in this project</p>
     <a
         [routerLink]="['/projects', id, 'services', 'add']"
         class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"

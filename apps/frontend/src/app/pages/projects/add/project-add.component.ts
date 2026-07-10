@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 import { ProjectAddComponent } from '@features/projects/ui/containers/project-add/project-add.component';
-import { BreadcrumbComponent } from '@layout/ui/components/breadcrumb/breadcrumb.component';
+import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 
 @Component({
     selector: 'app-projects-add-page',
@@ -12,4 +12,9 @@ import { BreadcrumbComponent } from '@layout/ui/components/breadcrumb/breadcrumb
 /**
  * Create project page.
  */
-export class ProjectsAddPage {}
+export class ProjectsAddPage {
+    protected readonly breadcrumb: BreadcrumbItem[] = [
+        { label: 'Projects', link: '/projects' },
+        { label: 'Add project' },
+    ];
+}
