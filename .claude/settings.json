@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter backend build)",
+      "Bash(pnpm --filter frontend build)"
+    ]
+  }
+}

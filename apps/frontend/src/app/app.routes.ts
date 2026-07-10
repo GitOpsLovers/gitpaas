@@ -34,6 +34,21 @@ export const routes: Routes = [
                         loadComponent: () => import('@pages/projects/edit/project-edit.component').then((m) => m.ProjectsEditPage),
                         title: 'Edit project | Artifactory',
                     },
+                    {
+                        path: ':id',
+                        loadComponent: () => import('@pages/projects/detail/project-detail.component').then((m) => m.ProjectDetailPage),
+                        title: 'Project | Artifactory',
+                    },
+                    {
+                        path: ':id/services/add',
+                        loadComponent: () => import('@pages/services/add/service-add.component').then((m) => m.ServicesAddPage),
+                        title: 'Add service | Artifactory',
+                    },
+                    {
+                        path: ':id/services/edit/:serviceId',
+                        loadComponent: () => import('@pages/services/edit/service-edit.component').then((m) => m.ServicesEditPage),
+                        title: 'Edit service | Artifactory',
+                    },
                 ],
             },
         ],

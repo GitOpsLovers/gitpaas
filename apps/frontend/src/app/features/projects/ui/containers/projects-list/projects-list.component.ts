@@ -13,7 +13,7 @@ import { ProjectCardComponent } from '../../components/project-card/project-card
 })
 
 /**
- * Projects list component
+ * Projects list container component
  */
 export class ProjectsListComponent {
     private readonly repository = inject(ProjectsApiRepository);
@@ -21,6 +21,10 @@ export class ProjectsListComponent {
     private readonly router = inject(Router);
 
     protected readonly projects = this.repository.projects;
+
+    protected view(project: Project): void {
+        this.router.navigate(['/projects', project.id]);
+    }
 
     protected edit(project: Project): void {
         this.router.navigate(['/projects/edit', project.id]);

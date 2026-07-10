@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
-import { ProjectFormComponent } from '@features/projects/ui/components/project-form/project-form.component';
+import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+import { ProjectFormComponent } from '../../components/project-form/project-form.component';
 
 @Component({
     selector: 'app-project-add',
@@ -12,7 +12,7 @@ import { ProjectFormComponent } from '@features/projects/ui/components/project-f
 })
 
 /**
- * Smart container that creates a new project and navigates back to the list.
+ * Add project container component
  */
 export class ProjectAddComponent {
     private readonly repository = inject(ProjectsApiRepository);

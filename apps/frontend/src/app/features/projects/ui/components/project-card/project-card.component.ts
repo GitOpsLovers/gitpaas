@@ -16,6 +16,8 @@ import { DropdownComponent } from '@shared/components/dropdown/dropdown.componen
 export class ProjectCardComponent {
     public readonly project = input.required<Project>();
 
+    public readonly view = output<Project>();
+
     public readonly edit = output<Project>();
 
     public readonly delete = output<Project>();
