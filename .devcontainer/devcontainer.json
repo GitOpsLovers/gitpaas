@@ -13,7 +13,8 @@
         "GitHub.vscode-github-actions",
         "redhat.vscode-yaml",
         "angular.ng-template",
-        "ms-vscode.vscode-typescript-next"
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.makefile-tools"
       ],
       "settings": {
         "http.proxyStrictSSL": false

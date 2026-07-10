@@ -1,0 +1,41 @@
+# Local development: emulated VPS.
+#
+# Runs a Docker-in-Docker (DinD) container that acts as the remote VPS where
+# the Artifactory deploys applications. The backend app (running on this host)
+# talks to this container's Docker daemon through Dockerode over TLS
+#
+# Everything the Artifactory deploys (images, volumes, containers) lives inside
+# this container.
+#
+# Paths are relative to this file (iac/development/); certs and state live under
+# the repo-root `.dev/` directory.
+name: artifactory-dev
+
+services:
+  vps:
+    image: docker:29-dind
+    container_name: artifactory-vps
+    privileged: true
+    restart: unless-stopped
+    environment:
+      # Makes the daemon listen on tcp://0.0.0.0:2376 with TLS and drop the
+      # generated client certificates under /certs/client.
+      DOCKER_TLS_CERTDIR: /certs
+    ports:
+      - "127.0.0.1:2376:2376" # TLS Docker daemon — Dockerode connects here
+      - "127.0.0.1:8080:80"   # reserved: reverse proxy (deployed apps) HTTP
+      - "127.0.0.1:8443:443"  # reserved: reverse proxy (deployed apps) HTTPS
+    volumes:
+      # Client certs are shared to the host so the backend can authenticate.
+      - ../../.dev/vps-certs:/certs
+      # Persist the emulated VPS's images/volumes across restarts.
+      - vps-data:/var/lib/docker
+    healthcheck:
+      test: ["CMD-SHELL", "docker -H unix:///var/run/docker.sock info >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  vps-data:
