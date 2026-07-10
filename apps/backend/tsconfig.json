@@ -22,7 +22,8 @@
     "noFallthroughCasesInSwitch": false,
     "rootDir": ".",
     "paths": {
-      "@core/*": ["./src/core/*"]
+      "@core/*": ["./src/core/*"],
+      "@features/*": ["./src/features/*"]
     }
   }
 }

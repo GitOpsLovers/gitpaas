@@ -1,0 +1,15 @@
+<div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">Edit project</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update the project name.</p>
+</div>
+
+@if (loading()) {
+    <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+} @else {
+    <app-project-form
+        [initialName]="initialName()"
+        submitLabel="Save changes"
+        [submitting]="submitting()"
+        (save)="update($event)"
+    />
+}

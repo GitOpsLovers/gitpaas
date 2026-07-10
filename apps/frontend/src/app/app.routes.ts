@@ -16,6 +16,26 @@ export const routes: Routes = [
                 loadComponent: () => import('@pages/dashboard/dashboard').then((m) => m.DashboardPage),
                 title: 'Dashboard | Artifactory',
             },
+            {
+                path: 'projects',
+                children: [
+                    {
+                        path: '',
+                        loadComponent: () => import('@pages/projects/list/list').then((m) => m.ProjectsListPage),
+                        title: 'Projects | Artifactory',
+                    },
+                    {
+                        path: 'add',
+                        loadComponent: () => import('@pages/projects/add/add').then((m) => m.ProjectsAddPage),
+                        title: 'Add project | Artifactory',
+                    },
+                    {
+                        path: 'edit/:id',
+                        loadComponent: () => import('@pages/projects/edit/edit').then((m) => m.ProjectsEditPage),
+                        title: 'Edit project | Artifactory',
+                    },
+                ],
+            },
         ],
     },
     {

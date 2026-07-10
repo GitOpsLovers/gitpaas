@@ -58,8 +58,8 @@ Every feature is split into four layers with a one-directional dependency rule: 
 
 | Layer              | Location                          | Responsibility                                                                                                           | May import a framework? |
 |--------------------|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------------------|
-| **domain**         | `domain/`                         | The contract: repository **ports**, request **DTOs**, and any app-specific input/filter types.                           | No — except DTOs        |
-| **application**    | `application/`                    | Business logic as **pure use-case functions** that receive their dependencies (the repository port) as parameters.       | No.                    |
+| **domain**         | `domain/`                         | The contract: the **domain model** (entity interface), repository **ports**, and request **DTOs**.                       | No — except DTOs        |
+| **application**    | `application/`                    | Business logic as **pure use-case functions** that receive the dependencies as parameters.                               | No.                     |
 | **infrastructure** | `infrastructure/database/`        | **Adapters**: TypeORM entities and the repository implementation of the domain port, plus any entity→domain transformer. | Yes (TypeORM).          |
 | **ui**             | `ui/controllers/`, `ui/services/` | HTTP routing and the NestJS DI **bridge** (services) that connect use cases to the repository implementation.            | Yes (NestJS).           |
 
@@ -71,23 +71,69 @@ Every feature is split into four layers with a one-directional dependency rule: 
 features/<feature>/
   <feature>.module.ts                     — NestJS module wiring
   domain/
-    models/<feature>.models.ts            — ONLY app-specific input/filter types (optional; see below)
-    repositories/<feature>.repository.ts  — repository interface (the port)
+    models/<entity>.model.ts              — the domain model (entity interface); plus any app-specific input/filter types
+    repositories/<feature>.repository.ts  — repository interface (the port), named <Feature>Repository
     dtos/                                 — create-/update- DTO classes (class-validator)
   application/                            — one <verb>-<entity>.use-case.ts per operation (pure functions)
   infrastructure/database/
-    <entity>-db.entity.ts                 — TypeORM entity
-    <feature>-db.repository.ts            — repository implementation (the adapter)
+    <entity>-db.entity.ts                 — TypeORM entity (…DbEntity)
+    <feature>-db.repository.ts            — repository implementation (…DatabaseRepository), implements the port
     <feature>-db.transformer.ts           — entity→domain mapping (only when shapes differ)
   ui/
     controllers/<feature>.controller.ts
     services/<feature>.service.ts
 ```
 
+Using `projects` as the reference feature:
+
+```
+features/projects/
+  projects.module.ts
+  domain/
+    models/project.model.ts                — Project (id: string, name: string)
+    repositories/projects.repository.ts    — ProjectsRepository (the port)
+    dtos/create-project.dto.ts
+    dtos/update-project.dto.ts
+  application/
+    get-all-projects.use-case.ts
+    find-project-by-id.use-case.ts
+    create-project.use-case.ts
+    update-project.use-case.ts
+    delete-project.use-case.ts
+  infrastructure/database/
+    project-db.entity.ts                   — ProjectDbEntity
+    projects-db.repository.ts              — ProjectsDatabaseRepository
+  ui/
+    controllers/projects.controller.ts     — ProjectsController
+    services/projects.service.ts           — ProjectsService
+```
+
+## The repository port & dependency injection
+
+The repository is expressed as a **port** and an **adapter**, but wired without a custom provider token:
+
+- **Port** — `domain/repositories/<feature>.repository.ts` exports a plain TypeScript `interface` named `<Feature>Repository` (e.g. `ProjectsRepository`). Methods are declared as arrow-function properties and are expressed in **domain terms**: they accept and return the domain model and the DTOs, never TypeORM types. This is what the pure use cases depend on.
+- **Adapter** — `infrastructure/database/<feature>-db.repository.ts` exports `<Feature>DatabaseRepository`, an `@Injectable()` class that `implements <Feature>Repository`.
+- **Wiring** — the feature module lists the concrete `<Feature>DatabaseRepository` **directly** in `providers`, and the service injects it **by class** (`@Inject(ProjectsDatabaseRepository)`). There is **no** `{ provide: TOKEN, useClass }` indirection. Because the adapter `implements` the port, the service can hand it to the use cases, which only ever see the port type — so the application layer stays framework-agnostic while DI stays simple.
+
+```typescript
+// projects.module.ts
+@Module({
+    imports: [TypeOrmModule.forFeature([ProjectDbEntity])],
+    controllers: [ProjectsController],
+    providers: [ProjectsService, ProjectsDatabaseRepository],
+})
+export class ProjectsModule {}
+```
+
+**DTOs flow through the whole write path.** Create/update use cases and repository methods receive the **DTO** itself (`create(createDto)`, `update(id, updateDto)`), not unpacked primitives. The service passes the validated DTO straight through from the controller to the use case to the repository.
+
 ## Persistence
 
 - **ORM:** TypeORM with `@nestjs/typeorm`. The root connection is configured once in `CoreModule`; features only call `forFeature`.
 - **Entities** (`infrastructure/database/<entity>-db.entity.ts`) define the table mapping with `@Entity('<plural_snake_case>')`. Class names end in `DbEntity`.
+- **Primary keys are UUIDs:** `@PrimaryGeneratedColumn('uuid')`, and the domain model's `id` is a `string`.
+- The adapter maps DTOs to rows with TypeORM helpers — `repository.create(createDto)` for inserts and `repository.merge(entity, updateDto)` for updates — so no transformer is needed while the entity, model, and DTO shapes align.
 
 ## Validation
 
@@ -113,7 +159,8 @@ Each CRUD feature exposes the same REST shape:
 | `PUT /:id`      | `update`             | `@Body()` bound to an update DTO; 404 when missing   |
 | `DELETE /:id`   | `delete`             | `@HttpCode(204)`; 404 when missing                   |
 
-- Controllers declare only the resource path (`@Controller('genres')`) — the `api/v1` prefix is global.
+- Controllers declare only the resource path (`@Controller('projects')`) — the `api/v1` prefix is global.
+- **Id params are UUIDs:** `:id` is validated and bound with `@Param('id', ParseUUIDPipe)`; a malformed id is rejected before the handler runs.
 - **Delete semantics:** the repository's `delete(id)` returns a `boolean` (`(result.affected ?? 0) > 0`); the controller throws `NotFoundException` when it is `false`, otherwise returns `204 No Content`.
 - **Not-found is an HTTP concern:** repositories return `null`; controllers translate that into `NotFoundException`. The domain layer never throws HTTP exceptions.
 - Controllers clean `undefined` query params before passing a filter object to the service.
@@ -130,14 +177,21 @@ HTTP Request
   → PostgreSQL
 ```
 
-Example — `GET /api/v1/genres`:
+Example — `GET /api/v1/projects`:
 
-1. `GenresController.getAll()` handles the request (this resource takes no filters).
-2. `GenresService.getAll()` delegates to the use case.
-3. `getAllGenresUseCase(repository)` calls `repository.getAll()`.
-4. `GenresDatabaseRepository.getAll()` runs a TypeORM `find()` ordered by `id DESC`.
-5. Because `GenreDbEntity` matches the `Genre` domain model, entities are returned directly (no transformer).
-6. The `Genre[]` is JSON-serialized in the response.
+1. `ProjectsController.getAll()` handles the request (this resource takes no filters).
+2. `ProjectsService.getAll()` delegates to the use case.
+3. `getAllProjectsUseCase(repository)` calls `repository.getAll()`.
+4. `ProjectsDatabaseRepository.getAll()` runs a TypeORM `find()` ordered by `id DESC`.
+5. Because `ProjectDbEntity` matches the `Project` domain model, entities are returned directly (no transformer).
+6. The `Project[]` is JSON-serialized in the response.
+
+Example — `POST /api/v1/projects` (DTO through the write path):
+
+1. The global `ValidationPipe` validates the body into a `CreateProjectDto` instance.
+2. `ProjectsController.create(createDto)` passes the DTO to `ProjectsService.create(createDto)`.
+3. `createProjectUseCase(repository, createDto)` calls `repository.create(createDto)`.
+4. `ProjectsDatabaseRepository.create()` builds the row with `repository.create(createDto)` and persists it with `save()`, returning the created `Project`.
 
 A richer feature with filters would instead extract and clean query params in the controller, thread a filter object through the service and use case, build a TypeORM `where` in the repository, and map rows through a transformer.
 
@@ -145,4 +199,4 @@ A richer feature with filters would instead extract and clean query params in th
 
 - **Path aliases:** `@features/*` → `src/features/*`, `@core/*` → `src/core/*`. Use them for cross-feature and core imports; use relative paths within a feature.
 - **JSDoc** is applied consistently across the backend: a one-line block on every exported class/interface/function, and on domain repositories, services, and use cases a fuller block with `@param`/`@returns` (`Gets`/`Creates`/`Updates`/`Deletes …`). Mirror the existing style of the same file type when adding or changing code.
-- **Naming:** entities `…DbEntity`; repository impls `…DatabaseRepository`; use cases `<verb>-<entity>.use-case.ts` exporting `<verb><Entity>UseCase`; tables plural snake_case.
+- **Naming:** domain models `<Entity>` in `models/<entity>.model.ts`; repository ports `<Feature>Repository` in `repositories/<feature>.repository.ts`; entities `…DbEntity`; repository impls `…DatabaseRepository`; use cases `<verb>-<entity>.use-case.ts` exporting `<verb><Entity>UseCase`; tables plural snake_case.
