@@ -93,6 +93,53 @@ The infrastructure layer contains one `@Injectable()` repository per feature (`<
 
 After a successful command, the caller calls `.reload()` on the resource to refresh the list.
 
+#### Signals-only containers: commands as trigger-driven resources
+
+Some containers are **signals-only** — they never inject `Observable`s or call `.subscribe()`. There, a command is modelled as a **`httpResource` driven by a trigger signal** instead of an `HttpClient` call:
+
+- The repository holds a private **trigger signal** and exposes a command **resource** whose reactive request is `undefined` (idle) until the trigger is set. A public imperative method sets the trigger; a monotonically increasing `nonce` on the trigger value lets the *same* payload run again (the resource re-runs only when its request value changes).
+- `httpResource` accepts a request object, so a command is a non-`GET` request: `{ url, method: 'POST' | 'PUT', body }`.
+- The container derives loading state from the resource (`computed(() => repo.command.isLoading())`) and reacts to completion with an `effect()` that reads the resource's `value()` — e.g. to write the saved record back into a read resource or to `.reload()` a list. It never subscribes.
+- Periodic work (polling) uses `setInterval` cleaned up through `DestroyRef.onDestroy`, not an RxJS `interval` subscription.
+
+```typescript
+@Injectable()
+export class DeploymentsApiRepository {
+    private readonly url = 'http://localhost:3000/api/v1/deployments';
+
+    // Trigger + command resource: idle until deploy() is called
+    private readonly deployTrigger = signal<{ serviceId: string; nonce: number } | undefined>(undefined);
+    public readonly deployment = httpResource<Deployment>(() => {
+        const trigger = this.deployTrigger();
+
+        return trigger ? { url: this.url, method: 'POST', body: { serviceId: trigger.serviceId } } : undefined;
+    });
+
+    public deploy(serviceId: string): void {
+        this.deployTrigger.update((current) => ({ serviceId, nonce: (current?.nonce ?? 0) + 1 }));
+    }
+}
+```
+
+```typescript
+// Container: no Observable, no subscribe
+protected readonly deploying = computed(() => this.deployments.deployment.isLoading());
+
+constructor() {
+    effect(() => {
+        if (this.deployments.deployment.value()) {
+            this.history.reload();
+        }
+    });
+}
+
+protected deploy(): void {
+    this.deployments.deploy(this.id());
+}
+```
+
+Prefer this pattern for new containers; the `Observable`-returning command methods above remain for the screens that still use them.
+
 The repository is **not** `providedIn: 'root'`; it is `@Injectable()` and provided by the smart **container** that uses it (`providers: [ProjectsApiRepository]`), so each screen gets its own instance and a fresh fetch.
 
 ```typescript
@@ -202,7 +249,7 @@ The `LayoutComponent` is the root route wrapper that renders the sidebar, header
 
 Page components are the route-level components in `pages/`, nested per feature under `pages/<feature>/{list,add,edit}/`. Each is a `<name>.component.ts`, its class is suffixed `Page` (`ProjectsListPage`, `ProjectsAddPage`, `ProjectsEditPage`) and its selector `app-<feature>-<action>-page`.
 
-**Pages are thin — they only compose components; they hold no business logic and inject no services.** A page renders the `<app-breadcrumb>` header and drops in the feature's smart container. Its class is empty.
+**Pages are thin — they only compose components; they hold no business logic and inject no services.** A page renders the `<app-breadcrumb>` header and drops in the feature's smart container. Most page classes are empty.
 
 ```typescript
 @Component({
@@ -220,6 +267,21 @@ export class ProjectsAddPage {}
 ```
 
 The state, repository, and command orchestration that used to live on the add/edit pages now live in their `project-add` / `project-edit` containers (see *Containers*).
+
+**Route params enter through the page, not the container.** The router is configured with `withComponentInputBinding()`, so a routed page receives its route params as **signal inputs whose names match the params** (`:id` → `id`, `:serviceId` → `serviceId`). The page forwards them to its container as inputs — the container reads them via `input.required<string>()` rather than injecting `ActivatedRoute`. This keeps route-reading a page concern (still no service injection, no business logic) and leaves the container decoupled from routing and independently testable by setting inputs.
+
+```typescript
+// page: binds route params, forwards them
+export class ServiceDetailPage {
+    public readonly id = input.required<string>();          // :id (project)
+    public readonly serviceId = input.required<string>();   // :serviceId
+}
+```
+
+```html
+<!-- service-detail.component.html (page) -->
+<app-service-detail [projectId]="id()" [serviceId]="serviceId()" />
+```
 
 ## Data flow
 

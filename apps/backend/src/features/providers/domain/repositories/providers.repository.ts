@@ -2,9 +2,9 @@ import { GitBranch } from '../models/git-branch.model';
 import { GitRepository } from '../models/git-repository.model';
 
 /**
- * Port to a source-control provider (GitHub).
+ * Providers repository
  */
-export interface GitProvider {
+export interface ProvidersRepository {
     /**
      * List every repository the installation can access
      *
@@ -20,4 +20,15 @@ export interface GitProvider {
      * @returns A list of branches
      */
     listBranches: (repositoryId: number) => Promise<GitBranch[]>;
+
+    /**
+     * Read the UTF-8 content of a file in a repository at a given ref
+     *
+     * @param repositoryId Repository identifier
+     * @param path Path to the file within the repository
+     * @param ref Branch, tag or commit to read the file from
+     *
+     * @returns The file content
+     */
+    getFileContent: (repositoryId: number, path: string, ref: string) => Promise<string>;
 }

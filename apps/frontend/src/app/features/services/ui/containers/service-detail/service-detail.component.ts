@@ -1,7 +1,5 @@
 import { HttpResourceRef } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -10,6 +8,8 @@ import { ServiceDeploymentsComponent } from '../../components/service-deployment
 import { ServiceLogsComponent } from '../../components/service-logs/service-logs.component';
 import { ServiceProviderComponent, ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
 
+import { Deployment } from '@features/deployments/domain/models/deployment.model';
+import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { Project } from '@features/projects/domain/models/project.model';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -20,7 +20,7 @@ type ServiceTab = 'general' | 'deployments' | 'logs';
 @Component({
     selector: 'app-service-detail',
     templateUrl: './service-detail.component.html',
-    providers: [ServicesApiRepository, ProjectsApiRepository],
+    providers: [ServicesApiRepository, ProjectsApiRepository, DeploymentsApiRepository],
     imports: [
         BreadcrumbComponent,
         ServiceDeployActionsComponent,
@@ -38,34 +38,66 @@ export class ServiceDetailComponent {
 
     private readonly projectsRepository = inject(ProjectsApiRepository);
 
-    private readonly route = inject(ActivatedRoute);
+    private readonly deploymentsRepository = inject(DeploymentsApiRepository);
 
-    private readonly routerParams = toSignal(this.route.paramMap);
+    public readonly projectId = input.required<string>();
 
-    protected readonly projectId = computed(() => this.routerParams()?.get('id') ?? '');
+    public readonly serviceId = input.required<string>();
 
-    private readonly id = computed(() => this.routerParams()?.get('serviceId') ?? '');
-
-    protected readonly service: HttpResourceRef<Service | undefined> = this.repository.serviceById(() => this.id());
+    protected readonly service: HttpResourceRef<Service | undefined> = this.repository.serviceById(() => this.serviceId());
 
     private readonly project: HttpResourceRef<Project | undefined> = this.projectsRepository.projectById(() => this.projectId());
 
+    // eslint-disable-next-line max-len
+    protected readonly deployments: HttpResourceRef<Deployment[] | undefined> = this.deploymentsRepository.deploymentsByService(() => this.serviceId());
+
     protected readonly activeTab = signal<ServiceTab>('general');
 
-    protected readonly savingProvider = signal(false);
+    protected readonly savingProvider = computed(() => this.repository.updatedService.isLoading());
 
+    protected readonly deploying = computed(() => this.deploymentsRepository.deployment.isLoading());
+
+    constructor() {
+        // Reflect a saved service back into the detail resource once the update command resolves.
+        effect(() => {
+            const updated = this.repository.updatedService.value();
+
+            if (updated) {
+                this.service.value.set(updated);
+            }
+        });
+
+        // Refresh the deployment history whenever a newly triggered deployment resolves.
+        effect(() => {
+            const triggered = this.deploymentsRepository.deployment.value();
+
+            if (triggered) {
+                this.deployments.reload();
+            }
+        });
+    }
+
+    /**
+     * Defines the tabs available in the service detail view.
+     */
     protected readonly tabs: Array<{ id: ServiceTab; label: string }> = [
         { id: 'general', label: 'General' },
         { id: 'deployments', label: 'Deployments' },
         { id: 'logs', label: 'Logs' },
     ];
 
+    /**
+     * Maps the current project and service into a breadcrumb trail for navigation.
+     */
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
         { label: 'Projects', link: '/projects' },
         { label: this.project.value()?.name ?? 'Project', link: ['/projects', this.projectId()] },
         { label: this.service.value()?.name ?? 'Service' },
     ]);
 
+    /**
+     * Maps the service's provider settings into an object for the provider form.
+     */
     protected readonly providerSettings = computed<ServiceProviderSettings>(() => {
         const service = this.service.value();
 
@@ -76,6 +108,9 @@ export class ServiceDetailComponent {
         };
     });
 
+    /**
+     * Saves the provider settings through the update command resource.
+     */
     protected saveProvider(settings: ServiceProviderSettings): void {
         const current = this.service.value();
 
@@ -83,14 +118,13 @@ export class ServiceDetailComponent {
             return;
         }
 
-        this.savingProvider.set(true);
+        this.repository.save(this.serviceId(), { name: current.name, ...settings });
+    }
 
-        this.repository.update(this.id(), { name: current.name, ...settings }).subscribe({
-            next: (service) => {
-                this.service.value.set(service);
-                this.savingProvider.set(false);
-            },
-            error: () => { this.savingProvider.set(false); },
-        });
+    /**
+     * Triggers a new deployment for the service.
+     */
+    protected deploy(): void {
+        this.deploymentsRepository.deploy(this.serviceId());
     }
 }

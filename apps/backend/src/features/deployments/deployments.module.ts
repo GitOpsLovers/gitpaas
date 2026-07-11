@@ -1,0 +1,27 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { DeploymentDbEntity } from './infrastructure/database/deployment-db.entity';
+import { DeploymentsDatabaseRepository } from './infrastructure/database/deployments-db.repository';
+import { DeploymentsController } from './ui/controllers/deployments.controller';
+import { DeploymentsService } from './ui/services/deployments.service';
+
+import { ProvidersModule } from '@features/providers/providers.module';
+import { ServicesModule } from '@features/services/services.module';
+
+/**
+ * Deployments feature module.
+ */
+@Module({
+    imports: [TypeOrmModule.forFeature([DeploymentDbEntity]), ServicesModule, ProvidersModule],
+    controllers: [DeploymentsController],
+    providers: [
+        DeploymentsService,
+        DeploymentsDatabaseRepository,
+    ],
+})
+
+/**
+ * Deployments module
+ */
+export class DeploymentsModule {}

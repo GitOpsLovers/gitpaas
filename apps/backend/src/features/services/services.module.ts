@@ -16,6 +16,7 @@ import { ServicesService } from './ui/services/services.service';
         ServicesService,
         ServicesDatabaseRepository,
     ],
+    exports: [ServicesDatabaseRepository],
 })
 
 /**

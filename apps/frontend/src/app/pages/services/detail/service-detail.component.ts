@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { ServiceDetailComponent } from '@features/services/ui/containers/service-detail/service-detail.component';
 
@@ -9,6 +9,10 @@ import { ServiceDetailComponent } from '@features/services/ui/containers/service
 })
 
 /**
- * Service detail page.
+ * Service detail page component
  */
-export class ServiceDetailPage {}
+export class ServiceDetailPage {
+    public readonly id = input.required<string>();
+
+    public readonly serviceId = input.required<string>();
+}

@@ -5,7 +5,7 @@
 <div class="mt-6">
     @switch (activeTab()) {
         @case ('general') {
-            <app-service-deploy-actions class="mb-6 block" />
+            <app-service-deploy-actions class="mb-6 block" [deploying]="deploying()" (deploy)="deploy()" />
 
             <app-service-provider
                 [initial]="providerSettings()"
@@ -15,7 +15,7 @@
         }
 
         @case ('deployments') {
-            <app-service-deployments />
+            <app-service-deployments [deployments]="deployments.value() ?? []" [loading]="deployments.isLoading()" />
         }
 
         @case ('logs') {

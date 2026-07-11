@@ -1,18 +1,18 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
 import { GitBranch } from '../../domain/models/git-branch.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
-import { GitProvider } from '../../domain/repositories/git-provider.repository';
+import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 
 @Injectable()
 
 /**
  * GitHub App provider.
  */
-export class GithubAppProvider implements GitProvider {
+export class GithubAppProvider implements ProvidersRepository {
     private readonly logger = new Logger(GithubAppProvider.name);
 
     private client: Octokit | undefined;
@@ -45,6 +45,27 @@ export class GithubAppProvider implements GitProvider {
         return branches.map((branch) => ({ name: branch.name }));
     }
 
+    public async getFileContent(repositoryId: number, path: string, ref: string): Promise<string> {
+        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+            id: repositoryId,
+        });
+
+        const [owner, repo] = repository.full_name.split('/');
+
+        const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/contents/{path}', {
+            owner,
+            repo,
+            path,
+            ref,
+        });
+
+        if (Array.isArray(data) || data.type !== 'file' || typeof data.content !== 'string') {
+            throw new NotFoundException(`"${path}" is not a file in ${repository.full_name}@${ref}`);
+        }
+
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+
     /**
      * Lazily-created, reused Octokit client authenticated as the installation.
      */
@@ -72,7 +93,6 @@ export class GithubAppProvider implements GitProvider {
             authStrategy: createAppAuth,
             auth: {
                 appId,
-                // The PEM is stored base64-encoded in the environment.
                 privateKey: Buffer.from(privateKey, 'base64').toString('utf8'),
                 installationId: Number(installationId),
             },

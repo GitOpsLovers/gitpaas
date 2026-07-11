@@ -1,32 +1,20 @@
 <app-component-card title="Deploy Actions">
     <div class="flex flex-wrap gap-3">
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
-        >
+        <app-button variant="primary" size="sm" [disabled]="deploying()" (btnClick)="deploy.emit()">
             <svg lucideRocket class="h-4 w-4"></svg>
-            Deploy
-        </button>
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
-        >
+            {{ deploying() ? 'Deploying…' : 'Deploy' }}
+        </app-button>
+        <app-button variant="outline" size="sm">
             <svg lucideRotateCw class="h-4 w-4"></svg>
             Reload
-        </button>
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg bg-error-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-error-600"
-        >
+        </app-button>
+        <app-button variant="danger" size="sm">
             <svg lucideCircleStop class="h-4 w-4"></svg>
             Stop
-        </button>
-        <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
-        >
+        </app-button>
+        <app-button variant="dark" size="sm">
             <svg lucideTerminal class="h-4 w-4"></svg>
             Open Terminal
-        </button>
+        </app-button>
     </div>
 </app-component-card>

@@ -7,6 +7,9 @@
 # - postgres: the application's own database, where Artifactory persists its
 #             operations (projects, deployments, ...). In production this same
 #             database runs on the VPS.
+# - pgadmin:  a web UI to inspect and query the local postgres. Reachable at
+#             http://127.0.0.1:5050 (login admin@artifactory.com / artifactory);
+#             the local database server is pre-registered via pgadmin/servers.json.
 #
 # Paths are relative to this file (iac/development/); certs and state live under
 # the repo-root `.dev/` directory.
@@ -57,6 +60,28 @@ services:
       retries: 10
       start_period: 10s
 
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: artifactory-pgadmin
+    restart: unless-stopped
+    environment:
+      # pgAdmin rejects special-use TLDs like `.local`, so use a normal domain.
+      PGADMIN_DEFAULT_EMAIL: admin@artifactory.com
+      PGADMIN_DEFAULT_PASSWORD: artifactory
+      # Desktop mode: skip the login screen and master-password prompt for local dev.
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "127.0.0.1:5050:80" # web UI — open http://127.0.0.1:5050
+    volumes:
+      # Pre-register the local postgres server (connects to the `postgres` service).
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   vps-data:
   postgres-data:
+  pgadmin-data:

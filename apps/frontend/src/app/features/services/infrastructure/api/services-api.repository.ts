@@ -22,6 +22,23 @@ export class ServicesApiRepository {
     public readonly projectId = signal<string | undefined>(undefined);
 
     /**
+     * Trigger for the update command. A monotonically increasing `nonce` lets the same service be
+     * saved again: changing the signal value re-runs the command resource even when the payload is
+     * identical.
+     */
+    private readonly updateTrigger = signal<{ id: string; dto: UpdateServiceDto; nonce: number } | undefined>(undefined);
+
+    /**
+     * Command resource that updates a service. It is idle until `save()` is called, then it PUTs the
+     * request and exposes its lifecycle through `isLoading()`/`value()`/`error()`.
+     */
+    public readonly updatedService = httpResource<Service>(() => {
+        const trigger = this.updateTrigger();
+
+        return trigger ? { url: `${this.url}/${trigger.id}`, method: 'PUT', body: trigger.dto } : undefined;
+    });
+
+    /**
      * Resource with the services of the selected project
      */
     public readonly services = httpResource<Service[]>(() =>
@@ -74,6 +91,16 @@ export class ServicesApiRepository {
      */
     public update(id: string, dto: UpdateServiceDto): Observable<Service> {
         return this.http.put<Service>(`${this.url}/${id}`, dto);
+    }
+
+    /**
+     * Updates an existing service through the `updatedService` command resource
+     *
+     * @param id Service identifier
+     * @param dto Data for updating the service
+     */
+    public save(id: string, dto: UpdateServiceDto): void {
+        this.updateTrigger.update((current) => ({ id, dto, nonce: (current?.nonce ?? 0) + 1 }));
     }
 
     /**

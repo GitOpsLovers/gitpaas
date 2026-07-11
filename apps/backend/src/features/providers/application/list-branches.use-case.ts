@@ -1,14 +1,14 @@
 import { GitBranch } from '../domain/models/git-branch.model';
-import { GitProvider } from '../domain/repositories/git-provider.repository';
+import { ProvidersRepository } from '../domain/repositories/providers.repository';
 
 /**
  * Use case that lists the branches of a repository.
  *
- * @param provider Source-control provider
+ * @param repository Providers repository
  * @param repositoryId Repository identifier
  *
  * @returns Branches of the repository
  */
-export function listBranchesUseCase(provider: GitProvider, repositoryId: number): Promise<GitBranch[]> {
-    return provider.listBranches(repositoryId);
+export function listBranchesUseCase(repository: ProvidersRepository, repositoryId: number): Promise<GitBranch[]> {
+    return repository.listBranches(repositoryId);
 }

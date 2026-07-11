@@ -16,7 +16,7 @@ export class ButtonComponent {
 
     public readonly size = input<'sm' | 'md'>('md');
 
-    public readonly variant = input<'primary' | 'outline'>('primary');
+    public readonly variant = input<'primary' | 'outline' | 'danger' | 'dark'>('primary');
 
     public readonly disabled = input(false);
 
@@ -33,9 +33,16 @@ export class ButtonComponent {
     }
 
     public get variantClasses(): string {
-        return this.variant() === 'primary'
-            ? 'bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300'
-            : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300';
+        switch (this.variant()) {
+            case 'primary':
+                return 'bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300';
+            case 'danger':
+                return 'bg-error-500 text-white shadow-theme-xs hover:bg-error-600 disabled:bg-error-300';
+            case 'dark':
+                return 'bg-gray-800 text-white shadow-theme-xs hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600';
+            default:
+                return 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300';
+        }
     }
 
     public get disabledClasses(): string {

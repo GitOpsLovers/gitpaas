@@ -10,6 +10,7 @@ import { GithubService } from './ui/services/github.service';
         GithubService,
         GithubAppProvider,
     ],
+    exports: [GithubAppProvider],
 })
 
 /**

@@ -5,34 +5,47 @@
                 class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
             >
                 <tr>
-                    <th class="px-3 py-3 font-medium">Version</th>
-                    <th class="px-3 py-3 font-medium">Environment</th>
+                    <th class="px-3 py-3 font-medium">Branch</th>
                     <th class="px-3 py-3 font-medium">Status</th>
                     <th class="px-3 py-3 font-medium">Triggered by</th>
-                    <th class="px-3 py-3 font-medium">Date</th>
+                    <th class="px-3 py-3 font-medium">Started</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                @for (deployment of deployments; track deployment.version) {
+                @for (deployment of deployments(); track deployment.id) {
                     <tr>
                         <td class="px-3 py-3 font-medium text-gray-800 dark:text-white/90">
-                            {{ deployment.version }}
-                        </td>
-                        <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
-                            {{ deployment.environment }}
+                            {{ deployment.branch }}
                         </td>
                         <td class="px-3 py-3">
                             <span
-                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
                                 [class]="statusBadgeClass(deployment.status)"
                             >
                                 {{ deployment.status }}
                             </span>
+                            @if (deployment.error) {
+                                <p class="mt-1 max-w-xs truncate text-xs text-error-500" [title]="deployment.error">
+                                    {{ deployment.error }}
+                                </p>
+                            }
                         </td>
                         <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
                             {{ deployment.triggeredBy }}
                         </td>
-                        <td class="px-3 py-3 text-gray-500 dark:text-gray-400">{{ deployment.date }}</td>
+                        <td class="px-3 py-3 text-gray-500 dark:text-gray-400">
+                            {{ deployment.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                        </td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="4" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
+                            @if (loading()) {
+                                Loading deployments…
+                            } @else {
+                                No deployments yet.
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
