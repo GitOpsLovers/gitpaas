@@ -14,6 +14,7 @@ import { Project } from '@features/projects/domain/models/project.model';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
+import { ToastService } from '@shared/services/toast.service';
 
 type ServiceTab = 'general' | 'deployments' | 'logs';
 
@@ -40,6 +41,8 @@ export class ServiceDetailComponent {
 
     private readonly deploymentsRepository = inject(DeploymentsApiRepository);
 
+    private readonly toast = inject(ToastService);
+
     public readonly projectId = input.required<string>();
 
     public readonly serviceId = input.required<string>();
@@ -64,6 +67,14 @@ export class ServiceDetailComponent {
 
             if (updated) {
                 this.service.value.set(updated);
+                this.toast.success('Provider settings saved', `“${updated.name}” has been updated.`);
+            }
+        });
+
+        // Surface any failure of the provider update command.
+        effect(() => {
+            if (this.repository.updatedService.error()) {
+                this.toast.error('Could not save provider settings', 'Something went wrong. Please try again.');
             }
         });
 
@@ -73,6 +84,14 @@ export class ServiceDetailComponent {
 
             if (triggered) {
                 this.deployments.reload();
+                this.toast.success('Deployment started', 'A new deployment has been triggered.');
+            }
+        });
+
+        // Surface any failure of the deployment command.
+        effect(() => {
+            if (this.deploymentsRepository.deployment.error()) {
+                this.toast.error('Could not start deployment', 'Something went wrong. Please try again.');
             }
         });
     }

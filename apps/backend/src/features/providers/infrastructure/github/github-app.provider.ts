@@ -52,7 +52,9 @@ export class GithubAppProvider implements ProvidersRepository {
 
         const [owner, repo] = repository.full_name.split('/');
 
-        const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/contents/{path}', {
+        // `{+path}` (reserved expansion) keeps the slashes in nested paths; a plain `{path}`
+        // would percent-encode `/` to `%2F` and GitHub would 404 on the literal name.
+        const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/contents/{+path}', {
             owner,
             repo,
             path,

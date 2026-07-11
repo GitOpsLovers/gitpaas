@@ -3,11 +3,12 @@ import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 
 import { ThemeService } from '@layout/ui/services/theme.service';
+import { ToastComponent } from '@shared/components/toast/toast.component';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet],
-    template: '<router-outlet />',
+    imports: [RouterOutlet, ToastComponent],
+    template: '<router-outlet /><app-toast />',
 })
 export class App {
     readonly #titleService = inject(Title);

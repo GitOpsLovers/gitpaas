@@ -6,6 +6,7 @@ import { ServiceFormComponent } from '../../components/service-form/service-form
 
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-service-edit',
@@ -25,6 +26,8 @@ export class ServiceEditComponent implements OnInit {
     private readonly router = inject(Router);
 
     private readonly route = inject(ActivatedRoute);
+
+    private readonly toast = inject(ToastService);
 
     protected readonly projectId = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -62,8 +65,14 @@ export class ServiceEditComponent implements OnInit {
         this.submitting.set(true);
 
         this.repository.update(this.id, { name }).subscribe({
-            next: () => this.router.navigate(['/projects', this.projectId]),
-            error: () => { this.submitting.set(false); },
+            next: (service) => {
+                this.toast.success('Service updated', `“${service.name}” has been saved.`);
+                this.router.navigate(['/projects', this.projectId]);
+            },
+            error: () => {
+                this.toast.error('Could not update service', 'Something went wrong. Please try again.');
+                this.submitting.set(false);
+            },
         });
     }
 }

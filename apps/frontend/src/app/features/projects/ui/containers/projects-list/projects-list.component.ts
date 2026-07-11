@@ -5,6 +5,8 @@ import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 import { ProjectCardComponent } from '../../components/project-card/project-card.component';
 
+import { ToastService } from '@shared/services/toast.service';
+
 @Component({
     selector: 'app-projects-list',
     templateUrl: './projects-list.component.html',
@@ -20,6 +22,8 @@ export class ProjectsListComponent {
 
     private readonly router = inject(Router);
 
+    private readonly toast = inject(ToastService);
+
     protected readonly projects = this.repository.projects;
 
     protected view(project: Project): void {
@@ -31,6 +35,14 @@ export class ProjectsListComponent {
     }
 
     protected delete(id: string): void {
-        this.repository.delete(id).subscribe(() => this.projects.reload());
+        this.repository.delete(id).subscribe({
+            next: () => {
+                this.toast.success('Project deleted', 'The project has been removed.');
+                this.projects.reload();
+            },
+            error: () => {
+                this.toast.error('Could not delete project', 'Something went wrong. Please try again.');
+            },
+        });
     }
 }

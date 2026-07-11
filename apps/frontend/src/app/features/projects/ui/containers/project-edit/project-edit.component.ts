@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { ProjectFormComponent } from '@features/projects/ui/components/project-form/project-form.component';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-project-edit',
@@ -20,6 +21,8 @@ export class ProjectEditComponent implements OnInit {
     private readonly router = inject(Router);
 
     private readonly route = inject(ActivatedRoute);
+
+    private readonly toast = inject(ToastService);
 
     private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -43,8 +46,14 @@ export class ProjectEditComponent implements OnInit {
         this.submitting.set(true);
 
         this.repository.update(this.id, { name }).subscribe({
-            next: () => this.router.navigate(['/projects']),
-            error: () => { this.submitting.set(false); },
+            next: (project) => {
+                this.toast.success('Project updated', `“${project.name}” has been saved.`);
+                this.router.navigate(['/projects']);
+            },
+            error: () => {
+                this.toast.error('Could not update project', 'Something went wrong. Please try again.');
+                this.submitting.set(false);
+            },
         });
     }
 }

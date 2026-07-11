@@ -5,6 +5,8 @@ import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceCardComponent } from '../../components/service-card/service-card.component';
 
+import { ToastService } from '@shared/services/toast.service';
+
 @Component({
     selector: 'app-services-list',
     templateUrl: './services-list.component.html',
@@ -19,6 +21,8 @@ export class ServicesListComponent {
     private readonly repository = inject(ServicesApiRepository);
 
     private readonly router = inject(Router);
+
+    private readonly toast = inject(ToastService);
 
     public readonly projectId = input.required<string>();
 
@@ -39,6 +43,14 @@ export class ServicesListComponent {
     }
 
     protected delete(id: string): void {
-        this.repository.delete(id).subscribe(() => this.services.reload());
+        this.repository.delete(id).subscribe({
+            next: () => {
+                this.toast.success('Service deleted', 'The service has been removed.');
+                this.services.reload();
+            },
+            error: () => {
+                this.toast.error('Could not delete service', 'Something went wrong. Please try again.');
+            },
+        });
     }
 }
