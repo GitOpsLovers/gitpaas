@@ -1,0 +1,20 @@
+<ng-select
+    [items]="options()"
+    bindValue="value"
+    bindLabel="label"
+    [ngModel]="value()"
+    (ngModelChange)="value.set($event)"
+    [placeholder]="placeholder()"
+    [readonly]="disabled()"
+    [clearable]="false"
+    notFoundText="No results"
+    [class.select2--disabled]="disabled()"
+>
+    <ng-template ng-label-tmp let-item="item">
+        <span class="truncate">{{ item.label }}</span>
+    </ng-template>
+
+    <ng-template ng-option-tmp let-item="item">
+        <span class="truncate">{{ item.label }}</span>
+    </ng-template>
+</ng-select>

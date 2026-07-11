@@ -1,9 +1,11 @@
-import { Component, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 
+import { GithubApiRepository } from '@features/providers/infrastructure/api/github-api.repository';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
+import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
 
 /**
  * Provider settings submitted by the form.
@@ -17,13 +19,16 @@ export interface ServiceProviderSettings {
 @Component({
     selector: 'app-service-provider',
     templateUrl: './service-provider.component.html',
-    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
+    providers: [GithubApiRepository],
+    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent, Select2Component],
 })
 
 /**
  * Provider configuration form: source repository, branch and compose file path.
  */
 export class ServiceProviderComponent {
+    private readonly github = inject(GithubApiRepository);
+
     public readonly initialRepositoryId = input('');
 
     public readonly initialBranch = input('');
@@ -34,21 +39,37 @@ export class ServiceProviderComponent {
 
     public readonly save = output<ServiceProviderSettings>();
 
-    // Placeholder option lists — will be sourced from GitHub once the integration lands.
-    protected readonly repositories = [
-        'gitopslovers/artifactory',
-        'gitopslovers/frontend-kit',
-        'gitopslovers/deploy-agent',
-        'marc/personal-site',
-    ];
-
-    protected readonly branches = ['main', 'develop', 'staging'];
-
     protected readonly repositoryId = linkedSignal(() => this.initialRepositoryId());
 
     protected readonly branch = linkedSignal(() => this.initialBranch());
 
     protected readonly composerPath = linkedSignal(() => this.initialComposerPath());
+
+    /**
+     * Repositories accessible to the GitHub App installation.
+     */
+    protected readonly repositories = this.github.repositories;
+
+    /**
+     * Branches of the currently selected repository.
+     */
+    protected readonly branches = this.github.branchesByRepository(() => {
+        const value = this.repositoryId();
+
+        return value ? Number(value) : undefined;
+    });
+
+    protected readonly repositoryOptions = computed<Select2Option[]>(() =>
+        (this.repositories.value() ?? []).map((repository) => ({
+            value: String(repository.id),
+            label: repository.fullName,
+        })));
+
+    protected readonly branchOptions = computed<Select2Option[]>(() =>
+        (this.branches.value() ?? []).map((gitBranch) => ({
+            value: gitBranch.name,
+            label: gitBranch.name,
+        })));
 
     protected onSubmit(event: Event): void {
         event.preventDefault();
@@ -60,12 +81,10 @@ export class ServiceProviderComponent {
         });
     }
 
-    protected onRepositoryChange(event: Event): void {
-        this.repositoryId.set((event.target as HTMLSelectElement).value);
-    }
-
-    protected onBranchChange(event: Event): void {
-        this.branch.set((event.target as HTMLSelectElement).value);
+    protected onRepositoryChange(value: string): void {
+        this.repositoryId.set(value);
+        // The previously selected branch may not exist in the new repository.
+        this.branch.set('');
     }
 
     protected onComposerPathChange(value: string | number): void {

@@ -1,35 +1,31 @@
 <app-component-card title="Provider">
     <form class="space-y-6" (submit)="onSubmit($event)">
         <div>
-            <app-label for="provider-repository">GitHub repository</app-label>
-            <select
-                id="provider-repository"
-                name="provider-repository"
+            <app-label>GitHub repository</app-label>
+            <app-select2
+                [options]="repositoryOptions()"
                 [value]="repositoryId()"
-                (change)="onRepositoryChange($event)"
-                class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-            >
-                <option value="" disabled>Select a repository…</option>
-                @for (repo of repositories; track repo) {
-                    <option [value]="repo">{{ repo }}</option>
-                }
-            </select>
+                (valueChange)="onRepositoryChange($event)"
+                [disabled]="repositories.isLoading()"
+                [placeholder]="repositories.isLoading() ? 'Loading repositories…' : 'Select a repository…'"
+                searchPlaceholder="Search repositories…"
+            />
+            @if (repositories.error()) {
+                <p class="mt-1.5 text-xs text-error-500">
+                    Could not load repositories. Check the GitHub App configuration.
+                </p>
+            }
         </div>
 
         <div>
-            <app-label for="provider-branch">Deployment branch</app-label>
-            <select
-                id="provider-branch"
-                name="provider-branch"
-                [value]="branch()"
-                (change)="onBranchChange($event)"
-                class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-            >
-                <option value="" disabled>Select a branch…</option>
-                @for (name of branches; track name) {
-                    <option [value]="name">{{ name }}</option>
-                }
-            </select>
+            <app-label>Deployment branch</app-label>
+            <app-select2
+                [options]="branchOptions()"
+                [(value)]="branch"
+                [disabled]="!repositoryId() || branches.isLoading()"
+                [placeholder]="branches.isLoading() ? 'Loading branches…' : 'Select a branch…'"
+                searchPlaceholder="Search branches…"
+            />
         </div>
 
         <div>

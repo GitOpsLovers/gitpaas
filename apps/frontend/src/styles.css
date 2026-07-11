@@ -864,3 +864,76 @@ pre[class*="language-"] {
 pre[class*="language-"].line-numbers {
   padding-left: 2.8em !important;
 }
+
+/* ng-select — align the default theme with the app's form controls (see app-select2) */
+.ng-select .ng-select-container {
+  min-height: 2.75rem;
+  border-radius: 0.5rem;
+  border-color: var(--color-gray-300);
+  background-color: transparent;
+  color: var(--color-gray-800);
+  font-size: 0.875rem;
+}
+.ng-select .ng-select-container .ng-value-container {
+  padding-left: 1rem;
+}
+.ng-select .ng-select-container .ng-value-container .ng-placeholder {
+  color: var(--color-gray-400);
+}
+.ng-select.ng-select-single .ng-select-container .ng-value-container .ng-input {
+  padding-left: 1rem;
+}
+.ng-select.ng-select-focused:not(.ng-select-opened) .ng-select-container,
+.ng-select.ng-select-opened .ng-select-container {
+  border-color: var(--color-brand-300);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-500) 20%, transparent);
+}
+.ng-select.select2--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ng-dropdown-panel {
+  margin-top: 0.25rem;
+  border-radius: 0.75rem;
+  border-color: var(--color-gray-200);
+  background-color: #fff;
+  box-shadow: var(--shadow-theme-lg, 0 12px 34px rgb(16 24 40 / 0.1));
+}
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  color: var(--color-gray-700);
+  font-weight: 500;
+}
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected {
+  background-color: var(--color-gray-100);
+  color: var(--color-brand-600);
+}
+
+/* ng-select — dark mode */
+.dark .ng-select .ng-select-container {
+  border-color: var(--color-gray-700);
+  background-color: var(--color-gray-900);
+  color: rgb(255 255 255 / 0.9);
+}
+.dark .ng-select .ng-select-container .ng-value-container .ng-value {
+  color: rgb(255 255 255 / 0.9);
+}
+.dark .ng-dropdown-panel {
+  border-color: var(--color-gray-800);
+  background-color: var(--color-gray-900);
+}
+.dark .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  color: var(--color-gray-300);
+  background-color: var(--color-gray-900);
+}
+.dark .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+  background-color: rgb(255 255 255 / 0.05);
+  color: #fff;
+}
+.dark .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected {
+  background-color: rgb(255 255 255 / 0.05);
+  color: var(--color-brand-400);
+}
