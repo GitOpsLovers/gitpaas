@@ -29,6 +29,10 @@
             <app-service-containers [containers]="containers.value() ?? []" [loading]="containers.isLoading()" />
         }
 
+        @case ('network') {
+            <app-service-networks [networks]="networks.value() ?? []" [loading]="networks.isLoading()" />
+        }
+
         @case ('logs') {
             <app-service-logs />
         }

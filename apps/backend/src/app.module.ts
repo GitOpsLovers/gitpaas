@@ -8,6 +8,7 @@ import { DockerModule } from '@core/docker/docker.module';
 import { RedisModule } from '@core/redis/redis.module';
 import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
+import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ProvidersModule } from '@features/providers/providers.module';
 import { ServerModule } from '@features/server/server.module';
@@ -23,6 +24,7 @@ import { ServicesModule } from '@features/services/services.module';
         ServicesModule,
         DeploymentsModule,
         ContainersModule,
+        NetworksModule,
         ServerModule,
     ],
     controllers: [AppController],

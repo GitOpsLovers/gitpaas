@@ -20,10 +20,18 @@ const STARTUP_LOG_TAIL = 100;
 /** A service's `build` block, in either the shorthand (string) or long (object) form. */
 type ComposeBuild = string | { context?: string; dockerfile?: string; args?: string[] | Record<string, unknown>; target?: string };
 
+/** A service's `healthcheck` block (only the duration fields we normalize). */
+interface ComposeHealthcheck {
+    interval?: string | number;
+    timeout?: string | number;
+    start_period?: string | number;
+}
+
 /** The subset of a compose service the executor reads/rewrites. */
 interface ComposeService {
     image?: string;
     build?: ComposeBuild;
+    healthcheck?: ComposeHealthcheck;
 }
 
 /** The parsed compose recipe exposed by `dockerode-compose`. */
@@ -80,6 +88,11 @@ export class DockerodeDockerExecutor implements DockerExecutor {
 
             emit('▶ Removing previous containers…');
             await compose.down();
+
+            // dockerode-compose crashes on a healthcheck with a missing duration and
+            // mis-parses second-based durations; pre-normalize them to numeric
+            // nanoseconds, which it forwards to the daemon untouched.
+            this.normalizeHealthchecks(compose);
 
             this.logger.log(`Bringing project "${projectName}" up`);
             emit('▶ Creating and starting containers…');
@@ -339,6 +352,61 @@ export class DockerodeDockerExecutor implements DockerExecutor {
             // Startup logs are best-effort; a failure here must not fail the deploy.
             this.logger.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`);
         }
+    }
+
+    /**
+     * Rewrites every service's healthcheck durations into numeric nanoseconds.
+     *
+     * `dockerode-compose` throws on a healthcheck whose `interval`, `timeout` or
+     * `start_period` is omitted (it calls `.includes()` on `undefined`) and
+     * mis-parses second-based strings like `5s` into `NaN`. Numeric values are
+     * passed straight through to the daemon, so converting here fixes both.
+     *
+     * @param compose Dockerode-compose instance
+     */
+    private normalizeHealthchecks(compose: DockerodeCompose): void {
+        for (const service of Object.values(this.recipeServices(compose))) {
+            const healthcheck = service.healthcheck;
+
+            if (!healthcheck) {
+                continue;
+            }
+
+            healthcheck.interval = this.toNanoseconds(healthcheck.interval);
+            healthcheck.timeout = this.toNanoseconds(healthcheck.timeout);
+            healthcheck.start_period = this.toNanoseconds(healthcheck.start_period);
+        }
+    }
+
+    /**
+     * Parses a Compose duration (e.g. `1m30s`, `5s`, `500ms`) into nanoseconds.
+     *
+     * @param value Compose duration string, a raw number (assumed nanoseconds), or undefined
+     *
+     * @returns Duration in nanoseconds, or `0` when absent or unparseable
+     */
+    private toNanoseconds(value: string | number | undefined): number {
+        if (typeof value === 'number') {
+            return value;
+        }
+
+        if (typeof value !== 'string') {
+            return 0;
+        }
+
+        const units: Record<string, number> = {
+            ns: 1, us: 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9,
+        };
+        const pattern = /(\d+(?:\.\d+)?)(ns|us|ms|s|m|h)/g;
+        let total = 0;
+        let matched = false;
+
+        for (let match = pattern.exec(value); match !== null; match = pattern.exec(value)) {
+            matched = true;
+            total += Number.parseFloat(match[1]) * units[match[2]];
+        }
+
+        return matched ? total : 0;
     }
 
     /**
