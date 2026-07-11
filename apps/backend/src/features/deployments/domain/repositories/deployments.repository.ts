@@ -38,4 +38,13 @@ export interface DeploymentsRepository {
      * @param updateDto New status (and failure message, when the status is `failed`)
      */
     update: (id: string, updateDto: UpdateDeploymentDto) => Promise<Deployment | null>;
+
+    /**
+     * Delete a deployment record
+     *
+     * @param id Deployment identifier
+     *
+     * @returns `true` when a row was deleted, `false` otherwise
+     */
+    delete: (id: string) => Promise<boolean>;
 }

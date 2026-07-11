@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { createDeploymentUseCase } from '../../application/create-deployment.use-case';
+import { deleteDeploymentUseCase } from '../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../application/get-deployments-by-service.use-case';
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
@@ -53,6 +54,17 @@ export class DeploymentsService {
      */
     public findById(id: string): Promise<Deployment | null> {
         return findDeploymentByIdUseCase(this.repository, id);
+    }
+
+    /**
+     * Delete a deployment record
+     *
+     * @param id Deployment identifier
+     *
+     * @returns `true` when a row was deleted, `false` otherwise
+     */
+    public delete(id: string): Promise<boolean> {
+        return deleteDeploymentUseCase(this.repository, id);
     }
 
     /**

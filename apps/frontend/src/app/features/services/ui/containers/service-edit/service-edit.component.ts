@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -18,7 +18,7 @@ import { ToastService } from '@shared/services/toast.service';
 /**
  * Service edit container component
  */
-export class ServiceEditComponent implements OnInit {
+export class ServiceEditComponent {
     private readonly repository = inject(ServicesApiRepository);
 
     private readonly projectsRepository = inject(ProjectsApiRepository);
@@ -33,11 +33,15 @@ export class ServiceEditComponent implements OnInit {
 
     private readonly id = this.route.snapshot.paramMap.get('serviceId') ?? '';
 
-    private readonly projectName = signal('Project');
+    private readonly project = this.projectsRepository.projectById(() => this.projectId);
 
-    protected readonly initialName = signal('');
+    private readonly projectName = computed(() => this.project.value()?.name ?? 'Project');
 
-    protected readonly loading = signal(true);
+    private readonly service = this.repository.serviceById(() => this.id);
+
+    protected readonly initialName = computed(() => this.service.value()?.name ?? '');
+
+    protected readonly loading = computed(() => this.service.isLoading());
 
     protected readonly submitting = signal(false);
 
@@ -46,20 +50,6 @@ export class ServiceEditComponent implements OnInit {
         { label: this.projectName(), link: ['/projects', this.projectId] },
         { label: 'Edit service' },
     ]);
-
-    public ngOnInit(): void {
-        this.projectsRepository.getById(this.projectId).subscribe({
-            next: (project) => { this.projectName.set(project.name); },
-        });
-
-        this.repository.getById(this.id).subscribe({
-            next: (service) => {
-                this.initialName.set(service.name);
-                this.loading.set(false);
-            },
-            error: () => { this.loading.set(false); },
-        });
-    }
 
     protected update(name: string): void {
         this.submitting.set(true);

@@ -1,5 +1,5 @@
 import { HttpResourceRef } from '@angular/common/http';
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -56,45 +56,9 @@ export class ServiceDetailComponent {
 
     protected readonly activeTab = signal<ServiceTab>('general');
 
-    protected readonly savingProvider = computed(() => this.repository.updatedService.isLoading());
+    protected readonly savingProvider = signal(false);
 
-    protected readonly deploying = computed(() => this.deploymentsRepository.deployment.isLoading());
-
-    constructor() {
-        // Reflect a saved service back into the detail resource once the update command resolves.
-        effect(() => {
-            const updated = this.repository.updatedService.value();
-
-            if (updated) {
-                this.service.value.set(updated);
-                this.toast.success('Provider settings saved', `“${updated.name}” has been updated.`);
-            }
-        });
-
-        // Surface any failure of the provider update command.
-        effect(() => {
-            if (this.repository.updatedService.error()) {
-                this.toast.error('Could not save provider settings', 'Something went wrong. Please try again.');
-            }
-        });
-
-        // Refresh the deployment history whenever a newly triggered deployment resolves.
-        effect(() => {
-            const triggered = this.deploymentsRepository.deployment.value();
-
-            if (triggered) {
-                this.deployments.reload();
-                this.toast.success('Deployment started', 'A new deployment has been triggered.');
-            }
-        });
-
-        // Surface any failure of the deployment command.
-        effect(() => {
-            if (this.deploymentsRepository.deployment.error()) {
-                this.toast.error('Could not start deployment', 'Something went wrong. Please try again.');
-            }
-        });
-    }
+    protected readonly deploying = signal(false);
 
     /**
      * Defines the tabs available in the service detail view.
@@ -128,7 +92,7 @@ export class ServiceDetailComponent {
     });
 
     /**
-     * Saves the provider settings through the update command resource.
+     * Saves the provider settings and reflects the saved service back into the detail resource.
      */
     protected saveProvider(settings: ServiceProviderSettings): void {
         const current = this.service.value();
@@ -137,13 +101,61 @@ export class ServiceDetailComponent {
             return;
         }
 
-        this.repository.save(this.serviceId(), { name: current.name, ...settings });
+        this.savingProvider.set(true);
+
+        this.repository.update(this.serviceId(), { name: current.name, ...settings }).subscribe({
+            next: (updated) => {
+                this.service.value.set(updated);
+                this.toast.success('Provider settings saved', `“${updated.name}” has been updated.`);
+                this.savingProvider.set(false);
+            },
+            error: () => {
+                this.toast.error('Could not save provider settings', 'Something went wrong. Please try again.');
+                this.savingProvider.set(false);
+            },
+        });
     }
 
     /**
      * Triggers a new deployment for the service.
      */
     protected deploy(): void {
-        this.deploymentsRepository.deploy(this.serviceId());
+        this.deploying.set(true);
+
+        this.deploymentsRepository.deploy(this.serviceId()).subscribe({
+            next: () => {
+                this.deployments.reload();
+                this.toast.success('Deployment started', 'A new deployment has been triggered.');
+                this.deploying.set(false);
+            },
+            error: () => {
+                this.toast.error('Could not start deployment', 'Something went wrong. Please try again.');
+                this.deploying.set(false);
+            },
+        });
+    }
+
+    /**
+     * Opens a deployment. Not implemented yet.
+     */
+    protected viewDeployment(_deployment: Deployment): void {
+        // TODO: navigate to the deployment detail view once it exists.
+    }
+
+    /**
+     * Deletes a deployment record.
+     *
+     * @param deployment Deployment to delete
+     */
+    protected deleteDeployment(deployment: Deployment): void {
+        this.deploymentsRepository.remove(deployment.id).subscribe({
+            next: () => {
+                this.deployments.reload();
+                this.toast.success('Deployment deleted', 'The deployment record has been removed.');
+            },
+            error: () => {
+                this.toast.error('Could not delete deployment', 'Something went wrong. Please try again.');
+            },
+        });
     }
 }

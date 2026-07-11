@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, NotFoundException, Param, ParseUUIDPipe, Post, Query,
+    Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
 } from '@nestjs/common';
 
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
@@ -54,5 +54,20 @@ export class DeploymentsController {
     @Post()
     public create(@Body() triggerDto: TriggerDeploymentDto): Promise<Deployment> {
         return this.service.create(triggerDto);
+    }
+
+    /**
+     * Delete a deployment record
+     *
+     * @param id Deployment identifier
+     */
+    @Delete(':id')
+    @HttpCode(204)
+    public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        const deleted = await this.service.delete(id);
+
+        if (!deleted) {
+            throw new NotFoundException(`Deployment ${id} not found`);
+        }
     }
 }

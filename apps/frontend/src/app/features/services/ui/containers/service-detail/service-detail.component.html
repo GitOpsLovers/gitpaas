@@ -15,7 +15,12 @@
         }
 
         @case ('deployments') {
-            <app-service-deployments [deployments]="deployments.value() ?? []" [loading]="deployments.isLoading()" />
+            <app-service-deployments
+                [deployments]="deployments.value() ?? []"
+                [loading]="deployments.isLoading()"
+                (view)="viewDeployment($event)"
+                (delete)="deleteDeployment($event)"
+            />
         }
 
         @case ('logs') {

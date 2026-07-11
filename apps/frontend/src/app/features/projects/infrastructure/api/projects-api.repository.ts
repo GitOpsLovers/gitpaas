@@ -37,20 +37,9 @@ export class ProjectsApiRepository {
     }
 
     /**
-     * Get a project by id
+     * Creates a new project
      *
-     * @param id Project identifier
-     *
-     * @returns Observable that resolves to the found project
-     */
-    public getById(id: string): Observable<Project> {
-        return this.http.get<Project>(`${this.url}/${id}`);
-    }
-
-    /**
-     * Create a new project
-     *
-     * @param createDto Data for creating a new project
+     * @param dto Data for creating the project
      *
      * @returns Created project
      */
@@ -62,7 +51,7 @@ export class ProjectsApiRepository {
      * Updates an existing project
      *
      * @param id Project identifier
-     * @param updateDto Data for updating the project
+     * @param dto Data for updating the project
      *
      * @returns Updated project
      */

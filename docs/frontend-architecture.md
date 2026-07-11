@@ -86,61 +86,10 @@ Component files follow the `<name>.component.ts` / `<name>.component.html` conve
 
 ### API data access (Infrastructure layer)
 
-The infrastructure layer contains one `@Injectable()` repository per feature (`<feature>-api.repository.ts`) that owns all HTTP access. It combines two Angular APIs:
+The infrastructure layer contains one `@Injectable()` repository per feature (`<feature>-api.repository.ts`) that owns all HTTP access, following the [Angular `httpResource` guide](https://angular.dev/guide/http/http-resource): **reads use `httpResource`, mutations use `HttpClient` directly**.
 
-- **Reads → `httpResource`** (signal-based): reactive collections/records exposed as a resource with `isLoading()`, `error()`, `hasValue()`, `value()`, and `reload()`.
-- **Commands & one-off reads → `HttpClient`**: `create`/`update`/`delete` (and `getById`) return `Observable`s the caller subscribes to.
-
-After a successful command, the caller calls `.reload()` on the resource to refresh the list.
-
-#### Signals-only containers: commands as trigger-driven resources
-
-Some containers are **signals-only** — they never inject `Observable`s or call `.subscribe()`. There, a command is modelled as a **`httpResource` driven by a trigger signal** instead of an `HttpClient` call:
-
-- The repository holds a private **trigger signal** and exposes a command **resource** whose reactive request is `undefined` (idle) until the trigger is set. A public imperative method sets the trigger; a monotonically increasing `nonce` on the trigger value lets the *same* payload run again (the resource re-runs only when its request value changes).
-- `httpResource` accepts a request object, so a command is a non-`GET` request: `{ url, method: 'POST' | 'PUT', body }`.
-- The container derives loading state from the resource (`computed(() => repo.command.isLoading())`) and reacts to completion with an `effect()` that reads the resource's `value()` — e.g. to write the saved record back into a read resource or to `.reload()` a list. It never subscribes.
-- Periodic work (polling) uses `setInterval` cleaned up through `DestroyRef.onDestroy`, not an RxJS `interval` subscription.
-
-```typescript
-@Injectable()
-export class DeploymentsApiRepository {
-    private readonly url = 'http://localhost:3000/api/v1/deployments';
-
-    // Trigger + command resource: idle until deploy() is called
-    private readonly deployTrigger = signal<{ serviceId: string; nonce: number } | undefined>(undefined);
-    public readonly deployment = httpResource<Deployment>(() => {
-        const trigger = this.deployTrigger();
-
-        return trigger ? { url: this.url, method: 'POST', body: { serviceId: trigger.serviceId } } : undefined;
-    });
-
-    public deploy(serviceId: string): void {
-        this.deployTrigger.update((current) => ({ serviceId, nonce: (current?.nonce ?? 0) + 1 }));
-    }
-}
-```
-
-```typescript
-// Container: no Observable, no subscribe
-protected readonly deploying = computed(() => this.deployments.deployment.isLoading());
-
-constructor() {
-    effect(() => {
-        if (this.deployments.deployment.value()) {
-            this.history.reload();
-        }
-    });
-}
-
-protected deploy(): void {
-    this.deployments.deploy(this.id());
-}
-```
-
-Prefer this pattern for new containers; the `Observable`-returning command methods above remain for the screens that still use them.
-
-The repository is **not** `providedIn: 'root'`; it is `@Injectable()` and provided by the smart **container** that uses it (`providers: [ProjectsApiRepository]`), so each screen gets its own instance and a fresh fetch.
+- **Reads → `httpResource`**: reactive collections/records exposed as a resource with `isLoading()`, `error()`, `hasValue()`, `value()`, `status()`, and `reload()`. A read parameterised by an id is a factory method returning a resource keyed off an accessor (`serviceById(() => id)`), idle until the accessor yields a value.
+- **Mutations (POST/PUT/DELETE) → `HttpClient`**: `create`/`update`/`delete` are thin methods returning an `Observable` the caller subscribes to. The guide explicitly recommends `HttpClient` over `httpResource` for mutations. After a successful mutation the caller calls `.reload()` on the relevant read resource to refresh it.
 
 ```typescript
 @Injectable()
@@ -148,13 +97,17 @@ export class ProjectsApiRepository {
     private readonly http = inject(HttpClient);
     private readonly url = 'http://localhost:3000/api/v1/projects';
 
-    // Reactive read
+    // Reactive reads
     public readonly projects = httpResource<Project[]>(() => this.url);
+    public projectById(id: () => string | undefined) {
+        return httpResource<Project>(() => {
+            const projectId = id();
 
-    // One-off read + commands
-    public getById(id: string): Observable<Project> {
-        return this.http.get<Project>(`${this.url}/${id}`);
+            return projectId ? `${this.url}/${projectId}` : undefined;
+        });
     }
+
+    // Mutations via HttpClient
     public create(dto: CreateProjectDto): Observable<Project> {
         return this.http.post<Project>(this.url, dto);
     }
@@ -167,9 +120,11 @@ export class ProjectsApiRepository {
 }
 ```
 
+The repository is **not** `providedIn: 'root'`; it is `@Injectable()` and provided by the smart **container** that uses it (`providers: [ProjectsApiRepository]`), so each screen gets its own instance and a fresh fetch.
+
 ### Containers (UI layer)
 
-Smart components provide and inject the API repository, own the state signals, expose the resource to the template, and issue commands (including navigation on success). They live in `ui/containers/`. There is **one container per screen** — `projects-list` (read + delete), `project-add` (create), `project-edit` (load + update).
+Smart components provide and inject the API repository, expose its read resources to the template, and issue mutations (subscribing, with navigation/toasts on success). They live in `ui/containers/`. There is **one container per screen** — `projects-list` (read + delete), `project-add` (create), `project-edit` (load + update).
 
 ```typescript
 @Component({
@@ -183,14 +138,17 @@ export class ProjectsListComponent {
     protected readonly projects = this.repository.projects;
 
     protected delete(id: string): void {
-        this.repository.delete(id).subscribe(() => this.projects.reload());
+        this.repository.delete(id).subscribe({
+            next: () => this.projects.reload(),
+            error: () => { /* toast */ },
+        });
     }
 }
 ```
 
 The list template drives its own states off the resource: `@if (projects.isLoading())` / `@else if (projects.error())` / `@else if (projects.hasValue())`, with an empty-state branch.
 
-The command containers own the `submitting`/`loading` signals, wrap the presentational form, and navigate on success. `project-add` creates; `project-edit` additionally reads the route param and pre-loads the record with `getById` (rendering a loading branch until it resolves).
+The command containers own a `submitting` signal (toggled around the subscription), wrap the presentational form, and navigate on success. `project-add` creates; `project-edit` additionally reads the route param and pre-loads the record through a `projectById` read resource (deriving `initialName`/`loading` from it, rendering a loading branch until it resolves).
 
 ```typescript
 @Component({
@@ -213,6 +171,8 @@ export class ProjectAddComponent {
     }
 }
 ```
+
+Reads-that-feed-a-view (e.g. syncing a saved record back into a detail resource) can still write to a resource's `value` signal — for example `this.service.value.set(updated)` after a provider save.
 
 ### Presentational components (UI layer)
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -15,7 +15,7 @@ import { ToastService } from '@shared/services/toast.service';
 /**
  * Smart container that loads a project, saves edits and navigates back to the list.
  */
-export class ProjectEditComponent implements OnInit {
+export class ProjectEditComponent {
     private readonly repository = inject(ProjectsApiRepository);
 
     private readonly router = inject(Router);
@@ -26,21 +26,13 @@ export class ProjectEditComponent implements OnInit {
 
     private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
-    protected readonly initialName = signal('');
+    private readonly project = this.repository.projectById(() => this.id);
 
-    protected readonly loading = signal(true);
+    protected readonly initialName = computed(() => this.project.value()?.name ?? '');
+
+    protected readonly loading = computed(() => this.project.isLoading());
 
     protected readonly submitting = signal(false);
-
-    public ngOnInit(): void {
-        this.repository.getById(this.id).subscribe({
-            next: (project) => {
-                this.initialName.set(project.name);
-                this.loading.set(false);
-            },
-            error: () => { this.loading.set(false); },
-        });
-    }
 
     protected update(name: string): void {
         this.submitting.set(true);

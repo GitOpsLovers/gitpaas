@@ -1,5 +1,6 @@
-import { httpResource } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 import { Deployment } from '../../domain/models/deployment.model';
 
@@ -9,24 +10,9 @@ import { Deployment } from '../../domain/models/deployment.model';
  * Deployments API repository
  */
 export class DeploymentsApiRepository {
+    private readonly http = inject(HttpClient);
+
     private readonly url = 'http://localhost:3000/api/v1/deployments';
-
-    /**
-     * Trigger for the deploy command. A monotonically increasing `nonce` lets the same service be
-     * deployed again: changing the signal value re-runs the command resource even when the payload
-     * is identical.
-     */
-    private readonly deployTrigger = signal<{ serviceId: string; nonce: number } | undefined>(undefined);
-
-    /**
-     * Command resource that triggers a deployment. It is idle until `deploy()` is called, then it
-     * POSTs the request and exposes its lifecycle through `isLoading()`/`value()`/`error()`.
-     */
-    public readonly deployment = httpResource<Deployment>(() => {
-        const trigger = this.deployTrigger();
-
-        return trigger ? { url: this.url, method: 'POST', body: { serviceId: trigger.serviceId } } : undefined;
-    });
 
     /**
      * Resource with the deployment history of a service, most recent first
@@ -44,11 +30,22 @@ export class DeploymentsApiRepository {
     }
 
     /**
-     * Triggers a deployment for a service through the `deployment` command resource
+     * Triggers a deployment for a service
      *
      * @param serviceId Identifier of the service to deploy
+     *
+     * @returns The created deployment
      */
-    public deploy(serviceId: string): void {
-        this.deployTrigger.update((current) => ({ serviceId, nonce: (current?.nonce ?? 0) + 1 }));
+    public deploy(serviceId: string): Observable<Deployment> {
+        return this.http.post<Deployment>(this.url, { serviceId });
+    }
+
+    /**
+     * Deletes a deployment
+     *
+     * @param id Identifier of the deployment to delete
+     */
+    public remove(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.url}/${id}`);
     }
 }

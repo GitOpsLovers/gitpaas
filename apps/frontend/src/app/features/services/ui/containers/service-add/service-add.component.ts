@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -18,7 +18,7 @@ import { ToastService } from '@shared/services/toast.service';
 /**
  * Service add container component
  */
-export class ServiceAddComponent implements OnInit {
+export class ServiceAddComponent {
     private readonly repository = inject(ServicesApiRepository);
 
     private readonly projectsRepository = inject(ProjectsApiRepository);
@@ -31,7 +31,9 @@ export class ServiceAddComponent implements OnInit {
 
     protected readonly projectId = this.route.snapshot.paramMap.get('id') ?? '';
 
-    private readonly projectName = signal('Project');
+    private readonly project = this.projectsRepository.projectById(() => this.projectId);
+
+    private readonly projectName = computed(() => this.project.value()?.name ?? 'Project');
 
     protected readonly submitting = signal(false);
 
@@ -40,12 +42,6 @@ export class ServiceAddComponent implements OnInit {
         { label: this.projectName(), link: ['/projects', this.projectId] },
         { label: 'Add service' },
     ]);
-
-    public ngOnInit(): void {
-        this.projectsRepository.getById(this.projectId).subscribe({
-            next: (project) => { this.projectName.set(project.name); },
-        });
-    }
 
     protected create(name: string): void {
         this.submitting.set(true);

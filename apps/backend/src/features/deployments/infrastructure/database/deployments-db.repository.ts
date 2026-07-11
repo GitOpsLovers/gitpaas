@@ -52,4 +52,10 @@ export class DeploymentsDatabaseRepository implements DeploymentsRepository {
 
         return this.repository.save(deployment);
     }
+
+    public async delete(id: string): Promise<boolean> {
+        const result = await this.repository.delete(id);
+
+        return (result.affected ?? 0) > 0;
+    }
 }
