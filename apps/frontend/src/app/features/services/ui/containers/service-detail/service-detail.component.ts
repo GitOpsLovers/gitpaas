@@ -11,6 +11,9 @@ import { ServiceDeploymentsComponent } from '../../components/service-deployment
 import { ServiceLogsComponent } from '../../components/service-logs/service-logs.component';
 import { ServiceProviderComponent, ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
 
+import { Container } from '@features/containers/domain/models/container.model';
+import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
+import { ServiceContainersComponent } from '@features/containers/ui/components/service-containers/service-containers.component';
 import { Deployment } from '@features/deployments/domain/models/deployment.model';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { Project } from '@features/projects/domain/models/project.model';
@@ -19,15 +22,16 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 import { ToastService } from '@shared/services/toast.service';
 
-type ServiceTab = 'general' | 'provider' | 'deployments' | 'logs';
+type ServiceTab = 'general' | 'provider' | 'deployments' | 'containers' | 'logs';
 
 @Component({
     selector: 'app-service-detail',
     templateUrl: './service-detail.component.html',
-    providers: [ServicesApiRepository, ProjectsApiRepository, DeploymentsApiRepository],
+    providers: [ServicesApiRepository, ProjectsApiRepository, DeploymentsApiRepository, ContainersApiRepository],
     imports: [
         BreadcrumbComponent,
         DeploymentLogsModalComponent,
+        ServiceContainersComponent,
         ServiceDeployActionsComponent,
         ServiceDeploymentsComponent,
         ServiceLogsComponent,
@@ -45,6 +49,8 @@ export class ServiceDetailComponent {
 
     private readonly deploymentsRepository = inject(DeploymentsApiRepository);
 
+    private readonly containersRepository = inject(ContainersApiRepository);
+
     private readonly toast = inject(ToastService);
 
     private readonly router = inject(Router);
@@ -61,6 +67,9 @@ export class ServiceDetailComponent {
 
     // eslint-disable-next-line max-len
     protected readonly deployments: HttpResourceRef<Deployment[] | undefined> = this.deploymentsRepository.deploymentsByService(() => this.serviceId());
+
+    // eslint-disable-next-line max-len
+    protected readonly containers: HttpResourceRef<Container[] | undefined> = this.containersRepository.containersByService(() => this.serviceId());
 
     protected readonly activeTab = computed<ServiceTab>(() => {
         const tab = this.tab();
@@ -82,6 +91,7 @@ export class ServiceDetailComponent {
         { id: 'general', label: 'General' },
         { id: 'provider', label: 'Provider' },
         { id: 'deployments', label: 'Deployments' },
+        { id: 'containers', label: 'Containers' },
         { id: 'logs', label: 'Logs' },
     ];
 

@@ -25,6 +25,10 @@
             />
         }
 
+        @case ('containers') {
+            <app-service-containers [containers]="containers.value() ?? []" [loading]="containers.isLoading()" />
+        }
+
         @case ('logs') {
             <app-service-logs />
         }

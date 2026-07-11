@@ -18,6 +18,21 @@ import { GithubAppProvider } from '@features/providers/infrastructure/github/git
 import { Service } from '@features/services/domain/models/service.model';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
+/**
+ * Builds the Docker Compose project name for a service from its name, falling
+ * back to its id. This value groups all of the service's Docker resources under
+ * the `com.docker.compose.project` label.
+ *
+ * @param service Service to derive the project name from
+ *
+ * @returns Compose project name
+ */
+function composeProjectName(service: Service): string {
+    const slug = service.name.toLowerCase().replace(/[^\da-z]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return slug || `service-${service.id}`;
+}
+
 @Injectable()
 
 /**
@@ -132,19 +147,10 @@ export class DeploymentsService {
                 repositoryId: Number(service.repositoryId),
                 branch: deployment.branch,
                 composerPath: deployment.composerPath,
-                projectName: this.projectName(service),
+                projectName: composeProjectName(service),
             },
         ).catch((error: unknown) => {
             this.logger.error(`Deployment ${deployment.id} runner crashed`, error instanceof Error ? error.stack : String(error));
         });
-    }
-
-    /**
-     * Builds a compose project name from the service name, falling back to its id.
-     */
-    private projectName(service: Service): string {
-        const slug = service.name.toLowerCase().replace(/[^\da-z]+/g, '-').replace(/^-+|-+$/g, '');
-
-        return slug || `service-${service.id}`;
     }
 }

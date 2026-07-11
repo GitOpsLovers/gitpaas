@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { CoreModule } from '@core/core.module';
 import { DockerModule } from '@core/docker/docker.module';
 import { RedisModule } from '@core/redis/redis.module';
+import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ProvidersModule } from '@features/providers/providers.module';
@@ -21,6 +22,7 @@ import { ServicesModule } from '@features/services/services.module';
         ProvidersModule,
         ServicesModule,
         DeploymentsModule,
+        ContainersModule,
         ServerModule,
     ],
     controllers: [AppController],
