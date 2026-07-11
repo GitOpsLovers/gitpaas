@@ -15,6 +15,7 @@ import {
     LucideChevronDown,
     LucideEllipsis,
     LucideLayoutGrid,
+    LucideServer,
     LucideSettings,
     LucideTable,
 } from '@lucide/angular';
@@ -23,7 +24,7 @@ import { combineLatest, Subscription } from 'rxjs';
 import { SidebarService } from '../../services/sidebar.service';
 import { SidebarWidgetComponent } from '../sidebar-widget/sidebar-widget.component';
 
-type NavIcon = 'grid' | 'box' | 'table' | 'settings';
+type NavIcon = 'grid' | 'box' | 'table' | 'server' | 'settings';
 
 interface NavItem {
     name: string;
@@ -43,6 +44,7 @@ interface NavItem {
         LucideLayoutGrid,
         LucideBox,
         LucideTable,
+        LucideServer,
         LucideSettings,
         LucideEllipsis,
         LucideChevronDown,
@@ -75,6 +77,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
             icon: 'table',
             name: 'Repositories',
             path: '/dashboard',
+        },
+        {
+            icon: 'server',
+            name: 'Server',
+            path: '/server',
         },
         {
             icon: 'settings',

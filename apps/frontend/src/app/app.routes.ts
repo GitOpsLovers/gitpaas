@@ -17,6 +17,11 @@ export const routes: Routes = [
                 title: 'Dashboard | Artifactory',
             },
             {
+                path: 'server',
+                loadComponent: () => import('@pages/server/server.component').then((m) => m.ServerPage),
+                title: 'Server | Artifactory',
+            },
+            {
                 path: 'projects',
                 children: [
                     {

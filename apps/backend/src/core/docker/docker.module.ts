@@ -9,7 +9,7 @@ import { DockerService } from './ui/services/docker.service';
 @Module({
     controllers: [DockerController],
     providers: [DockerClient, DockerodeDockerExecutor, DockerService],
-    exports: [DockerService, DockerodeDockerExecutor],
+    exports: [DockerService, DockerodeDockerExecutor, DockerClient],
 })
 
 /**

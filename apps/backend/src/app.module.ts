@@ -9,10 +9,20 @@ import { RedisModule } from '@core/redis/redis.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ProvidersModule } from '@features/providers/providers.module';
+import { ServerModule } from '@features/server/server.module';
 import { ServicesModule } from '@features/services/services.module';
 
 @Module({
-    imports: [CoreModule, DockerModule, RedisModule, ProjectsModule, ProvidersModule, ServicesModule, DeploymentsModule],
+    imports: [
+        CoreModule,
+        DockerModule,
+        RedisModule,
+        ProjectsModule,
+        ProvidersModule,
+        ServicesModule,
+        DeploymentsModule,
+        ServerModule,
+    ],
     controllers: [AppController],
     providers: [AppService],
 })
