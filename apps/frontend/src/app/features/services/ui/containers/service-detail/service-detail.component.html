@@ -6,7 +6,9 @@
     @switch (activeTab()) {
         @case ('general') {
             <app-service-deploy-actions class="mb-6 block" [deploying]="deploying()" (deploy)="deploy()" />
+        }
 
+        @case ('provider') {
             <app-service-provider
                 [initial]="providerSettings()"
                 [saving]="savingProvider()"

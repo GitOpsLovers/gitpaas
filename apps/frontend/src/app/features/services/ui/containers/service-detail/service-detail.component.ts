@@ -18,7 +18,7 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 import { ToastService } from '@shared/services/toast.service';
 
-type ServiceTab = 'general' | 'deployments' | 'logs';
+type ServiceTab = 'general' | 'provider' | 'deployments' | 'logs';
 
 @Component({
     selector: 'app-service-detail',
@@ -72,6 +72,7 @@ export class ServiceDetailComponent {
      */
     protected readonly tabs: Array<{ id: ServiceTab; label: string }> = [
         { id: 'general', label: 'General' },
+        { id: 'provider', label: 'Provider' },
         { id: 'deployments', label: 'Deployments' },
         { id: 'logs', label: 'Logs' },
     ];
