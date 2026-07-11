@@ -78,6 +78,9 @@ export class DockerodeDockerExecutor implements DockerExecutor {
 
             await this.pullWithProgress(compose, emit, builtImages);
 
+            emit('▶ Removing previous containers…');
+            await compose.down();
+
             this.logger.log(`Bringing project "${projectName}" up`);
             emit('▶ Creating and starting containers…');
 
@@ -202,9 +205,11 @@ export class DockerodeDockerExecutor implements DockerExecutor {
      * @param emit Line emitter
      */
     private async buildImage(build: ResolvedBuild, tag: string, emit: DockerLogListener): Promise<void> {
-        const context = tar.c({ cwd: build.contextPath, gzip: false }, ['.']);
+        // `tar.c` returns a Minipass `Pack` stream — runtime-compatible with, but not
+        // structurally typed as, a Node readable, so cast for dockerode's signature.
+        const context = tar.c({ cwd: build.contextPath, gzip: false }, ['.']) as unknown as NodeJS.ReadableStream;
 
-        const stream = await this.docker.getClient().buildImage(context as unknown as NodeJS.ReadableStream, {
+        const stream = await this.docker.getClient().buildImage(context, {
             t: tag,
             dockerfile: build.dockerfile,
             buildargs: build.buildargs,

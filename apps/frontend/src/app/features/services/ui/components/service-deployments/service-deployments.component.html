@@ -7,13 +7,8 @@
                 <div class="flex min-w-0 flex-1 flex-col gap-2">
                     <div class="flex items-center gap-3">
                         <span
-                            class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
-                            [class]="statusBadgeClass(deployment.status)"
+                            class="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium text-gray-800 dark:text-white/90"
                         >
-                            {{ deployment.status }}
-                        </span>
-
-                        <span class="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium text-gray-800 dark:text-white/90">
                             <svg lucideGitBranch class="h-4 w-4 shrink-0 text-gray-400"></svg>
                             <span class="truncate">{{ deployment.branch }}</span>
                         </span>
@@ -30,11 +25,20 @@
                         </span>
                     </div>
 
-                    @if (deployment.error) {
-                        <p class="max-w-lg truncate text-xs text-error-500" [title]="deployment.error">
-                            {{ deployment.error }}
-                        </p>
-                    }
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
+                            [class]="statusBadgeClass(deployment.status)"
+                        >
+                            {{ deployment.status }}
+                        </span>
+
+                        @if (deployment.error) {
+                            <p class="max-w-lg truncate text-xs text-error-500" [title]="deployment.error">
+                                {{ deployment.error }}
+                            </p>
+                        }
+                    </div>
                 </div>
 
                 <div class="flex shrink-0 items-center gap-2">
