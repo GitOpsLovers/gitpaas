@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(git mv *)",
       "Bash(pnpm --filter backend build)",
       "Bash(pnpm --filter frontend build)",
       "WebFetch(domain:angular-demo.tailadmin.com)"

@@ -6,10 +6,11 @@ import { AppService } from './app.service';
 import { CoreModule } from '@core/core.module';
 import { DockerModule } from '@core/docker/docker.module';
 import { ProjectsModule } from '@features/projects/projects.module';
+import { ProvidersModule } from '@features/providers/providers.module';
 import { ServicesModule } from '@features/services/services.module';
 
 @Module({
-    imports: [CoreModule, DockerModule, ProjectsModule, ServicesModule],
+    imports: [CoreModule, DockerModule, ProjectsModule, ProvidersModule, ServicesModule],
     controllers: [AppController],
     providers: [AppService],
 })
