@@ -5,13 +5,13 @@ stays consistent. For the step-by-step procedure to build or change a feature, u
 
 ## Overview
 
-The frontend is a standalone **Angular** SPA (signals-based, zoneless-friendly) styled with **Tailwind CSS** (TailAdmin theme). It talks to the backend's REST API (`/api/v1`) and is organised as a set of **feature folders** with a layered structure — `domain` (types), `infrastructure/api` (data access), and `ui` (components) — plus a shared application shell (`layout`), route-level `pages`, and cross-feature `shared` code.
+The frontend is an **Angular** SPA styled with **Tailwind CSS** (TailAdmin theme). It talks to the backend's REST API (`/api/v1`) and is organised as a set of **feature folders** with a layered structure — `domain` (types), `infrastructure/api` (data access), and `ui` (components) — plus a shared application shell (`layout`), route-level `pages`, and cross-feature `shared` code.
 
 ### Tech stack
 
 | Technology                   | Role                                               |
 |------------------------------|----------------------------------------------------|
-| Angular (standalone)         | SPA framework                                      |
+| Angular.                     | SPA framework                                      |
 | `@angular/common/http`       | Data access (`httpResource` + `HttpClient`)        |
 | Signals                      | State (`signal`, `linkedSignal`, `input`/`output`) |
 | Tailwind CSS                 | Styling (TailAdmin theme)                          |
@@ -64,25 +64,6 @@ features/<feature>/
 ```
 
 **All business logic lives in the feature**, never in pages. Every screen is a smart **container** that injects the repository, holds the state signals, and issues the create/update/delete/read commands. Presentational **components** only render and emit — a container wraps them.
-
-Using `projects` as the reference feature:
-
-```
-features/projects/
-  domain/
-    models/project.model.ts                     — Project (id: string, name: string)
-    dtos/create-project.dto.ts                  — CreateProjectDto
-    dtos/update-project.dto.ts                  — UpdateProjectDto
-  infrastructure/
-    api/projects-api.repository.ts              — ProjectsApiRepository
-  ui/
-    containers/projects-list/                   — ProjectsListComponent (smart: list + delete)
-    containers/project-add/                     — ProjectAddComponent (smart: create + navigate)
-    containers/project-edit/                    — ProjectEditComponent (smart: load + update + navigate)
-    components/project-form/                    — ProjectFormComponent (presentational, reused by add/edit)
-```
-
-Component files follow the `<name>.component.ts` / `<name>.component.html` convention.
 
 ### API data access (Infrastructure layer)
 
