@@ -13,7 +13,7 @@
                 [project]="project"
                 (view)="view($event)"
                 (edit)="edit($event)"
-                (delete)="delete($event.id)"
+                (delete)="requestDelete($event)"
             />
         }
     </div>
@@ -28,3 +28,16 @@
         </a>
     </div>
 }
+
+<app-confirm-modal
+    [open]="pendingDelete() !== null"
+    [message]="deleteMessage()"
+    [loading]="deleting()"
+    title="Delete project?"
+    confirmText="Delete"
+    cancelText="Cancel"
+    variant="danger"
+    icon="trash"
+    (confirmed)="confirmDelete()"
+    (cancelled)="pendingDelete.set(null)"
+/>

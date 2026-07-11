@@ -10,11 +10,12 @@ export type DockerLogListener = (line: string) => void;
  */
 export interface DockerExecutor {
     /**
-     * Run `docker-compose up` for a given compose file and project name
+     * Build (from source) and run a stack from a repository archive
      *
-     * @param composeContent Raw docker-compose YAML
+     * @param archive Gzipped tarball of the repository source
+     * @param composePath Path to the compose file within the repository
      * @param projectName Compose project name used to group the stack's resources
      * @param onLog Optional listener receiving real-time output as the stack comes up
      */
-    up: (composeContent: string, projectName: string, onLog?: DockerLogListener) => Promise<void>;
+    up: (archive: Buffer, composePath: string, projectName: string, onLog?: DockerLogListener) => Promise<void>;
 }

@@ -31,4 +31,14 @@ export interface ProvidersRepository {
      * @returns The file content
      */
     getFileContent: (repositoryId: number, path: string, ref: string) => Promise<string>;
+
+    /**
+     * Download a repository's source as a gzipped tarball at a given ref
+     *
+     * @param repositoryId Repository identifier
+     * @param ref Branch, tag or commit to download
+     *
+     * @returns The gzipped tarball bytes
+     */
+    getRepositoryArchive: (repositoryId: number, ref: string) => Promise<Buffer>;
 }

@@ -68,6 +68,23 @@ export class GithubAppProvider implements ProvidersRepository {
         return Buffer.from(data.content, 'base64').toString('utf8');
     }
 
+    public async getRepositoryArchive(repositoryId: number, ref: string): Promise<Buffer> {
+        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+            id: repositoryId,
+        });
+
+        const [owner, repo] = repository.full_name.split('/');
+
+        // Octokit follows GitHub's 302 to codeload and returns the tarball bytes as an ArrayBuffer.
+        const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/tarball/{ref}', {
+            owner,
+            repo,
+            ref,
+        });
+
+        return Buffer.from(data as ArrayBuffer);
+    }
+
     /**
      * Lazily-created, reused Octokit client authenticated as the installation.
      */

@@ -127,6 +127,7 @@ export class ServiceDetailComponent {
      */
     protected async deploy(): Promise<void> {
         this.deploying.set(true);
+        this.activeTab.set('deployments');
 
         try {
             await lastValueFrom(this.deploymentsRepository.deploy(this.serviceId()));

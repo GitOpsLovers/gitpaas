@@ -1,7 +1,7 @@
 import {
     afterRenderEffect, Component, effect, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
-import { LucideLoaderCircle } from '@lucide/angular';
+import { LucideLoaderCircle, LucideX } from '@lucide/angular';
 
 import { Deployment } from '@features/deployments/domain/models/deployment.model';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
@@ -15,7 +15,7 @@ type LogStreamStatus = 'running' | 'success' | 'failed';
 @Component({
     selector: 'app-deployment-logs-modal',
     templateUrl: './deployment-logs-modal.component.html',
-    imports: [ModalComponent, LucideLoaderCircle],
+    imports: [ModalComponent, LucideLoaderCircle, LucideX],
 })
 
 /**

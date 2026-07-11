@@ -16,6 +16,7 @@ describe('listRepositoriesUseCase', () => {
             listRepositories: jest.fn(),
             listBranches: jest.fn(),
             getFileContent: jest.fn(),
+            getRepositoryArchive: jest.fn(),
         };
     });
 

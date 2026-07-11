@@ -1,8 +1,7 @@
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
-
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { DockerExecutor } from '@core/docker/domain/executors/docker.executor';
+import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 
 /**
@@ -39,10 +38,10 @@ export async function runDeploymentUseCase(
     await repository.update(deploymentId, { status: 'running' });
 
     try {
-        const composeContent = await providersRepository.getFileContent(repositoryId, composerPath, branch);
+        const archive = await providersRepository.getRepositoryArchive(repositoryId, branch);
 
-        await dockerExecutor.up(composeContent, projectName, (line) => {
-            void logStore.append(deploymentId, line);
+        await dockerExecutor.up(archive, composerPath, projectName, (line) => {
+            logStore.append(deploymentId, line);
         });
 
         await repository.update(deploymentId, { status: 'success' });

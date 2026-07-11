@@ -1,7 +1,7 @@
 @if (open()) {
     <div class="pointer-events-none fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-4">
         @if (backdrop()) {
-            <div class="pointer-events-auto fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]" (click)="close()"></div>
+            <div class="pointer-events-auto fixed inset-0 h-full w-full bg-gray-400/40 backdrop-blur-sm" (click)="close()"></div>
         }
 
         <div class="pointer-events-auto relative w-full rounded-3xl bg-white shadow-theme-lg dark:bg-gray-900" [class]="className()">
