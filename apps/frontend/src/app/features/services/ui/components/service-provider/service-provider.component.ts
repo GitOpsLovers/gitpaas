@@ -29,21 +29,17 @@ export interface ServiceProviderSettings {
 export class ServiceProviderComponent {
     private readonly github = inject(GithubApiRepository);
 
-    public readonly initialRepositoryId = input('');
-
-    public readonly initialBranch = input('');
-
-    public readonly initialComposerPath = input('docker-compose.yml');
+    public readonly initial = input.required<ServiceProviderSettings>();
 
     public readonly saving = input(false);
 
     public readonly save = output<ServiceProviderSettings>();
 
-    protected readonly repositoryId = linkedSignal(() => this.initialRepositoryId());
+    protected readonly repositoryId = linkedSignal(() => this.initial().repositoryId);
 
-    protected readonly branch = linkedSignal(() => this.initialBranch());
+    protected readonly branch = linkedSignal(() => this.initial().deploymentBranch);
 
-    protected readonly composerPath = linkedSignal(() => this.initialComposerPath());
+    protected readonly composerPath = linkedSignal(() => this.initial().composerPath);
 
     /**
      * Repositories accessible to the GitHub App installation.

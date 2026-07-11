@@ -66,6 +66,16 @@ export class ServiceDetailComponent {
         { label: this.service.value()?.name ?? 'Service' },
     ]);
 
+    protected readonly providerSettings = computed<ServiceProviderSettings>(() => {
+        const service = this.service.value();
+
+        return {
+            repositoryId: service?.repositoryId ?? '',
+            deploymentBranch: service?.deploymentBranch ?? '',
+            composerPath: service?.composerPath || 'docker-compose.yml',
+        };
+    });
+
     protected saveProvider(settings: ServiceProviderSettings): void {
         const current = this.service.value();
 

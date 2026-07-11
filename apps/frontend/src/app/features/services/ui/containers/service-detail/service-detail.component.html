@@ -8,9 +8,7 @@
             <app-service-deploy-actions class="mb-6 block" />
 
             <app-service-provider
-                [initialRepositoryId]="service.value()?.repositoryId ?? ''"
-                [initialBranch]="service.value()?.deploymentBranch ?? ''"
-                [initialComposerPath]="service.value()?.composerPath || 'docker-compose.yml'"
+                [initial]="providerSettings()"
                 [saving]="savingProvider()"
                 (save)="saveProvider($event)"
             />
