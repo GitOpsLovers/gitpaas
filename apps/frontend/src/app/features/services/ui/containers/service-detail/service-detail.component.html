@@ -1,6 +1,6 @@
 <app-breadcrumb [items]="breadcrumb()" />
 
-<app-tabs [tabs]="tabs" [activeId]="activeTab()" (activeIdChange)="activeTab.set($any($event))" />
+<app-tabs [tabs]="tabs" [activeId]="activeTab()" (activeIdChange)="changeTab($any($event))" />
 
 <div class="mt-6">
     @switch (activeTab()) {

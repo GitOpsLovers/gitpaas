@@ -56,6 +56,11 @@ export const routes: Routes = [
                     },
                     {
                         path: ':id/services/:serviceId',
+                        redirectTo: ':id/services/:serviceId/general',
+                        pathMatch: 'full',
+                    },
+                    {
+                        path: ':id/services/:serviceId/:tab',
                         loadComponent: () => import('@pages/services/detail/service-detail.component').then((m) => m.ServiceDetailPage),
                         title: 'Service | Artifactory',
                     },

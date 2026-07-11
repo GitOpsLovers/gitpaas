@@ -15,4 +15,6 @@ export class ServiceDetailPage {
     public readonly id = input.required<string>();
 
     public readonly serviceId = input.required<string>();
+
+    public readonly tab = input.required<string>();
 }

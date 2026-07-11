@@ -1,5 +1,6 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
@@ -46,9 +47,13 @@ export class ServiceDetailComponent {
 
     private readonly toast = inject(ToastService);
 
+    private readonly router = inject(Router);
+
     public readonly projectId = input.required<string>();
 
     public readonly serviceId = input.required<string>();
+
+    public readonly tab = input.required<string>();
 
     protected readonly service: HttpResourceRef<Service | undefined> = this.repository.serviceById(() => this.serviceId());
 
@@ -57,7 +62,10 @@ export class ServiceDetailComponent {
     // eslint-disable-next-line max-len
     protected readonly deployments: HttpResourceRef<Deployment[] | undefined> = this.deploymentsRepository.deploymentsByService(() => this.serviceId());
 
-    protected readonly activeTab = signal<ServiceTab>('general');
+    protected readonly activeTab = computed<ServiceTab>(() => {
+        const tab = this.tab();
+        return this.tabs.some((entry) => entry.id === tab) ? (tab as ServiceTab) : 'general';
+    });
 
     protected readonly savingProvider = signal(false);
 
@@ -124,11 +132,20 @@ export class ServiceDetailComponent {
     }
 
     /**
+     * Navigates to a tab's subpath.
+     *
+     * @param tab Tab to activate
+     */
+    protected changeTab(tab: ServiceTab): void {
+        this.router.navigate(['/projects', this.projectId(), 'services', this.serviceId(), tab]);
+    }
+
+    /**
      * Triggers a new deployment for the service.
      */
     protected async deploy(): Promise<void> {
         this.deploying.set(true);
-        this.activeTab.set('deployments');
+        this.changeTab('deployments');
 
         try {
             await lastValueFrom(this.deploymentsRepository.deploy(this.serviceId()));
