@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 
 import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
@@ -34,15 +35,14 @@ export class ProjectsListComponent {
         this.router.navigate(['/projects/edit', project.id]);
     }
 
-    protected delete(id: string): void {
-        this.repository.delete(id).subscribe({
-            next: () => {
-                this.toast.success('Project deleted', 'The project has been removed.');
-                this.projects.reload();
-            },
-            error: () => {
-                this.toast.error('Could not delete project', 'Something went wrong. Please try again.');
-            },
-        });
+    protected async delete(id: string): Promise<void> {
+        try {
+            await lastValueFrom(this.repository.delete(id));
+
+            this.toast.success('Project deleted', 'The project has been removed.');
+            this.projects.reload();
+        } catch {
+            this.toast.error('Could not delete project', 'Something went wrong. Please try again.');
+        }
     }
 }

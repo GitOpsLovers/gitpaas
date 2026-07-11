@@ -6,6 +6,7 @@ import { DeploymentsDatabaseRepository } from './infrastructure/database/deploym
 import { DeploymentsController } from './ui/controllers/deployments.controller';
 import { DeploymentsService } from './ui/services/deployments.service';
 
+import { LogsModule } from '@features/logs/logs.module';
 import { ProvidersModule } from '@features/providers/providers.module';
 import { ServicesModule } from '@features/services/services.module';
 
@@ -13,7 +14,7 @@ import { ServicesModule } from '@features/services/services.module';
  * Deployments feature module.
  */
 @Module({
-    imports: [TypeOrmModule.forFeature([DeploymentDbEntity]), ServicesModule, ProvidersModule],
+    imports: [TypeOrmModule.forFeature([DeploymentDbEntity]), ServicesModule, ProvidersModule, LogsModule],
     controllers: [DeploymentsController],
     providers: [
         DeploymentsService,

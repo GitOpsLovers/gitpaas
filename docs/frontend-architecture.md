@@ -70,7 +70,7 @@ features/<feature>/
 The infrastructure layer contains one `@Injectable()` repository per feature (`<feature>-api.repository.ts`) that owns all HTTP access, following the [Angular `httpResource` guide](https://angular.dev/guide/http/http-resource): **reads use `httpResource`, mutations use `HttpClient` directly**.
 
 - **Reads → `httpResource`**: reactive collections/records exposed as a resource with `isLoading()`, `error()`, `hasValue()`, `value()`, `status()`, and `reload()`. A read parameterised by an id is a factory method returning a resource keyed off an accessor (`serviceById(() => id)`), idle until the accessor yields a value.
-- **Mutations (POST/PUT/DELETE) → `HttpClient`**: `create`/`update`/`delete` are thin methods returning an `Observable` the caller subscribes to. The guide explicitly recommends `HttpClient` over `httpResource` for mutations. After a successful mutation the caller calls `.reload()` on the relevant read resource to refresh it.
+- **Mutations (POST/PUT/DELETE) → `HttpClient`**: `create`/`update`/`delete` are thin methods returning a single-emission `Observable`. Containers consume them with `lastValueFrom` and `async`/`await` (not manual `subscribe`). The guide explicitly recommends `HttpClient` over `httpResource` for mutations. After a successful mutation the caller calls `.reload()` on the relevant read resource to refresh it. Long-lived, multi-emission streams (e.g. an SSE/`EventSource` log stream) are the exception: those return an `Observable` the container `subscribe`s to and tears down explicitly.
 
 ```typescript
 @Injectable()
@@ -105,7 +105,7 @@ The repository is **not** `providedIn: 'root'`; it is `@Injectable()` and provid
 
 ### Containers (UI layer)
 
-Smart components provide and inject the API repository, expose its read resources to the template, and issue mutations (subscribing, with navigation/toasts on success). They live in `ui/containers/`. There is **one container per screen** — `projects-list` (read + delete), `project-add` (create), `project-edit` (load + update).
+Smart components provide and inject the API repository, expose its read resources to the template, and issue mutations (awaited via `lastValueFrom`, with navigation/toasts on success). They live in `ui/containers/`. There is **one container per screen** — `projects-list` (read + delete), `project-add` (create), `project-edit` (load + update).
 
 ```typescript
 @Component({
@@ -118,18 +118,20 @@ export class ProjectsListComponent {
     private readonly repository = inject(ProjectsApiRepository);
     protected readonly projects = this.repository.projects;
 
-    protected delete(id: string): void {
-        this.repository.delete(id).subscribe({
-            next: () => this.projects.reload(),
-            error: () => { /* toast */ },
-        });
+    protected async delete(id: string): Promise<void> {
+        try {
+            await lastValueFrom(this.repository.delete(id));
+            this.projects.reload();
+        } catch {
+            /* toast */
+        }
     }
 }
 ```
 
 The list template drives its own states off the resource: `@if (projects.isLoading())` / `@else if (projects.error())` / `@else if (projects.hasValue())`, with an empty-state branch.
 
-The command containers own a `submitting` signal (toggled around the subscription), wrap the presentational form, and navigate on success. `project-add` creates; `project-edit` additionally reads the route param and pre-loads the record through a `projectById` read resource (deriving `initialName`/`loading` from it, rendering a loading branch until it resolves).
+The command containers own a `submitting` signal (toggled around the awaited call), wrap the presentational form, and navigate on success. The mutation is awaited inside a `try/catch`: the success path shows a toast and navigates, and `submitting` is reset in `catch` — the success path deliberately leaves it set because the container navigates away. (A container that stays on screen after a mutation should reset the flag in a `finally` instead.) `project-add` creates; `project-edit` additionally reads the route param and pre-loads the record through a `projectById` read resource (deriving `initialName`/`loading` from it, rendering a loading branch until it resolves).
 
 ```typescript
 @Component({
@@ -143,12 +145,14 @@ export class ProjectAddComponent {
     private readonly router = inject(Router);
     protected readonly submitting = signal(false);
 
-    protected create(name: string): void {
+    protected async create(name: string): Promise<void> {
         this.submitting.set(true);
-        this.repository.create({ name }).subscribe({
-            next: () => this.router.navigate(['/projects']),
-            error: () => this.submitting.set(false),
-        });
+        try {
+            await lastValueFrom(this.repository.create({ name }));
+            this.router.navigate(['/projects']);
+        } catch {
+            this.submitting.set(false);
+        }
     }
 }
 ```

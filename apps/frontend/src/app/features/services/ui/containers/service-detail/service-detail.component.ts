@@ -1,8 +1,10 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
 import { ServiceDeployActionsComponent } from '../../components/service-deploy-actions/service-deploy-actions.component';
 import { ServiceDeploymentsComponent } from '../../components/service-deployments/service-deployments.component';
 import { ServiceLogsComponent } from '../../components/service-logs/service-logs.component';
@@ -24,6 +26,7 @@ type ServiceTab = 'general' | 'deployments' | 'logs';
     providers: [ServicesApiRepository, ProjectsApiRepository, DeploymentsApiRepository],
     imports: [
         BreadcrumbComponent,
+        DeploymentLogsModalComponent,
         ServiceDeployActionsComponent,
         ServiceDeploymentsComponent,
         ServiceLogsComponent,
@@ -60,6 +63,10 @@ export class ServiceDetailComponent {
 
     protected readonly deploying = signal(false);
 
+    protected readonly logModalOpen = signal(false);
+
+    protected readonly selectedDeployment = signal<Deployment | null>(null);
+
     /**
      * Defines the tabs available in the service detail view.
      */
@@ -94,7 +101,7 @@ export class ServiceDetailComponent {
     /**
      * Saves the provider settings and reflects the saved service back into the detail resource.
      */
-    protected saveProvider(settings: ServiceProviderSettings): void {
+    protected async saveProvider(settings: ServiceProviderSettings): Promise<void> {
         const current = this.service.value();
 
         if (!current) {
@@ -103,43 +110,44 @@ export class ServiceDetailComponent {
 
         this.savingProvider.set(true);
 
-        this.repository.update(this.serviceId(), { name: current.name, ...settings }).subscribe({
-            next: (updated) => {
-                this.service.value.set(updated);
-                this.toast.success('Provider settings saved', `“${updated.name}” has been updated.`);
-                this.savingProvider.set(false);
-            },
-            error: () => {
-                this.toast.error('Could not save provider settings', 'Something went wrong. Please try again.');
-                this.savingProvider.set(false);
-            },
-        });
+        try {
+            const updated = await lastValueFrom(this.repository.update(this.serviceId(), { name: current.name, ...settings }));
+
+            this.service.value.set(updated);
+            this.toast.success('Provider settings saved', `“${updated.name}” has been updated.`);
+        } catch {
+            this.toast.error('Could not save provider settings', 'Something went wrong. Please try again.');
+        } finally {
+            this.savingProvider.set(false);
+        }
     }
 
     /**
      * Triggers a new deployment for the service.
      */
-    protected deploy(): void {
+    protected async deploy(): Promise<void> {
         this.deploying.set(true);
 
-        this.deploymentsRepository.deploy(this.serviceId()).subscribe({
-            next: () => {
-                this.deployments.reload();
-                this.toast.success('Deployment started', 'A new deployment has been triggered.');
-                this.deploying.set(false);
-            },
-            error: () => {
-                this.toast.error('Could not start deployment', 'Something went wrong. Please try again.');
-                this.deploying.set(false);
-            },
-        });
+        try {
+            await lastValueFrom(this.deploymentsRepository.deploy(this.serviceId()));
+
+            this.deployments.reload();
+            this.toast.success('Deployment started', 'A new deployment has been triggered.');
+        } catch {
+            this.toast.error('Could not start deployment', 'Something went wrong. Please try again.');
+        } finally {
+            this.deploying.set(false);
+        }
     }
 
     /**
-     * Opens a deployment. Not implemented yet.
+     * Opens the log modal for a deployment, streaming its `docker-compose up` output.
+     *
+     * @param deployment Deployment to view
      */
-    protected viewDeployment(_deployment: Deployment): void {
-        // TODO: navigate to the deployment detail view once it exists.
+    protected viewDeployment(deployment: Deployment): void {
+        this.selectedDeployment.set(deployment);
+        this.logModalOpen.set(true);
     }
 
     /**
@@ -147,15 +155,14 @@ export class ServiceDetailComponent {
      *
      * @param deployment Deployment to delete
      */
-    protected deleteDeployment(deployment: Deployment): void {
-        this.deploymentsRepository.remove(deployment.id).subscribe({
-            next: () => {
-                this.deployments.reload();
-                this.toast.success('Deployment deleted', 'The deployment record has been removed.');
-            },
-            error: () => {
-                this.toast.error('Could not delete deployment', 'Something went wrong. Please try again.');
-            },
-        });
+    protected async deleteDeployment(deployment: Deployment): Promise<void> {
+        try {
+            await lastValueFrom(this.deploymentsRepository.remove(deployment.id));
+
+            this.deployments.reload();
+            this.toast.success('Deployment deleted', 'The deployment record has been removed.');
+        } catch {
+            this.toast.error('Could not delete deployment', 'Something went wrong. Please try again.');
+        }
     }
 }

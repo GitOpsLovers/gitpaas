@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { ProjectFormComponent } from '@features/projects/ui/components/project-form/project-form.component';
@@ -34,18 +35,17 @@ export class ProjectEditComponent {
 
     protected readonly submitting = signal(false);
 
-    protected update(name: string): void {
+    protected async update(name: string): Promise<void> {
         this.submitting.set(true);
 
-        this.repository.update(this.id, { name }).subscribe({
-            next: (project) => {
-                this.toast.success('Project updated', `“${project.name}” has been saved.`);
-                this.router.navigate(['/projects']);
-            },
-            error: () => {
-                this.toast.error('Could not update project', 'Something went wrong. Please try again.');
-                this.submitting.set(false);
-            },
-        });
+        try {
+            const project = await lastValueFrom(this.repository.update(this.id, { name }));
+
+            this.toast.success('Project updated', `“${project.name}” has been saved.`);
+            this.router.navigate(['/projects']);
+        } catch {
+            this.toast.error('Could not update project', 'Something went wrong. Please try again.');
+            this.submitting.set(false);
+        }
     }
 }

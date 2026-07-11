@@ -28,3 +28,9 @@
         }
     }
 </div>
+
+<app-deployment-logs-modal
+    [open]="logModalOpen()"
+    [deployment]="selectedDeployment()"
+    (closed)="logModalOpen.set(false)"
+/>

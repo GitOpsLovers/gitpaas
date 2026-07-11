@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 import { ProjectFormComponent } from '../../components/project-form/project-form.component';
@@ -25,18 +26,17 @@ export class ProjectAddComponent {
 
     protected readonly submitting = signal(false);
 
-    protected create(name: string): void {
+    protected async create(name: string): Promise<void> {
         this.submitting.set(true);
 
-        this.repository.create({ name }).subscribe({
-            next: (project) => {
-                this.toast.success('Project created', `“${project.name}” has been created.`);
-                this.router.navigate(['/projects']);
-            },
-            error: () => {
-                this.toast.error('Could not create project', 'Something went wrong. Please try again.');
-                this.submitting.set(false);
-            },
-        });
+        try {
+            const project = await lastValueFrom(this.repository.create({ name }));
+
+            this.toast.success('Project created', `“${project.name}” has been created.`);
+            this.router.navigate(['/projects']);
+        } catch {
+            this.toast.error('Could not create project', 'Something went wrong. Please try again.');
+            this.submitting.set(false);
+        }
     }
 }

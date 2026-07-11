@@ -39,3 +39,4 @@ When the entity belongs to another (e.g. a service belongs to a project):
 
 - Do **not** run ESLint — that is the user's responsibility.
 - Confirm it compiles: `pnpm --filter backend build`.
+- For now, don't implement tests.

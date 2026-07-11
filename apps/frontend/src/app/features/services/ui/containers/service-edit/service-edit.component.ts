@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceFormComponent } from '../../components/service-form/service-form.component';
@@ -51,18 +52,17 @@ export class ServiceEditComponent {
         { label: 'Edit service' },
     ]);
 
-    protected update(name: string): void {
+    protected async update(name: string): Promise<void> {
         this.submitting.set(true);
 
-        this.repository.update(this.id, { name }).subscribe({
-            next: (service) => {
-                this.toast.success('Service updated', `“${service.name}” has been saved.`);
-                this.router.navigate(['/projects', this.projectId]);
-            },
-            error: () => {
-                this.toast.error('Could not update service', 'Something went wrong. Please try again.');
-                this.submitting.set(false);
-            },
-        });
+        try {
+            const service = await lastValueFrom(this.repository.update(this.id, { name }));
+
+            this.toast.success('Service updated', `“${service.name}” has been saved.`);
+            this.router.navigate(['/projects', this.projectId]);
+        } catch {
+            this.toast.error('Could not update service', 'Something went wrong. Please try again.');
+            this.submitting.set(false);
+        }
     }
 }

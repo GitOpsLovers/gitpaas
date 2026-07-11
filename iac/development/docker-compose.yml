@@ -10,6 +10,9 @@
 # - pgadmin:  a web UI to inspect and query the local postgres. Reachable at
 #             http://127.0.0.1:5050 (login admin@artifactory.com / artifactory);
 #             the local database server is pre-registered via pgadmin/servers.json.
+# - redis:    in-memory store used to buffer and fan-out real-time deployment logs.
+#             The backend RPUSHes captured `docker-compose up` output here and streams
+#             it to the browser over SSE. In production this same store runs on the VPS.
 #
 # Paths are relative to this file (iac/development/); certs and state live under
 # the repo-root `.dev/` directory.
@@ -60,6 +63,21 @@ services:
       retries: 10
       start_period: 10s
 
+  redis:
+    image: redis:7-alpine
+    container_name: artifactory-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379" # backend (on host) connects here
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
   pgadmin:
     image: dpage/pgadmin4:8.14
     container_name: artifactory-pgadmin
@@ -85,3 +103,4 @@ volumes:
   vps-data:
   postgres-data:
   pgadmin-data:
+  redis-data:

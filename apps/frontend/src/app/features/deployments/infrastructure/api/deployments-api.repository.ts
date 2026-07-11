@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 
 import { Deployment } from '../../domain/models/deployment.model';
 
+import { LogEvent } from '@features/logs/domain/models/log-event.model';
+
 @Injectable()
 
 /**
@@ -45,7 +47,44 @@ export class DeploymentsApiRepository {
      *
      * @param id Identifier of the deployment to delete
      */
-    public remove(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.url}/${id}`);
+    public remove(id: string): Observable<null> {
+        return this.http.delete<null>(`${this.url}/${id}`);
+    }
+
+    /**
+     * Streams a deployment's real-time log over Server-Sent Events.
+     *
+     * Buffered output is replayed first, then live lines; the stream completes
+     * when the run ends. The underlying `EventSource` is closed on unsubscribe.
+     *
+     * @param deploymentId Identifier of the deployment to stream
+     *
+     * @returns Log events for the deployment
+     */
+    public logs(deploymentId: string): Observable<LogEvent> {
+        return new Observable<LogEvent>((subscriber) => {
+            const source = new EventSource(`${this.url}/${deploymentId}/logs`);
+
+            source.onmessage = (message) => {
+                const event = JSON.parse(message.data) as LogEvent;
+
+                subscriber.next(event);
+
+                if (event.type === 'end') {
+                    source.close();
+                    subscriber.complete();
+                }
+            };
+
+            source.onerror = () => {
+                // The browser auto-reconnects on transient errors; surface a hard
+                // failure only once the connection is closed for good.
+                if (source.readyState === EventSource.CLOSED) {
+                    subscriber.error(new Error('Log stream connection closed'));
+                }
+            };
+
+            return () => { source.close(); };
+        });
     }
 }

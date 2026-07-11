@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Observable } from 'rxjs';
 
 import { createDeploymentUseCase } from '../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../application/delete-deployment.use-case';
@@ -11,6 +12,8 @@ import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 
 import { DockerodeDockerExecutor } from '@core/docker/infrastructure/dockerode-docker.executor';
+import { LogEvent } from '@features/logs/domain/models/log-event.model';
+import { RedisLogStoreRepository } from '@features/logs/infrastructure/redis/redis-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { Service } from '@features/services/domain/models/service.model';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
@@ -32,6 +35,8 @@ export class DeploymentsService {
         private readonly providersRepository: GithubAppProvider,
         @Inject(DockerodeDockerExecutor)
         private readonly dockerExecutor: DockerodeDockerExecutor,
+        @Inject(RedisLogStoreRepository)
+        private readonly logStoreRepository: RedisLogStoreRepository,
     ) {}
 
     /**
@@ -100,6 +105,17 @@ export class DeploymentsService {
     }
 
     /**
+     * Streams a deployment's log: buffered lines first, then live output.
+     *
+     * @param id Deployment identifier
+     *
+     * @returns Observable of log events for the deployment
+     */
+    public streamLogs(id: string): Observable<LogEvent> {
+        return this.logStoreRepository.stream(id);
+    }
+
+    /**
      * Carries out the deployment in the background
      *
      * @param deployment Deployment record
@@ -110,6 +126,7 @@ export class DeploymentsService {
             this.repository,
             this.providersRepository,
             this.dockerExecutor,
+            this.logStoreRepository,
             {
                 deploymentId: deployment.id,
                 repositoryId: Number(service.repositoryId),

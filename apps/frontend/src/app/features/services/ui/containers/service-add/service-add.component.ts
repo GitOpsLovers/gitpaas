@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceFormComponent } from '../../components/service-form/service-form.component';
@@ -43,18 +44,17 @@ export class ServiceAddComponent {
         { label: 'Add service' },
     ]);
 
-    protected create(name: string): void {
+    protected async create(name: string): Promise<void> {
         this.submitting.set(true);
 
-        this.repository.create({ name, projectId: this.projectId }).subscribe({
-            next: (service) => {
-                this.toast.success('Service created', `“${service.name}” has been created.`);
-                this.router.navigate(['/projects', this.projectId]);
-            },
-            error: () => {
-                this.toast.error('Could not create service', 'Something went wrong. Please try again.');
-                this.submitting.set(false);
-            },
-        });
+        try {
+            const service = await lastValueFrom(this.repository.create({ name, projectId: this.projectId }));
+
+            this.toast.success('Service created', `“${service.name}” has been created.`);
+            this.router.navigate(['/projects', this.projectId]);
+        } catch {
+            this.toast.error('Could not create service', 'Something went wrong. Please try again.');
+            this.submitting.set(false);
+        }
     }
 }

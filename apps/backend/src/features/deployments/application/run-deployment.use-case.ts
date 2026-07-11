@@ -1,3 +1,5 @@
+import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { DockerExecutor } from '@core/docker/domain/executors/docker.executor';
@@ -20,12 +22,14 @@ export interface RunDeploymentPayload {
  * @param repository Deployments repository
  * @param providersRepository Providers repository
  * @param dockerExecutor Docker executor
+ * @param logStore Log store used to buffer and fan out live output
  * @param payload Deployment payload
  */
 export async function runDeploymentUseCase(
     repository: DeploymentsRepository,
     providersRepository: ProvidersRepository,
     dockerExecutor: DockerExecutor,
+    logStore: LogStoreRepository,
     payload: RunDeploymentPayload,
 ): Promise<void> {
     const {
@@ -37,12 +41,17 @@ export async function runDeploymentUseCase(
     try {
         const composeContent = await providersRepository.getFileContent(repositoryId, composerPath, branch);
 
-        await dockerExecutor.up(composeContent, projectName);
+        await dockerExecutor.up(composeContent, projectName, (line) => {
+            void logStore.append(deploymentId, line);
+        });
 
         await repository.update(deploymentId, { status: 'success' });
+        await logStore.complete(deploymentId, 'success');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
 
         await repository.update(deploymentId, { status: 'failed', error: message });
+        await logStore.append(deploymentId, `✖ Deployment failed: ${message}`);
+        await logStore.complete(deploymentId, 'failed');
     }
 }

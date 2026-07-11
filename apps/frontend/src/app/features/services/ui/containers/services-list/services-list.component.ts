@@ -1,5 +1,6 @@
 import { Component, effect, inject, input } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -42,15 +43,14 @@ export class ServicesListComponent {
         this.router.navigate(['/projects', this.projectId(), 'services', 'edit', service.id]);
     }
 
-    protected delete(id: string): void {
-        this.repository.delete(id).subscribe({
-            next: () => {
-                this.toast.success('Service deleted', 'The service has been removed.');
-                this.services.reload();
-            },
-            error: () => {
-                this.toast.error('Could not delete service', 'Something went wrong. Please try again.');
-            },
-        });
+    protected async delete(id: string): Promise<void> {
+        try {
+            await lastValueFrom(this.repository.delete(id));
+
+            this.toast.success('Service deleted', 'The service has been removed.');
+            this.services.reload();
+        } catch {
+            this.toast.error('Could not delete service', 'Something went wrong. Please try again.');
+        }
     }
 }
