@@ -1,6 +1,6 @@
 <app-component-card title="Deploy Actions">
     <div class="flex flex-wrap gap-3">
-        <app-button variant="primary" size="sm" [disabled]="deploying()" (btnClick)="deploy.emit()">
+        <app-button variant="primary" size="sm" [disabled]="deploying()" (btnClick)="requestDeploy()">
             <svg lucideRocket class="h-4 w-4"></svg>
             {{ deploying() ? 'Deploying…' : 'Deploy' }}
         </app-button>
@@ -17,4 +17,16 @@
             Open Terminal
         </app-button>
     </div>
+
+    <app-confirm-modal
+        [open]="confirmOpen()"
+        [backdrop]="false"
+        title="Launch deployment?"
+        message="Are you sure you want to trigger a new deployment for this service?"
+        confirmText="Deploy"
+        cancelText="Cancel"
+        variant="primary"
+        (confirmed)="confirmDeploy()"
+        (cancelled)="confirmOpen.set(false)"
+    />
 </app-component-card>

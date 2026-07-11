@@ -1,0 +1,50 @@
+<app-modal
+    [open]="open()"
+    [backdrop]="backdrop()"
+    [showCloseButton]="false"
+    className="max-w-sm p-6"
+    (closed)="cancelled.emit()"
+>
+    <div class="text-center">
+        @if (icon(); as glyph) {
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full" [class]="badgeClasses()">
+                @switch (glyph) {
+                    @case ('help') {
+                        <svg lucideCircleHelp class="h-6 w-6"></svg>
+                    }
+                    @case ('warning') {
+                        <svg lucideTriangleAlert class="h-6 w-6"></svg>
+                    }
+                    @case ('rocket') {
+                        <svg lucideRocket class="h-6 w-6"></svg>
+                    }
+                    @case ('trash') {
+                        <svg lucideTrash2 class="h-6 w-6"></svg>
+                    }
+                    @case ('success') {
+                        <svg lucideCircleCheck class="h-6 w-6"></svg>
+                    }
+                    @default {
+                        <svg lucideInfo class="h-6 w-6"></svg>
+                    }
+                }
+            </div>
+        }
+
+        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">{{ title() }}</h4>
+
+        @if (message()) {
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ message() }}</p>
+        }
+
+        <div class="mt-6 flex items-center justify-center gap-3">
+            <app-button variant="outline" size="sm" [disabled]="loading()" (btnClick)="cancelled.emit()">
+                {{ cancelText() }}
+            </app-button>
+
+            <app-button [variant]="confirmVariant()" size="sm" [disabled]="loading()" (btnClick)="confirmed.emit()">
+                {{ confirmText() }}
+            </app-button>
+        </div>
+    </div>
+</app-modal>
