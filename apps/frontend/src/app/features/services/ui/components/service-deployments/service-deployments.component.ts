@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
-import { LucideCalendar, LucideClock, LucideEye, LucideGitBranch, LucideTrash2 } from '@lucide/angular';
+import { LucideCalendar, LucideClock, LucideEye, LucideGitBranch, LucideGitCommitHorizontal, LucideTrash2 } from '@lucide/angular';
 
 import { Deployment, DeploymentStatus } from '@features/deployments/domain/models/deployment.model';
 import { ButtonComponent } from '@shared/components/button/button.component';
@@ -14,6 +14,7 @@ import { ComponentCardComponent } from '@shared/components/component-card/compon
         ButtonComponent,
         DatePipe,
         LucideGitBranch,
+        LucideGitCommitHorizontal,
         LucideCalendar,
         LucideClock,
         LucideEye,
@@ -44,6 +45,17 @@ export class ServiceDeploymentsComponent {
      * Emitted when the user wants to delete a deployment.
      */
     public readonly delete = output<Deployment>();
+
+    /**
+     * Abbreviates a commit SHA to its first 7 characters.
+     *
+     * @param commit Full commit SHA, or `null`
+     *
+     * @returns Short SHA, or a placeholder when absent
+     */
+    protected shortCommit(commit: string | null): string {
+        return commit ? commit.slice(0, 7) : '—';
+    }
 
     protected statusBadgeClass(status: DeploymentStatus): string {
         switch (status) {

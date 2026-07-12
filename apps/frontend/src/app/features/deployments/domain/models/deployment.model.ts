@@ -11,6 +11,10 @@ export interface Deployment {
     serviceId: string;
     status: DeploymentStatus;
     branch: string;
+    /** Commit SHA that was deployed, or `null` for records created before it was tracked. */
+    commit: string | null;
+    /** Title (first line) of the deployed commit's message, or `null` when unknown. */
+    commitMessage: string | null;
     composerPath: string;
     triggeredBy: string;
     error: string | null;

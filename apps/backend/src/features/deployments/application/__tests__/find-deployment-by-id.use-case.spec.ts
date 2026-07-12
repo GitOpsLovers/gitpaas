@@ -10,6 +10,8 @@ describe('findDeploymentByIdUseCase', () => {
         serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
         status: 'success',
         branch: 'main',
+        commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
+        commitMessage: 'Fix deployment healthcheck parsing',
         composerPath: 'docker-compose.yml',
         triggeredBy: 'marc.fernandez@icmb.es',
         error: null,

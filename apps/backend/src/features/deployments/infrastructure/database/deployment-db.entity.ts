@@ -21,6 +21,12 @@ export class DeploymentDbEntity {
     @Column({ type: 'text', default: '' })
     public branch!: string;
 
+    @Column({ type: 'text', nullable: true })
+    public commit!: string | null;
+
+    @Column({ type: 'text', nullable: true })
+    public commitMessage!: string | null;
+
     @Column({ type: 'text', default: '' })
     public composerPath!: string;
 

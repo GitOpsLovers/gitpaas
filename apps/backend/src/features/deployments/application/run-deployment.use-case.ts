@@ -10,7 +10,7 @@ import { ProvidersRepository } from '@features/providers/domain/repositories/pro
 export interface RunDeploymentPayload {
     deploymentId: string;
     repositoryId: number;
-    branch: string;
+    commit: string;
     composerPath: string;
     projectName: string;
 }
@@ -32,13 +32,13 @@ export async function runDeploymentUseCase(
     payload: RunDeploymentPayload,
 ): Promise<void> {
     const {
-        deploymentId, repositoryId, branch, composerPath, projectName,
+        deploymentId, repositoryId, commit, composerPath, projectName,
     } = payload;
 
     await repository.update(deploymentId, { status: 'running' });
 
     try {
-        const archive = await providersRepository.getRepositoryArchive(repositoryId, branch);
+        const archive = await providersRepository.getRepositoryArchive(repositoryId, commit);
 
         await dockerExecutor.up(archive, composerPath, projectName, (line) => {
             logStore.append(deploymentId, line);

@@ -1,4 +1,5 @@
 import { GitBranch } from '../models/git-branch.model';
+import { GitCommit } from '../models/git-commit.model';
 import { GitRepository } from '../models/git-repository.model';
 
 /**
@@ -20,6 +21,16 @@ export interface ProvidersRepository {
      * @returns A list of branches
      */
     listBranches: (repositoryId: number) => Promise<GitBranch[]>;
+
+    /**
+     * Resolve a ref (branch, tag or commit) to its head commit
+     *
+     * @param repositoryId Repository identifier
+     * @param ref Branch, tag or commit to resolve
+     *
+     * @returns The resolved commit, with its SHA and message
+     */
+    getCommit: (repositoryId: number, ref: string) => Promise<GitCommit>;
 
     /**
      * Read the UTF-8 content of a file in a repository at a given ref

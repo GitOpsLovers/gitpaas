@@ -9,7 +9,7 @@ describe('runDeploymentUseCase', () => {
     const payload: RunDeploymentPayload = {
         deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
         repositoryId: 42,
-        branch: 'main',
+        commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
         composerPath: 'docker-compose.yml',
         projectName: 'artifactory',
     };
@@ -32,6 +32,7 @@ describe('runDeploymentUseCase', () => {
         providersRepository = {
             listRepositories: jest.fn(),
             listBranches: jest.fn(),
+            getCommit: jest.fn(),
             getFileContent: jest.fn(),
             getRepositoryArchive: jest.fn(),
         };
@@ -54,13 +55,13 @@ describe('runDeploymentUseCase', () => {
         expect(repository.update).toHaveBeenNthCalledWith(1, payload.deploymentId, { status: 'running' });
     });
 
-    it('downloads the repository archive for the payload repository and branch', async () => {
+    it('downloads the repository archive for the payload repository and commit', async () => {
         providersRepository.getRepositoryArchive.mockResolvedValue(archive);
         dockerExecutor.up.mockResolvedValue(undefined);
 
         await runDeploymentUseCase(repository, providersRepository, dockerExecutor, logStore, payload);
 
-        expect(providersRepository.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.branch);
+        expect(providersRepository.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.commit);
     });
 
     it('brings the stack up with the archive, compose path, project name and a log listener', async () => {

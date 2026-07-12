@@ -105,9 +105,14 @@ export class DeploymentsService {
             throw new BadRequestException('Service has no repository or deployment branch configured');
         }
 
+        const commit = await this.providersRepository.getCommit(Number(service.repositoryId), service.deploymentBranch);
+
         const createDto: CreateDeploymentDto = {
             serviceId: service.id,
             branch: service.deploymentBranch,
+            commit: commit.sha,
+            // Store just the title (first line) of the commit message.
+            commitMessage: commit.message.split('\n')[0],
             composerPath: service.composerPath,
             triggeredBy: 'system',
         };
@@ -145,7 +150,7 @@ export class DeploymentsService {
             {
                 deploymentId: deployment.id,
                 repositoryId: Number(service.repositoryId),
-                branch: deployment.branch,
+                commit: deployment.commit ?? deployment.branch,
                 composerPath: deployment.composerPath,
                 projectName: composeProjectName(service),
             },

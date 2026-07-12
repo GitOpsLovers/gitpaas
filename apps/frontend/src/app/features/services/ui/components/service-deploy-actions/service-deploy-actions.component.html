@@ -1,4 +1,7 @@
-<app-component-card title="Deploy Actions">
+<app-component-card
+    title="Deploy Actions"
+    desc="Trigger, reload or stop a deployment of this service on the VPS."
+>
     <div class="flex flex-wrap gap-3">
         <app-button variant="primary" size="sm" [disabled]="deploying()" (btnClick)="requestDeploy()">
             <svg lucideRocket class="h-4 w-4"></svg>

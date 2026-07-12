@@ -4,6 +4,7 @@ import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
 import { GitBranch } from '../../domain/models/git-branch.model';
+import { GitCommit } from '../../domain/models/git-commit.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 
@@ -43,6 +44,22 @@ export class GithubAppProvider implements ProvidersRepository {
         });
 
         return branches.map((branch) => ({ name: branch.name }));
+    }
+
+    public async getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
+        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+            id: repositoryId,
+        });
+
+        const [owner, repo] = repository.full_name.split('/');
+
+        const { data: commit } = await this.getClient().request('GET /repos/{owner}/{repo}/commits/{ref}', {
+            owner,
+            repo,
+            ref,
+        });
+
+        return { sha: commit.sha, message: commit.commit.message };
     }
 
     public async getFileContent(repositoryId: number, path: string, ref: string): Promise<string> {

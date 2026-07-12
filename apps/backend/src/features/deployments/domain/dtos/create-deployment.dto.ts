@@ -14,6 +14,14 @@ export class CreateDeploymentDto {
 
     @IsString()
     @IsNotEmpty()
+    public commit!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    public commitMessage!: string;
+
+    @IsString()
+    @IsNotEmpty()
     public composerPath!: string;
 
     @IsString()
