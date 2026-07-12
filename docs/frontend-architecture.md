@@ -47,6 +47,29 @@ Routes are defined in `app.routes.ts` and use `LayoutComponent` as a parent wrap
 }
 ```
 
+## Path aliases
+
+TypeScript path aliases (defined in `apps/frontend/tsconfig.json`) give each top-level area a stable, absolute import prefix — used throughout routes, pages, containers, and components:
+
+| Alias         | Path                   |
+|---------------|------------------------|
+| `@features/*` | `./src/app/features/*` |
+| `@layout/*`   | `./src/app/layout/*`   |
+| `@pages/*`    | `./src/app/pages/*`    |
+| `@shared/*`   | `./src/app/shared/*`   |
+
+## Scripts
+
+Defined in `apps/frontend/package.json`:
+
+| Script  | Command                                        |
+|---------|------------------------------------------------|
+| `dev`   | `ng serve`                                     |
+| `build` | `ng build`                                     |
+| `watch` | `ng build --watch --configuration development` |
+| `lint`  | `eslint .`                                     |
+| `test`  | `ng test`                                      |
+
 ## Architecture per feature
 
 Each feature follows a layered structure:

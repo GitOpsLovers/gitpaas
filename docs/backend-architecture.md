@@ -195,8 +195,33 @@ Example — `POST /api/v1/projects` (DTO through the write path):
 
 A richer feature with filters would instead extract and clean query params in the controller, thread a filter object through the service and use case, build a TypeORM `where` in the repository, and map rows through a transformer.
 
+## Path aliases
+
+TypeScript path aliases (defined in `apps/backend/tsconfig.json`) keep cross-feature and core imports stable and absolute:
+
+| Alias         | Path             |
+|---------------|------------------|
+| `@core/*`     | `./src/core/*`   |
+| `@features/*` | `./src/features/*` |
+
+Use them for cross-feature and core imports; use relative paths within a feature.
+
+## Scripts
+
+Defined in `apps/backend/package.json`:
+
+| Script        | Command                              |
+|---------------|--------------------------------------|
+| `dev`         | `nest start --watch`                 |
+| `build`       | `nest build`                         |
+| `start`       | `nest start`                         |
+| `start:debug` | `nest start --debug --watch`         |
+| `start:prod`  | `node dist/main`                     |
+| `lint`        | `eslint .`                           |
+| `test`        | `jest`                               |
+| `test:e2e`    | `jest --config ./test/jest-e2e.json` |
+
 ## Cross-cutting conventions
 
-- **Path aliases:** `@features/*` → `src/features/*`, `@core/*` → `src/core/*`. Use them for cross-feature and core imports; use relative paths within a feature.
 - **JSDoc** is applied consistently across the backend: a one-line block on every exported class/interface/function, and on domain repositories, services, and use cases a fuller block with `@param`/`@returns` (`Gets`/`Creates`/`Updates`/`Deletes …`). Mirror the existing style of the same file type when adding or changing code.
 - **Naming:** domain models `<Entity>` in `models/<entity>.model.ts`; repository ports `<Feature>Repository` in `repositories/<feature>.repository.ts`; entities `…DbEntity`; repository impls `…DatabaseRepository`; use cases `<verb>-<entity>.use-case.ts` exporting `<verb><Entity>UseCase`; tables plural snake_case.
