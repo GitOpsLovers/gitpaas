@@ -9,9 +9,9 @@ import { GithubAppProvider } from '../../infrastructure/github/github-app.provid
 @Injectable()
 
 /**
- * GitHub service
+ * Providers service
  */
-export class GithubService {
+export class ProvidersService {
     constructor(
         @Inject(GithubAppProvider)
         private readonly provider: GithubAppProvider,

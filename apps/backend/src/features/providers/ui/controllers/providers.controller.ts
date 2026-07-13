@@ -2,7 +2,7 @@ import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 
 import { GitBranch } from '../../domain/models/git-branch.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
-import { GithubService } from '../services/github.service';
+import { ProvidersService } from '../services/providers.service';
 
 /**
  * REST controller for the GitHub integration (`/api/v1/github`).
@@ -10,10 +10,10 @@ import { GithubService } from '../services/github.service';
 @Controller('github')
 
 /**
- * GitHub controller
+ * Providers controller
  */
-export class GithubController {
-    constructor(private readonly service: GithubService) {}
+export class ProvidersController {
+    constructor(private readonly service: ProvidersService) {}
 
     /**
      * Lists the repositories accessible to the installation.

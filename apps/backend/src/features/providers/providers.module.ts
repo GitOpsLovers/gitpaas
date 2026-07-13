@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 
 import { GithubAppProvider } from './infrastructure/github/github-app.provider';
-import { GithubController } from './ui/controllers/github.controller';
-import { GithubService } from './ui/services/github.service';
+import { ProvidersController } from './ui/controllers/providers.controller';
+import { ProvidersService } from './ui/services/providers.service';
 
 @Module({
-    controllers: [GithubController],
+    controllers: [ProvidersController],
     providers: [
-        GithubService,
+        ProvidersService,
         GithubAppProvider,
     ],
     exports: [GithubAppProvider],

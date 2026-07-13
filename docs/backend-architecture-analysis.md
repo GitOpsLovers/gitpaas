@@ -70,11 +70,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: doc blocks placed between the class decorator and the class declaration do not associate with the class in tooling.
   - Layer/feature: cross-cutting (doc-comments).
 
-- [ ] **Align naming in the `providers` feature (or confirm multi-provider intent)**
-  - Refs: `providers/ui/*` — port is `ProvidersRepository` but controller/service are `GithubController`/`GithubService`.
-  - Why: the mismatch obscures whether the feature is provider-agnostic or GitHub-specific.
-  - Layer/feature: ui (providers).
-
 - [ ] **Reconsider placement of `DockerController` inside `core`**
   - Refs: `core/docker/ui/controllers/docker.controller.ts` (`GET /vps/status`).
   - Why: `core` owns a REST endpoint and a `ui/` layer, which blurs the core/feature boundary (or accept it as a health check).
