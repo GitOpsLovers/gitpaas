@@ -60,11 +60,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
 
 ## Low
 
-- [ ] **Normalize the `findById` domain shape**
-  - Refs: `projects-db.repository.ts:37`, `services-db.repository.ts:28`, `deployments-db.repository.ts:33` (return `findOneBy` raw entity); `projects-db.repository.ts:29-34` (`getAll()` computes `servicesCount`, but `findById` does not).
-  - Why: `findById` returns raw TypeORM entities and shapes are inconsistent across repositories.
-  - Layer/feature: infrastructure (database repositories).
-
 - [ ] **Consider a central exception filter/interceptor**
   - Refs: error translation is ad hoc across controllers/services (no global filter).
   - Why: centralizing error shaping and logging removes duplicated, inconsistent handling.
@@ -99,8 +94,7 @@ Ordered by impact/effort:
 6. **Add HTTP hardening (CORS allowlist, helmet, throttler)** — Medium / Low.
 7. **De-duplicate `composeProjectName`** — Medium / Low.
 8. **Broaden test coverage to UI and DB layers** — Medium / Medium.
-9. **Normalize `findById` domain shape** — Low / Low.
-10. **Housekeeping (fix JSDoc placement)** — Low / Low.
+9. **Housekeeping (fix JSDoc placement)** — Low / Low.
 
 ---
 

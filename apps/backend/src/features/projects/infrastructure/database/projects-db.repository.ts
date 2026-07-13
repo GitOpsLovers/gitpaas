@@ -26,15 +26,20 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
             order: { id: 'DESC' },
         });
 
-        return projects.map((project) => ({
-            id: project.id,
-            name: project.name,
-            servicesCount: project.services?.length ?? 0,
-        }));
+        return projects.map((project) => this.toDomain(project));
     }
 
-    public findById(id: string): Promise<Project | null> {
-        return this.repository.findOneBy({ id });
+    public async findById(id: string): Promise<Project | null> {
+        const project = await this.repository.findOne({
+            where: { id },
+            relations: { services: true },
+        });
+
+        if (!project) {
+            return null;
+        }
+
+        return this.toDomain(project);
     }
 
     public create(createDto: CreateProjectDto): Promise<Project> {
@@ -59,5 +64,13 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         const result = await this.repository.delete(id);
 
         return (result.affected ?? 0) > 0;
+    }
+
+    private toDomain(project: ProjectDbEntity): Project {
+        return {
+            id: project.id,
+            name: project.name,
+            servicesCount: project.services?.length ?? 0,
+        };
     }
 }
