@@ -65,11 +65,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: `findById` returns raw TypeORM entities and shapes are inconsistent across repositories.
   - Layer/feature: infrastructure (database repositories).
 
-- [ ] **Move computed data off the persistence entity**
-  - Refs: `project-db.entity.ts:19-22` (`ProjectDbEntity.servicesCount`, a non-`@Column` derived field).
-  - Why: a domain/derived concern does not belong on the TypeORM entity.
-  - Layer/feature: infrastructure (projects entity).
-
 - [ ] **Consider a central exception filter/interceptor**
   - Refs: error translation is ad hoc across controllers/services (no global filter).
   - Why: centralizing error shaping and logging removes duplicated, inconsistent handling.

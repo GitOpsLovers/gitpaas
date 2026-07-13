@@ -15,9 +15,4 @@ export class ProjectDbEntity {
 
     @OneToMany(() => ServiceDbEntity, (service) => service.project)
     public services?: ServiceDbEntity[];
-
-    /**
-     * Number of services in the project
-     */
-    public servicesCount?: number;
 }
