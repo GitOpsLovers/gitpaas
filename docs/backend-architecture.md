@@ -31,7 +31,7 @@ The backend is a **NestJS** application (Express platform) that exposes a REST A
 - **CORS enabled** (`app.enableCors()`).
 - **Global `ValidationPipe`** with `whitelist: true`, `forbidNonWhitelisted: true`, and `transform: true`. This is what makes DTO validation automatic and authoritative: unknown properties are stripped (and rejected), and payloads are transformed into DTO class instances. Validation is a platform guarantee, not something each controller re-implements.
 
-The server listens on `process.env.PORT ?? 3000`.
+The application listens on `process.env.PORT ?? 3000`.
 
 ## Module composition
 
