@@ -18,8 +18,4 @@ import { ServicesModule } from '@features/services/services.module';
     controllers: [NetworksController],
     providers: [NetworksService, DockerNetworksRepository],
 })
-
-/**
- * Networks module
- */
 export class NetworksModule {}

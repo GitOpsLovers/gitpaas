@@ -6,11 +6,10 @@ import { GitBranch } from '../../domain/models/git-branch.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
 import { GithubAppProvider } from '../../infrastructure/github/github-app.provider';
 
-@Injectable()
-
 /**
  * Providers service
  */
+@Injectable()
 export class ProvidersService {
     constructor(
         @Inject(GithubAppProvider)

@@ -15,11 +15,10 @@ const MAX_LINES = 5000;
 /** A stored/published event carries a monotonic sequence used to dedupe replay vs. live. */
 type StoredEvent = { seq: number } & LogEvent;
 
-@Injectable()
-
 /**
  * Redis log store repository
  */
+@Injectable()
 export class RedisLogStoreRepository implements LogStoreRepository {
     constructor(private readonly redis: RedisClient) {}
 

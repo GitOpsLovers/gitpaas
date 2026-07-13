@@ -3,14 +3,13 @@ import { Controller, HttpCode, Logger, Post, ServiceUnavailableException } from 
 import { PruneResult } from '../../domain/models/prune-result.model';
 import { ServerService } from '../services/server.service';
 
-@Controller('server')
-
 /**
  * Server controller
  *
  * Exposes maintenance actions that reclaim disk space on the VPS by pruning
  * unused Docker resources.
  */
+@Controller('server')
 export class ServerController {
     private readonly logger = new Logger(ServerController.name);
 

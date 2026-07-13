@@ -33,11 +33,10 @@ function composeProjectName(service: Service): string {
     return slug || `service-${service.id}`;
 }
 
-@Injectable()
-
 /**
  * Deployments service
  */
+@Injectable()
 export class DeploymentsService {
     private readonly logger = new Logger(DeploymentsService.name);
 

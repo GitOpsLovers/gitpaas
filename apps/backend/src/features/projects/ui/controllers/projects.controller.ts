@@ -20,10 +20,6 @@ import { ProjectsService } from '../services/projects.service';
  * REST controller for the projects resource (`/api/v1/projects`).
  */
 @Controller('projects')
-
-/**
- * Projects controller
- */
 export class ProjectsController {
     constructor(private readonly service: ProjectsService) {}
 

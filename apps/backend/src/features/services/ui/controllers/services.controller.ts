@@ -21,10 +21,6 @@ import { ServicesService } from '../services/services.service';
  * REST controller for the services resource (`/api/v1/services`).
  */
 @Controller('services')
-
-/**
- * Services controller
- */
 export class ServicesController {
     constructor(private readonly service: ServicesService) {}
 

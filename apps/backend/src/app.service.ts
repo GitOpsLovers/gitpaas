@@ -4,11 +4,10 @@ export interface HealthStatus {
     status: 'ok';
 }
 
-@Injectable()
-
 /**
  * Health check service for the application.
  */
+@Injectable()
 export class AppService {
     /**
      * Get the health status of the application

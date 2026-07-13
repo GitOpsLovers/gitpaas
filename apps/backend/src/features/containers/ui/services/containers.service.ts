@@ -6,11 +6,10 @@ import { DockerContainersRepository } from '../../infrastructure/docker/docker-c
 
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
-@Injectable()
-
 /**
  * Containers service
  */
+@Injectable()
 export class ContainersService {
     constructor(
         @Inject(ServicesDatabaseRepository)

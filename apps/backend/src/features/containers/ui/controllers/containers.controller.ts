@@ -3,11 +3,10 @@ import { Controller, Get, Logger, NotFoundException, ParseUUIDPipe, Query, Servi
 import { Container } from '../../domain/models/container.model';
 import { ContainersService } from '../services/containers.service';
 
-@Controller('containers')
-
 /**
  * Containers controller
  */
+@Controller('containers')
 export class ContainersController {
     private readonly logger = new Logger(ContainersController.name);
 

@@ -7,11 +7,10 @@ import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsService } from '../services/deployments.service';
 
-@Controller('deployments')
-
 /**
  * Deployments controller
  */
+@Controller('deployments')
 export class DeploymentsController {
     constructor(private readonly service: DeploymentsService) {}
 

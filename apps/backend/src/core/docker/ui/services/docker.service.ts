@@ -3,11 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { DockerInfo } from '../../domain/models/docker.models';
 import { DockerClient } from '../../infrastructure/docker.client';
 
-@Injectable()
-
 /**
  * Docker service
  */
+@Injectable()
 export class DockerService {
     constructor(private readonly client: DockerClient) {}
 

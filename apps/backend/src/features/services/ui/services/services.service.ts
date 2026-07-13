@@ -10,11 +10,10 @@ import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.model';
 import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
 
-@Injectable()
-
 /**
  * Services service
  */
+@Injectable()
 export class ServicesService {
     constructor(
         @Inject(ServicesDatabaseRepository)

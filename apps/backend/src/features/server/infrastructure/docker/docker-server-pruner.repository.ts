@@ -5,11 +5,10 @@ import { ServerPrunerRepository } from '../../domain/repositories/server-pruner.
 
 import { DockerClient } from '@core/docker/infrastructure/docker.client';
 
-@Injectable()
-
 /**
  * Docker server pruner repository
  */
+@Injectable()
 export class DockerServerPrunerRepository implements ServerPrunerRepository {
     constructor(private readonly client: DockerClient) {}
 

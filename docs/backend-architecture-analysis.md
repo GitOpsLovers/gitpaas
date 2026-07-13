@@ -65,11 +65,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: centralizing error shaping and logging removes duplicated, inconsistent handling.
   - Layer/feature: cross-cutting (ui).
 
-- [ ] **Fix JSDoc placement on decorated classes project-wide**
-  - Refs: e.g. `projects.controller.ts:22-27`, `projects.service.ts:13-17`; ~44 decorated classes affected.
-  - Why: doc blocks placed between the class decorator and the class declaration do not associate with the class in tooling.
-  - Layer/feature: cross-cutting (doc-comments).
-
 - [ ] **Reconsider placement of `DockerController` inside `core`**
   - Refs: `core/docker/ui/controllers/docker.controller.ts` (`GET /vps/status`).
   - Why: `core` owns a REST endpoint and a `ui/` layer, which blurs the core/feature boundary (or accept it as a health check).
@@ -89,7 +84,6 @@ Ordered by impact/effort:
 6. **Add HTTP hardening (CORS allowlist, helmet, throttler)** — Medium / Low.
 7. **De-duplicate `composeProjectName`** — Medium / Low.
 8. **Broaden test coverage to UI and DB layers** — Medium / Medium.
-9. **Housekeeping (fix JSDoc placement)** — Low / Low.
 
 ---
 

@@ -8,11 +8,10 @@ import { GitCommit } from '../../domain/models/git-commit.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 
-@Injectable()
-
 /**
  * GitHub App provider.
  */
+@Injectable()
 export class GithubAppProvider implements ProvidersRepository {
     private readonly logger = new Logger(GithubAppProvider.name);
 

@@ -3,11 +3,10 @@ import { Controller, Get, Logger, NotFoundException, ParseUUIDPipe, Query, Servi
 import { Network } from '../../domain/models/network.model';
 import { NetworksService } from '../services/networks.service';
 
-@Controller('networks')
-
 /**
  * Networks controller
  */
+@Controller('networks')
 export class NetworksController {
     private readonly logger = new Logger(NetworksController.name);
 

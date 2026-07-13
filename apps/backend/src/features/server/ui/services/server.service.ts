@@ -6,11 +6,10 @@ import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { PruneResult } from '../../domain/models/prune-result.model';
 import { DockerServerPrunerRepository } from '../../infrastructure/docker/docker-server-pruner.repository';
 
-@Injectable()
-
 /**
  * Server service
  */
+@Injectable()
 export class ServerService {
     constructor(private readonly pruner: DockerServerPrunerRepository) {}
 

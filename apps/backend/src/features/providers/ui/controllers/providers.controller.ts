@@ -8,10 +8,6 @@ import { ProvidersService } from '../services/providers.service';
  * REST controller for the GitHub integration (`/api/v1/github`).
  */
 @Controller('github')
-
-/**
- * Providers controller
- */
 export class ProvidersController {
     constructor(private readonly service: ProvidersService) {}
 

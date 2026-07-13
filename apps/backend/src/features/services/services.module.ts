@@ -18,8 +18,4 @@ import { ServicesService } from './ui/services/services.service';
     ],
     exports: [ServicesDatabaseRepository],
 })
-
-/**
- * Services module
- */
 export class ServicesModule {}

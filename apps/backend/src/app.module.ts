@@ -14,6 +14,9 @@ import { ProvidersModule } from '@features/providers/providers.module';
 import { ServerModule } from '@features/server/server.module';
 import { ServicesModule } from '@features/services/services.module';
 
+/**
+ * Main application module
+ */
 @Module({
     imports: [
         CoreModule,
@@ -30,8 +33,4 @@ import { ServicesModule } from '@features/services/services.module';
     controllers: [AppController],
     providers: [AppService],
 })
-
-/**
- * Main application module
- */
 export class AppModule {}

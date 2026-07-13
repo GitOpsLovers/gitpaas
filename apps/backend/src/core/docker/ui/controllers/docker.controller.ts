@@ -2,11 +2,10 @@ import { Controller, Get, Logger, ServiceUnavailableException } from '@nestjs/co
 
 import { DockerService } from '../services/docker.service';
 
-@Controller('vps')
-
 /**
  * Docker controller
  */
+@Controller('vps')
 export class DockerController {
     private readonly logger = new Logger(DockerController.name);
 

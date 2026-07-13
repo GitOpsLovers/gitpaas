@@ -3,11 +3,10 @@ import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import type { HealthStatus } from './app.service';
 
-@Controller()
-
 /**
  * Main application controller
  */
+@Controller()
 export class AppController {
     constructor(private readonly appService: AppService) {}
 

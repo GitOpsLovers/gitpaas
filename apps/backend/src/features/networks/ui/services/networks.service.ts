@@ -6,11 +6,10 @@ import { DockerNetworksRepository } from '../../infrastructure/docker/docker-net
 
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
-@Injectable()
-
 /**
  * Networks service
  */
+@Injectable()
 export class NetworksService {
     constructor(
         @Inject(ServicesDatabaseRepository)

@@ -14,11 +14,10 @@ import { DeploymentDbEntity } from './deployment-db.entity';
  */
 const TERMINAL_STATUSES: ReadonlySet<DeploymentStatus> = new Set(['success', 'failed']);
 
-@Injectable()
-
 /**
  * Deployments database repository
  */
+@Injectable()
 export class DeploymentsDatabaseRepository implements DeploymentsRepository {
     constructor(
         @InjectRepository(DeploymentDbEntity)

@@ -21,8 +21,4 @@ import { ServicesModule } from '@features/services/services.module';
         DeploymentsDatabaseRepository,
     ],
 })
-
-/**
- * Deployments module
- */
 export class DeploymentsModule {}

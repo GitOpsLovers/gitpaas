@@ -47,11 +47,10 @@ interface ResolvedBuild {
     target?: string;
 }
 
-@Injectable()
-
 /**
  * Dockerode Docker executor
  */
+@Injectable()
 export class DockerodeDockerExecutor implements DockerExecutor {
     private readonly logger = new Logger(DockerodeDockerExecutor.name);
 

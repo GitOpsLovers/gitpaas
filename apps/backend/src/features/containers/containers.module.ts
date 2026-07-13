@@ -18,8 +18,4 @@ import { ServicesModule } from '@features/services/services.module';
     controllers: [ContainersController],
     providers: [ContainersService, DockerContainersRepository],
 })
-
-/**
- * Containers module
- */
 export class ContainersModule {}

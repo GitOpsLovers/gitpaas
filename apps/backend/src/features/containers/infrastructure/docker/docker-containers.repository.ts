@@ -27,8 +27,6 @@ function composeProjectName(service: Service): string {
     return slug || `service-${service.id}`;
 }
 
-@Injectable()
-
 /**
  * Docker containers repository
  *
@@ -36,6 +34,7 @@ function composeProjectName(service: Service): string {
  * service's containers, normalizing the daemon payload. The mapping from a
  * service to its compose project label is kept here as an infrastructure detail.
  */
+@Injectable()
 export class DockerContainersRepository implements ContainersRepository {
     constructor(private readonly client: DockerClient) {}
 

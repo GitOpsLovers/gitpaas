@@ -5,14 +5,13 @@ import { DockerodeDockerExecutor } from './infrastructure/dockerode-docker.execu
 import { DockerController } from './ui/controllers/docker.controller';
 import { DockerService } from './ui/services/docker.service';
 
+/**
+ * Docker module
+ */
 @Global()
 @Module({
     controllers: [DockerController],
     providers: [DockerClient, DockerodeDockerExecutor, DockerService],
     exports: [DockerService, DockerodeDockerExecutor, DockerClient],
 })
-
-/**
- * Docker module
- */
 export class DockerModule {}

@@ -4,11 +4,10 @@ import { join, resolve } from 'node:path';
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import Docker from 'dockerode';
 
-@Injectable()
-
 /**
  * Docker client
  */
+@Injectable()
 export class DockerClient {
     private readonly logger = new Logger(DockerClient.name);
 

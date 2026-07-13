@@ -9,11 +9,10 @@ import { ServicesRepository } from '../../domain/repositories/services.repositor
 
 import { ServiceDbEntity } from './service-db.entity';
 
-@Injectable()
-
 /**
  * Services database repository
  */
+@Injectable()
 export class ServicesDatabaseRepository implements ServicesRepository {
     constructor(
         @InjectRepository(ServiceDbEntity)
