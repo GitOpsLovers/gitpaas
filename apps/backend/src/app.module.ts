@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { CoreModule } from '@core/core.module';
-import { DockerModule } from '@core/docker/docker.module';
-import { RedisModule } from '@core/redis/redis.module';
+import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { NetworksModule } from '@features/networks/networks.module';
@@ -20,8 +20,6 @@ import { ServicesModule } from '@features/services/services.module';
 @Module({
     imports: [
         CoreModule,
-        DockerModule,
-        RedisModule,
         ProjectsModule,
         ProvidersModule,
         ServicesModule,
@@ -31,6 +29,12 @@ import { ServicesModule } from '@features/services/services.module';
         ServerModule,
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [
+        AppService,
+        {
+            provide: APP_FILTER,
+            useClass: AllExceptionsFilter,
+        },
+    ],
 })
 export class AppModule {}

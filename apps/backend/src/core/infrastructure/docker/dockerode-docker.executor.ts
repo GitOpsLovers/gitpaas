@@ -9,7 +9,7 @@ import Docker from 'dockerode';
 import DockerodeCompose from 'dockerode-compose';
 import * as tar from 'tar';
 
-import { DockerExecutor, DockerLogListener } from '../domain/executors/docker.executor';
+import { DockerExecutor, DockerLogListener } from '../../domain/executors/docker.executor';
 
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 import { DockerClient } from './docker.client';

@@ -58,20 +58,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
 
 ---
 
-## Low
-
-- [ ] **Consider a central exception filter/interceptor**
-  - Refs: error translation is ad hoc across controllers/services (no global filter).
-  - Why: centralizing error shaping and logging removes duplicated, inconsistent handling.
-  - Layer/feature: cross-cutting (ui).
-
-- [ ] **Reconsider placement of `DockerController` inside `core`**
-  - Refs: `core/docker/ui/controllers/docker.controller.ts` (`GET /vps/status`).
-  - Why: `core` owns a REST endpoint and a `ui/` layer, which blurs the core/feature boundary (or accept it as a health check).
-  - Layer/feature: core/docker (ui placement).
-
----
-
 ## Prioritized order of work
 
 Ordered by impact/effort:

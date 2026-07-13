@@ -11,7 +11,7 @@ import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 
-import { DockerodeDockerExecutor } from '@core/docker/infrastructure/dockerode-docker.executor';
+import { DockerodeDockerExecutor } from '@core/infrastructure/docker/dockerode-docker.executor';
 import { LogEvent } from '@features/logs/domain/models/log-event.model';
 import { RedisLogStoreRepository } from '@features/logs/infrastructure/redis/redis-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';

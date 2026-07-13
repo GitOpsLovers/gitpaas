@@ -5,6 +5,22 @@ const HEADER_SIZE = 8;
 const STREAM_TYPES = new Set([0, 1, 2]);
 
 /**
+ * Heuristically detects whether a log buffer is multiplexed (non-TTY).
+ *
+ * A multiplexed frame starts with a known stream-type byte followed by three
+ * zero bytes; raw TTY output effectively never matches this.
+ *
+ * @param buffer Raw log buffer
+ */
+function isMultiplexed(buffer: Buffer): boolean {
+    if (buffer.length < HEADER_SIZE) {
+        return false;
+    }
+
+    return STREAM_TYPES.has(buffer[0]) && buffer[1] === 0 && buffer[2] === 0 && buffer[3] === 0;
+}
+
+/**
  * Decodes a Docker log payload into plain text.
  *
  * When a container has no TTY, the daemon multiplexes stdout/stderr into frames
@@ -52,20 +68,4 @@ export function toLogLines(text: string): string[] {
         .split('\n')
         .map((line) => line.replace(/\r$/, ''))
         .filter((line) => line.length > 0);
-}
-
-/**
- * Heuristically detects whether a log buffer is multiplexed (non-TTY).
- *
- * A multiplexed frame starts with a known stream-type byte followed by three
- * zero bytes; raw TTY output effectively never matches this.
- *
- * @param buffer Raw log buffer
- */
-function isMultiplexed(buffer: Buffer): boolean {
-    if (buffer.length < HEADER_SIZE) {
-        return false;
-    }
-
-    return STREAM_TYPES.has(buffer[0]) && buffer[1] === 0 && buffer[2] === 0 && buffer[3] === 0;
 }

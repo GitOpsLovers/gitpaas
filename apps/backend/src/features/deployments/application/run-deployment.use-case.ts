@@ -1,6 +1,6 @@
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
-import { DockerExecutor } from '@core/docker/domain/executors/docker.executor';
+import { DockerExecutor } from '@core/domain/executors/docker.executor';
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 

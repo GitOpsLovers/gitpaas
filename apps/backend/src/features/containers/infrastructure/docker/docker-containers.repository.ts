@@ -4,7 +4,7 @@ import Docker from 'dockerode';
 import { Container } from '../../domain/models/container.model';
 import { ContainersRepository } from '../../domain/repositories/containers.repository';
 
-import { DockerClient } from '@core/docker/infrastructure/docker.client';
+import { DockerClient } from '@core/infrastructure/docker/docker.client';
 import { Service } from '@features/services/domain/models/service.model';
 
 /**

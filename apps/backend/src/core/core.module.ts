@@ -1,11 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { DockerClient } from './infrastructure/docker/docker.client';
+import { DockerodeDockerExecutor } from './infrastructure/docker/dockerode-docker.executor';
+import { RedisClient } from './infrastructure/redis/redis.client';
+import { DockerController } from './ui/controllers/docker.controller';
+import { DockerService } from './ui/services/docker.service';
+
 /**
- * Core module: global configuration and the single TypeORM root connection.
- * Feature modules only call `TypeOrmModule.forFeature([...])`.
+ * Core module. Global so shared infrastructure it exports (e.g. {@link RedisClient},
+ * {@link DockerClient}, {@link DockerodeDockerExecutor}) can be injected by any
+ * feature module without importing this module explicitly.
  */
+@Global()
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
@@ -24,5 +32,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
             }),
         }),
     ],
+    controllers: [DockerController],
+    providers: [DockerClient, DockerodeDockerExecutor, DockerService, RedisClient],
+    exports: [DockerClient, DockerodeDockerExecutor, RedisClient],
 })
+
 export class CoreModule {}

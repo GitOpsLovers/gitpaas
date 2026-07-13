@@ -10,7 +10,7 @@ import { ServicesModule } from '@features/services/services.module';
  * Networks feature module.
  *
  * The feature's `DockerNetworksRepository` obtains the core `DockerClient`
- * (exported by the globally-registered `DockerModule`) and lists a service's
+ * (exported by the globally-registered `CoreModule`) and lists a service's
  * compose networks.
  */
 @Module({

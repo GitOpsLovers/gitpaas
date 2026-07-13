@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { LogEvent, LogStatus } from '../../domain/models/log-event.model';
 import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
 
-import { RedisClient } from '@core/redis/infrastructure/redis.client';
+import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
 /** How long a log stream's buffer is kept in Redis after its last activity. */
 const TTL_SECONDS = 60 * 60 * 24;

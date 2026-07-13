@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PruneResult } from '../../domain/models/prune-result.model';
 import { ServerPrunerRepository } from '../../domain/repositories/server-pruner.repository';
 
-import { DockerClient } from '@core/docker/infrastructure/docker.client';
+import { DockerClient } from '@core/infrastructure/docker/docker.client';
 
 /**
  * Docker server pruner repository
