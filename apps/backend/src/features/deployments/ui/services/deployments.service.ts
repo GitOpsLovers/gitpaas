@@ -1,12 +1,10 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
 import { createDeploymentUseCase } from '../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../application/get-deployments-by-service.use-case';
-import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
-import { CreateDeploymentDto } from '../../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
@@ -15,31 +13,13 @@ import { DockerodeDockerExecutor } from '../../infrastructure/docker/dockerode-d
 import { LogEvent } from '@features/logs/domain/models/log-event.model';
 import { RedisLogStoreRepository } from '@features/logs/infrastructure/redis/redis-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
-import { Service } from '@features/services/domain/models/service.model';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
-
-/**
- * Builds the Docker Compose project name for a service from its name, falling
- * back to its id. This value groups all of the service's Docker resources under
- * the `com.docker.compose.project` label.
- *
- * @param service Service to derive the project name from
- *
- * @returns Compose project name
- */
-function composeProjectName(service: Service): string {
-    const slug = service.name.toLowerCase().replace(/[^\da-z]+/g, '-').replace(/^-+|-+$/g, '');
-
-    return slug || `service-${service.id}`;
-}
 
 /**
  * Deployments service
  */
 @Injectable()
 export class DeploymentsService {
-    private readonly logger = new Logger(DeploymentsService.name);
-
     constructor(
         @Inject(DeploymentsDatabaseRepository)
         private readonly repository: DeploymentsDatabaseRepository,
@@ -93,34 +73,15 @@ export class DeploymentsService {
      *
      * @returns The created deployment record
      */
-    public async create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
-        const service = await this.servicesRepository.findById(triggerDto.serviceId);
-
-        if (!service) {
-            throw new NotFoundException(`Service ${triggerDto.serviceId} not found`);
-        }
-
-        if (!service.repositoryId || !service.deploymentBranch) {
-            throw new BadRequestException('Service has no repository or deployment branch configured');
-        }
-
-        const commit = await this.providersRepository.getCommit(Number(service.repositoryId), service.deploymentBranch);
-
-        const createDto: CreateDeploymentDto = {
-            serviceId: service.id,
-            branch: service.deploymentBranch,
-            commit: commit.sha,
-            // Store just the title (first line) of the commit message.
-            commitMessage: commit.message.split('\n')[0],
-            composerPath: service.composerPath,
-            triggeredBy: 'system',
-        };
-
-        const deployment = await createDeploymentUseCase(this.repository, createDto);
-
-        this.run(deployment, service);
-
-        return deployment;
+    public create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+        return createDeploymentUseCase(
+            this.repository,
+            this.servicesRepository,
+            this.providersRepository,
+            this.dockerExecutor,
+            this.logStoreRepository,
+            triggerDto,
+        );
     }
 
     /**
@@ -132,29 +93,5 @@ export class DeploymentsService {
      */
     public streamLogs(id: string): Observable<LogEvent> {
         return this.logStoreRepository.stream(id);
-    }
-
-    /**
-     * Carries out the deployment in the background
-     *
-     * @param deployment Deployment record
-     * @param service Service record
-     */
-    private run(deployment: Deployment, service: Service): void {
-        runDeploymentUseCase(
-            this.repository,
-            this.providersRepository,
-            this.dockerExecutor,
-            this.logStoreRepository,
-            {
-                deploymentId: deployment.id,
-                repositoryId: Number(service.repositoryId),
-                commit: deployment.commit ?? deployment.branch,
-                composerPath: deployment.composerPath,
-                projectName: composeProjectName(service),
-            },
-        ).catch((error: unknown) => {
-            this.logger.error(`Deployment ${deployment.id} runner crashed`, error instanceof Error ? error.stack : String(error));
-        });
     }
 }

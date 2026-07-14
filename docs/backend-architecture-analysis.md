@@ -22,19 +22,9 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: production has no path to create or evolve the schema. This is a deployment blocker.
   - Layer/feature: infrastructure (core/database).
 
-- [ ] **Extract deployment orchestration into a `create-deployment` use case**
-  - Refs: `deployments.service.ts:97-125` (`DeploymentsService.create()` loads service, validates repo/branch, fetches commit, builds DTO, starts background run); `deployments.service.ts:30-34` (`composeProjectName()` domain logic in UI).
-  - Why: the most critical path is untested and diverges from every other feature; the service should be a thin DI bridge, not the orchestrator.
-  - Layer/feature: application vs ui (deployments).
-
 ---
 
 ## Medium
-
-- [ ] **Inject repository interfaces (ports), not concrete adapters, across feature boundaries**
-  - Refs: `deployments.service.ts:44-55` (injects `ServicesDatabaseRepository`, `GithubAppProvider`, `DockerodeDockerExecutor`, `RedisLogStoreRepository` by concrete class); `containers.service.ts:16-17` (injects `ServicesDatabaseRepository`).
-  - Why: coupling UI services to concrete infrastructure breaks the domain/infrastructure boundary and makes the code hard to test and swap.
-  - Layer/feature: ui → infrastructure (deployments, containers).
 
 - [ ] **De-duplicate `composeProjectName`**
   - Refs: `deployments.service.ts:30`, `docker-containers.repository.ts:24`, `docker-networks.repository.ts:24`.
