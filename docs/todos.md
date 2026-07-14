@@ -1,0 +1,1 @@
+- En los repositorios de infra, poner transformers a modelos de dominio.

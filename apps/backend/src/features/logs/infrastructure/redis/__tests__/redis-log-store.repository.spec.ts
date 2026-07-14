@@ -2,10 +2,10 @@ import { EventEmitter } from 'node:events';
 
 import { firstValueFrom, toArray } from 'rxjs';
 
-import { RedisClient } from '@core/redis/infrastructure/redis.client';
-
 import { LogEvent } from '../../../domain/models/log-event.model';
 import { RedisLogStoreRepository } from '../redis-log-store.repository';
+
+import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
 /** Resolves after pending microtasks/timers, letting the subscribe callback run. */
 const flush = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
@@ -66,7 +66,7 @@ function createFakeRedis(): RedisClient {
             handler = (message: string) => connection.emit('message', channel, message);
             bus.on(channel, handler);
             // ioredis invokes the callback asynchronously once subscribed.
-            void Promise.resolve().then(() => cb(null));
+            void Promise.resolve().then(() => { cb(null); });
         };
         connection.disconnect = () => {
             if (channelName && handler) {
@@ -80,8 +80,8 @@ function createFakeRedis(): RedisClient {
     return {
         getClient: () => client,
         createSubscriber,
-        releaseSubscriber: (connection: { disconnect: () => void }) => connection.disconnect(),
-    } as unknown as RedisClient;
+        releaseSubscriber: (connection: { disconnect: () => void }) => { connection.disconnect(); },
+    };
 }
 
 describe('RedisLogStoreRepository', () => {
