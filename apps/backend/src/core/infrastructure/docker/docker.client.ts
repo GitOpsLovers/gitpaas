@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Docker from 'dockerode';
 
 /**
@@ -12,6 +13,8 @@ export class DockerClient {
     private readonly logger = new Logger(DockerClient.name);
 
     private client: Docker | undefined;
+
+    constructor(private readonly config: ConfigService) {}
 
     /**
      * Lazily-created, reused Dockerode client.
@@ -26,9 +29,12 @@ export class DockerClient {
      * Creates a new Dockerode client
      */
     private createClient(): Docker {
-        const host = process.env.VPS_DOCKER_HOST ?? '127.0.0.1';
-        const port = Number(process.env.VPS_DOCKER_PORT ?? 2376);
-        const certPath = process.env.VPS_DOCKER_CERT_PATH ?? resolve(process.cwd(), '../../.dev/vps-certs/client');
+        const host = this.config.get<string>('VPS_DOCKER_HOST', '127.0.0.1');
+        const port = Number(this.config.get('VPS_DOCKER_PORT', 2376));
+        const certPath = this.config.get<string>(
+            'VPS_DOCKER_CERT_PATH',
+            resolve(process.cwd(), '../../.dev/vps-certs/client'),
+        );
 
         let ca: Buffer;
         let cert: Buffer;

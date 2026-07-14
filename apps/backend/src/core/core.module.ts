@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { validate } from './infrastructure/config/env.validation';
 import { DockerClient } from './infrastructure/docker/docker.client';
 import { DockerodeDockerExecutor } from './infrastructure/docker/dockerode-docker.executor';
 import { RedisClient } from './infrastructure/redis/redis.client';
@@ -16,7 +17,7 @@ import { DockerService } from './ui/services/docker.service';
 @Global()
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
+        ConfigModule.forRoot({ isGlobal: true, validate }),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
             useFactory: (config: ConfigService) => ({

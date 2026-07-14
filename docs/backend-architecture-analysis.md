@@ -41,11 +41,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: it is the compose join key linking deployments, containers, and networks; if the three copies drift, resource grouping silently breaks.
   - Layer/feature: shared (deployments / containers / networks).
 
-- [ ] **Validate env at boot and route all config through `ConfigService`**
-  - Refs: `docker.client.ts:30-32` (reads `process.env` directly); no config validation schema.
-  - Why: missing env fails late at first client use instead of at boot, and config is read two inconsistent ways.
-  - Layer/feature: infrastructure (core/docker), cross-cutting config.
-
 - [ ] **Add controller and DB-repository tests, starting with deployments**
   - Refs: 24 existing specs, all application-layer use cases (+ `docker-log.util`, `redis-log-store`); no controller, service, DB-repository, or e2e tests.
   - Why: the highest-risk code (`DeploymentsService.create` orchestration, TypeORM adapters) is entirely untested; controller tests should cover the HTTP contract (404/204) and DB-repository tests should cover mapping.
