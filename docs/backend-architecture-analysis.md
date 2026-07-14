@@ -46,26 +46,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: the highest-risk code (`DeploymentsService.create` orchestration, TypeORM adapters) is entirely untested; controller tests should cover the HTTP contract (404/204) and DB-repository tests should cover mapping.
   - Layer/feature: ui/controllers and infrastructure (test coverage).
 
-- [ ] **Harden HTTP: restrict CORS, add helmet and a throttler**
-  - Refs: `main.ts:10` (`app.enableCors()` with no origin allowlist); no helmet; no rate limiting.
-  - Why: open CORS and missing security headers/rate limits leave mutating routes exposed.
-  - Layer/feature: cross-cutting (bootstrap).
-
----
-
-## Prioritized order of work
-
-Ordered by impact/effort:
-
-1. **Add authentication/authorization** — High impact / Medium effort. Prioritize deployments + server routes.
-2. **Establish migration workflow; disable `synchronize` in shared environments** — High / Medium.
-3. **Move deployment orchestration into a use case** — Medium / Medium.
-4. **Depend on ports across feature boundaries** — Medium / Medium.
-5. **Add config validation + route all config through `ConfigService`** — Medium / Low.
-6. **Add HTTP hardening (CORS allowlist, helmet, throttler)** — Medium / Low.
-7. **De-duplicate `composeProjectName`** — Medium / Low.
-8. **Broaden test coverage to UI and DB layers** — Medium / Medium.
-
 ---
 
 ## Open questions

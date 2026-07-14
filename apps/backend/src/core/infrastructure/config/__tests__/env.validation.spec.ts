@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unassigned-import
 import 'reflect-metadata';
 
 import { validate } from '../env.validation';
@@ -10,12 +11,31 @@ describe('validate', () => {
     });
 
     it('coerces numeric ports to numbers', () => {
-        const result = validate({ PORT: '4000', DB_PORT: '5432', REDIS_PORT: '6379', VPS_DOCKER_PORT: '2376' });
+        const result = validate({
+            PORT: '4000', DB_PORT: '5432', REDIS_PORT: '6379', VPS_DOCKER_PORT: '2376',
+        });
 
         expect(result.PORT).toBe(4000);
         expect(result.DB_PORT).toBe(5432);
         expect(result.REDIS_PORT).toBe(6379);
         expect(result.VPS_DOCKER_PORT).toBe(2376);
+    });
+
+    it('coerces the throttler settings to numbers', () => {
+        const result = validate({ THROTTLE_TTL: '60000', THROTTLE_LIMIT: '100' });
+
+        expect(result.THROTTLE_TTL).toBe(60000);
+        expect(result.THROTTLE_LIMIT).toBe(100);
+    });
+
+    it('rejects a non-numeric throttle limit', () => {
+        expect(() => validate({ THROTTLE_LIMIT: 'not-a-number' })).toThrow(/Invalid environment configuration/);
+    });
+
+    it('accepts a comma-separated CORS origin allowlist', () => {
+        const result = validate({ CORS_ORIGIN: 'http://localhost:4200,https://app.example.com' });
+
+        expect(result.CORS_ORIGIN).toBe('http://localhost:4200,https://app.example.com');
     });
 
     it('rejects a non-numeric port', () => {

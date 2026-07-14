@@ -77,6 +77,18 @@ export class EnvironmentVariables {
     @IsOptional()
     @IsString()
     public VPS_DOCKER_CERT_PATH?: string;
+
+    @IsOptional()
+    @IsString()
+    public CORS_ORIGIN?: string;
+
+    @IsOptional()
+    @IsNumber()
+    public THROTTLE_TTL?: number;
+
+    @IsOptional()
+    @IsNumber()
+    public THROTTLE_LIMIT?: number;
 }
 
 /**
