@@ -1,7 +1,7 @@
+import { DockerExecutor } from '../../domain/executors/docker.executor';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { RunDeploymentPayload, runDeploymentUseCase } from '../run-deployment.use-case';
 
-import { DockerExecutor } from '@core/docker/domain/executors/docker.executor';
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 

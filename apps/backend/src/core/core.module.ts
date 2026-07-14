@@ -4,15 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { validate } from './infrastructure/config/env.validation';
 import { DockerClient } from './infrastructure/docker/docker.client';
-import { DockerodeDockerExecutor } from './infrastructure/docker/dockerode-docker.executor';
 import { RedisClient } from './infrastructure/redis/redis.client';
 import { DockerController } from './ui/controllers/docker.controller';
 import { DockerService } from './ui/services/docker.service';
 
 /**
- * Core module. Global so shared infrastructure it exports (e.g. {@link RedisClient},
- * {@link DockerClient}, {@link DockerodeDockerExecutor}) can be injected by any
- * feature module without importing this module explicitly.
+ * Core module
  */
 @Global()
 @Module({
@@ -34,8 +31,8 @@ import { DockerService } from './ui/services/docker.service';
         }),
     ],
     controllers: [DockerController],
-    providers: [DockerClient, DockerodeDockerExecutor, DockerService, RedisClient],
-    exports: [DockerClient, DockerodeDockerExecutor, RedisClient],
+    providers: [DockerClient, DockerService, RedisClient],
+    exports: [DockerClient, RedisClient],
 })
 
 export class CoreModule {}

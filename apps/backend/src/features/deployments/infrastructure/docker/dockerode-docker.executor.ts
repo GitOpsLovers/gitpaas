@@ -12,7 +12,8 @@ import * as tar from 'tar';
 import { DockerExecutor, DockerLogListener } from '../../domain/executors/docker.executor';
 
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
-import { DockerClient } from './docker.client';
+
+import { DockerClient } from '@core/infrastructure/docker/docker.client';
 
 /** Number of trailing startup log lines captured per container after it starts. */
 const STARTUP_LOG_TAIL = 100;
