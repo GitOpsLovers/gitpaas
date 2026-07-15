@@ -31,11 +31,6 @@ This document turns a backend architecture audit into a working TODO checklist. 
   - Why: it is the compose join key linking deployments, containers, and networks; if the three copies drift, resource grouping silently breaks.
   - Layer/feature: shared (deployments / containers / networks).
 
-- [ ] **Add controller and DB-repository tests, starting with deployments**
-  - Refs: 24 existing specs, all application-layer use cases (+ `docker-log.util`, `redis-log-store`); no controller, service, DB-repository, or e2e tests.
-  - Why: the highest-risk code (`DeploymentsService.create` orchestration, TypeORM adapters) is entirely untested; controller tests should cover the HTTP contract (404/204) and DB-repository tests should cover mapping.
-  - Layer/feature: ui/controllers and infrastructure (test coverage).
-
 ---
 
 ## Open questions

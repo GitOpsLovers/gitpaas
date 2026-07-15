@@ -36,11 +36,6 @@
       "sourceType": "autoskills-registry",
       "computedHash": "7361ab02fb6b09913e3bdd9cf61c629ed6c17de9485e6a781054e5d437ccfc29"
     },
-    "pr_review": {
-      "source": "angular/angular",
-      "sourceType": "autoskills-registry",
-      "computedHash": "7fe60167662a2a7df0f81af064d22298cffe1a13164f250f75cac8d71a452cfd"
-    },
     "reference-compiler-cli": {
       "source": "angular/angular",
       "sourceType": "autoskills-registry",
@@ -55,11 +50,6 @@
       "source": "angular/angular",
       "sourceType": "autoskills-registry",
       "computedHash": "af28226f655ee620b5ece85e7bcf0950f86542cc77cc316fb699ec998e198475"
-    },
-    "seo": {
-      "source": "addyosmani/web-quality-skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "c184da724d1c61ad077f27418ea8e7e88fd54bcdf98165e18be7e4681cbd5e20"
     },
     "turborepo": {
       "source": "vercel/turborepo",
