@@ -1,1 +1,3 @@
 - En los repositorios de infra, poner transformers a modelos de dominio.
+- Añadir agente tester (permisos!)
+- renombrar DeploymentRunBus a DeploymentsQueue

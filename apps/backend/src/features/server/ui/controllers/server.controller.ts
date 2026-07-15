@@ -1,7 +1,9 @@
-import { Controller, HttpCode, Logger, Post, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
 import { PruneResult } from '../../domain/models/prune-result.model';
 import { ServerService } from '../services/server.service';
+
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /**
  * Server controller
@@ -11,9 +13,10 @@ import { ServerService } from '../services/server.service';
  */
 @Controller('server')
 export class ServerController {
-    private readonly logger = new Logger(ServerController.name);
-
-    constructor(private readonly service: ServerService) {}
+    constructor(
+        private readonly service: ServerService,
+        private readonly diagnostics: DiagnosticLoggerService,
+    ) {}
 
     /**
      * Remove dangling images from the VPS
@@ -65,7 +68,7 @@ export class ServerController {
                 throw error;
             }
 
-            this.logger.error(`Failed to prune ${resource} on the VPS Docker daemon`, error);
+            this.diagnostics.error(`Failed to prune ${resource} on the VPS Docker daemon`, error, ServerController.name);
 
             throw new ServiceUnavailableException(
                 `Could not prune ${resource}. Verify the VPS is running and reachable; `

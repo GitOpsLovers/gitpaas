@@ -1,18 +1,17 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { of } from 'rxjs';
 
 import { createDeploymentUseCase } from '../../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../../application/get-deployments-by-service.use-case';
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
+import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
-import { DockerodeDockerExecutor } from '../../../infrastructure/docker/dockerode-docker.executor';
 import { DeploymentsService } from '../deployments.service';
 
-import { LogEvent } from '@features/logs/domain/models/log-event.model';
-import { RedisLogStoreRepository } from '@features/logs/infrastructure/redis/redis-log-store.repository';
+import { DeploymentRunBus } from '../../../infrastructure/events/deployment-run.bus';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
@@ -58,8 +57,7 @@ describe('DeploymentsService', () => {
     let repository: jest.Mocked<DeploymentsDatabaseRepository>;
     let servicesRepository: jest.Mocked<ServicesDatabaseRepository>;
     let providersRepository: jest.Mocked<GithubAppProvider>;
-    let dockerExecutor: jest.Mocked<DockerodeDockerExecutor>;
-    let logStoreRepository: jest.Mocked<Pick<RedisLogStoreRepository, 'stream'>>;
+    let runBus: jest.Mocked<Pick<DeploymentRunBus, 'request'>>;
     let sut: DeploymentsService;
 
     beforeEach(async () => {
@@ -68,8 +66,7 @@ describe('DeploymentsService', () => {
         repository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
         servicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
         providersRepository = {} as jest.Mocked<GithubAppProvider>;
-        dockerExecutor = {} as jest.Mocked<DockerodeDockerExecutor>;
-        logStoreRepository = { stream: jest.fn() };
+        runBus = { request: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -77,8 +74,7 @@ describe('DeploymentsService', () => {
                 { provide: DeploymentsDatabaseRepository, useValue: repository },
                 { provide: ServicesDatabaseRepository, useValue: servicesRepository },
                 { provide: GithubAppProvider, useValue: providersRepository },
-                { provide: DockerodeDockerExecutor, useValue: dockerExecutor },
-                { provide: RedisLogStoreRepository, useValue: logStoreRepository },
+                { provide: DeploymentRunBus, useValue: runBus },
             ],
         }).compile();
 
@@ -200,8 +196,7 @@ describe('DeploymentsService', () => {
                 repository,
                 servicesRepository,
                 providersRepository,
-                dockerExecutor,
-                logStoreRepository,
+                runBus,
                 triggerDto,
             );
         });
@@ -220,46 +215,21 @@ describe('DeploymentsService', () => {
 
             await expect(sut.create(triggerDto)).rejects.toThrow(error);
         });
-    });
 
-    describe('streamLogs', () => {
-        it('delegates to the log store repository with the deployment id', () => {
-            logStoreRepository.stream.mockReturnValue(of<LogEvent>());
+        it('translates a ServiceNotFoundError into a NotFoundException', async () => {
+            createDeploymentUseCaseMock.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
-            sut.streamLogs(deploymentId);
-
-            expect(logStoreRepository.stream).toHaveBeenCalledTimes(1);
-            expect(logStoreRepository.stream).toHaveBeenCalledWith(deploymentId);
+            await expect(sut.create(triggerDto)).rejects.toThrow(NotFoundException);
+            await expect(sut.create(triggerDto)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
-        it('returns the observable produced by the log store repository', () => {
-            const events: LogEvent[] = [
-                { type: 'line', data: 'building…' },
-                { type: 'end', status: 'success' },
-            ];
-            const stream$ = of<LogEvent>(...events);
-            logStoreRepository.stream.mockReturnValue(stream$);
+        it('translates a ServiceNotDeployableError into a BadRequestException', async () => {
+            createDeploymentUseCaseMock.mockRejectedValue(new ServiceNotDeployableError());
 
-            const result = sut.streamLogs(deploymentId);
-
-            expect(result).toBe(stream$);
-        });
-
-        it('emits the buffered and live log events downstream', (done) => {
-            const events: LogEvent[] = [
-                { type: 'line', data: 'step 1' },
-                { type: 'end', status: 'failed' },
-            ];
-            logStoreRepository.stream.mockReturnValue(of<LogEvent>(...events));
-
-            const received: LogEvent[] = [];
-            sut.streamLogs(deploymentId).subscribe({
-                next: (event) => received.push(event),
-                complete: () => {
-                    expect(received).toEqual(events);
-                    done();
-                },
-            });
+            await expect(sut.create(triggerDto)).rejects.toThrow(BadRequestException);
+            await expect(sut.create(triggerDto)).rejects.toThrow(
+                'Service has no repository or deployment branch configured',
+            );
         });
     });
 });

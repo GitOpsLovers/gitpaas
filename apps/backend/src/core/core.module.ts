@@ -7,6 +7,7 @@ import { DockerClient } from './infrastructure/docker/docker.client';
 import { RedisClient } from './infrastructure/redis/redis.client';
 import { DockerController } from './ui/controllers/docker.controller';
 import { DockerService } from './ui/services/docker.service';
+import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service';
 
 /**
  * Core module
@@ -31,8 +32,8 @@ import { DockerService } from './ui/services/docker.service';
         }),
     ],
     controllers: [DockerController],
-    providers: [DockerClient, DockerService, RedisClient],
-    exports: [DockerClient, RedisClient],
+    providers: [DockerClient, DockerService, RedisClient, DiagnosticLoggerService],
+    exports: [DockerClient, RedisClient, DiagnosticLoggerService],
 })
 
 export class CoreModule {}

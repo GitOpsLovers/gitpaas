@@ -5,6 +5,8 @@ import { Network } from '../../../domain/models/network.model';
 import { NetworksService } from '../../services/networks.service';
 import { NetworksController } from '../networks.controller';
 
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+
 jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
     GithubAppProvider: class GithubAppProvider {},
 }));
@@ -34,7 +36,10 @@ describe('NetworksController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [NetworksController],
-            providers: [{ provide: NetworksService, useValue: service }],
+            providers: [
+                { provide: NetworksService, useValue: service },
+                { provide: DiagnosticLoggerService, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() } },
+            ],
         }).compile();
 
         sut = moduleRef.get(NetworksController);

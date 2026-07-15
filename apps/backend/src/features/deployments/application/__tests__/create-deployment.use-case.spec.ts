@@ -1,12 +1,10 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { DockerExecutor } from '../../domain/executors/docker.executor';
+import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
+import { DeploymentRunPublisher } from '../../domain/events/deployment-run.publisher';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { createDeploymentUseCase } from '../create-deployment.use-case';
 
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { GitCommit } from '@features/providers/domain/models/git-commit.model';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { Service } from '@features/services/domain/models/service.model';
@@ -45,13 +43,10 @@ describe('createDeploymentUseCase', () => {
         finishedAt: null,
     };
 
-    const archive = Buffer.from('gzipped-repo-tarball');
-
     let deploymentsRepository: jest.Mocked<DeploymentsRepository>;
     let servicesRepository: jest.Mocked<ServicesRepository>;
     let providersRepository: jest.Mocked<ProvidersRepository>;
-    let dockerExecutor: jest.Mocked<DockerExecutor>;
-    let logStore: jest.Mocked<LogStoreRepository>;
+    let runPublisher: jest.Mocked<DeploymentRunPublisher>;
 
     beforeEach(() => {
         deploymentsRepository = {
@@ -75,55 +70,43 @@ describe('createDeploymentUseCase', () => {
             getFileContent: jest.fn(),
             getRepositoryArchive: jest.fn(),
         };
-        dockerExecutor = {
-            up: jest.fn(),
-        };
-        logStore = {
-            append: jest.fn(),
-            complete: jest.fn(),
-            stream: jest.fn(),
-        };
+        runPublisher = { request: jest.fn() };
     });
 
-    it('throws NotFoundException when the service does not exist', async () => {
+    it('throws ServiceNotFoundError when the service does not exist', async () => {
         servicesRepository.findById.mockResolvedValue(null);
 
         await expect(createDeploymentUseCase(
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            dockerExecutor,
-            logStore,
+            runPublisher,
             triggerDto,
-        )).rejects.toThrow(NotFoundException);
+        )).rejects.toThrow(ServiceNotFoundError);
     });
 
-    it('throws BadRequestException when the service has no repository or deployment branch', async () => {
+    it('throws ServiceNotDeployableError when the service has no repository or deployment branch', async () => {
         servicesRepository.findById.mockResolvedValue({ ...service, repositoryId: '', deploymentBranch: '' });
 
         await expect(createDeploymentUseCase(
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            dockerExecutor,
-            logStore,
+            runPublisher,
             triggerDto,
-        )).rejects.toThrow(BadRequestException);
+        )).rejects.toThrow(ServiceNotDeployableError);
     });
 
     it('resolves the head commit for the service repository and branch', async () => {
         servicesRepository.findById.mockResolvedValue(service);
         providersRepository.getCommit.mockResolvedValue(commit);
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockResolvedValue(undefined);
         deploymentsRepository.create.mockResolvedValue(createdDeployment);
 
         await createDeploymentUseCase(
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            dockerExecutor,
-            logStore,
+            runPublisher,
             triggerDto,
         );
 
@@ -133,16 +116,13 @@ describe('createDeploymentUseCase', () => {
     it('persists the deployment with the correctly-built DTO and returns it', async () => {
         servicesRepository.findById.mockResolvedValue(service);
         providersRepository.getCommit.mockResolvedValue(commit);
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockResolvedValue(undefined);
         deploymentsRepository.create.mockResolvedValue(createdDeployment);
 
         const result = await createDeploymentUseCase(
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            dockerExecutor,
-            logStore,
+            runPublisher,
             triggerDto,
         );
 
@@ -157,26 +137,26 @@ describe('createDeploymentUseCase', () => {
         expect(result).toBe(createdDeployment);
     });
 
-    it('fires the background run after persisting the deployment', async () => {
+    it('publishes a run request on the bus after persisting the deployment', async () => {
         servicesRepository.findById.mockResolvedValue(service);
         providersRepository.getCommit.mockResolvedValue(commit);
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockResolvedValue(undefined);
         deploymentsRepository.create.mockResolvedValue(createdDeployment);
 
         await createDeploymentUseCase(
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            dockerExecutor,
-            logStore,
+            runPublisher,
             triggerDto,
         );
 
-        // The run is fire-and-forget; drain the microtask queue so it can start.
-        await new Promise((resolve) => setImmediate(resolve));
-
-        expect(providersRepository.getRepositoryArchive).toHaveBeenCalledWith(42, createdDeployment.commit);
-        expect(dockerExecutor.up).toHaveBeenCalledWith(archive, 'docker-compose.yml', 'my-service', expect.any(Function));
+        expect(runPublisher.request).toHaveBeenCalledTimes(1);
+        expect(runPublisher.request).toHaveBeenCalledWith({
+            deploymentId: createdDeployment.id,
+            repositoryId: 42,
+            commit: createdDeployment.commit,
+            composerPath: 'docker-compose.yml',
+            projectName: 'my-service',
+        });
     });
 });

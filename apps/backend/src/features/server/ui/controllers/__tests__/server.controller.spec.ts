@@ -5,6 +5,8 @@ import { PruneResult } from '../../../domain/models/prune-result.model';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+
 jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
     GithubAppProvider: class GithubAppProvider {},
 }));
@@ -27,13 +29,13 @@ describe('ServerController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [ServerController],
-            providers: [{ provide: ServerService, useValue: service }],
+            providers: [
+                { provide: ServerService, useValue: service },
+                { provide: DiagnosticLoggerService, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() } },
+            ],
         }).compile();
 
         sut = moduleRef.get(ServerController);
-
-        // Silence the error logged when a prune failure is wrapped into a 503.
-        jest.spyOn(sut['logger'], 'error').mockImplementation(() => undefined);
     });
 
     describe('pruneImages', () => {

@@ -4,7 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
 import DockerodeCompose from 'dockerode-compose';
 import * as tar from 'tar';
@@ -14,6 +14,7 @@ import { DockerExecutor, DockerLogListener } from '../../domain/executors/docker
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /** Number of trailing startup log lines captured per container after it starts. */
 const STARTUP_LOG_TAIL = 100;
@@ -53,9 +54,10 @@ interface ResolvedBuild {
  */
 @Injectable()
 export class DockerodeDockerExecutor implements DockerExecutor {
-    private readonly logger = new Logger(DockerodeDockerExecutor.name);
-
-    constructor(private readonly docker: DockerClient) {}
+    constructor(
+        private readonly docker: DockerClient,
+        private readonly diagnostics: DiagnosticLoggerService,
+    ) {}
 
     /**
      * Builds (from source) and runs a stack from a repository archive, streaming
@@ -81,7 +83,7 @@ export class DockerodeDockerExecutor implements DockerExecutor {
             // rewrites them into plain image services in the recipe.
             const builtImages = await this.buildServices(compose, composeFile, projectName, emit);
 
-            this.logger.log(`Pulling images for project "${projectName}"`);
+            this.diagnostics.log(`Pulling images for project "${projectName}"`, DockerodeDockerExecutor.name);
             emit('▶ Pulling images…');
 
             await this.pullWithProgress(compose, emit, builtImages);
@@ -94,7 +96,7 @@ export class DockerodeDockerExecutor implements DockerExecutor {
             // nanoseconds, which it forwards to the daemon untouched.
             this.normalizeHealthchecks(compose);
 
-            this.logger.log(`Bringing project "${projectName}" up`);
+            this.diagnostics.log(`Bringing project "${projectName}" up`, DockerodeDockerExecutor.name);
             emit('▶ Creating and starting containers…');
 
             const result = (await compose.up()) as { services?: Docker.Container[] };
@@ -151,7 +153,7 @@ export class DockerodeDockerExecutor implements DockerExecutor {
             const tag = `${projectName}_${name}`;
             const build = this.resolveBuild(service.build, baseDir);
 
-            this.logger.log(`Building service "${name}" as "${tag}"`);
+            this.diagnostics.log(`Building service "${name}" as "${tag}"`, DockerodeDockerExecutor.name);
             emit(`▶ Building ${name} (${tag})…`);
 
             await this.buildImage(build, tag, emit);
@@ -350,7 +352,7 @@ export class DockerodeDockerExecutor implements DockerExecutor {
             lines.forEach(emit);
         } catch (error) {
             // Startup logs are best-effort; a failure here must not fail the deploy.
-            this.logger.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`);
+            this.diagnostics.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerodeDockerExecutor.name);
         }
     }
 

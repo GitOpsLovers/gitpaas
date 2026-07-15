@@ -5,6 +5,8 @@ import { Container } from '../../../domain/models/container.model';
 import { ContainersService } from '../../services/containers.service';
 import { ContainersController } from '../containers.controller';
 
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+
 jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
     GithubAppProvider: class GithubAppProvider {},
 }));
@@ -34,7 +36,10 @@ describe('ContainersController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [ContainersController],
-            providers: [{ provide: ContainersService, useValue: service }],
+            providers: [
+                { provide: ContainersService, useValue: service },
+                { provide: DiagnosticLoggerService, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() } },
+            ],
         }).compile();
 
         sut = moduleRef.get(ContainersController);

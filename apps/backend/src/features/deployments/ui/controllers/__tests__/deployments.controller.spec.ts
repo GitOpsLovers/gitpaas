@@ -1,13 +1,10 @@
-import { MessageEvent, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { of } from 'rxjs';
 
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
 import { Deployment } from '../../../domain/models/deployment.model';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
-
-import { LogEvent } from '@features/logs/domain/models/log-event.model';
 
 jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
     GithubAppProvider: class GithubAppProvider {},
@@ -32,7 +29,7 @@ const deployment: Deployment = {
 
 describe('DeploymentsController', () => {
     let service: jest.Mocked<
-        Pick<DeploymentsService, 'getAllByService' | 'findById' | 'streamLogs' | 'create' | 'delete'>
+        Pick<DeploymentsService, 'getAllByService' | 'findById' | 'create' | 'delete'>
     >;
     let sut: DeploymentsController;
 
@@ -40,7 +37,6 @@ describe('DeploymentsController', () => {
         service = {
             getAllByService: jest.fn(),
             findById: jest.fn(),
-            streamLogs: jest.fn(),
             create: jest.fn(),
             delete: jest.fn(),
         };
@@ -122,50 +118,6 @@ describe('DeploymentsController', () => {
             service.findById.mockRejectedValue(error);
 
             await expect(sut.findById(deploymentId)).rejects.toBe(error);
-        });
-    });
-
-    describe('streamLogs', () => {
-        it('delegates to the service with the received id', () => {
-            service.streamLogs.mockReturnValue(of<LogEvent>());
-
-            sut.streamLogs(deploymentId);
-
-            expect(service.streamLogs).toHaveBeenCalledTimes(1);
-            expect(service.streamLogs).toHaveBeenCalledWith(deploymentId);
-        });
-
-        it('wraps each log event into an SSE message with JSON-encoded data', (done) => {
-            const events: LogEvent[] = [
-                { type: 'line', data: 'building…' },
-                { type: 'end', status: 'success' },
-            ];
-            service.streamLogs.mockReturnValue(of<LogEvent>(...events));
-
-            const received: MessageEvent[] = [];
-            sut.streamLogs(deploymentId).subscribe({
-                next: (message) => received.push(message),
-                complete: () => {
-                    expect(received).toEqual([
-                        { data: JSON.stringify(events[0]) },
-                        { data: JSON.stringify(events[1]) },
-                    ]);
-                    done();
-                },
-            });
-        });
-
-        it('completes without emitting when the log stream is empty', (done) => {
-            service.streamLogs.mockReturnValue(of<LogEvent>());
-
-            const received: MessageEvent[] = [];
-            sut.streamLogs(deploymentId).subscribe({
-                next: (message) => received.push(message),
-                complete: () => {
-                    expect(received).toEqual([]);
-                    done();
-                },
-            });
         });
     });
 

@@ -5,6 +5,8 @@ import { Octokit } from '@octokit/rest';
 
 import { GithubAppProvider } from '../github-app.provider';
 
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+
 // `@octokit/auth-app` is replaced by a sentinel so we can assert the exact
 // `authStrategy` passed to Octokit without pulling in the real auth machinery.
 jest.mock('@octokit/auth-app', () => ({ createAppAuth: jest.fn() }));
@@ -31,6 +33,10 @@ interface FakeClient {
 const createConfig = (values: Record<string, string | undefined> = {}): ConfigService =>
     ({ get: jest.fn((key: string) => values[key]) }) as unknown as ConfigService;
 
+/** Build a no-op diagnostic logger stub. */
+const createDiagnostics = (): DiagnosticLoggerService =>
+    ({ log: jest.fn(), warn: jest.fn(), error: jest.fn() }) as unknown as DiagnosticLoggerService;
+
 describe('GithubAppProvider', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -42,7 +48,7 @@ describe('GithubAppProvider', () => {
         let client: FakeClient;
 
         beforeEach(() => {
-            provider = new GithubAppProvider(createConfig());
+            provider = new GithubAppProvider(createConfig(), createDiagnostics());
             client = { paginate: jest.fn(), request: jest.fn() };
 
             // `getClient()` is private, so cast through `unknown` to spy on it and hand
@@ -160,6 +166,7 @@ describe('GithubAppProvider', () => {
                     GITHUB_APP_PRIVATE_KEY: undefined,
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
+                createDiagnostics(),
             );
 
             await expect(provider.listRepositories()).rejects.toThrow(ServiceUnavailableException);
@@ -173,6 +180,7 @@ describe('GithubAppProvider', () => {
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
+                createDiagnostics(),
             );
 
             await provider.listRepositories();
@@ -195,6 +203,7 @@ describe('GithubAppProvider', () => {
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
+                createDiagnostics(),
             );
 
             await provider.listRepositories();

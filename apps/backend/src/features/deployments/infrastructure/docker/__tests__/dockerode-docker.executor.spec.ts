@@ -8,6 +8,7 @@ import * as tar from 'tar';
 import { DockerodeDockerExecutor } from '../dockerode-docker.executor';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 jest.mock('node:fs/promises');
 jest.mock('tar');
@@ -50,8 +51,9 @@ function internals(executor: DockerodeDockerExecutor): ExecutorInternals {
  */
 function executorWithDaemon(fakeDaemon: unknown): DockerodeDockerExecutor {
     const client = { getClient: (): unknown => fakeDaemon } as unknown as DockerClient;
+    const diagnostics = { log: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as DiagnosticLoggerService;
 
-    return new DockerodeDockerExecutor(client);
+    return new DockerodeDockerExecutor(client, diagnostics);
 }
 
 describe('DockerodeDockerExecutor', () => {

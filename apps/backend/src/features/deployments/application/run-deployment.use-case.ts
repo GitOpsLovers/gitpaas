@@ -16,16 +16,23 @@ export interface RunDeploymentPayload {
 }
 
 /**
- * Use case that carries out a deployment
+ * Use case that runs a deployment: it marks the deployment's terminal status,
+ * downloads the source archive, drives the docker run and fans each captured
+ * line out to the logs write port, then completes the log stream with the run's
+ * terminal status. How the logs are stored is a logs-feature concern hidden
+ * behind the write port.
  *
- * @param repository Deployments repository
- * @param providersRepository Providers repository
- * @param dockerExecutor Docker executor
- * @param logStore Log store used to buffer and fan out live output
- * @param payload Deployment payload
+ * Handles its own failures: any error is captured as a failed terminal status
+ * (streamed and completed) rather than thrown.
+ *
+ * @param deploymentsRepository Deployments repository (status transitions)
+ * @param providersRepository Providers repository (source archive)
+ * @param dockerExecutor Docker executor (produces log output)
+ * @param logStore Logs write port used to stream and complete the output
+ * @param payload Run payload
  */
 export async function runDeploymentUseCase(
-    repository: DeploymentsRepository,
+    deploymentsRepository: DeploymentsRepository,
     providersRepository: ProvidersRepository,
     dockerExecutor: DockerExecutor,
     logStore: LogStoreRepository,
@@ -35,7 +42,7 @@ export async function runDeploymentUseCase(
         deploymentId, repositoryId, commit, composerPath, projectName,
     } = payload;
 
-    await repository.update(deploymentId, { status: 'running' });
+    await deploymentsRepository.update(deploymentId, { status: 'running' });
 
     try {
         const archive = await providersRepository.getRepositoryArchive(repositoryId, commit);
@@ -44,13 +51,14 @@ export async function runDeploymentUseCase(
             logStore.append(deploymentId, line);
         });
 
-        await repository.update(deploymentId, { status: 'success' });
+        await deploymentsRepository.update(deploymentId, { status: 'success' });
         await logStore.complete(deploymentId, 'success');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        const failureLine = `✖ Deployment failed: ${message}`;
 
-        await repository.update(deploymentId, { status: 'failed', error: message });
-        await logStore.append(deploymentId, `✖ Deployment failed: ${message}`);
+        await deploymentsRepository.update(deploymentId, { status: 'failed', error: message });
+        await logStore.append(deploymentId, failureLine);
         await logStore.complete(deploymentId, 'failed');
     }
 }

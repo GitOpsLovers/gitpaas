@@ -1,15 +1,12 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-
 import { CreateDeploymentDto } from '../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../domain/dtos/trigger-deployment.dto';
-import { DockerExecutor } from '../domain/executors/docker.executor';
+import { ServiceNotDeployableError, ServiceNotFoundError } from '../domain/errors/deployment.errors';
+import { DeploymentRunPublisher } from '../domain/events/deployment-run.publisher';
 import { Deployment } from '../domain/models/deployment.model';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { persistDeploymentUseCase } from './persist-deployment.use-case';
-import { runDeploymentUseCase } from './run-deployment.use-case';
 
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { Service } from '@features/services/domain/models/service.model';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
@@ -32,13 +29,14 @@ function composeProjectName(service: Service): string {
 /**
  * Use case that orchestrates triggering a new deployment for a service:
  * validates the service, resolves the head commit, persists the deployment
- * record and fires the background run.
+ * record and publishes a run request on the deployment-run bus. The deployment
+ * feature's own background runner consumes that request and executes the run
+ * (docker + status + log stream), so the request returns the record immediately.
  *
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
  * @param providersRepository Providers repository
- * @param dockerExecutor Docker executor
- * @param logStore Log store used to buffer and fan out live output
+ * @param runPublisher Deployment-run publisher the run request is published to
  * @param triggerDto Data for triggering the deployment
  *
  * @returns The created deployment record
@@ -47,18 +45,17 @@ export async function createDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
     providersRepository: ProvidersRepository,
-    dockerExecutor: DockerExecutor,
-    logStore: LogStoreRepository,
+    runPublisher: DeploymentRunPublisher,
     triggerDto: TriggerDeploymentDto,
 ): Promise<Deployment> {
     const service = await servicesRepository.findById(triggerDto.serviceId);
 
     if (!service) {
-        throw new NotFoundException(`Service ${triggerDto.serviceId} not found`);
+        throw new ServiceNotFoundError(triggerDto.serviceId);
     }
 
     if (!service.repositoryId || !service.deploymentBranch) {
-        throw new BadRequestException('Service has no repository or deployment branch configured');
+        throw new ServiceNotDeployableError();
     }
 
     const commit = await providersRepository.getCommit(Number(service.repositoryId), service.deploymentBranch);
@@ -75,26 +72,12 @@ export async function createDeploymentUseCase(
 
     const deployment = await persistDeploymentUseCase(deploymentsRepository, createDto);
 
-    // Fire-and-forget: the run drives the deployment forward in the background.
-    runDeploymentUseCase(
-        deploymentsRepository,
-        providersRepository,
-        dockerExecutor,
-        logStore,
-        {
-            deploymentId: deployment.id,
-            repositoryId: Number(service.repositoryId),
-            commit: deployment.commit ?? deployment.branch,
-            composerPath: deployment.composerPath,
-            projectName: composeProjectName(service),
-        },
-    ).catch((error: unknown) => {
-        // Last-resort safety net: runDeploymentUseCase handles its own failures,
-        // so this only guards a truly unexpected throw.
-        const message = error instanceof Error ? error.message : String(error);
-
-        logStore.append(deployment.id, `✖ Deployment runner crashed: ${message}`);
-        logStore.complete(deployment.id, 'failed');
+    runPublisher.request({
+        deploymentId: deployment.id,
+        repositoryId: Number(service.repositoryId),
+        commit: deployment.commit ?? deployment.branch,
+        composerPath: deployment.composerPath,
+        projectName: composeProjectName(service),
     });
 
     return deployment;

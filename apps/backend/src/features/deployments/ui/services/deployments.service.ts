@@ -1,17 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { createDeploymentUseCase } from '../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../application/get-deployments-by-service.use-case';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
+import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
-import { DockerodeDockerExecutor } from '../../infrastructure/docker/dockerode-docker.executor';
+import { DeploymentRunBus } from '../../infrastructure/events/deployment-run.bus';
 
-import { LogEvent } from '@features/logs/domain/models/log-event.model';
-import { RedisLogStoreRepository } from '@features/logs/infrastructure/redis/redis-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
@@ -27,10 +25,7 @@ export class DeploymentsService {
         private readonly servicesRepository: ServicesDatabaseRepository,
         @Inject(GithubAppProvider)
         private readonly providersRepository: GithubAppProvider,
-        @Inject(DockerodeDockerExecutor)
-        private readonly dockerExecutor: DockerodeDockerExecutor,
-        @Inject(RedisLogStoreRepository)
-        private readonly logStoreRepository: RedisLogStoreRepository,
+        private readonly runBus: DeploymentRunBus,
     ) {}
 
     /**
@@ -73,25 +68,25 @@ export class DeploymentsService {
      *
      * @returns The created deployment record
      */
-    public create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
-        return createDeploymentUseCase(
-            this.repository,
-            this.servicesRepository,
-            this.providersRepository,
-            this.dockerExecutor,
-            this.logStoreRepository,
-            triggerDto,
-        );
-    }
+    public async create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+        try {
+            return await createDeploymentUseCase(
+                this.repository,
+                this.servicesRepository,
+                this.providersRepository,
+                this.runBus,
+                triggerDto,
+            );
+        } catch (error) {
+            if (error instanceof ServiceNotFoundError) {
+                throw new NotFoundException(error.message);
+            }
 
-    /**
-     * Streams a deployment's log: buffered lines first, then live output.
-     *
-     * @param id Deployment identifier
-     *
-     * @returns Observable of log events for the deployment
-     */
-    public streamLogs(id: string): Observable<LogEvent> {
-        return this.logStoreRepository.stream(id);
+            if (error instanceof ServiceNotDeployableError) {
+                throw new BadRequestException(error.message);
+            }
+
+            throw error;
+        }
     }
 }

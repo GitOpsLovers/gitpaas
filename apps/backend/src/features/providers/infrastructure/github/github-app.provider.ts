@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
@@ -8,16 +8,19 @@ import { GitCommit } from '../../domain/models/git-commit.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 
+import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+
 /**
  * GitHub App provider.
  */
 @Injectable()
 export class GithubAppProvider implements ProvidersRepository {
-    private readonly logger = new Logger(GithubAppProvider.name);
-
     private client: Octokit | undefined;
 
-    constructor(private readonly config: ConfigService) {}
+    constructor(
+        private readonly config: ConfigService,
+        private readonly diagnostics: DiagnosticLoggerService,
+    ) {}
 
     public async listRepositories(): Promise<GitRepository[]> {
         const repositories = await this.getClient().paginate('GET /installation/repositories');
@@ -122,7 +125,7 @@ export class GithubAppProvider implements ProvidersRepository {
             );
         }
 
-        this.logger.log('Creating GitHub App installation client');
+        this.diagnostics.log('Creating GitHub App installation client', GithubAppProvider.name);
 
         return new Octokit({
             authStrategy: createAppAuth,

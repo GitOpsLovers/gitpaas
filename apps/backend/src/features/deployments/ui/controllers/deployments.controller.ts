@@ -1,7 +1,6 @@
 import {
-    Body, Controller, Delete, Get, HttpCode, MessageEvent, NotFoundException, Param, ParseUUIDPipe, Post, Query, Sse,
+    Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
 } from '@nestjs/common';
-import { map, Observable } from 'rxjs';
 
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { Deployment } from '../../domain/models/deployment.model';
@@ -42,20 +41,6 @@ export class DeploymentsController {
         }
 
         return deployment;
-    }
-
-    /**
-     * Stream a deployment's real-time log over Server-Sent Events.
-     *
-     * Replays buffered output first, then live lines, and closes when the run ends.
-     *
-     * @param id Deployment identifier
-     *
-     * @returns Observable of SSE messages, each carrying one JSON-encoded log event
-     */
-    @Sse(':id/logs')
-    public streamLogs(@Param('id', ParseUUIDPipe) id: string): Observable<MessageEvent> {
-        return this.service.streamLogs(id).pipe(map((event) => ({ data: JSON.stringify(event) })));
     }
 
     /**

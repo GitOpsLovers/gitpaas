@@ -10,6 +10,7 @@ import { CoreModule } from '@core/core.module';
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
+import { LogsModule } from '@features/logs/logs.module';
 import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ProvidersModule } from '@features/providers/providers.module';
@@ -37,6 +38,7 @@ import { ServicesModule } from '@features/services/services.module';
         ProvidersModule,
         ServicesModule,
         DeploymentsModule,
+        LogsModule,
         ContainersModule,
         NetworksModule,
         ServerModule,
