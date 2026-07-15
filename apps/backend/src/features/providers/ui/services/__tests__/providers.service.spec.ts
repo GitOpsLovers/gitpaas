@@ -1,3 +1,5 @@
+import { Test } from '@nestjs/testing';
+
 import { listBranchesUseCase } from '../../../application/list-branches.use-case';
 import { listRepositoriesUseCase } from '../../../application/list-repositories.use-case';
 import { GitBranch } from '../../../domain/models/git-branch.model';
@@ -39,12 +41,19 @@ describe('ProvidersService', () => {
     let provider: jest.Mocked<GithubAppProvider>;
     let sut: ProvidersService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
 
         provider = {} as jest.Mocked<GithubAppProvider>;
 
-        sut = new ProvidersService(provider);
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                ProvidersService,
+                { provide: GithubAppProvider, useValue: provider },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(ProvidersService);
     });
 
     describe('listRepositories', () => {

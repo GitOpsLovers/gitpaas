@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { getNetworksByServiceUseCase } from '../../../application/get-networks-by-service.use-case';
 import { Network } from '../../../domain/models/network.model';
@@ -42,16 +43,21 @@ describe('NetworksService', () => {
     let networksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService'>>;
     let sut: NetworksService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
 
         servicesRepository = { findById: jest.fn() };
         networksRepository = { listByService: jest.fn() };
 
-        sut = new NetworksService(
-            servicesRepository as unknown as ServicesDatabaseRepository,
-            networksRepository as unknown as DockerNetworksRepository,
-        );
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                NetworksService,
+                { provide: ServicesDatabaseRepository, useValue: servicesRepository },
+                { provide: DockerNetworksRepository, useValue: networksRepository },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(NetworksService);
     });
 
     describe('getByService', () => {

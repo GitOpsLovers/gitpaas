@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { Container } from '../../../domain/models/container.model';
 import { DockerContainersRepository } from '../../../infrastructure/docker/docker-containers.repository';
@@ -35,14 +36,19 @@ describe('ContainersService', () => {
     let containersRepository: jest.Mocked<Pick<DockerContainersRepository, 'listByService'>>;
     let sut: ContainersService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         servicesRepository = { findById: jest.fn() };
         containersRepository = { listByService: jest.fn() };
 
-        sut = new ContainersService(
-            servicesRepository as unknown as ServicesDatabaseRepository,
-            containersRepository as unknown as DockerContainersRepository,
-        );
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                ContainersService,
+                { provide: ServicesDatabaseRepository, useValue: servicesRepository },
+                { provide: DockerContainersRepository, useValue: containersRepository },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(ContainersService);
     });
 
     describe('getByService', () => {

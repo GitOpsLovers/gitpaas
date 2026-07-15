@@ -1,4 +1,5 @@
 import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { Network } from '../../../domain/models/network.model';
 import { NetworksService } from '../../services/networks.service';
@@ -26,12 +27,17 @@ describe('NetworksController', () => {
     let service: jest.Mocked<Pick<NetworksService, 'getByService'>>;
     let sut: NetworksController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             getByService: jest.fn(),
         };
 
-        sut = new NetworksController(service as unknown as NetworksService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [NetworksController],
+            providers: [{ provide: NetworksService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(NetworksController);
     });
 
     describe('getByService', () => {

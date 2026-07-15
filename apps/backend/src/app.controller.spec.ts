@@ -1,3 +1,5 @@
+import { Test } from '@nestjs/testing';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import type { HealthStatus } from './app.service';
@@ -8,12 +10,17 @@ describe('AppController', () => {
     let service: jest.Mocked<Pick<AppService, 'getHealth'>>;
     let sut: AppController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             getHealth: jest.fn(),
         };
 
-        sut = new AppController(service);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [AppController],
+            providers: [{ provide: AppService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(AppController);
     });
 
     describe('getHealth', () => {

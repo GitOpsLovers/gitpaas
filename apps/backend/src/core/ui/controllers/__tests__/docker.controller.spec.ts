@@ -1,4 +1,5 @@
 import { ServiceUnavailableException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { DockerInfo } from '../../../domain/models/docker.models';
 import { DockerService } from '../../services/docker.service';
@@ -15,12 +16,17 @@ describe('DockerController', () => {
     let service: jest.Mocked<Pick<DockerService, 'info'>>;
     let sut: DockerController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             info: jest.fn(),
         };
 
-        sut = new DockerController(service as unknown as DockerService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [DockerController],
+            providers: [{ provide: DockerService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(DockerController);
     });
 
     describe('getStatus', () => {

@@ -1,3 +1,5 @@
+import { Test } from '@nestjs/testing';
+
 import { GitBranch } from '../../../domain/models/git-branch.model';
 import { GitRepository } from '../../../domain/models/git-repository.model';
 import { ProvidersService } from '../../services/providers.service';
@@ -30,13 +32,18 @@ describe('ProvidersController', () => {
     let service: jest.Mocked<Pick<ProvidersService, 'listRepositories' | 'listBranches'>>;
     let sut: ProvidersController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             listRepositories: jest.fn(),
             listBranches: jest.fn(),
         };
 
-        sut = new ProvidersController(service as unknown as ProvidersService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [ProvidersController],
+            providers: [{ provide: ProvidersService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(ProvidersController);
     });
 
     describe('listRepositories', () => {

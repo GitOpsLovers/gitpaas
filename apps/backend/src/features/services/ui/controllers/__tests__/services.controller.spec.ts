@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
@@ -28,7 +29,7 @@ describe('ServicesController', () => {
     >;
     let sut: ServicesController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         servicesService = {
             getAllByProject: jest.fn(),
             findById: jest.fn(),
@@ -37,7 +38,12 @@ describe('ServicesController', () => {
             delete: jest.fn(),
         };
 
-        sut = new ServicesController(servicesService as unknown as ServicesService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [ServicesController],
+            providers: [{ provide: ServicesService, useValue: servicesService }],
+        }).compile();
+
+        sut = moduleRef.get(ServicesController);
     });
 
     describe('getAllByProject', () => {

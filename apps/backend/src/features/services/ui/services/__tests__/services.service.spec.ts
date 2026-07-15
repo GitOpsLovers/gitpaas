@@ -1,3 +1,5 @@
+import { Test } from '@nestjs/testing';
+
 import { createServiceUseCase } from '../../../application/create-service.use-case';
 import { deleteServiceUseCase } from '../../../application/delete-service.use-case';
 import { findServiceByIdUseCase } from '../../../application/find-service-by-id.use-case';
@@ -47,12 +49,19 @@ describe('ServicesService', () => {
     let repository: jest.Mocked<ServicesDatabaseRepository>;
     let sut: ServicesService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
 
         repository = {} as jest.Mocked<ServicesDatabaseRepository>;
 
-        sut = new ServicesService(repository);
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                ServicesService,
+                { provide: ServicesDatabaseRepository, useValue: repository },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(ServicesService);
     });
 
     describe('getAllByProject', () => {

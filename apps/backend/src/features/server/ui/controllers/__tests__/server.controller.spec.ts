@@ -1,4 +1,5 @@
 import { ServiceUnavailableException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { PruneResult } from '../../../domain/models/prune-result.model';
 import { ServerService } from '../../services/server.service';
@@ -17,14 +18,19 @@ describe('ServerController', () => {
     let service: jest.Mocked<Pick<ServerService, 'pruneImages' | 'pruneVolumes' | 'pruneContainers'>>;
     let sut: ServerController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             pruneImages: jest.fn(),
             pruneVolumes: jest.fn(),
             pruneContainers: jest.fn(),
         };
 
-        sut = new ServerController(service as unknown as ServerService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [ServerController],
+            providers: [{ provide: ServerService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(ServerController);
 
         // Silence the error logged when a prune failure is wrapped into a 503.
         jest.spyOn(sut['logger'], 'error').mockImplementation(() => undefined);

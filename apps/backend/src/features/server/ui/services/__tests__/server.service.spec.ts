@@ -1,3 +1,5 @@
+import { Test } from '@nestjs/testing';
+
 import { pruneContainersUseCase } from '../../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
@@ -26,12 +28,19 @@ describe('ServerService', () => {
     let pruner: jest.Mocked<DockerServerPrunerRepository>;
     let sut: ServerService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
 
         pruner = {} as jest.Mocked<DockerServerPrunerRepository>;
 
-        sut = new ServerService(pruner);
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                ServerService,
+                { provide: DockerServerPrunerRepository, useValue: pruner },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(ServerService);
     });
 
     describe('pruneImages', () => {

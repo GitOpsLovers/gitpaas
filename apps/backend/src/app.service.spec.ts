@@ -1,11 +1,17 @@
+import { Test } from '@nestjs/testing';
+
 import { AppService } from './app.service';
 import type { HealthStatus } from './app.service';
 
 describe('AppService', () => {
     let sut: AppService;
 
-    beforeEach(() => {
-        sut = new AppService();
+    beforeEach(async () => {
+        const moduleRef = await Test.createTestingModule({
+            providers: [AppService],
+        }).compile();
+
+        sut = moduleRef.get(AppService);
     });
 
     describe('getHealth', () => {

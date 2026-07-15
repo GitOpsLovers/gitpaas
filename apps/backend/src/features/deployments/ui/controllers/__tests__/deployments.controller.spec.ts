@@ -1,4 +1,5 @@
 import { MessageEvent, NotFoundException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { of } from 'rxjs';
 
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
@@ -35,7 +36,7 @@ describe('DeploymentsController', () => {
     >;
     let sut: DeploymentsController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             getAllByService: jest.fn(),
             findById: jest.fn(),
@@ -44,7 +45,12 @@ describe('DeploymentsController', () => {
             delete: jest.fn(),
         };
 
-        sut = new DeploymentsController(service as unknown as DeploymentsService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [DeploymentsController],
+            providers: [{ provide: DeploymentsService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(DeploymentsController);
     });
 
     describe('getAllByService', () => {

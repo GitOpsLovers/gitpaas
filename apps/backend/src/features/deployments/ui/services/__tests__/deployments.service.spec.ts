@@ -1,3 +1,4 @@
+import { Test } from '@nestjs/testing';
 import { of } from 'rxjs';
 
 import { createDeploymentUseCase } from '../../../application/create-deployment.use-case';
@@ -61,7 +62,7 @@ describe('DeploymentsService', () => {
     let logStoreRepository: jest.Mocked<Pick<RedisLogStoreRepository, 'stream'>>;
     let sut: DeploymentsService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
 
         repository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
@@ -70,13 +71,18 @@ describe('DeploymentsService', () => {
         dockerExecutor = {} as jest.Mocked<DockerodeDockerExecutor>;
         logStoreRepository = { stream: jest.fn() };
 
-        sut = new DeploymentsService(
-            repository,
-            servicesRepository,
-            providersRepository,
-            dockerExecutor,
-            logStoreRepository as unknown as RedisLogStoreRepository,
-        );
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                DeploymentsService,
+                { provide: DeploymentsDatabaseRepository, useValue: repository },
+                { provide: ServicesDatabaseRepository, useValue: servicesRepository },
+                { provide: GithubAppProvider, useValue: providersRepository },
+                { provide: DockerodeDockerExecutor, useValue: dockerExecutor },
+                { provide: RedisLogStoreRepository, useValue: logStoreRepository },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(DeploymentsService);
     });
 
     describe('getAllByService', () => {

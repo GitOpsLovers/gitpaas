@@ -1,4 +1,5 @@
 import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { Container } from '../../../domain/models/container.model';
 import { ContainersService } from '../../services/containers.service';
@@ -26,12 +27,17 @@ describe('ContainersController', () => {
     let service: jest.Mocked<Pick<ContainersService, 'getByService'>>;
     let sut: ContainersController;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         service = {
             getByService: jest.fn(),
         };
 
-        sut = new ContainersController(service as unknown as ContainersService);
+        const moduleRef = await Test.createTestingModule({
+            controllers: [ContainersController],
+            providers: [{ provide: ContainersService, useValue: service }],
+        }).compile();
+
+        sut = moduleRef.get(ContainersController);
     });
 
     describe('getByService', () => {

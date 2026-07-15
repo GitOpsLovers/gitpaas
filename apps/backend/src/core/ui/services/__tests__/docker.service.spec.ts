@@ -1,3 +1,4 @@
+import { Test } from '@nestjs/testing';
 import type Docker from 'dockerode';
 
 import { DockerInfo } from '../../../domain/models/docker.models';
@@ -16,7 +17,7 @@ describe('DockerService', () => {
     let client: jest.Mocked<Pick<DockerClient, 'getClient'>>;
     let sut: DockerService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         daemon = {
             ping: jest.fn(),
             info: jest.fn(),
@@ -25,7 +26,14 @@ describe('DockerService', () => {
             getClient: jest.fn().mockReturnValue(daemon),
         };
 
-        sut = new DockerService(client as unknown as DockerClient);
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                DockerService,
+                { provide: DockerClient, useValue: client },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(DockerService);
     });
 
     describe('ping', () => {
