@@ -1,7 +1,7 @@
 import {
     afterRenderEffect, Component, effect, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
-import { LucideLoaderCircle, LucideX } from '@lucide/angular';
+import { LucideCheck, LucideCopy, LucideLoaderCircle, LucideX } from '@lucide/angular';
 
 import { Deployment } from '@features/deployments/domain/models/deployment.model';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
@@ -15,7 +15,7 @@ type LogStreamStatus = 'running' | 'success' | 'failed';
 @Component({
     selector: 'app-deployment-logs-modal',
     templateUrl: './deployment-logs-modal.component.html',
-    imports: [ModalComponent, LucideLoaderCircle, LucideX],
+    imports: [ModalComponent, LucideCheck, LucideCopy, LucideLoaderCircle, LucideX],
 })
 
 /**
@@ -50,6 +50,13 @@ export class DeploymentLogsModalComponent {
     protected readonly finalStatus = signal<Exclude<LogStreamStatus, 'running'> | null>(null);
 
     private readonly logBody = viewChild<ElementRef<HTMLElement>>('logBody');
+
+    /**
+     * Briefly toggled after a successful copy so the button can show feedback.
+     */
+    protected readonly copied = signal(false);
+
+    private copiedTimeout: ReturnType<typeof setTimeout> | null = null;
 
     constructor() {
         effect((onCleanup) => {
@@ -113,6 +120,39 @@ export class DeploymentLogsModalComponent {
                 return 'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500';
             default:
                 return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+        }
+    }
+
+    /**
+     * Left accent border colour for the console surface, driven by status.
+     */
+    protected consoleAccentClass(): string {
+        switch (this.status()) {
+            case 'success':
+                return 'border-l-2 border-l-success-500/60';
+            case 'failed':
+                return 'border-l-2 border-l-error-500/60';
+            default:
+                return 'border-l-2 border-l-warning-500/50';
+        }
+    }
+
+    /**
+     * Copies the full log output to the clipboard and shows brief feedback.
+     */
+    protected async copy(): Promise<void> {
+        try {
+            await navigator.clipboard.writeText(this.lines().join('\n'));
+
+            this.copied.set(true);
+
+            if (this.copiedTimeout) {
+                clearTimeout(this.copiedTimeout);
+            }
+
+            this.copiedTimeout = setTimeout(() => { this.copied.set(false); }, 1500);
+        } catch {
+            // Clipboard access can fail (permissions/insecure context); ignore silently.
         }
     }
 

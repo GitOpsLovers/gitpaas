@@ -11,9 +11,25 @@
                 <svg lucideLoaderCircle class="h-4 w-4 animate-spin text-gray-400"></svg>
             }
 
+            @if (lines().length > 0) {
+                <button
+                    type="button"
+                    class="ml-auto flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-white"
+                    [attr.aria-label]="copied() ? 'Copied' : 'Copy log output'"
+                    (click)="copy()"
+                >
+                    @if (copied()) {
+                        <svg lucideCheck class="h-5 w-5 text-success-500"></svg>
+                    } @else {
+                        <svg lucideCopy class="h-5 w-5"></svg>
+                    }
+                </button>
+            }
+
             <button
                 type="button"
-                class="ml-auto flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-white"
+                class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-white"
+                [class.ml-auto]="lines().length === 0"
                 aria-label="Close"
                 (click)="close()"
             >
@@ -21,17 +37,56 @@
             </button>
         </div>
 
-        <div
-            #logBody
-            class="h-[60vh] overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
-        >
-            @for (line of lines(); track $index) {
-                <div class="whitespace-pre-wrap break-words">{{ line }}</div>
-            } @empty {
-                <div class="text-gray-400 dark:text-gray-500">
-                    {{ streaming() ? 'Waiting for output…' : 'No log output available for this deployment.' }}
+        <div class="overflow-hidden rounded-lg border border-gray-800 shadow-sm dark:border-gray-700">
+            <div class="flex items-center justify-between border-b border-gray-800 bg-gray-950 px-4 py-2">
+                <div class="flex items-center gap-1.5">
+                    <span class="h-3 w-3 rounded-full bg-error-500"></span>
+                    <span class="h-3 w-3 rounded-full bg-warning-500"></span>
+                    <span class="h-3 w-3 rounded-full bg-success-500"></span>
                 </div>
-            }
+
+                <span class="font-mono text-xs text-gray-500">{{ lines().length }} lines</span>
+            </div>
+
+            <div
+                #logBody
+                class="h-[60vh] overflow-auto bg-gray-900 py-3 font-mono text-[13px] leading-relaxed text-gray-200"
+                [class]="consoleAccentClass()"
+                role="log"
+                aria-live="polite"
+                aria-label="Deployment log output"
+            >
+                @for (line of lines(); track $index) {
+                    <div class="group flex gap-4 px-4 hover:bg-white/5">
+                        <span aria-hidden="true" class="w-8 shrink-0 select-none text-right text-gray-600">
+                            {{ $index + 1 }}
+                        </span>
+                        <span class="min-w-0 flex-1 whitespace-pre-wrap break-words text-gray-300">{{ line }}</span>
+                    </div>
+                } @empty {
+                    <div class="px-4 text-gray-500">
+                        {{ streaming() ? 'Waiting for output…' : 'No log output available for this deployment.' }}
+                    </div>
+                }
+
+                @if (streaming() && lines().length > 0) {
+                    <div class="flex gap-4 px-4">
+                        <span aria-hidden="true" class="w-8 shrink-0 select-none"></span>
+                        <span aria-hidden="true" class="inline-block h-4 w-2 animate-pulse bg-gray-300"></span>
+                    </div>
+                }
+
+                @if (finalStatus(); as final) {
+                    <div class="mt-2 flex gap-4 border-t border-gray-800 px-4 pt-2">
+                        <span aria-hidden="true" class="w-8 shrink-0 select-none"></span>
+                        @if (final === 'success') {
+                            <span class="font-medium text-success-500">✓ Deployment succeeded</span>
+                        } @else {
+                            <span class="font-medium text-error-500">✗ Deployment failed</span>
+                        }
+                    </div>
+                }
+            </div>
         </div>
     }
 </app-modal>
