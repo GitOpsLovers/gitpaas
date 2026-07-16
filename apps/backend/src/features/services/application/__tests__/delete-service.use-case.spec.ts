@@ -128,9 +128,30 @@ describe('deleteServiceUseCase', () => {
         expect(result).toBe(true);
     });
 
-    it('returns false when the final row deletion removes nothing', async () => {
+    it('deletes the row before performing the external cleanup', async () => {
         servicesRepository.findById.mockResolvedValue(service);
-        deploymentsRepository.getAllByService.mockResolvedValue([]);
+        deploymentsRepository.getAllByService.mockResolvedValue(deployments);
+        servicesRepository.delete.mockResolvedValue(true);
+
+        await deleteServiceUseCase(
+            servicesRepository,
+            deploymentsRepository,
+            serviceFootprint,
+            logStore,
+            id,
+        );
+
+        const deleteOrder = servicesRepository.delete.mock.invocationCallOrder[0];
+        const removeOrder = serviceFootprint.remove.mock.invocationCallOrder[0];
+        const firstPurgeOrder = logStore.purge.mock.invocationCallOrder[0];
+
+        expect(deleteOrder).toBeLessThan(removeOrder);
+        expect(deleteOrder).toBeLessThan(firstPurgeOrder);
+    });
+
+    it('leaves external state untouched when the row deletion removes nothing', async () => {
+        servicesRepository.findById.mockResolvedValue(service);
+        deploymentsRepository.getAllByService.mockResolvedValue(deployments);
         servicesRepository.delete.mockResolvedValue(false);
 
         const result = await deleteServiceUseCase(
@@ -142,5 +163,8 @@ describe('deleteServiceUseCase', () => {
         );
 
         expect(result).toBe(false);
+        expect(servicesRepository.delete).toHaveBeenCalledTimes(1);
+        expect(serviceFootprint.remove).not.toHaveBeenCalled();
+        expect(logStore.purge).not.toHaveBeenCalled();
     });
 });
