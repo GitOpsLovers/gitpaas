@@ -13,6 +13,9 @@
 # - redis:    in-memory store used to buffer and fan-out real-time deployment logs.
 #             The backend RPUSHes captured `docker-compose up` output here and streams
 #             it to the browser over SSE. In production this same store runs on the VPS.
+# - redisinsight: a web UI to inspect the local Redis. Reachable at
+#             http://127.0.0.1:5540; the local redis server is pre-connected via
+#             RI_REDIS_* env vars, so it opens ready-to-browse with no login.
 #
 # Paths are relative to this file (iac/development/); certs and state live under
 # the repo-root `.dev/` directory.
@@ -20,7 +23,7 @@ name: artifactory-dev
 
 services:
   vps:
-    image: docker:29-dind
+    image: docker:29.6.1-dind-alpine3.24
     container_name: artifactory-vps
     privileged: true
     restart: unless-stopped
@@ -45,7 +48,7 @@ services:
       start_period: 20s
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17.6-alpine3.22
     container_name: artifactory-postgres
     restart: unless-stopped
     environment:
@@ -64,7 +67,7 @@ services:
       start_period: 10s
 
   redis:
-    image: redis:7-alpine
+    image: redis:8.8.0-alpine3.23
     container_name: artifactory-redis
     restart: unless-stopped
     ports:
@@ -97,6 +100,21 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
       postgres:
+        condition: service_healthy
+
+  redisinsight:
+    image: redis/redisinsight:3.6
+    container_name: artifactory-redis-insight
+    restart: unless-stopped
+    environment:
+      # Pre-register the local redis server so the UI opens ready-to-browse.
+      RI_REDIS_HOST: redis
+      RI_REDIS_PORT: "6379"
+      RI_REDIS_ALIAS: "Artifactory (local)"
+    ports:
+      - "127.0.0.1:5540:5540" # web UI — open http://127.0.0.1:5540
+    depends_on:
+      redis:
         condition: service_healthy
 
 volumes:

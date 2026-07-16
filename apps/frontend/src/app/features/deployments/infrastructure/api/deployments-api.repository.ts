@@ -16,6 +16,8 @@ export class DeploymentsApiRepository {
 
     private readonly url = 'http://localhost:3000/api/v1/deployments';
 
+    private readonly logsUrl = 'http://localhost:3000/api/v1/logs';
+
     /**
      * Resource with the deployment history of a service, most recent first
      *
@@ -63,7 +65,7 @@ export class DeploymentsApiRepository {
      */
     public logs(deploymentId: string): Observable<LogEvent> {
         return new Observable<LogEvent>((subscriber) => {
-            const source = new EventSource(`${this.url}/${deploymentId}/logs`);
+            const source = new EventSource(`${this.logsUrl}/${deploymentId}/stream`);
 
             source.onmessage = (message) => {
                 const event = JSON.parse(message.data) as LogEvent;

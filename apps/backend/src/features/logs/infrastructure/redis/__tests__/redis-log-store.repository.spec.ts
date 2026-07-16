@@ -29,6 +29,21 @@ function createFakeRedis(): RedisClient {
             return Promise.resolve(next);
         },
         lrange: (key: string): Promise<string[]> => Promise.resolve([...(lists.get(key) ?? [])]),
+        del: (...keys: string[]): Promise<number> => {
+            let removed = 0;
+
+            keys.forEach((key) => {
+                if (lists.delete(key)) {
+                    removed += 1;
+                }
+
+                if (counters.delete(key)) {
+                    removed += 1;
+                }
+            });
+
+            return Promise.resolve(removed);
+        },
         publish: (channel: string, message: string): Promise<number> => {
             bus.emit(channel, message);
 
@@ -87,10 +102,12 @@ function createFakeRedis(): RedisClient {
 describe('RedisLogStoreRepository', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
+    let redis: RedisClient;
     let store: RedisLogStoreRepository;
 
     beforeEach(() => {
-        store = new RedisLogStoreRepository(createFakeRedis());
+        redis = createFakeRedis();
+        store = new RedisLogStoreRepository(redis);
     });
 
     it('replays buffered lines then completes for a finished stream', async () => {
@@ -144,5 +161,21 @@ describe('RedisLogStoreRepository', () => {
         ]);
 
         subscription.unsubscribe();
+    });
+
+    it('purges a stream by deleting its buffer list and sequence keys', async () => {
+        const del = jest.spyOn(redis.getClient(), 'del');
+
+        await store.append(id, 'line 1');
+        await store.purge(id);
+
+        expect(del).toHaveBeenCalledWith(`logs:${id}`, `logs:${id}:seq`);
+
+        // The buffer is gone: a fresh stream replays nothing before completing.
+        await store.complete(id, 'success');
+
+        const events = await firstValueFrom(store.stream(id).pipe(toArray()));
+
+        expect(events).toEqual<LogEvent[]>([{ type: 'end', status: 'success' }]);
     });
 });

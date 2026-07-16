@@ -67,6 +67,19 @@ export class PersistentLogStoreRepository implements LogStoreRepository {
     }
 
     /**
+     * Remove a stream's buffered log and any stored resources.
+     *
+     * Drops the in-memory buffer and delegates to the Redis store. The durable
+     * `logs` rows are cleaned up by the database cascade, not here.
+     *
+     * @param streamId Stream identifier
+     */
+    public async purge(streamId: string): Promise<void> {
+        this.buffers.delete(streamId);
+        await this.logStore.purge(streamId);
+    }
+
+    /**
      * Returns the mutable line buffer for a stream, creating it on first use.
      *
      * @param streamId Stream identifier

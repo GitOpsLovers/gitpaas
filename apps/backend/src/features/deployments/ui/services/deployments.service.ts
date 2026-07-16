@@ -10,6 +10,8 @@ import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
+import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
@@ -27,6 +29,8 @@ export class DeploymentsService {
         private readonly providersRepository: GithubAppProvider,
         @Inject(RxjsDeploymentQueue)
         private readonly queue: RxjsDeploymentQueue,
+        @Inject(PersistentLogStoreRepository)
+        private readonly logStore: LogStoreRepository,
     ) {}
 
     /**
@@ -59,7 +63,7 @@ export class DeploymentsService {
      * @returns `true` when a row was deleted, `false` otherwise
      */
     public delete(id: string): Promise<boolean> {
-        return deleteDeploymentUseCase(this.repository, id);
+        return deleteDeploymentUseCase(this.repository, this.logStore, id);
     }
 
     /**

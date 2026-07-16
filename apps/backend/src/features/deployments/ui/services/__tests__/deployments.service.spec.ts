@@ -13,6 +13,8 @@ import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/
 import { RxjsDeploymentQueue } from '../../../infrastructure/rxjs/rxjs-deployment.queue';
 import { DeploymentsService } from '../deployments.service';
 
+import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
@@ -59,6 +61,7 @@ describe('DeploymentsService', () => {
     let servicesRepository: jest.Mocked<ServicesDatabaseRepository>;
     let providersRepository: jest.Mocked<GithubAppProvider>;
     let queue: jest.Mocked<Pick<DeploymentQueue, 'request'>>;
+    let logStore: jest.Mocked<LogStoreRepository>;
     let sut: DeploymentsService;
 
     beforeEach(async () => {
@@ -68,6 +71,12 @@ describe('DeploymentsService', () => {
         servicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
         providersRepository = {} as jest.Mocked<GithubAppProvider>;
         queue = { enqueue: jest.fn() };
+        logStore = {
+            append: jest.fn(),
+            complete: jest.fn(),
+            stream: jest.fn(),
+            purge: jest.fn(),
+        };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -76,6 +85,7 @@ describe('DeploymentsService', () => {
                 { provide: ServicesDatabaseRepository, useValue: servicesRepository },
                 { provide: GithubAppProvider, useValue: providersRepository },
                 { provide: RxjsDeploymentQueue, useValue: queue },
+                { provide: PersistentLogStoreRepository, useValue: logStore },
             ],
         }).compile();
 
@@ -157,7 +167,7 @@ describe('DeploymentsService', () => {
             await sut.delete(deploymentId);
 
             expect(deleteDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(deleteDeploymentUseCaseMock).toHaveBeenCalledWith(repository, deploymentId);
+            expect(deleteDeploymentUseCaseMock).toHaveBeenCalledWith(repository, logStore, deploymentId);
         });
 
         it('returns true when a row was deleted', async () => {

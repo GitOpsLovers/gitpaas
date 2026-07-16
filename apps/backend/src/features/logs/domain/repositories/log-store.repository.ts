@@ -35,4 +35,11 @@ export interface LogStoreRepository {
      * its resources on unsubscribe
      */
     stream: (streamId: string) => Observable<LogEvent>;
+
+    /**
+     * Remove a stream's buffered log and any stored resources.
+     *
+     * @param streamId Stream identifier
+     */
+    purge: (streamId: string) => Promise<void>;
 }

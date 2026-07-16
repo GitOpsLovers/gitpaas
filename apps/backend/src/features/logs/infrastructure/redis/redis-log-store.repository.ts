@@ -122,6 +122,15 @@ export class RedisLogStoreRepository implements LogStoreRepository {
     }
 
     /**
+     * Remove a stream's buffered log and any stored resources.
+     *
+     * @param streamId Stream identifier
+     */
+    public async purge(streamId: string): Promise<void> {
+        await this.redis.getClient().del(this.listKey(streamId), this.seqKey(streamId));
+    }
+
+    /**
      * Assigns a sequence, persists the event to the list (capped + TTL'd) and
      * publishes it to live subscribers.
      *

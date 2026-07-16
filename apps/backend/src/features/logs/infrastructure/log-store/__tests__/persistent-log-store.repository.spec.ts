@@ -7,7 +7,7 @@ import { PersistentLogStoreRepository } from '../persistent-log-store.repository
 describe('PersistentLogStoreRepository', () => {
     const streamId = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
-    let logStore: jest.Mocked<Pick<RedisLogStoreRepository, 'append' | 'complete' | 'stream'>>;
+    let logStore: jest.Mocked<Pick<RedisLogStoreRepository, 'append' | 'complete' | 'stream' | 'purge'>>;
     let logsRepository: jest.Mocked<Pick<LogsDatabaseRepository, 'createMany'>>;
     let sut: PersistentLogStoreRepository;
 
@@ -16,6 +16,7 @@ describe('PersistentLogStoreRepository', () => {
             append: jest.fn().mockResolvedValue(undefined),
             complete: jest.fn().mockResolvedValue(undefined),
             stream: jest.fn(),
+            purge: jest.fn().mockResolvedValue(undefined),
         };
         logsRepository = {
             createMany: jest.fn().mockResolvedValue([]),
@@ -80,6 +81,23 @@ describe('PersistentLogStoreRepository', () => {
     it('clears a stream buffer after completing it', async () => {
         await sut.append(streamId, 'first run line');
         await sut.complete(streamId, 'success');
+        await sut.complete(streamId, 'success');
+
+        expect(logsRepository.createMany).toHaveBeenLastCalledWith([
+            {
+                deploymentId: streamId, seq: 1, type: 'end', content: null, status: 'success',
+            },
+        ]);
+    });
+
+    it('clears the in-memory buffer and delegates purge to the redis store', async () => {
+        await sut.append(streamId, 'buffered line');
+
+        await sut.purge(streamId);
+
+        expect(logStore.purge).toHaveBeenCalledWith(streamId);
+
+        // A subsequent completion persists only a terminal row, proving the buffer was dropped.
         await sut.complete(streamId, 'success');
 
         expect(logsRepository.createMany).toHaveBeenLastCalledWith([
