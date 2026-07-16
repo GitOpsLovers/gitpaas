@@ -25,6 +25,7 @@ describe('updateServiceUseCase', () => {
 
     beforeEach(() => {
         repository = {
+            getAll: jest.fn(),
             getAllByProject: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),

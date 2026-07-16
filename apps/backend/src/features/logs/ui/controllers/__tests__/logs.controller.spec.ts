@@ -78,7 +78,7 @@ describe('LogsController', () => {
                 { type: 'line', data: 'building…' },
                 { type: 'end', status: 'success' },
             ];
-            service.streamLogs.mockReturnValue(of<LogEvent>(...events));
+            service.streamLogs.mockReturnValue(of(...events));
 
             const received: MessageEvent[] = [];
             sut.streamLogs(deploymentId).subscribe({

@@ -59,7 +59,7 @@ describe('toContainer', () => {
         const result = toContainer(
             containerInfo({
                 Ports: [
-                    { PrivatePort: 80, PublicPort: 8080, Type: 'tcp' },
+                    { PrivatePort: 80, PublicPort: 8080, Type: 'tcp' } as Docker.Port,
                     { PrivatePort: 443, Type: 'tcp' } as Docker.Port,
                 ],
             }),

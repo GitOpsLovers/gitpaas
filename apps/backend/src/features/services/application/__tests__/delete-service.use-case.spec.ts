@@ -3,8 +3,8 @@ import { ServiceFootprintRepository } from '../../domain/repositories/service-fo
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { deleteServiceUseCase } from '../delete-service.use-case';
 
-import { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { Deployment } from '@features/deployments/domain/models/deployment.model';
+import { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 
 describe('deleteServiceUseCase', () => {
@@ -31,6 +31,7 @@ describe('deleteServiceUseCase', () => {
 
     beforeEach(() => {
         servicesRepository = {
+            getAll: jest.fn(),
             getAllByProject: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),

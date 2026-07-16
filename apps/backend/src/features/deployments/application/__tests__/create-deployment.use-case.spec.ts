@@ -1,3 +1,5 @@
+import { EMPTY } from 'rxjs';
+
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.model';
@@ -57,6 +59,7 @@ describe('createDeploymentUseCase', () => {
             delete: jest.fn(),
         };
         servicesRepository = {
+            getAll: jest.fn(),
             getAllByProject: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
@@ -70,7 +73,7 @@ describe('createDeploymentUseCase', () => {
             getFileContent: jest.fn(),
             getRepositoryArchive: jest.fn(),
         };
-        queue = { enqueue: jest.fn() };
+        queue = { enqueue: jest.fn(), dequeued$: EMPTY };
     });
 
     it('throws ServiceNotFoundError when the service does not exist', async () => {

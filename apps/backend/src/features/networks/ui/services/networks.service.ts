@@ -2,8 +2,10 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { getNetworksByServiceUseCase } from '../../application/get-networks-by-service.use-case';
 import { Network } from '../../domain/models/network.model';
+import type { NetworksRepository } from '../../domain/repositories/networks.repository';
 import { DockerNetworksRepository } from '../../infrastructure/docker/docker-networks.repository';
 
+import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
 /**
@@ -13,9 +15,9 @@ import { ServicesDatabaseRepository } from '@features/services/infrastructure/da
 export class NetworksService {
     constructor(
         @Inject(ServicesDatabaseRepository)
-        private readonly servicesRepository: ServicesDatabaseRepository,
+        private readonly servicesRepository: ServicesRepository,
         @Inject(DockerNetworksRepository)
-        private readonly networksRepository: DockerNetworksRepository,
+        private readonly networksRepository: NetworksRepository,
     ) {}
 
     /**

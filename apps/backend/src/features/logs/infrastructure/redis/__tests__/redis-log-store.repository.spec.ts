@@ -96,7 +96,7 @@ function createFakeRedis(): RedisClient {
         getClient: () => client,
         createSubscriber,
         releaseSubscriber: (connection: { disconnect: () => void }) => { connection.disconnect(); },
-    };
+    } as unknown as RedisClient;
 }
 
 describe('RedisLogStoreRepository', () => {

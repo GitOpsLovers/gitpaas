@@ -43,6 +43,7 @@ describe('runDeploymentUseCase', () => {
             append: jest.fn(),
             complete: jest.fn(),
             stream: jest.fn(),
+            purge: jest.fn(),
         };
     });
 
