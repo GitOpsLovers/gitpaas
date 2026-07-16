@@ -1,7 +1,7 @@
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
-import { DeploymentRunPublisher } from '../../domain/events/deployment-run.publisher';
 import { Deployment } from '../../domain/models/deployment.model';
+import { DeploymentQueue } from '../../domain/queues/deployment.queue';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { createDeploymentUseCase } from '../create-deployment.use-case';
 
@@ -46,7 +46,7 @@ describe('createDeploymentUseCase', () => {
     let deploymentsRepository: jest.Mocked<DeploymentsRepository>;
     let servicesRepository: jest.Mocked<ServicesRepository>;
     let providersRepository: jest.Mocked<ProvidersRepository>;
-    let runPublisher: jest.Mocked<DeploymentRunPublisher>;
+    let queue: jest.Mocked<DeploymentQueue>;
 
     beforeEach(() => {
         deploymentsRepository = {
@@ -70,7 +70,7 @@ describe('createDeploymentUseCase', () => {
             getFileContent: jest.fn(),
             getRepositoryArchive: jest.fn(),
         };
-        runPublisher = { request: jest.fn() };
+        queue = { enqueue: jest.fn() };
     });
 
     it('throws ServiceNotFoundError when the service does not exist', async () => {
@@ -80,7 +80,7 @@ describe('createDeploymentUseCase', () => {
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            runPublisher,
+            queue,
             triggerDto,
         )).rejects.toThrow(ServiceNotFoundError);
     });
@@ -92,7 +92,7 @@ describe('createDeploymentUseCase', () => {
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            runPublisher,
+            queue,
             triggerDto,
         )).rejects.toThrow(ServiceNotDeployableError);
     });
@@ -106,7 +106,7 @@ describe('createDeploymentUseCase', () => {
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            runPublisher,
+            queue,
             triggerDto,
         );
 
@@ -122,7 +122,7 @@ describe('createDeploymentUseCase', () => {
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            runPublisher,
+            queue,
             triggerDto,
         );
 
@@ -146,12 +146,12 @@ describe('createDeploymentUseCase', () => {
             deploymentsRepository,
             servicesRepository,
             providersRepository,
-            runPublisher,
+            queue,
             triggerDto,
         );
 
-        expect(runPublisher.request).toHaveBeenCalledTimes(1);
-        expect(runPublisher.request).toHaveBeenCalledWith({
+        expect(queue.enqueue).toHaveBeenCalledTimes(1);
+        expect(queue.enqueue).toHaveBeenCalledWith({
             deploymentId: createdDeployment.id,
             repositoryId: 42,
             commit: createdDeployment.commit,

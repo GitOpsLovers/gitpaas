@@ -2,9 +2,10 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { Subscription } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
+import type { DeploymentRunTask } from '../../domain/models/deployment-run-task.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../infrastructure/docker/dockerode-docker.executor';
-import { DeploymentRunBus, DeploymentRunRequest } from '../../infrastructure/events/deployment-run.bus';
+import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
@@ -13,7 +14,7 @@ import { GithubAppProvider } from '@features/providers/infrastructure/github/git
 /**
  * Deployment runner.
  *
- * Subscribes to the deployment-run bus (which the deployments feature owns) and
+ * Subscribes to the deployment queue (which the deployments feature owns) and
  * on each requested run drives {@link runDeploymentUseCase}, which owns the
  * docker run and streams the output to the logs write port.
  */
@@ -30,7 +31,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly dockerExecutor: DockerodeDockerExecutor,
         @Inject(PersistentLogStoreRepository)
         private readonly logStore: PersistentLogStoreRepository,
-        private readonly runBus: DeploymentRunBus,
+        @Inject(RxjsDeploymentQueue)
+        private readonly queue: RxjsDeploymentQueue,
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
 
@@ -38,8 +40,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
      * Subscribes to deployment-run requests when the module starts.
      */
     public onModuleInit(): void {
-        this.subscription = this.runBus.requests$.subscribe((request) => {
-            this.run(request);
+        this.subscription = this.queue.dequeued$.subscribe((task) => {
+            this.run(task);
         });
     }
 
@@ -53,16 +55,16 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     /**
      * Runs a single deployment, guarding against unexpected throws.
      *
-     * @param request Deployment-run request
+     * @param task Deployment run task
      */
-    private async run(request: DeploymentRunRequest): Promise<void> {
+    private async run(task: DeploymentRunTask): Promise<void> {
         try {
             await runDeploymentUseCase(
                 this.deploymentsRepository,
                 this.providersRepository,
                 this.dockerExecutor,
                 this.logStore,
-                request,
+                task,
             );
         } catch (error) {
             // Last-resort safety net: runDeploymentUseCase handles its own failures,
@@ -70,7 +72,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
             const message = error instanceof Error ? error.message : String(error);
 
             this.diagnostics.error(
-                `Deployment runner crashed for ${request.deploymentId}: ${message}`,
+                `Deployment runner crashed for ${task.deploymentId}: ${message}`,
                 error,
                 DeploymentRunnerService.name,
             );

@@ -8,10 +8,11 @@ import { getDeploymentsByServiceUseCase } from '../../../application/get-deploym
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.model';
+import { DeploymentQueue } from '../../../domain/queues/deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
+import { RxjsDeploymentQueue } from '../../../infrastructure/rxjs/rxjs-deployment.queue';
 import { DeploymentsService } from '../deployments.service';
 
-import { DeploymentRunBus } from '../../../infrastructure/events/deployment-run.bus';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
@@ -57,7 +58,7 @@ describe('DeploymentsService', () => {
     let repository: jest.Mocked<DeploymentsDatabaseRepository>;
     let servicesRepository: jest.Mocked<ServicesDatabaseRepository>;
     let providersRepository: jest.Mocked<GithubAppProvider>;
-    let runBus: jest.Mocked<Pick<DeploymentRunBus, 'request'>>;
+    let queue: jest.Mocked<Pick<DeploymentQueue, 'request'>>;
     let sut: DeploymentsService;
 
     beforeEach(async () => {
@@ -66,7 +67,7 @@ describe('DeploymentsService', () => {
         repository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
         servicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
         providersRepository = {} as jest.Mocked<GithubAppProvider>;
-        runBus = { request: jest.fn() };
+        queue = { enqueue: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -74,7 +75,7 @@ describe('DeploymentsService', () => {
                 { provide: DeploymentsDatabaseRepository, useValue: repository },
                 { provide: ServicesDatabaseRepository, useValue: servicesRepository },
                 { provide: GithubAppProvider, useValue: providersRepository },
-                { provide: DeploymentRunBus, useValue: runBus },
+                { provide: RxjsDeploymentQueue, useValue: queue },
             ],
         }).compile();
 
@@ -196,7 +197,7 @@ describe('DeploymentsService', () => {
                 repository,
                 servicesRepository,
                 providersRepository,
-                runBus,
+                queue,
                 triggerDto,
             );
         });

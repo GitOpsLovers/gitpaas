@@ -8,7 +8,7 @@ import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
-import { DeploymentRunBus } from '../../infrastructure/events/deployment-run.bus';
+import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
@@ -25,7 +25,8 @@ export class DeploymentsService {
         private readonly servicesRepository: ServicesDatabaseRepository,
         @Inject(GithubAppProvider)
         private readonly providersRepository: GithubAppProvider,
-        private readonly runBus: DeploymentRunBus,
+        @Inject(RxjsDeploymentQueue)
+        private readonly queue: RxjsDeploymentQueue,
     ) {}
 
     /**
@@ -74,7 +75,7 @@ export class DeploymentsService {
                 this.repository,
                 this.servicesRepository,
                 this.providersRepository,
-                this.runBus,
+                this.queue,
                 triggerDto,
             );
         } catch (error) {

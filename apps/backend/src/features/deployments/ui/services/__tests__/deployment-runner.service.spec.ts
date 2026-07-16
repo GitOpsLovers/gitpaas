@@ -1,9 +1,10 @@
 import { runDeploymentUseCase } from '../../../application/run-deployment.use-case';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../../infrastructure/docker/dockerode-docker.executor';
-import { DeploymentRunBus, DeploymentRunRequest } from '../../../infrastructure/events/deployment-run.bus';
+import { RxjsDeploymentQueue } from '../../../infrastructure/rxjs/rxjs-deployment.queue';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
+import { DeploymentRunTask } from '../../../domain/models/deployment-run-task.model';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
@@ -21,7 +22,7 @@ const runDeploymentUseCaseMock = runDeploymentUseCase as jest.MockedFunction<typ
 /** Resolves after pending microtasks, letting the fire-and-forget run settle. */
 const flush = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
 
-const request: DeploymentRunRequest = {
+const task: DeploymentRunTask = {
     deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
     repositoryId: 42,
     commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
@@ -34,7 +35,7 @@ describe('DeploymentRunnerService', () => {
     let providersRepository: jest.Mocked<GithubAppProvider>;
     let dockerExecutor: jest.Mocked<DockerodeDockerExecutor>;
     let logStore: jest.Mocked<PersistentLogStoreRepository>;
-    let runBus: DeploymentRunBus;
+    let queue: RxjsDeploymentQueue;
     let diagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
     let sut: DeploymentRunnerService;
 
@@ -45,7 +46,7 @@ describe('DeploymentRunnerService', () => {
         providersRepository = {} as jest.Mocked<GithubAppProvider>;
         dockerExecutor = {} as jest.Mocked<DockerodeDockerExecutor>;
         logStore = {} as jest.Mocked<PersistentLogStoreRepository>;
-        runBus = new DeploymentRunBus();
+        queue = new RxjsDeploymentQueue();
         diagnostics = { error: jest.fn() };
 
         sut = new DeploymentRunnerService(
@@ -53,7 +54,7 @@ describe('DeploymentRunnerService', () => {
             providersRepository,
             dockerExecutor,
             logStore,
-            runBus,
+            queue,
             diagnostics as unknown as DiagnosticLoggerService,
         );
     });
@@ -62,7 +63,7 @@ describe('DeploymentRunnerService', () => {
         runDeploymentUseCaseMock.mockResolvedValue(undefined);
         sut.onModuleInit();
 
-        runBus.request(request);
+        queue.enqueue(task);
         await flush();
 
         expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
@@ -71,7 +72,7 @@ describe('DeploymentRunnerService', () => {
             providersRepository,
             dockerExecutor,
             logStore,
-            request,
+            task,
         );
     });
 
@@ -79,7 +80,7 @@ describe('DeploymentRunnerService', () => {
         runDeploymentUseCaseMock.mockRejectedValue(new Error('boom'));
         sut.onModuleInit();
 
-        runBus.request(request);
+        queue.enqueue(task);
         await flush();
 
         expect(diagnostics.error).toHaveBeenCalledTimes(1);
@@ -90,7 +91,7 @@ describe('DeploymentRunnerService', () => {
         sut.onModuleInit();
         sut.onModuleDestroy();
 
-        runBus.request(request);
+        queue.enqueue(task);
         await flush();
 
         expect(runDeploymentUseCaseMock).not.toHaveBeenCalled();

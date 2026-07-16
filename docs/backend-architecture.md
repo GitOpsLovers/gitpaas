@@ -65,7 +65,7 @@ data-level FK :  logs ──────► deployment      (a log row belongs t
 module DI     :  deployments ──────► logs      (deployment injects the logs write port)
 ```
 
-Because `logs` imports no other feature module, it introduces no cycle. When a feature must *trigger* work without inverting an import, the two are decoupled through an **event bus owned by the producing feature** rather than a direct import — see [Cross-feature collaboration](#cross-feature-collaboration).
+Because `logs` imports no other feature module, it introduces no cycle. When a feature must *trigger* work without inverting an import, the two are decoupled through a **queue owned by the producing feature** rather than a direct import — see [Cross-feature collaboration](#cross-feature-collaboration).
 
 ## The four layers
 
@@ -233,24 +233,24 @@ A richer feature with filters would instead extract and clean query params in th
 
 ## Cross-feature collaboration
 
-Most features talk to their neighbour by importing it (following the one-way module DI direction of the [two axes](#two-independent-axes-data-level-fk-vs-module-di)). Two patterns handle the cases that the plain CRUD-over-import shape does not: an **event bus** for decoupling a synchronous HTTP response from background work, and **Server-Sent Events** for streaming a live result back to the client.
+Most features talk to their neighbour by importing it (following the one-way module DI direction of the [two axes](#two-independent-axes-data-level-fk-vs-module-di)). Two patterns handle the cases that the plain CRUD-over-import shape does not: a **queue** for decoupling a synchronous HTTP response from background work, and **Server-Sent Events** for streaming a live result back to the client.
 
-### The event-bus decoupling pattern
+### The queue decoupling pattern
 
 Sometimes work must be *triggered* on one seam but *performed* on another — either to avoid inverting an import, or, as here, to let a synchronous request return immediately while the real work runs in the background. The rule of thumb:
 
-> To kick off work without coupling the caller to when or how it runs, publish a request on a **dependency-free event bus** and let a subscriber pick it up. The bus is owned and exported by the feature that produces the request, so any collaborator already depending on that feature can inject it without adding a new dependency or a cycle.
+> To kick off work without coupling the caller to when or how it runs, enqueue a task on a **dependency-free queue** and let a consumer dequeue it. The queue is owned and exported by the feature that produces the task, so any collaborator already depending on that feature can inject it without adding a new dependency or a cycle.
 
-The bus is a small `@Injectable()` wrapping an RxJS `Subject` (a `request(...)` publisher plus a `requests$` observable). It lives in the **producing feature's** infrastructure and is provided and exported by that feature's module. The publisher only knows "I asked for this to happen"; it never learns when the work finishes or how it is done. This dependency-free RxJS `Subject` seam is the reusable part of the pattern.
+The queue is expressed as a **port and an adapter**, exactly like the [repository pattern](#the-repository-port--dependency-injection). The domain declares a technology-agnostic port — an interface (`DeploymentQueue`) exposing an enqueue method, `enqueue(task)` — so the application layer depends only on the contract. The **producing feature's** infrastructure supplies the adapter: a small `@Injectable()` that `implements` the port by wrapping an RxJS `Subject` (`RxjsDeploymentQueue`), adding the `dequeued$` stream that consumers dequeue from. As with repositories, the concrete adapter is the injection token and consumers type the dependency as the port (`@Inject(RxjsDeploymentQueue) private readonly queue: DeploymentQueue`), so DI stays simple while the domain stays framework-free. The adapter is provided and exported by that feature's module. The producer only knows "I asked for this to happen"; it never learns when the work finishes or how it is done. This dependency-free `Subject`-backed seam is the reusable part of the pattern.
 
-The **deployments** feature is the reference example, and here the bus decouples the **synchronous `POST` response from the background run — entirely within the same feature**. `POST /api/v1/deployments` validates, persists the deployment record, publishes a run request on the `DeploymentRunBus`, and returns the created deployment (with its **id**) *immediately*. A background runner in the **same** deployments feature — a service implementing `OnModuleInit` that subscribes to the bus — then drives the actual run out of band:
+The **deployments** feature is the reference example, and here the queue decouples the **synchronous `POST` response from the background run — entirely within the same feature**. `POST /api/v1/deployments` validates, persists the deployment record, enqueues a run task on the `DeploymentQueue`, and returns the created deployment (with its **id**) *immediately*. A background runner in the **same** deployments feature — a service implementing `OnModuleInit` that dequeues from the queue — then drives the actual run out of band:
 
 ```
 deployments feature
 ──────────────────────────────────────────────────────────────────────
 POST /deployments (request path)          background runner (OnModuleInit)
-  validate + persist record                 subscribes to requests$, and per
-  runBus.request({...})  ──► DeploymentRunBus ──► request drives the run:
+  validate + persist record                 dequeues dequeued$, and per
+  queue.enqueue({...})   ──► DeploymentQueue ──► task drives the run:
   return deployment (id) ↩ now              (RxJS Subject)   mark running
                                                              → fetch repo archive
                                                              → docker executor
@@ -260,7 +260,7 @@ POST /deployments (request path)          background runner (OnModuleInit)
                                                              → complete the log stream
 ```
 
-The runner marks the deployment running, fetches the source archive, runs the Docker executor, and marks the deployment `success`/`failed`. It never persists log output itself: it fans each captured line to the **logs write port** (`append`) and, at the end, `complete`s the stream with the terminal status. How those lines are buffered and stored is entirely a logs-feature concern hidden behind that port. The runner's own error handling (plus a last-resort guard in the subscriber) means a failed run becomes a persisted failed status rather than an unhandled throw. Because the run is fire-and-forget off the bus, the caller gets its id back without waiting for Docker.
+The runner marks the deployment running, fetches the source archive, runs the Docker executor, and marks the deployment `success`/`failed`. It never persists log output itself: it fans each captured line to the **logs write port** (`append`) and, at the end, `complete`s the stream with the terminal status. How those lines are buffered and stored is entirely a logs-feature concern hidden behind that port. The runner's own error handling (plus a last-resort guard in the subscriber) means a failed run becomes a persisted failed status rather than an unhandled throw. Because the run is fire-and-forget off the queue, the caller gets its id back without waiting for Docker.
 
 ### Server-Sent Events for live streams
 
@@ -301,7 +301,7 @@ Defined in `apps/backend/package.json`:
 `CoreModule` is `@Global()`, so anything it provides and exports is injectable everywhere without a feature having to import another feature. This is the home for **shared, dependency-free services** that many features need — placing them here (rather than inside the feature that first needed them) keeps them reachable from anywhere without risking a circular module dependency.
 
 - **Diagnostic logging.** Features log through a shared `DiagnosticLoggerService` — a thin wrapper over the NestJS `Logger` — injected from core, instead of instantiating their own `Logger`. Centralising it keeps logging consistent and lets the wrapper evolve (formatting, transports) in one place.
-- **The shared Docker/Redis clients** are provided the same way. (The deployment-run bus is *not* a core service — it is owned and exported by the feature that produces run requests; see [Cross-feature collaboration](#the-event-bus-decoupling-pattern).)
+- **The shared Docker/Redis clients** are provided the same way. (The deployment queue is *not* a core service — it is owned and exported by the feature that produces run tasks; see [Cross-feature collaboration](#the-queue-decoupling-pattern).)
 
 ## Cross-cutting conventions
 

@@ -32,9 +32,9 @@ This is deliberate. Building images and starting containers can take minutes; bl
 
 ### 4. Background execution
 
-To kick off the run without waiting for it, the create-deployment use case publishes a **run request** on the `DeploymentRunBus` and returns. The publisher only announces "please run this deployment"; it never learns when or how the run finishes.
+To kick off the run without waiting for it, the create-deployment use case enqueues a **run task** on the `DeploymentQueue` and returns. The producer only announces "please run this deployment"; it never learns when or how the run finishes.
 
-A background runner **inside the same deployments feature** — a service that subscribes to the bus on module init — picks up each request and drives the run through the run-deployment use case. The run:
+A background runner **inside the same deployments feature** — a service that dequeues from the queue on module init — picks up each task and drives the run through the run-deployment use case. The run:
 
 1. **Marks the deployment `running`.**
 2. **Fetches the repository archive** from the `providers` integration: the source at the pinned commit, as a gzipped tarball.

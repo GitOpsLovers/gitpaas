@@ -1,8 +1,8 @@
 import { CreateDeploymentDto } from '../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../domain/errors/deployment.errors';
-import { DeploymentRunPublisher } from '../domain/events/deployment-run.publisher';
 import { Deployment } from '../domain/models/deployment.model';
+import { DeploymentQueue } from '../domain/queues/deployment.queue';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { persistDeploymentUseCase } from './persist-deployment.use-case';
@@ -29,14 +29,14 @@ function composeProjectName(service: Service): string {
 /**
  * Use case that orchestrates triggering a new deployment for a service:
  * validates the service, resolves the head commit, persists the deployment
- * record and publishes a run request on the deployment-run bus. The deployment
+ * record and publishes a run request on the deployment queue. The deployment
  * feature's own background runner consumes that request and executes the run
  * (docker + status + log stream), so the request returns the record immediately.
  *
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
  * @param providersRepository Providers repository
- * @param runPublisher Deployment-run publisher the run request is published to
+ * @param queue Deployment queue the run request is enqueued on
  * @param triggerDto Data for triggering the deployment
  *
  * @returns The created deployment record
@@ -45,7 +45,7 @@ export async function createDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
     providersRepository: ProvidersRepository,
-    runPublisher: DeploymentRunPublisher,
+    queue: DeploymentQueue,
     triggerDto: TriggerDeploymentDto,
 ): Promise<Deployment> {
     const service = await servicesRepository.findById(triggerDto.serviceId);
@@ -64,7 +64,6 @@ export async function createDeploymentUseCase(
         serviceId: service.id,
         branch: service.deploymentBranch,
         commit: commit.sha,
-        // Store just the title (first line) of the commit message.
         commitMessage: commit.message.split('\n')[0],
         composerPath: service.composerPath,
         triggeredBy: 'system',
@@ -72,7 +71,7 @@ export async function createDeploymentUseCase(
 
     const deployment = await persistDeploymentUseCase(deploymentsRepository, createDto);
 
-    runPublisher.request({
+    queue.enqueue({
         deploymentId: deployment.id,
         repositoryId: Number(service.repositoryId),
         commit: deployment.commit ?? deployment.branch,
