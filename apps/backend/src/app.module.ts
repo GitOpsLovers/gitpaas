@@ -28,8 +28,14 @@ import { ServicesModule } from '@features/services/services.module';
             useFactory: (config: ConfigService) => ({
                 throttlers: [
                     {
+                        name: 'default',
                         ttl: config.get<number>('THROTTLE_TTL', 60000),
                         limit: config.get<number>('THROTTLE_LIMIT', 100),
+                    },
+                    {
+                        name: 'stream',
+                        ttl: config.get<number>('THROTTLE_STREAM_TTL', 60000),
+                        limit: config.get<number>('THROTTLE_STREAM_LIMIT', 1000),
                     },
                 ],
             }),

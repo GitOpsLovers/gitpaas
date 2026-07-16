@@ -89,6 +89,14 @@ export class EnvironmentVariables {
     @IsOptional()
     @IsNumber()
     public THROTTLE_LIMIT?: number;
+
+    @IsOptional()
+    @IsNumber()
+    public THROTTLE_STREAM_TTL?: number;
+
+    @IsOptional()
+    @IsNumber()
+    public THROTTLE_STREAM_LIMIT?: number;
 }
 
 /**

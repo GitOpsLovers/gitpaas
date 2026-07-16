@@ -1,6 +1,7 @@
 import {
     Body, Controller, Delete, Get, HttpCode, MessageEvent, NotFoundException, Param, ParseUUIDPipe, Post, Put, Query, Sse,
 } from '@nestjs/common';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { map, Observable } from 'rxjs';
 
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
@@ -16,7 +17,7 @@ export class LogsController {
     constructor(private readonly service: LogsService) {}
 
     /**
-     * Get every persisted log entry of a deployment, oldest first
+     * Get every persisted log entry of a deployment
      *
      * @param deploymentId Deployment identifier
      *
@@ -37,6 +38,8 @@ export class LogsController {
      * @returns Observable of SSE messages, each carrying one JSON-encoded log event
      */
     @Sse(':deploymentId/stream')
+    @SkipThrottle({ default: true })
+    @Throttle({ stream: {} })
     public streamLogs(@Param('deploymentId', ParseUUIDPipe) deploymentId: string): Observable<MessageEvent> {
         return this.service.streamLogs(deploymentId).pipe(map((event) => ({ data: JSON.stringify(event) })));
     }
@@ -80,10 +83,7 @@ export class LogsController {
      * @returns The updated log entry
      */
     @Put(':id')
-    public async update(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateDto: UpdateLogDto,
-    ): Promise<Log> {
+    public async update(@Param('id', ParseUUIDPipe) id: string, @Body() updateDto: UpdateLogDto): Promise<Log> {
         const log = await this.service.update(id, updateDto);
 
         if (!log) {

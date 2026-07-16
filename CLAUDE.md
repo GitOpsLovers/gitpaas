@@ -91,3 +91,32 @@ Pick the subagent by the type of task requested:
 - Never run ESLint; this is the user's responsibility.
 - Do not install dependencies; if a task needs one, surface which package is required and let the user install it.
 - Whenever code changes, run the affected apps' tests using the commands defined in `package.json` — but never run E2E tests with Playwright.
+
+### Git & GitHub Workflow
+
+**Branch Strategy:** Trunk-based development on `main`.
+**Never commit directly to `main`.** All development tasks must begin by creating a new branch from the latest version of `main`.
+**Branch naming:**
+
+- `feat/<short-description>` for new features
+- `fix/<short-description>` for fixes
+- `chore/<short-description>` for maintenance tasks
+- `docs/<short-description>` for documentation
+
+**Commit messages:** [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): short description` (types: feat, fix, refactor, chore, docs, test). Subject lines ≤ 72 characters. Add a body when the diff is large.
+**Before committing:** Run `pnpm run test` and make sure it passes.
+**Tool:** Use the `gh` CLI for GitHub operations (branch, commit, push, PR).
+**Standard workflow for each development task:**
+
+1. Create and switch to a new branch from `main` (`git checkout -b <type>/<description>`).
+2. Implement the change.
+3. Run `pnpm run test` on the changed code and confirm that it passes.
+4. Commit following Conventional Commits.
+5. Run `git push -u origin <branch>`.
+6. Open a Pull Request with `gh pr create`, including:
+   - Summary of changes (“## Summary”)
+   - Test plan (“## Test plan”) with a checklist
+   - Reference to the issue if applicable (`Closes #N`)
+7. **Never merge automatically.** The PR is pending human review.
+
+**Confirmation:** Ask for explicit confirmation before running `git push` (a high-risk action because it affects the remote state).

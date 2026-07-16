@@ -76,8 +76,8 @@ importers:
         version: 1.0.0(ioredis@5.11.1)(pg@8.22.0)(ts-node@10.9.2(@types/node@26.1.1)(typescript@6.0.3))
     devDependencies:
       '@gitopslovers/eslint-config-multistack':
-        specifier: 1.16.1
-        version: 1.16.1(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@4.0.3))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@4.0.3)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1)(ts-node@10.9.2(@types/node@26.1.1)(typescript@6.0.3)))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))
+        specifier: 1.16.2
+        version: 1.16.2(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@4.0.3))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@4.0.3)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1)(ts-node@10.9.2(@types/node@26.1.1)(typescript@6.0.3)))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))
       '@nestjs/cli':
         specifier: 11.0.23
         version: 11.0.23(@types/node@26.1.1)(lightningcss@1.32.0)(prettier@3.8.4)
@@ -176,8 +176,8 @@ importers:
         specifier: 22.0.0
         version: 22.0.0(@angular/compiler@22.0.0)(typescript@6.0.3)
       '@gitopslovers/eslint-config-multistack':
-        specifier: 1.16.1
-        version: 1.16.1(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@5.0.0))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@5.0.0)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))
+        specifier: 1.16.2
+        version: 1.16.2(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@5.0.0))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@5.0.0)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))
       '@tailwindcss/postcss':
         specifier: 4.3.2
         version: 4.3.2
@@ -1141,8 +1141,8 @@ packages:
     resolution: {integrity: sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  '@gitopslovers/eslint-config-multistack@1.16.1':
-    resolution: {integrity: sha512-1I26DlkBvM+sOd54KxKsoioCBjipAsN0thRULTj/Betj24NJf5UMG2otABskb+fSn7TOHtPn7NnuKcR4v1/tZQ==}
+  '@gitopslovers/eslint-config-multistack@1.16.2':
+    resolution: {integrity: sha512-BEtA0qVZe0p1LoaMwlJwmj24+yt6FPpt9F3tSLzemclRhjBfal5iGelNXUn0m/OzkRi92i8/ejHqCXWSMYU8xA==}
     engines: {node: 24.15.0}
     peerDependencies:
       eslint: '>=10.4.0'
@@ -7866,7 +7866,7 @@ snapshots:
 
   '@gar/promise-retry@1.0.3': {}
 
-  '@gitopslovers/eslint-config-multistack@1.16.1(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@4.0.3))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@4.0.3)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1)(ts-node@10.9.2(@types/node@26.1.1)(typescript@6.0.3)))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))':
+  '@gitopslovers/eslint-config-multistack@1.16.2(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@4.0.3))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@4.0.3)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1)(ts-node@10.9.2(@types/node@26.1.1)(typescript@6.0.3)))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))':
     dependencies:
       '@eslint-react/eslint-plugin': 5.8.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3)
       '@next/eslint-plugin-next': 16.2.6
@@ -7905,7 +7905,7 @@ snapshots:
       - typescript-eslint
       - vitest
 
-  '@gitopslovers/eslint-config-multistack@1.16.1(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@5.0.0))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@5.0.0)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))':
+  '@gitopslovers/eslint-config-multistack@1.16.2(@angular/cli@22.0.6(@types/node@26.1.1)(chokidar@5.0.0))(@types/eslint@9.6.1)(@typescript-eslint/utils@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(chokidar@5.0.0)(eslint@10.4.0(jiti@2.7.0))(globals@17.7.0)(jest@30.4.2(@types/node@26.1.1))(typescript-eslint@8.63.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3))(typescript@6.0.3)(vitest@4.0.8(@types/node@26.1.1)(jiti@2.7.0)(jsdom@28.0.0(@noble/hashes@1.8.0))(lightningcss@1.32.0)(sass@1.99.0)(terser@5.49.0))':
     dependencies:
       '@eslint-react/eslint-plugin': 5.8.0(eslint@10.4.0(jiti@2.7.0))(typescript@6.0.3)
       '@next/eslint-plugin-next': 16.2.6
@@ -8821,7 +8821,7 @@ snapshots:
       lru-cache: 11.5.2
       npm-pick-manifest: 11.0.3
       proc-log: 6.1.0
-      semver: 7.7.4
+      semver: 7.8.5
       which: 6.0.1
 
   '@npmcli/installed-package-contents@4.0.0':
@@ -8838,7 +8838,7 @@ snapshots:
       hosted-git-info: 9.0.3
       json-parse-even-better-errors: 5.0.0
       proc-log: 6.1.0
-      semver: 7.7.4
+      semver: 7.8.5
       spdx-expression-parse: 4.0.0
 
   '@npmcli/promise-spawn@9.0.1':
@@ -9604,8 +9604,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.59.3(typescript@6.0.3)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.59.3(typescript@6.0.3)
-      '@typescript-eslint/types': 8.59.3
+      '@typescript-eslint/tsconfig-utils': 8.63.0(typescript@6.0.3)
+      '@typescript-eslint/types': 8.63.0
       debug: 4.4.3
       typescript: 6.0.3
     transitivePeerDependencies:
@@ -12662,7 +12662,7 @@ snapshots:
       npm-install-checks: 8.0.0
       npm-normalize-package-bin: 5.0.0
       npm-package-arg: 13.0.2
-      semver: 7.7.4
+      semver: 7.8.5
 
   npm-registry-fetch@19.1.1:
     dependencies:
