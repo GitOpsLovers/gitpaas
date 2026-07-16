@@ -85,11 +85,12 @@ Pick the subagent by the type of task requested:
 - **Pass the minimum context each subagent needs and nothing more** — exact goal, scope, relevant file paths, and acceptance criteria. Never assume a subagent can see this conversation.
 - **Split multi-type requests.** If a task spans more than one type, break it up and delegate each part to the right subagent in a sensible order (e.g. `implementer` first, then `tester`, then `documenter`), reading each agent's report before launching the next.
 - **Dedicated test work goes to `tester`.** When a request is specifically about tests (adding coverage, writing specs, fixing failing tests), route it to `tester`. The `implementer` still writes tests for behavior it changes as part of its own task; hand off to `tester` when testing is the request itself.
+- **Always run `tester` after code changes.** Whenever a subagent modifies code (`implementer`, `refactorer`, or any task that touches product code), launch `tester` afterward — before any commit/PR step — to add or update the affected specs and confirm the suite passes. Read the code-changing agent's report, then hand `tester` a scoped prompt naming the changed files and what to cover. Skip this only when the change touches no product code at all (e.g. docs-only or pure config edits).
 - **Direct handling is the exception.** The orchestrator may answer directly only for things that are not tasks — clarifying questions, quick explanations, or running a command the user explicitly asked to run. Anything that reads or changes the codebase goes to a subagent.
 
 ### Project-wide constraints (every agent must follow)
 
-- **Run every bash/CLI command through RTK.** Prefix all shell commands with `rtk` (e.g. `rtk pnpm run test`, `rtk nest build`, `rtk git status`). Never invoke a CLI tool directly.
+- **Run every bash/CLI command through RTK.** Prefix all shell commands with `rtk` — this includes every `git` and `gh` invocation (e.g. `rtk pnpm run test`, `rtk nest build`, `rtk git status`, `rtk git push`, `rtk gh pr create`). Never invoke a CLI tool directly.
 - Never run ESLint; this is the user's responsibility.
 - Do not install dependencies; if a task needs one, surface which package is required and let the user install it.
 - Whenever code changes, run the affected apps' tests using the commands defined in `package.json` — but never run E2E tests with Playwright.
@@ -108,19 +109,19 @@ Pick the subagent by the type of task requested:
 - `docs/<short-description>` for documentation
 
 **Commit messages:** [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): short description` (types: feat, fix, refactor, chore, docs, test). Subject lines ≤ 72 characters. Add a body when the diff is large.
-**Before committing:** Run `pnpm run test` and make sure it passes.
-**Tool:** Use the `gh` CLI for GitHub operations (branch, commit, push, PR).
+**Before committing:** Run `rtk pnpm run test` and make sure it passes.
+**Tool:** Use the `gh` CLI for GitHub operations (branch, commit, push, PR). Every `git` and `gh` command — like every other CLI command — MUST be prefixed with `rtk`.
 **Standard workflow for each development task:**
 
-1. Create and switch to a new branch from `main` (`git checkout -b <type>/<description>`).
+1. Create and switch to a new branch from `main` (`rtk git checkout -b <type>/<description>`).
 2. Implement the change.
-3. Run `pnpm run test` on the changed code and confirm that it passes.
+3. Run `rtk pnpm run test` on the changed code and confirm that it passes.
 4. Commit following Conventional Commits.
-5. Run `git push -u origin <branch>`.
-6. Open a Pull Request with `gh pr create`, including:
+5. Run `rtk git push -u origin <branch>`.
+6. Open a Pull Request with `rtk gh pr create`, including:
    - Summary of changes (“## Summary”)
    - Test plan (“## Test plan”) with a checklist
    - Reference to the issue if applicable (`Closes #N`)
 7. **Never merge automatically.** The PR is pending human review.
 
-**Confirmation:** Ask for explicit confirmation before running `git push` (a high-risk action because it affects the remote state).
+**Branch & PR by default.** Creating the branch, committing, pushing, and opening the PR are the standard, expected steps of a development task — do them by default without asking the user to confirm. The only hard stop is merging: never merge automatically. (Force-push, rewriting published history, and deleting branches still require an explicit instruction.)
