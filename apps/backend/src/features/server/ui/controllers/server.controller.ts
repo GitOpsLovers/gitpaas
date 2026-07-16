@@ -1,5 +1,6 @@
 import { Controller, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
+import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../domain/models/prune-result.model';
 import { ServerService } from '../services/server.service';
 
@@ -52,6 +53,17 @@ export class ServerController {
     }
 
     /**
+     * Force-remove orphaned containers from the VPS
+     *
+     * @returns Number of orphaned containers removed and their names
+     */
+    @Post('containers/orphaned')
+    @HttpCode(200)
+    public removeOrphanedContainers(): Promise<OrphanRemovalResult> {
+        return this.prune('orphaned containers', () => this.service.removeOrphanedContainers());
+    }
+
+    /**
      * Runs a prune action, translating daemon connectivity failures into a
      * 503 with a hint about the emulated VPS in local development.
      *
@@ -60,7 +72,7 @@ export class ServerController {
      *
      * @returns Number of resources removed and disk space reclaimed
      */
-    private async prune(resource: string, action: () => Promise<PruneResult>): Promise<PruneResult> {
+    private async prune<T>(resource: string, action: () => Promise<T>): Promise<T> {
         try {
             return await action();
         } catch (error) {

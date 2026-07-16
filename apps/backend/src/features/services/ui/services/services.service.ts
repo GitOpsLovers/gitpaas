@@ -9,6 +9,13 @@ import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.model';
 import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
+import { DockerServiceFootprintRepository } from '../../infrastructure/docker/docker-service-footprint.repository';
+
+import type { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
+import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
+import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
+import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 
 /**
  * Services service
@@ -18,6 +25,12 @@ export class ServicesService {
     constructor(
         @Inject(ServicesDatabaseRepository)
         private readonly repository: ServicesDatabaseRepository,
+        @Inject(DeploymentsDatabaseRepository)
+        private readonly deploymentsRepository: DeploymentsRepository,
+        @Inject(DockerServiceFootprintRepository)
+        private readonly serviceFootprint: ServiceFootprintRepository,
+        @Inject(PersistentLogStoreRepository)
+        private readonly logStore: LogStoreRepository,
     ) {}
 
     public getAllByProject(projectId: string): Promise<Service[]> {
@@ -37,6 +50,12 @@ export class ServicesService {
     }
 
     public delete(id: string): Promise<boolean> {
-        return deleteServiceUseCase(this.repository, id);
+        return deleteServiceUseCase(
+            this.repository,
+            this.deploymentsRepository,
+            this.serviceFootprint,
+            this.logStore,
+            id,
+        );
     }
 }

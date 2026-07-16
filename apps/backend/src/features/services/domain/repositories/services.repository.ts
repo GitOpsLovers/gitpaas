@@ -7,6 +7,11 @@ import { Service } from '../models/service.model';
  */
 export interface ServicesRepository {
     /**
+     * Get every service across all projects
+     */
+    getAll: () => Promise<Service[]>;
+
+    /**
      * Get every service belonging to a project
      *
      * @param projectId Project identifier

@@ -9,7 +9,11 @@ import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { Service } from '../../../domain/models/service.model';
 import { ServicesDatabaseRepository } from '../../../infrastructure/database/services-db.repository';
+import { DockerServiceFootprintRepository } from '../../../infrastructure/docker/docker-service-footprint.repository';
 import { ServicesService } from '../services.service';
+
+import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 
 jest.mock('../../../application/create-service.use-case');
 jest.mock('../../../application/delete-service.use-case');
@@ -47,17 +51,26 @@ const service: Service = {
 
 describe('ServicesService', () => {
     let repository: jest.Mocked<ServicesDatabaseRepository>;
+    let deploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
+    let serviceFootprint: jest.Mocked<DockerServiceFootprintRepository>;
+    let logStore: jest.Mocked<PersistentLogStoreRepository>;
     let sut: ServicesService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
         repository = {} as jest.Mocked<ServicesDatabaseRepository>;
+        deploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
+        serviceFootprint = {} as jest.Mocked<DockerServiceFootprintRepository>;
+        logStore = {} as jest.Mocked<PersistentLogStoreRepository>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ServicesService,
                 { provide: ServicesDatabaseRepository, useValue: repository },
+                { provide: DeploymentsDatabaseRepository, useValue: deploymentsRepository },
+                { provide: DockerServiceFootprintRepository, useValue: serviceFootprint },
+                { provide: PersistentLogStoreRepository, useValue: logStore },
             ],
         }).compile();
 
@@ -203,13 +216,19 @@ describe('ServicesService', () => {
     });
 
     describe('delete', () => {
-        it('delegates to the use case with the repository and id', async () => {
+        it('delegates to the use case with all collaborators and the id', async () => {
             deleteServiceUseCaseMock.mockResolvedValue(true);
 
             await sut.delete(serviceId);
 
             expect(deleteServiceUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(deleteServiceUseCaseMock).toHaveBeenCalledWith(repository, serviceId);
+            expect(deleteServiceUseCaseMock).toHaveBeenCalledWith(
+                repository,
+                deploymentsRepository,
+                serviceFootprint,
+                logStore,
+                serviceId,
+            );
         });
 
         it('returns true when a row was deleted', async () => {

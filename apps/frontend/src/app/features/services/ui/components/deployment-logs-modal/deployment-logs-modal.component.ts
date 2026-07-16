@@ -124,20 +124,6 @@ export class DeploymentLogsModalComponent {
     }
 
     /**
-     * Left accent border colour for the console surface, driven by status.
-     */
-    protected consoleAccentClass(): string {
-        switch (this.status()) {
-            case 'success':
-                return 'border-l-2 border-l-success-500/60';
-            case 'failed':
-                return 'border-l-2 border-l-error-500/60';
-            default:
-                return 'border-l-2 border-l-warning-500/50';
-        }
-    }
-
-    /**
      * Copies the full log output to the clipboard and shows brief feedback.
      */
     protected async copy(): Promise<void> {

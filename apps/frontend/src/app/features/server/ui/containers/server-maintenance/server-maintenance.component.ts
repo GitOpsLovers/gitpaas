@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { LucideBox, LucideDatabase, LucideLayers } from '@lucide/angular';
+import { LucideBox, LucideDatabase, LucideLayers, LucideUnplug } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
+import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../../domain/models/prune-result.model';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 
@@ -35,7 +36,15 @@ const BYTES_PER_UNIT = 1024;
     selector: 'app-server-maintenance',
     templateUrl: './server-maintenance.component.html',
     providers: [ServerApiRepository],
-    imports: [ComponentCardComponent, ButtonComponent, ConfirmModalComponent, LucideBox, LucideLayers, LucideDatabase],
+    imports: [
+        ComponentCardComponent,
+        ButtonComponent,
+        ConfirmModalComponent,
+        LucideBox,
+        LucideLayers,
+        LucideDatabase,
+        LucideUnplug,
+    ],
 })
 
 /**
@@ -73,7 +82,17 @@ export class ServerMaintenanceComponent {
         },
     ];
 
+    protected readonly orphanAction = {
+        label: 'Remove orphaned containers',
+        description: 'Force-stop and remove leftover containers from deleted or stuck services.',
+        confirmMessage:
+            'Orphaned containers (from deleted or stuck services) will be force-stopped and permanently '
+            + 'removed from the VPS. This cannot be undone.',
+    } as const;
+
     protected readonly pending = signal<PruneAction | null>(null);
+
+    protected readonly orphanPending = signal(false);
 
     protected readonly running = signal(false);
 
@@ -128,6 +147,56 @@ export class ServerMaintenanceComponent {
             this.running.set(false);
             this.pending.set(null);
         }
+    }
+
+    /**
+     * Opens the confirmation dialog for the orphaned containers removal.
+     */
+    protected requestOrphanRemoval(): void {
+        this.orphanPending.set(true);
+    }
+
+    /**
+     * Dismisses the orphaned containers confirmation dialog without running it.
+     */
+    protected cancelOrphanRemoval(): void {
+        this.orphanPending.set(false);
+    }
+
+    /**
+     * Force-removes orphaned Artifactory containers pending confirmation.
+     */
+    protected async confirmOrphanRemoval(): Promise<void> {
+        this.running.set(true);
+
+        try {
+            const result = await lastValueFrom(this.repository.removeOrphanedContainers());
+
+            this.toast.success('Cleanup complete', this.summarizeOrphan(result));
+        } catch {
+            this.toast.error(
+                'Cleanup failed',
+                'Could not reach the VPS Docker daemon. Please verify it is running and try again.',
+            );
+        } finally {
+            this.running.set(false);
+            this.orphanPending.set(false);
+        }
+    }
+
+    /**
+     * Builds a human-readable summary of an orphan removal result.
+     *
+     * @param result Orphan removal outcome
+     *
+     * @returns Toast message describing what was removed
+     */
+    private summarizeOrphan(result: OrphanRemovalResult): string {
+        if (result.removed === 0) {
+            return 'No orphaned containers to remove.';
+        }
+
+        return `Removed ${result.removed} orphaned container(s).`;
     }
 
     /**

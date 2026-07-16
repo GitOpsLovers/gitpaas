@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../domain/models/prune-result.model';
 
 @Injectable()
@@ -39,5 +40,14 @@ export class ServerApiRepository {
      */
     public pruneContainers(): Observable<PruneResult> {
         return this.http.post<PruneResult>(`${this.url}/prune/containers`, {});
+    }
+
+    /**
+     * Force-removes orphaned Artifactory containers from the VPS
+     *
+     * @returns Number of orphaned containers removed and their names
+     */
+    public removeOrphanedContainers(): Observable<OrphanRemovalResult> {
+        return this.http.post<OrphanRemovalResult>(`${this.url}/containers/orphaned`, {});
     }
 }

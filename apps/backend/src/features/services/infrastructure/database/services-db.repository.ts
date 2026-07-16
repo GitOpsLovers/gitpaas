@@ -20,6 +20,12 @@ export class ServicesDatabaseRepository implements ServicesRepository {
         private readonly repository: Repository<ServiceDbEntity>,
     ) {}
 
+    public async getAll(): Promise<Service[]> {
+        const services = await this.repository.find();
+
+        return services.map(toService);
+    }
+
     public async getAllByProject(projectId: string): Promise<Service[]> {
         const services = await this.repository.find({ where: { projectId }, order: { id: 'DESC' } });
 

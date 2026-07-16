@@ -1,6 +1,7 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../../domain/models/prune-result.model';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
@@ -15,9 +16,12 @@ const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 }
 const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
+const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
 
 describe('ServerController', () => {
-    let service: jest.Mocked<Pick<ServerService, 'pruneImages' | 'pruneVolumes' | 'pruneContainers'>>;
+    let service: jest.Mocked<
+        Pick<ServerService, 'pruneImages' | 'pruneVolumes' | 'pruneContainers' | 'removeOrphanedContainers'>
+    >;
     let sut: ServerController;
 
     beforeEach(async () => {
@@ -25,6 +29,7 @@ describe('ServerController', () => {
             pruneImages: jest.fn(),
             pruneVolumes: jest.fn(),
             pruneContainers: jest.fn(),
+            removeOrphanedContainers: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -221,6 +226,73 @@ describe('ServerController', () => {
             service.pruneContainers.mockRejectedValue('boom');
 
             await expect(sut.pruneContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+    });
+
+    describe('removeOrphanedContainers', () => {
+        it('delegates to the service remove orphaned containers action', async () => {
+            service.removeOrphanedContainers.mockResolvedValue(orphanResult);
+
+            await sut.removeOrphanedContainers();
+
+            expect(service.removeOrphanedContainers).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns the orphan removal result produced by the service', async () => {
+            service.removeOrphanedContainers.mockResolvedValue(orphanResult);
+
+            const result = await sut.removeOrphanedContainers();
+
+            expect(result).toBe(orphanResult);
+        });
+
+        it('returns an empty result when there is nothing to remove', async () => {
+            service.removeOrphanedContainers.mockResolvedValue({ removed: 0, names: [] });
+
+            const result = await sut.removeOrphanedContainers();
+
+            expect(result).toEqual({ removed: 0, names: [] });
+        });
+
+        it('never touches the prune actions', async () => {
+            service.removeOrphanedContainers.mockResolvedValue(orphanResult);
+
+            await sut.removeOrphanedContainers();
+
+            expect(service.pruneImages).not.toHaveBeenCalled();
+            expect(service.pruneVolumes).not.toHaveBeenCalled();
+            expect(service.pruneContainers).not.toHaveBeenCalled();
+        });
+
+        it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
+            const original = new ServiceUnavailableException('daemon down');
+            service.removeOrphanedContainers.mockRejectedValue(original);
+
+            await expect(sut.removeOrphanedContainers()).rejects.toBe(original);
+        });
+
+        it('wraps an unexpected error into a ServiceUnavailableException', async () => {
+            service.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            await expect(sut.removeOrphanedContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('names the orphaned containers resource in the wrapped error message', async () => {
+            service.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            await expect(sut.removeOrphanedContainers()).rejects.toThrow(/Could not prune orphaned containers/);
+        });
+
+        it('includes remediation guidance in the wrapped error message', async () => {
+            service.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            await expect(sut.removeOrphanedContainers()).rejects.toThrow(/emulated VPS/);
+        });
+
+        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+            service.removeOrphanedContainers.mockRejectedValue('boom');
+
+            await expect(sut.removeOrphanedContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
     });
 });

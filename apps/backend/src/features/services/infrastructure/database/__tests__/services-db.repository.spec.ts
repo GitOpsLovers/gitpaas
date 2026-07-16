@@ -52,6 +52,22 @@ describe('ServicesDatabaseRepository', () => {
         );
     });
 
+    describe('getAll', () => {
+        it('finds every service across all projects and returns them', async () => {
+            const services = [
+                service({ id: '11111111-1111-4111-8111-111111111111' }),
+                service({ id: '22222222-2222-4222-8222-222222222222' }),
+            ];
+            mockRepo.find.mockResolvedValue(services);
+
+            const result = await repository.getAll();
+
+            expect(mockRepo.find).toHaveBeenCalledTimes(1);
+            expect(mockRepo.find).toHaveBeenCalledWith();
+            expect(result).toEqual(services);
+        });
+    });
+
     describe('getAllByProject', () => {
         it('finds the project services newest first and returns them', async () => {
             const services = [
