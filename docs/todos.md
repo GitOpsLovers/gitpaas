@@ -98,26 +98,7 @@ optional production secrets), not layering.
 
 ## Low priority
 
-### L1 — Multi-step deletes purge external state before the DB delete
-- **Area:** `apps/backend/src/features/services/application/delete-service.use-case.ts:38-44`
-  (footprint teardown + Redis log purge run *before* `servicesRepository.delete(id)`).
-- **Why it matters:** if the final DB delete returns `false`/throws, the Docker footprint and Redis
-  logs are already gone while the row (and its cascaded children) remain — an inconsistent state.
-  Impact is limited because these are best-effort cleanups, but the ordering is backwards.
-- **Suggested action:** delete the row first (DB cascade removes children), then perform best-effort
-  Docker/Redis cleanup; or guard cleanup behind a confirmed delete. **Effort:** S. **Risk:** L.
-
-### L2 — Edge services inject and type dependencies as concrete adapters, not ports
-- **Area:** `deployments/ui/services/deployments.service.ts:24-31`,
-  `deployments/ui/services/deployment-runner.service.ts:26-35`, and the
-  `server`/`networks`/`containers` UI services (each imports another feature's concrete
-  `*DatabaseRepository`/adapter and types the field as the concrete class).
-- **Why it matters:** the documented convention is _inject by class, type as the port interface_
-  (`docs/backend-architecture.md:49,62`). Typing as the concrete adapter couples these services to
-  infrastructure types. The docs already acknowledge this as accepted debt, so it is a consistency
-  cleanup, not a defect.
-- **Suggested action:** type the injected fields as the port interface (`import type` the port,
-  keep `@Inject(ConcreteClass)`). **Effort:** S. **Risk:** L.
+_No open low-priority items._
 
 ---
 
