@@ -15,15 +15,18 @@
 ## Monorepo structure
 
 ```
+├── .claude/              # Instructions, skills, and agents for AI
+├── .devcontainer/        # Dev container configuration
+├── .vscode/              # VS Code workspace settings
 ├── apps/
 │   ├── backend/          # NestJS
 │   └── frontend/         # Angular
-├── .devcontainer/        # Dev container configuration
-├── .vscode/              # VS Code workspace settings
+├── docs/                 # Project documentation
+├── iac/                  # Infrastructure for development and production
 ├── .tool-versions        # Node/pnpm version pins
-├── turbo.json            # Turborepo task pipeline
+├── package.json          # Root depemdemcoes
 ├── pnpm-workspace.yaml   # Workspace definition
-└── package.json          # Root dependencies
+└── turbo.json            # Turborepo task pipeline
 ```
 
 ---
@@ -67,18 +70,20 @@ The main agent acts as an **orchestrator**. It does not implement, refactor, doc
 
 Pick the subagent by the type of task requested:
 
-| Task requested                                                                                          | Subagent               |
-|---------------------------------------------------------------------------------------------------------|------------------------|
-| Build a feature, fix a bug, wire an endpoint/controller/service/component, or otherwise change behavior | `implementer`          |
-| Pure refactoring — restructure code without changing its behavior                                       | `refactorer`           |
-| Write or update documentation, keep the `docs/` pages in sync, add doc-comments                         | `documenter`           |
-| Analyze/audit the architecture, report on its state, or suggest improvements (read-only)                | `architecture-analyst` |
+| Task requested                                                                                                       | Subagent               |
+|----------------------------------------------------------------------------------------------------------------------|------------------------|
+| Build a feature, fix a bug, wire an endpoint/controller/service/component, or otherwise change behavior              | `implementer`          |
+| Pure refactoring — restructure code without changing its behavior                                                    | `refactorer`           |
+| Write, update, or expand automated tests (unit specs, coverage, fix failing tests) without changing product behavior | `tester`               |
+| Write or update documentation, keep the `docs/` pages in sync, add doc-comments                                      | `documenter`           |
+| Analyze/audit the architecture, report on its state, or suggest improvements (read-only)                             | `architecture-analyst` |
 
 ### Orchestration rules
 
 - **Delegate; never do the work inline.** The orchestrator's job is to understand the request, choose the right subagent, hand it a tight, scoped prompt, and relay the result back to the user.
 - **Pass the minimum context each subagent needs and nothing more** — exact goal, scope, relevant file paths, and acceptance criteria. Never assume a subagent can see this conversation.
-- **Split multi-type requests.** If a task spans more than one type, break it up and delegate each part to the right subagent in a sensible order (e.g. `implementer` first, then `documenter`), reading each agent's report before launching the next.
+- **Split multi-type requests.** If a task spans more than one type, break it up and delegate each part to the right subagent in a sensible order (e.g. `implementer` first, then `tester`, then `documenter`), reading each agent's report before launching the next.
+- **Dedicated test work goes to `tester`.** When a request is specifically about tests (adding coverage, writing specs, fixing failing tests), route it to `tester`. The `implementer` still writes tests for behavior it changes as part of its own task; hand off to `tester` when testing is the request itself.
 - **Direct handling is the exception.** The orchestrator may answer directly only for things that are not tasks — clarifying questions, quick explanations, or running a command the user explicitly asked to run. Anything that reads or changes the codebase goes to a subagent.
 
 ### Project-wide constraints (every agent must follow)
