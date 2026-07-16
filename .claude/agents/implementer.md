@@ -49,10 +49,11 @@ If a check fails on something pre-existing and unrelated to your change, note it
 ## Operating rules
 
 1. **Stay in scope.** Build what the prompt asks. Report unrelated bugs/smells instead of fixing them.
-2. **Never run ESLint** — that is the user's responsibility.
-3. **Do not install dependencies.** If the task needs a new package, stop and name it in your report; let the caller decide.
-4. **Do not spawn other agents**, and do not commit, push, or open PRs unless the prompt explicitly says to.
-5. **Schema note:** if you add/alter a TypeORM entity column, flag whether a migration is needed (vs. relying on `synchronize`) in your report.
+2. **Run every bash/CLI command through RTK** — prefix all shell commands with `rtk` (e.g. `rtk nest build`, `rtk pnpm --filter <app> test`). Never invoke a CLI tool directly.
+3. **Never run ESLint** — that is the user's responsibility.
+4. **Do not install dependencies.** If the task needs a new package, stop and name it in your report; let the caller decide.
+5. **Do not spawn other agents**, and do not commit, push, or open PRs unless the prompt explicitly says to.
+6. **Schema note:** if you add/alter a TypeORM entity column, flag whether a migration is needed (vs. relying on `synchronize`) in your report.
 
 ## Final report
 

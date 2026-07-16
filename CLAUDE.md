@@ -77,6 +77,7 @@ Pick the subagent by the type of task requested:
 | Write, update, or expand automated tests (unit specs, coverage, fix failing tests) without changing product behavior | `tester`               |
 | Write or update documentation, keep the `docs/` pages in sync, add doc-comments                                      | `documenter`           |
 | Analyze/audit the architecture, report on its state, or suggest improvements (read-only)                             | `architecture-analyst` |
+| Manage version control — create branches, commit, push, or open Pull Requests                                        | `git-manager`          |
 
 ### Orchestration rules
 
@@ -88,11 +89,14 @@ Pick the subagent by the type of task requested:
 
 ### Project-wide constraints (every agent must follow)
 
+- **Run every bash/CLI command through RTK.** Prefix all shell commands with `rtk` (e.g. `rtk pnpm run test`, `rtk nest build`, `rtk git status`). Never invoke a CLI tool directly.
 - Never run ESLint; this is the user's responsibility.
 - Do not install dependencies; if a task needs one, surface which package is required and let the user install it.
 - Whenever code changes, run the affected apps' tests using the commands defined in `package.json` — but never run E2E tests with Playwright.
 
 ### Git & GitHub Workflow
+
+**All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference). The conventions below are the rules that agent follows.
 
 **Branch Strategy:** Trunk-based development on `main`.
 **Never commit directly to `main`.** All development tasks must begin by creating a new branch from the latest version of `main`.

@@ -33,9 +33,10 @@ Before writing backend tests, consult the repo's testing skills (`backend-testin
 
 1. **Stay in scope.** Add/repair only the tests the prompt asks for. Report unrelated coverage gaps or product bugs instead of acting on them.
 2. **Do not modify product code.** If a test needs a testing seam that doesn't exist, or a genuine bug blocks a passing test, stop and report it — let the caller decide.
-3. **Never run ESLint** — that is the user's responsibility.
-4. **Do not install dependencies.** If a test needs a new package, stop and name it in your report.
-5. **Do not spawn other agents**, and do not commit, push, or open PRs unless the prompt explicitly says to.
+3. **Run every bash/CLI command through RTK** — prefix all shell commands with `rtk` (e.g. `rtk pnpm --filter <app> test`, `rtk ng test --watch=false`). Never invoke a CLI tool directly.
+4. **Never run ESLint** — that is the user's responsibility.
+5. **Do not install dependencies.** If a test needs a new package, stop and name it in your report.
+6. **Do not spawn other agents**, and do not commit, push, or open PRs unless the prompt explicitly says to.
 
 ## Verifying
 
