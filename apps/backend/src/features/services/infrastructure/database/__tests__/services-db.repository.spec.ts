@@ -67,7 +67,7 @@ describe('ServicesDatabaseRepository', () => {
                 where: { projectId },
                 order: { id: 'DESC' },
             });
-            expect(result).toBe(services);
+            expect(result).toEqual(services);
         });
     });
 
@@ -79,7 +79,7 @@ describe('ServicesDatabaseRepository', () => {
             const result = await repository.findById(entity.id);
 
             expect(mockRepo.findOneBy).toHaveBeenCalledWith({ id: entity.id });
-            expect(result).toBe(entity);
+            expect(result).toEqual(entity);
         });
 
         it('returns null when no service matches the id', async () => {
@@ -102,7 +102,7 @@ describe('ServicesDatabaseRepository', () => {
 
             expect(mockRepo.create).toHaveBeenCalledWith(createDto);
             expect(mockRepo.save).toHaveBeenCalledWith(entity);
-            expect(result).toBe(saved);
+            expect(result).toEqual(saved);
         });
     });
 
@@ -128,7 +128,7 @@ describe('ServicesDatabaseRepository', () => {
 
             expect(mockRepo.merge).toHaveBeenCalledWith(existing, updateDto);
             expect(mockRepo.save).toHaveBeenCalledWith(existing);
-            expect(result).toBe(saved);
+            expect(result).toEqual(saved);
         });
     });
 

@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { LogEvent, LogStatus } from '../../domain/models/log-event.model';
 import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
 
+import { StoredEvent, toLogEvent } from './redis-log-store.transformer';
+
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
 /** How long a log stream's buffer is kept in Redis after its last activity. */
@@ -11,9 +13,6 @@ const TTL_SECONDS = 60 * 60 * 24;
 
 /** Upper bound on buffered lines per log stream; older lines are dropped. */
 const MAX_LINES = 5000;
-
-/** A stored/published event carries a monotonic sequence used to dedupe replay vs. live. */
-type StoredEvent = { seq: number } & LogEvent;
 
 /**
  * Redis log store repository
@@ -67,15 +66,14 @@ export class RedisLogStoreRepository implements LogStoreRepository {
 
                 maxSeq = event.seq;
 
-                if (event.type === 'end') {
-                    subscriber.next({ type: 'end', status: event.status });
+                const logEvent = toLogEvent(event);
+
+                subscriber.next(logEvent);
+
+                if (logEvent.type === 'end') {
                     ended = true;
                     subscriber.complete();
-
-                    return;
                 }
-
-                subscriber.next({ type: 'line', data: event.data });
             };
 
             connection.on('message', (incoming: string, payload: string) => {
@@ -95,7 +93,7 @@ export class RedisLogStoreRepository implements LogStoreRepository {
             });
 
             // The callback drives control flow; the returned promise is redundant.
-            void connection.subscribe(channel, (error) => {
+            connection.subscribe(channel, (error) => {
                 if (error) {
                     subscriber.error(error);
 

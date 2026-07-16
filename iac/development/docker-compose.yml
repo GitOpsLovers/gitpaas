@@ -79,7 +79,7 @@ services:
       start_period: 5s
 
   pgadmin:
-    image: dpage/pgadmin4:8.14
+    image: elestio/pgadmin:REL-9_16
     container_name: artifactory-pgadmin
     restart: unless-stopped
     environment:

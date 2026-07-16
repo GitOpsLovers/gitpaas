@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { PruneResult } from '../../domain/models/prune-result.model';
 import { ServerPrunerRepository } from '../../domain/repositories/server-pruner.repository';
 
+import { toPruneResult } from './docker-server-pruner.transformer';
+
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 
 /**
@@ -20,7 +22,7 @@ export class DockerServerPrunerRepository implements ServerPrunerRepository {
     public async pruneImages(): Promise<PruneResult> {
         const { ImagesDeleted, SpaceReclaimed } = await this.client.getClient().pruneImages();
 
-        return { deletedCount: ImagesDeleted?.length ?? 0, spaceReclaimed: SpaceReclaimed ?? 0 };
+        return toPruneResult(ImagesDeleted, SpaceReclaimed);
     }
 
     /**
@@ -31,7 +33,7 @@ export class DockerServerPrunerRepository implements ServerPrunerRepository {
     public async pruneVolumes(): Promise<PruneResult> {
         const { VolumesDeleted, SpaceReclaimed } = await this.client.getClient().pruneVolumes();
 
-        return { deletedCount: VolumesDeleted?.length ?? 0, spaceReclaimed: SpaceReclaimed ?? 0 };
+        return toPruneResult(VolumesDeleted, SpaceReclaimed);
     }
 
     /**
@@ -42,6 +44,6 @@ export class DockerServerPrunerRepository implements ServerPrunerRepository {
     public async pruneContainers(): Promise<PruneResult> {
         const { ContainersDeleted, SpaceReclaimed } = await this.client.getClient().pruneContainers();
 
-        return { deletedCount: ContainersDeleted?.length ?? 0, spaceReclaimed: SpaceReclaimed ?? 0 };
+        return toPruneResult(ContainersDeleted, SpaceReclaimed);
     }
 }

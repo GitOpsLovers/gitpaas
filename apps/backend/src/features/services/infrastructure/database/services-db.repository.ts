@@ -8,6 +8,7 @@ import { Service } from '../../domain/models/service.model';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
 import { ServiceDbEntity } from './service-db.entity';
+import { toService } from './services-db.transformer';
 
 /**
  * Services database repository
@@ -19,18 +20,27 @@ export class ServicesDatabaseRepository implements ServicesRepository {
         private readonly repository: Repository<ServiceDbEntity>,
     ) {}
 
-    public getAllByProject(projectId: string): Promise<Service[]> {
-        return this.repository.find({ where: { projectId }, order: { id: 'DESC' } });
+    public async getAllByProject(projectId: string): Promise<Service[]> {
+        const services = await this.repository.find({ where: { projectId }, order: { id: 'DESC' } });
+
+        return services.map(toService);
     }
 
-    public findById(id: string): Promise<Service | null> {
-        return this.repository.findOneBy({ id });
+    public async findById(id: string): Promise<Service | null> {
+        const service = await this.repository.findOneBy({ id });
+
+        if (!service) {
+            return null;
+        }
+
+        return toService(service);
     }
 
-    public create(createDto: CreateServiceDto): Promise<Service> {
+    public async create(createDto: CreateServiceDto): Promise<Service> {
         const service = this.repository.create(createDto);
+        const saved = await this.repository.save(service);
 
-        return this.repository.save(service);
+        return toService(saved);
     }
 
     public async update(id: string, updateDto: UpdateServiceDto): Promise<Service | null> {
@@ -41,8 +51,9 @@ export class ServicesDatabaseRepository implements ServicesRepository {
         }
 
         this.repository.merge(service, updateDto);
+        const saved = await this.repository.save(service);
 
-        return this.repository.save(service);
+        return toService(saved);
     }
 
     public async delete(id: string): Promise<boolean> {

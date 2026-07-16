@@ -71,7 +71,7 @@ describe('DeploymentsDatabaseRepository', () => {
                 where: { serviceId },
                 order: { createdAt: 'DESC' },
             });
-            expect(result).toBe(deployments);
+            expect(result).toEqual(deployments);
         });
     });
 
@@ -83,7 +83,7 @@ describe('DeploymentsDatabaseRepository', () => {
             const result = await repository.findById(found.id);
 
             expect(mockRepo.findOneBy).toHaveBeenCalledWith({ id: found.id });
-            expect(result).toBe(found);
+            expect(result).toEqual(found);
         });
 
         it('returns null when no deployment matches the id', async () => {
@@ -106,7 +106,7 @@ describe('DeploymentsDatabaseRepository', () => {
 
             expect(mockRepo.create).toHaveBeenCalledWith({ ...createDto, status: 'pending' });
             expect(mockRepo.save).toHaveBeenCalledWith(entity);
-            expect(result).toBe(saved);
+            expect(result).toEqual(saved);
         });
     });
 
@@ -132,7 +132,7 @@ describe('DeploymentsDatabaseRepository', () => {
             expect(existing.error).toBe('boom');
             expect(existing.finishedAt).toBeNull();
             expect(mockRepo.save).toHaveBeenCalledWith(existing);
-            expect(result).toBe(existing);
+            expect(result).toEqual(existing);
         });
 
         it('coerces an absent error to null for a non-terminal status', async () => {
@@ -157,7 +157,7 @@ describe('DeploymentsDatabaseRepository', () => {
             expect(existing.error).toBeNull();
             expect(existing.finishedAt).toBeInstanceOf(Date);
             expect(mockRepo.save).toHaveBeenCalledWith(existing);
-            expect(result).toBe(existing);
+            expect(result).toEqual(existing);
         });
 
         it('sets finishedAt to a Date and keeps the error for the terminal "failed" status', async () => {

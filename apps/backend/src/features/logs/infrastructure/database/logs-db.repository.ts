@@ -8,6 +8,7 @@ import { Log } from '../../domain/models/log.model';
 import { LogsRepository } from '../../domain/repositories/logs.repository';
 
 import { LogDbEntity } from './log-db.entity';
+import { toLog } from './logs-db.transformer';
 
 /**
  * Logs database repository
@@ -19,24 +20,34 @@ export class LogsDatabaseRepository implements LogsRepository {
         private readonly repository: Repository<LogDbEntity>,
     ) {}
 
-    public getAllByDeployment(deploymentId: string): Promise<Log[]> {
-        return this.repository.find({ where: { deploymentId }, order: { seq: 'ASC' } });
+    public async getAllByDeployment(deploymentId: string): Promise<Log[]> {
+        const logs = await this.repository.find({ where: { deploymentId }, order: { seq: 'ASC' } });
+
+        return logs.map(toLog);
     }
 
-    public findById(id: string): Promise<Log | null> {
-        return this.repository.findOneBy({ id });
+    public async findById(id: string): Promise<Log | null> {
+        const log = await this.repository.findOneBy({ id });
+
+        if (!log) {
+            return null;
+        }
+
+        return toLog(log);
     }
 
-    public create(createDto: CreateLogDto): Promise<Log> {
+    public async create(createDto: CreateLogDto): Promise<Log> {
         const entity = this.repository.create(createDto);
+        const saved = await this.repository.save(entity);
 
-        return this.repository.save(entity);
+        return toLog(saved);
     }
 
-    public createMany(createDtos: CreateLogDto[]): Promise<Log[]> {
+    public async createMany(createDtos: CreateLogDto[]): Promise<Log[]> {
         const entities = this.repository.create(createDtos);
+        const saved = await this.repository.save(entities);
 
-        return this.repository.save(entities);
+        return saved.map(toLog);
     }
 
     public async update(id: string, updateDto: UpdateLogDto): Promise<Log | null> {
@@ -47,8 +58,9 @@ export class LogsDatabaseRepository implements LogsRepository {
         }
 
         this.repository.merge(log, updateDto);
+        const saved = await this.repository.save(log);
 
-        return this.repository.save(log);
+        return toLog(saved);
     }
 
     public async delete(id: string): Promise<boolean> {

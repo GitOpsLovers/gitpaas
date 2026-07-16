@@ -8,6 +8,7 @@ import { Deployment, DeploymentStatus } from '../../domain/models/deployment.mod
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
 import { DeploymentDbEntity } from './deployment-db.entity';
+import { toDeployment } from './deployments-db.transformer';
 
 /**
  * Statuses that end a deployment's lifecycle.
@@ -24,18 +25,30 @@ export class DeploymentsDatabaseRepository implements DeploymentsRepository {
         private readonly repository: Repository<DeploymentDbEntity>,
     ) {}
 
-    public getAllByService(serviceId: string): Promise<Deployment[]> {
-        return this.repository.find({ where: { serviceId }, order: { createdAt: 'DESC' } });
+    public async getAllByService(serviceId: string): Promise<Deployment[]> {
+        const deployments = await this.repository.find({
+            where: { serviceId },
+            order: { createdAt: 'DESC' },
+        });
+
+        return deployments.map(toDeployment);
     }
 
-    public findById(id: string): Promise<Deployment | null> {
-        return this.repository.findOneBy({ id });
+    public async findById(id: string): Promise<Deployment | null> {
+        const deployment = await this.repository.findOneBy({ id });
+
+        if (!deployment) {
+            return null;
+        }
+
+        return toDeployment(deployment);
     }
 
-    public create(createDto: CreateDeploymentDto): Promise<Deployment> {
+    public async create(createDto: CreateDeploymentDto): Promise<Deployment> {
         const entity = this.repository.create({ ...createDto, status: 'pending' });
+        const saved = await this.repository.save(entity);
 
-        return this.repository.save(entity);
+        return toDeployment(saved);
     }
 
     public async update(id: string, updateDto: UpdateDeploymentDto): Promise<Deployment | null> {
@@ -49,7 +62,9 @@ export class DeploymentsDatabaseRepository implements DeploymentsRepository {
         deployment.error = updateDto.error ?? null;
         deployment.finishedAt = TERMINAL_STATUSES.has(updateDto.status) ? new Date() : null;
 
-        return this.repository.save(deployment);
+        const saved = await this.repository.save(deployment);
+
+        return toDeployment(saved);
     }
 
     public async delete(id: string): Promise<boolean> {

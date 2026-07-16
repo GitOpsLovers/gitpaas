@@ -66,7 +66,7 @@ describe('LogsDatabaseRepository', () => {
                 where: { deploymentId },
                 order: { seq: 'ASC' },
             });
-            expect(result).toBe(logs);
+            expect(result).toEqual(logs);
         });
     });
 
@@ -78,7 +78,7 @@ describe('LogsDatabaseRepository', () => {
             const result = await repository.findById(found.id);
 
             expect(mockRepo.findOneBy).toHaveBeenCalledWith({ id: found.id });
-            expect(result).toBe(found);
+            expect(result).toEqual(found);
         });
 
         it('returns null when no log entry matches the id', async () => {
@@ -101,7 +101,7 @@ describe('LogsDatabaseRepository', () => {
 
             expect(mockRepo.create).toHaveBeenCalledWith(createDto);
             expect(mockRepo.save).toHaveBeenCalledWith(entity);
-            expect(result).toBe(saved);
+            expect(result).toEqual(saved);
         });
     });
 
@@ -118,7 +118,7 @@ describe('LogsDatabaseRepository', () => {
 
             expect(mockRepo.create).toHaveBeenCalledWith(dtos);
             expect(mockRepo.save).toHaveBeenCalledWith(entities);
-            expect(result).toBe(entities);
+            expect(result).toEqual(entities);
         });
     });
 
@@ -141,7 +141,7 @@ describe('LogsDatabaseRepository', () => {
 
             expect(mockRepo.merge).toHaveBeenCalledWith(existing, { content: 'edited' });
             expect(mockRepo.save).toHaveBeenCalledWith(existing);
-            expect(result).toBe(existing);
+            expect(result).toEqual(existing);
         });
     });
 

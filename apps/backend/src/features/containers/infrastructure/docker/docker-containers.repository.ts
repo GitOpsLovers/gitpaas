@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import Docker from 'dockerode';
 
 import { Container } from '../../domain/models/container.model';
 import { ContainersRepository } from '../../domain/repositories/containers.repository';
+
+import { toContainer } from './docker-containers.transformer';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 import { Service } from '@features/services/domain/models/service.model';
@@ -47,29 +48,6 @@ export class DockerContainersRepository implements ContainersRepository {
             filters: { label: [`${COMPOSE_PROJECT_LABEL}=${composeProjectName(service)}`] },
         });
 
-        return containers.map((container) => this.toContainer(container));
-    }
-
-    /**
-     * Narrows a Dockerode container summary into the domain model.
-     *
-     * @param info Dockerode container summary
-     *
-     * @returns Normalized container
-     */
-    private toContainer(info: Docker.ContainerInfo): Container {
-        return {
-            id: info.Id,
-            name: info.Names?.[0]?.replace(/^\//, '') ?? info.Id.slice(0, 12),
-            image: info.Image,
-            state: info.State,
-            status: info.Status,
-            createdAt: new Date(info.Created * 1000),
-            ports: (info.Ports ?? []).map((port) => ({
-                privatePort: port.PrivatePort,
-                publicPort: port.PublicPort ?? null,
-                type: port.Type,
-            })),
-        };
+        return containers.map(toContainer);
     }
 }

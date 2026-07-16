@@ -17,14 +17,24 @@ Then mirror the **`projects`** feature (`apps/backend/src/features/projects/`) �
 
 Create files bottom-up (inner layers first) under `apps/backend/src/features/<feature>/`:
 
+## 
+
 1. **domain** — `models/<entity>.model.ts` (plain interface), `dtos/create-<entity>.dto.ts` + `dtos/update-<entity>.dto.ts` (class-validator classes), `repositories/<feature>.repository.ts` (the `<Feature>Repository` port).
-2. **infrastructure** — `database/<entity>-db.entity.ts` (`@Entity('<plural_snake_case>')`, `…DbEntity`) and `database/<feature>-db.repository.ts` (`…DatabaseRepository implements <Feature>Repository`).
+2. **infrastructure** — `database/<entity>-db.entity.ts` (`@Entity('<plural_snake_case>')`, `…DbEntity`), `database/<feature>-db.transformer.ts` (a sibling file exporting plain `to<Entity>(entity)` mapping functions — see below), and `database/<feature>-db.repository.ts` (`…DatabaseRepository implements <Feature>Repository`) that imports those functions and returns domain models through them.
 3. **application** — one `<verb>-<entity>.use-case.ts` pure function per operation.
 4. **ui** — `services/<feature>.service.ts` (DI bridge, delegates to use cases) and `controllers/<feature>.controller.ts` (`@Controller('<feature>')`).
 5. **module** — `<feature>.module.ts` with `TypeOrmModule.forFeature([<Entity>DbEntity])`, the controller, and `[<Feature>Service, <Feature>DatabaseRepository]` as providers.
 6. **register** — add the module to `imports` in `apps/backend/src/app.module.ts` (import via `@features/<feature>/<feature>.module`).
 
 No migrations and no central entity list: entities auto-load and `synchronize` creates the table in non-production.
+
+## Transformers (mandatory)
+
+Infra repositories **always return domain models**, never raw ORM entities (or external-API/Redis shapes). The mapping lives in a **sibling transformer file** next to the repository:
+
+- Create `database/<feature>-db.transformer.ts` (name it after the repository's file stem: `<stem>.transformer.ts`, sibling to `*.repository.ts` / `*.provider.ts`).
+- Export **plain functions**, not classes, static methods, or providers: `to<Entity>(entity): <Entity>` mapping persistence → domain. If the repo also needs domain → persistence for writes, add that as **another function in the same file**.
+- The repository imports these and uses them (`rows.map(toEntity)`, `toEntity(row)`) instead of returning entities or mapping inline.
 
 ## Associations (foreign keys)
 

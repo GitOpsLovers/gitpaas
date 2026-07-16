@@ -8,6 +8,7 @@ import { Project } from '../../domain/models/project.model';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 
 import { ProjectDbEntity } from './project-db.entity';
+import { toProject } from './projects-db.transformer';
 
 /**
  * Projects database repository
@@ -25,7 +26,7 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
             order: { id: 'DESC' },
         });
 
-        return projects.map((project) => this.toDomain(project));
+        return projects.map(toProject);
     }
 
     public async findById(id: string): Promise<Project | null> {
@@ -38,7 +39,7 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
             return null;
         }
 
-        return this.toDomain(project);
+        return toProject(project);
     }
 
     public create(createDto: CreateProjectDto): Promise<Project> {
@@ -63,13 +64,5 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         const result = await this.repository.delete(id);
 
         return (result.affected ?? 0) > 0;
-    }
-
-    private toDomain(project: ProjectDbEntity): Project {
-        return {
-            id: project.id,
-            name: project.name,
-            servicesCount: project.services?.length ?? 0,
-        };
     }
 }

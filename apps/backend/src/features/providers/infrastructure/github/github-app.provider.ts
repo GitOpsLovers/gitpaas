@@ -8,6 +8,8 @@ import { GitCommit } from '../../domain/models/git-commit.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 
+import { toGitBranch, toGitCommit, toGitRepository } from './github-app.transformer';
+
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /**
@@ -25,12 +27,7 @@ export class GithubAppProvider implements ProvidersRepository {
     public async listRepositories(): Promise<GitRepository[]> {
         const repositories = await this.getClient().paginate('GET /installation/repositories');
 
-        return repositories.map((repository) => ({
-            id: repository.id,
-            fullName: repository.full_name,
-            defaultBranch: repository.default_branch,
-            private: repository.private,
-        }));
+        return repositories.map(toGitRepository);
     }
 
     public async listBranches(repositoryId: number): Promise<GitBranch[]> {
@@ -45,7 +42,7 @@ export class GithubAppProvider implements ProvidersRepository {
             repo,
         });
 
-        return branches.map((branch) => ({ name: branch.name }));
+        return branches.map(toGitBranch);
     }
 
     public async getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
@@ -61,7 +58,7 @@ export class GithubAppProvider implements ProvidersRepository {
             ref,
         });
 
-        return { sha: commit.sha, message: commit.commit.message };
+        return toGitCommit(commit);
     }
 
     public async getFileContent(repositoryId: number, path: string, ref: string): Promise<string> {

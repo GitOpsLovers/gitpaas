@@ -84,7 +84,7 @@ Every feature is split into four layers with a one-directional dependency rule: 
 |--------------------|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------------------|
 | **domain**         | `domain/`                         | The contract: the **domain model** (entity interface), repository **ports**, and request **DTOs**.                       | No — except DTOs        |
 | **application**    | `application/`                    | Business logic as **pure use-case functions** that receive the dependencies as parameters.                               | No.                     |
-| **infrastructure** | `infrastructure/database/`        | **Adapters**: TypeORM entities and the repository implementation of the domain port, plus any entity→domain transformer. | Yes (TypeORM).          |
+| **infrastructure** | `infrastructure/database/`        | **Adapters**: TypeORM entities and the repository implementation of the domain port, plus the transformer that maps persistence/external shapes to domain models. | Yes (TypeORM).          |
 | **ui**             | `ui/controllers/`, `ui/services/` | HTTP routing and the NestJS DI **bridge** (services) that connect use cases to the repository implementation.            | Yes (NestJS).           |
 
 **The core principle:** `domain` and `application` are pure, portable TypeScript. They know nothing about NestJS, TypeORM, HTTP, or PostgreSQL. The framework is an implementation detail confined to `infrastructure` and `ui`. This is what keeps use cases trivially testable (call the function with a fake repository) and the business rules independent of the delivery mechanism.
@@ -102,7 +102,7 @@ features/<feature>/
   infrastructure/database/
     <entity>-db.entity.ts                 — TypeORM entity (…DbEntity)
     <feature>-db.repository.ts            — repository implementation (…DatabaseRepository), implements the port
-    <feature>-db.transformer.ts           — entity→domain mapping (only when shapes differ)
+    <feature>-db.transformer.ts           — persistence↔domain mapping functions (always present)
   ui/
     controllers/<feature>.controller.ts
     services/<feature>.service.ts
@@ -127,6 +127,7 @@ features/projects/
   infrastructure/database/
     project-db.entity.ts                   — ProjectDbEntity
     projects-db.repository.ts              — ProjectsDatabaseRepository
+    projects-db.transformer.ts             — toProject (entity → domain)
   ui/
     controllers/projects.controller.ts     — ProjectsController
     services/projects.service.ts           — ProjectsService
@@ -157,7 +158,18 @@ export class ProjectsModule {}
 - **ORM:** TypeORM with `@nestjs/typeorm`. The root connection is configured once in `CoreModule`; features only call `forFeature`.
 - **Entities** (`infrastructure/database/<entity>-db.entity.ts`) define the table mapping with `@Entity('<plural_snake_case>')`. Class names end in `DbEntity`.
 - **Primary keys are UUIDs:** `@PrimaryGeneratedColumn('uuid')`, and the domain model's `id` is a `string`.
-- The adapter maps DTOs to rows with TypeORM helpers — `repository.create(createDto)` for inserts and `repository.merge(entity, updateDto)` for updates — so no transformer is needed while the entity, model, and DTO shapes align.
+- The adapter maps DTOs to rows with TypeORM helpers — `repository.create(createDto)` for inserts and `repository.merge(entity, updateDto)` for updates.
+
+### Transformers: infra always returns domain models
+
+Every infrastructure repository returns **domain models** — never raw ORM entities, persistence records, or external-API shapes. The mapping lives in a **transformer**, following a strict convention:
+
+- **Plain exported functions**, not classes, static methods, or NestJS providers. They are named `to<Model>(...)` — e.g. `toProject(...)`, `toService(...)`, `toContainer(...)`.
+- They live in a **sibling file next to the repository, in the same directory**, named after the repository's file stem: `<stem>.transformer.ts`. So `projects-db.repository.ts` pairs with `projects-db.transformer.ts`, and a `*.provider.ts` adapter pairs with `<stem>.transformer.ts` likewise.
+- The primary direction maps **persistence/external representation → domain model**. When a repository also needs the reverse for writes (domain model → persistence rows), that direction lives as **another function in the same transformer file**.
+- Repositories **import and call** these functions instead of returning raw entities or doing inline mapping (e.g. `projects.map(toProject)`).
+
+This holds across every infra flavour — TypeORM database repositories, dockerode adapters, external GitHub-API providers, Redis, and the log store — so the domain layer never sees a persistence or vendor shape regardless of the backing technology.
 
 ## Validation
 
@@ -207,7 +219,7 @@ Example — `GET /api/v1/projects`:
 2. `ProjectsService.getAll()` delegates to the use case.
 3. `getAllProjectsUseCase(repository)` calls `repository.getAll()`.
 4. `ProjectsDatabaseRepository.getAll()` runs a TypeORM `find()` ordered by `id DESC`.
-5. Because `ProjectDbEntity` matches the `Project` domain model, entities are returned directly (no transformer).
+5. The loaded entities are mapped to domain models through the transformer (`projects.map(toProject)`); the repository never returns raw `ProjectDbEntity` rows.
 6. The `Project[]` is JSON-serialized in the response.
 
 Example — `POST /api/v1/projects` (DTO through the write path):
@@ -215,9 +227,9 @@ Example — `POST /api/v1/projects` (DTO through the write path):
 1. The global `ValidationPipe` validates the body into a `CreateProjectDto` instance.
 2. `ProjectsController.create(createDto)` passes the DTO to `ProjectsService.create(createDto)`.
 3. `createProjectUseCase(repository, createDto)` calls `repository.create(createDto)`.
-4. `ProjectsDatabaseRepository.create()` builds the row with `repository.create(createDto)` and persists it with `save()`, returning the created `Project`.
+4. `ProjectsDatabaseRepository.create()` builds the row with `repository.create(createDto)` and persists it with `save()`.
 
-A richer feature with filters would instead extract and clean query params in the controller, thread a filter object through the service and use case, build a TypeORM `where` in the repository, and map rows through a transformer.
+A richer feature with filters would instead extract and clean query params in the controller, thread a filter object through the service and use case, build a TypeORM `where` in the repository, and map rows through the transformer.
 
 ## Cross-feature collaboration
 

@@ -1,41 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
-import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { LogEvent, LogStatus } from '../../domain/models/log-event.model';
 import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
 import { LogsDatabaseRepository } from '../database/logs-db.repository';
 import { RedisLogStoreRepository } from '../redis/redis-log-store.repository';
 
-/**
- * Turns a run's captured lines and terminal status into ordered, persistable
- * log rows: one `line` row per line followed by a final `end` row.
- *
- * @param deploymentId Deployment identifier
- * @param lines Captured log lines, in order
- * @param status Terminal status of the run
- *
- * @returns Ordered create-log DTOs
- */
-function toLogRows(deploymentId: string, lines: string[], status: LogStatus): CreateLogDto[] {
-    const rows: CreateLogDto[] = lines.map((content, index) => ({
-        deploymentId,
-        seq: index + 1,
-        type: 'line',
-        content,
-        status: null,
-    }));
-
-    rows.push({
-        deploymentId,
-        seq: lines.length + 1,
-        type: 'end',
-        content: null,
-        status,
-    });
-
-    return rows;
-}
+import { toLogRows } from './persistent-log-store.transformer';
 
 /**
  * Persistent log store repository.
