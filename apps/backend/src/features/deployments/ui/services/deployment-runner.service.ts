@@ -2,13 +2,18 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { Subscription } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
+import type { DockerExecutor } from '../../domain/executors/docker.executor';
 import type { DeploymentRunTask } from '../../domain/models/deployment-run-task.model';
+import type { DeploymentQueue } from '../../domain/queues/deployment.queue';
+import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../infrastructure/docker/dockerode-docker.executor';
 import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 
 /**
@@ -24,15 +29,15 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
     constructor(
         @Inject(DeploymentsDatabaseRepository)
-        private readonly deploymentsRepository: DeploymentsDatabaseRepository,
+        private readonly deploymentsRepository: DeploymentsRepository,
         @Inject(GithubAppProvider)
-        private readonly providersRepository: GithubAppProvider,
+        private readonly providersRepository: ProvidersRepository,
         @Inject(DockerodeDockerExecutor)
-        private readonly dockerExecutor: DockerodeDockerExecutor,
+        private readonly dockerExecutor: DockerExecutor,
         @Inject(PersistentLogStoreRepository)
-        private readonly logStore: PersistentLogStoreRepository,
+        private readonly logStore: LogStoreRepository,
         @Inject(RxjsDeploymentQueue)
-        private readonly queue: RxjsDeploymentQueue,
+        private readonly queue: DeploymentQueue,
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
 

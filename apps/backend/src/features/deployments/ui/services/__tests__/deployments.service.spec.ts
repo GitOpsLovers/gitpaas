@@ -60,7 +60,7 @@ describe('DeploymentsService', () => {
     let repository: jest.Mocked<DeploymentsDatabaseRepository>;
     let servicesRepository: jest.Mocked<ServicesDatabaseRepository>;
     let providersRepository: jest.Mocked<GithubAppProvider>;
-    let queue: jest.Mocked<Pick<DeploymentQueue, 'request'>>;
+    let queue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
     let logStore: jest.Mocked<LogStoreRepository>;
     let sut: DeploymentsService;
 

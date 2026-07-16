@@ -2,8 +2,10 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { getContainersByServiceUseCase } from '../../application/get-containers-by-service.use-case';
 import { Container } from '../../domain/models/container.model';
+import type { ContainersRepository } from '../../domain/repositories/containers.repository';
 import { DockerContainersRepository } from '../../infrastructure/docker/docker-containers.repository';
 
+import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
 /**
@@ -13,9 +15,9 @@ import { ServicesDatabaseRepository } from '@features/services/infrastructure/da
 export class ContainersService {
     constructor(
         @Inject(ServicesDatabaseRepository)
-        private readonly servicesRepository: ServicesDatabaseRepository,
+        private readonly servicesRepository: ServicesRepository,
         @Inject(DockerContainersRepository)
-        private readonly containersRepository: DockerContainersRepository,
+        private readonly containersRepository: ContainersRepository,
     ) {}
 
     /**

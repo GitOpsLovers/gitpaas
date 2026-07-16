@@ -7,12 +7,16 @@ import { getDeploymentsByServiceUseCase } from '../../application/get-deployment
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.model';
+import type { DeploymentQueue } from '../../domain/queues/deployment.queue';
+import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
 import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
+import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
 /**
@@ -22,13 +26,13 @@ import { ServicesDatabaseRepository } from '@features/services/infrastructure/da
 export class DeploymentsService {
     constructor(
         @Inject(DeploymentsDatabaseRepository)
-        private readonly repository: DeploymentsDatabaseRepository,
+        private readonly repository: DeploymentsRepository,
         @Inject(ServicesDatabaseRepository)
-        private readonly servicesRepository: ServicesDatabaseRepository,
+        private readonly servicesRepository: ServicesRepository,
         @Inject(GithubAppProvider)
-        private readonly providersRepository: GithubAppProvider,
+        private readonly providersRepository: ProvidersRepository,
         @Inject(RxjsDeploymentQueue)
-        private readonly queue: RxjsDeploymentQueue,
+        private readonly queue: DeploymentQueue,
         @Inject(PersistentLogStoreRepository)
         private readonly logStore: LogStoreRepository,
     ) {}
