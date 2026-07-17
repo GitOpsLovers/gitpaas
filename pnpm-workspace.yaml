@@ -12,3 +12,6 @@ allowBuilds:
   protobufjs: true
   ssh2: true
   unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@gitopslovers/eslint-config-multistack@1.16.2'
