@@ -7,6 +7,7 @@
       "Bash(rtk git *)",
       "Bash(rtk pnpm *)",
       "Bash(rtk gh *)",
+      "Bash(rtk sleep *)",
       "WebFetch(domain:angular-demo.tailadmin.com)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:angular.dev)"
