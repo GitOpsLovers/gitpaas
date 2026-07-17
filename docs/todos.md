@@ -53,17 +53,6 @@ optional production secrets), not layering.
   dependency) behind the existing `DeploymentQueue` port, and/or add a startup reconciler that
   fails or re-enqueues orphaned `pending`/`running` rows. **Effort:** M. **Risk:** M.
 
-### M2 — Concurrent deployments of the same service are not serialized
-- **Area:** `apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts:43-46`
-  — the subscriber invokes `this.run(task)` without awaiting, so runs execute concurrently.
-- **Why it matters:** `run-deployment.use-case.ts` → `dockerode-docker.executor.ts` does
-  `down()` then `up()` on a Docker Compose project keyed by the service's slug. Two overlapping
-  deployments of the same service will race on the same project name (interleaved down/up), producing
-  a corrupt or flapping stack and interleaved logs.
-- **Suggested action:** serialize runs per compose-project-name (per-key mutex / `concatMap` grouped
-  by project, or a queue concurrency limit). Cross-service parallelism can remain. **Effort:** M.
-  **Risk:** M.
-
 ### M4 — No migration path; schema managed only by `synchronize`
 - **Area:** `apps/backend/src/core/core.module.ts:30` (`synchronize: NODE_ENV !== 'production'`);
   no migrations exist anywhere.
