@@ -1,13 +1,18 @@
 import { Test } from '@nestjs/testing';
 
+import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
 import { pruneContainersUseCase } from '../../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../../application/remove-orphaned-containers.use-case';
 import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../../domain/models/prune-result.model';
+import { ReadinessResult } from '../../../domain/models/readiness-result.model';
 import { DockerOrphanContainersRepository } from '../../../infrastructure/docker/docker-orphan-containers.repository';
 import { DockerServerPrunerRepository } from '../../../infrastructure/docker/docker-server-pruner.repository';
+import { DockerHealthProbe } from '../../../infrastructure/health/docker-health-probe.repository';
+import { PostgresHealthProbe } from '../../../infrastructure/health/postgres-health-probe.repository';
+import { RedisHealthProbe } from '../../../infrastructure/health/redis-health-probe.repository';
 import { ServerService } from '../server.service';
 
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
@@ -16,7 +21,11 @@ jest.mock('../../../application/prune-images.use-case');
 jest.mock('../../../application/prune-volumes.use-case');
 jest.mock('../../../application/prune-containers.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
+jest.mock('../../../application/check-readiness.use-case');
 
+const checkReadinessUseCaseMock = checkReadinessUseCase as jest.MockedFunction<
+    typeof checkReadinessUseCase
+>;
 const pruneImagesUseCaseMock = pruneImagesUseCase as jest.MockedFunction<typeof pruneImagesUseCase>;
 const pruneVolumesUseCaseMock = pruneVolumesUseCase as jest.MockedFunction<
     typeof pruneVolumesUseCase
@@ -33,11 +42,22 @@ const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
+const readinessResult: ReadinessResult = {
+    status: 'ok',
+    dependencies: [
+        { name: 'postgres', status: 'up' },
+        { name: 'redis', status: 'up' },
+        { name: 'docker', status: 'up' },
+    ],
+};
 
 describe('ServerService', () => {
     let pruner: jest.Mocked<DockerServerPrunerRepository>;
     let orphanContainers: jest.Mocked<DockerOrphanContainersRepository>;
     let services: jest.Mocked<ServicesDatabaseRepository>;
+    let postgresProbe: jest.Mocked<PostgresHealthProbe>;
+    let redisProbe: jest.Mocked<RedisHealthProbe>;
+    let dockerProbe: jest.Mocked<DockerHealthProbe>;
     let sut: ServerService;
 
     beforeEach(async () => {
@@ -46,6 +66,9 @@ describe('ServerService', () => {
         pruner = {} as jest.Mocked<DockerServerPrunerRepository>;
         orphanContainers = {} as jest.Mocked<DockerOrphanContainersRepository>;
         services = {} as jest.Mocked<ServicesDatabaseRepository>;
+        postgresProbe = { name: 'postgres', check: jest.fn() } as jest.Mocked<PostgresHealthProbe>;
+        redisProbe = { name: 'redis', check: jest.fn() } as jest.Mocked<RedisHealthProbe>;
+        dockerProbe = { name: 'docker', check: jest.fn() } as jest.Mocked<DockerHealthProbe>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -53,6 +76,9 @@ describe('ServerService', () => {
                 { provide: DockerServerPrunerRepository, useValue: pruner },
                 { provide: DockerOrphanContainersRepository, useValue: orphanContainers },
                 { provide: ServicesDatabaseRepository, useValue: services },
+                { provide: PostgresHealthProbe, useValue: postgresProbe },
+                { provide: RedisHealthProbe, useValue: redisProbe },
+                { provide: DockerHealthProbe, useValue: dockerProbe },
             ],
         }).compile();
 
@@ -229,6 +255,52 @@ describe('ServerService', () => {
             removeOrphanedContainersUseCaseMock.mockRejectedValue(error);
 
             await expect(sut.removeOrphanedContainers()).rejects.toThrow(error);
+        });
+    });
+
+    describe('checkReadiness', () => {
+        it('delegates to the check readiness use case with the three probes in order', async () => {
+            checkReadinessUseCaseMock.mockResolvedValue(readinessResult);
+
+            await sut.checkReadiness();
+
+            expect(checkReadinessUseCaseMock).toHaveBeenCalledTimes(1);
+            expect(checkReadinessUseCaseMock).toHaveBeenCalledWith([
+                postgresProbe,
+                redisProbe,
+                dockerProbe,
+            ]);
+        });
+
+        it('returns the aggregated readiness result produced by the use case', async () => {
+            checkReadinessUseCaseMock.mockResolvedValue(readinessResult);
+
+            const result = await sut.checkReadiness();
+
+            expect(result).toBe(readinessResult);
+        });
+
+        it('returns an error aggregate when the use case reports a dependency down', async () => {
+            const errored: ReadinessResult = {
+                status: 'error',
+                dependencies: [
+                    { name: 'postgres', status: 'up' },
+                    { name: 'redis', status: 'down' },
+                    { name: 'docker', status: 'up' },
+                ],
+            };
+            checkReadinessUseCaseMock.mockResolvedValue(errored);
+
+            const result = await sut.checkReadiness();
+
+            expect(result).toEqual(errored);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('unexpected');
+            checkReadinessUseCaseMock.mockRejectedValue(error);
+
+            await expect(sut.checkReadiness()).rejects.toThrow(error);
         });
     });
 });

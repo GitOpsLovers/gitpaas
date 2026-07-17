@@ -1,7 +1,8 @@
-import { Controller, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
 import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../domain/models/prune-result.model';
+import { ReadinessResult } from '../../domain/models/readiness-result.model';
 import { ServerService } from '../services/server.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
@@ -18,6 +19,24 @@ export class ServerController {
         private readonly service: ServerService,
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
+
+    /**
+     * Report readiness by actively probing the server's critical dependencies
+     * (PostgreSQL, Redis, Docker daemon).
+     *
+     * @returns 200 with a per-dependency breakdown when every dependency is up;
+     * 503 carrying the same breakdown when any dependency is down
+     */
+    @Get('readiness')
+    public async readiness(): Promise<ReadinessResult> {
+        const result = await this.service.checkReadiness();
+
+        if (result.status !== 'ok') {
+            throw new ServiceUnavailableException(result);
+        }
+
+        return result;
+    }
 
     /**
      * Remove dangling images from the VPS
