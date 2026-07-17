@@ -103,6 +103,8 @@ Pick the subagent by the type of task requested:
 
 **All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference).
 
+**Commit and open a PR by default — do not ask.** Whenever a task changes product code and the post-change `tester` run passes, the orchestrator automatically delegates to `git-manager` to create the branch, commit, and open the Pull Request as the final step. It does this without asking the user for confirmation. Skip this only when the user explicitly asks not to commit/PR, or when the change touches no version-controllable work (e.g. a read-only analysis).
+
 The canonical, complete workflow — trunk-based branch strategy, Conventional Commits, tests-before-commit, and the GitHub-App commit/PR flow (Verified commits authored by the app's bot) — lives in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the single source of truth; this section is only a pointer.
 
 When a task reaches the version-control step, follow the `git-github-workflow` skill: the orchestrator can invoke it via the Skill tool, and `git-manager` executes it.
