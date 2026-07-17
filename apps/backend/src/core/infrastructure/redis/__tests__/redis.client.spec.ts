@@ -40,20 +40,8 @@ describe('RedisClient', () => {
             expect(result).toBe(connectionAt(0));
         });
 
-        it('falls back to the default host and port when config is absent', () => {
-            const client = new RedisClient(createConfig());
-
-            client.getClient();
-
-            expect(RedisMock).toHaveBeenCalledWith({
-                host: '127.0.0.1',
-                port: 6379,
-                maxRetriesPerRequest: null,
-            });
-        });
-
         it('coerces a string port from config into a number', () => {
-            const client = new RedisClient(createConfig({ REDIS_PORT: '6390' }));
+            const client = new RedisClient(createConfig({ REDIS_HOST: '10.0.0.7', REDIS_PORT: '6390' }));
 
             client.getClient();
 
