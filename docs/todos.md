@@ -64,16 +64,6 @@ optional production secrets), not layering.
   by project, or a queue concurrency limit). Cross-service parallelism can remain. **Effort:** M.
   **Risk:** M.
 
-### M3 — Production secrets are optional and silently fall back to insecure defaults
-- **Area:** `apps/backend/src/core/infrastructure/config/env.validation.ts:20-92` (every var
-  `@IsOptional()`); defaults applied in `core/core.module.ts:23-30`.
-- **Why it matters:** `DB_PASSWORD` defaults to `'artifactory'`, `DB_HOST` to `127.0.0.1`, etc.
-  A missing/blank secret in production boots against insecure defaults instead of failing fast.
-  `GITHUB_APP_*` and `VPS_DOCKER_CERT_PATH` similarly degrade silently until first use.
-- **Suggested action:** when `NODE_ENV === 'production'`, require the security-critical vars
-  (DB credentials, GitHub App creds, Docker cert path) — e.g. a conditional validation branch that
-  throws at boot. **Effort:** S. **Risk:** L.
-
 ### M4 — No migration path; schema managed only by `synchronize`
 - **Area:** `apps/backend/src/core/core.module.ts:30` (`synchronize: NODE_ENV !== 'production'`);
   no migrations exist anywhere.
