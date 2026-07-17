@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Subscription } from 'rxjs';
+import { Subscription, concatMap, from, groupBy, mergeMap } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
 import type { DockerExecutor } from '../../domain/executors/docker.executor';
@@ -43,11 +43,23 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
     /**
      * Subscribes to deployment-run requests when the module starts.
+     *
+     * Runs are serialized per compose project name so two overlapping
+     * deployments of the same service never race on the same project (their
+     * `down()`/`up()` cycles cannot interleave). Tasks are grouped by
+     * `task.projectName` and each group is drained with `concatMap`, which
+     * waits for the current run to complete before starting the next. Distinct
+     * projects live in separate groups and are merged concurrently, preserving
+     * cross-service parallelism. `run` swallows its own errors, so a failed run
+     * can never terminate its group's stream.
      */
     public onModuleInit(): void {
-        this.subscription = this.queue.dequeued$.subscribe((task) => {
-            this.run(task);
-        });
+        this.subscription = this.queue.dequeued$
+            .pipe(
+                groupBy((task) => task.projectName),
+                mergeMap((group) => group.pipe(concatMap((task) => from(this.run(task))))),
+            )
+            .subscribe();
     }
 
     /**
