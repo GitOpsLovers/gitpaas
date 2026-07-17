@@ -9,8 +9,8 @@ import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/er
 import { Deployment } from '../../domain/models/deployment.model';
 import type { DeploymentQueue } from '../../domain/queues/deployment.queue';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
+import { DatabaseDeploymentQueue } from '../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
-import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
 import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
@@ -31,7 +31,7 @@ export class DeploymentsService {
         private readonly servicesRepository: ServicesRepository,
         @Inject(GithubAppProvider)
         private readonly providersRepository: ProvidersRepository,
-        @Inject(RxjsDeploymentQueue)
+        @Inject(DatabaseDeploymentQueue)
         private readonly queue: DeploymentQueue,
         @Inject(PersistentLogStoreRepository)
         private readonly logStore: LogStoreRepository,

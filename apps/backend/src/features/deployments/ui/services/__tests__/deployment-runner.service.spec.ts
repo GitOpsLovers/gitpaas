@@ -1,10 +1,12 @@
+import { Subject } from 'rxjs';
+
 import { runDeploymentUseCase } from '../../../application/run-deployment.use-case';
+import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.model';
+import { DeploymentQueue } from '../../../domain/queues/deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../../infrastructure/docker/dockerode-docker.executor';
-import { RxjsDeploymentQueue } from '../../../infrastructure/rxjs/rxjs-deployment.queue';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
-import { DeploymentRunTask } from '../../../domain/models/deployment-run-task.model';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
@@ -40,17 +42,21 @@ const defer = <T = void>(): Deferred<T> => {
     return { promise, resolve, reject };
 };
 
-const task: DeploymentRunTask = {
+const task: QueuedDeploymentTask = {
+    id: 'task-1',
     deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
     repositoryId: 42,
     commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
     composerPath: 'docker-compose.yml',
     projectName: 'artifactory',
+    status: 'queued',
+    attempts: 0,
 };
 
-/** Builds a run task deriving unique ids from the given project name. */
-const taskFor = (projectName: string, deploymentId: string): DeploymentRunTask => ({
+/** Builds a queued task deriving unique ids from the given project name. */
+const taskFor = (projectName: string, id: string, deploymentId: string): QueuedDeploymentTask => ({
     ...task,
+    id,
     deploymentId,
     projectName,
 });
@@ -60,7 +66,8 @@ describe('DeploymentRunnerService', () => {
     let providersRepository: jest.Mocked<GithubAppProvider>;
     let dockerExecutor: jest.Mocked<DockerodeDockerExecutor>;
     let logStore: jest.Mocked<PersistentLogStoreRepository>;
-    let queue: RxjsDeploymentQueue;
+    let dequeued: Subject<QueuedDeploymentTask>;
+    let queue: jest.Mocked<DeploymentQueue>;
     let diagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
     let sut: DeploymentRunnerService;
 
@@ -71,7 +78,15 @@ describe('DeploymentRunnerService', () => {
         providersRepository = {} as jest.Mocked<GithubAppProvider>;
         dockerExecutor = {} as jest.Mocked<DockerodeDockerExecutor>;
         logStore = {} as jest.Mocked<PersistentLogStoreRepository>;
-        queue = new RxjsDeploymentQueue();
+        dequeued = new Subject<QueuedDeploymentTask>();
+        queue = {
+            dequeued$: dequeued.asObservable(),
+            enqueue: jest.fn().mockResolvedValue(undefined),
+            markProcessing: jest.fn().mockResolvedValue(undefined),
+            markCompleted: jest.fn().mockResolvedValue(undefined),
+            markFailed: jest.fn().mockResolvedValue(undefined),
+            recoverPending: jest.fn().mockResolvedValue(undefined),
+        };
         diagnostics = { error: jest.fn() };
 
         sut = new DeploymentRunnerService(
@@ -84,11 +99,17 @@ describe('DeploymentRunnerService', () => {
         );
     });
 
-    it('runs the deployment use case for each request published after init', async () => {
-        runDeploymentUseCaseMock.mockResolvedValue(undefined);
-        sut.onModuleInit();
+    it('recovers pending work once, after the subscription is established', async () => {
+        await sut.onModuleInit();
 
-        queue.enqueue(task);
+        expect(queue.recoverPending).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs the deployment use case for each request emitted after init', async () => {
+        runDeploymentUseCaseMock.mockResolvedValue(undefined);
+        await sut.onModuleInit();
+
+        dequeued.next(task);
         await flush();
 
         expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
@@ -101,22 +122,39 @@ describe('DeploymentRunnerService', () => {
         );
     });
 
-    it('logs a diagnostic error when the run unexpectedly throws', async () => {
-        runDeploymentUseCaseMock.mockRejectedValue(new Error('boom'));
-        sut.onModuleInit();
+    it('marks the row processing before the run and completed on normal return', async () => {
+        runDeploymentUseCaseMock.mockResolvedValue(undefined);
+        await sut.onModuleInit();
 
-        queue.enqueue(task);
+        dequeued.next(task);
+        await flush();
+
+        expect(queue.markProcessing).toHaveBeenCalledTimes(1);
+        expect(queue.markProcessing).toHaveBeenCalledWith(task.id);
+        expect(queue.markCompleted).toHaveBeenCalledTimes(1);
+        expect(queue.markCompleted).toHaveBeenCalledWith(task.id);
+        expect(queue.markFailed).not.toHaveBeenCalled();
+    });
+
+    it('marks the row failed and logs a diagnostic when the run unexpectedly throws', async () => {
+        runDeploymentUseCaseMock.mockRejectedValue(new Error('boom'));
+        await sut.onModuleInit();
+
+        dequeued.next(task);
         await flush();
 
         expect(diagnostics.error).toHaveBeenCalledTimes(1);
+        expect(queue.markFailed).toHaveBeenCalledTimes(1);
+        expect(queue.markFailed).toHaveBeenCalledWith(task.id, 'boom');
+        expect(queue.markCompleted).not.toHaveBeenCalled();
     });
 
     it('stops handling requests once destroyed', async () => {
         runDeploymentUseCaseMock.mockResolvedValue(undefined);
-        sut.onModuleInit();
+        await sut.onModuleInit();
         sut.onModuleDestroy();
 
-        queue.enqueue(task);
+        dequeued.next(task);
         await flush();
 
         expect(runDeploymentUseCaseMock).not.toHaveBeenCalled();
@@ -129,12 +167,12 @@ describe('DeploymentRunnerService', () => {
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('artifactory', 'deploy-a');
-        const taskB = taskFor('artifactory', 'deploy-b');
+        const taskA = taskFor('artifactory', 'task-a', 'deploy-a');
+        const taskB = taskFor('artifactory', 'task-b', 'deploy-b');
 
-        sut.onModuleInit();
-        queue.enqueue(taskA);
-        queue.enqueue(taskB);
+        await sut.onModuleInit();
+        dequeued.next(taskA);
+        dequeued.next(taskB);
         await flush();
 
         // First run is in-flight; the second must not have started yet.
@@ -171,12 +209,12 @@ describe('DeploymentRunnerService', () => {
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('project-a', 'deploy-a');
-        const taskB = taskFor('project-b', 'deploy-b');
+        const taskA = taskFor('project-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('project-b', 'task-b', 'deploy-b');
 
-        sut.onModuleInit();
-        queue.enqueue(taskA);
-        queue.enqueue(taskB);
+        await sut.onModuleInit();
+        dequeued.next(taskA);
+        dequeued.next(taskB);
         await flush();
 
         // Both runs are in-flight at once: the second started without the first resolving.
@@ -203,19 +241,19 @@ describe('DeploymentRunnerService', () => {
         await flush();
     });
 
-    it('keeps draining the same project after a run rejects, logging the failure', async () => {
+    it('keeps draining the same project after a run rejects, marking it failed', async () => {
         const first = defer();
         const second = defer();
         runDeploymentUseCaseMock
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('artifactory', 'deploy-a');
-        const taskB = taskFor('artifactory', 'deploy-b');
+        const taskA = taskFor('artifactory', 'task-a', 'deploy-a');
+        const taskB = taskFor('artifactory', 'task-b', 'deploy-b');
 
-        sut.onModuleInit();
-        queue.enqueue(taskA);
-        queue.enqueue(taskB);
+        await sut.onModuleInit();
+        dequeued.next(taskA);
+        dequeued.next(taskB);
         await flush();
 
         expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
@@ -225,6 +263,7 @@ describe('DeploymentRunnerService', () => {
         await flush();
 
         expect(diagnostics.error).toHaveBeenCalledTimes(1);
+        expect(queue.markFailed).toHaveBeenCalledWith(taskA.id, 'boom');
         expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(2);
         expect(runDeploymentUseCaseMock).toHaveBeenLastCalledWith(
             deploymentsRepository,
@@ -245,12 +284,12 @@ describe('DeploymentRunnerService', () => {
             .mockReturnValueOnce(failing.promise)
             .mockReturnValueOnce(healthy.promise);
 
-        const taskA = taskFor('project-a', 'deploy-a');
-        const taskB = taskFor('project-b', 'deploy-b');
+        const taskA = taskFor('project-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('project-b', 'task-b', 'deploy-b');
 
-        sut.onModuleInit();
-        queue.enqueue(taskA);
-        queue.enqueue(taskB);
+        await sut.onModuleInit();
+        dequeued.next(taskA);
+        dequeued.next(taskB);
         await flush();
 
         expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(2);

@@ -9,8 +9,8 @@ import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dt
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.model';
 import { DeploymentQueue } from '../../../domain/queues/deployment.queue';
+import { DatabaseDeploymentQueue } from '../../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
-import { RxjsDeploymentQueue } from '../../../infrastructure/rxjs/rxjs-deployment.queue';
 import { DeploymentsService } from '../deployments.service';
 
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
@@ -70,7 +70,7 @@ describe('DeploymentsService', () => {
         repository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
         servicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
         providersRepository = {} as jest.Mocked<GithubAppProvider>;
-        queue = { enqueue: jest.fn() };
+        queue = { enqueue: jest.fn().mockResolvedValue(undefined) };
         logStore = {
             append: jest.fn(),
             complete: jest.fn(),
@@ -84,7 +84,7 @@ describe('DeploymentsService', () => {
                 { provide: DeploymentsDatabaseRepository, useValue: repository },
                 { provide: ServicesDatabaseRepository, useValue: servicesRepository },
                 { provide: GithubAppProvider, useValue: providersRepository },
-                { provide: RxjsDeploymentQueue, useValue: queue },
+                { provide: DatabaseDeploymentQueue, useValue: queue },
                 { provide: PersistentLogStoreRepository, useValue: logStore },
             ],
         }).compile();
