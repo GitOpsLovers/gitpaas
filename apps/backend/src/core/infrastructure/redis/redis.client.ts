@@ -61,8 +61,8 @@ export class RedisClient implements OnModuleDestroy {
      * @param role Human-readable role, only used for logging
      */
     private createConnection(role: string): Redis {
-        const host = this.config.get<string>('REDIS_HOST', '127.0.0.1');
-        const port = Number(this.config.get('REDIS_PORT', 6379));
+        const host = this.config.get<string>('REDIS_HOST');
+        const port = Number(this.config.get('REDIS_PORT'));
 
         const options: RedisOptions = { host, port, maxRetriesPerRequest: null };
 

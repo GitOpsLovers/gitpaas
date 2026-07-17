@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
+import { IsDefined, IsEnum, IsNotEmpty, IsNumber, IsString, validateSync } from 'class-validator';
 
 /**
  * Runtime environment the application boots into.
@@ -13,95 +13,107 @@ enum Environment {
 /**
  * Shape and constraints of the environment variables the backend understands.
  *
- * Every variable is optional so boot preserves today's default-driven behavior;
- * validation only rejects values that are present but malformed (e.g. a
- * non-numeric port or an unknown {@link Environment}).
+ * Every variable is mandatory: the app fails fast at boot if any is missing,
+ * in all environments including development, rather than degrading to insecure
+ * defaults. Validation also rejects values that are present but malformed
+ * (e.g. a non-numeric port or an unknown {@link Environment}).
  */
 export class EnvironmentVariables {
-    @IsOptional()
+    @IsDefined()
     @IsEnum(Environment)
-    public NODE_ENV: Environment = Environment.Development;
+    public NODE_ENV!: Environment;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public PORT?: number;
+    public PORT!: number;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public DB_HOST?: string;
+    public DB_HOST!: string;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public DB_PORT?: number;
+    public DB_PORT!: number;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public DB_USER?: string;
+    public DB_USER!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public DB_PASSWORD?: string;
+    public DB_PASSWORD!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public DB_NAME?: string;
+    public DB_NAME!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public REDIS_HOST?: string;
+    public REDIS_HOST!: string;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public REDIS_PORT?: number;
+    public REDIS_PORT!: number;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public GITHUB_APP_ID?: string;
+    public GITHUB_APP_ID!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public GITHUB_APP_PRIVATE_KEY?: string;
+    public GITHUB_APP_PRIVATE_KEY!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public GITHUB_APP_INSTALLATION_ID?: string;
+    public GITHUB_APP_INSTALLATION_ID!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public VPS_DOCKER_HOST?: string;
+    public VPS_DOCKER_HOST!: string;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public VPS_DOCKER_PORT?: number;
+    public VPS_DOCKER_PORT!: number;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public VPS_DOCKER_CERT_PATH?: string;
+    public VPS_DOCKER_CERT_PATH!: string;
 
-    @IsOptional()
+    @IsDefined()
+    @IsNotEmpty()
     @IsString()
-    public CORS_ORIGIN?: string;
+    public CORS_ORIGIN!: string;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public THROTTLE_TTL?: number;
+    public THROTTLE_TTL!: number;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public THROTTLE_LIMIT?: number;
+    public THROTTLE_LIMIT!: number;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public THROTTLE_STREAM_TTL?: number;
+    public THROTTLE_STREAM_TTL!: number;
 
-    @IsOptional()
+    @IsDefined()
     @IsNumber()
-    public THROTTLE_STREAM_LIMIT?: number;
+    public THROTTLE_STREAM_LIMIT!: number;
 }
 
 /**
  * Validates the raw environment at boot and fails fast when a variable is
- * malformed. Wired into `ConfigModule.forRoot({ validate })`.
+ * missing or malformed. Wired into `ConfigModule.forRoot({ validate })`.
  *
  * @param config Raw environment record (typically `process.env` merged with `.env`)
  *

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -59,20 +59,14 @@ describe('DockerClient', () => {
             expect(result).toBe(DockerMock.mock.instances[0]);
         });
 
-        it('falls back to the default host, port and cert path when config is absent', () => {
-            const client = new DockerClient(createConfig());
-
-            client.getClient();
-
-            const defaultCertPath = resolve(process.cwd(), '../../.dev/vps-certs/client');
-            expect(readFileSyncMock).toHaveBeenCalledWith(join(defaultCertPath, 'ca.pem'));
-            expect(DockerMock).toHaveBeenCalledWith(
-                expect.objectContaining({ protocol: 'https', host: '127.0.0.1', port: 2376 }),
-            );
-        });
-
         it('coerces a string port from config into a number', () => {
-            const client = new DockerClient(createConfig({ VPS_DOCKER_PORT: '5000' }));
+            const client = new DockerClient(
+                createConfig({
+                    VPS_DOCKER_HOST: '10.0.0.5',
+                    VPS_DOCKER_PORT: '5000',
+                    VPS_DOCKER_CERT_PATH: '/certs',
+                }),
+            );
 
             client.getClient();
 

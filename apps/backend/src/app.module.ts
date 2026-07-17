@@ -29,13 +29,13 @@ import { ServicesModule } from '@features/services/services.module';
                 throttlers: [
                     {
                         name: 'default',
-                        ttl: config.get<number>('THROTTLE_TTL', 60000),
-                        limit: config.get<number>('THROTTLE_LIMIT', 100),
+                        ttl: config.getOrThrow<number>('THROTTLE_TTL'),
+                        limit: config.getOrThrow<number>('THROTTLE_LIMIT'),
                     },
                     {
                         name: 'stream',
-                        ttl: config.get<number>('THROTTLE_STREAM_TTL', 60000),
-                        limit: config.get<number>('THROTTLE_STREAM_LIMIT', 1000),
+                        ttl: config.getOrThrow<number>('THROTTLE_STREAM_TTL'),
+                        limit: config.getOrThrow<number>('THROTTLE_STREAM_LIMIT'),
                     },
                 ],
             }),

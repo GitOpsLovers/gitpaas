@@ -20,11 +20,11 @@ import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service
             inject: [ConfigService],
             useFactory: (config: ConfigService) => ({
                 type: 'postgres',
-                host: config.get<string>('DB_HOST', '127.0.0.1'),
-                port: Number(config.get('DB_PORT', 5432)),
-                username: config.get<string>('DB_USER', 'artifactory'),
-                password: config.get<string>('DB_PASSWORD', 'artifactory'),
-                database: config.get<string>('DB_NAME', 'artifactory'),
+                host: config.get<string>('DB_HOST'),
+                port: Number(config.get('DB_PORT')),
+                username: config.get<string>('DB_USER'),
+                password: config.get<string>('DB_PASSWORD'),
+                database: config.get<string>('DB_NAME'),
                 autoLoadEntities: true,
                 // Auto-creates/updates tables in development. Use migrations in production.
                 synchronize: config.get<string>('NODE_ENV') !== 'production',
