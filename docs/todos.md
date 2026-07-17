@@ -74,18 +74,7 @@ optional production secrets), not layering.
   (DB credentials, GitHub App creds, Docker cert path) — e.g. a conditional validation branch that
   throws at boot. **Effort:** S. **Risk:** L.
 
-### M4 — Health check does not verify dependencies (liveness only, no readiness)
-- **Area:** `apps/backend/src/app.service.ts:17` returns a static `{ status: 'ok' }`; served by the
-  root `app.controller.ts`.
-- **Why it matters:** for an ops-critical deploy tool, `GET /` reports healthy even when PostgreSQL,
-  Redis, or the Docker daemon are unreachable, so orchestrators/monitors can't detect a broken
-  instance.
-- **Suggested action:** add a readiness check that pings DB/Redis/Docker (e.g. `@nestjs/terminus`),
-  ideally as its own small feature/module, keeping a static liveness check separate. (Matches the
-  pre-existing note to promote health-check to a proper feature and retire the bare `app.controller`.)
-  **Effort:** S. **Risk:** L.
-
-### M5 — No migration path; schema managed only by `synchronize`
+### M4 — No migration path; schema managed only by `synchronize`
 - **Area:** `apps/backend/src/core/core.module.ts:30` (`synchronize: NODE_ENV !== 'production'`);
   no migrations exist anywhere.
 - **Why it matters:** `synchronize` is correctly disabled in production, but nothing replaces it —

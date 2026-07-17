@@ -23,9 +23,13 @@
 │   └── frontend/         # Angular
 ├── docs/                 # Project documentation
 ├── iac/                  # Infrastructure for development and production
+├── .gitignore            # Ignores for Git
 ├── .tool-versions        # Node/pnpm version pins
-├── package.json          # Root depemdemcoes
+├── CLAUDE.md             # General instructions for the AI Agent
+├── CONTRIBUTING.md       # Document for making contributions
+├── package.json          # Root dependencies
 ├── pnpm-workspace.yaml   # Workspace definition
+├── README.md             # Project description
 └── turbo.json            # Turborepo task pipeline
 ```
 
@@ -33,7 +37,7 @@
 
 ## App: Backend (`apps/backend/`)
 
-If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md) document.
+If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md) or [backend-business document](./docs/backend-business.md) documents.
 
 ---
 
@@ -47,12 +51,12 @@ If the agent needs information about the frontend application, refer to the [fro
 
 ### Scripts
 
-| Script | Command |
-|--------|---------|
-| `dev` | `turbo run dev` |
+| Script  | Command           | Purpose |
+|---------|-------------------|---------|
+| `dev`   | `turbo run dev`   |
 | `build` | `turbo run build` |
-| `lint` | `turbo run lint` |
-| `test` | `turbo run test` |
+| `lint`  | `turbo run lint`  |
+| `test`  | `turbo run test`  |
 
 ### Turborepo Pipeline
 
@@ -97,31 +101,37 @@ Pick the subagent by the type of task requested:
 
 ### Git & GitHub Workflow
 
-**All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference). The conventions below are the rules that agent follows.
+**All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference).
 
-**Branch Strategy:** Trunk-based development on `main`.
-**Never commit directly to `main`.** All development tasks must begin by creating a new branch from the latest version of `main`.
-**Branch naming:**
+The canonical, complete workflow — trunk-based branch strategy, Conventional Commits, tests-before-commit, and the GitHub-App commit/PR flow (Verified commits authored by the app's bot) — lives in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the single source of truth; this section is only a pointer.
 
-- `feat/<short-description>` for new features
-- `fix/<short-description>` for fixes
-- `chore/<short-description>` for maintenance tasks
-- `docs/<short-description>` for documentation
+When a task reaches the version-control step, follow the `git-github-workflow` skill: the orchestrator can invoke it via the Skill tool, and `git-manager` executes it.
 
-**Commit messages:** [Conventional Commits](https://www.conventionalcommits.org/) format: `type(scope): short description` (types: feat, fix, refactor, chore, docs, test). Subject lines ≤ 72 characters. Add a body when the diff is large.
-**Before committing:** Run `rtk pnpm run test` and make sure it passes.
-**Tool:** Use the `gh` CLI for GitHub operations (branch, commit, push, PR). Every `git` and `gh` command — like every other CLI command — MUST be prefixed with `rtk`.
-**Standard workflow for each development task:**
+---
 
-1. Create and switch to a new branch from `main` (`rtk git checkout -b <type>/<description>`).
-2. Implement the change.
-3. Run `rtk pnpm run test` on the changed code and confirm that it passes.
-4. Commit following Conventional Commits.
-5. Run `rtk git push -u origin <branch>`.
-6. Open a Pull Request with `rtk gh pr create`, including:
-   - Summary of changes (“## Summary”)
-   - Test plan (“## Test plan”) with a checklist
-   - Reference to the issue if applicable (`Closes #N`)
-7. **Never merge automatically.** The PR is pending human review.
+## Task reporting
 
-**Branch & PR by default.** Creating the branch, committing, pushing, and opening the PR are the standard, expected steps of a development task — do them by default without asking the user to confirm. The only hard stop is merging: never merge automatically. (Force-push, rewriting published history, and deleting branches still require an explicit instruction.)
+After completing each task the user requests, the orchestrator **must append a token usage report to the very end of its response**, after the normal summary of results. This applies to every task delegated to subagents. Skip it only for pure conversational replies that did no work (clarifying questions, quick explanations with no tool use).
+
+**Source the numbers from each subagent's reported usage.** Every subagent result includes a `<usage>subagent_tokens: N</usage>` figure. Collect the `subagent_tokens` from each subagent launched for the task, list one row per subagent, and sum them into a total. Steps that ran no subagent are not listed.
+
+**Present it in a highly visual, easy-to-read way** using the fixed format below — a Markdown code block containing a header, one horizontal bar per subagent, and a total:
+
+```
+📊 Token Report — <short task name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+implementer   ███████████░░░   35,968
+tester        ██████████████   46,112
+git-manager   ████░░░░░░░░░░░   15,917
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total                          97,997
+```
+
+Rules for the report:
+
+- **Wrap it in a fenced code block** so the alignment renders cleanly in the terminal.
+- **Order rows largest-first** by `subagent_tokens`.
+- **Bar length** for each row = `round(14 × subagent_tokens / max_subagent_tokens)`, with a minimum of 1 filled `█` cell; fill the remainder of the ~14-cell bar with `░`.
+- **Numbers are right-aligned and thousands-separated.**
+- The **`Total` row** sums all listed subagents.
+- If **only one subagent ran**, still show the single row plus the total.
