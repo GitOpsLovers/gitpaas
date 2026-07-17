@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../../domain/models/prune-result.model';
+import { ReadinessResult } from '../../../domain/models/readiness-result.model';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
@@ -17,10 +18,29 @@ const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
+const readyResult: ReadinessResult = {
+    status: 'ok',
+    dependencies: [
+        { name: 'postgres', status: 'up' },
+        { name: 'redis', status: 'up' },
+        { name: 'docker', status: 'up' },
+    ],
+};
+const notReadyResult: ReadinessResult = {
+    status: 'error',
+    dependencies: [
+        { name: 'postgres', status: 'up' },
+        { name: 'redis', status: 'down' },
+        { name: 'docker', status: 'up' },
+    ],
+};
 
 describe('ServerController', () => {
     let service: jest.Mocked<
-        Pick<ServerService, 'pruneImages' | 'pruneVolumes' | 'pruneContainers' | 'removeOrphanedContainers'>
+        Pick<
+            ServerService,
+            'pruneImages' | 'pruneVolumes' | 'pruneContainers' | 'removeOrphanedContainers' | 'checkReadiness'
+        >
     >;
     let sut: ServerController;
 
@@ -30,6 +50,7 @@ describe('ServerController', () => {
             pruneVolumes: jest.fn(),
             pruneContainers: jest.fn(),
             removeOrphanedContainers: jest.fn(),
+            checkReadiness: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -41,6 +62,47 @@ describe('ServerController', () => {
         }).compile();
 
         sut = moduleRef.get(ServerController);
+    });
+
+    describe('readiness', () => {
+        it('delegates to the service readiness check', async () => {
+            service.checkReadiness.mockResolvedValue(readyResult);
+
+            await sut.readiness();
+
+            expect(service.checkReadiness).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns the readiness payload when every dependency is up', async () => {
+            service.checkReadiness.mockResolvedValue(readyResult);
+
+            const result = await sut.readiness();
+
+            expect(result).toBe(readyResult);
+        });
+
+        it('throws a ServiceUnavailableException when a dependency is down', async () => {
+            service.checkReadiness.mockResolvedValue(notReadyResult);
+
+            await expect(sut.readiness()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('carries the full readiness breakdown in the 503 response body', async () => {
+            service.checkReadiness.mockResolvedValue(notReadyResult);
+
+            const error = await sut.readiness().catch((caught: unknown) => caught);
+
+            expect(error).toBeInstanceOf(ServiceUnavailableException);
+            expect((error as ServiceUnavailableException).getStatus()).toBe(503);
+            expect((error as ServiceUnavailableException).getResponse()).toEqual(notReadyResult);
+        });
+
+        it('propagates errors thrown by the service unchanged', async () => {
+            const original = new Error('unexpected');
+            service.checkReadiness.mockRejectedValue(original);
+
+            await expect(sut.readiness()).rejects.toBe(original);
+        });
     });
 
     describe('pruneImages', () => {
