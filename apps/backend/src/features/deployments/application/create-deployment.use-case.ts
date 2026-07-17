@@ -71,7 +71,7 @@ export async function createDeploymentUseCase(
 
     const deployment = await persistDeploymentUseCase(deploymentsRepository, createDto);
 
-    queue.enqueue({
+    await queue.enqueue({
         deploymentId: deployment.id,
         repositoryId: Number(service.repositoryId),
         commit: deployment.commit ?? deployment.branch,

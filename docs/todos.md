@@ -19,7 +19,7 @@ it holds up under scrutiny:
   global exception filter that hides internal error details on 5xx.
 
 The findings below are refinements and production-readiness gaps, **not** structural rot. The most
-important theme is **operational/security robustness** (no authn/authz, an in-memory job queue,
+important theme is **operational/security robustness** (no authn/authz,
 optional production secrets), not layering.
 
 ---
@@ -41,17 +41,6 @@ optional production secrets), not layering.
 ---
 
 ## Medium priority
-
-### M1 — Deployment queue is in-memory only (tasks lost on restart, no retry)
-- **Area:** `apps/backend/src/features/deployments/infrastructure/rxjs/rxjs-deployment.queue.ts`
-  (RxJS `Subject`); consumed in `deployment-runner.service.ts:43`.
-- **Why it matters:** `POST /deployments` persists a `pending` row and enqueues a fire-and-forget
-  run. If the process restarts/crashes between enqueue and execution, the task is lost and the row is
-  stranded in `pending` forever — no recovery, no retry, no dead-letter. It also prevents running
-  more than one backend instance (each has its own private `Subject`).
-- **Suggested action:** back the queue with a durable store (e.g. Redis/BullMQ — Redis is already a
-  dependency) behind the existing `DeploymentQueue` port, and/or add a startup reconciler that
-  fails or re-enqueues orphaned `pending`/`running` rows. **Effort:** M. **Risk:** M.
 
 ### M4 — No migration path; schema managed only by `synchronize`
 - **Area:** `apps/backend/src/core/core.module.ts:30` (`synchronize: NODE_ENV !== 'production'`);

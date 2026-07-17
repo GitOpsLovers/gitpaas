@@ -3,12 +3,12 @@ import { Subscription, concatMap, from, groupBy, mergeMap } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
 import type { DockerExecutor } from '../../domain/executors/docker.executor';
-import type { DeploymentRunTask } from '../../domain/models/deployment-run-task.model';
+import type { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.model';
 import type { DeploymentQueue } from '../../domain/queues/deployment.queue';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
+import { DatabaseDeploymentQueue } from '../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../infrastructure/docker/dockerode-docker.executor';
-import { RxjsDeploymentQueue } from '../../infrastructure/rxjs/rxjs-deployment.queue';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
@@ -36,7 +36,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly dockerExecutor: DockerExecutor,
         @Inject(PersistentLogStoreRepository)
         private readonly logStore: LogStoreRepository,
-        @Inject(RxjsDeploymentQueue)
+        @Inject(DatabaseDeploymentQueue)
         private readonly queue: DeploymentQueue,
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
@@ -52,14 +52,19 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
      * projects live in separate groups and are merged concurrently, preserving
      * cross-service parallelism. `run` swallows its own errors, so a failed run
      * can never terminate its group's stream.
+     *
+     * Recovery runs only after the subscription is established, so any task the
+     * durable queue re-emits on restart is guaranteed to be picked up.
      */
-    public onModuleInit(): void {
+    public async onModuleInit(): Promise<void> {
         this.subscription = this.queue.dequeued$
             .pipe(
                 groupBy((task) => task.projectName),
                 mergeMap((group) => group.pipe(concatMap((task) => from(this.run(task))))),
             )
             .subscribe();
+
+        await this.queue.recoverPending();
     }
 
     /**
@@ -72,10 +77,17 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     /**
      * Runs a single deployment, guarding against unexpected throws.
      *
-     * @param task Deployment run task
+     * Marks the durable queue row `processing` before the run and deletes it on
+     * normal return (a deployment that failed inside {@link runDeploymentUseCase}
+     * still returns normally, so it counts as a completed task). Only a
+     * truly-unexpected throw reaches `markFailed`, which retries or dead-letters.
+     *
+     * @param task Queued deployment task
      */
-    private async run(task: DeploymentRunTask): Promise<void> {
+    private async run(task: QueuedDeploymentTask): Promise<void> {
         try {
+            await this.queue.markProcessing(task.id);
+
             await runDeploymentUseCase(
                 this.deploymentsRepository,
                 this.providersRepository,
@@ -83,6 +95,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                 this.logStore,
                 task,
             );
+
+            await this.queue.markCompleted(task.id);
         } catch (error) {
             // Last-resort safety net: runDeploymentUseCase handles its own failures,
             // so this only guards a truly unexpected throw.
@@ -93,6 +107,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                 error,
                 DeploymentRunnerService.name,
             );
+
+            await this.queue.markFailed(task.id, message);
         }
     }
 }

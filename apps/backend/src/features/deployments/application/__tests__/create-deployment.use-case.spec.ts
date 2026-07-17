@@ -73,7 +73,14 @@ describe('createDeploymentUseCase', () => {
             getFileContent: jest.fn(),
             getRepositoryArchive: jest.fn(),
         };
-        queue = { enqueue: jest.fn(), dequeued$: EMPTY };
+        queue = {
+            enqueue: jest.fn().mockResolvedValue(undefined),
+            markProcessing: jest.fn().mockResolvedValue(undefined),
+            markCompleted: jest.fn().mockResolvedValue(undefined),
+            markFailed: jest.fn().mockResolvedValue(undefined),
+            recoverPending: jest.fn().mockResolvedValue(undefined),
+            dequeued$: EMPTY,
+        };
     });
 
     it('throws ServiceNotFoundError when the service does not exist', async () => {
