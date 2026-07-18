@@ -1,0 +1,65 @@
+<div class="mb-5 sm:mb-8">
+    <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">Sign In</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Enter your email and password to sign in.</p>
+</div>
+
+<form (ngSubmit)="onSubmit()" class="space-y-6">
+    <div>
+        <app-label>
+            Email
+            <span class="text-error-500">*</span>
+        </app-label>
+        <app-input-field
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            [value]="email()"
+            (valueChange)="updateEmail($event)"
+        />
+    </div>
+
+    <div>
+        <app-label>
+            Password
+            <span class="text-error-500">*</span>
+        </app-label>
+        <div class="relative">
+            <app-input-field
+                [type]="showPassword() ? 'text' : 'password'"
+                name="password"
+                placeholder="Enter your password"
+                [value]="password()"
+                (valueChange)="updatePassword($event)"
+            />
+            <button
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer text-gray-500 dark:text-gray-400"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+                @if (showPassword()) {
+                    <svg lucideEyeOff class="size-5"></svg>
+                } @else {
+                    <svg lucideEye class="size-5"></svg>
+                }
+            </button>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <input
+            id="rememberMe"
+            type="checkbox"
+            [checked]="rememberMe()"
+            (change)="rememberMe.set($any($event.target).checked)"
+            class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+        />
+        <label for="rememberMe" class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400">
+            Keep me logged in
+        </label>
+    </div>
+
+    <app-button type="submit" size="sm" className="w-full" [disabled]="submitting()">
+        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </app-button>
+</form>
