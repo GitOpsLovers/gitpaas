@@ -1,8 +1,17 @@
 import { Routes } from '@angular/router';
 
+import { authGuard, guestGuard } from '@features/authentication/ui/guards/auth.guard';
+
 export const routes: Routes = [
     {
+        path: 'signin',
+        canActivate: [guestGuard],
+        loadComponent: () => import('@pages/auth/signin/signin.component').then((m) => m.SigninPage),
+        title: 'Sign in | Artifactory',
+    },
+    {
         path: '',
+        canActivate: [authGuard],
         loadComponent: () =>
             import('@layout/ui/containers/layout/layout.component').then((m) => m.LayoutComponent),
         children: [
