@@ -109,6 +109,26 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNumber()
     public THROTTLE_STREAM_LIMIT!: number;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsString()
+    public JWT_ACCESS_SECRET!: string;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsString()
+    public JWT_ACCESS_EXPIRES_IN!: string;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsString()
+    public JWT_REFRESH_SECRET!: string;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsString()
+    public JWT_REFRESH_EXPIRES_IN!: string;
 }
 
 /**

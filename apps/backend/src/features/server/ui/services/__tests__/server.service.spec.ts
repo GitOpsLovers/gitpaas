@@ -66,9 +66,9 @@ describe('ServerService', () => {
         pruner = {} as jest.Mocked<DockerServerPrunerRepository>;
         orphanContainers = {} as jest.Mocked<DockerOrphanContainersRepository>;
         services = {} as jest.Mocked<ServicesDatabaseRepository>;
-        postgresProbe = { name: 'postgres', check: jest.fn() } as jest.Mocked<PostgresHealthProbe>;
-        redisProbe = { name: 'redis', check: jest.fn() } as jest.Mocked<RedisHealthProbe>;
-        dockerProbe = { name: 'docker', check: jest.fn() } as jest.Mocked<DockerHealthProbe>;
+        postgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbe>;
+        redisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<RedisHealthProbe>;
+        dockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbe>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [

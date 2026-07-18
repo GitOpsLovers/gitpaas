@@ -5,7 +5,9 @@
 #             this host) talks to its Docker daemon through Dockerode over TLS.
 #             Everything Artifactory deploys lives inside this container.
 # - postgres: the application's own database, where Artifactory persists its
-#             operations (projects, deployments, ...). In production this same
+#             operations (projects, deployments, ...). On first init of a fresh
+#             volume it seeds an initial admin user for the app login
+#             (admin@artifactory.com / artifactory). In production this same
 #             database runs on the VPS.
 # - pgadmin:  a web UI to inspect and query the local postgres. Reachable at
 #             http://127.0.0.1:5050 (login admin@artifactory.com / artifactory);
@@ -59,6 +61,13 @@ services:
       - "127.0.0.1:5432:5432" # backend (on host) connects here
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      # Seed the initial admin user on first init. Postgres runs every script in
+      # /docker-entrypoint-initdb.d ONCE, only when the data directory is empty —
+      # i.e. on a fresh `postgres-data` volume. The script creates the `users`
+      # table if absent (the backend builds its schema via TypeORM synchronize on
+      # host boot) and inserts admin@artifactory.com. To re-seed later, run the
+      # app's `pnpm seed:admin` or recreate the volume (`docker compose down -v`).
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U artifactory -d artifactory"]
       interval: 5s
