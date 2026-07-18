@@ -70,3 +70,6 @@ _No open low-priority items._
 - **Test coverage is effectively complete** across controllers, services, use cases, repositories,
   and transformers.
 </content>
+
+
+- No termino de entender la persistencia de logs en la DB. Entonces para que sirve Redis?

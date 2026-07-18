@@ -25,6 +25,10 @@ const validEnv = (): Record<string, unknown> => ({
     THROTTLE_LIMIT: '100',
     THROTTLE_STREAM_TTL: '60000',
     THROTTLE_STREAM_LIMIT: '1000',
+    JWT_ACCESS_SECRET: 'access-secret',
+    JWT_ACCESS_EXPIRES_IN: '15m',
+    JWT_REFRESH_SECRET: 'refresh-secret',
+    JWT_REFRESH_EXPIRES_IN: '7d',
 });
 
 describe('validate', () => {

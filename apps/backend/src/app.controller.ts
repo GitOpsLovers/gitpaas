@@ -3,6 +3,8 @@ import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import type { HealthStatus } from './app.service';
 
+import { Public } from '@features/authentication/ui/decorators/public.decorator';
+
 /**
  * Main application controller
  */
@@ -15,6 +17,7 @@ export class AppController {
      *
      * @returns Health status
      */
+    @Public()
     @Get()
     public getHealth(): HealthStatus {
         return this.appService.getHealth();

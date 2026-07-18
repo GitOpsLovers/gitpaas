@@ -6,6 +6,7 @@ import { ReadinessResult } from '../../domain/models/readiness-result.model';
 import { ServerService } from '../services/server.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import { Public } from '@features/authentication/ui/decorators/public.decorator';
 
 /**
  * Server controller
@@ -27,6 +28,7 @@ export class ServerController {
      * @returns 200 with a per-dependency breakdown when every dependency is up;
      * 503 carrying the same breakdown when any dependency is down
      */
+    @Public()
     @Get('readiness')
     public async readiness(): Promise<ReadinessResult> {
         const result = await this.service.checkReadiness();
