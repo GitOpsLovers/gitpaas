@@ -16,10 +16,10 @@ ui ──────► application ──────► domain
 
 | Layer | Holds | Framework? |
 |------------|---|---|
-| **domain** | `models/` (plain interfaces + input/filter types), `repositories/` (port interfaces, arrow-fn props, domain terms only), `dtos/` (class-validator classes). Sub-folders as needed: `queues/`, `executors/`, `errors/`. | No — except DTOs |
+| **domain** | `models/` (plain interfaces + input/filter types), `repositories/` (port interfaces, arrow-fn props, domain terms only), `dtos/` (class-validator classes). Sub-folders as needed: `queues/`, `executors/`, `errors/`, `security/`. | No — except DTOs |
 | **application** | One `<verb>-<entity>.use-case.ts` per operation: a pure function receiving ports as params, exported as `<verb><Entity>UseCase`. | No |
-| **infrastructure** | Adapters implementing the ports, sub-foldered by tech (`database/`, `docker/`, `redis/`, `github/`, `rxjs/`, `log-store/`). Each pairs with a sibling `*.transformer.ts`. | Yes |
-| **ui** | `controllers/` (thin: routing, param/query extraction, HTTP errors) and `services/` (NestJS DI bridge handing injected adapters to use cases). | Yes |
+| **infrastructure** | Adapters implementing the ports, sub-foldered by tech (`database/`, `docker/`, `redis/`, `github/`, `passport/`, `security/`, `log-store/`). Each persistence/vendor adapter pairs with a sibling `*.transformer.ts`. | Yes |
+| **ui** | `controllers/` (thin: routing, param/query extraction, HTTP errors) and `services/` (NestJS DI bridge handing injected adapters to use cases). Also holds delivery-mechanism concerns like `guards/` and `decorators/` when a feature needs them. | Yes |
 
 This keeps use cases trivially testable (call the function with a fake port) and business rules independent of delivery mechanism.
 
@@ -46,16 +46,7 @@ Repositories (and other collaborators like the queue) are expressed as **port + 
 
 - **Port** — a plain `interface` (e.g. `ProjectsRepository`), methods as arrow-fn properties in domain terms (accept/return domain models and DTOs, never ORM/vendor types). Use cases depend only on this.
 - **Adapter** — an `@Injectable()` class that `implements` the port (e.g. `ProjectsDatabaseRepository`).
-- **Wiring** — the module lists the **concrete class** in `providers`; consumers inject **by class** (`@Inject(ProjectsDatabaseRepository)`, `import type` for the port type) but type the dependency as the **port**. No `{ provide: TOKEN, useClass }` indirection.
-
-```typescript
-@Module({
-    imports: [TypeOrmModule.forFeature([ProjectDbEntity])],
-    controllers: [ProjectsController],
-    providers: [ProjectsService, ProjectsDatabaseRepository],
-})
-export class ProjectsModule {}
-```
+- **Wiring** — the module lists the **concrete class** in `providers`; consumers inject **by class** (`@Inject(ProjectsDatabaseRepository)`, `import type` for the port type) but type the dependency as the **port**. No `{ provide: TOKEN, useClass }` indirection. See [`apps/backend/src/features/projects/projects.module.ts`](../apps/backend/src/features/projects/projects.module.ts) for the reference wiring.
 
 DTOs **flow whole** through the write path (`create(dto)`, `update(id, dto)`) — never unpacked into primitives.
 
@@ -67,10 +58,14 @@ No infrastructure repository returns raw ORM entities or vendor/Redis shapes. Ma
 
 ## Persistence
 
-- Root TypeORM connection configured once in `CoreModule` (`autoLoadEntities: true`, `synchronize: NODE_ENV !== 'production'`). Features only call `forFeature`. No migrations, no central entity list.
+- Root TypeORM connection configured once in `CoreModule` (`autoLoadEntities: true`, `synchronize: NODE_ENV !== 'production'`). Features only call `forFeature`. No central entity list.
 - Entities: `@Entity('<plural_snake_case>')`, class names end `DbEntity`. **UUID PKs** (`@PrimaryGeneratedColumn('uuid')`; domain `id: string`).
 - Custom column transformers convert non-native types at the persistence boundary.
-- **Data-level FK** is a *table* relationship, independent of module-DI direction: a child owns `@ManyToOne(() => ParentDbEntity, { onDelete: 'CASCADE' })`. The chain `project ◄ service ◄ deployment ◄ logs` cascades on delete.
+- **Data-level FK** is a *table* relationship, independent of module-DI direction: a child owns `@ManyToOne(() => ParentDbEntity, { onDelete: 'CASCADE' })`. Two cascade relationships exist today: the `project ◄ service ◄ deployment ◄ logs` chain, and `refresh_token ► user` (a user's refresh tokens cascade-delete with the user). The persisted deployment-queue table deliberately has **no** FK to its deployment — the two have independent lifecycles.
+
+### Schema management (no migrations)
+
+There is **no migration tooling** and no migration files in-tree. Schema changes are applied by TypeORM's `synchronize`, which is **on in development and off in production** (`NODE_ENV`-gated). Production is therefore expected to move to managed migrations, but that tooling is not yet configured — treat entity edits as dev-only auto-sync for now. There is no user-provisioning endpoint or in-tree seed script either; the first user(s) are provisioned out-of-band (see the authentication section).
 
 ## Validation
 
@@ -78,7 +73,7 @@ Write endpoints validate through **DTO classes** (class-validator), enforced by 
 
 ## HTTP & REST conventions
 
-Global prefix `api/v1` (set in `main.ts`); CORS on; port `PORT ?? 3000`. Controllers declare only the resource path (`@Controller('projects')`). CRUD shape:
+Global prefix `api/v1` (set in `main.ts`). Bootstrap also installs `helmet()` for baseline security headers and enables **credentialed CORS** restricted to an allowlist parsed from the required `CORS_ORIGIN` env var. The listen port comes from the validated env (`getOrThrow('PORT')`) — there is no hard-coded fallback. Every route is **authenticated by default** (see [Authentication](#authentication-global-guard--tokens)); public endpoints opt out explicitly. Controllers declare only the resource path (`@Controller('projects')`). CRUD shape:
 
 | Method & path | Notes |
 |---|---|
@@ -100,25 +95,63 @@ HTTP → ValidationPipe → Controller → Service → Use Case → Repository p
 
 Most features collaborate by importing a neighbour and injecting its exported repository (one-way module DI). Two patterns cover what plain CRUD-over-import does not:
 
-### Queue (decouple sync response from background work)
+### Queue (durable, DB-backed background work)
 
-To trigger work without coupling the caller to when/how it runs, enqueue a task on a **dependency-free queue** and let a consumer dequeue it. The queue is a **port + adapter**: domain declares `DeploymentQueue` with `enqueue(task)`; the producing feature's infrastructure supplies `RxjsDeploymentQueue` (wraps an RxJS `Subject`, exposes `dequeued$`) and **exports** it. Payload is the `DeploymentRunTask` domain model.
+To trigger work without coupling the caller to when/how it runs, a task is enqueued and a consumer dequeues it. The queue is a **port + adapter**: domain declares a `DeploymentQueue` port; the producing feature's infrastructure supplies the adapter and **exports** it. Unlike a fire-and-forget in-memory queue, this queue is **durable and at-least-once** — tasks survive process restarts, are retried on failure, and are dead-lettered when their attempts run out. Payload is the `DeploymentRunTask` domain model.
 
-The **deployments** feature is the reference. `POST /deployments` validates, persists a `pending` record, enqueues a run task, and returns the record (**with id**) immediately — the run is fire-and-forget. A background `DeploymentRunnerService` (`OnModuleInit`) subscribes to `dequeued$` and drives `runDeploymentUseCase`:
+The **deployments** feature is the reference. The DB-backed adapter persists each task as a row in a `deployment_queue_tasks` table and uses an internal RxJS `Subject` **only** as the in-process dispatch channel to the runner — no queue state lives solely in memory. A queue row moves through three states:
 
 ```
-mark running → fetch repo archive (providers) → docker executor up()
+queued ──(picked up)──► processing ──(ok)──► [row deleted]
+   ▲                         │
+   └──── retry (attempts<3) ─┤
+                             └──(attempts exhausted)──► failed  (dead-letter;
+                                                         deployment marked failed)
+```
+
+The port's operations map onto that lifecycle:
+
+- **enqueue** — persist a row (`status='queued'`, `attempts=0`), then emit it for immediate pickup.
+- **markProcessing** — set `processing` and increment `attempts`.
+- **markCompleted** — delete the row (terminal success; the deployment carries the durable outcome).
+- **markFailed** — record the error; re-enqueue while `attempts < MAX_ATTEMPTS` (=3), otherwise dead-letter the row (`status='failed'`) **and** mark the deployment `failed` so it is never stranded in `pending`.
+- **recoverPending** — on restart, reset every unfinished (`queued`/`processing`) row back to `queued` and re-emit it.
+
+`POST /deployments` validates, persists a `pending` deployment record, enqueues a run task, and returns the record (**with id**) immediately. A background `DeploymentRunnerService` (`OnModuleInit`) subscribes to the queue's stream and only then calls `recoverPending()` so interrupted work resumes. It serializes runs **per compose-project name** (RxJS `groupBy` + `concatMap`) while running distinct projects concurrently (`mergeMap`) — same-project `down`/`up` never race, but unrelated services still deploy in parallel. Each run drives `runDeploymentUseCase`:
+
+```
+markProcessing → fetch repo archive (providers) → docker executor up()
   (fans each output line to the logs write port `append`)
-  → mark success/failed → logStore.complete(status)
+  → mark success/failed → logStore.complete(status) → markCompleted
 ```
 
-The runner self-handles failures (a failed run becomes a persisted `failed` status, not an unhandled throw), with a last-resort guard in the subscriber.
+The use case self-handles expected failures (a failed run becomes a persisted `failed` status), and any truly-unexpected throw hits `markFailed` as a last-resort net that triggers retry/dead-lettering.
 
 ### Server-Sent Events (live streams)
 
 Streaming a long-running result uses **SSE**, not the CRUD table: a handler is `@Sse(...)` and returns an `Observable` of messages, one JSON-encoded event per emission, over a single long-lived response. It sits alongside the normal REST endpoints (which still serve durable history).
 
 The **logs** feature is the reference. It records and streams a deployment's output, owning the durable `logs` table and the write port the runner appends to.
+
+## Authentication (global guard & tokens)
+
+Authentication is a cross-cutting security posture, not a per-endpoint opt-in. The **authentication** feature wires JWT + Passport and registers a **global** guard (`APP_GUARD`) so **every route across the app requires a valid access token by default**. Endpoints that must be reachable without a token opt out with a `@Public()` decorator (a reflector-driven metadata flag the global guard reads). Guards and decorators live in the feature's `ui/` layer, following the same layering rule as controllers.
+
+The feature exposes an `auth` controller: `POST /auth/login` (public, rate-limited, credential check via a local Passport strategy), `POST /auth/refresh` (public — rotates tokens), `POST /auth/logout` (public, idempotent revoke), and `GET /auth/me` (protected, returns the current user with the password hash stripped). A `@CurrentUser()` param decorator surfaces the request's authenticated user.
+
+**Token model.** Two Passport strategies back it: a local strategy validating email + password on login, and a JWT strategy validating the Bearer access token on every protected request. The JWT strategy re-resolves the user on each request and **rejects deactivated accounts** (`isActive`), so a disabled user is locked out immediately rather than at token expiry. Access and refresh tokens are signed with **separate secrets and lifetimes** (`JWT_ACCESS_*` / `JWT_REFRESH_*`). Passwords are hashed with **argon2**.
+
+**Refresh-token rotation.** Refresh tokens are persisted in a `refresh_tokens` table (cascading with their user), stored **only as a SHA-256 hash** — never in plaintext — and keyed by a random `jti` carried in the token. Refreshing verifies the signature/expiry, looks up the stored row by `jti`, rejects it if missing/revoked/expired, compares the hash, re-checks that the user still exists and is active, then **revokes the old row and issues a fresh pair**. Rows are revoked, never deleted, so a replayed or already-rotated token is rejected.
+
+**Domain stays HTTP-free.** The feature raises domain errors (invalid credentials, invalid refresh token, inactive user); the service/strategy edge translates them into `UnauthorizedException`.
+
+> **RBAC is deferred.** A `role` (`admin` | `user`) is persisted on users but **no authorization guard consumes it yet** — every authenticated user has equal access. The field is groundwork, not enforced authz.
+
+> **SSE and auth.** The log-stream endpoint is protected (not `@Public()`), so it needs a Bearer token. Native `EventSource` cannot set an `Authorization` header, so the frontend must stream via a token-capable SSE client.
+
+### Users (support feature)
+
+The **users** feature is intentionally minimal: it has only `domain/` and `infrastructure/` layers — **no controller and no create-user use case**. It owns the `users` table (unique email, password hash, role, active flag, timestamps) and exports its repository (and `TypeOrmModule`) so `authentication` can read and verify credentials. There is deliberately **no public sign-up**: users are provisioned by an administrator out-of-band. This is the one feature that does not follow the full four-layer shape, by design.
 
 ## Notable infrastructure
 
@@ -134,15 +167,25 @@ SSE endpoint `GET /logs/:deploymentId/stream` emits `LogEvent`s; durable history
 
 **Deletion / cleanup.** DB FK cascade removes `service → deployments → logs`. Redis logs are purged on **deployment delete** and **service delete**. On service delete, `deleteServiceUseCase` also tears down the service's Docker footprint via `ServiceFootprintRepository.remove(service)` (best-effort per-resource: force-removes labeled containers + compose networks + images built for that project as `${projectName}_*`, **keeping shared pulled images**), then purges each deployment's Redis logs.
 
-**Server maintenance.** `ServerPrunerRepository` prunes images/volumes/stopped-containers (`PruneResult`). A separate `OrphanContainersRepository` force-removes Artifactory compose-labeled containers whose project matches no existing service (`OrphanRemovalResult`). The controller maps a daemon-unreachable error to `503` with a local-dev hint.
+**Server maintenance & readiness.** `ServerPrunerRepository` prunes images/volumes/stopped-containers (`PruneResult`). A separate `OrphanContainersRepository` force-removes Artifactory compose-labeled containers whose project matches no existing service (`OrphanRemovalResult`). The controller maps a daemon-unreachable error to `503` with a local-dev hint. The feature also exposes a **public readiness probe** — `GET /server/readiness` — that actively checks the critical dependencies (PostgreSQL, Redis, Docker daemon) in parallel via a `HealthProbe` port per dependency. Each probe is reported `up`/`down` (a throw counts as `down`, never rejecting the aggregate); the endpoint returns `200` with the per-dependency breakdown when all are up, or `503` carrying the same breakdown when any is down.
 
 **Read-only Docker features.** `containers` and `networks` list a service's running containers / compose networks by label; `providers` (GitHub App) lists repos/branches, resolves head commits, and fetches source archives. None use the DB.
 
 ## Module wiring
 
-- `AppModule` imports `CoreModule` + every feature module.
+- `AppModule` imports `CoreModule` + every feature module, and provides the app-wide cross-cutting bindings: the **global exception filter** (`APP_FILTER`) and the **global rate-limit guard** (`APP_GUARD`, `ThrottlerGuard`). The **global auth guard** (`JwtAuthGuard`, a second `APP_GUARD`) is provided by the authentication module. Note: the exception filter is wired here in `AppModule`, not in `CoreModule`.
 - `services` ↔ `deployments` resolve their mutual dependency via `forwardRef` on both sides. `deployments` imports `logs`, `providers`, `services` and exports its DB repository + queue.
-- **`@Global() CoreModule`** provides shared, dependency-free infrastructure injectable everywhere without importing a feature: root TypeORM config, `DockerClient` (lazy Dockerode over **TLS** to the VPS/DinD daemon, reads certs from `VPS_DOCKER_CERT_PATH`, 503 if missing), `RedisClient`, `DiagnosticLoggerService` (thin `Logger` wrapper), env validation, a global exception filter, and a docker controller.
+- **`@Global() CoreModule`** provides shared, dependency-free infrastructure injectable everywhere without importing a feature: root TypeORM config, `DockerClient` (lazy Dockerode over **TLS** to the VPS/DinD daemon, reads certs from `VPS_DOCKER_CERT_PATH`, 503 if missing), `RedisClient`, `DiagnosticLoggerService` (thin `Logger` wrapper), and a docker controller. Env validation runs at bootstrap.
+
+### Cross-cutting concerns
+
+Beyond the per-feature layering, four app-wide concerns are configured once at the root:
+
+- **Authentication** — a global JWT guard makes every route auth-by-default (see above).
+- **Rate limiting** — `ThrottlerModule` defines two named throttlers configured from env: `default` (applied globally) and `stream` (for long-lived SSE). Endpoints tune it locally: login uses a strict `@Throttle` (5 requests / 60s) to blunt brute force, and the log-stream endpoint uses `@SkipThrottle` on `default` plus `@Throttle` on `stream` so a persistent connection is not counted against the normal budget.
+- **Security headers** — `helmet()` is applied globally at bootstrap.
+- **Env validation** — a class-validator schema validates all configuration at boot and **fails fast** on any missing/invalid var (DB, Redis, GitHub App, VPS Docker TLS, CORS, throttling, and JWT settings). No silent fallbacks.
+- **Error envelope** — the global exception filter returns a consistent JSON shape (`statusCode`, `message`, `error`, `timestamp`, `path`), preserves `ValidationPipe` message arrays, and collapses unexpected errors into a generic 500 (no internal leakage). 5xx are logged with a stack trace, 4xx at warn.
 
 ## Conventions
 

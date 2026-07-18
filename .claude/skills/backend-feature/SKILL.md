@@ -26,6 +26,15 @@ Build bottom-up (inner layers first) under `apps/backend/src/features/<feature>/
 
 No migrations, no central entity list: entities auto-load and `synchronize` creates tables in non-production.
 
+## Authentication (auth by default)
+
+A global `JwtAuthGuard` is registered as `APP_GUARD` (in the `authentication` feature), so **every route is protected by default**. A new controller or endpoint automatically requires a valid Bearer access token — you do **not** wire any guard per feature.
+
+- **Public endpoints:** annotate the handler (or controller) with `@Public()` from the `authentication` feature's `ui/decorators` only for routes that must be reachable without a token (e.g. health/readiness, the auth login/refresh/logout endpoints).
+- **Reading the caller:** use the `@CurrentUser()` decorator (same `ui/decorators`) to access the authenticated user in a handler.
+- **Rate limiting:** a global `ThrottlerGuard` also applies. Use `@Throttle({...})` to tighten a limit (e.g. login) or `@SkipThrottle`/a named throttler for special traffic such as SSE streams.
+- **Authorization:** the `role` field on users is persisted but no RBAC guard is enforced yet — every authenticated user has equal access. Do not assume role checks exist.
+
 ## Transformers (mandatory)
 
 Repos **always return domain models**, never raw ORM/vendor shapes. In the sibling `<stem>.transformer.ts`, export **plain functions** `to<Entity>(entity): <Entity>` (persistence → domain); add the reverse as another function in the same file if writes need it. The repo imports and uses them (`rows.map(toEntity)`).

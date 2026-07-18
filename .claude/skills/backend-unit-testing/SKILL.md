@@ -13,6 +13,7 @@ Conventions for `apps/backend` unit specs. Runner: **Jest + ts-jest** (`apps/bac
   - **Services & controllers → NestJS testing module.** `Test.createTestingModule({...}).compile()` then `moduleRef.get(SutClass)` (`beforeEach` is `async`). Controllers under `controllers: [...]`, the SUT and injected deps under `providers: [...]`.
   - **Use cases → plain function calls.** Call the pure function with fake ports (`jest.fn()`); no testing module.
   - **Infra clients (`docker.client`, `redis.client`) → plain instantiation.** Not Nest providers, so `new Client(config)` and `jest.mock` the transport module (`dockerode`, `ioredis`).
+  - **Guards & Passport strategies → plain instantiation.** `new Guard(reflectorMock)` / `new Strategy(...mockedPorts)` with a fake `ExecutionContext`. For a guard extending Passport's `AuthGuard`, stub the base `canActivate` (spy on the prototype's prototype) so no real strategy runs; drive the `@Public()` branch via the mocked `Reflector`.
 - **Mock ports/collaborators as value providers:** `{ provide: <class>, useValue: <mock> }`, structurally mocked with `jest.fn()`. Type via `jest.Mocked<Pick<T, 'usedMethod'>>` (only what the SUT calls), `jest.Mocked<T>`, or `{} as jest.Mocked<T>`.
 - **Path aliases work in specs:** `@core/*` / `@features/*` resolve via `moduleNameMapper` in `jest.config.js`. Import cross-feature collaborators by alias.
 - `jest.clearAllMocks()` in `beforeEach`.
