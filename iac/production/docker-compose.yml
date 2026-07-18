@@ -1,0 +1,97 @@
+# Production control-plane stack for Artifactory.
+#
+# Brings up Artifactory itself (the control plane) on a VPS: the NestJS backend,
+# the Angular frontend (static SPA served by nginx), and the backend's own data
+# stores (PostgreSQL + Redis). This is the app that RUNS deployments; the apps it
+# deploys live on a remote Docker daemon reached over mTLS (VPS_DOCKER_*), exactly
+# as in local development (see iac/development/docker-compose.yml).
+#
+# This stack intentionally does NOT include a reverse proxy / TLS termination —
+# that is Phase 2 of the deployment roadmap. Host ports are published directly.
+#
+# Usage:
+#   cp .env.example .env        # then fill in secrets (JWT, GitHub App, DB pass)
+#   docker compose -f iac/production/docker-compose.yml up -d --build
+#
+# All configuration is environment-driven; copy .env.example to .env (auto-loaded
+# by compose from this directory) and edit it. Never commit a real .env.
+name: artifactory
+
+services:
+  postgres:
+    image: postgres:17.6-alpine3.22
+    container_name: artifactory-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:8.8.0-alpine3.23
+    container_name: artifactory-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  backend:
+    image: artifactory-backend:${IMAGE_TAG:-latest}
+    build:
+      # Build context is the repo root so the workspace lockfile/manifests are
+      # visible to the multi-stage build.
+      context: ../..
+      dockerfile: iac/production/backend.Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-26.1.0}
+        PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
+    container_name: artifactory-backend
+    restart: unless-stopped
+    # The backend reads its full configuration (DB/Redis/JWT/GitHub App/remote
+    # Docker) from the environment. env_file loads .env verbatim; unknown keys
+    # (e.g. POSTGRES_*) are ignored by the app's env validation.
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT:-3000}:${PORT:-3000}"
+    volumes:
+      # mTLS client certs (ca.pem / cert.pem / key.pem) used to reach the remote
+      # Docker daemon. Mounted read-only at VPS_DOCKER_CERT_PATH inside the app.
+      - ${VPS_CERT_HOST_PATH:-./certs}:${VPS_DOCKER_CERT_PATH:-/certs}:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    image: artifactory-frontend:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: iac/production/frontend.Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-26.1.0}
+        PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
+    container_name: artifactory-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    depends_on:
+      - backend
+
+volumes:
+  postgres-data:
+  redis-data:

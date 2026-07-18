@@ -110,9 +110,9 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
 **Work items:**
 
 - Add production **Dockerfile(s)** for the backend and frontend (multi-stage, production
-  dependencies only).
+  dependencies only). _DONE_
 - Author a **production compose stack** under `iac/production/` (control plane + PostgreSQL +
-  Redis + the remote Docker connection), parameterized by environment.
+  Redis + the remote Docker connection), parameterized by environment. _DONE_
 - Introduce **real TypeORM migrations** and drop `synchronize` everywhere. Existing entities
   become the baseline migration; schema changes ship as versioned migrations from here on.
 - Build a **one-line installer** that provisions Docker, generates the mTLS certificate material
