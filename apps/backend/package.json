@@ -28,19 +28,19 @@
     "pg": "8.22.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
-    "tar": "7.5.19",
-    "typeorm": "1.0.0"
+    "tar": "7.5.20",
+    "typeorm": "1.1.0"
   },
   "devDependencies": {
     "@gitopslovers/eslint-config-multistack": "1.16.2",
-    "@nestjs/cli": "11.0.23",
+    "@nestjs/cli": "11.0.24",
     "@nestjs/schematics": "11.1.0",
     "@nestjs/testing": "11.1.28",
     "@types/dockerode": "4.0.1",
     "@types/express": "5.0.6",
     "@types/jest": "30.0.0",
     "@types/node": "26.1.1",
-    "@types/supertest": "7.2.0",
+    "@types/supertest": "7.2.1",
     "eslint": "10.4.0",
     "globals": "17.7.0",
     "jest": "30.4.2",
