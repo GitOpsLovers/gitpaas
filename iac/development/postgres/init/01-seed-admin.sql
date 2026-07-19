@@ -21,9 +21,8 @@
 -- form avoids `synchronize` trying to ALTER the table when the app boots.
 --
 -- Idempotency: this file only runs on a FRESH volume, and the INSERT uses
--- ON CONFLICT (email) DO NOTHING. To re-seed after the fact, either run the
--- app's `pnpm seed:admin` or recreate the `postgres-data` volume
--- (`docker compose down -v`).
+-- ON CONFLICT (email) DO NOTHING. To re-seed after the fact, recreate the
+-- `postgres-data` volume (`docker compose down -v`) so this script runs again.
 
 -- TypeORM's PrimaryGeneratedColumn('uuid') defaults to uuid_generate_v4(), which
 -- needs the uuid-ossp extension. synchronize would create it too; do it here so
