@@ -1,0 +1,65 @@
+# =============================================================================
+# .dockerignore — shrinks the Docker build context (repo ROOT) for the
+# production images built by iac/production/{backend,frontend}.Dockerfile.
+#
+# Both Dockerfiles use the repo root as the build context and COPY only:
+#   - pnpm-lock.yaml, pnpm-workspace.yaml, package.json   (root manifests)
+#   - apps/backend  /  apps/frontend                      (app source + config)
+#   - iac/production/nginx.conf                            (frontend runtime)
+#
+# node_modules and build output are always produced INSIDE the build stages,
+# so anything the images don't strictly need is excluded here. Re-includes (!)
+# below bring back the few files a broad ignore would otherwise drop.
+# =============================================================================
+
+# --- Dependencies & package-manager caches ----------------------------------
+**/node_modules
+.pnpm-store
+**/.pnpm-store
+
+# --- Build outputs, compiler & tooling caches -------------------------------
+**/dist
+**/.angular
+**/.turbo
+**/coverage
+**/*.tsbuildinfo
+
+# --- Version control & CI metadata ------------------------------------------
+.git
+.gitignore
+.gitattributes
+.github
+
+# --- Editor / tooling / dev-environment -------------------------------------
+.vscode
+.idea
+.devcontainer
+.claude
+.tool-versions
+.editorconfig
+.releaserc.json
+skills-lock.json
+
+# --- Environment files & secrets (never bake into an image layer) -----------
+**/.env
+**/.env.*
+!**/.env.example
+
+# --- Documentation & non-build markdown -------------------------------------
+docs
+**/*.md
+
+# --- OS cruft & logs --------------------------------------------------------
+**/.DS_Store
+Thumbs.db
+**/*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# --- Infrastructure: drop all of iac/ EXCEPT the nginx config the frontend
+#     runtime stage copies. (Parent dirs are re-included step-by-step so the
+#     nested exception survives on every builder version.) -------------------
+iac/*
+!iac/production
+iac/production/*
+!iac/production/nginx.conf
