@@ -6,13 +6,13 @@ describe('github-app.transformer', () => {
             expect(
                 toGitRepository({
                     id: 42,
-                    full_name: 'gitopslovers/artifactory',
+                    full_name: 'gitopslovers/gitpaas',
                     default_branch: 'main',
                     private: true,
                 }),
             ).toEqual({
                 id: 42,
-                fullName: 'gitopslovers/artifactory',
+                fullName: 'gitopslovers/gitpaas',
                 defaultBranch: 'main',
                 private: true,
             });

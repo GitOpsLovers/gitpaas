@@ -9,7 +9,7 @@ describe('toQueuedDeploymentTask', () => {
             repositoryId: 42,
             commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
             composerPath: 'docker-compose.yml',
-            projectName: 'artifactory',
+            projectName: 'gitpaas',
             status: 'processing',
             attempts: 2,
             lastError: 'previous failure',
@@ -23,7 +23,7 @@ describe('toQueuedDeploymentTask', () => {
             repositoryId: 42,
             commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
             composerPath: 'docker-compose.yml',
-            projectName: 'artifactory',
+            projectName: 'gitpaas',
             status: 'processing',
             attempts: 2,
         });

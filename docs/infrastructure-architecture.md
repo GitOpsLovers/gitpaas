@@ -1,13 +1,13 @@
 # Infrastructure Architecture
 
-This document describes how Artifactory runs at the **infrastructure level**, in both development and production. For the application internals see [backend-architecture.md](./backend-architecture.md) and [frontend-architecture.md](./frontend-architecture.md); for where the platform is headed see [deployment-roadmap.md](./deployment-roadmap.md).
+This document describes how GitPaaS runs at the **infrastructure level**, in both development and production. For the application internals see [backend-architecture.md](./backend-architecture.md) and [frontend-architecture.md](./frontend-architecture.md); for where the platform is headed see [deployment-roadmap.md](./deployment-roadmap.md).
 
 ## Overview: two planes
 
-Artifactory is a self-hostable PaaS, and its topology splits cleanly into two planes.
+GitPaaS is a self-hostable PaaS, and its topology splits cleanly into two planes.
 Keeping them separate is the single most important idea in the infrastructure design.
 
-- **Control plane** — Artifactory *itself*: the NestJS backend (API + deploy engine), the Angular SPA (served as static files by nginx), and the backend's own data stores,   **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is the app the operator installs and logs into.
+- **Control plane** — GitPaaS *itself*: the NestJS backend (API + deploy engine), the Angular SPA (served as static files by nginx), and the backend's own data stores,   **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is the app the operator installs and logs into.
 - **Workload plane** — a **remote Docker host** where the user's deployed applications actually run. The control plane never runs user workloads in its own containers; it drives a Docker daemon reached **over the network via mTLS** and brings compose stacks up there.
 
 ```
@@ -33,7 +33,7 @@ The same split holds in development and production; only *where the daemon lives
 
 ## Development infrastructure
 
-The local stack lives in `iac/development/docker-compose.yml` (compose project `artifactory-dev`). It stands up the control plane's dependencies plus a stand-in for the remote VPS, while the backend and frontend themselves run **on the host** via `pnpm dev` (Turborepo), pointing at these services on `127.0.0.1`. Every published port is bound to loopback only.
+The local stack lives in `iac/development/docker-compose.yml` (compose project `gitpaas-dev`). It stands up the control plane's dependencies plus a stand-in for the remote VPS, while the backend and frontend themselves run **on the host** via `pnpm dev` (Turborepo), pointing at these services on `127.0.0.1`. Every published port is bound to loopback only.
 
 | Service                    | Role                                                                             |
 |----------------------------|----------------------------------------------------------------------------------|
@@ -50,7 +50,7 @@ That makes its inner daemon listen on `tcp://0.0.0.0:2376` **with TLS** and gene
 - The daemon's TLS port is published at `127.0.0.1:2376`, so the host-run backend can reach it over the Docker Engine API.
 - `/certs` is bind-mounted to the repo-root `./.dev/vps-certs`, so the generated **client certificates** (`ca.pem`, `cert.pem`, `key.pem`) are visible to the backend. The backend's `DockerClient` reads them from `VPS_DOCKER_CERT_PATH` and connects with **mutual TLS** — the client proves its identity to the daemon and vice-versa. If the certs are missing, the client fails fast (surfaced as `503` with a local-dev hint).
 
-Everything Artifactory deploys therefore lives *inside* the DinD container, exactly as real workloads would live on a remote VPS. A named volume (`vps-data`) persists the emulated host's images/volumes across restarts. The DinD container also **reserves host ports `8080`→`80` and `8443`→`443`** for the future reverse proxy (Phase 2); nothing routes to deployed apps yet.
+Everything GitPaaS deploys therefore lives *inside* the DinD container, exactly as real workloads would live on a remote VPS. A named volume (`vps-data`) persists the emulated host's images/volumes across restarts. The DinD container also **reserves host ports `8080`→`80` and `8443`→`443`** for the future reverse proxy (Phase 2); nothing routes to deployed apps yet.
 
 ```
 host: backend (pnpm dev)  ──mTLS──►  127.0.0.1:2376  ──►  DinD daemon
@@ -61,11 +61,11 @@ host: backend (pnpm dev)  ──mTLS──►  127.0.0.1:2376  ──►  DinD d
 
 ### Running it
 
-Bring the stack up with docker compose from `iac/development/`, then run the apps on the host with `pnpm dev`. On a fresh `postgres-data` volume, the init script seeds `admin@artifactory.com` / `artifactory` so login works immediately. Schema is created by TypeORM `synchronize` on backend boot (dev-only; see below).
+Bring the stack up with docker compose from `iac/development/`, then run the apps on the host with `pnpm dev`. On a fresh `postgres-data` volume, the init script seeds `admin@gitpaas.dev` / `gitpaas` so login works immediately. Schema is created by TypeORM `synchronize` on backend boot (dev-only; see below).
 
 ## Production infrastructure
 
-The production control-plane stack lives in `iac/production/` (compose project `artifactory`). It brings up `backend`, `frontend`, `postgres`, and `redis` — with named volumes for data (`postgres-data`, `redis-data`), healthchecks on every long-running service, and `depends_on … condition: service_healthy` gating so the backend only starts once its data stores are ready. It also adds a **one-shot `migrate` service** that bootstraps the schema before the backend starts (see below).
+The production control-plane stack lives in `iac/production/` (compose project `gitpaas`). It brings up `backend`, `frontend`, `postgres`, and `redis` — with named volumes for data (`postgres-data`, `redis-data`), healthchecks on every long-running service, and `depends_on … condition: service_healthy` gating so the backend only starts once its data stores are ready. It also adds a **one-shot `migrate` service** that bootstraps the schema before the backend starts (see below).
 
 This stack **intentionally omits a reverse proxy / TLS termination**; host ports are published directly (`BACKEND_PORT`, `FRONTEND_PORT`). Fronting the deployed apps with a proxy and automatic TLS is Phase 2 of the roadmap.
 
@@ -103,8 +103,8 @@ Images are published by a **manually triggered** GitHub Actions workflow (`.gith
 The workflow uses least-privilege token scopes (`contents`, `packages`, plus issues/PRs for release comments). The resulting images are **public**:
 
 ```
-ghcr.io/gitopslovers/artifactory-backend:{version|latest}
-ghcr.io/gitopslovers/artifactory-frontend:{version|latest}
+ghcr.io/gitopslovers/gitpaas-backend:{version|latest}
+ghcr.io/gitopslovers/gitpaas-frontend:{version|latest}
 ```
 
 Versioning is thus entirely commit-driven: `fix:` → patch, `feat:` → minor, a breaking change → major.
@@ -129,7 +129,7 @@ POST /deployments ─► persist `pending` ─► enqueue (durable, DB-backed)
 Key infrastructure properties:
 
 - **Durable queue.** Tasks are persisted (at-least-once, bounded retries, dead-lettering, restart recovery), so in-flight deployments survive a control-plane restart. Runs are   serialized **per compose-project name** while distinct projects run concurrently.
-- **Remote execution over mTLS.** The executor talks to the Docker daemon through the same `DockerClient` used everywhere — Dockerode over TLS, authenticating with the mounted client certificate. The trust relationship is the crux of the topology: the control plane holds a **client certificate signed by the daemon's CA**, so only Artifactory can drive that daemon, and it verifies the daemon's server certificate in turn. In development this CA/cert pair is generated by the DinD container; in production it is supplied by the operator (today) and by the installer (future Phase 1).
+- **Remote execution over mTLS.** The executor talks to the Docker daemon through the same `DockerClient` used everywhere — Dockerode over TLS, authenticating with the mounted client certificate. The trust relationship is the crux of the topology: the control plane holds a **client certificate signed by the daemon's CA**, so only GitPaaS can drive that daemon, and it verifies the daemon's server certificate in turn. In development this CA/cert pair is generated by the DinD container; in production it is supplied by the operator (today) and by the installer (future Phase 1).
 - **Live + durable logs.** Output streams live to the browser over Server-Sent Events via Redis, and is persisted to PostgreSQL for replayable history after the run ends.
 
 The same daemon backs the read-only operational features (container/network inspection, pruning, orphan cleanup) and the readiness probe, which checks PostgreSQL, Redis, and the Docker daemon in parallel.

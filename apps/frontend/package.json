@@ -1,5 +1,5 @@
 {
-  "name": "@gitopslovers/artifactory/frontend",
+  "name": "@gitopslovers/gitpaas/frontend",
   "scripts": {
     "dev": "ng serve",
     "build": "ng build",

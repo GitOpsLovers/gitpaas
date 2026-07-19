@@ -164,7 +164,7 @@ export class ServerMaintenanceComponent {
     }
 
     /**
-     * Force-removes orphaned Artifactory containers pending confirmation.
+     * Force-removes orphaned GitPaaS containers pending confirmation.
      */
     protected async confirmOrphanRemoval(): Promise<void> {
         this.running.set(true);

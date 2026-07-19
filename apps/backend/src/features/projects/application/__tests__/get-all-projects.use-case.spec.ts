@@ -4,7 +4,7 @@ import { getAllProjectsUseCase } from '../get-all-projects.use-case';
 
 describe('getAllProjectsUseCase', () => {
     const projects: Project[] = [
-        { id: '9c858901-8a57-4791-81fe-4c455b099bc9', name: 'Artifactory' },
+        { id: '9c858901-8a57-4791-81fe-4c455b099bc9', name: 'GitPaaS' },
     ];
 
     let repository: jest.Mocked<ProjectsRepository>;

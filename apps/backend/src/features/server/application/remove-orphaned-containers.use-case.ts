@@ -20,10 +20,10 @@ function composeProjectName(service: Service): string {
 }
 
 /**
- * Use case for force-removing orphaned Artifactory containers from the VPS.
+ * Use case for force-removing orphaned GitPaaS containers from the VPS.
  *
  * Computes the compose project names of every existing service and asks the
- * repository to remove any Artifactory container whose project isn't among them.
+ * repository to remove any GitPaaS container whose project isn't among them.
  *
  * @param orphanContainers Orphan containers repository
  * @param servicesRepository Services repository

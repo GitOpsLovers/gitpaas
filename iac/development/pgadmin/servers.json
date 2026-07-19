@@ -1,12 +1,12 @@
 {
   "Servers": {
     "1": {
-      "Name": "Artifactory (local)",
+      "Name": "GitPaaS (local)",
       "Group": "Servers",
       "Host": "postgres",
       "Port": 5432,
-      "MaintenanceDB": "artifactory",
-      "Username": "artifactory",
+      "MaintenanceDB": "gitpaas_db",
+      "Username": "gitpaas",
       "SSLMode": "prefer"
     }
   }

@@ -63,10 +63,10 @@ jobs:
         include:
           - name: backend
             dockerfile: iac/production/backend.Dockerfile
-            image: ghcr.io/gitopslovers/artifactory-backend
+            image: ghcr.io/gitopslovers/gitpaas-backend
           - name: frontend
             dockerfile: iac/production/frontend.Dockerfile
-            image: ghcr.io/gitopslovers/artifactory-frontend
+            image: ghcr.io/gitopslovers/gitpaas-frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

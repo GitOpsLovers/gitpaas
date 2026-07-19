@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🚀 Artifactory
+# 🚀 GitPaaS
 
 ### Your apps. Your servers. Your platform.
 
-**Artifactory is an open, self-hostable PaaS** — install it on your own VPS and deploy applications straight from git, the way you would with Vercel, Dokploy, or Coolify. Except here, *you* own the infrastructure end to end.
+**GitPaaS is an open, self-hostable PaaS** — install it on your own VPS and deploy applications straight from git, the way you would with Vercel, Dokploy, or Coolify. Except here, *you* own the infrastructure end to end.
 
 <br />
 
@@ -26,13 +26,13 @@
 
 ---
 
-## 🌟 What is Artifactory?
+## 🌟 What is GitPaaS?
 
-Point Artifactory at a git repository and it does the rest: it clones the repo at a specific commit, builds or pulls the images, and runs the resulting `docker-compose` stack on a Docker host you control — with a durable deployment queue and **live log streaming** to your browser.
+Point GitPaaS at a git repository and it does the rest: it clones the repo at a specific commit, builds or pulls the images, and runs the resulting `docker-compose` stack on a Docker host you control — with a durable deployment queue and **live log streaming** to your browser.
 
 There is no managed cloud in the middle. The platform and the apps it runs both live on *your* servers. You get the convenience of a modern PaaS with the control and privacy of self-hosting.
 
-> 💡 **In one line:** Artifactory is the control panel; your VPS is the runway.
+> 💡 **In one line:** GitPaaS is the control panel; your VPS is the runway.
 
 ---
 
@@ -53,16 +53,16 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 
 ## 🧭 How it works
 
-Artifactory splits cleanly into **two planes** — and keeping them separate is the core idea of the whole design.
+GitPaaS splits cleanly into **two planes** — and keeping them separate is the core idea of the whole design.
 
-- **🎛️ Control plane** — Artifactory *itself*: a NestJS API + deploy engine, an Angular web UI, plus its own **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is what you install and log into.
+- **🎛️ Control plane** — GitPaaS *itself*: a NestJS API + deploy engine, an Angular web UI, plus its own **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is what you install and log into.
 - **📦 Workload plane** — a **remote Docker host** where your deployed apps actually run. The control plane never runs your workloads in its own containers; it reaches out to a Docker daemon over the network via **mTLS** and brings your compose stacks up there.
 
 ```mermaid
 flowchart TD
     U["🧑‍💻 Operator / Users (browser)"] -->|HTTPS| CP
 
-    subgraph CP["🎛️ Control Plane · Artifactory"]
+    subgraph CP["🎛️ Control Plane · GitPaaS"]
         FE["Angular UI"] --- BE["NestJS API + deploy engine"]
         BE --- PG[("PostgreSQL")]
         BE --- RD[("Redis")]
@@ -83,7 +83,7 @@ A single deployment is one self-contained unit of work — *"bring this service'
 
 ## 🛠️ Tech stack
 
-Artifactory is a **Turborepo + pnpm** monorepo with two apps under `apps/`:
+GitPaaS is a **Turborepo + pnpm** monorepo with two apps under `apps/`:
 
 | Area                              | Stack                                                                    |
 |-----------------------------------|--------------------------------------------------------------------------|
@@ -132,8 +132,8 @@ Handy root scripts (all powered by Turborepo):
 Tagged releases publish **public, multi-arch** (`amd64` + `arm64`) container images to the GitHub Container Registry:
 
 ```
-ghcr.io/gitopslovers/artifactory-backend:{version|latest}
-ghcr.io/gitopslovers/artifactory-frontend:{version|latest}
+ghcr.io/gitopslovers/gitpaas-backend:{version|latest}
+ghcr.io/gitopslovers/gitpaas-frontend:{version|latest}
 ```
 
 ---
@@ -152,7 +152,7 @@ ghcr.io/gitopslovers/artifactory-frontend:{version|latest}
 
 ## 🗺️ Roadmap
 
-Artifactory today is a **working single-tenant deploy engine** — git → build → compose-up on a remote Docker host, with a durable queue and live logs. It's honestly **a work in progress**, actively evolving toward the full self-host PaaS vision.
+GitPaaS today is a **working single-tenant deploy engine** — git → build → compose-up on a remote Docker host, with a durable queue and live logs. It's honestly **a work in progress**, actively evolving toward the full self-host PaaS vision.
 
 The phased plan (each phase unlocks the next):
 
@@ -168,7 +168,7 @@ The phased plan (each phase unlocks the next):
 
 ## 🤝 Contributing
 
-Contributions are warmly welcome! 🎉 Whether it's a bug fix, a doc tweak, or a whole new feature, we'd love your help pushing Artifactory toward the full PaaS vision.
+Contributions are warmly welcome! 🎉 Whether it's a bug fix, a doc tweak, or a whole new feature, we'd love your help pushing GitPaaS toward the full PaaS vision.
 
 - Read **[CONTRIBUTING.md](./CONTRIBUTING.md)** for setup and workflow.
 - We follow **[Conventional Commits](https://www.conventionalcommits.org/)** — commit messages drive semantic versioning and releases.

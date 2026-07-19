@@ -311,7 +311,7 @@ describe('DockerodeDockerExecutor', () => {
         const rmMock = rm as jest.Mock;
         const tarXMock = tar.x as unknown as jest.Mock;
         const composeCtor = DockerodeCompose as unknown as jest.Mock;
-        const tempDir = '/tmp/artifactory-deploy-test';
+        const tempDir = '/tmp/gitpaas-deploy-test';
 
         beforeEach(() => {
             jest.clearAllMocks();

@@ -5,12 +5,12 @@ import { AuthTokens } from '../../domain/models/auth-tokens.model';
 /**
  * Storage key under which the access token is persisted.
  */
-const ACCESS_TOKEN_KEY = 'artifactory.accessToken';
+const ACCESS_TOKEN_KEY = 'gitpaas.accessToken';
 
 /**
  * Storage key under which the refresh token is persisted.
  */
-const REFRESH_TOKEN_KEY = 'artifactory.refreshToken';
+const REFRESH_TOKEN_KEY = 'gitpaas.refreshToken';
 
 @Injectable({ providedIn: 'root' })
 

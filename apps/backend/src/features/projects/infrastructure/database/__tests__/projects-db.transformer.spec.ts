@@ -7,13 +7,13 @@ describe('toProject', () => {
     it('maps the entity fields and derives servicesCount from the loaded relation', () => {
         const entity: ProjectDbEntity = {
             id: 'p-1',
-            name: 'Artifactory',
+            name: 'GitPaaS',
             services: [{} as ServiceDbEntity, {} as ServiceDbEntity, {} as ServiceDbEntity],
         };
 
         expect(toProject(entity)).toEqual({
             id: 'p-1',
-            name: 'Artifactory',
+            name: 'GitPaaS',
             servicesCount: 3,
         });
     });

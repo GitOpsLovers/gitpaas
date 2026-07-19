@@ -22,9 +22,9 @@ export class DockerOrphanContainersRepository implements OrphanContainersReposit
     ) {}
 
     /**
-     * Force-removes Artifactory containers whose compose project isn't in the
+     * Force-removes GitPaaS containers whose compose project isn't in the
      * known set. Only containers carrying the compose project label are
-     * considered, so system/DinD/non-Artifactory containers are never touched.
+     * considered, so system/DinD/non-GitPaaS containers are never touched.
      *
      * @param knownProjects Compose project names of the services that still exist
      *

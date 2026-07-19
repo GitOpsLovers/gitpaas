@@ -9,9 +9,9 @@ describe('buildDataSourceOptions', () => {
 
         process.env.DB_HOST = 'db.internal';
         process.env.DB_PORT = '5433';
-        process.env.DB_USER = 'artifactory';
+        process.env.DB_USER = 'gitpaas';
         process.env.DB_PASSWORD = 's3cr3t';
-        process.env.DB_NAME = 'artifactory_db';
+        process.env.DB_NAME = 'gitpaas_db';
         process.env.NODE_ENV = 'development';
     });
 
@@ -29,9 +29,9 @@ describe('buildDataSourceOptions', () => {
         expect(options).toMatchObject({
             host: 'db.internal',
             port: 5433,
-            username: 'artifactory',
+            username: 'gitpaas',
             password: 's3cr3t',
-            database: 'artifactory_db',
+            database: 'gitpaas_db',
         });
     });
 
