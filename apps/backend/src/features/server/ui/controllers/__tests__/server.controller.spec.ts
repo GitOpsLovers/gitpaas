@@ -38,7 +38,7 @@ describe('ServerController', () => {
             'pruneImages' | 'pruneVolumes' | 'pruneContainers' | 'removeOrphanedContainers' | 'checkReadiness'
         >
     >;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn' | 'error'>>;
+    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
     let sut: ServerController;
 
     beforeEach(async () => {
@@ -53,8 +53,6 @@ describe('ServerController', () => {
         };
 
         mockDiagnostics = {
-            log: jest.fn(),
-            warn: jest.fn(),
             error: jest.fn(),
         };
 
