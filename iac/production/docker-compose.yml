@@ -48,6 +48,29 @@ services:
       retries: 10
       start_period: 5s
 
+  # One-shot schema migrator. With synchronize disabled in production, TypeORM
+  # migrations own the schema; this service applies any pending migrations once
+  # against a healthy Postgres, then exits. It reuses the backend image (so the
+  # compiled migrations + DataSource ship inside dist/) and runs the TypeORM CLI
+  # directly against the COMPILED DataSource — the runtime image has no ts-node.
+  # The backend waits for this to finish successfully before it starts.
+  migrate:
+    image: artifactory-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: iac/production/backend.Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-26.1.0}
+        PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
+    container_name: artifactory-migrate
+    restart: "no"
+    env_file:
+      - .env
+    command: ["node", "./node_modules/typeorm/cli.js", "migration:run", "-d", "dist/src/core/infrastructure/database/data-source.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   backend:
     image: artifactory-backend:${IMAGE_TAG:-latest}
     build:
@@ -76,6 +99,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   frontend:
     image: artifactory-frontend:${IMAGE_TAG:-latest}

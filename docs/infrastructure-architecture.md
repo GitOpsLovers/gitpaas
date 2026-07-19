@@ -65,7 +65,7 @@ Bring the stack up with docker compose from `iac/development/`, then run the app
 
 ## Production infrastructure
 
-The production control-plane stack lives in `iac/production/` (compose project `artifactory`). It brings up four services — `backend`, `frontend`, `postgres`, `redis` — with named volumes for data (`postgres-data`, `redis-data`), healthchecks on every service, and `depends_on … condition: service_healthy` gating so the backend only starts once its data stores are ready.
+The production control-plane stack lives in `iac/production/` (compose project `artifactory`). It brings up `backend`, `frontend`, `postgres`, and `redis` — with named volumes for data (`postgres-data`, `redis-data`), healthchecks on every long-running service, and `depends_on … condition: service_healthy` gating so the backend only starts once its data stores are ready. It also adds a **one-shot `migrate` service** that bootstraps the schema before the backend starts (see below).
 
 This stack **intentionally omits a reverse proxy / TLS termination**; host ports are published directly (`BACKEND_PORT`, `FRONTEND_PORT`). Fronting the deployed apps with a proxy and automatic TLS is Phase 2 of the roadmap.
 
@@ -84,10 +84,14 @@ All configuration is **environment-driven**, documented by `iac/production/.env.
 
 The mTLS client certs (`ca.pem` / `cert.pem` / `key.pem`) are supplied by a **read-only bind mount** from a host path (`VPS_CERT_HOST_PATH`) into the backend container at `VPS_DOCKER_CERT_PATH`, keeping key material out of the image.
 
+### Schema bootstrap (migrations)
+
+With `NODE_ENV=production` the backend **disables** TypeORM `synchronize`, so the schema is owned by **versioned migrations** rather than created at app boot. The stack applies them with a **one-shot `migrate` service**: it reuses the backend image (the compiled migrations and DataSource ship inside `dist/`), waits for Postgres to be healthy, runs the TypeORM CLI's `migration:run` against the **compiled** DataSource once, then exits. The `backend` service gates on it with `depends_on … condition: service_completed_successfully`, so it only starts after the schema is up to date. Postgres, Redis, and the frontend are unaffected by this step.
+
 ### What is intentionally not here yet
 
 - **Reverse proxy / automatic TLS / domain routing** for *deployed apps* — Phase 2.
-- **Migrations and a one-line installer** — later Phase 1 slices. With `NODE_ENV=production` the backend **disables** TypeORM `synchronize`, so the schema must already exist; until the migrations slice lands there is no schema bootstrap and no admin seeding in this stack. See the roadmap for the plan and the interim workaround.
+- **A one-line installer** — a later Phase 1 slice. Migrations now bootstrap the schema automatically, but **production admin seeding is still not handled**: the existing admin seed is dev-only Postgres init SQL, so the first admin must be provisioned out-of-band until the installer lands. See the roadmap for the plan and the interim workaround.
 
 ## Release and image publishing
 
@@ -132,4 +136,4 @@ The same daemon backs the read-only operational features (container/network insp
 
 ## How it fits together / roadmap pointer
 
-The control plane is packaged and shipped as two public GHCR images and stood up with a small, env-driven compose stack; the workload plane is any Docker host it can reach over mTLS. Development mirrors this exactly, substituting a privileged DinD "vps" for the real remote host. The gaps that turn this from a working single-tenant engine into a full self-host PaaS — migrations and an installer (Phase 1), a reverse proxy with automatic TLS and domain routing (Phase 2), and beyond — are tracked in [deployment-roadmap.md](./deployment-roadmap.md).
+The control plane is packaged and shipped as two public GHCR images and stood up with a small, env-driven compose stack that migrates its own schema on start-up; the workload plane is any Docker host it can reach over mTLS. Development mirrors this exactly, substituting a privileged DinD "vps" for the real remote host. The gaps that turn this from a working single-tenant engine into a full self-host PaaS — the one-line installer (the rest of Phase 1), a reverse proxy with automatic TLS and domain routing (Phase 2), and beyond — are tracked in [deployment-roadmap.md](./deployment-roadmap.md).
