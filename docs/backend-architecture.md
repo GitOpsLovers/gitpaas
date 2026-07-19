@@ -58,14 +58,23 @@ No infrastructure repository returns raw ORM entities or vendor/Redis shapes. Ma
 
 ## Persistence
 
-- Root TypeORM connection configured once in `CoreModule` (`autoLoadEntities: true`, `synchronize: NODE_ENV !== 'production'`). Features only call `forFeature`. No central entity list.
+- Root TypeORM connection configured once in `CoreModule` via `forRootAsync`, spreading the shared connection-options factory and adding `autoLoadEntities: true` on top. Features only call `forFeature`. No central entity list.
 - Entities: `@Entity('<plural_snake_case>')`, class names end `DbEntity`. **UUID PKs** (`@PrimaryGeneratedColumn('uuid')`; domain `id: string`).
 - Custom column transformers convert non-native types at the persistence boundary.
 - **Data-level FK** is a *table* relationship, independent of module-DI direction: a child owns `@ManyToOne(() => ParentDbEntity, { onDelete: 'CASCADE' })`. Two cascade relationships exist today: the `project ◄ service ◄ deployment ◄ logs` chain, and `refresh_token ► user` (a user's refresh tokens cascade-delete with the user). The persisted deployment-queue table deliberately has **no** FK to its deployment — the two have independent lifecycles.
 
-### Schema management (no migrations)
+### Schema management (migrations)
 
-There is **no migration tooling** and no migration files in-tree. Schema changes are applied by TypeORM's `synchronize`, which is **on in development and off in production** (`NODE_ENV`-gated). Production is therefore expected to move to managed migrations, but that tooling is not yet configured — treat entity edits as dev-only auto-sync for now. There is no user-provisioning endpoint or in-tree seed script either; the first user(s) are provisioned out-of-band (see the authentication section).
+Production schema is owned by **versioned TypeORM migrations**; local **development and test still use `synchronize`** (both gated on `NODE_ENV !== 'production'`). The current schema — every entity — is captured as a single **baseline migration**, and every subsequent schema change ships as a generated, versioned migration. In production, entity edits are **no longer auto-applied**: they take effect only through a migration.
+
+A single **connection-options factory** built from `process.env` is the shared source of truth. It sets `synchronize` to `NODE_ENV !== 'production'` and `migrationsRun` to `false` (production runs migrations explicitly via a one-shot process, never implicitly at boot), and registers **entities and migrations by glob** — no code enumerates them. The glob extension is derived from how the process runs (`.ts` under ts-node for the local CLI, `.js` under `dist/` for the compiled runtime). Two consumers spread these options:
+
+- The **NestJS runtime** (`CoreModule`) adds `autoLoadEntities: true` on top, so Nest also picks up entities registered via `forFeature`.
+- A standalone **`DataSource`** (the factory's default export) is the target the **TypeORM CLI** drives (`-d`); it deliberately omits `autoLoadEntities`, discovering entities purely through the glob so the CLI is independent of the Nest DI container.
+
+Migrations are driven by **pnpm scripts** in the backend package. In development, `migration:generate` / `migration:create` run through ts-node against the source `DataSource`; `migration:revert` reverts the last migration. In production, `migration:run` executes the **compiled** migrations (`node` against `dist/`, no ts-node in the runtime image). Migration files live under the backend's `src/migrations/`. The workflow after changing an entity is: generate a migration, review it, and commit it alongside the entity change.
+
+There is still **no user-provisioning endpoint or in-tree seed script**; the first user(s) are provisioned out-of-band (see the authentication section).
 
 ## Validation
 

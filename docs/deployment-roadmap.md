@@ -71,12 +71,14 @@ grouped by priority.
   PaaS feature and it does not exist. The dev stack *reserves* the proxy ports (host `80`/`443`)
   but nothing routes traffic to deployed services or issues certificates. This needs a proxy
   adapter, a domain/route model, and Let's Encrypt automation.
-- **A production deploy story for Artifactory itself.** There is no application Dockerfile, the
-  production IaC directory is empty, and the schema is managed by TypeORM `synchronize` with no
-  migrations. Without these, "install it on a VPS" is not yet possible.
-- **A one-line installer.** Standing up the control plane today means manual, dev-oriented setup
-  (generating mTLS certs, seeding an admin). A `curl | sh`-style installer is required for a
-  self-host product.
+- **A one-line installer.** The production packaging now exists — multi-stage backend/frontend
+  images, an env-driven `iac/production/` compose stack, and versioned TypeORM migrations that
+  bootstrap the schema before the backend starts (production no longer relies on `synchronize`).
+  What is still missing is the turnkey glue: standing up the control plane today means manual,
+  dev-oriented setup (generating mTLS certs, and — because production seeding is not yet handled —
+  provisioning the first admin user out-of-band). A `curl | sh`-style installer that provisions
+  Docker, generates the mTLS material, brings up the stack, and seeds the first admin is required
+  for a self-host product.
 
 ### High
 
@@ -113,8 +115,9 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
   dependencies only). _DONE_
 - Author a **production compose stack** under `iac/production/` (control plane + PostgreSQL +
   Redis + the remote Docker connection), parameterized by environment. _DONE_
-- Introduce **real TypeORM migrations** and drop `synchronize` everywhere. Existing entities
-  become the baseline migration; schema changes ship as versioned migrations from here on.
+- Introduce **real TypeORM migrations** and drop `synchronize` in production. Existing entities
+  are captured as a baseline migration; schema changes ship as versioned migrations from here on,
+  while local dev and test keep `synchronize`. _DONE_
 - Build a **one-line installer** that provisions Docker, generates the mTLS certificate material
   the control plane uses to reach the Docker host, brings up the stack, runs migrations, and
   seeds the first admin user. (Today only the dev compose SQL init seeds an admin; there is no
@@ -191,9 +194,11 @@ a previous successful deployment from the UI.
 
 ## Recommended starting point
 
-Start with **Phase 1**, and within it the thin slice of **migrations + production compose +
-installer**. Nothing else in the roadmap can be validated on real infrastructure until Artifactory
-itself is installable on a VPS: Phase 2's proxy needs a running control plane to configure, and
-Phases 3–5 all assume a durable, migration-managed schema rather than `synchronize`. Landing the
-installable foundation first turns every later phase into an additive change on a system that can
+Finish **Phase 1**. Its foundation slices have largely landed — production images, the
+env-driven `iac/production/` compose stack, and versioned migrations that manage the production
+schema (dev and test still use `synchronize`). What remains is the **one-line installer** and the
+two **frontend fixes**. Nothing else in the roadmap can be validated on real infrastructure until
+Artifactory itself is installable on a VPS: Phase 2's proxy needs a running control plane to
+configure, and Phases 3–5 all assume the now-in-place migration-managed schema. Completing the
+installable foundation turns every later phase into an additive change on a system that can
 actually be run in production.

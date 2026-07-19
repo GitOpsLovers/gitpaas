@@ -24,7 +24,7 @@ Build bottom-up (inner layers first) under `apps/backend/src/features/<feature>/
 5. **module** — `<feature>.module.ts`: `TypeOrmModule.forFeature([<Entity>DbEntity])`, the controller, and `[<Feature>Service, <Feature>DatabaseRepository]` as providers.
 6. **register** — add the module to `imports` in `apps/backend/src/app.module.ts` (import via `@features/<feature>/<feature>.module`).
 
-No migrations, no central entity list: entities auto-load and `synchronize` creates tables in non-production.
+No central entity list: entities auto-load, and in dev/test `synchronize` creates tables automatically. Production, however, is migration-managed (`synchronize` off), so **adding or changing an entity requires a versioned migration** — after editing entities, run the backend's `migration:generate` pnpm script, review the generated file, and commit it with your change (`migration:revert` undoes the last one). See the "Schema management" section of `docs/backend-architecture.md`.
 
 ## Authentication (auth by default)
 

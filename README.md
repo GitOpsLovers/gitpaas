@@ -156,7 +156,7 @@ Artifactory today is a **working single-tenant deploy engine** — git → build
 
 The phased plan (each phase unlocks the next):
 
-1. **🧱 Self-host foundation** — production images, migrations, and a one-line installer.
+1. **🧱 Self-host foundation** — production images ✅ and migrations ✅ have landed; a one-line installer is still to come.
 2. **🌐 Public URLs** — a reverse proxy with automatic TLS and domain routing for deployed apps.
 3. **🔑 Env & secrets** — per-service configuration and encrypted secrets, injected at deploy time.
 4. **👥 Multi-tenancy** — ownership, attribution, and enforced RBAC.

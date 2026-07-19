@@ -57,6 +57,17 @@ docker compose down -v && rm -rf ../../.dev/vps-certs   # wipe all state
 
 On first `docker compose up` the `vps` container generates TLS certificates and shares the client certs with the host under `.dev/vps-certs/client/`; the backend reads them from there. Ports `8080`→`80` and `8443`→`443` on the `vps` are reserved for a future reverse proxy for deployed apps.
 
+### Database schema and migrations
+
+Locally, TypeORM `synchronize` is on (dev and test), so schema changes to entities are applied automatically on backend boot — you do not need a migration just to run the app. **Production**, however, runs with `synchronize` off and is managed by **versioned migrations**. So whenever you add or change an entity in a way that will ship to production, generate a migration and commit it with your change, from `apps/backend`:
+
+```bash
+pnpm --filter backend migration:generate src/migrations/<DescriptiveName>   # diff entities → new migration
+pnpm --filter backend migration:revert                                      # undo the last applied migration
+```
+
+Review the generated file before committing. (In production the compiled migrations are applied by a one-shot step via `migration:run`; see [infrastructure-architecture.md](./docs/infrastructure-architecture.md).)
+
 ## Running the apps
 
 With the dev stack healthy, run the apps from the repo root. Root scripts fan out to every workspace through Turborepo:
