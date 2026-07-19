@@ -215,3 +215,29 @@ See `jwt-auth.guard.spec.ts`, `jwt.strategy.spec.ts`, `local.strategy.spec.ts`. 
 
 - **Build via plain instantiation:** `new Guard(reflectorMock)` / `new Strategy(...mockedPorts)` with a fake `ExecutionContext`.
 - For a guard extending Passport's `AuthGuard`, stub the base `canActivate` (spy on the prototype's prototype) so no real strategy runs; drive the `@Public()` branch via the mocked `Reflector`.
+
+---
+
+## Decorator testing
+
+Custom decorators under `ui/decorators/` — param decorators (`createParamDecorator`) and metadata decorators (`SetMetadata` wrappers). Same thin UI/auth-primitive family as guards & strategies: no testing module, plain instantiation/direct calls. Reference specs: `current-user.decorator.spec.ts`, `public.decorator.spec.ts`.
+
+Plus all [Common conventions].
+
+### Param decorators (`createParamDecorator`) — test the extracted factory, not the wrapper
+
+NestJS keeps the factory callback passed to `createParamDecorator` internal, so the wrapper (`CurrentUser`) is unreachable from a spec. Convention: **extract the inline factory into a named, exported arrow** (`currentUserFactory`) and pass it by reference to `createParamDecorator`. This is behavior-preserving — the exported decorator keeps its name and behavior — and makes the extraction logic unit-testable, mirroring the guard/strategy approach (plain function + fake `ExecutionContext`).
+
+- **Fake `ExecutionContext` from `jest.fn()` mocks:** `switchToHttp` returns `{ getRequest }`, where `getRequest` returns the fixture request. Call the factory directly (`currentUserFactory(undefined, context)`) — no testing module.
+- **The factory is a pure function → invoke it by its imported name; no `sut` alias** (same rule as use cases).
+- **Assert:**
+  - returns the exact attached value — `toBe` on an inline fixture typed to the domain model (e.g. `request.user` is the `User`).
+  - reads through `switchToHttp().getRequest()` — both mocks called once (`toHaveBeenCalledTimes(1)`).
+  - the absent-value edge case — `toBeUndefined()` for an unauthenticated request shape (nothing attached).
+
+### Metadata decorators (`SetMetadata` wrappers, e.g. `Public`) — assert the key and the attached metadata
+
+Already testable as-is — no refactor needed.
+
+- **Pin the metadata key constant to its literal** — `expect(IS_PUBLIC_KEY).toBe('isPublic')`. Guards against silent drift that would break the guard/`Reflector` lookup reading it.
+- **Assert the decorator attaches the metadata:** apply it to a throwaway class **and** a method handler in the spec, read it back with a `Reflector` (`reflector.get(KEY, target)`), assert the value (`true`). Cover the undecorated case (metadata `undefined`).
