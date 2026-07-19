@@ -1,8 +1,8 @@
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { TokenStorageService } from './token-storage.service';
 
-const ACCESS_TOKEN_KEY = 'artifactory.accessToken';
-const REFRESH_TOKEN_KEY = 'artifactory.refreshToken';
+const ACCESS_TOKEN_KEY = 'gitpaas.accessToken';
+const REFRESH_TOKEN_KEY = 'gitpaas.refreshToken';
 
 const tokens: AuthTokens = { accessToken: 'access-1', refreshToken: 'refresh-1' };
 

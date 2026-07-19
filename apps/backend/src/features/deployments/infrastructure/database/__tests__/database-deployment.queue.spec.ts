@@ -19,7 +19,7 @@ function entity(overrides: Partial<DeploymentQueueTaskDbEntity> = {}): Deploymen
         repositoryId: 42,
         commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
         composerPath: 'docker-compose.yml',
-        projectName: 'artifactory',
+        projectName: 'gitpaas',
         status: 'queued',
         attempts: 0,
         lastError: null,
@@ -34,7 +34,7 @@ const runTask: DeploymentRunTask = {
     repositoryId: 42,
     commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
     composerPath: 'docker-compose.yml',
-    projectName: 'artifactory',
+    projectName: 'gitpaas',
 };
 
 describe('DatabaseDeploymentQueue', () => {

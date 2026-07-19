@@ -14,7 +14,7 @@ const repositoryId = 42;
 const repositories: GitRepository[] = [
     {
         id: repositoryId,
-        fullName: 'gitopslovers/artifactory',
+        fullName: 'gitopslovers/gitpaas',
         defaultBranch: 'main',
         private: true,
     },

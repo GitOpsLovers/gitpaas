@@ -1,5 +1,5 @@
 /**
- * Normalized outcome of removing orphaned Artifactory containers from the VPS.
+ * Normalized outcome of removing orphaned GitPaaS containers from the VPS.
  */
 export interface OrphanRemovalResult {
     removed: number;

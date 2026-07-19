@@ -66,7 +66,7 @@ export class ServerService {
     }
 
     /**
-     * Force-removes orphaned Artifactory containers from the VPS
+     * Force-removes orphaned GitPaaS containers from the VPS
      *
      * @returns Number of orphaned containers removed and their names
      */

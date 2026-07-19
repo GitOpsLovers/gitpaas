@@ -7,7 +7,7 @@ export const routes: Routes = [
         path: 'signin',
         canActivate: [guestGuard],
         loadComponent: () => import('@pages/auth/signin/signin.component').then((m) => m.SigninPage),
-        title: 'Sign in | Artifactory',
+        title: 'Sign in | GitPaaS',
     },
     {
         path: '',
@@ -23,12 +23,12 @@ export const routes: Routes = [
             {
                 path: 'dashboard',
                 loadComponent: () => import('@pages/dashboard/dashboard.component').then((m) => m.DashboardPage),
-                title: 'Dashboard | Artifactory',
+                title: 'Dashboard | GitPaaS',
             },
             {
                 path: 'server',
                 loadComponent: () => import('@pages/server/server.component').then((m) => m.ServerPage),
-                title: 'Server | Artifactory',
+                title: 'Server | GitPaaS',
             },
             {
                 path: 'projects',
@@ -36,32 +36,32 @@ export const routes: Routes = [
                     {
                         path: '',
                         loadComponent: () => import('@pages/projects/list/projects-list.component').then((m) => m.ProjectsListPage),
-                        title: 'Projects | Artifactory',
+                        title: 'Projects | GitPaaS',
                     },
                     {
                         path: 'add',
                         loadComponent: () => import('@pages/projects/add/project-add.component').then((m) => m.ProjectsAddPage),
-                        title: 'Add project | Artifactory',
+                        title: 'Add project | GitPaaS',
                     },
                     {
                         path: 'edit/:id',
                         loadComponent: () => import('@pages/projects/edit/project-edit.component').then((m) => m.ProjectsEditPage),
-                        title: 'Edit project | Artifactory',
+                        title: 'Edit project | GitPaaS',
                     },
                     {
                         path: ':id',
                         loadComponent: () => import('@pages/projects/detail/project-detail.component').then((m) => m.ProjectDetailPage),
-                        title: 'Project | Artifactory',
+                        title: 'Project | GitPaaS',
                     },
                     {
                         path: ':id/services/add',
                         loadComponent: () => import('@pages/services/add/service-add.component').then((m) => m.ServicesAddPage),
-                        title: 'Add service | Artifactory',
+                        title: 'Add service | GitPaaS',
                     },
                     {
                         path: ':id/services/edit/:serviceId',
                         loadComponent: () => import('@pages/services/edit/service-edit.component').then((m) => m.ServicesEditPage),
-                        title: 'Edit service | Artifactory',
+                        title: 'Edit service | GitPaaS',
                     },
                     {
                         path: ':id/services/:serviceId',
@@ -71,7 +71,7 @@ export const routes: Routes = [
                     {
                         path: ':id/services/:serviceId/:tab',
                         loadComponent: () => import('@pages/services/detail/service-detail.component').then((m) => m.ServiceDetailPage),
-                        title: 'Service | Artifactory',
+                        title: 'Service | GitPaaS',
                     },
                 ],
             },

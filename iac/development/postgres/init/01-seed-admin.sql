@@ -7,8 +7,8 @@
 -- bringing the local database up for the first time.
 --
 -- Credentials seeded here:
---   email:    admin@artifactory.com
---   password: artifactory   (plaintext dev password)
+--   email:    admin@gitpaas.dev
+--   password: gitpaas   (plaintext dev password)
 -- The stored value is an argon2id hash — generated with the backend's own
 -- Argon2PasswordHasher options ({ type: argon2id }, argon2 defaults:
 -- v=19, m=65536, t=3, p=4) — so the app can verify it at login.
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 
 INSERT INTO "users" ("email", "passwordHash", "role", "isActive", "createdAt", "updatedAt")
 VALUES (
-    'admin@artifactory.com',
+    'admin@gitpaas.dev',
     '$argon2id$v=19$m=65536,t=3,p=4$Psd8kXOF/34Yt98WwaM1hQ$4M1h8fjsYHd2agG3P8KTNZzw8qj4AaSwflT8+oRxsXY',
     'admin',
     true,

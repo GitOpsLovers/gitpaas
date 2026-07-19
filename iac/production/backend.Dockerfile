@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
 #
-# Production image for the Artifactory backend (NestJS control plane).
+# Production image for the GitPaaS backend (NestJS control plane).
 #
 # Multi-stage, pnpm-in-a-Turborepo build. The build context is the repo ROOT
 # (so the workspace lockfile + manifests are available); build with:
 #
-#   docker build -f iac/production/backend.Dockerfile -t artifactory-backend .
+#   docker build -f iac/production/backend.Dockerfile -t gitpaas-backend .
 #
 # Stages:
 #   base    — Node + corepack-pinned pnpm, matching .tool-versions.
@@ -45,18 +45,18 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/backend/package.json apps/backend/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter @gitopslovers/artifactory/backend...
+    pnpm install --frozen-lockfile --filter @gitopslovers/gitpaas/backend...
 
 # Compile the backend to apps/backend/dist.
 COPY apps/backend apps/backend
-RUN pnpm --filter @gitopslovers/artifactory/backend build
+RUN pnpm --filter @gitopslovers/gitpaas/backend build
 
 # Produce a portable bundle: prod-only deps with a real node_modules directory
 # (pnpm deploy de-symlinks the store), ready to copy into the runtime stage.
 # --legacy: there are no injected workspace deps, so use the classic deploy path
 # (pnpm v10+ otherwise requires inject-workspace-packages).
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm --filter @gitopslovers/artifactory/backend --prod --legacy deploy /prod/backend
+    pnpm --filter @gitopslovers/gitpaas/backend --prod --legacy deploy /prod/backend
 
 # ---------------------------------------------------------------------------
 # runtime: minimal, non-root

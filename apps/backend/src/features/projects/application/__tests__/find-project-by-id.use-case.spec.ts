@@ -5,7 +5,7 @@ import { findProjectByIdUseCase } from '../find-project-by-id.use-case';
 describe('findProjectByIdUseCase', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
-    const project: Project = { id, name: 'Artifactory' };
+    const project: Project = { id, name: 'GitPaaS' };
 
     let repository: jest.Mocked<ProjectsRepository>;
 

@@ -1,6 +1,6 @@
 # Deployment Roadmap — toward a self-hostable PaaS
 
-This document tracks where Artifactory's deployment system stands today and the path to
+This document tracks where GitPaaS's deployment system stands today and the path to
 turning it into a self-hostable Platform-as-a-Service (PaaS). It is a planning document,
 not a specification of current behavior; for how the shipped system works, see
 [backend-architecture.md](./backend-architecture.md), [backend-business.md](./backend-business.md),
@@ -8,16 +8,16 @@ and [frontend-architecture.md](./frontend-architecture.md).
 
 ## Vision
 
-Artifactory aims to be a **self-hosted PaaS** in the spirit of Vercel, Dokploy, and Coolify:
+GitPaaS aims to be a **self-hosted PaaS** in the spirit of Vercel, Dokploy, and Coolify:
 a user installs it on their own VPS and deploys their applications through it. The product
-promise is simple — point Artifactory at a git repository, and it builds, runs, and exposes
+promise is simple — point GitPaaS at a git repository, and it builds, runs, and exposes
 the app over HTTPS on a domain, all on infrastructure the user owns and controls. There is no
 managed cloud in the middle: the control plane and the workloads it runs both live on the
 user's own servers.
 
 ## Current state
 
-Artifactory is already a **working single-tenant deploy engine**, not merely a data store with
+GitPaaS is already a **working single-tenant deploy engine**, not merely a data store with
 a job queue. The control plane runs one deployment as a self-contained unit of work — "bring a
 service's compose stack up on the VPS" — by cloning a GitHub repository at a resolved commit,
 building the repo's `build:` services and pulling the rest, and running the resulting
@@ -99,12 +99,12 @@ grouped by priority.
 
 ## Phased roadmap
 
-The phases are ordered so each one unlocks the next. Phase 1 makes Artifactory installable;
+The phases are ordered so each one unlocks the next. Phase 1 makes GitPaaS installable;
 Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-user product.
 
 ### Phase 1 — Self-host foundation
 
-**Goal:** a fresh VPS can be turned into a running Artifactory control plane with one command.
+**Goal:** a fresh VPS can be turned into a running GitPaaS control plane with one command.
 
 **Work items:**
 
@@ -125,13 +125,13 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
   - The log stream now uses a token-capable SSE client (`fetch` + `ReadableStream`) that sends the
     `Authorization: Bearer` header, so the protected log endpoint works under the auth-by-default guard.
 
-**Definition of done:** running the install script on a fresh VPS produces a reachable Artifactory
+**Definition of done:** running the install script on a fresh VPS produces a reachable GitPaaS
 control plane, with the database created via migrations (no `synchronize`) and an admin account
 seeded — no manual cert or database setup required.
 
 ### Phase 2 — Public URLs for deployed apps
 
-**Goal:** an app deployed through Artifactory is reachable over HTTPS at a domain.
+**Goal:** an app deployed through GitPaaS is reachable over HTTPS at a domain.
 
 **Work items:**
 
@@ -160,7 +160,7 @@ plaintext to the client.
 
 ### Phase 4 — Multi-tenancy
 
-**Goal:** multiple users can safely share one Artifactory instance, each owning their own apps.
+**Goal:** multiple users can safely share one GitPaaS instance, each owning their own apps.
 
 **Work items:**
 
@@ -196,7 +196,7 @@ Finish **Phase 1**. Its foundation slices have largely landed — production ima
 env-driven `iac/production/` compose stack, and versioned migrations that manage the production
 schema (dev and test still use `synchronize`), and the two **frontend fixes** that blocked
 non-local installs have landed. What remains is the **one-line installer**. Nothing else in the roadmap can be validated on real infrastructure until
-Artifactory itself is installable on a VPS: Phase 2's proxy needs a running control plane to
+GitPaaS itself is installable on a VPS: Phase 2's proxy needs a running control plane to
 configure, and Phases 3–5 all assume the now-in-place migration-managed schema. Completing the
 installable foundation turns every later phase into an additive change on a system that can
 actually be run in production.

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to **Artifactory**, a self-hostable PaaS for deploying personal projects. This repo is a [Turborepo](https://turborepo.dev) monorepo managed with pnpm workspaces; the backend is [NestJS](https://nestjs.com) and the frontend is [Angular](https://angular.dev), both TypeScript.
+Thanks for contributing to **GitPaaS**, a self-hostable PaaS for deploying personal projects. This repo is a [Turborepo](https://turborepo.dev) monorepo managed with pnpm workspaces; the backend is [NestJS](https://nestjs.com) and the frontend is [Angular](https://angular.dev), both TypeScript.
 
 For architecture and design context, start with the docs and come back here for the day-to-day workflow:
 
@@ -44,10 +44,10 @@ The variables cover:
 
 ## Local development stack
 
-Artifactory deploys applications by driving a **remote Docker daemon over mTLS** (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally, the stack in `iac/development/docker-compose.yml` reproduces everything the apps depend on:
+GitPaaS deploys applications by driving a **remote Docker daemon over mTLS** (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally, the stack in `iac/development/docker-compose.yml` reproduces everything the apps depend on:
 
-- **`vps`** — a Docker-in-Docker (DinD) container that emulates the remote VPS. Its daemon listens on TLS `127.0.0.1:2376`, and everything Artifactory deploys lives inside it.
-- **`postgres`** — the application database. On a fresh volume it seeds an initial admin user for login (`admin@artifactory.com` / `artifactory`).
+- **`vps`** — a Docker-in-Docker (DinD) container that emulates the remote VPS. Its daemon listens on TLS `127.0.0.1:2376`, and everything GitPaaS deploys lives inside it.
+- **`postgres`** — the application database. On a fresh volume it seeds an initial admin user for login (`admin@gitpaas.dev` / `gitpaas`).
 - **`redis`** — buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
 - **`pgadmin`** — web UI for the local Postgres at http://127.0.0.1:5050.
 - **`redisinsight`** — web UI for the local Redis at http://127.0.0.1:5540.
@@ -154,6 +154,6 @@ Common types and how they affect a release:
 Releases are **cut manually**, not on every merge to `main`. A maintainer triggers the `Release` GitHub Actions workflow (`workflow_dispatch`), which:
 
 1. Runs **semantic-release** to compute the next version from the Conventional Commits since the last tag, then creates the git tag and GitHub Release with generated notes.
-2. Only if a new release was published, builds and pushes multi-arch backend and frontend images to **GHCR** (`ghcr.io/gitopslovers/artifactory-backend` and `-frontend`), tagged with the resolved version and `latest`.
+2. Only if a new release was published, builds and pushes multi-arch backend and frontend images to **GHCR** (`ghcr.io/gitopslovers/gitpaas-backend` and `-frontend`), tagged with the resolved version and `latest`.
 
 See [infrastructure-architecture.md](./docs/infrastructure-architecture.md) for the full image/deploy detail — this section is only a pointer.

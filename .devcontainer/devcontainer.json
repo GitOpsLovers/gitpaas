@@ -21,15 +21,15 @@
       }
     }
   },
-  "name": "Artifactory Development container",
+  "name": "GitPaaS Development container",
   "runArgs": [
-    "--name", "artifactory-devcontainer",
+    "--name", "gitpaas-devcontainer",
     "--network", "host"
   ],
   "mounts": [
-    "source=artifactory-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
-    "source=artifactory-frontend-node-modules,target=${containerWorkspaceFolder}/apps/frontend/node_modules,type=volume",
-    "source=artifactory-backend-node-modules,target=${containerWorkspaceFolder}/apps/backend/node_modules,type=volume"
+    "source=gitpaas-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=gitpaas-frontend-node-modules,target=${containerWorkspaceFolder}/apps/frontend/node_modules,type=volume",
+    "source=gitpaas-backend-node-modules,target=${containerWorkspaceFolder}/apps/backend/node_modules,type=volume"
   ],
   "postCreateCommand": "pnpm install"
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@gitopslovers/artifactory/backend",
+  "name": "@gitopslovers/gitpaas/backend",
   "scripts": {
     "build": "nest build",
     "start": "nest start",

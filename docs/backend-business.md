@@ -60,4 +60,4 @@ The four-state lifecycle is `pending → running → success | failed`.
 
 ## Server maintenance
 
-The `server` feature prunes unused images/volumes/stopped containers on the VPS and removes orphaned Artifactory containers whose compose project matches no existing service. A daemon-unreachable error surfaces as `503`. It also exposes a public **readiness probe** (`GET /api/v1/server/readiness`) that checks the critical dependencies — PostgreSQL, Redis, and the Docker daemon — and returns `503` with a per-dependency breakdown if any is down.
+The `server` feature prunes unused images/volumes/stopped containers on the VPS and removes orphaned GitPaaS containers whose compose project matches no existing service. A daemon-unreachable error surfaces as `503`. It also exposes a public **readiness probe** (`GET /api/v1/server/readiness`) that checks the critical dependencies — PostgreSQL, Redis, and the Docker daemon — and returns `503` with a per-dependency breakdown if any is down.

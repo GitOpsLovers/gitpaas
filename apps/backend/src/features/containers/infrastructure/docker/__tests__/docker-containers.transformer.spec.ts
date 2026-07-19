@@ -8,8 +8,8 @@ import { toContainer } from '../docker-containers.transformer';
 function containerInfo(overrides: Partial<Docker.ContainerInfo> = {}): Docker.ContainerInfo {
     return {
         Id: 'c0ffee0011223344556677889900aabbccddeeff',
-        Names: ['/artifactory-api'],
-        Image: 'artifactory/api:latest',
+        Names: ['/gitpaas-api'],
+        Image: 'gitpaas/api:latest',
         State: 'running',
         Status: 'Up 2 hours',
         Created: 1_700_000_000,
@@ -22,8 +22,8 @@ describe('toContainer', () => {
     it('maps a full container summary, stripping the leading slash from the name and mapping ports', () => {
         expect(toContainer(containerInfo())).toEqual({
             id: 'c0ffee0011223344556677889900aabbccddeeff',
-            name: 'artifactory-api',
-            image: 'artifactory/api:latest',
+            name: 'gitpaas-api',
+            image: 'gitpaas/api:latest',
             state: 'running',
             status: 'Up 2 hours',
             createdAt: new Date(1_700_000_000 * 1000),

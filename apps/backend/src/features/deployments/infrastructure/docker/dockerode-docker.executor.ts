@@ -70,7 +70,7 @@ export class DockerodeDockerExecutor implements DockerExecutor {
      */
     public async up(archive: Buffer, composePath: string, projectName: string, onLog?: DockerLogListener): Promise<void> {
         const emit = (line: string): void => onLog?.(line);
-        const directory = await mkdtemp(join(tmpdir(), 'artifactory-deploy-'));
+        const directory = await mkdtemp(join(tmpdir(), 'gitpaas-deploy-'));
 
         try {
             emit('▶ Extracting repository…');

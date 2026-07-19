@@ -1,4 +1,4 @@
-# Artifactory — Project conventions
+# GitPaaS — Project conventions
 
 ## Tech stack
 

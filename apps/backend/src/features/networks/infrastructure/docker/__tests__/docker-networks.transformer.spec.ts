@@ -6,7 +6,7 @@ describe('toNetwork', () => {
     it('maps every network field and converts the ISO created timestamp to a Date', () => {
         const info = {
             Id: 'n-1',
-            Name: 'artifactory_default',
+            Name: 'gitpaas_default',
             Driver: 'bridge',
             Scope: 'local',
             Internal: false,
@@ -16,7 +16,7 @@ describe('toNetwork', () => {
 
         expect(toNetwork(info)).toEqual({
             id: 'n-1',
-            name: 'artifactory_default',
+            name: 'gitpaas_default',
             driver: 'bridge',
             scope: 'local',
             internal: false,

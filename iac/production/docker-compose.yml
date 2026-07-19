@@ -1,6 +1,6 @@
-# Production control-plane stack for Artifactory.
+# Production control-plane stack for GitPaaS.
 #
-# Brings up Artifactory itself (the control plane) on a VPS: the NestJS backend,
+# Brings up GitPaaS itself (the control plane) on a VPS: the NestJS backend,
 # the Angular frontend (static SPA served by nginx), and the backend's own data
 # stores (PostgreSQL + Redis). This is the app that RUNS deployments; the apps it
 # deploys live on a remote Docker daemon reached over mTLS (VPS_DOCKER_*), exactly
@@ -15,12 +15,12 @@
 #
 # All configuration is environment-driven; copy .env.example to .env (auto-loaded
 # by compose from this directory) and edit it. Never commit a real .env.
-name: artifactory
+name: gitpaas
 
 services:
   postgres:
     image: postgres:17.6-alpine3.22
-    container_name: artifactory-postgres
+    container_name: gitpaas-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -37,7 +37,7 @@ services:
 
   redis:
     image: redis:8.8.0-alpine3.23
-    container_name: artifactory-redis
+    container_name: gitpaas-redis
     restart: unless-stopped
     volumes:
       - redis-data:/data
@@ -55,14 +55,14 @@ services:
   # directly against the COMPILED DataSource — the runtime image has no ts-node.
   # The backend waits for this to finish successfully before it starts.
   migrate:
-    image: artifactory-backend:${IMAGE_TAG:-latest}
+    image: gitpaas-backend:${IMAGE_TAG:-latest}
     build:
       context: ../..
       dockerfile: iac/production/backend.Dockerfile
       args:
         NODE_VERSION: ${NODE_VERSION:-26.1.0}
         PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
-    container_name: artifactory-migrate
+    container_name: gitpaas-migrate
     restart: "no"
     env_file:
       - .env
@@ -72,7 +72,7 @@ services:
         condition: service_healthy
 
   backend:
-    image: artifactory-backend:${IMAGE_TAG:-latest}
+    image: gitpaas-backend:${IMAGE_TAG:-latest}
     build:
       # Build context is the repo root so the workspace lockfile/manifests are
       # visible to the multi-stage build.
@@ -81,7 +81,7 @@ services:
       args:
         NODE_VERSION: ${NODE_VERSION:-26.1.0}
         PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
-    container_name: artifactory-backend
+    container_name: gitpaas-backend
     restart: unless-stopped
     # The backend reads its full configuration (DB/Redis/JWT/GitHub App/remote
     # Docker) from the environment. env_file loads .env verbatim; unknown keys
@@ -103,14 +103,14 @@ services:
         condition: service_completed_successfully
 
   frontend:
-    image: artifactory-frontend:${IMAGE_TAG:-latest}
+    image: gitpaas-frontend:${IMAGE_TAG:-latest}
     build:
       context: ../..
       dockerfile: iac/production/frontend.Dockerfile
       args:
         NODE_VERSION: ${NODE_VERSION:-26.1.0}
         PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
-    container_name: artifactory-frontend
+    container_name: gitpaas-frontend
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8080}:8080"

@@ -48,7 +48,7 @@ const task: QueuedDeploymentTask = {
     repositoryId: 42,
     commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
     composerPath: 'docker-compose.yml',
-    projectName: 'artifactory',
+    projectName: 'gitpaas',
     status: 'queued',
     attempts: 0,
 };
@@ -167,8 +167,8 @@ describe('DeploymentRunnerService', () => {
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('artifactory', 'task-a', 'deploy-a');
-        const taskB = taskFor('artifactory', 'task-b', 'deploy-b');
+        const taskA = taskFor('gitpaas', 'task-a', 'deploy-a');
+        const taskB = taskFor('gitpaas', 'task-b', 'deploy-b');
 
         await sut.onModuleInit();
         dequeued.next(taskA);
@@ -248,8 +248,8 @@ describe('DeploymentRunnerService', () => {
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('artifactory', 'task-a', 'deploy-a');
-        const taskB = taskFor('artifactory', 'task-b', 'deploy-b');
+        const taskA = taskFor('gitpaas', 'task-a', 'deploy-a');
+        const taskB = taskFor('gitpaas', 'task-b', 'deploy-b');
 
         await sut.onModuleInit();
         dequeued.next(taskA);

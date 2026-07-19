@@ -5,7 +5,7 @@ import { listRepositoriesUseCase } from '../list-repositories.use-case';
 describe('listRepositoriesUseCase', () => {
     const repositories: GitRepository[] = [
         {
-            id: 42, fullName: 'gitopslovers/artifactory', defaultBranch: 'main', private: true,
+            id: 42, fullName: 'gitopslovers/gitpaas', defaultBranch: 'main', private: true,
         },
     ];
 

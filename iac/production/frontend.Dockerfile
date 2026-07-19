@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
 #
-# Production image for the Artifactory frontend (Angular SPA).
+# Production image for the GitPaaS frontend (Angular SPA).
 #
 # Multi-stage, pnpm-in-a-Turborepo build. The build context is the repo ROOT
 # (so the workspace lockfile + manifests are available); build with:
 #
-#   docker build -f iac/production/frontend.Dockerfile -t artifactory-frontend .
+#   docker build -f iac/production/frontend.Dockerfile -t gitpaas-frontend .
 #
 # Stages:
 #   base    — Node + corepack-pinned pnpm, matching .tool-versions.
@@ -37,12 +37,12 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/frontend/package.json apps/frontend/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter @gitopslovers/artifactory/frontend...
+    pnpm install --frozen-lockfile --filter @gitopslovers/gitpaas/frontend...
 
 # Build the production bundle (Angular's `application` builder emits to
 # apps/frontend/dist/frontend/browser).
 COPY apps/frontend apps/frontend
-RUN pnpm --filter @gitopslovers/artifactory/frontend build
+RUN pnpm --filter @gitopslovers/gitpaas/frontend build
 
 # ---------------------------------------------------------------------------
 # runtime: non-root nginx serving the static files

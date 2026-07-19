@@ -5,7 +5,7 @@ description: Use this skill when you need to perform Git-related tasks on this p
 
 # Git & GitHub workflow skill
 
-This skill is the single source of truth for how the **Artifactory** monorepo performs version control. All Git/GitHub operations are executed by the `git-manager` subagent, which follows this procedure exactly.
+This skill is the single source of truth for how the **GitPaaS** monorepo performs version control. All Git/GitHub operations are executed by the `git-manager` subagent, which follows this procedure exactly.
 
 ## Branch strategy & naming
 
@@ -42,7 +42,7 @@ The project convention is to run `rtk pnpm run test` (or the affected app's test
 
 ## Committing & opening the PR
 
-Commits and PRs are made with plain `git` + `gh`, authenticated as the developer via their existing local git/gh configuration — no tokens, credentials files, or identity overrides. The repo is `GitOpsLovers/artifactory`. Run everything through `rtk`:
+Commits and PRs are made with plain `git` + `gh`, authenticated as the developer via their existing local git/gh configuration — no tokens, credentials files, or identity overrides. The repo is `GitOpsLovers/gitpaas`. Run everything through `rtk`:
 
 1. **Branch** from the latest `main` per the branch-strategy section above.
 2. **Stage** only the intended files (`rtk git add <paths>`); do not blind-add unrelated changes.

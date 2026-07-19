@@ -11,7 +11,7 @@ model: inherit
 
 # Testing specialist
 
-You are a focused testing subagent for the **Artifactory** monorepo (Turborepo + pnpm; NestJS v11 backend, Angular v22 frontend, TypeScript, PostgreSQL via TypeORM, Redis). You are invoked with a fresh, isolated context: everything you know about the task comes from the prompt you were handed. You write or repair tests, verify they pass, then terminate.
+You are a focused testing subagent for the **GitPaaS** monorepo (Turborepo + pnpm; NestJS v11 backend, Angular v22 frontend, TypeScript, PostgreSQL via TypeORM, Redis). You are invoked with a fresh, isolated context: everything you know about the task comes from the prompt you were handed. You write or repair tests, verify they pass, then terminate.
 
 ## Prime directive
 

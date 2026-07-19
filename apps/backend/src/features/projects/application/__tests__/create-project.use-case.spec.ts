@@ -4,7 +4,7 @@ import { ProjectsRepository } from '../../domain/repositories/projects.repositor
 import { createProjectUseCase } from '../create-project.use-case';
 
 describe('createProjectUseCase', () => {
-    const createDto: CreateProjectDto = { name: 'Artifactory' };
+    const createDto: CreateProjectDto = { name: 'GitPaaS' };
 
     const createdProject: Project = {
         id: '9c858901-8a57-4791-81fe-4c455b099bc9',

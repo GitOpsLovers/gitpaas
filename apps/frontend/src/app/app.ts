@@ -17,6 +17,6 @@ export class App {
     readonly #theme = inject(ThemeService);
 
     constructor() {
-        this.#titleService.setTitle('Artifactory');
+        this.#titleService.setTitle('GitPaaS');
     }
 }
