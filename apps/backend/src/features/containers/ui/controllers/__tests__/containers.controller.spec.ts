@@ -23,7 +23,7 @@ const containers: Container[] = [
 
 describe('ContainersController', () => {
     let mockContainersService: jest.Mocked<Pick<ContainersService, 'getByService'>>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn' | 'error'>>;
+    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
     let sut: ContainersController;
 
     beforeEach(async () => {
@@ -34,8 +34,6 @@ describe('ContainersController', () => {
         };
 
         mockDiagnostics = {
-            log: jest.fn(),
-            warn: jest.fn(),
             error: jest.fn(),
         };
 

@@ -17,9 +17,9 @@ jest.mock('../../../application/login.use-case');
 jest.mock('../../../application/logout.use-case');
 jest.mock('../../../application/refresh.use-case');
 
-const loginUseCaseMock = loginUseCase as jest.MockedFunction<typeof loginUseCase>;
-const logoutUseCaseMock = logoutUseCase as jest.MockedFunction<typeof logoutUseCase>;
-const refreshUseCaseMock = refreshUseCase as jest.MockedFunction<typeof refreshUseCase>;
+const mockLoginUseCase = loginUseCase as jest.MockedFunction<typeof loginUseCase>;
+const mockLogoutUseCase = logoutUseCase as jest.MockedFunction<typeof logoutUseCase>;
+const mockRefreshUseCase = refreshUseCase as jest.MockedFunction<typeof refreshUseCase>;
 
 const tokens: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'refresh.jwt.token' };
 
@@ -34,23 +34,23 @@ const user: User = {
 };
 
 describe('AuthenticationService', () => {
-    let usersRepository: jest.Mocked<UsersDatabaseRepository>;
-    let refreshTokensRepository: jest.Mocked<RefreshTokensDatabaseRepository>;
-    let tokenService: jest.Mocked<JwtTokenService>;
+    let mockUsersRepository: jest.Mocked<UsersDatabaseRepository>;
+    let mockRefreshTokensRepository: jest.Mocked<RefreshTokensDatabaseRepository>;
+    let mockTokenService: jest.Mocked<JwtTokenService>;
     let sut: AuthenticationService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        usersRepository = {} as jest.Mocked<UsersDatabaseRepository>;
-        refreshTokensRepository = {} as jest.Mocked<RefreshTokensDatabaseRepository>;
-        tokenService = {} as jest.Mocked<JwtTokenService>;
+        mockUsersRepository = {} as jest.Mocked<UsersDatabaseRepository>;
+        mockRefreshTokensRepository = {} as jest.Mocked<RefreshTokensDatabaseRepository>;
+        mockTokenService = {} as jest.Mocked<JwtTokenService>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 AuthenticationService,
-                { provide: UsersDatabaseRepository, useValue: usersRepository },
-                { provide: RefreshTokensDatabaseRepository, useValue: refreshTokensRepository },
-                { provide: JwtTokenService, useValue: tokenService },
+                { provide: UsersDatabaseRepository, useValue: mockUsersRepository },
+                { provide: RefreshTokensDatabaseRepository, useValue: mockRefreshTokensRepository },
+                { provide: JwtTokenService, useValue: mockTokenService },
             ],
         }).compile();
 
@@ -59,45 +59,45 @@ describe('AuthenticationService', () => {
 
     describe('login', () => {
         it('delegates to the login use case and returns the token pair', async () => {
-            loginUseCaseMock.mockResolvedValue(tokens);
+            mockLoginUseCase.mockResolvedValue(tokens);
 
             const result = await sut.login(user);
 
-            expect(loginUseCaseMock).toHaveBeenCalledWith(refreshTokensRepository, tokenService, user);
+            expect(mockLoginUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, user);
             expect(result).toBe(tokens);
         });
     });
 
     describe('refresh', () => {
         it('delegates to the refresh use case and returns the fresh token pair', async () => {
-            refreshUseCaseMock.mockResolvedValue(tokens);
+            mockRefreshUseCase.mockResolvedValue(tokens);
 
             const result = await sut.refresh('refresh.jwt.token');
 
-            expect(refreshUseCaseMock).toHaveBeenCalledWith(
-                usersRepository,
-                refreshTokensRepository,
-                tokenService,
+            expect(mockRefreshUseCase).toHaveBeenCalledWith(
+                mockUsersRepository,
+                mockRefreshTokensRepository,
+                mockTokenService,
                 'refresh.jwt.token',
             );
             expect(result).toBe(tokens);
         });
 
         it('maps InvalidRefreshTokenError to a 401 UnauthorizedException', async () => {
-            refreshUseCaseMock.mockRejectedValue(new InvalidRefreshTokenError());
+            mockRefreshUseCase.mockRejectedValue(new InvalidRefreshTokenError());
 
             await expect(sut.refresh('bad')).rejects.toBeInstanceOf(UnauthorizedException);
         });
 
         it('maps UserInactiveError to a 401 UnauthorizedException', async () => {
-            refreshUseCaseMock.mockRejectedValue(new UserInactiveError());
+            mockRefreshUseCase.mockRejectedValue(new UserInactiveError());
 
             await expect(sut.refresh('token')).rejects.toBeInstanceOf(UnauthorizedException);
         });
 
         it('rethrows unexpected errors unchanged', async () => {
             const boom = new Error('database is down');
-            refreshUseCaseMock.mockRejectedValue(boom);
+            mockRefreshUseCase.mockRejectedValue(boom);
 
             await expect(sut.refresh('token')).rejects.toBe(boom);
         });
@@ -105,11 +105,11 @@ describe('AuthenticationService', () => {
 
     describe('logout', () => {
         it('delegates to the logout use case', async () => {
-            logoutUseCaseMock.mockResolvedValue(undefined);
+            mockLogoutUseCase.mockResolvedValue(undefined);
 
             await sut.logout('refresh.jwt.token');
 
-            expect(logoutUseCaseMock).toHaveBeenCalledWith(refreshTokensRepository, tokenService, 'refresh.jwt.token');
+            expect(mockLogoutUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, 'refresh.jwt.token');
         });
     });
 

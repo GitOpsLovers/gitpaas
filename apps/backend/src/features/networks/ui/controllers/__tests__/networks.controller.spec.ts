@@ -23,7 +23,7 @@ const networks: Network[] = [
 
 describe('NetworksController', () => {
     let mockNetworksService: jest.Mocked<Pick<NetworksService, 'getByService'>>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn' | 'error'>>;
+    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
     let sut: NetworksController;
 
     beforeEach(async () => {
@@ -34,8 +34,6 @@ describe('NetworksController', () => {
         };
 
         mockDiagnostics = {
-            log: jest.fn(),
-            warn: jest.fn(),
             error: jest.fn(),
         };
 

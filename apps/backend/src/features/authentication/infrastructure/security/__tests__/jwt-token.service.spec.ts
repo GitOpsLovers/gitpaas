@@ -2,10 +2,12 @@ import { createHash } from 'node:crypto';
 
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Test } from '@nestjs/testing';
 
 import { AccessTokenPayload } from '../../../domain/models/token.model';
-import { UserRole } from '@features/users/domain/models/user.model';
 import { JwtTokenService } from '../jwt-token.service';
+
+import { UserRole } from '@features/users/domain/models/user.model';
 
 const REFRESH_SECRET = 'refresh-secret';
 const REFRESH_EXPIRES_IN = '7d';
@@ -17,17 +19,19 @@ const payload: AccessTokenPayload = {
 };
 
 describe('JwtTokenService', () => {
-    let jwt: jest.Mocked<Pick<JwtService, 'sign' | 'decode' | 'verify'>>;
-    let config: jest.Mocked<Pick<ConfigService, 'getOrThrow'>>;
-    let service: JwtTokenService;
+    let mockJwtService: jest.Mocked<Pick<JwtService, 'sign' | 'decode' | 'verify'>>;
+    let mockConfigService: jest.Mocked<Pick<ConfigService, 'getOrThrow'>>;
+    let sut: JwtTokenService;
 
-    beforeEach(() => {
-        jwt = {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+
+        mockJwtService = {
             sign: jest.fn(),
             decode: jest.fn(),
             verify: jest.fn(),
         };
-        config = {
+        mockConfigService = {
             getOrThrow: jest.fn((key: string) => {
                 if (key === 'JWT_REFRESH_SECRET') {
                     return REFRESH_SECRET;
@@ -41,16 +45,24 @@ describe('JwtTokenService', () => {
             }) as unknown as jest.Mocked<Pick<ConfigService, 'getOrThrow'>>['getOrThrow'],
         };
 
-        service = new JwtTokenService(jwt as unknown as JwtService, config as unknown as ConfigService);
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                JwtTokenService,
+                { provide: JwtService, useValue: mockJwtService },
+                { provide: ConfigService, useValue: mockConfigService },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(JwtTokenService);
     });
 
     describe('signAccessToken', () => {
         it('signs the access token with the module-configured (default) secret', () => {
-            jwt.sign.mockReturnValue('access.jwt.token');
+            mockJwtService.sign.mockReturnValue('access.jwt.token');
 
-            const result = service.signAccessToken(payload);
+            const result = sut.signAccessToken(payload);
 
-            expect(jwt.sign).toHaveBeenCalledWith(payload);
+            expect(mockJwtService.sign).toHaveBeenCalledWith(payload);
             expect(result).toBe('access.jwt.token');
         });
     });
@@ -58,33 +70,34 @@ describe('JwtTokenService', () => {
     describe('issueRefreshToken', () => {
         it('signs the refresh token with the separate refresh secret and expiry and a random jti', () => {
             const exp = Math.floor(Date.parse('2026-07-25T00:00:00.000Z') / 1000);
-            jwt.sign.mockReturnValue('refresh.jwt.token');
-            jwt.decode.mockReturnValue({ exp });
+            mockJwtService.sign.mockReturnValue('refresh.jwt.token');
+            mockJwtService.decode.mockReturnValue({ exp });
 
-            const result = service.issueRefreshToken(payload);
+            const result = sut.issueRefreshToken(payload);
 
-            expect(jwt.sign).toHaveBeenCalledWith(
+            expect(mockJwtService.sign).toHaveBeenCalledWith(
                 { sub: payload.sub, jti: result.jti },
                 { secret: REFRESH_SECRET, expiresIn: REFRESH_EXPIRES_IN },
             );
-            expect(result.jti).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+            // eslint-disable-next-line security/detect-unsafe-regex
+            expect(result.jti).toMatch(/^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/);
             expect(result.token).toBe('refresh.jwt.token');
         });
 
         it('does not sign the refresh token with the access-token defaults', () => {
-            jwt.sign.mockReturnValue('refresh.jwt.token');
-            jwt.decode.mockReturnValue({ exp: 1 });
+            mockJwtService.sign.mockReturnValue('refresh.jwt.token');
+            mockJwtService.decode.mockReturnValue({ exp: 1 });
 
-            service.issueRefreshToken(payload);
+            sut.issueRefreshToken(payload);
 
-            expect(jwt.sign).not.toHaveBeenCalledWith(payload);
+            expect(mockJwtService.sign).not.toHaveBeenCalledWith(payload);
         });
 
         it('stores a SHA-256 hash of the signed token rather than the token itself', () => {
-            jwt.sign.mockReturnValue('refresh.jwt.token');
-            jwt.decode.mockReturnValue({ exp: 1 });
+            mockJwtService.sign.mockReturnValue('refresh.jwt.token');
+            mockJwtService.decode.mockReturnValue({ exp: 1 });
 
-            const result = service.issueRefreshToken(payload);
+            const result = sut.issueRefreshToken(payload);
 
             const expectedHash = createHash('sha256').update('refresh.jwt.token').digest('hex');
             expect(result.tokenHash).toBe(expectedHash);
@@ -93,20 +106,20 @@ describe('JwtTokenService', () => {
 
         it('derives the expiry from the decoded token exp claim', () => {
             const exp = Math.floor(Date.parse('2026-07-25T00:00:00.000Z') / 1000);
-            jwt.sign.mockReturnValue('refresh.jwt.token');
-            jwt.decode.mockReturnValue({ exp });
+            mockJwtService.sign.mockReturnValue('refresh.jwt.token');
+            mockJwtService.decode.mockReturnValue({ exp });
 
-            const result = service.issueRefreshToken(payload);
+            const result = sut.issueRefreshToken(payload);
 
             expect(result.expiresAt).toEqual(new Date(exp * 1000));
         });
 
         it('mints a distinct jti on each call', () => {
-            jwt.sign.mockReturnValue('refresh.jwt.token');
-            jwt.decode.mockReturnValue({ exp: 1 });
+            mockJwtService.sign.mockReturnValue('refresh.jwt.token');
+            mockJwtService.decode.mockReturnValue({ exp: 1 });
 
-            const first = service.issueRefreshToken(payload);
-            const second = service.issueRefreshToken(payload);
+            const first = sut.issueRefreshToken(payload);
+            const second = sut.issueRefreshToken(payload);
 
             expect(first.jti).not.toBe(second.jti);
         });
@@ -115,11 +128,11 @@ describe('JwtTokenService', () => {
     describe('verifyRefreshToken', () => {
         it('verifies the token against the refresh secret and returns the decoded claims', () => {
             const claims = { sub: payload.sub, jti: 'jti-1' };
-            jwt.verify.mockReturnValue(claims);
+            mockJwtService.verify.mockReturnValue(claims);
 
-            const result = service.verifyRefreshToken('refresh.jwt.token');
+            const result = sut.verifyRefreshToken('refresh.jwt.token');
 
-            expect(jwt.verify).toHaveBeenCalledWith('refresh.jwt.token', { secret: REFRESH_SECRET });
+            expect(mockJwtService.verify).toHaveBeenCalledWith('refresh.jwt.token', { secret: REFRESH_SECRET });
             expect(result).toBe(claims);
         });
     });
@@ -128,8 +141,8 @@ describe('JwtTokenService', () => {
         it('produces a deterministic SHA-256 hex digest of the token', () => {
             const expected = createHash('sha256').update('refresh.jwt.token').digest('hex');
 
-            expect(service.hashRefreshToken('refresh.jwt.token')).toBe(expected);
-            expect(service.hashRefreshToken('refresh.jwt.token')).toBe(expected);
+            expect(sut.hashRefreshToken('refresh.jwt.token')).toBe(expected);
+            expect(sut.hashRefreshToken('refresh.jwt.token')).toBe(expected);
         });
     });
 });

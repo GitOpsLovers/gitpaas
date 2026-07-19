@@ -13,23 +13,25 @@ const dockerInfo: DockerInfo = {
 };
 
 describe('DockerService', () => {
-    let daemon: jest.Mocked<Pick<Docker, 'ping' | 'info'>>;
-    let client: jest.Mocked<Pick<DockerClient, 'getClient'>>;
+    let mockDaemon: jest.Mocked<Pick<Docker, 'ping' | 'info'>>;
+    let mockDockerClient: jest.Mocked<Pick<DockerClient, 'getClient'>>;
     let sut: DockerService;
 
     beforeEach(async () => {
-        daemon = {
+        jest.clearAllMocks();
+
+        mockDaemon = {
             ping: jest.fn(),
             info: jest.fn(),
         };
-        client = {
-            getClient: jest.fn().mockReturnValue(daemon),
+        mockDockerClient = {
+            getClient: jest.fn().mockReturnValue(mockDaemon),
         };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 DockerService,
-                { provide: DockerClient, useValue: client },
+                { provide: DockerClient, useValue: mockDockerClient },
             ],
         }).compile();
 
@@ -38,16 +40,16 @@ describe('DockerService', () => {
 
     describe('ping', () => {
         it('resolves the dockerode client before pinging it', async () => {
-            daemon.ping.mockResolvedValue(Buffer.from('OK'));
+            mockDaemon.ping.mockResolvedValue(Buffer.from('OK'));
 
             await sut.ping();
 
-            expect(client.getClient).toHaveBeenCalledTimes(1);
-            expect(daemon.ping).toHaveBeenCalledTimes(1);
+            expect(mockDockerClient.getClient).toHaveBeenCalledTimes(1);
+            expect(mockDaemon.ping).toHaveBeenCalledTimes(1);
         });
 
         it('returns true when the daemon answers with an "OK" buffer', async () => {
-            daemon.ping.mockResolvedValue(Buffer.from('OK'));
+            mockDaemon.ping.mockResolvedValue(Buffer.from('OK'));
 
             const result = await sut.ping();
 
@@ -55,7 +57,7 @@ describe('DockerService', () => {
         });
 
         it('returns true when the daemon answers with an "OK" string', async () => {
-            daemon.ping.mockResolvedValue('OK');
+            mockDaemon.ping.mockResolvedValue('OK');
 
             const result = await sut.ping();
 
@@ -63,7 +65,7 @@ describe('DockerService', () => {
         });
 
         it('returns false when the daemon answers with a non-OK payload', async () => {
-            daemon.ping.mockResolvedValue(Buffer.from('pong'));
+            mockDaemon.ping.mockResolvedValue(Buffer.from('pong'));
 
             const result = await sut.ping();
 
@@ -71,7 +73,7 @@ describe('DockerService', () => {
         });
 
         it('returns false when the daemon answers with an empty payload', async () => {
-            daemon.ping.mockResolvedValue(Buffer.from(''));
+            mockDaemon.ping.mockResolvedValue(Buffer.from(''));
 
             const result = await sut.ping();
 
@@ -80,7 +82,7 @@ describe('DockerService', () => {
 
         it('propagates errors thrown while pinging the daemon', async () => {
             const error = new Error('docker daemon unreachable');
-            daemon.ping.mockRejectedValue(error);
+            mockDaemon.ping.mockRejectedValue(error);
 
             await expect(sut.ping()).rejects.toThrow(error);
         });
@@ -88,17 +90,17 @@ describe('DockerService', () => {
 
     describe('info', () => {
         it('resolves the dockerode client before querying info', async () => {
-            daemon.info.mockResolvedValue(dockerInfo);
+            mockDaemon.info.mockResolvedValue(dockerInfo);
 
             await sut.info();
 
-            expect(client.getClient).toHaveBeenCalledTimes(1);
-            expect(daemon.info).toHaveBeenCalledTimes(1);
-            expect(daemon.info).toHaveBeenCalledWith();
+            expect(mockDockerClient.getClient).toHaveBeenCalledTimes(1);
+            expect(mockDaemon.info).toHaveBeenCalledTimes(1);
+            expect(mockDaemon.info).toHaveBeenCalledWith();
         });
 
         it('returns the info payload produced by the daemon', async () => {
-            daemon.info.mockResolvedValue(dockerInfo);
+            mockDaemon.info.mockResolvedValue(dockerInfo);
 
             const result = await sut.info();
 
@@ -107,7 +109,7 @@ describe('DockerService', () => {
 
         it('propagates errors thrown while querying the daemon info', async () => {
             const error = new Error('docker daemon unreachable');
-            daemon.info.mockRejectedValue(error);
+            mockDaemon.info.mockRejectedValue(error);
 
             await expect(sut.info()).rejects.toThrow(error);
         });

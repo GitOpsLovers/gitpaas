@@ -18,24 +18,21 @@ import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
 jest.mock('../../../application/create-deployment.use-case');
 jest.mock('../../../application/delete-deployment.use-case');
 jest.mock('../../../application/find-deployment-by-id.use-case');
 jest.mock('../../../application/get-deployments-by-service.use-case');
 
-const createDeploymentUseCaseMock = createDeploymentUseCase as jest.MockedFunction<
+const mockCreateDeploymentUseCase = createDeploymentUseCase as jest.MockedFunction<
     typeof createDeploymentUseCase
 >;
-const deleteDeploymentUseCaseMock = deleteDeploymentUseCase as jest.MockedFunction<
+const mockDeleteDeploymentUseCase = deleteDeploymentUseCase as jest.MockedFunction<
     typeof deleteDeploymentUseCase
 >;
-const findDeploymentByIdUseCaseMock = findDeploymentByIdUseCase as jest.MockedFunction<
+const mockFindDeploymentByIdUseCase = findDeploymentByIdUseCase as jest.MockedFunction<
     typeof findDeploymentByIdUseCase
 >;
-const getDeploymentsByServiceUseCaseMock = getDeploymentsByServiceUseCase as jest.MockedFunction<
+const mockGetDeploymentsByServiceUseCase = getDeploymentsByServiceUseCase as jest.MockedFunction<
     typeof getDeploymentsByServiceUseCase
 >;
 
@@ -57,21 +54,21 @@ const deployment: Deployment = {
 };
 
 describe('DeploymentsService', () => {
-    let repository: jest.Mocked<DeploymentsDatabaseRepository>;
-    let servicesRepository: jest.Mocked<ServicesDatabaseRepository>;
-    let providersRepository: jest.Mocked<GithubAppProvider>;
-    let queue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
-    let logStore: jest.Mocked<LogStoreRepository>;
+    let mockDeploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
+    let mockServicesRepository: jest.Mocked<ServicesDatabaseRepository>;
+    let mockProvidersRepository: jest.Mocked<GithubAppProvider>;
+    let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
+    let mockLogStore: jest.Mocked<LogStoreRepository>;
     let sut: DeploymentsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        repository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
-        servicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
-        providersRepository = {} as jest.Mocked<GithubAppProvider>;
-        queue = { enqueue: jest.fn().mockResolvedValue(undefined) };
-        logStore = {
+        mockDeploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
+        mockServicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
+        mockProvidersRepository = {} as jest.Mocked<GithubAppProvider>;
+        mockQueue = { enqueue: jest.fn().mockResolvedValue(undefined) };
+        mockLogStore = {
             append: jest.fn(),
             complete: jest.fn(),
             stream: jest.fn(),
@@ -81,11 +78,11 @@ describe('DeploymentsService', () => {
         const moduleRef = await Test.createTestingModule({
             providers: [
                 DeploymentsService,
-                { provide: DeploymentsDatabaseRepository, useValue: repository },
-                { provide: ServicesDatabaseRepository, useValue: servicesRepository },
-                { provide: GithubAppProvider, useValue: providersRepository },
-                { provide: DatabaseDeploymentQueue, useValue: queue },
-                { provide: PersistentLogStoreRepository, useValue: logStore },
+                { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
+                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
+                { provide: GithubAppProvider, useValue: mockProvidersRepository },
+                { provide: DatabaseDeploymentQueue, useValue: mockQueue },
+                { provide: PersistentLogStoreRepository, useValue: mockLogStore },
             ],
         }).compile();
 
@@ -94,16 +91,16 @@ describe('DeploymentsService', () => {
 
     describe('getAllByService', () => {
         it('delegates to the use case with the repository and service id', async () => {
-            getDeploymentsByServiceUseCaseMock.mockResolvedValue([deployment]);
+            mockGetDeploymentsByServiceUseCase.mockResolvedValue([deployment]);
 
             await sut.getAllByService(serviceId);
 
-            expect(getDeploymentsByServiceUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(getDeploymentsByServiceUseCaseMock).toHaveBeenCalledWith(repository, serviceId);
+            expect(mockGetDeploymentsByServiceUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetDeploymentsByServiceUseCase).toHaveBeenCalledWith(mockDeploymentsRepository, serviceId);
         });
 
         it('returns the deployments produced by the use case', async () => {
-            getDeploymentsByServiceUseCaseMock.mockResolvedValue([deployment]);
+            mockGetDeploymentsByServiceUseCase.mockResolvedValue([deployment]);
 
             const result = await sut.getAllByService(serviceId);
 
@@ -111,7 +108,7 @@ describe('DeploymentsService', () => {
         });
 
         it('returns an empty list when the service has no deployments', async () => {
-            getDeploymentsByServiceUseCaseMock.mockResolvedValue([]);
+            mockGetDeploymentsByServiceUseCase.mockResolvedValue([]);
 
             const result = await sut.getAllByService(serviceId);
 
@@ -120,7 +117,7 @@ describe('DeploymentsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            getDeploymentsByServiceUseCaseMock.mockRejectedValue(error);
+            mockGetDeploymentsByServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.getAllByService(serviceId)).rejects.toThrow(error);
         });
@@ -128,16 +125,16 @@ describe('DeploymentsService', () => {
 
     describe('findById', () => {
         it('delegates to the use case with the repository and id', async () => {
-            findDeploymentByIdUseCaseMock.mockResolvedValue(deployment);
+            mockFindDeploymentByIdUseCase.mockResolvedValue(deployment);
 
             await sut.findById(deploymentId);
 
-            expect(findDeploymentByIdUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(findDeploymentByIdUseCaseMock).toHaveBeenCalledWith(repository, deploymentId);
+            expect(mockFindDeploymentByIdUseCase).toHaveBeenCalledTimes(1);
+            expect(mockFindDeploymentByIdUseCase).toHaveBeenCalledWith(mockDeploymentsRepository, deploymentId);
         });
 
         it('returns the deployment produced by the use case', async () => {
-            findDeploymentByIdUseCaseMock.mockResolvedValue(deployment);
+            mockFindDeploymentByIdUseCase.mockResolvedValue(deployment);
 
             const result = await sut.findById(deploymentId);
 
@@ -145,7 +142,7 @@ describe('DeploymentsService', () => {
         });
 
         it('returns null when the deployment does not exist', async () => {
-            findDeploymentByIdUseCaseMock.mockResolvedValue(null);
+            mockFindDeploymentByIdUseCase.mockResolvedValue(null);
 
             const result = await sut.findById(deploymentId);
 
@@ -154,7 +151,7 @@ describe('DeploymentsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            findDeploymentByIdUseCaseMock.mockRejectedValue(error);
+            mockFindDeploymentByIdUseCase.mockRejectedValue(error);
 
             await expect(sut.findById(deploymentId)).rejects.toThrow(error);
         });
@@ -162,16 +159,16 @@ describe('DeploymentsService', () => {
 
     describe('delete', () => {
         it('delegates to the use case with the repository and id', async () => {
-            deleteDeploymentUseCaseMock.mockResolvedValue(true);
+            mockDeleteDeploymentUseCase.mockResolvedValue(true);
 
             await sut.delete(deploymentId);
 
-            expect(deleteDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(deleteDeploymentUseCaseMock).toHaveBeenCalledWith(repository, logStore, deploymentId);
+            expect(mockDeleteDeploymentUseCase).toHaveBeenCalledTimes(1);
+            expect(mockDeleteDeploymentUseCase).toHaveBeenCalledWith(mockDeploymentsRepository, mockLogStore, deploymentId);
         });
 
         it('returns true when a row was deleted', async () => {
-            deleteDeploymentUseCaseMock.mockResolvedValue(true);
+            mockDeleteDeploymentUseCase.mockResolvedValue(true);
 
             const result = await sut.delete(deploymentId);
 
@@ -179,7 +176,7 @@ describe('DeploymentsService', () => {
         });
 
         it('returns false when nothing was deleted', async () => {
-            deleteDeploymentUseCaseMock.mockResolvedValue(false);
+            mockDeleteDeploymentUseCase.mockResolvedValue(false);
 
             const result = await sut.delete(deploymentId);
 
@@ -188,7 +185,7 @@ describe('DeploymentsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            deleteDeploymentUseCaseMock.mockRejectedValue(error);
+            mockDeleteDeploymentUseCase.mockRejectedValue(error);
 
             await expect(sut.delete(deploymentId)).rejects.toThrow(error);
         });
@@ -198,22 +195,22 @@ describe('DeploymentsService', () => {
         const triggerDto: TriggerDeploymentDto = { serviceId };
 
         it('delegates to the use case threading every collaborator and the dto', async () => {
-            createDeploymentUseCaseMock.mockResolvedValue(deployment);
+            mockCreateDeploymentUseCase.mockResolvedValue(deployment);
 
             await sut.create(triggerDto);
 
-            expect(createDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(createDeploymentUseCaseMock).toHaveBeenCalledWith(
-                repository,
-                servicesRepository,
-                providersRepository,
-                queue,
+            expect(mockCreateDeploymentUseCase).toHaveBeenCalledTimes(1);
+            expect(mockCreateDeploymentUseCase).toHaveBeenCalledWith(
+                mockDeploymentsRepository,
+                mockServicesRepository,
+                mockProvidersRepository,
+                mockQueue,
                 triggerDto,
             );
         });
 
         it('returns the created deployment', async () => {
-            createDeploymentUseCaseMock.mockResolvedValue(deployment);
+            mockCreateDeploymentUseCase.mockResolvedValue(deployment);
 
             const result = await sut.create(triggerDto);
 
@@ -222,20 +219,20 @@ describe('DeploymentsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('service not found');
-            createDeploymentUseCaseMock.mockRejectedValue(error);
+            mockCreateDeploymentUseCase.mockRejectedValue(error);
 
             await expect(sut.create(triggerDto)).rejects.toThrow(error);
         });
 
         it('translates a ServiceNotFoundError into a NotFoundException', async () => {
-            createDeploymentUseCaseMock.mockRejectedValue(new ServiceNotFoundError(serviceId));
+            mockCreateDeploymentUseCase.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.create(triggerDto)).rejects.toThrow(NotFoundException);
             await expect(sut.create(triggerDto)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
         it('translates a ServiceNotDeployableError into a BadRequestException', async () => {
-            createDeploymentUseCaseMock.mockRejectedValue(new ServiceNotDeployableError());
+            mockCreateDeploymentUseCase.mockRejectedValue(new ServiceNotDeployableError());
 
             await expect(sut.create(triggerDto)).rejects.toThrow(BadRequestException);
             await expect(sut.create(triggerDto)).rejects.toThrow(

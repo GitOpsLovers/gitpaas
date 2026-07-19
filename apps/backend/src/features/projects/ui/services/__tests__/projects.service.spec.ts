@@ -17,19 +17,19 @@ jest.mock('../../../application/find-project-by-id.use-case');
 jest.mock('../../../application/get-all-projects.use-case');
 jest.mock('../../../application/update-project.use-case');
 
-const createProjectUseCaseMock = createProjectUseCase as jest.MockedFunction<
+const mockCreateProjectUseCase = createProjectUseCase as jest.MockedFunction<
     typeof createProjectUseCase
 >;
-const deleteProjectUseCaseMock = deleteProjectUseCase as jest.MockedFunction<
+const mockDeleteProjectUseCase = deleteProjectUseCase as jest.MockedFunction<
     typeof deleteProjectUseCase
 >;
-const findProjectByIdUseCaseMock = findProjectByIdUseCase as jest.MockedFunction<
+const mockFindProjectByIdUseCase = findProjectByIdUseCase as jest.MockedFunction<
     typeof findProjectByIdUseCase
 >;
-const getAllProjectsUseCaseMock = getAllProjectsUseCase as jest.MockedFunction<
+const mockGetAllProjectsUseCase = getAllProjectsUseCase as jest.MockedFunction<
     typeof getAllProjectsUseCase
 >;
-const updateProjectUseCaseMock = updateProjectUseCase as jest.MockedFunction<
+const mockUpdateProjectUseCase = updateProjectUseCase as jest.MockedFunction<
     typeof updateProjectUseCase
 >;
 
@@ -42,18 +42,18 @@ const project: Project = {
 };
 
 describe('ProjectsService', () => {
-    let repository: jest.Mocked<ProjectsDatabaseRepository>;
+    let mockProjectsRepository: jest.Mocked<ProjectsDatabaseRepository>;
     let sut: ProjectsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        repository = {} as jest.Mocked<ProjectsDatabaseRepository>;
+        mockProjectsRepository = {} as jest.Mocked<ProjectsDatabaseRepository>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ProjectsService,
-                { provide: ProjectsDatabaseRepository, useValue: repository },
+                { provide: ProjectsDatabaseRepository, useValue: mockProjectsRepository },
             ],
         }).compile();
 
@@ -62,16 +62,16 @@ describe('ProjectsService', () => {
 
     describe('getAll', () => {
         it('delegates to the use case with the repository', async () => {
-            getAllProjectsUseCaseMock.mockResolvedValue([project]);
+            mockGetAllProjectsUseCase.mockResolvedValue([project]);
 
             await sut.getAll();
 
-            expect(getAllProjectsUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(getAllProjectsUseCaseMock).toHaveBeenCalledWith(repository);
+            expect(mockGetAllProjectsUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetAllProjectsUseCase).toHaveBeenCalledWith(mockProjectsRepository);
         });
 
         it('returns the projects produced by the use case', async () => {
-            getAllProjectsUseCaseMock.mockResolvedValue([project]);
+            mockGetAllProjectsUseCase.mockResolvedValue([project]);
 
             const result = await sut.getAll();
 
@@ -79,7 +79,7 @@ describe('ProjectsService', () => {
         });
 
         it('returns an empty list when there are no projects', async () => {
-            getAllProjectsUseCaseMock.mockResolvedValue([]);
+            mockGetAllProjectsUseCase.mockResolvedValue([]);
 
             const result = await sut.getAll();
 
@@ -88,7 +88,7 @@ describe('ProjectsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            getAllProjectsUseCaseMock.mockRejectedValue(error);
+            mockGetAllProjectsUseCase.mockRejectedValue(error);
 
             await expect(sut.getAll()).rejects.toThrow(error);
         });
@@ -96,16 +96,16 @@ describe('ProjectsService', () => {
 
     describe('findById', () => {
         it('delegates to the use case with the repository and id', async () => {
-            findProjectByIdUseCaseMock.mockResolvedValue(project);
+            mockFindProjectByIdUseCase.mockResolvedValue(project);
 
             await sut.findById(projectId);
 
-            expect(findProjectByIdUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(findProjectByIdUseCaseMock).toHaveBeenCalledWith(repository, projectId);
+            expect(mockFindProjectByIdUseCase).toHaveBeenCalledTimes(1);
+            expect(mockFindProjectByIdUseCase).toHaveBeenCalledWith(mockProjectsRepository, projectId);
         });
 
         it('returns the project produced by the use case', async () => {
-            findProjectByIdUseCaseMock.mockResolvedValue(project);
+            mockFindProjectByIdUseCase.mockResolvedValue(project);
 
             const result = await sut.findById(projectId);
 
@@ -113,7 +113,7 @@ describe('ProjectsService', () => {
         });
 
         it('returns null when the project does not exist', async () => {
-            findProjectByIdUseCaseMock.mockResolvedValue(null);
+            mockFindProjectByIdUseCase.mockResolvedValue(null);
 
             const result = await sut.findById(projectId);
 
@@ -122,7 +122,7 @@ describe('ProjectsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            findProjectByIdUseCaseMock.mockRejectedValue(error);
+            mockFindProjectByIdUseCase.mockRejectedValue(error);
 
             await expect(sut.findById(projectId)).rejects.toThrow(error);
         });
@@ -132,16 +132,16 @@ describe('ProjectsService', () => {
         const createDto: CreateProjectDto = { name: 'platform' };
 
         it('delegates to the use case with the repository and the dto', async () => {
-            createProjectUseCaseMock.mockResolvedValue(project);
+            mockCreateProjectUseCase.mockResolvedValue(project);
 
             await sut.create(createDto);
 
-            expect(createProjectUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(createProjectUseCaseMock).toHaveBeenCalledWith(repository, createDto);
+            expect(mockCreateProjectUseCase).toHaveBeenCalledTimes(1);
+            expect(mockCreateProjectUseCase).toHaveBeenCalledWith(mockProjectsRepository, createDto);
         });
 
         it('returns the created project', async () => {
-            createProjectUseCaseMock.mockResolvedValue(project);
+            mockCreateProjectUseCase.mockResolvedValue(project);
 
             const result = await sut.create(createDto);
 
@@ -150,7 +150,7 @@ describe('ProjectsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('name already taken');
-            createProjectUseCaseMock.mockRejectedValue(error);
+            mockCreateProjectUseCase.mockRejectedValue(error);
 
             await expect(sut.create(createDto)).rejects.toThrow(error);
         });
@@ -160,17 +160,17 @@ describe('ProjectsService', () => {
         const updateDto: UpdateProjectDto = { name: 'renamed' };
 
         it('delegates to the use case with the repository, id and the dto', async () => {
-            updateProjectUseCaseMock.mockResolvedValue(project);
+            mockUpdateProjectUseCase.mockResolvedValue(project);
 
             await sut.update(projectId, updateDto);
 
-            expect(updateProjectUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(updateProjectUseCaseMock).toHaveBeenCalledWith(repository, projectId, updateDto);
+            expect(mockUpdateProjectUseCase).toHaveBeenCalledTimes(1);
+            expect(mockUpdateProjectUseCase).toHaveBeenCalledWith(mockProjectsRepository, projectId, updateDto);
         });
 
         it('returns the updated project', async () => {
             const updated: Project = { ...project, name: 'renamed' };
-            updateProjectUseCaseMock.mockResolvedValue(updated);
+            mockUpdateProjectUseCase.mockResolvedValue(updated);
 
             const result = await sut.update(projectId, updateDto);
 
@@ -178,7 +178,7 @@ describe('ProjectsService', () => {
         });
 
         it('returns null when the project does not exist', async () => {
-            updateProjectUseCaseMock.mockResolvedValue(null);
+            mockUpdateProjectUseCase.mockResolvedValue(null);
 
             const result = await sut.update(projectId, updateDto);
 
@@ -187,7 +187,7 @@ describe('ProjectsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            updateProjectUseCaseMock.mockRejectedValue(error);
+            mockUpdateProjectUseCase.mockRejectedValue(error);
 
             await expect(sut.update(projectId, updateDto)).rejects.toThrow(error);
         });
@@ -195,16 +195,16 @@ describe('ProjectsService', () => {
 
     describe('delete', () => {
         it('delegates to the use case with the repository and id', async () => {
-            deleteProjectUseCaseMock.mockResolvedValue(true);
+            mockDeleteProjectUseCase.mockResolvedValue(true);
 
             await sut.delete(projectId);
 
-            expect(deleteProjectUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(deleteProjectUseCaseMock).toHaveBeenCalledWith(repository, projectId);
+            expect(mockDeleteProjectUseCase).toHaveBeenCalledTimes(1);
+            expect(mockDeleteProjectUseCase).toHaveBeenCalledWith(mockProjectsRepository, projectId);
         });
 
         it('returns true when a row was deleted', async () => {
-            deleteProjectUseCaseMock.mockResolvedValue(true);
+            mockDeleteProjectUseCase.mockResolvedValue(true);
 
             const result = await sut.delete(projectId);
 
@@ -212,7 +212,7 @@ describe('ProjectsService', () => {
         });
 
         it('returns false when nothing was deleted', async () => {
-            deleteProjectUseCaseMock.mockResolvedValue(false);
+            mockDeleteProjectUseCase.mockResolvedValue(false);
 
             const result = await sut.delete(projectId);
 
@@ -221,7 +221,7 @@ describe('ProjectsService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('db unreachable');
-            deleteProjectUseCaseMock.mockRejectedValue(error);
+            mockDeleteProjectUseCase.mockRejectedValue(error);
 
             await expect(sut.delete(projectId)).rejects.toThrow(error);
         });
