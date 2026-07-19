@@ -31,8 +31,16 @@ The backend validates its environment at boot and **fails fast if any variable i
 cp apps/backend/.env.example apps/backend/.env
 ```
 
-The variables cover: runtime (`NODE_ENV`, `PORT`), CORS (`CORS_ORIGIN`), rate limiting (`THROTTLE_TTL`/`THROTTLE_LIMIT` and the SSE-stream pair `THROTTLE_STREAM_TTL`/ THROTTLE_STREAM_LIMIT`), PostgreSQL (`DB_*`), Redis (`REDIS_*`), the GitHub App (`GITHUB_APP_*`), the VPS Docker daemon (`VPS_DOCKER_*`), and JWT auth (`JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`).
-The JWT secrets have no defaults — generate strong random values.
+The variables cover: 
+
+- Runtime: `NODE_ENV`, `PORT`
+- CORS: `CORS_ORIGIN`
+- Rate limiting: `THROTTLE_TTL`/`THROTTLE_LIMIT` and the SSE-stream pair `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
+- PostgreSQL: `DB_*`
+- Redis: `REDIS_*`, 
+- GitHub App: `GITHUB_APP_*`, 
+- VPS Docker daemon: `VPS_DOCKER_*`
+- JWT authentication: `JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`
 
 ## Local development stack
 
