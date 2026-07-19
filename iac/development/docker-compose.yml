@@ -65,8 +65,8 @@ services:
       # /docker-entrypoint-initdb.d ONCE, only when the data directory is empty —
       # i.e. on a fresh `postgres-data` volume. The script creates the `users`
       # table if absent (the backend builds its schema via TypeORM synchronize on
-      # host boot) and inserts admin@artifactory.com. To re-seed later, run the
-      # app's `pnpm seed:admin` or recreate the volume (`docker compose down -v`).
+      # host boot) and inserts admin@artifactory.com. To re-seed later, recreate
+      # the volume (`docker compose down -v`) so the init script runs again.
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U artifactory -d artifactory"]

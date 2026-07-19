@@ -8,7 +8,7 @@
 - **Backend:** NestJS v11
 - **Frontend:** Angular v22
 - **Language:** TypeScript
-- **Styling:** Saas
+- **Styling:** Tailwind CSS
 - **Database:** PostgreSQL via TypeORM
 - **Linting:** ESLint v10 with `@gitopslovers/eslint-config-multistack`
 
