@@ -7,10 +7,6 @@ import { Service } from '../../../domain/models/service.model';
 import { ServicesService } from '../../services/services.service';
 import { ServicesController } from '../services.controller';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 
@@ -24,13 +20,15 @@ const service: Service = {
 };
 
 describe('ServicesController', () => {
-    let servicesService: jest.Mocked<
+    let mockServicesService: jest.Mocked<
         Pick<ServicesService, 'getAllByProject' | 'findById' | 'create' | 'update' | 'delete'>
     >;
     let sut: ServicesController;
 
     beforeEach(async () => {
-        servicesService = {
+        jest.clearAllMocks();
+
+        mockServicesService = {
             getAllByProject: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
@@ -40,7 +38,9 @@ describe('ServicesController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [ServicesController],
-            providers: [{ provide: ServicesService, useValue: servicesService }],
+            providers: [
+                { provide: ServicesService, useValue: mockServicesService },
+            ],
         }).compile();
 
         sut = moduleRef.get(ServicesController);
@@ -48,16 +48,16 @@ describe('ServicesController', () => {
 
     describe('getAllByProject', () => {
         it('delegates to the service with the received project id', async () => {
-            servicesService.getAllByProject.mockResolvedValue([service]);
+            mockServicesService.getAllByProject.mockResolvedValue([service]);
 
             await sut.getAllByProject(projectId);
 
-            expect(servicesService.getAllByProject).toHaveBeenCalledTimes(1);
-            expect(servicesService.getAllByProject).toHaveBeenCalledWith(projectId);
+            expect(mockServicesService.getAllByProject).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.getAllByProject).toHaveBeenCalledWith(projectId);
         });
 
         it('returns the services produced by the service', async () => {
-            servicesService.getAllByProject.mockResolvedValue([service]);
+            mockServicesService.getAllByProject.mockResolvedValue([service]);
 
             const result = await sut.getAllByProject(projectId);
 
@@ -65,7 +65,7 @@ describe('ServicesController', () => {
         });
 
         it('returns an empty list when the project has no services', async () => {
-            servicesService.getAllByProject.mockResolvedValue([]);
+            mockServicesService.getAllByProject.mockResolvedValue([]);
 
             const result = await sut.getAllByProject(projectId);
 
@@ -74,7 +74,7 @@ describe('ServicesController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            servicesService.getAllByProject.mockRejectedValue(error);
+            mockServicesService.getAllByProject.mockRejectedValue(error);
 
             await expect(sut.getAllByProject(projectId)).rejects.toBe(error);
         });
@@ -82,16 +82,16 @@ describe('ServicesController', () => {
 
     describe('findById', () => {
         it('delegates to the service with the received id', async () => {
-            servicesService.findById.mockResolvedValue(service);
+            mockServicesService.findById.mockResolvedValue(service);
 
             await sut.findById(serviceId);
 
-            expect(servicesService.findById).toHaveBeenCalledTimes(1);
-            expect(servicesService.findById).toHaveBeenCalledWith(serviceId);
+            expect(mockServicesService.findById).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.findById).toHaveBeenCalledWith(serviceId);
         });
 
         it('returns the service produced by the service', async () => {
-            servicesService.findById.mockResolvedValue(service);
+            mockServicesService.findById.mockResolvedValue(service);
 
             const result = await sut.findById(serviceId);
 
@@ -99,20 +99,20 @@ describe('ServicesController', () => {
         });
 
         it('throws a NotFoundException when the service does not exist', async () => {
-            servicesService.findById.mockResolvedValue(null);
+            mockServicesService.findById.mockResolvedValue(null);
 
             await expect(sut.findById(serviceId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            servicesService.findById.mockResolvedValue(null);
+            mockServicesService.findById.mockResolvedValue(null);
 
             await expect(sut.findById(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            servicesService.findById.mockRejectedValue(error);
+            mockServicesService.findById.mockRejectedValue(error);
 
             await expect(sut.findById(serviceId)).rejects.toBe(error);
         });
@@ -122,16 +122,16 @@ describe('ServicesController', () => {
         const createDto: CreateServiceDto = { name: 'api-gateway', projectId };
 
         it('delegates to the service with the received dto', async () => {
-            servicesService.create.mockResolvedValue(service);
+            mockServicesService.create.mockResolvedValue(service);
 
             await sut.create(createDto);
 
-            expect(servicesService.create).toHaveBeenCalledTimes(1);
-            expect(servicesService.create).toHaveBeenCalledWith(createDto);
+            expect(mockServicesService.create).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.create).toHaveBeenCalledWith(createDto);
         });
 
         it('returns the created service', async () => {
-            servicesService.create.mockResolvedValue(service);
+            mockServicesService.create.mockResolvedValue(service);
 
             const result = await sut.create(createDto);
 
@@ -140,7 +140,7 @@ describe('ServicesController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('name already taken');
-            servicesService.create.mockRejectedValue(error);
+            mockServicesService.create.mockRejectedValue(error);
 
             await expect(sut.create(createDto)).rejects.toBe(error);
         });
@@ -155,17 +155,17 @@ describe('ServicesController', () => {
         };
 
         it('delegates to the service with the received id and dto', async () => {
-            servicesService.update.mockResolvedValue(service);
+            mockServicesService.update.mockResolvedValue(service);
 
             await sut.update(serviceId, updateDto);
 
-            expect(servicesService.update).toHaveBeenCalledTimes(1);
-            expect(servicesService.update).toHaveBeenCalledWith(serviceId, updateDto);
+            expect(mockServicesService.update).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.update).toHaveBeenCalledWith(serviceId, updateDto);
         });
 
         it('returns the updated service produced by the service', async () => {
             const updated: Service = { ...service, name: 'renamed' };
-            servicesService.update.mockResolvedValue(updated);
+            mockServicesService.update.mockResolvedValue(updated);
 
             const result = await sut.update(serviceId, updateDto);
 
@@ -173,13 +173,13 @@ describe('ServicesController', () => {
         });
 
         it('throws a NotFoundException when the service does not exist', async () => {
-            servicesService.update.mockResolvedValue(null);
+            mockServicesService.update.mockResolvedValue(null);
 
             await expect(sut.update(serviceId, updateDto)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            servicesService.update.mockResolvedValue(null);
+            mockServicesService.update.mockResolvedValue(null);
 
             await expect(sut.update(serviceId, updateDto)).rejects.toThrow(
                 `Service ${serviceId} not found`,
@@ -188,7 +188,7 @@ describe('ServicesController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            servicesService.update.mockRejectedValue(error);
+            mockServicesService.update.mockRejectedValue(error);
 
             await expect(sut.update(serviceId, updateDto)).rejects.toBe(error);
         });
@@ -196,35 +196,35 @@ describe('ServicesController', () => {
 
     describe('delete', () => {
         it('delegates to the service with the received id', async () => {
-            servicesService.delete.mockResolvedValue(true);
+            mockServicesService.delete.mockResolvedValue(true);
 
             await sut.delete(serviceId);
 
-            expect(servicesService.delete).toHaveBeenCalledTimes(1);
-            expect(servicesService.delete).toHaveBeenCalledWith(serviceId);
+            expect(mockServicesService.delete).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.delete).toHaveBeenCalledWith(serviceId);
         });
 
         it('resolves with no value when a row was deleted', async () => {
-            servicesService.delete.mockResolvedValue(true);
+            mockServicesService.delete.mockResolvedValue(true);
 
             await expect(sut.delete(serviceId)).resolves.toBeUndefined();
         });
 
         it('throws a NotFoundException when nothing was deleted', async () => {
-            servicesService.delete.mockResolvedValue(false);
+            mockServicesService.delete.mockResolvedValue(false);
 
             await expect(sut.delete(serviceId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            servicesService.delete.mockResolvedValue(false);
+            mockServicesService.delete.mockResolvedValue(false);
 
             await expect(sut.delete(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            servicesService.delete.mockRejectedValue(error);
+            mockServicesService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(serviceId)).rejects.toBe(error);
         });

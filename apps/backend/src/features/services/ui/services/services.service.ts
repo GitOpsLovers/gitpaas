@@ -8,10 +8,10 @@ import { updateServiceUseCase } from '../../application/update-service.use-case'
 import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.model';
+import type { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
 import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
 import { DockerServiceFootprintRepository } from '../../infrastructure/docker/docker-service-footprint.repository';
 
-import type { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
 import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';

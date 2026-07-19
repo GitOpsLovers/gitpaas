@@ -7,10 +7,6 @@ import { NetworksController } from '../networks.controller';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
 const networks: Network[] = [
@@ -26,19 +22,28 @@ const networks: Network[] = [
 ];
 
 describe('NetworksController', () => {
-    let service: jest.Mocked<Pick<NetworksService, 'getByService'>>;
+    let mockNetworksService: jest.Mocked<Pick<NetworksService, 'getByService'>>;
+    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn' | 'error'>>;
     let sut: NetworksController;
 
     beforeEach(async () => {
-        service = {
+        jest.clearAllMocks();
+
+        mockNetworksService = {
             getByService: jest.fn(),
+        };
+
+        mockDiagnostics = {
+            log: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
             controllers: [NetworksController],
             providers: [
-                { provide: NetworksService, useValue: service },
-                { provide: DiagnosticLoggerService, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() } },
+                { provide: NetworksService, useValue: mockNetworksService },
+                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
             ],
         }).compile();
 
@@ -47,16 +52,16 @@ describe('NetworksController', () => {
 
     describe('getByService', () => {
         it('delegates to the service with the received service id', async () => {
-            service.getByService.mockResolvedValue(networks);
+            mockNetworksService.getByService.mockResolvedValue(networks);
 
             await sut.getByService(serviceId);
 
-            expect(service.getByService).toHaveBeenCalledTimes(1);
-            expect(service.getByService).toHaveBeenCalledWith(serviceId);
+            expect(mockNetworksService.getByService).toHaveBeenCalledTimes(1);
+            expect(mockNetworksService.getByService).toHaveBeenCalledWith(serviceId);
         });
 
         it('returns the networks produced by the service', async () => {
-            service.getByService.mockResolvedValue(networks);
+            mockNetworksService.getByService.mockResolvedValue(networks);
 
             const result = await sut.getByService(serviceId);
 
@@ -64,7 +69,7 @@ describe('NetworksController', () => {
         });
 
         it('returns an empty list when the service reports no networks', async () => {
-            service.getByService.mockResolvedValue([]);
+            mockNetworksService.getByService.mockResolvedValue([]);
 
             const result = await sut.getByService(serviceId);
 
@@ -73,32 +78,32 @@ describe('NetworksController', () => {
 
         it('rethrows a NotFoundException raised by the service unchanged', async () => {
             const original = new NotFoundException(`Service ${serviceId} not found`);
-            service.getByService.mockRejectedValue(original);
+            mockNetworksService.getByService.mockRejectedValue(original);
 
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
         it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
             const original = new ServiceUnavailableException('daemon down');
-            service.getByService.mockRejectedValue(original);
+            mockNetworksService.getByService.mockRejectedValue(original);
 
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            service.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockNetworksService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('includes remediation guidance in the wrapped error message', async () => {
-            service.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockNetworksService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(/Could not reach the VPS Docker daemon/);
         });
 
         it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
-            service.getByService.mockRejectedValue('boom');
+            mockNetworksService.getByService.mockRejectedValue('boom');
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });

@@ -21,11 +21,15 @@ const user: User = {
 };
 
 describe('AuthenticationController', () => {
-    let service: jest.Mocked<Pick<AuthenticationService, 'login' | 'refresh' | 'logout' | 'me'>>;
+    let mockAuthenticationService: jest.Mocked<
+        Pick<AuthenticationService, 'login' | 'refresh' | 'logout' | 'me'>
+    >;
     let sut: AuthenticationController;
 
     beforeEach(async () => {
-        service = {
+        jest.clearAllMocks();
+
+        mockAuthenticationService = {
             login: jest.fn(),
             refresh: jest.fn(),
             logout: jest.fn(),
@@ -34,38 +38,38 @@ describe('AuthenticationController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [AuthenticationController],
-            providers: [{ provide: AuthenticationService, useValue: service }],
+            providers: [{ provide: AuthenticationService, useValue: mockAuthenticationService }],
         }).compile();
 
         sut = moduleRef.get(AuthenticationController);
     });
 
     it('login delegates the strategy-resolved user to the service and returns the token pair', async () => {
-        service.login.mockResolvedValue(tokens);
+        mockAuthenticationService.login.mockResolvedValue(tokens);
 
         const result = await sut.login({} as LoginDto, user);
 
-        expect(service.login).toHaveBeenCalledWith(user);
+        expect(mockAuthenticationService.login).toHaveBeenCalledWith(user);
         expect(result).toBe(tokens);
     });
 
     it('refresh delegates the raw refresh token to the service and returns the fresh pair', async () => {
-        service.refresh.mockResolvedValue(tokens);
+        mockAuthenticationService.refresh.mockResolvedValue(tokens);
         const dto: RefreshDto = { refreshToken: 'refresh.jwt.token' };
 
         const result = await sut.refresh(dto);
 
-        expect(service.refresh).toHaveBeenCalledWith('refresh.jwt.token');
+        expect(mockAuthenticationService.refresh).toHaveBeenCalledWith('refresh.jwt.token');
         expect(result).toBe(tokens);
     });
 
     it('logout delegates the raw refresh token to the service', async () => {
-        service.logout.mockResolvedValue(undefined);
+        mockAuthenticationService.logout.mockResolvedValue(undefined);
         const dto: RefreshDto = { refreshToken: 'refresh.jwt.token' };
 
         await sut.logout(dto);
 
-        expect(service.logout).toHaveBeenCalledWith('refresh.jwt.token');
+        expect(mockAuthenticationService.logout).toHaveBeenCalledWith('refresh.jwt.token');
     });
 
     it('me returns the public projection produced by the service', () => {
@@ -77,11 +81,11 @@ describe('AuthenticationController', () => {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };
-        service.me.mockReturnValue(view);
+        mockAuthenticationService.me.mockReturnValue(view);
 
         const result = sut.me(user);
 
-        expect(service.me).toHaveBeenCalledWith(user);
+        expect(mockAuthenticationService.me).toHaveBeenCalledWith(user);
         expect(result).toBe(view);
     });
 });
