@@ -1,12 +1,19 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { getContainersByServiceUseCase } from '../../../application/get-containers-by-service.use-case';
 import { Container } from '../../../domain/models/container.model';
 import { DockerContainersRepository } from '../../../infrastructure/docker/docker-containers.repository';
 import { ContainersService } from '../containers.service';
 
 import { Service } from '@features/services/domain/models/service.model';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
+
+jest.mock('../../../application/get-containers-by-service.use-case');
+
+const mockGetContainersByServiceUseCase = getContainersByServiceUseCase as jest.MockedFunction<
+    typeof getContainersByServiceUseCase
+>;
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
@@ -32,19 +39,21 @@ const containers: Container[] = [
 ];
 
 describe('ContainersService', () => {
-    let servicesRepository: jest.Mocked<Pick<ServicesDatabaseRepository, 'findById'>>;
-    let containersRepository: jest.Mocked<Pick<DockerContainersRepository, 'listByService'>>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesDatabaseRepository, 'findById'>>;
+    let mockContainersRepository: jest.Mocked<Pick<DockerContainersRepository, 'listByService'>>;
     let sut: ContainersService;
 
     beforeEach(async () => {
-        servicesRepository = { findById: jest.fn() };
-        containersRepository = { listByService: jest.fn() };
+        jest.clearAllMocks();
+
+        mockServicesRepository = { findById: jest.fn() };
+        mockContainersRepository = { listByService: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ContainersService,
-                { provide: ServicesDatabaseRepository, useValue: servicesRepository },
-                { provide: DockerContainersRepository, useValue: containersRepository },
+                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
+                { provide: DockerContainersRepository, useValue: mockContainersRepository },
             ],
         }).compile();
 
@@ -53,28 +62,28 @@ describe('ContainersService', () => {
 
     describe('getByService', () => {
         it('looks the service up by its id before listing containers', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            containersRepository.listByService.mockResolvedValue(containers);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetContainersByServiceUseCase.mockResolvedValue(containers);
 
             await sut.getByService(serviceId);
 
-            expect(servicesRepository.findById).toHaveBeenCalledTimes(1);
-            expect(servicesRepository.findById).toHaveBeenCalledWith(serviceId);
+            expect(mockServicesRepository.findById).toHaveBeenCalledTimes(1);
+            expect(mockServicesRepository.findById).toHaveBeenCalledWith(serviceId);
         });
 
-        it('delegates to the containers repository with the resolved service', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            containersRepository.listByService.mockResolvedValue(containers);
+        it('delegates to the use case with the containers repository and the resolved service', async () => {
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetContainersByServiceUseCase.mockResolvedValue(containers);
 
             await sut.getByService(serviceId);
 
-            expect(containersRepository.listByService).toHaveBeenCalledTimes(1);
-            expect(containersRepository.listByService).toHaveBeenCalledWith(service);
+            expect(mockGetContainersByServiceUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetContainersByServiceUseCase).toHaveBeenCalledWith(mockContainersRepository, service);
         });
 
-        it('returns the containers produced by the repository', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            containersRepository.listByService.mockResolvedValue(containers);
+        it('returns the containers produced by the use case', async () => {
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetContainersByServiceUseCase.mockResolvedValue(containers);
 
             const result = await sut.getByService(serviceId);
 
@@ -82,8 +91,8 @@ describe('ContainersService', () => {
         });
 
         it('returns an empty list when the service has no containers', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            containersRepository.listByService.mockResolvedValue([]);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetContainersByServiceUseCase.mockResolvedValue([]);
 
             const result = await sut.getByService(serviceId);
 
@@ -91,31 +100,31 @@ describe('ContainersService', () => {
         });
 
         it('throws NotFoundException when the service does not exist', async () => {
-            servicesRepository.findById.mockResolvedValue(null);
+            mockServicesRepository.findById.mockResolvedValue(null);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(NotFoundException);
             await expect(sut.getByService(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
-        it('never queries the containers repository when the service is missing', async () => {
-            servicesRepository.findById.mockResolvedValue(null);
+        it('never invokes the use case when the service is missing', async () => {
+            mockServicesRepository.findById.mockResolvedValue(null);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(NotFoundException);
-            expect(containersRepository.listByService).not.toHaveBeenCalled();
+            expect(mockGetContainersByServiceUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown while resolving the service', async () => {
             const error = new Error('db unreachable');
-            servicesRepository.findById.mockRejectedValue(error);
+            mockServicesRepository.findById.mockRejectedValue(error);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(error);
-            expect(containersRepository.listByService).not.toHaveBeenCalled();
+            expect(mockGetContainersByServiceUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown while listing the containers', async () => {
             const error = new Error('daemon unreachable');
-            servicesRepository.findById.mockResolvedValue(service);
-            containersRepository.listByService.mockRejectedValue(error);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetContainersByServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(error);
         });

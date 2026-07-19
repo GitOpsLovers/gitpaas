@@ -7,6 +7,8 @@ describe('AppService', () => {
     let sut: AppService;
 
     beforeEach(async () => {
+        jest.clearAllMocks();
+
         const moduleRef = await Test.createTestingModule({
             providers: [AppService],
         }).compile();

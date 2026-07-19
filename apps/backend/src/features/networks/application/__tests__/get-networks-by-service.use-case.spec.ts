@@ -1,8 +1,8 @@
-import { Service } from '@features/services/domain/models/service.model';
-
 import { Network } from '../../domain/models/network.model';
 import { NetworksRepository } from '../../domain/repositories/networks.repository';
 import { getNetworksByServiceUseCase } from '../get-networks-by-service.use-case';
+
+import { Service } from '@features/services/domain/models/service.model';
 
 describe('getNetworksByServiceUseCase', () => {
     const service: Service = {

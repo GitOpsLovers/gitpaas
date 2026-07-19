@@ -1,8 +1,10 @@
+import { Test } from '@nestjs/testing';
 import { Subject } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../../application/run-deployment.use-case';
 import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.model';
 import { DeploymentQueue } from '../../../domain/queues/deployment.queue';
+import { DatabaseDeploymentQueue } from '../../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../../infrastructure/docker/dockerode-docker.executor';
 import { DeploymentRunnerService } from '../deployment-runner.service';
@@ -11,18 +13,18 @@ import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.ser
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-jest.mock('@features/logs/infrastructure/log-store/persistent-log-store.repository', () => ({
-    PersistentLogStoreRepository: class PersistentLogStoreRepository {},
-}));
 jest.mock('../../../application/run-deployment.use-case');
 
-const runDeploymentUseCaseMock = runDeploymentUseCase as jest.MockedFunction<typeof runDeploymentUseCase>;
+const mockRunDeploymentUseCase = runDeploymentUseCase as jest.MockedFunction<typeof runDeploymentUseCase>;
 
 /** Resolves after pending microtasks, letting the fire-and-forget run settle. */
-const flush = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
+const flush = (): Promise<void> =>
+    // Block body: a Promise executor's return value is ignored, and an expression
+    // body would implicitly return the NodeJS.Immediate handle from setImmediate,
+    // tripping the no-promise-executor-return rule. Keep the braces to return nothing.
+    new Promise<void>((resolve) => {
+        setImmediate(resolve);
+    });
 
 interface Deferred<T> {
     promise: Promise<T>;
@@ -62,24 +64,24 @@ const taskFor = (projectName: string, id: string, deploymentId: string): QueuedD
 });
 
 describe('DeploymentRunnerService', () => {
-    let deploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
-    let providersRepository: jest.Mocked<GithubAppProvider>;
-    let dockerExecutor: jest.Mocked<DockerodeDockerExecutor>;
-    let logStore: jest.Mocked<PersistentLogStoreRepository>;
+    let mockDeploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
+    let mockProvidersRepository: jest.Mocked<GithubAppProvider>;
+    let mockDockerExecutor: jest.Mocked<DockerodeDockerExecutor>;
+    let mockLogStore: jest.Mocked<PersistentLogStoreRepository>;
     let dequeued: Subject<QueuedDeploymentTask>;
-    let queue: jest.Mocked<DeploymentQueue>;
-    let diagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
+    let mockQueue: jest.Mocked<DeploymentQueue>;
+    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
     let sut: DeploymentRunnerService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
 
-        deploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
-        providersRepository = {} as jest.Mocked<GithubAppProvider>;
-        dockerExecutor = {} as jest.Mocked<DockerodeDockerExecutor>;
-        logStore = {} as jest.Mocked<PersistentLogStoreRepository>;
+        mockDeploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
+        mockProvidersRepository = {} as jest.Mocked<GithubAppProvider>;
+        mockDockerExecutor = {} as jest.Mocked<DockerodeDockerExecutor>;
+        mockLogStore = {} as jest.Mocked<PersistentLogStoreRepository>;
         dequeued = new Subject<QueuedDeploymentTask>();
-        queue = {
+        mockQueue = {
             dequeued$: dequeued.asObservable(),
             enqueue: jest.fn().mockResolvedValue(undefined),
             markProcessing: jest.fn().mockResolvedValue(undefined),
@@ -87,83 +89,88 @@ describe('DeploymentRunnerService', () => {
             markFailed: jest.fn().mockResolvedValue(undefined),
             recoverPending: jest.fn().mockResolvedValue(undefined),
         };
-        diagnostics = { error: jest.fn() };
+        mockDiagnostics = { error: jest.fn() };
 
-        sut = new DeploymentRunnerService(
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
-            queue,
-            diagnostics as unknown as DiagnosticLoggerService,
-        );
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                DeploymentRunnerService,
+                { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
+                { provide: GithubAppProvider, useValue: mockProvidersRepository },
+                { provide: DockerodeDockerExecutor, useValue: mockDockerExecutor },
+                { provide: PersistentLogStoreRepository, useValue: mockLogStore },
+                { provide: DatabaseDeploymentQueue, useValue: mockQueue },
+                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(DeploymentRunnerService);
     });
 
     it('recovers pending work once, after the subscription is established', async () => {
         await sut.onModuleInit();
 
-        expect(queue.recoverPending).toHaveBeenCalledTimes(1);
+        expect(mockQueue.recoverPending).toHaveBeenCalledTimes(1);
     });
 
     it('runs the deployment use case for each request emitted after init', async () => {
-        runDeploymentUseCaseMock.mockResolvedValue(undefined);
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
         await sut.onModuleInit();
 
         dequeued.next(task);
         await flush();
 
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledWith(
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(1);
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledWith(
+            mockDeploymentsRepository,
+            mockProvidersRepository,
+            mockDockerExecutor,
+            mockLogStore,
             task,
         );
     });
 
     it('marks the row processing before the run and completed on normal return', async () => {
-        runDeploymentUseCaseMock.mockResolvedValue(undefined);
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
         await sut.onModuleInit();
 
         dequeued.next(task);
         await flush();
 
-        expect(queue.markProcessing).toHaveBeenCalledTimes(1);
-        expect(queue.markProcessing).toHaveBeenCalledWith(task.id);
-        expect(queue.markCompleted).toHaveBeenCalledTimes(1);
-        expect(queue.markCompleted).toHaveBeenCalledWith(task.id);
-        expect(queue.markFailed).not.toHaveBeenCalled();
+        expect(mockQueue.markProcessing).toHaveBeenCalledTimes(1);
+        expect(mockQueue.markProcessing).toHaveBeenCalledWith(task.id);
+        expect(mockQueue.markCompleted).toHaveBeenCalledTimes(1);
+        expect(mockQueue.markCompleted).toHaveBeenCalledWith(task.id);
+        expect(mockQueue.markFailed).not.toHaveBeenCalled();
     });
 
     it('marks the row failed and logs a diagnostic when the run unexpectedly throws', async () => {
-        runDeploymentUseCaseMock.mockRejectedValue(new Error('boom'));
+        mockRunDeploymentUseCase.mockRejectedValue(new Error('boom'));
         await sut.onModuleInit();
 
         dequeued.next(task);
         await flush();
 
-        expect(diagnostics.error).toHaveBeenCalledTimes(1);
-        expect(queue.markFailed).toHaveBeenCalledTimes(1);
-        expect(queue.markFailed).toHaveBeenCalledWith(task.id, 'boom');
-        expect(queue.markCompleted).not.toHaveBeenCalled();
+        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockQueue.markFailed).toHaveBeenCalledTimes(1);
+        expect(mockQueue.markFailed).toHaveBeenCalledWith(task.id, 'boom');
+        expect(mockQueue.markCompleted).not.toHaveBeenCalled();
     });
 
     it('stops handling requests once destroyed', async () => {
-        runDeploymentUseCaseMock.mockResolvedValue(undefined);
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
         await sut.onModuleInit();
         sut.onModuleDestroy();
 
         dequeued.next(task);
         await flush();
 
-        expect(runDeploymentUseCaseMock).not.toHaveBeenCalled();
+        expect(mockRunDeploymentUseCase).not.toHaveBeenCalled();
     });
 
     it('serializes runs for the same project so the next waits for the current to finish', async () => {
         const first = defer();
         const second = defer();
-        runDeploymentUseCaseMock
+        mockRunDeploymentUseCase
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
@@ -176,12 +183,12 @@ describe('DeploymentRunnerService', () => {
         await flush();
 
         // First run is in-flight; the second must not have started yet.
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
-        expect(runDeploymentUseCaseMock).toHaveBeenLastCalledWith(
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(1);
+        expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
+            mockDeploymentsRepository,
+            mockProvidersRepository,
+            mockDockerExecutor,
+            mockLogStore,
             taskA,
         );
 
@@ -189,12 +196,12 @@ describe('DeploymentRunnerService', () => {
         first.resolve(undefined);
         await flush();
 
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(2);
-        expect(runDeploymentUseCaseMock).toHaveBeenLastCalledWith(
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
+        expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
+            mockDeploymentsRepository,
+            mockProvidersRepository,
+            mockDockerExecutor,
+            mockLogStore,
             taskB,
         );
 
@@ -205,7 +212,7 @@ describe('DeploymentRunnerService', () => {
     it('runs distinct projects concurrently without waiting for each other', async () => {
         const first = defer();
         const second = defer();
-        runDeploymentUseCaseMock
+        mockRunDeploymentUseCase
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
@@ -218,21 +225,21 @@ describe('DeploymentRunnerService', () => {
         await flush();
 
         // Both runs are in-flight at once: the second started without the first resolving.
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(2);
-        expect(runDeploymentUseCaseMock).toHaveBeenNthCalledWith(
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
+        expect(mockRunDeploymentUseCase).toHaveBeenNthCalledWith(
             1,
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
+            mockDeploymentsRepository,
+            mockProvidersRepository,
+            mockDockerExecutor,
+            mockLogStore,
             taskA,
         );
-        expect(runDeploymentUseCaseMock).toHaveBeenNthCalledWith(
+        expect(mockRunDeploymentUseCase).toHaveBeenNthCalledWith(
             2,
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
+            mockDeploymentsRepository,
+            mockProvidersRepository,
+            mockDockerExecutor,
+            mockLogStore,
             taskB,
         );
 
@@ -244,7 +251,7 @@ describe('DeploymentRunnerService', () => {
     it('keeps draining the same project after a run rejects, marking it failed', async () => {
         const first = defer();
         const second = defer();
-        runDeploymentUseCaseMock
+        mockRunDeploymentUseCase
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
@@ -256,20 +263,20 @@ describe('DeploymentRunnerService', () => {
         dequeued.next(taskB);
         await flush();
 
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(1);
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(1);
 
         // First run fails: the error is contained and the next same-project run proceeds.
         first.reject(new Error('boom'));
         await flush();
 
-        expect(diagnostics.error).toHaveBeenCalledTimes(1);
-        expect(queue.markFailed).toHaveBeenCalledWith(taskA.id, 'boom');
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(2);
-        expect(runDeploymentUseCaseMock).toHaveBeenLastCalledWith(
-            deploymentsRepository,
-            providersRepository,
-            dockerExecutor,
-            logStore,
+        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockQueue.markFailed).toHaveBeenCalledWith(taskA.id, 'boom');
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
+        expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
+            mockDeploymentsRepository,
+            mockProvidersRepository,
+            mockDockerExecutor,
+            mockLogStore,
             taskB,
         );
 
@@ -280,7 +287,7 @@ describe('DeploymentRunnerService', () => {
     it('keeps other projects running after an unrelated project run rejects', async () => {
         const failing = defer();
         const healthy = defer();
-        runDeploymentUseCaseMock
+        mockRunDeploymentUseCase
             .mockReturnValueOnce(failing.promise)
             .mockReturnValueOnce(healthy.promise);
 
@@ -292,17 +299,17 @@ describe('DeploymentRunnerService', () => {
         dequeued.next(taskB);
         await flush();
 
-        expect(runDeploymentUseCaseMock).toHaveBeenCalledTimes(2);
+        expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
 
         failing.reject(new Error('boom'));
         await flush();
 
         // The other project's run is unaffected and still resolves cleanly.
-        expect(diagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
 
         healthy.resolve(undefined);
         await flush();
 
-        expect(diagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
     });
 });

@@ -7,16 +7,13 @@ import { GitRepository } from '../../../domain/models/git-repository.model';
 import { GithubAppProvider } from '../../../infrastructure/github/github-app.provider';
 import { ProvidersService } from '../providers.service';
 
-jest.mock('../../../infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
 jest.mock('../../../application/list-repositories.use-case');
 jest.mock('../../../application/list-branches.use-case');
 
-const listRepositoriesUseCaseMock = listRepositoriesUseCase as jest.MockedFunction<
+const mockListRepositoriesUseCase = listRepositoriesUseCase as jest.MockedFunction<
     typeof listRepositoriesUseCase
 >;
-const listBranchesUseCaseMock = listBranchesUseCase as jest.MockedFunction<typeof listBranchesUseCase>;
+const mockListBranchesUseCase = listBranchesUseCase as jest.MockedFunction<typeof listBranchesUseCase>;
 
 const repositoryId = 42;
 
@@ -38,18 +35,18 @@ const repositories: GitRepository[] = [
 const branches: GitBranch[] = [{ name: 'main' }, { name: 'develop' }];
 
 describe('ProvidersService', () => {
-    let provider: jest.Mocked<GithubAppProvider>;
+    let mockProvider: jest.Mocked<GithubAppProvider>;
     let sut: ProvidersService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        provider = {} as jest.Mocked<GithubAppProvider>;
+        mockProvider = {} as jest.Mocked<GithubAppProvider>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ProvidersService,
-                { provide: GithubAppProvider, useValue: provider },
+                { provide: GithubAppProvider, useValue: mockProvider },
             ],
         }).compile();
 
@@ -58,16 +55,16 @@ describe('ProvidersService', () => {
 
     describe('listRepositories', () => {
         it('delegates to the use case with the provider', async () => {
-            listRepositoriesUseCaseMock.mockResolvedValue(repositories);
+            mockListRepositoriesUseCase.mockResolvedValue(repositories);
 
             await sut.listRepositories();
 
-            expect(listRepositoriesUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(listRepositoriesUseCaseMock).toHaveBeenCalledWith(provider);
+            expect(mockListRepositoriesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockListRepositoriesUseCase).toHaveBeenCalledWith(mockProvider);
         });
 
         it('returns the repositories produced by the use case', async () => {
-            listRepositoriesUseCaseMock.mockResolvedValue(repositories);
+            mockListRepositoriesUseCase.mockResolvedValue(repositories);
 
             const result = await sut.listRepositories();
 
@@ -75,7 +72,7 @@ describe('ProvidersService', () => {
         });
 
         it('returns an empty list when no repositories are accessible', async () => {
-            listRepositoriesUseCaseMock.mockResolvedValue([]);
+            mockListRepositoriesUseCase.mockResolvedValue([]);
 
             const result = await sut.listRepositories();
 
@@ -84,7 +81,7 @@ describe('ProvidersService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('github unreachable');
-            listRepositoriesUseCaseMock.mockRejectedValue(error);
+            mockListRepositoriesUseCase.mockRejectedValue(error);
 
             await expect(sut.listRepositories()).rejects.toThrow(error);
         });
@@ -92,16 +89,16 @@ describe('ProvidersService', () => {
 
     describe('listBranches', () => {
         it('delegates to the use case with the provider and repository id', async () => {
-            listBranchesUseCaseMock.mockResolvedValue(branches);
+            mockListBranchesUseCase.mockResolvedValue(branches);
 
             await sut.listBranches(repositoryId);
 
-            expect(listBranchesUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(listBranchesUseCaseMock).toHaveBeenCalledWith(provider, repositoryId);
+            expect(mockListBranchesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockListBranchesUseCase).toHaveBeenCalledWith(mockProvider, repositoryId);
         });
 
         it('returns the branches produced by the use case', async () => {
-            listBranchesUseCaseMock.mockResolvedValue(branches);
+            mockListBranchesUseCase.mockResolvedValue(branches);
 
             const result = await sut.listBranches(repositoryId);
 
@@ -109,7 +106,7 @@ describe('ProvidersService', () => {
         });
 
         it('returns an empty list when the repository has no branches', async () => {
-            listBranchesUseCaseMock.mockResolvedValue([]);
+            mockListBranchesUseCase.mockResolvedValue([]);
 
             const result = await sut.listBranches(repositoryId);
 
@@ -118,7 +115,7 @@ describe('ProvidersService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('repository not found');
-            listBranchesUseCaseMock.mockRejectedValue(error);
+            mockListBranchesUseCase.mockRejectedValue(error);
 
             await expect(sut.listBranches(repositoryId)).rejects.toThrow(error);
         });

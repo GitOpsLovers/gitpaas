@@ -23,17 +23,17 @@ jest.mock('../../../application/prune-containers.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
 jest.mock('../../../application/check-readiness.use-case');
 
-const checkReadinessUseCaseMock = checkReadinessUseCase as jest.MockedFunction<
+const mockCheckReadinessUseCase = checkReadinessUseCase as jest.MockedFunction<
     typeof checkReadinessUseCase
 >;
-const pruneImagesUseCaseMock = pruneImagesUseCase as jest.MockedFunction<typeof pruneImagesUseCase>;
-const pruneVolumesUseCaseMock = pruneVolumesUseCase as jest.MockedFunction<
+const mockPruneImagesUseCase = pruneImagesUseCase as jest.MockedFunction<typeof pruneImagesUseCase>;
+const mockPruneVolumesUseCase = pruneVolumesUseCase as jest.MockedFunction<
     typeof pruneVolumesUseCase
 >;
-const pruneContainersUseCaseMock = pruneContainersUseCase as jest.MockedFunction<
+const mockPruneContainersUseCase = pruneContainersUseCase as jest.MockedFunction<
     typeof pruneContainersUseCase
 >;
-const removeOrphanedContainersUseCaseMock = removeOrphanedContainersUseCase as jest.MockedFunction<
+const mockRemoveOrphanedContainersUseCase = removeOrphanedContainersUseCase as jest.MockedFunction<
     typeof removeOrphanedContainersUseCase
 >;
 
@@ -52,33 +52,33 @@ const readinessResult: ReadinessResult = {
 };
 
 describe('ServerService', () => {
-    let pruner: jest.Mocked<DockerServerPrunerRepository>;
-    let orphanContainers: jest.Mocked<DockerOrphanContainersRepository>;
-    let services: jest.Mocked<ServicesDatabaseRepository>;
-    let postgresProbe: jest.Mocked<PostgresHealthProbe>;
-    let redisProbe: jest.Mocked<RedisHealthProbe>;
-    let dockerProbe: jest.Mocked<DockerHealthProbe>;
+    let mockPruner: jest.Mocked<DockerServerPrunerRepository>;
+    let mockOrphanContainers: jest.Mocked<DockerOrphanContainersRepository>;
+    let mockServices: jest.Mocked<ServicesDatabaseRepository>;
+    let mockPostgresProbe: jest.Mocked<PostgresHealthProbe>;
+    let mockRedisProbe: jest.Mocked<RedisHealthProbe>;
+    let mockDockerProbe: jest.Mocked<DockerHealthProbe>;
     let sut: ServerService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        pruner = {} as jest.Mocked<DockerServerPrunerRepository>;
-        orphanContainers = {} as jest.Mocked<DockerOrphanContainersRepository>;
-        services = {} as jest.Mocked<ServicesDatabaseRepository>;
-        postgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbe>;
-        redisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<RedisHealthProbe>;
-        dockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbe>;
+        mockPruner = {} as jest.Mocked<DockerServerPrunerRepository>;
+        mockOrphanContainers = {} as jest.Mocked<DockerOrphanContainersRepository>;
+        mockServices = {} as jest.Mocked<ServicesDatabaseRepository>;
+        mockPostgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbe>;
+        mockRedisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<RedisHealthProbe>;
+        mockDockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbe>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ServerService,
-                { provide: DockerServerPrunerRepository, useValue: pruner },
-                { provide: DockerOrphanContainersRepository, useValue: orphanContainers },
-                { provide: ServicesDatabaseRepository, useValue: services },
-                { provide: PostgresHealthProbe, useValue: postgresProbe },
-                { provide: RedisHealthProbe, useValue: redisProbe },
-                { provide: DockerHealthProbe, useValue: dockerProbe },
+                { provide: DockerServerPrunerRepository, useValue: mockPruner },
+                { provide: DockerOrphanContainersRepository, useValue: mockOrphanContainers },
+                { provide: ServicesDatabaseRepository, useValue: mockServices },
+                { provide: PostgresHealthProbe, useValue: mockPostgresProbe },
+                { provide: RedisHealthProbe, useValue: mockRedisProbe },
+                { provide: DockerHealthProbe, useValue: mockDockerProbe },
             ],
         }).compile();
 
@@ -87,16 +87,16 @@ describe('ServerService', () => {
 
     describe('pruneImages', () => {
         it('delegates to the prune images use case with the pruner repository', async () => {
-            pruneImagesUseCaseMock.mockResolvedValue(imagesResult);
+            mockPruneImagesUseCase.mockResolvedValue(imagesResult);
 
             await sut.pruneImages();
 
-            expect(pruneImagesUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(pruneImagesUseCaseMock).toHaveBeenCalledWith(pruner);
+            expect(mockPruneImagesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockPruneImagesUseCase).toHaveBeenCalledWith(mockPruner);
         });
 
         it('returns the prune result produced by the use case', async () => {
-            pruneImagesUseCaseMock.mockResolvedValue(imagesResult);
+            mockPruneImagesUseCase.mockResolvedValue(imagesResult);
 
             const result = await sut.pruneImages();
 
@@ -104,7 +104,7 @@ describe('ServerService', () => {
         });
 
         it('returns a zeroed result when nothing was reclaimed', async () => {
-            pruneImagesUseCaseMock.mockResolvedValue(emptyResult);
+            mockPruneImagesUseCase.mockResolvedValue(emptyResult);
 
             const result = await sut.pruneImages();
 
@@ -112,17 +112,17 @@ describe('ServerService', () => {
         });
 
         it('never touches the other prune use cases', async () => {
-            pruneImagesUseCaseMock.mockResolvedValue(imagesResult);
+            mockPruneImagesUseCase.mockResolvedValue(imagesResult);
 
             await sut.pruneImages();
 
-            expect(pruneVolumesUseCaseMock).not.toHaveBeenCalled();
-            expect(pruneContainersUseCaseMock).not.toHaveBeenCalled();
+            expect(mockPruneVolumesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneContainersUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('docker daemon unreachable');
-            pruneImagesUseCaseMock.mockRejectedValue(error);
+            mockPruneImagesUseCase.mockRejectedValue(error);
 
             await expect(sut.pruneImages()).rejects.toThrow(error);
         });
@@ -130,16 +130,16 @@ describe('ServerService', () => {
 
     describe('pruneVolumes', () => {
         it('delegates to the prune volumes use case with the pruner repository', async () => {
-            pruneVolumesUseCaseMock.mockResolvedValue(volumesResult);
+            mockPruneVolumesUseCase.mockResolvedValue(volumesResult);
 
             await sut.pruneVolumes();
 
-            expect(pruneVolumesUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(pruneVolumesUseCaseMock).toHaveBeenCalledWith(pruner);
+            expect(mockPruneVolumesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockPruneVolumesUseCase).toHaveBeenCalledWith(mockPruner);
         });
 
         it('returns the prune result produced by the use case', async () => {
-            pruneVolumesUseCaseMock.mockResolvedValue(volumesResult);
+            mockPruneVolumesUseCase.mockResolvedValue(volumesResult);
 
             const result = await sut.pruneVolumes();
 
@@ -147,7 +147,7 @@ describe('ServerService', () => {
         });
 
         it('returns a zeroed result when nothing was reclaimed', async () => {
-            pruneVolumesUseCaseMock.mockResolvedValue(emptyResult);
+            mockPruneVolumesUseCase.mockResolvedValue(emptyResult);
 
             const result = await sut.pruneVolumes();
 
@@ -155,17 +155,17 @@ describe('ServerService', () => {
         });
 
         it('never touches the other prune use cases', async () => {
-            pruneVolumesUseCaseMock.mockResolvedValue(volumesResult);
+            mockPruneVolumesUseCase.mockResolvedValue(volumesResult);
 
             await sut.pruneVolumes();
 
-            expect(pruneImagesUseCaseMock).not.toHaveBeenCalled();
-            expect(pruneContainersUseCaseMock).not.toHaveBeenCalled();
+            expect(mockPruneImagesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneContainersUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('docker daemon unreachable');
-            pruneVolumesUseCaseMock.mockRejectedValue(error);
+            mockPruneVolumesUseCase.mockRejectedValue(error);
 
             await expect(sut.pruneVolumes()).rejects.toThrow(error);
         });
@@ -173,16 +173,16 @@ describe('ServerService', () => {
 
     describe('pruneContainers', () => {
         it('delegates to the prune containers use case with the pruner repository', async () => {
-            pruneContainersUseCaseMock.mockResolvedValue(containersResult);
+            mockPruneContainersUseCase.mockResolvedValue(containersResult);
 
             await sut.pruneContainers();
 
-            expect(pruneContainersUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(pruneContainersUseCaseMock).toHaveBeenCalledWith(pruner);
+            expect(mockPruneContainersUseCase).toHaveBeenCalledTimes(1);
+            expect(mockPruneContainersUseCase).toHaveBeenCalledWith(mockPruner);
         });
 
         it('returns the prune result produced by the use case', async () => {
-            pruneContainersUseCaseMock.mockResolvedValue(containersResult);
+            mockPruneContainersUseCase.mockResolvedValue(containersResult);
 
             const result = await sut.pruneContainers();
 
@@ -190,7 +190,7 @@ describe('ServerService', () => {
         });
 
         it('returns a zeroed result when nothing was reclaimed', async () => {
-            pruneContainersUseCaseMock.mockResolvedValue(emptyResult);
+            mockPruneContainersUseCase.mockResolvedValue(emptyResult);
 
             const result = await sut.pruneContainers();
 
@@ -198,17 +198,17 @@ describe('ServerService', () => {
         });
 
         it('never touches the other prune use cases', async () => {
-            pruneContainersUseCaseMock.mockResolvedValue(containersResult);
+            mockPruneContainersUseCase.mockResolvedValue(containersResult);
 
             await sut.pruneContainers();
 
-            expect(pruneImagesUseCaseMock).not.toHaveBeenCalled();
-            expect(pruneVolumesUseCaseMock).not.toHaveBeenCalled();
+            expect(mockPruneImagesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneVolumesUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('docker daemon unreachable');
-            pruneContainersUseCaseMock.mockRejectedValue(error);
+            mockPruneContainersUseCase.mockRejectedValue(error);
 
             await expect(sut.pruneContainers()).rejects.toThrow(error);
         });
@@ -216,16 +216,16 @@ describe('ServerService', () => {
 
     describe('removeOrphanedContainers', () => {
         it('delegates to the remove orphaned containers use case with its dependencies', async () => {
-            removeOrphanedContainersUseCaseMock.mockResolvedValue(orphanResult);
+            mockRemoveOrphanedContainersUseCase.mockResolvedValue(orphanResult);
 
             await sut.removeOrphanedContainers();
 
-            expect(removeOrphanedContainersUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(removeOrphanedContainersUseCaseMock).toHaveBeenCalledWith(orphanContainers, services);
+            expect(mockRemoveOrphanedContainersUseCase).toHaveBeenCalledTimes(1);
+            expect(mockRemoveOrphanedContainersUseCase).toHaveBeenCalledWith(mockOrphanContainers, mockServices);
         });
 
         it('returns the orphan removal result produced by the use case', async () => {
-            removeOrphanedContainersUseCaseMock.mockResolvedValue(orphanResult);
+            mockRemoveOrphanedContainersUseCase.mockResolvedValue(orphanResult);
 
             const result = await sut.removeOrphanedContainers();
 
@@ -233,7 +233,7 @@ describe('ServerService', () => {
         });
 
         it('returns an empty result when there is nothing to remove', async () => {
-            removeOrphanedContainersUseCaseMock.mockResolvedValue({ removed: 0, names: [] });
+            mockRemoveOrphanedContainersUseCase.mockResolvedValue({ removed: 0, names: [] });
 
             const result = await sut.removeOrphanedContainers();
 
@@ -241,18 +241,18 @@ describe('ServerService', () => {
         });
 
         it('never touches the prune use cases', async () => {
-            removeOrphanedContainersUseCaseMock.mockResolvedValue(orphanResult);
+            mockRemoveOrphanedContainersUseCase.mockResolvedValue(orphanResult);
 
             await sut.removeOrphanedContainers();
 
-            expect(pruneImagesUseCaseMock).not.toHaveBeenCalled();
-            expect(pruneVolumesUseCaseMock).not.toHaveBeenCalled();
-            expect(pruneContainersUseCaseMock).not.toHaveBeenCalled();
+            expect(mockPruneImagesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneVolumesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneContainersUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('docker daemon unreachable');
-            removeOrphanedContainersUseCaseMock.mockRejectedValue(error);
+            mockRemoveOrphanedContainersUseCase.mockRejectedValue(error);
 
             await expect(sut.removeOrphanedContainers()).rejects.toThrow(error);
         });
@@ -260,20 +260,20 @@ describe('ServerService', () => {
 
     describe('checkReadiness', () => {
         it('delegates to the check readiness use case with the three probes in order', async () => {
-            checkReadinessUseCaseMock.mockResolvedValue(readinessResult);
+            mockCheckReadinessUseCase.mockResolvedValue(readinessResult);
 
             await sut.checkReadiness();
 
-            expect(checkReadinessUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(checkReadinessUseCaseMock).toHaveBeenCalledWith([
-                postgresProbe,
-                redisProbe,
-                dockerProbe,
+            expect(mockCheckReadinessUseCase).toHaveBeenCalledTimes(1);
+            expect(mockCheckReadinessUseCase).toHaveBeenCalledWith([
+                mockPostgresProbe,
+                mockRedisProbe,
+                mockDockerProbe,
             ]);
         });
 
         it('returns the aggregated readiness result produced by the use case', async () => {
-            checkReadinessUseCaseMock.mockResolvedValue(readinessResult);
+            mockCheckReadinessUseCase.mockResolvedValue(readinessResult);
 
             const result = await sut.checkReadiness();
 
@@ -289,7 +289,7 @@ describe('ServerService', () => {
                     { name: 'docker', status: 'up' },
                 ],
             };
-            checkReadinessUseCaseMock.mockResolvedValue(errored);
+            mockCheckReadinessUseCase.mockResolvedValue(errored);
 
             const result = await sut.checkReadiness();
 
@@ -298,7 +298,7 @@ describe('ServerService', () => {
 
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('unexpected');
-            checkReadinessUseCaseMock.mockRejectedValue(error);
+            mockCheckReadinessUseCase.mockRejectedValue(error);
 
             await expect(sut.checkReadiness()).rejects.toThrow(error);
         });

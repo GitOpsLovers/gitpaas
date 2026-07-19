@@ -242,6 +242,20 @@ describe('DeploymentsService', () => {
 });
 ```
 
+### Flushing async work in stateful-service specs
+
+A stateful/async service (e.g. an RxJS-driven runner) may need pending microtasks/macrotasks drained before you assert. The common helper wraps a timer in a Promise — **write the executor with a block body, not an expression body:**
+
+```ts
+// Correct — executor returns nothing
+const flush = (): Promise<void> => new Promise<void>((resolve) => {
+    setImmediate(resolve);
+});
+```
+
+- **Why:** an expression-body executor `(resolve) => setImmediate(resolve)` implicitly **returns** the `setImmediate` handle. The `Promise` constructor ignores an executor's return value, and ESLint/TS flag it as `no-promise-executor-return` ("Return values from promise executor functions cannot be read").
+- **Fix:** the block body `{ setImmediate(resolve); }` returns nothing, satisfies the rule, and behaves identically — resolving on the next `setImmediate` macrotask tick. Same applies to `setTimeout(resolve, 0)` flush helpers.
+
 ---
 
 ## Controller testing

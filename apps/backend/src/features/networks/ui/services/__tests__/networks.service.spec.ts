@@ -11,7 +11,7 @@ import { ServicesDatabaseRepository } from '@features/services/infrastructure/da
 
 jest.mock('../../../application/get-networks-by-service.use-case');
 
-const getNetworksByServiceUseCaseMock = getNetworksByServiceUseCase as jest.MockedFunction<
+const mockGetNetworksByServiceUseCase = getNetworksByServiceUseCase as jest.MockedFunction<
     typeof getNetworksByServiceUseCase
 >;
 
@@ -39,21 +39,21 @@ const networks: Network[] = [
 ];
 
 describe('NetworksService', () => {
-    let servicesRepository: jest.Mocked<Pick<ServicesDatabaseRepository, 'findById'>>;
-    let networksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService'>>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesDatabaseRepository, 'findById'>>;
+    let mockNetworksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService'>>;
     let sut: NetworksService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        servicesRepository = { findById: jest.fn() };
-        networksRepository = { listByService: jest.fn() };
+        mockServicesRepository = { findById: jest.fn() };
+        mockNetworksRepository = { listByService: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 NetworksService,
-                { provide: ServicesDatabaseRepository, useValue: servicesRepository },
-                { provide: DockerNetworksRepository, useValue: networksRepository },
+                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
+                { provide: DockerNetworksRepository, useValue: mockNetworksRepository },
             ],
         }).compile();
 
@@ -62,28 +62,28 @@ describe('NetworksService', () => {
 
     describe('getByService', () => {
         it('looks the service up by its id before listing networks', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            getNetworksByServiceUseCaseMock.mockResolvedValue(networks);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetNetworksByServiceUseCase.mockResolvedValue(networks);
 
             await sut.getByService(serviceId);
 
-            expect(servicesRepository.findById).toHaveBeenCalledTimes(1);
-            expect(servicesRepository.findById).toHaveBeenCalledWith(serviceId);
+            expect(mockServicesRepository.findById).toHaveBeenCalledTimes(1);
+            expect(mockServicesRepository.findById).toHaveBeenCalledWith(serviceId);
         });
 
         it('delegates to the use case with the networks repository and the resolved service', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            getNetworksByServiceUseCaseMock.mockResolvedValue(networks);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetNetworksByServiceUseCase.mockResolvedValue(networks);
 
             await sut.getByService(serviceId);
 
-            expect(getNetworksByServiceUseCaseMock).toHaveBeenCalledTimes(1);
-            expect(getNetworksByServiceUseCaseMock).toHaveBeenCalledWith(networksRepository, service);
+            expect(mockGetNetworksByServiceUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetNetworksByServiceUseCase).toHaveBeenCalledWith(mockNetworksRepository, service);
         });
 
         it('returns the networks produced by the use case', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            getNetworksByServiceUseCaseMock.mockResolvedValue(networks);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetNetworksByServiceUseCase.mockResolvedValue(networks);
 
             const result = await sut.getByService(serviceId);
 
@@ -91,8 +91,8 @@ describe('NetworksService', () => {
         });
 
         it('returns an empty list when the service has no networks', async () => {
-            servicesRepository.findById.mockResolvedValue(service);
-            getNetworksByServiceUseCaseMock.mockResolvedValue([]);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetNetworksByServiceUseCase.mockResolvedValue([]);
 
             const result = await sut.getByService(serviceId);
 
@@ -100,31 +100,31 @@ describe('NetworksService', () => {
         });
 
         it('throws NotFoundException when the service does not exist', async () => {
-            servicesRepository.findById.mockResolvedValue(null);
+            mockServicesRepository.findById.mockResolvedValue(null);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(NotFoundException);
             await expect(sut.getByService(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
         it('never invokes the use case when the service is missing', async () => {
-            servicesRepository.findById.mockResolvedValue(null);
+            mockServicesRepository.findById.mockResolvedValue(null);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(NotFoundException);
-            expect(getNetworksByServiceUseCaseMock).not.toHaveBeenCalled();
+            expect(mockGetNetworksByServiceUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown while resolving the service', async () => {
             const error = new Error('db unreachable');
-            servicesRepository.findById.mockRejectedValue(error);
+            mockServicesRepository.findById.mockRejectedValue(error);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(error);
-            expect(getNetworksByServiceUseCaseMock).not.toHaveBeenCalled();
+            expect(mockGetNetworksByServiceUseCase).not.toHaveBeenCalled();
         });
 
         it('propagates errors thrown while listing the networks', async () => {
             const error = new Error('daemon unreachable');
-            servicesRepository.findById.mockResolvedValue(service);
-            getNetworksByServiceUseCaseMock.mockRejectedValue(error);
+            mockServicesRepository.findById.mockResolvedValue(service);
+            mockGetNetworksByServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(error);
         });
