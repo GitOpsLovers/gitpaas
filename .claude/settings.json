@@ -15,6 +15,7 @@
       "Bash(rtk sed *)",
       "Bash(rtk docker *)",
       "Bash(rtk head *)",
+      "Bash(rtk ng *)",
       "WebFetch(domain:angular-demo.tailadmin.com)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:angular.dev)"
