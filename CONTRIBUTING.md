@@ -67,7 +67,9 @@ On first `docker compose up` the `vps` container generates TLS certificates and 
 
 ### Database schema and migrations
 
-Locally, TypeORM `synchronize` is on (dev and test), so schema changes to entities are applied automatically on backend boot — you do not need a migration just to run the app. **Production**, however, runs with `synchronize` off and is managed by **versioned migrations**. So whenever you add or change an entity in a way that will ship to production, generate a migration and commit it with your change, from `apps/backend`:
+Locally, TypeORM `synchronize` is on (dev and test), so schema changes to entities are applied automatically on backend boot — you do not need a migration just to run the app.
+
+**Production**, however, runs with `synchronize` off and is managed by **versioned migrations**. So whenever you add or change an entity in a way that will ship to production, generate a migration and commit it with your change, from `apps/backend`:
 
 ```bash
 pnpm --filter backend migration:generate src/migrations/<DescriptiveName>   # diff entities → new migration
