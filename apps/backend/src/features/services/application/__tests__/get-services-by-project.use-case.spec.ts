@@ -16,40 +16,38 @@ describe('getServicesByProjectUseCase', () => {
         },
     ];
 
-    let repository: jest.Mocked<ServicesRepository>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'getAllByProject'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
+        jest.clearAllMocks();
+        mockServicesRepository = {
             getAllByProject: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided project id', async () => {
-        repository.getAllByProject.mockResolvedValue(services);
+        mockServicesRepository.getAllByProject.mockResolvedValue(services);
 
-        await getServicesByProjectUseCase(repository, projectId);
+        await getServicesByProjectUseCase(mockServicesRepository as unknown as ServicesRepository, projectId);
 
-        expect(repository.getAllByProject).toHaveBeenCalledTimes(1);
-        expect(repository.getAllByProject).toHaveBeenCalledWith(projectId);
+        expect(mockServicesRepository.getAllByProject).toHaveBeenCalledTimes(1);
+        expect(mockServicesRepository.getAllByProject).toHaveBeenCalledWith(projectId);
     });
 
     it('returns the services listed by the repository', async () => {
-        repository.getAllByProject.mockResolvedValue(services);
+        mockServicesRepository.getAllByProject.mockResolvedValue(services);
 
-        const result = await getServicesByProjectUseCase(repository, projectId);
+        const result = await getServicesByProjectUseCase(mockServicesRepository as unknown as ServicesRepository, projectId);
 
         expect(result).toBe(services);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.getAllByProject.mockRejectedValue(error);
+        mockServicesRepository.getAllByProject.mockRejectedValue(error);
 
-        await expect(getServicesByProjectUseCase(repository, projectId)).rejects.toThrow(error);
+        await expect(
+            getServicesByProjectUseCase(mockServicesRepository as unknown as ServicesRepository, projectId),
+        ).rejects.toThrow(error);
     });
 });

@@ -1,16 +1,20 @@
-import { EMPTY } from 'rxjs';
-
+import { CreateDeploymentDto } from '../../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentQueue } from '../../domain/queues/deployment.queue';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { createDeploymentUseCase } from '../create-deployment.use-case';
+import { persistDeploymentUseCase } from '../persist-deployment.use-case';
 
 import { GitCommit } from '@features/providers/domain/models/git-commit.model';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { Service } from '@features/services/domain/models/service.model';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+
+jest.mock('../persist-deployment.use-case');
+
+const mockPersistDeploymentUseCase = persistDeploymentUseCase as jest.MockedFunction<typeof persistDeploymentUseCase>;
 
 describe('createDeploymentUseCase', () => {
     const triggerDto: TriggerDeploymentDto = {
@@ -31,6 +35,15 @@ describe('createDeploymentUseCase', () => {
         message: 'Fix deployment healthcheck parsing\n\nMore details here',
     };
 
+    const expectedCreateDto: CreateDeploymentDto = {
+        serviceId: service.id,
+        branch: 'main',
+        commit: commit.sha,
+        commitMessage: 'Fix deployment healthcheck parsing',
+        composerPath: 'docker-compose.yml',
+        triggeredBy: 'system',
+    };
+
     const createdDeployment: Deployment = {
         id: '9c858901-8a57-4791-81fe-4c455b099bc9',
         serviceId: service.id,
@@ -45,123 +58,79 @@ describe('createDeploymentUseCase', () => {
         finishedAt: null,
     };
 
-    let deploymentsRepository: jest.Mocked<DeploymentsRepository>;
-    let servicesRepository: jest.Mocked<ServicesRepository>;
-    let providersRepository: jest.Mocked<ProvidersRepository>;
-    let queue: jest.Mocked<DeploymentQueue>;
+    const mockDeploymentsRepository = {} as unknown as DeploymentsRepository;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
+    let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCommit'>>;
+    let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
+
+    function run(): Promise<Deployment> {
+        return createDeploymentUseCase(
+            mockDeploymentsRepository,
+            mockServicesRepository as unknown as ServicesRepository,
+            mockProvidersRepository as unknown as ProvidersRepository,
+            mockQueue as unknown as DeploymentQueue,
+            triggerDto,
+        );
+    }
 
     beforeEach(() => {
-        deploymentsRepository = {
-            getAllByService: jest.fn(),
+        jest.clearAllMocks();
+        mockServicesRepository = {
             findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
-        servicesRepository = {
-            getAll: jest.fn(),
-            getAllByProject: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-        };
-        providersRepository = {
-            listRepositories: jest.fn(),
-            listBranches: jest.fn(),
+        mockProvidersRepository = {
             getCommit: jest.fn(),
-            getFileContent: jest.fn(),
-            getRepositoryArchive: jest.fn(),
         };
-        queue = {
+        mockQueue = {
             enqueue: jest.fn().mockResolvedValue(undefined),
-            markProcessing: jest.fn().mockResolvedValue(undefined),
-            markCompleted: jest.fn().mockResolvedValue(undefined),
-            markFailed: jest.fn().mockResolvedValue(undefined),
-            recoverPending: jest.fn().mockResolvedValue(undefined),
-            dequeued$: EMPTY,
         };
+        mockPersistDeploymentUseCase.mockResolvedValue(createdDeployment);
     });
 
     it('throws ServiceNotFoundError when the service does not exist', async () => {
-        servicesRepository.findById.mockResolvedValue(null);
+        mockServicesRepository.findById.mockResolvedValue(null);
 
-        await expect(createDeploymentUseCase(
-            deploymentsRepository,
-            servicesRepository,
-            providersRepository,
-            queue,
-            triggerDto,
-        )).rejects.toThrow(ServiceNotFoundError);
+        await expect(run()).rejects.toThrow(ServiceNotFoundError);
+        expect(mockPersistDeploymentUseCase).not.toHaveBeenCalled();
+        expect(mockQueue.enqueue).not.toHaveBeenCalled();
     });
 
     it('throws ServiceNotDeployableError when the service has no repository or deployment branch', async () => {
-        servicesRepository.findById.mockResolvedValue({ ...service, repositoryId: '', deploymentBranch: '' });
+        mockServicesRepository.findById.mockResolvedValue({ ...service, repositoryId: '', deploymentBranch: '' });
 
-        await expect(createDeploymentUseCase(
-            deploymentsRepository,
-            servicesRepository,
-            providersRepository,
-            queue,
-            triggerDto,
-        )).rejects.toThrow(ServiceNotDeployableError);
+        await expect(run()).rejects.toThrow(ServiceNotDeployableError);
+        expect(mockPersistDeploymentUseCase).not.toHaveBeenCalled();
+        expect(mockQueue.enqueue).not.toHaveBeenCalled();
     });
 
     it('resolves the head commit for the service repository and branch', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        providersRepository.getCommit.mockResolvedValue(commit);
-        deploymentsRepository.create.mockResolvedValue(createdDeployment);
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockProvidersRepository.getCommit.mockResolvedValue(commit);
 
-        await createDeploymentUseCase(
-            deploymentsRepository,
-            servicesRepository,
-            providersRepository,
-            queue,
-            triggerDto,
-        );
+        await run();
 
-        expect(providersRepository.getCommit).toHaveBeenCalledWith(42, 'main');
+        expect(mockProvidersRepository.getCommit).toHaveBeenCalledWith(42, 'main');
     });
 
-    it('persists the deployment with the correctly-built DTO and returns it', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        providersRepository.getCommit.mockResolvedValue(commit);
-        deploymentsRepository.create.mockResolvedValue(createdDeployment);
+    it('delegates persistence to persistDeploymentUseCase with the correctly-built DTO and returns its result', async () => {
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockProvidersRepository.getCommit.mockResolvedValue(commit);
 
-        const result = await createDeploymentUseCase(
-            deploymentsRepository,
-            servicesRepository,
-            providersRepository,
-            queue,
-            triggerDto,
-        );
+        const result = await run();
 
-        expect(deploymentsRepository.create).toHaveBeenCalledWith({
-            serviceId: service.id,
-            branch: 'main',
-            commit: commit.sha,
-            commitMessage: 'Fix deployment healthcheck parsing',
-            composerPath: 'docker-compose.yml',
-            triggeredBy: 'system',
-        });
+        expect(mockPersistDeploymentUseCase).toHaveBeenCalledTimes(1);
+        expect(mockPersistDeploymentUseCase).toHaveBeenCalledWith(mockDeploymentsRepository, expectedCreateDto);
         expect(result).toBe(createdDeployment);
     });
 
-    it('publishes a run request on the bus after persisting the deployment', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        providersRepository.getCommit.mockResolvedValue(commit);
-        deploymentsRepository.create.mockResolvedValue(createdDeployment);
+    it('publishes a run request on the queue after persisting the deployment', async () => {
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockProvidersRepository.getCommit.mockResolvedValue(commit);
 
-        await createDeploymentUseCase(
-            deploymentsRepository,
-            servicesRepository,
-            providersRepository,
-            queue,
-            triggerDto,
-        );
+        await run();
 
-        expect(queue.enqueue).toHaveBeenCalledTimes(1);
-        expect(queue.enqueue).toHaveBeenCalledWith({
+        expect(mockQueue.enqueue).toHaveBeenCalledTimes(1);
+        expect(mockQueue.enqueue).toHaveBeenCalledWith({
             deploymentId: createdDeployment.id,
             repositoryId: 42,
             commit: createdDeployment.commit,

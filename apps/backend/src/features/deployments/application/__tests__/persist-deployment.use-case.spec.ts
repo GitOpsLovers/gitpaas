@@ -27,39 +27,38 @@ describe('persistDeploymentUseCase', () => {
         finishedAt: null,
     };
 
-    let repository: jest.Mocked<DeploymentsRepository>;
+    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'create'>>;
 
     beforeEach(() => {
-        repository = {
-            getAllByService: jest.fn(),
-            findById: jest.fn(),
+        jest.clearAllMocks();
+        mockDeploymentsRepository = {
             create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates creation to the repository with the provided DTO', async () => {
-        repository.create.mockResolvedValue(createdDeployment);
+        mockDeploymentsRepository.create.mockResolvedValue(createdDeployment);
 
-        await persistDeploymentUseCase(repository, createDto);
+        await persistDeploymentUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, createDto);
 
-        expect(repository.create).toHaveBeenCalledTimes(1);
-        expect(repository.create).toHaveBeenCalledWith(createDto);
+        expect(mockDeploymentsRepository.create).toHaveBeenCalledTimes(1);
+        expect(mockDeploymentsRepository.create).toHaveBeenCalledWith(createDto);
     });
 
     it('returns the deployment created by the repository', async () => {
-        repository.create.mockResolvedValue(createdDeployment);
+        mockDeploymentsRepository.create.mockResolvedValue(createdDeployment);
 
-        const result = await persistDeploymentUseCase(repository, createDto);
+        const result = await persistDeploymentUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, createDto);
 
         expect(result).toBe(createdDeployment);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.create.mockRejectedValue(error);
+        mockDeploymentsRepository.create.mockRejectedValue(error);
 
-        await expect(persistDeploymentUseCase(repository, createDto)).rejects.toThrow(error);
+        await expect(
+            persistDeploymentUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, createDto),
+        ).rejects.toThrow(error);
     });
 });

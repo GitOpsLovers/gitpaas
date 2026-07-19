@@ -11,39 +11,38 @@ describe('createProjectUseCase', () => {
         name: createDto.name,
     };
 
-    let repository: jest.Mocked<ProjectsRepository>;
+    let mockProjectsRepository: jest.Mocked<Pick<ProjectsRepository, 'create'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
-            findById: jest.fn(),
+        jest.clearAllMocks();
+        mockProjectsRepository = {
             create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates creation to the repository with the provided DTO', async () => {
-        repository.create.mockResolvedValue(createdProject);
+        mockProjectsRepository.create.mockResolvedValue(createdProject);
 
-        await createProjectUseCase(repository, createDto);
+        await createProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, createDto);
 
-        expect(repository.create).toHaveBeenCalledTimes(1);
-        expect(repository.create).toHaveBeenCalledWith(createDto);
+        expect(mockProjectsRepository.create).toHaveBeenCalledTimes(1);
+        expect(mockProjectsRepository.create).toHaveBeenCalledWith(createDto);
     });
 
     it('returns the project created by the repository', async () => {
-        repository.create.mockResolvedValue(createdProject);
+        mockProjectsRepository.create.mockResolvedValue(createdProject);
 
-        const result = await createProjectUseCase(repository, createDto);
+        const result = await createProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, createDto);
 
         expect(result).toBe(createdProject);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.create.mockRejectedValue(error);
+        mockProjectsRepository.create.mockRejectedValue(error);
 
-        await expect(createProjectUseCase(repository, createDto)).rejects.toThrow(error);
+        await expect(
+            createProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, createDto),
+        ).rejects.toThrow(error);
     });
 });

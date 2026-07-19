@@ -1,8 +1,8 @@
-import { Service } from '@features/services/domain/models/service.model';
-
 import { Container } from '../../domain/models/container.model';
 import { ContainersRepository } from '../../domain/repositories/containers.repository';
 import { getContainersByServiceUseCase } from '../get-containers-by-service.use-case';
+
+import { Service } from '@features/services/domain/models/service.model';
 
 describe('getContainersByServiceUseCase', () => {
     const service: Service = {
@@ -26,35 +26,38 @@ describe('getContainersByServiceUseCase', () => {
         },
     ];
 
-    let repository: jest.Mocked<ContainersRepository>;
+    let mockContainersRepository: jest.Mocked<Pick<ContainersRepository, 'listByService'>>;
 
     beforeEach(() => {
-        repository = {
+        jest.clearAllMocks();
+        mockContainersRepository = {
             listByService: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided service', async () => {
-        repository.listByService.mockResolvedValue(containers);
+        mockContainersRepository.listByService.mockResolvedValue(containers);
 
-        await getContainersByServiceUseCase(repository, service);
+        await getContainersByServiceUseCase(mockContainersRepository, service);
 
-        expect(repository.listByService).toHaveBeenCalledTimes(1);
-        expect(repository.listByService).toHaveBeenCalledWith(service);
+        expect(mockContainersRepository.listByService).toHaveBeenCalledTimes(1);
+        expect(mockContainersRepository.listByService).toHaveBeenCalledWith(service);
     });
 
     it('returns the containers found by the repository', async () => {
-        repository.listByService.mockResolvedValue(containers);
+        mockContainersRepository.listByService.mockResolvedValue(containers);
 
-        const result = await getContainersByServiceUseCase(repository, service);
+        const result = await getContainersByServiceUseCase(mockContainersRepository, service);
 
         expect(result).toBe(containers);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('daemon unreachable');
-        repository.listByService.mockRejectedValue(error);
+        mockContainersRepository.listByService.mockRejectedValue(error);
 
-        await expect(getContainersByServiceUseCase(repository, service)).rejects.toThrow(error);
+        await expect(
+            getContainersByServiceUseCase(mockContainersRepository as unknown as ContainersRepository, service),
+        ).rejects.toThrow(error);
     });
 });

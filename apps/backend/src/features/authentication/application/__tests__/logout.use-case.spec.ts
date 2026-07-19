@@ -22,57 +22,70 @@ function storedToken(overrides: Partial<RefreshToken> = {}): RefreshToken {
 }
 
 describe('logoutUseCase', () => {
-    let refreshTokensRepository: jest.Mocked<RefreshTokensRepository>;
-    let tokenService: jest.Mocked<TokenService>;
+    let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'findByJti' | 'revoke'>>;
+    let mockTokenService: jest.Mocked<Pick<TokenService, 'verifyRefreshToken'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        refreshTokensRepository = {
-            create: jest.fn(),
+        mockRefreshTokensRepository = {
             findByJti: jest.fn(),
             revoke: jest.fn().mockResolvedValue(true),
-            revokeAllForUser: jest.fn(),
         };
-        tokenService = {
-            signAccessToken: jest.fn(),
-            issueRefreshToken: jest.fn(),
+        mockTokenService = {
             verifyRefreshToken: jest.fn().mockReturnValue(payload),
-            hashRefreshToken: jest.fn(),
         };
     });
 
     it('revokes the stored record for a valid, non-revoked token', async () => {
-        refreshTokensRepository.findByJti.mockResolvedValue(storedToken());
+        mockRefreshTokensRepository.findByJti.mockResolvedValue(storedToken());
 
-        await logoutUseCase(refreshTokensRepository, tokenService, RAW_TOKEN);
+        await logoutUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            RAW_TOKEN,
+        );
 
-        expect(refreshTokensRepository.findByJti).toHaveBeenCalledWith(payload.jti);
-        expect(refreshTokensRepository.revoke).toHaveBeenCalledWith('record-1');
+        expect(mockRefreshTokensRepository.findByJti).toHaveBeenCalledWith(payload.jti);
+        expect(mockRefreshTokensRepository.revoke).toHaveBeenCalledWith('record-1');
     });
 
     it('is a no-op when the token cannot be verified, never touching the repository', async () => {
-        tokenService.verifyRefreshToken.mockImplementation(() => {
+        mockTokenService.verifyRefreshToken.mockImplementation(() => {
             throw new Error('malformed');
         });
 
-        await expect(logoutUseCase(refreshTokensRepository, tokenService, RAW_TOKEN)).resolves.toBeUndefined();
-        expect(refreshTokensRepository.findByJti).not.toHaveBeenCalled();
-        expect(refreshTokensRepository.revoke).not.toHaveBeenCalled();
+        await expect(
+            logoutUseCase(
+                mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+                mockTokenService as unknown as TokenService,
+                RAW_TOKEN,
+            ),
+        ).resolves.toBeUndefined();
+        expect(mockRefreshTokensRepository.findByJti).not.toHaveBeenCalled();
+        expect(mockRefreshTokensRepository.revoke).not.toHaveBeenCalled();
     });
 
     it('is idempotent: does not revoke again when the record is unknown', async () => {
-        refreshTokensRepository.findByJti.mockResolvedValue(null);
+        mockRefreshTokensRepository.findByJti.mockResolvedValue(null);
 
-        await logoutUseCase(refreshTokensRepository, tokenService, RAW_TOKEN);
+        await logoutUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            RAW_TOKEN,
+        );
 
-        expect(refreshTokensRepository.revoke).not.toHaveBeenCalled();
+        expect(mockRefreshTokensRepository.revoke).not.toHaveBeenCalled();
     });
 
     it('is idempotent: does not revoke again when the record is already revoked', async () => {
-        refreshTokensRepository.findByJti.mockResolvedValue(storedToken({ revoked: true }));
+        mockRefreshTokensRepository.findByJti.mockResolvedValue(storedToken({ revoked: true }));
 
-        await logoutUseCase(refreshTokensRepository, tokenService, RAW_TOKEN);
+        await logoutUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            RAW_TOKEN,
+        );
 
-        expect(refreshTokensRepository.revoke).not.toHaveBeenCalled();
+        expect(mockRefreshTokensRepository.revoke).not.toHaveBeenCalled();
     });
 });

@@ -1,8 +1,9 @@
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
-import { User, UserRole } from '@features/users/domain/models/user.model';
-import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { PasswordHasher } from '../../domain/security/password-hasher';
 import { validateUserUseCase } from '../validate-user.use-case';
+
+import { User, UserRole } from '@features/users/domain/models/user.model';
+import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -15,57 +16,74 @@ const user: User = {
 };
 
 describe('validateUserUseCase', () => {
-    let usersRepository: jest.Mocked<UsersRepository>;
-    let passwordHasher: jest.Mocked<PasswordHasher>;
+    let mockUsersRepository: jest.Mocked<Pick<UsersRepository, 'findByEmail'>>;
+    let mockPasswordHasher: jest.Mocked<Pick<PasswordHasher, 'verify'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        usersRepository = {
+        mockUsersRepository = {
             findByEmail: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
         };
-        passwordHasher = {
-            hash: jest.fn(),
+        mockPasswordHasher = {
             verify: jest.fn(),
         };
     });
 
     it('returns the user when the email is known, the password matches and the account is active', async () => {
-        usersRepository.findByEmail.mockResolvedValue(user);
-        passwordHasher.verify.mockResolvedValue(true);
+        mockUsersRepository.findByEmail.mockResolvedValue(user);
+        mockPasswordHasher.verify.mockResolvedValue(true);
 
-        const result = await validateUserUseCase(usersRepository, passwordHasher, user.email, 'plain');
+        const result = await validateUserUseCase(
+            mockUsersRepository as unknown as UsersRepository,
+            mockPasswordHasher as unknown as PasswordHasher,
+            user.email,
+            'plain',
+        );
 
-        expect(usersRepository.findByEmail).toHaveBeenCalledWith(user.email);
-        expect(passwordHasher.verify).toHaveBeenCalledWith(user.passwordHash, 'plain');
+        expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(user.email);
+        expect(mockPasswordHasher.verify).toHaveBeenCalledWith(user.passwordHash, 'plain');
         expect(result).toBe(user);
     });
 
     it('throws InvalidCredentialsError when the email is unknown and never checks the password', async () => {
-        usersRepository.findByEmail.mockResolvedValue(null);
+        mockUsersRepository.findByEmail.mockResolvedValue(null);
 
-        await expect(validateUserUseCase(usersRepository, passwordHasher, 'ghost@example.com', 'plain')).rejects.toBeInstanceOf(
-            InvalidCredentialsError,
-        );
-        expect(passwordHasher.verify).not.toHaveBeenCalled();
+        await expect(
+            validateUserUseCase(
+                mockUsersRepository as unknown as UsersRepository,
+                mockPasswordHasher as unknown as PasswordHasher,
+                'ghost@example.com',
+                'plain',
+            ),
+        ).rejects.toBeInstanceOf(InvalidCredentialsError);
+        expect(mockPasswordHasher.verify).not.toHaveBeenCalled();
     });
 
     it('throws InvalidCredentialsError when the password does not match', async () => {
-        usersRepository.findByEmail.mockResolvedValue(user);
-        passwordHasher.verify.mockResolvedValue(false);
+        mockUsersRepository.findByEmail.mockResolvedValue(user);
+        mockPasswordHasher.verify.mockResolvedValue(false);
 
-        await expect(validateUserUseCase(usersRepository, passwordHasher, user.email, 'wrong')).rejects.toBeInstanceOf(
-            InvalidCredentialsError,
-        );
+        await expect(
+            validateUserUseCase(
+                mockUsersRepository as unknown as UsersRepository,
+                mockPasswordHasher as unknown as PasswordHasher,
+                user.email,
+                'wrong',
+            ),
+        ).rejects.toBeInstanceOf(InvalidCredentialsError);
     });
 
     it('throws UserInactiveError when the account is deactivated even with valid credentials', async () => {
-        usersRepository.findByEmail.mockResolvedValue({ ...user, isActive: false });
-        passwordHasher.verify.mockResolvedValue(true);
+        mockUsersRepository.findByEmail.mockResolvedValue({ ...user, isActive: false });
+        mockPasswordHasher.verify.mockResolvedValue(true);
 
-        await expect(validateUserUseCase(usersRepository, passwordHasher, user.email, 'plain')).rejects.toBeInstanceOf(
-            UserInactiveError,
-        );
+        await expect(
+            validateUserUseCase(
+                mockUsersRepository as unknown as UsersRepository,
+                mockPasswordHasher as unknown as PasswordHasher,
+                user.email,
+                'plain',
+            ),
+        ).rejects.toBeInstanceOf(UserInactiveError);
     });
 });

@@ -24,147 +24,111 @@ describe('deleteServiceUseCase', () => {
         { id: 'dep-2' },
     ] as Deployment[];
 
-    let servicesRepository: jest.Mocked<ServicesRepository>;
-    let deploymentsRepository: jest.Mocked<DeploymentsRepository>;
-    let serviceFootprint: jest.Mocked<ServiceFootprintRepository>;
-    let logStore: jest.Mocked<LogStoreRepository>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById' | 'delete'>>;
+    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'getAllByService'>>;
+    let mockServiceFootprintRepository: jest.Mocked<Pick<ServiceFootprintRepository, 'remove'>>;
+    let mockLogStoreRepository: jest.Mocked<Pick<LogStoreRepository, 'purge'>>;
+
+    function run(): Promise<boolean> {
+        return deleteServiceUseCase(
+            mockServicesRepository as unknown as ServicesRepository,
+            mockDeploymentsRepository as unknown as DeploymentsRepository,
+            mockServiceFootprintRepository,
+            mockLogStoreRepository as unknown as LogStoreRepository,
+            id,
+        );
+    }
 
     beforeEach(() => {
-        servicesRepository = {
-            getAll: jest.fn(),
-            getAllByProject: jest.fn(),
+        jest.clearAllMocks();
+        mockServicesRepository = {
             findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
             delete: jest.fn(),
         };
-        deploymentsRepository = {
+        mockDeploymentsRepository = {
             getAllByService: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
-        serviceFootprint = {
+        mockServiceFootprintRepository = {
             remove: jest.fn().mockResolvedValue(undefined),
         };
-        logStore = {
-            append: jest.fn(),
-            complete: jest.fn(),
-            stream: jest.fn(),
+        mockLogStoreRepository = {
             purge: jest.fn().mockResolvedValue(undefined),
         };
     });
 
     it('returns false and does nothing else when the service is not found', async () => {
-        servicesRepository.findById.mockResolvedValue(null);
+        mockServicesRepository.findById.mockResolvedValue(null);
 
-        const result = await deleteServiceUseCase(
-            servicesRepository,
-            deploymentsRepository,
-            serviceFootprint,
-            logStore,
-            id,
-        );
+        const result = await run();
 
         expect(result).toBe(false);
-        expect(deploymentsRepository.getAllByService).not.toHaveBeenCalled();
-        expect(serviceFootprint.remove).not.toHaveBeenCalled();
-        expect(logStore.purge).not.toHaveBeenCalled();
-        expect(servicesRepository.delete).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.getAllByService).not.toHaveBeenCalled();
+        expect(mockServiceFootprintRepository.remove).not.toHaveBeenCalled();
+        expect(mockLogStoreRepository.purge).not.toHaveBeenCalled();
+        expect(mockServicesRepository.delete).not.toHaveBeenCalled();
     });
 
     it('tears down the service Docker footprint with the found service', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        deploymentsRepository.getAllByService.mockResolvedValue(deployments);
-        servicesRepository.delete.mockResolvedValue(true);
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
+        mockServicesRepository.delete.mockResolvedValue(true);
 
-        await deleteServiceUseCase(
-            servicesRepository,
-            deploymentsRepository,
-            serviceFootprint,
-            logStore,
-            id,
-        );
+        await run();
 
-        expect(serviceFootprint.remove).toHaveBeenCalledTimes(1);
-        expect(serviceFootprint.remove).toHaveBeenCalledWith(service);
+        expect(mockServiceFootprintRepository.remove).toHaveBeenCalledTimes(1);
+        expect(mockServiceFootprintRepository.remove).toHaveBeenCalledWith(service);
     });
 
     it('purges the log buffer of every enumerated deployment', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        deploymentsRepository.getAllByService.mockResolvedValue(deployments);
-        servicesRepository.delete.mockResolvedValue(true);
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
+        mockServicesRepository.delete.mockResolvedValue(true);
 
-        await deleteServiceUseCase(
-            servicesRepository,
-            deploymentsRepository,
-            serviceFootprint,
-            logStore,
-            id,
-        );
+        await run();
 
-        expect(deploymentsRepository.getAllByService).toHaveBeenCalledWith(id);
-        expect(logStore.purge).toHaveBeenCalledTimes(2);
-        expect(logStore.purge).toHaveBeenNthCalledWith(1, 'dep-1');
-        expect(logStore.purge).toHaveBeenNthCalledWith(2, 'dep-2');
+        expect(mockDeploymentsRepository.getAllByService).toHaveBeenCalledWith(id);
+        expect(mockLogStoreRepository.purge).toHaveBeenCalledTimes(2);
+        expect(mockLogStoreRepository.purge).toHaveBeenNthCalledWith(1, 'dep-1');
+        expect(mockLogStoreRepository.purge).toHaveBeenNthCalledWith(2, 'dep-2');
     });
 
     it('deletes the service row and returns its result', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        deploymentsRepository.getAllByService.mockResolvedValue([]);
-        servicesRepository.delete.mockResolvedValue(true);
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue([]);
+        mockServicesRepository.delete.mockResolvedValue(true);
 
-        const result = await deleteServiceUseCase(
-            servicesRepository,
-            deploymentsRepository,
-            serviceFootprint,
-            logStore,
-            id,
-        );
+        const result = await run();
 
-        expect(servicesRepository.delete).toHaveBeenCalledTimes(1);
-        expect(servicesRepository.delete).toHaveBeenCalledWith(id);
+        expect(mockServicesRepository.delete).toHaveBeenCalledTimes(1);
+        expect(mockServicesRepository.delete).toHaveBeenCalledWith(id);
         expect(result).toBe(true);
     });
 
     it('deletes the row before performing the external cleanup', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        deploymentsRepository.getAllByService.mockResolvedValue(deployments);
-        servicesRepository.delete.mockResolvedValue(true);
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
+        mockServicesRepository.delete.mockResolvedValue(true);
 
-        await deleteServiceUseCase(
-            servicesRepository,
-            deploymentsRepository,
-            serviceFootprint,
-            logStore,
-            id,
-        );
+        await run();
 
-        const deleteOrder = servicesRepository.delete.mock.invocationCallOrder[0];
-        const removeOrder = serviceFootprint.remove.mock.invocationCallOrder[0];
-        const firstPurgeOrder = logStore.purge.mock.invocationCallOrder[0];
+        const deleteOrder = mockServicesRepository.delete.mock.invocationCallOrder[0];
+        const removeOrder = mockServiceFootprintRepository.remove.mock.invocationCallOrder[0];
+        const firstPurgeOrder = mockLogStoreRepository.purge.mock.invocationCallOrder[0];
 
         expect(deleteOrder).toBeLessThan(removeOrder);
         expect(deleteOrder).toBeLessThan(firstPurgeOrder);
     });
 
     it('leaves external state untouched when the row deletion removes nothing', async () => {
-        servicesRepository.findById.mockResolvedValue(service);
-        deploymentsRepository.getAllByService.mockResolvedValue(deployments);
-        servicesRepository.delete.mockResolvedValue(false);
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
+        mockServicesRepository.delete.mockResolvedValue(false);
 
-        const result = await deleteServiceUseCase(
-            servicesRepository,
-            deploymentsRepository,
-            serviceFootprint,
-            logStore,
-            id,
-        );
+        const result = await run();
 
         expect(result).toBe(false);
-        expect(servicesRepository.delete).toHaveBeenCalledTimes(1);
-        expect(serviceFootprint.remove).not.toHaveBeenCalled();
-        expect(logStore.purge).not.toHaveBeenCalled();
+        expect(mockServicesRepository.delete).toHaveBeenCalledTimes(1);
+        expect(mockServiceFootprintRepository.remove).not.toHaveBeenCalled();
+        expect(mockLogStoreRepository.purge).not.toHaveBeenCalled();
     });
 });

@@ -5,34 +5,39 @@ import { findLogByIdUseCase } from '../find-log-by-id.use-case';
 describe('findLogByIdUseCase', () => {
     const id = 'a1b2c3d4-0000-0000-0000-000000000000';
 
-    let repository: jest.Mocked<LogsRepository>;
+    let mockLogsRepository: jest.Mocked<Pick<LogsRepository, 'findById'>>;
 
     beforeEach(() => {
-        repository = {
-            getAllByDeployment: jest.fn(),
+        jest.clearAllMocks();
+        mockLogsRepository = {
             findById: jest.fn(),
-            create: jest.fn(),
-            createMany: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates to the repository with the id and returns the log entry', async () => {
         const log = { id } as Log;
-        repository.findById.mockResolvedValue(log);
+        mockLogsRepository.findById.mockResolvedValue(log);
 
-        const result = await findLogByIdUseCase(repository, id);
+        const result = await findLogByIdUseCase(mockLogsRepository as unknown as LogsRepository, id);
 
-        expect(repository.findById).toHaveBeenCalledWith(id);
+        expect(mockLogsRepository.findById).toHaveBeenCalledWith(id);
         expect(result).toBe(log);
     });
 
     it('returns null when the log entry does not exist', async () => {
-        repository.findById.mockResolvedValue(null);
+        mockLogsRepository.findById.mockResolvedValue(null);
 
-        const result = await findLogByIdUseCase(repository, id);
+        const result = await findLogByIdUseCase(mockLogsRepository as unknown as LogsRepository, id);
 
         expect(result).toBeNull();
+    });
+
+    it('propagates errors thrown by the repository', async () => {
+        const error = new Error('db unreachable');
+        mockLogsRepository.findById.mockRejectedValue(error);
+
+        await expect(
+            findLogByIdUseCase(mockLogsRepository as unknown as LogsRepository, id),
+        ).rejects.toThrow(error);
     });
 });

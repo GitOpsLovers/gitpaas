@@ -1,9 +1,9 @@
-import { RefreshToken } from '../../domain/models/refresh-token.model';
 import { IssuedRefreshToken } from '../../domain/models/token.model';
-import { User, UserRole } from '@features/users/domain/models/user.model';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { TokenService } from '../../domain/security/token-service';
 import { loginUseCase } from '../login.use-case';
+
+import { User, UserRole } from '@features/users/domain/models/user.model';
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -23,29 +23,28 @@ const issued: IssuedRefreshToken = {
 };
 
 describe('loginUseCase', () => {
-    let refreshTokensRepository: jest.Mocked<RefreshTokensRepository>;
-    let tokenService: jest.Mocked<TokenService>;
+    let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'create'>>;
+    let mockTokenService: jest.Mocked<Pick<TokenService, 'signAccessToken' | 'issueRefreshToken'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        refreshTokensRepository = {
-            create: jest.fn().mockResolvedValue({} as RefreshToken),
-            findByJti: jest.fn(),
-            revoke: jest.fn(),
-            revokeAllForUser: jest.fn(),
+        mockRefreshTokensRepository = {
+            create: jest.fn().mockResolvedValue({}),
         };
-        tokenService = {
+        mockTokenService = {
             signAccessToken: jest.fn().mockReturnValue('access.jwt.token'),
             issueRefreshToken: jest.fn().mockReturnValue(issued),
-            verifyRefreshToken: jest.fn(),
-            hashRefreshToken: jest.fn(),
         };
     });
 
     it('issues and persists a fresh token pair for the validated user', async () => {
-        const result = await loginUseCase(refreshTokensRepository, tokenService, user);
+        const result = await loginUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            user,
+        );
 
-        expect(refreshTokensRepository.create).toHaveBeenCalledWith({
+        expect(mockRefreshTokensRepository.create).toHaveBeenCalledWith({
             userId: user.id,
             jti: issued.jti,
             tokenHash: issued.tokenHash,

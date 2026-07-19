@@ -9,47 +9,46 @@ describe('updateProjectUseCase', () => {
 
     const updatedProject: Project = { id, name: updateDto.name };
 
-    let repository: jest.Mocked<ProjectsRepository>;
+    let mockProjectsRepository: jest.Mocked<Pick<ProjectsRepository, 'update'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
+        jest.clearAllMocks();
+        mockProjectsRepository = {
             update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the update to the repository with the provided id and DTO', async () => {
-        repository.update.mockResolvedValue(updatedProject);
+        mockProjectsRepository.update.mockResolvedValue(updatedProject);
 
-        await updateProjectUseCase(repository, id, updateDto);
+        await updateProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, id, updateDto);
 
-        expect(repository.update).toHaveBeenCalledTimes(1);
-        expect(repository.update).toHaveBeenCalledWith(id, updateDto);
+        expect(mockProjectsRepository.update).toHaveBeenCalledTimes(1);
+        expect(mockProjectsRepository.update).toHaveBeenCalledWith(id, updateDto);
     });
 
     it('returns the project updated by the repository', async () => {
-        repository.update.mockResolvedValue(updatedProject);
+        mockProjectsRepository.update.mockResolvedValue(updatedProject);
 
-        const result = await updateProjectUseCase(repository, id, updateDto);
+        const result = await updateProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, id, updateDto);
 
         expect(result).toBe(updatedProject);
     });
 
     it('returns null when the project does not exist', async () => {
-        repository.update.mockResolvedValue(null);
+        mockProjectsRepository.update.mockResolvedValue(null);
 
-        const result = await updateProjectUseCase(repository, id, updateDto);
+        const result = await updateProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, id, updateDto);
 
         expect(result).toBeNull();
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.update.mockRejectedValue(error);
+        mockProjectsRepository.update.mockRejectedValue(error);
 
-        await expect(updateProjectUseCase(repository, id, updateDto)).rejects.toThrow(error);
+        await expect(
+            updateProjectUseCase(mockProjectsRepository as unknown as ProjectsRepository, id, updateDto),
+        ).rejects.toThrow(error);
     });
 });

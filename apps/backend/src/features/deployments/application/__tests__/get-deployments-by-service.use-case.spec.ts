@@ -21,39 +21,38 @@ describe('getDeploymentsByServiceUseCase', () => {
         },
     ];
 
-    let repository: jest.Mocked<DeploymentsRepository>;
+    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'getAllByService'>>;
 
     beforeEach(() => {
-        repository = {
+        jest.clearAllMocks();
+        mockDeploymentsRepository = {
             getAllByService: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided service id', async () => {
-        repository.getAllByService.mockResolvedValue(deployments);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
 
-        await getDeploymentsByServiceUseCase(repository, serviceId);
+        await getDeploymentsByServiceUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, serviceId);
 
-        expect(repository.getAllByService).toHaveBeenCalledTimes(1);
-        expect(repository.getAllByService).toHaveBeenCalledWith(serviceId);
+        expect(mockDeploymentsRepository.getAllByService).toHaveBeenCalledTimes(1);
+        expect(mockDeploymentsRepository.getAllByService).toHaveBeenCalledWith(serviceId);
     });
 
     it('returns the deployments listed by the repository', async () => {
-        repository.getAllByService.mockResolvedValue(deployments);
+        mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
 
-        const result = await getDeploymentsByServiceUseCase(repository, serviceId);
+        const result = await getDeploymentsByServiceUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, serviceId);
 
         expect(result).toBe(deployments);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.getAllByService.mockRejectedValue(error);
+        mockDeploymentsRepository.getAllByService.mockRejectedValue(error);
 
-        await expect(getDeploymentsByServiceUseCase(repository, serviceId)).rejects.toThrow(error);
+        await expect(
+            getDeploymentsByServiceUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, serviceId),
+        ).rejects.toThrow(error);
     });
 });

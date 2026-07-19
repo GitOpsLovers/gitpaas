@@ -8,47 +8,46 @@ describe('findProjectByIdUseCase', () => {
 
     const project: Project = { id, name: 'GitPaaS' };
 
-    let repository: jest.Mocked<ProjectsRepository>;
+    let mockProjectsRepository: jest.Mocked<Pick<ProjectsRepository, 'findById'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
+        jest.clearAllMocks();
+        mockProjectsRepository = {
             findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided id', async () => {
-        repository.findById.mockResolvedValue(project);
+        mockProjectsRepository.findById.mockResolvedValue(project);
 
-        await findProjectByIdUseCase(repository, id);
+        await findProjectByIdUseCase(mockProjectsRepository as unknown as ProjectsRepository, id);
 
-        expect(repository.findById).toHaveBeenCalledTimes(1);
-        expect(repository.findById).toHaveBeenCalledWith(id);
+        expect(mockProjectsRepository.findById).toHaveBeenCalledTimes(1);
+        expect(mockProjectsRepository.findById).toHaveBeenCalledWith(id);
     });
 
     it('returns the project found by the repository', async () => {
-        repository.findById.mockResolvedValue(project);
+        mockProjectsRepository.findById.mockResolvedValue(project);
 
-        const result = await findProjectByIdUseCase(repository, id);
+        const result = await findProjectByIdUseCase(mockProjectsRepository as unknown as ProjectsRepository, id);
 
         expect(result).toBe(project);
     });
 
     it('returns null when the project does not exist', async () => {
-        repository.findById.mockResolvedValue(null);
+        mockProjectsRepository.findById.mockResolvedValue(null);
 
-        const result = await findProjectByIdUseCase(repository, id);
+        const result = await findProjectByIdUseCase(mockProjectsRepository as unknown as ProjectsRepository, id);
 
         expect(result).toBeNull();
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.findById.mockRejectedValue(error);
+        mockProjectsRepository.findById.mockRejectedValue(error);
 
-        await expect(findProjectByIdUseCase(repository, id)).rejects.toThrow(error);
+        await expect(
+            findProjectByIdUseCase(mockProjectsRepository as unknown as ProjectsRepository, id),
+        ).rejects.toThrow(error);
     });
 });

@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { Deployment } from '../../domain/models/deployment.model';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { findDeploymentByIdUseCase } from '../find-deployment-by-id.use-case';
@@ -19,47 +20,46 @@ describe('findDeploymentByIdUseCase', () => {
         finishedAt: new Date('2026-07-11T00:05:00.000Z'),
     };
 
-    let repository: jest.Mocked<DeploymentsRepository>;
+    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'findById'>>;
 
     beforeEach(() => {
-        repository = {
-            getAllByService: jest.fn(),
+        jest.clearAllMocks();
+        mockDeploymentsRepository = {
             findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided id', async () => {
-        repository.findById.mockResolvedValue(deployment);
+        mockDeploymentsRepository.findById.mockResolvedValue(deployment);
 
-        await findDeploymentByIdUseCase(repository, id);
+        await findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id);
 
-        expect(repository.findById).toHaveBeenCalledTimes(1);
-        expect(repository.findById).toHaveBeenCalledWith(id);
+        expect(mockDeploymentsRepository.findById).toHaveBeenCalledTimes(1);
+        expect(mockDeploymentsRepository.findById).toHaveBeenCalledWith(id);
     });
 
     it('returns the deployment found by the repository', async () => {
-        repository.findById.mockResolvedValue(deployment);
+        mockDeploymentsRepository.findById.mockResolvedValue(deployment);
 
-        const result = await findDeploymentByIdUseCase(repository, id);
+        const result = await findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id);
 
         expect(result).toBe(deployment);
     });
 
     it('returns null when the deployment does not exist', async () => {
-        repository.findById.mockResolvedValue(null);
+        mockDeploymentsRepository.findById.mockResolvedValue(null);
 
-        const result = await findDeploymentByIdUseCase(repository, id);
+        const result = await findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id);
 
         expect(result).toBeNull();
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.findById.mockRejectedValue(error);
+        mockDeploymentsRepository.findById.mockRejectedValue(error);
 
-        await expect(findDeploymentByIdUseCase(repository, id)).rejects.toThrow(error);
+        await expect(
+            findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id),
+        ).rejects.toThrow(error);
     });
 });
