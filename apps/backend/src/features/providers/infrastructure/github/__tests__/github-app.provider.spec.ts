@@ -7,21 +7,6 @@ import { GithubAppProvider } from '../github-app.provider';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
-// `@octokit/auth-app` is replaced by a sentinel so we can assert the exact
-// `authStrategy` passed to Octokit without pulling in the real auth machinery.
-jest.mock('@octokit/auth-app', () => ({ createAppAuth: jest.fn() }));
-
-// `@octokit/rest` is mocked so `new Octokit(...)` never builds a real client.
-// The constructor is a `jest.fn()` (captures args/instances/call count) and every
-// instance exposes `paginate`/`request` jest.fns resolving harmless defaults, so the
-// Layer B methods that drive `createClient()` can run without touching the network.
-jest.mock('@octokit/rest', () => ({
-    Octokit: jest.fn().mockImplementation(() => ({
-        paginate: jest.fn().mockResolvedValue([]),
-        request: jest.fn().mockResolvedValue({ data: {} }),
-    })),
-}));
-
 const OctokitMock = Octokit as unknown as jest.Mock;
 
 interface FakeClient {

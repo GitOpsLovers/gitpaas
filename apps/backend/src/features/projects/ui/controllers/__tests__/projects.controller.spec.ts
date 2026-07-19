@@ -7,10 +7,6 @@ import { Project } from '../../../domain/models/project.model';
 import { ProjectsService } from '../../services/projects.service';
 import { ProjectsController } from '../projects.controller';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 
 const project: Project = {
@@ -20,13 +16,15 @@ const project: Project = {
 };
 
 describe('ProjectsController', () => {
-    let service: jest.Mocked<
+    let mockProjectsService: jest.Mocked<
         Pick<ProjectsService, 'getAll' | 'findById' | 'create' | 'update' | 'delete'>
     >;
     let sut: ProjectsController;
 
     beforeEach(async () => {
-        service = {
+        jest.clearAllMocks();
+
+        mockProjectsService = {
             getAll: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
@@ -36,7 +34,7 @@ describe('ProjectsController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [ProjectsController],
-            providers: [{ provide: ProjectsService, useValue: service }],
+            providers: [{ provide: ProjectsService, useValue: mockProjectsService }],
         }).compile();
 
         sut = moduleRef.get(ProjectsController);
@@ -44,16 +42,16 @@ describe('ProjectsController', () => {
 
     describe('getAll', () => {
         it('delegates to the service', async () => {
-            service.getAll.mockResolvedValue([project]);
+            mockProjectsService.getAll.mockResolvedValue([project]);
 
             await sut.getAll();
 
-            expect(service.getAll).toHaveBeenCalledTimes(1);
-            expect(service.getAll).toHaveBeenCalledWith();
+            expect(mockProjectsService.getAll).toHaveBeenCalledTimes(1);
+            expect(mockProjectsService.getAll).toHaveBeenCalledWith();
         });
 
         it('returns the projects produced by the service', async () => {
-            service.getAll.mockResolvedValue([project]);
+            mockProjectsService.getAll.mockResolvedValue([project]);
 
             const result = await sut.getAll();
 
@@ -61,7 +59,7 @@ describe('ProjectsController', () => {
         });
 
         it('returns an empty list when the service has no projects', async () => {
-            service.getAll.mockResolvedValue([]);
+            mockProjectsService.getAll.mockResolvedValue([]);
 
             const result = await sut.getAll();
 
@@ -70,7 +68,7 @@ describe('ProjectsController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.getAll.mockRejectedValue(error);
+            mockProjectsService.getAll.mockRejectedValue(error);
 
             await expect(sut.getAll()).rejects.toBe(error);
         });
@@ -78,16 +76,16 @@ describe('ProjectsController', () => {
 
     describe('findById', () => {
         it('delegates to the service with the received id', async () => {
-            service.findById.mockResolvedValue(project);
+            mockProjectsService.findById.mockResolvedValue(project);
 
             await sut.findById(projectId);
 
-            expect(service.findById).toHaveBeenCalledTimes(1);
-            expect(service.findById).toHaveBeenCalledWith(projectId);
+            expect(mockProjectsService.findById).toHaveBeenCalledTimes(1);
+            expect(mockProjectsService.findById).toHaveBeenCalledWith(projectId);
         });
 
         it('returns the project produced by the service', async () => {
-            service.findById.mockResolvedValue(project);
+            mockProjectsService.findById.mockResolvedValue(project);
 
             const result = await sut.findById(projectId);
 
@@ -95,20 +93,20 @@ describe('ProjectsController', () => {
         });
 
         it('throws a NotFoundException when the project does not exist', async () => {
-            service.findById.mockResolvedValue(null);
+            mockProjectsService.findById.mockResolvedValue(null);
 
             await expect(sut.findById(projectId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            service.findById.mockResolvedValue(null);
+            mockProjectsService.findById.mockResolvedValue(null);
 
             await expect(sut.findById(projectId)).rejects.toThrow(`Project ${projectId} not found`);
         });
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.findById.mockRejectedValue(error);
+            mockProjectsService.findById.mockRejectedValue(error);
 
             await expect(sut.findById(projectId)).rejects.toBe(error);
         });
@@ -118,16 +116,16 @@ describe('ProjectsController', () => {
         const createDto: CreateProjectDto = { name: 'platform' };
 
         it('delegates to the service with the received dto', async () => {
-            service.create.mockResolvedValue(project);
+            mockProjectsService.create.mockResolvedValue(project);
 
             await sut.create(createDto);
 
-            expect(service.create).toHaveBeenCalledTimes(1);
-            expect(service.create).toHaveBeenCalledWith(createDto);
+            expect(mockProjectsService.create).toHaveBeenCalledTimes(1);
+            expect(mockProjectsService.create).toHaveBeenCalledWith(createDto);
         });
 
         it('returns the created project', async () => {
-            service.create.mockResolvedValue(project);
+            mockProjectsService.create.mockResolvedValue(project);
 
             const result = await sut.create(createDto);
 
@@ -136,7 +134,7 @@ describe('ProjectsController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('name already taken');
-            service.create.mockRejectedValue(error);
+            mockProjectsService.create.mockRejectedValue(error);
 
             await expect(sut.create(createDto)).rejects.toBe(error);
         });
@@ -146,17 +144,17 @@ describe('ProjectsController', () => {
         const updateDto: UpdateProjectDto = { name: 'renamed' };
 
         it('delegates to the service with the received id and dto', async () => {
-            service.update.mockResolvedValue(project);
+            mockProjectsService.update.mockResolvedValue(project);
 
             await sut.update(projectId, updateDto);
 
-            expect(service.update).toHaveBeenCalledTimes(1);
-            expect(service.update).toHaveBeenCalledWith(projectId, updateDto);
+            expect(mockProjectsService.update).toHaveBeenCalledTimes(1);
+            expect(mockProjectsService.update).toHaveBeenCalledWith(projectId, updateDto);
         });
 
         it('returns the updated project produced by the service', async () => {
             const updated: Project = { ...project, name: 'renamed' };
-            service.update.mockResolvedValue(updated);
+            mockProjectsService.update.mockResolvedValue(updated);
 
             const result = await sut.update(projectId, updateDto);
 
@@ -164,13 +162,13 @@ describe('ProjectsController', () => {
         });
 
         it('throws a NotFoundException when the project does not exist', async () => {
-            service.update.mockResolvedValue(null);
+            mockProjectsService.update.mockResolvedValue(null);
 
             await expect(sut.update(projectId, updateDto)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            service.update.mockResolvedValue(null);
+            mockProjectsService.update.mockResolvedValue(null);
 
             await expect(sut.update(projectId, updateDto)).rejects.toThrow(
                 `Project ${projectId} not found`,
@@ -179,7 +177,7 @@ describe('ProjectsController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.update.mockRejectedValue(error);
+            mockProjectsService.update.mockRejectedValue(error);
 
             await expect(sut.update(projectId, updateDto)).rejects.toBe(error);
         });
@@ -187,35 +185,35 @@ describe('ProjectsController', () => {
 
     describe('delete', () => {
         it('delegates to the service with the received id', async () => {
-            service.delete.mockResolvedValue(true);
+            mockProjectsService.delete.mockResolvedValue(true);
 
             await sut.delete(projectId);
 
-            expect(service.delete).toHaveBeenCalledTimes(1);
-            expect(service.delete).toHaveBeenCalledWith(projectId);
+            expect(mockProjectsService.delete).toHaveBeenCalledTimes(1);
+            expect(mockProjectsService.delete).toHaveBeenCalledWith(projectId);
         });
 
         it('resolves with no value when a row was deleted', async () => {
-            service.delete.mockResolvedValue(true);
+            mockProjectsService.delete.mockResolvedValue(true);
 
             await expect(sut.delete(projectId)).resolves.toBeUndefined();
         });
 
         it('throws a NotFoundException when nothing was deleted', async () => {
-            service.delete.mockResolvedValue(false);
+            mockProjectsService.delete.mockResolvedValue(false);
 
             await expect(sut.delete(projectId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            service.delete.mockResolvedValue(false);
+            mockProjectsService.delete.mockResolvedValue(false);
 
             await expect(sut.delete(projectId)).rejects.toThrow(`Project ${projectId} not found`);
         });
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.delete.mockRejectedValue(error);
+            mockProjectsService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(projectId)).rejects.toBe(error);
         });

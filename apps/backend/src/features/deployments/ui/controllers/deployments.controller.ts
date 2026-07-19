@@ -1,4 +1,5 @@
 import {
+    // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
 } from '@nestjs/common';
 

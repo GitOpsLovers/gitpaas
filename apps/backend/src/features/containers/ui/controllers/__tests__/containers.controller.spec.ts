@@ -7,10 +7,6 @@ import { ContainersController } from '../containers.controller';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-
 const serviceId = '11111111-1111-1111-1111-111111111111';
 
 const containers: Container[] = [
@@ -26,19 +22,28 @@ const containers: Container[] = [
 ];
 
 describe('ContainersController', () => {
-    let service: jest.Mocked<Pick<ContainersService, 'getByService'>>;
+    let mockContainersService: jest.Mocked<Pick<ContainersService, 'getByService'>>;
+    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn' | 'error'>>;
     let sut: ContainersController;
 
     beforeEach(async () => {
-        service = {
+        jest.clearAllMocks();
+
+        mockContainersService = {
             getByService: jest.fn(),
+        };
+
+        mockDiagnostics = {
+            log: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
             controllers: [ContainersController],
             providers: [
-                { provide: ContainersService, useValue: service },
-                { provide: DiagnosticLoggerService, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() } },
+                { provide: ContainersService, useValue: mockContainersService },
+                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
             ],
         }).compile();
 
@@ -47,16 +52,16 @@ describe('ContainersController', () => {
 
     describe('getByService', () => {
         it('delegates to the service with the received service id', async () => {
-            service.getByService.mockResolvedValue(containers);
+            mockContainersService.getByService.mockResolvedValue(containers);
 
             await sut.getByService(serviceId);
 
-            expect(service.getByService).toHaveBeenCalledTimes(1);
-            expect(service.getByService).toHaveBeenCalledWith(serviceId);
+            expect(mockContainersService.getByService).toHaveBeenCalledTimes(1);
+            expect(mockContainersService.getByService).toHaveBeenCalledWith(serviceId);
         });
 
         it('returns the containers produced by the service', async () => {
-            service.getByService.mockResolvedValue(containers);
+            mockContainersService.getByService.mockResolvedValue(containers);
 
             const result = await sut.getByService(serviceId);
 
@@ -64,7 +69,7 @@ describe('ContainersController', () => {
         });
 
         it('returns an empty list when the service reports no containers', async () => {
-            service.getByService.mockResolvedValue([]);
+            mockContainersService.getByService.mockResolvedValue([]);
 
             const result = await sut.getByService(serviceId);
 
@@ -73,32 +78,32 @@ describe('ContainersController', () => {
 
         it('rethrows a NotFoundException raised by the service unchanged', async () => {
             const original = new NotFoundException(`Service ${serviceId} not found`);
-            service.getByService.mockRejectedValue(original);
+            mockContainersService.getByService.mockRejectedValue(original);
 
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
         it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
             const original = new ServiceUnavailableException('daemon down');
-            service.getByService.mockRejectedValue(original);
+            mockContainersService.getByService.mockRejectedValue(original);
 
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            service.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockContainersService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('includes remediation guidance in the wrapped error message', async () => {
-            service.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockContainersService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(/Could not reach the VPS Docker daemon/);
         });
 
         it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
-            service.getByService.mockRejectedValue('boom');
+            mockContainersService.getByService.mockRejectedValue('boom');
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });

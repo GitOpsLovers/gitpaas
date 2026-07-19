@@ -7,17 +7,19 @@ import type { HealthStatus } from './app.service';
 const healthStatus: HealthStatus = { status: 'ok' };
 
 describe('AppController', () => {
-    let service: jest.Mocked<Pick<AppService, 'getHealth'>>;
+    let mockAppService: jest.Mocked<Pick<AppService, 'getHealth'>>;
     let sut: AppController;
 
     beforeEach(async () => {
-        service = {
+        jest.clearAllMocks();
+
+        mockAppService = {
             getHealth: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
             controllers: [AppController],
-            providers: [{ provide: AppService, useValue: service }],
+            providers: [{ provide: AppService, useValue: mockAppService }],
         }).compile();
 
         sut = moduleRef.get(AppController);
@@ -25,16 +27,16 @@ describe('AppController', () => {
 
     describe('getHealth', () => {
         it('delegates to the service to resolve the health status', () => {
-            service.getHealth.mockReturnValue(healthStatus);
+            mockAppService.getHealth.mockReturnValue(healthStatus);
 
             sut.getHealth();
 
-            expect(service.getHealth).toHaveBeenCalledTimes(1);
-            expect(service.getHealth).toHaveBeenCalledWith();
+            expect(mockAppService.getHealth).toHaveBeenCalledTimes(1);
+            expect(mockAppService.getHealth).toHaveBeenCalledWith();
         });
 
         it('returns the ok health status produced by the service', () => {
-            service.getHealth.mockReturnValue(healthStatus);
+            mockAppService.getHealth.mockReturnValue(healthStatus);
 
             const result = sut.getHealth();
 
@@ -42,7 +44,7 @@ describe('AppController', () => {
         });
 
         it('returns the exact object reference produced by the service', () => {
-            service.getHealth.mockReturnValue(healthStatus);
+            mockAppService.getHealth.mockReturnValue(healthStatus);
 
             const result = sut.getHealth();
 
@@ -51,7 +53,7 @@ describe('AppController', () => {
 
         it('rethrows an error raised by the service unchanged', () => {
             const original = new Error('health check failed');
-            service.getHealth.mockImplementation(() => {
+            mockAppService.getHealth.mockImplementation(() => {
                 throw original;
             });
 

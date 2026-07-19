@@ -6,10 +6,6 @@ import { Deployment } from '../../../domain/models/deployment.model';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
 
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
 
@@ -28,13 +24,15 @@ const deployment: Deployment = {
 };
 
 describe('DeploymentsController', () => {
-    let service: jest.Mocked<
+    let mockDeploymentsService: jest.Mocked<
         Pick<DeploymentsService, 'getAllByService' | 'findById' | 'create' | 'delete'>
     >;
     let sut: DeploymentsController;
 
     beforeEach(async () => {
-        service = {
+        jest.clearAllMocks();
+
+        mockDeploymentsService = {
             getAllByService: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
@@ -43,7 +41,7 @@ describe('DeploymentsController', () => {
 
         const moduleRef = await Test.createTestingModule({
             controllers: [DeploymentsController],
-            providers: [{ provide: DeploymentsService, useValue: service }],
+            providers: [{ provide: DeploymentsService, useValue: mockDeploymentsService }],
         }).compile();
 
         sut = moduleRef.get(DeploymentsController);
@@ -51,16 +49,16 @@ describe('DeploymentsController', () => {
 
     describe('getAllByService', () => {
         it('delegates to the service with the received service id', async () => {
-            service.getAllByService.mockResolvedValue([deployment]);
+            mockDeploymentsService.getAllByService.mockResolvedValue([deployment]);
 
             await sut.getAllByService(serviceId);
 
-            expect(service.getAllByService).toHaveBeenCalledTimes(1);
-            expect(service.getAllByService).toHaveBeenCalledWith(serviceId);
+            expect(mockDeploymentsService.getAllByService).toHaveBeenCalledTimes(1);
+            expect(mockDeploymentsService.getAllByService).toHaveBeenCalledWith(serviceId);
         });
 
         it('returns the deployments produced by the service', async () => {
-            service.getAllByService.mockResolvedValue([deployment]);
+            mockDeploymentsService.getAllByService.mockResolvedValue([deployment]);
 
             const result = await sut.getAllByService(serviceId);
 
@@ -68,7 +66,7 @@ describe('DeploymentsController', () => {
         });
 
         it('returns an empty list when the service has no deployments', async () => {
-            service.getAllByService.mockResolvedValue([]);
+            mockDeploymentsService.getAllByService.mockResolvedValue([]);
 
             const result = await sut.getAllByService(serviceId);
 
@@ -77,7 +75,7 @@ describe('DeploymentsController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.getAllByService.mockRejectedValue(error);
+            mockDeploymentsService.getAllByService.mockRejectedValue(error);
 
             await expect(sut.getAllByService(serviceId)).rejects.toBe(error);
         });
@@ -85,16 +83,16 @@ describe('DeploymentsController', () => {
 
     describe('findById', () => {
         it('delegates to the service with the received id', async () => {
-            service.findById.mockResolvedValue(deployment);
+            mockDeploymentsService.findById.mockResolvedValue(deployment);
 
             await sut.findById(deploymentId);
 
-            expect(service.findById).toHaveBeenCalledTimes(1);
-            expect(service.findById).toHaveBeenCalledWith(deploymentId);
+            expect(mockDeploymentsService.findById).toHaveBeenCalledTimes(1);
+            expect(mockDeploymentsService.findById).toHaveBeenCalledWith(deploymentId);
         });
 
         it('returns the deployment produced by the service', async () => {
-            service.findById.mockResolvedValue(deployment);
+            mockDeploymentsService.findById.mockResolvedValue(deployment);
 
             const result = await sut.findById(deploymentId);
 
@@ -102,20 +100,20 @@ describe('DeploymentsController', () => {
         });
 
         it('throws a NotFoundException when the deployment does not exist', async () => {
-            service.findById.mockResolvedValue(null);
+            mockDeploymentsService.findById.mockResolvedValue(null);
 
             await expect(sut.findById(deploymentId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            service.findById.mockResolvedValue(null);
+            mockDeploymentsService.findById.mockResolvedValue(null);
 
             await expect(sut.findById(deploymentId)).rejects.toThrow(`Deployment ${deploymentId} not found`);
         });
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.findById.mockRejectedValue(error);
+            mockDeploymentsService.findById.mockRejectedValue(error);
 
             await expect(sut.findById(deploymentId)).rejects.toBe(error);
         });
@@ -125,16 +123,16 @@ describe('DeploymentsController', () => {
         const triggerDto: TriggerDeploymentDto = { serviceId };
 
         it('delegates to the service with the received dto', async () => {
-            service.create.mockResolvedValue(deployment);
+            mockDeploymentsService.create.mockResolvedValue(deployment);
 
             await sut.create(triggerDto);
 
-            expect(service.create).toHaveBeenCalledTimes(1);
-            expect(service.create).toHaveBeenCalledWith(triggerDto);
+            expect(mockDeploymentsService.create).toHaveBeenCalledTimes(1);
+            expect(mockDeploymentsService.create).toHaveBeenCalledWith(triggerDto);
         });
 
         it('returns the created deployment', async () => {
-            service.create.mockResolvedValue(deployment);
+            mockDeploymentsService.create.mockResolvedValue(deployment);
 
             const result = await sut.create(triggerDto);
 
@@ -143,7 +141,7 @@ describe('DeploymentsController', () => {
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('service not found');
-            service.create.mockRejectedValue(error);
+            mockDeploymentsService.create.mockRejectedValue(error);
 
             await expect(sut.create(triggerDto)).rejects.toBe(error);
         });
@@ -151,35 +149,35 @@ describe('DeploymentsController', () => {
 
     describe('delete', () => {
         it('delegates to the service with the received id', async () => {
-            service.delete.mockResolvedValue(true);
+            mockDeploymentsService.delete.mockResolvedValue(true);
 
             await sut.delete(deploymentId);
 
-            expect(service.delete).toHaveBeenCalledTimes(1);
-            expect(service.delete).toHaveBeenCalledWith(deploymentId);
+            expect(mockDeploymentsService.delete).toHaveBeenCalledTimes(1);
+            expect(mockDeploymentsService.delete).toHaveBeenCalledWith(deploymentId);
         });
 
         it('resolves with no value when a row was deleted', async () => {
-            service.delete.mockResolvedValue(true);
+            mockDeploymentsService.delete.mockResolvedValue(true);
 
             await expect(sut.delete(deploymentId)).resolves.toBeUndefined();
         });
 
         it('throws a NotFoundException when nothing was deleted', async () => {
-            service.delete.mockResolvedValue(false);
+            mockDeploymentsService.delete.mockResolvedValue(false);
 
             await expect(sut.delete(deploymentId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            service.delete.mockResolvedValue(false);
+            mockDeploymentsService.delete.mockResolvedValue(false);
 
             await expect(sut.delete(deploymentId)).rejects.toThrow(`Deployment ${deploymentId} not found`);
         });
 
         it('propagates errors raised by the service', async () => {
             const error = new Error('db unreachable');
-            service.delete.mockRejectedValue(error);
+            mockDeploymentsService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(deploymentId)).rejects.toBe(error);
         });
