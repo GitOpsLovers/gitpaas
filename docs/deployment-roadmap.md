@@ -94,9 +94,6 @@ grouped by priority.
 
 - **Git webhooks and additional sources.** Deploys are manual and GitHub-App-only. Auto-deploy on
   push, plus more providers (GitLab/Bitbucket/public git URL/deploy-from-image), broaden reach.
-- **Frontend configuration hardening.** The deployments repository uses a hard-coded
-  `http://localhost:3000` API base instead of environment config, and the log stream uses the
-  native `EventSource`, which cannot send the `Authorization` header the auth guard expects.
 - **Redeploy and rollback.** Deployment history exists, but there is no action to redeploy a
   previous commit or roll back a failed rollout.
 
@@ -122,10 +119,11 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
   the control plane uses to reach the Docker host, brings up the stack, runs migrations, and
   seeds the first admin user. (Today only the dev compose SQL init seeds an admin; there is no
   installable path.)
-- Fold in the two **frontend fixes** blocking any non-local install:
-  - Replace the hard-coded `http://localhost:3000` API base with environment-driven configuration.
-  - Replace the native `EventSource` log stream with a token-capable SSE client so the protected
-    log endpoint works under the auth-by-default guard.
+- Fold in the two **frontend fixes** that blocked any non-local install: _DONE_
+  - The API base is now environment-driven (`apiBaseUrl` in the environment files), consumed by the
+    API repositories and the auth interceptor, replacing the hard-coded `http://localhost:3000`.
+  - The log stream now uses a token-capable SSE client (`fetch` + `ReadableStream`) that sends the
+    `Authorization: Bearer` header, so the protected log endpoint works under the auth-by-default guard.
 
 **Definition of done:** running the install script on a fresh VPS produces a reachable Artifactory
 control plane, with the database created via migrations (no `synchronize`) and an admin account
@@ -196,8 +194,8 @@ a previous successful deployment from the UI.
 
 Finish **Phase 1**. Its foundation slices have largely landed — production images, the
 env-driven `iac/production/` compose stack, and versioned migrations that manage the production
-schema (dev and test still use `synchronize`). What remains is the **one-line installer** and the
-two **frontend fixes**. Nothing else in the roadmap can be validated on real infrastructure until
+schema (dev and test still use `synchronize`), and the two **frontend fixes** that blocked
+non-local installs have landed. What remains is the **one-line installer**. Nothing else in the roadmap can be validated on real infrastructure until
 Artifactory itself is installable on a VPS: Phase 2's proxy needs a running control plane to
 configure, and Phases 3–5 all assume the now-in-place migration-managed schema. Completing the
 installable foundation turns every later phase into an additive change on a system that can

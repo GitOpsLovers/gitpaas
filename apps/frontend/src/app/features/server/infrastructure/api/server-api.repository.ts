@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
 import { PruneResult } from '../../domain/models/prune-result.model';
 
+import { environment } from '@environments/environment';
+
 @Injectable()
 
 /**
@@ -13,7 +15,7 @@ import { PruneResult } from '../../domain/models/prune-result.model';
 export class ServerApiRepository {
     private readonly http = inject(HttpClient);
 
-    private readonly url = 'http://localhost:3000/api/v1/server';
+    private readonly url = `${environment.apiBaseUrl}/server`;
 
     /**
      * Removes dangling images from the VPS

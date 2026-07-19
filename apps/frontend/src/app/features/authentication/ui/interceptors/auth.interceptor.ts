@@ -8,10 +8,12 @@ import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
 
+import { environment } from '@environments/environment';
+
 /**
  * Base URL of the backend API. Only requests to it carry the Bearer token.
  */
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = environment.apiBaseUrl;
 
 /**
  * Prefix of the public authentication endpoints (login/refresh/logout), which
