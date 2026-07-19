@@ -21,7 +21,7 @@ describe('runDeploymentUseCase', () => {
     let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
     let mockLogStoreRepository: jest.Mocked<Pick<LogStoreRepository, 'append' | 'complete'>>;
 
-    function run(): Promise<void> {
+    const run = (): Promise<void> => {
         return runDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
             mockProvidersRepository as unknown as ProvidersRepository,
@@ -29,7 +29,7 @@ describe('runDeploymentUseCase', () => {
             mockLogStoreRepository as unknown as LogStoreRepository,
             payload,
         );
-    }
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -77,8 +77,10 @@ describe('runDeploymentUseCase', () => {
 
     it('fans executor output out live through the log store', async () => {
         mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation(async (_archive, _composePath, _project, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
+
+            return Promise.resolve();
         });
 
         await run();
@@ -88,9 +90,11 @@ describe('runDeploymentUseCase', () => {
 
     it('marks the deployment successful and completes the log when the stack comes up', async () => {
         mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation(async (_archive, _composePath, _project, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
             onLog?.('stack up');
+
+            return Promise.resolve();
         });
 
         await run();

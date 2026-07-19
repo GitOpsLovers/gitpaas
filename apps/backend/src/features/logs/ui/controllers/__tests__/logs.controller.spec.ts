@@ -44,6 +44,7 @@ describe('LogsController', () => {
 
             const result = await sut.getAllByDeployment(deploymentId);
 
+            expect(mockLogsService.getAllByDeployment).toHaveBeenCalledTimes(1);
             expect(mockLogsService.getAllByDeployment).toHaveBeenCalledWith(deploymentId);
             expect(result).toEqual([entry]);
         });
@@ -55,6 +56,7 @@ describe('LogsController', () => {
 
             const result = await sut.findById(logId);
 
+            expect(mockLogsService.findById).toHaveBeenCalledTimes(1);
             expect(mockLogsService.findById).toHaveBeenCalledWith(logId);
             expect(result).toBe(entry);
         });
@@ -72,6 +74,7 @@ describe('LogsController', () => {
 
             sut.streamLogs(deploymentId);
 
+            expect(mockLogsService.streamLogs).toHaveBeenCalledTimes(1);
             expect(mockLogsService.streamLogs).toHaveBeenCalledWith(deploymentId);
         });
 
@@ -101,6 +104,7 @@ describe('LogsController', () => {
 
             const result = await sut.create(createDto);
 
+            expect(mockLogsService.create).toHaveBeenCalledTimes(1);
             expect(mockLogsService.create).toHaveBeenCalledWith(createDto);
             expect(result).toBe(entry);
         });
@@ -112,6 +116,7 @@ describe('LogsController', () => {
 
             const result = await sut.update(logId, { content: 'edited' });
 
+            expect(mockLogsService.update).toHaveBeenCalledTimes(1);
             expect(mockLogsService.update).toHaveBeenCalledWith(logId, { content: 'edited' });
             expect(result).toBe(entry);
         });

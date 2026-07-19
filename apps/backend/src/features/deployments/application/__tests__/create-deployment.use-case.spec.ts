@@ -63,7 +63,7 @@ describe('createDeploymentUseCase', () => {
     let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCommit'>>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
 
-    function run(): Promise<Deployment> {
+    const run = (): Promise<Deployment> => {
         return createDeploymentUseCase(
             mockDeploymentsRepository,
             mockServicesRepository as unknown as ServicesRepository,
@@ -71,7 +71,7 @@ describe('createDeploymentUseCase', () => {
             mockQueue as unknown as DeploymentQueue,
             triggerDto,
         );
-    }
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();

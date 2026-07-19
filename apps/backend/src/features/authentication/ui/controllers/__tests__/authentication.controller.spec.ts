@@ -49,6 +49,7 @@ describe('AuthenticationController', () => {
 
         const result = await sut.login({} as LoginDto, user);
 
+        expect(mockAuthenticationService.login).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.login).toHaveBeenCalledWith(user);
         expect(result).toBe(tokens);
     });
@@ -59,6 +60,7 @@ describe('AuthenticationController', () => {
 
         const result = await sut.refresh(dto);
 
+        expect(mockAuthenticationService.refresh).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.refresh).toHaveBeenCalledWith('refresh.jwt.token');
         expect(result).toBe(tokens);
     });
@@ -69,6 +71,7 @@ describe('AuthenticationController', () => {
 
         await sut.logout(dto);
 
+        expect(mockAuthenticationService.logout).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.logout).toHaveBeenCalledWith('refresh.jwt.token');
     });
 
@@ -85,6 +88,7 @@ describe('AuthenticationController', () => {
 
         const result = sut.me(user);
 
+        expect(mockAuthenticationService.me).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.me).toHaveBeenCalledWith(user);
         expect(result).toBe(view);
     });

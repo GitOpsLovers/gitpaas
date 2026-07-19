@@ -29,7 +29,7 @@ describe('deleteServiceUseCase', () => {
     let mockServiceFootprintRepository: jest.Mocked<Pick<ServiceFootprintRepository, 'remove'>>;
     let mockLogStoreRepository: jest.Mocked<Pick<LogStoreRepository, 'purge'>>;
 
-    function run(): Promise<boolean> {
+    const run = (): Promise<boolean> => {
         return deleteServiceUseCase(
             mockServicesRepository as unknown as ServicesRepository,
             mockDeploymentsRepository as unknown as DeploymentsRepository,
@@ -37,7 +37,7 @@ describe('deleteServiceUseCase', () => {
             mockLogStoreRepository as unknown as LogStoreRepository,
             id,
         );
-    }
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();

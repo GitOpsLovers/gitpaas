@@ -57,6 +57,7 @@ describe('LogsService', () => {
 
             const result = await sut.getAllByDeployment(deploymentId);
 
+            expect(mockGetLogsByDeploymentUseCase).toHaveBeenCalledTimes(1);
             expect(mockGetLogsByDeploymentUseCase).toHaveBeenCalledWith(mockLogsRepository, deploymentId);
             expect(result).toEqual([entry]);
         });
@@ -83,6 +84,7 @@ describe('LogsService', () => {
 
             const result = await sut.findById(logId);
 
+            expect(mockFindLogByIdUseCase).toHaveBeenCalledTimes(1);
             expect(mockFindLogByIdUseCase).toHaveBeenCalledWith(mockLogsRepository, logId);
             expect(result).toBe(entry);
         });
@@ -113,6 +115,7 @@ describe('LogsService', () => {
 
             const result = await sut.create(createDto);
 
+            expect(mockCreateLogUseCase).toHaveBeenCalledTimes(1);
             expect(mockCreateLogUseCase).toHaveBeenCalledWith(mockLogsRepository, createDto);
             expect(result).toBe(entry);
         });
@@ -131,6 +134,7 @@ describe('LogsService', () => {
 
             const result = await sut.update(logId, { content: 'edited' });
 
+            expect(mockUpdateLogUseCase).toHaveBeenCalledTimes(1);
             expect(mockUpdateLogUseCase).toHaveBeenCalledWith(mockLogsRepository, logId, { content: 'edited' });
             expect(result).toBe(entry);
         });
@@ -157,6 +161,7 @@ describe('LogsService', () => {
 
             const result = await sut.delete(logId);
 
+            expect(mockDeleteLogUseCase).toHaveBeenCalledTimes(1);
             expect(mockDeleteLogUseCase).toHaveBeenCalledWith(mockLogsRepository, logId);
             expect(result).toBe(true);
         });

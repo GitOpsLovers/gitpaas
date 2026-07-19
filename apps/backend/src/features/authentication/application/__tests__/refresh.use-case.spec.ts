@@ -31,7 +31,7 @@ const payload: RefreshTokenPayload = { sub: user.id, jti: 'jti-1' };
 
 const tokenPair: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'new.refresh.token' };
 
-function storedToken(overrides: Partial<RefreshToken> = {}): RefreshToken {
+const storedToken = (overrides: Partial<RefreshToken> = {}): RefreshToken => {
     return {
         id: 'record-1',
         userId: user.id,
@@ -43,7 +43,7 @@ function storedToken(overrides: Partial<RefreshToken> = {}): RefreshToken {
         updatedAt: new Date('2026-07-11T00:00:00.000Z'),
         ...overrides,
     };
-}
+};
 
 describe('refreshUseCase', () => {
     let mockUsersRepository: jest.Mocked<Pick<UsersRepository, 'findById'>>;
@@ -66,14 +66,14 @@ describe('refreshUseCase', () => {
         mockIssueTokensUseCase.mockResolvedValue(tokenPair);
     });
 
-    function run(): Promise<AuthTokens> {
+    const run = (): Promise<AuthTokens> => {
         return refreshUseCase(
             mockUsersRepository as unknown as UsersRepository,
             mockRefreshTokensRepository as unknown as RefreshTokensRepository,
             mockTokenService as unknown as TokenService,
             RAW_TOKEN,
         );
-    }
+    };
 
     it('rotates the token: revokes the stored record and delegates issuance to issueTokensUseCase', async () => {
         mockRefreshTokensRepository.findByJti.mockResolvedValue(storedToken());
@@ -91,15 +91,15 @@ describe('refreshUseCase', () => {
         const order: string[] = [];
         mockRefreshTokensRepository.findByJti.mockResolvedValue(storedToken());
         mockUsersRepository.findById.mockResolvedValue(user);
-        mockRefreshTokensRepository.revoke.mockImplementation(async () => {
+        mockRefreshTokensRepository.revoke.mockImplementation(() => {
             order.push('revoke');
 
-            return true;
+            return Promise.resolve(true);
         });
-        mockIssueTokensUseCase.mockImplementation(async () => {
+        mockIssueTokensUseCase.mockImplementation(() => {
             order.push('issue');
 
-            return tokenPair;
+            return Promise.resolve(tokenPair);
         });
 
         await run();

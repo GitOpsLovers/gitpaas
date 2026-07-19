@@ -7,7 +7,7 @@ import { logoutUseCase } from '../logout.use-case';
 const RAW_TOKEN = 'presented.refresh.token';
 const payload: RefreshTokenPayload = { sub: 'user-1', jti: 'jti-1' };
 
-function storedToken(overrides: Partial<RefreshToken> = {}): RefreshToken {
+const storedToken = (overrides: Partial<RefreshToken> = {}): RefreshToken => {
     return {
         id: 'record-1',
         userId: 'user-1',
@@ -19,7 +19,7 @@ function storedToken(overrides: Partial<RefreshToken> = {}): RefreshToken {
         updatedAt: new Date('2026-07-11T00:00:00.000Z'),
         ...overrides,
     };
-}
+};
 
 describe('logoutUseCase', () => {
     let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'findByJti' | 'revoke'>>;

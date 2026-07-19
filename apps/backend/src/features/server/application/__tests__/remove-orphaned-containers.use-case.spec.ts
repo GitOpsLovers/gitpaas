@@ -7,7 +7,7 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
 /**
  * Builds a service fixture, overriding only the fields under test.
  */
-function service(overrides: Partial<Service> = {}): Service {
+const service = (overrides: Partial<Service> = {}): Service => {
     return {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         name: 'checkout',
@@ -17,7 +17,7 @@ function service(overrides: Partial<Service> = {}): Service {
         composerPath: 'services/checkout',
         ...overrides,
     };
-}
+};
 
 describe('removeOrphanedContainersUseCase', () => {
     let mockOrphanContainersRepository: jest.Mocked<Pick<OrphanContainersRepository, 'removeOrphaned'>>;

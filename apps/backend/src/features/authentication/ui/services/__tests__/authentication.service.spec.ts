@@ -63,6 +63,7 @@ describe('AuthenticationService', () => {
 
             const result = await sut.login(user);
 
+            expect(mockLoginUseCase).toHaveBeenCalledTimes(1);
             expect(mockLoginUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, user);
             expect(result).toBe(tokens);
         });
@@ -74,6 +75,7 @@ describe('AuthenticationService', () => {
 
             const result = await sut.refresh('refresh.jwt.token');
 
+            expect(mockRefreshUseCase).toHaveBeenCalledTimes(1);
             expect(mockRefreshUseCase).toHaveBeenCalledWith(
                 mockUsersRepository,
                 mockRefreshTokensRepository,
@@ -109,6 +111,7 @@ describe('AuthenticationService', () => {
 
             await sut.logout('refresh.jwt.token');
 
+            expect(mockLogoutUseCase).toHaveBeenCalledTimes(1);
             expect(mockLogoutUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, 'refresh.jwt.token');
         });
     });
