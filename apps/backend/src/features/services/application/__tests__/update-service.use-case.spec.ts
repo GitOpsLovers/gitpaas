@@ -21,48 +21,46 @@ describe('updateServiceUseCase', () => {
         composerPath: 'docker-compose.yml',
     };
 
-    let repository: jest.Mocked<ServicesRepository>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'update'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
-            getAllByProject: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
+        jest.clearAllMocks();
+        mockServicesRepository = {
             update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the update to the repository with the provided id and DTO', async () => {
-        repository.update.mockResolvedValue(updatedService);
+        mockServicesRepository.update.mockResolvedValue(updatedService);
 
-        await updateServiceUseCase(repository, id, updateDto);
+        await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto);
 
-        expect(repository.update).toHaveBeenCalledTimes(1);
-        expect(repository.update).toHaveBeenCalledWith(id, updateDto);
+        expect(mockServicesRepository.update).toHaveBeenCalledTimes(1);
+        expect(mockServicesRepository.update).toHaveBeenCalledWith(id, updateDto);
     });
 
     it('returns the service updated by the repository', async () => {
-        repository.update.mockResolvedValue(updatedService);
+        mockServicesRepository.update.mockResolvedValue(updatedService);
 
-        const result = await updateServiceUseCase(repository, id, updateDto);
+        const result = await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto);
 
         expect(result).toBe(updatedService);
     });
 
     it('returns null when the service does not exist', async () => {
-        repository.update.mockResolvedValue(null);
+        mockServicesRepository.update.mockResolvedValue(null);
 
-        const result = await updateServiceUseCase(repository, id, updateDto);
+        const result = await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto);
 
         expect(result).toBeNull();
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.update.mockRejectedValue(error);
+        mockServicesRepository.update.mockRejectedValue(error);
 
-        await expect(updateServiceUseCase(repository, id, updateDto)).rejects.toThrow(error);
+        await expect(
+            updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto),
+        ).rejects.toThrow(error);
     });
 });

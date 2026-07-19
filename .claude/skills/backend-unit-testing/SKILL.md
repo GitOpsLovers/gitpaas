@@ -7,375 +7,211 @@ description: Enable this skill when the user requests to work with the testing l
 
 Conventions for `apps/backend` unit specs. Runner: **Jest + ts-jest** (`apps/backend/jest.config.js`).
 
-The backend is layered (`domain/` → `infrastructure/` → `ui/`, with `application/` use cases). Each SUT type has its own construction and assertion rules. **Read the Common conventions first — they apply to every spec — then jump to the section for your SUT type.**
+The backend is layered (`domain/` → `infrastructure/` → `ui/`, with `application/` use cases). Each SUT type has its own construction and assertion rules. **Read the Common conventions first — they apply to every spec — then jump to your SUT type's section.**
 
 ---
 
 ## Common conventions
 
-Rules that apply to **all** backend specs, regardless of SUT type. Type-specific sections reference these instead of repeating them.
+Apply to **all** specs; type-specific sections reference these instead of repeating them.
 
 ### Ground rules
 
-- **Mock ports/collaborators as value providers:** `{ provide: <class>, useValue: <mock> }`, structurally mocked with `jest.fn()`. Type via `jest.Mocked<Pick<T, 'usedMethod'>>` (only what the SUT calls), `jest.Mocked<T>`, or `{} as jest.Mocked<T>`.
-- **Keep mocks tight — don't over-mock.** Prefer `jest.Mocked<Pick<T, 'onlyCalledMethods'>>` and expose only the methods the SUT actually invokes. A narrower mock lets the compiler flag drift when the SUT starts calling something new, and keeps the spec honest about the collaboration.
-- **`jest.clearAllMocks()` is the first statement of `beforeEach`.** It resets call history and configured returns so nothing leaks between tests. **Spy-based exception:** a spec built on `jest.spyOn(...)` (e.g. spying on `Logger.prototype` in `DiagnosticLoggerService`) must additionally call `jest.restoreAllMocks()` in `afterEach` to detach the spies and put the real implementations back — `clearAllMocks` clears call state but does not restore the original methods.
-- **Behavior-focused `it` names reading as a contract:** `delegates…`, `returns…`, `propagates…`, `throws…`.
-- **Path aliases work in specs:** `@core/*` / `@features/*` resolve via `moduleNameMapper` in `jest.config.js`. Import cross-feature collaborators by alias.
+- **Mock ports/collaborators as value providers:** `{ provide: <class>, useValue: <mock> }`, structurally mocked with `jest.fn()`. Type via `jest.Mocked<Pick<T, 'usedMethod'>>` (preferred), `jest.Mocked<T>`, or `{} as jest.Mocked<T>`.
+- **Keep mocks tight.** Expose only the methods the SUT calls (`Pick`). A narrow mock lets the compiler flag drift when the SUT starts calling something new.
+- **`jest.clearAllMocks()` is the first statement of `beforeEach` in every spec** — resets call history and configured returns so nothing leaks. **Spy-based specs do BOTH:** `clearAllMocks()` first in `beforeEach` AND `jest.restoreAllMocks()` in `afterEach` to detach spies and restore originals — `clearAllMocks` alone does not undo a `spyOn`. See `diagnostic-logger.service.spec.ts`.
+- **`it` names read as a behavior contract:** `delegates…`, `returns…`, `propagates…`, `throws…`.
+- **Spec-local helpers/fixtures are `const` arrow expressions, not `function` declarations** — factories, async-flush helpers, `run(...)` wrappers alike. Caveat: arrows don't hoist, so declare before first use (watch for TDZ errors when converting a hoisted `function`).
+- **Path aliases work in specs:** `@core/*` / `@features/*` resolve via `moduleNameMapper` in `jest.config.js`.
 
-### Naming: the `mock`-prefix convention
+### Naming
 
-- **Applies to every layer — controllers *and* services (and use-case/infra specs) alike.** Name every mocked collaborator with a `mock` prefix (camelCase): `mockServicesService`, `mockGithubAppProvider`, `mockDeploymentsRepository`. Keep it consistent across a spec so mocks read as distinct from real instances.
-- **Use-case function mocks follow the same rule: `mock<UseCaseName>` (camelCase)** — e.g. `mockGetDeploymentsByServiceUseCase` for `getDeploymentsByServiceUseCase`. Not a `…Mock` suffix.
-- **The SUT is always named `sut`** — never the real class name — so the subject under test reads distinctly from its mocked collaborators.
+- **`mock`-prefix (camelCase) on every mocked collaborator, all layers:** `mockServicesService`, `mockDeploymentsRepository`.
+- **Use-case function mocks use `mock<UseCaseName>`** (e.g. `mockGetDeploymentsByServiceUseCase`) — not a `…Mock` suffix.
+- **A class-instance SUT is always named `sut`** (never the real class name). Function SUTs are the exception — see Use case testing.
 
 ### Where to declare a mock — module `const` vs. `beforeEach`
 
-Where a mock lives depends on whether it holds state the tests care about.
-
-- **Stateful mocks → `let` at the `describe` scope, (re)created fresh inside `beforeEach`.** A mock is stateful when its `jest.fn()`s accumulate call history you assert on (`toHaveBeenCalledWith`, `toHaveBeenCalledTimes`) or get per-test return values (`.mockResolvedValue(...)`). Recreating it per test — together with [`jest.clearAllMocks()`] — guarantees isolation: no call counts or configured resolutions leak between tests. Example: `mockServicesService` in `services.controller.spec.ts`.
-- **Stateless placeholders → a module-level `const` is fine.** When a dependency exists only to satisfy DI and the SUT never calls it (nothing recorded, never configured), one shared instance is safe — e.g. `const mockSomeProvider = {} as unknown as SomeProvider;`. Nothing to reset means no isolation risk.
-- **Rule of thumb:** if a mock's behavior or expectations vary per test, recreate it in `beforeEach`; if it's a pure static placeholder, a module-level `const` is enough. The moment a placeholder starts being called or asserted on, move it to the `let` + `beforeEach` pattern.
-
-```ts
-// Stateless placeholder — never called → module-level const
-const mockSomeProvider = {} as unknown as SomeProvider;
-
-describe('SomeController', () => {
-    // Stateful — asserted on / configured per test → let + fresh in beforeEach
-    let mockSomeService: jest.Mocked<Pick<SomeService, 'findById' | 'delete'>>;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockSomeService = { findById: jest.fn(), delete: jest.fn() };
-    });
-});
-```
+- **Stateful mocks → `let` at `describe` scope, recreated in `beforeEach`.** Stateful = its `jest.fn()`s accumulate asserted call history (`toHaveBeenCalledWith/Times`) or get per-test returns (`.mockResolvedValue`). Recreating per test + `clearAllMocks()` guarantees isolation. Example: `mockServicesService` in `services.controller.spec.ts`.
+- **Stateless placeholders → module-level `const` is fine** (e.g. `const mockX = {} as unknown as X;`) — a DI-only dependency the SUT never calls has nothing to reset.
+- **Rule of thumb:** the moment a placeholder is called or asserted on, move it to `let` + `beforeEach`.
 
 ### Mock a dependency through its real injection token
 
-Register a collaborator's mock against its **real class token** — import the real class so the token is the actual class, then provide a mock for it:
+Register a mock against the **real class token** (import the real class):
 
-- `Test.createTestingModule({ providers: [{ provide: RealClass, useValue: mockRealClass }] })`, or `.overrideProvider(RealClass).useValue(mockRealClass)`.
-- Mock only the methods the SUT actually calls (as `jest.fn()`s). If it calls none, a minimal typed stub wired through the real token is enough: `const mockRealClass = {} as unknown as RealClass;`.
-- **Anti-pattern:** redeclaring an empty local class as the token — `jest.mock('.../x.provider', () => ({ RealClass: class RealClass {} }))`. This bypasses real DI wiring and is not the [documented NestJS approach](https://docs.nestjs.com/fundamentals/testing).
-
-```ts
-// Hypothetical: a SUT that genuinely injects GithubAppProvider.
-
-// Before — inline class redeclared as the token; real DI wiring bypassed
-jest.mock('@features/providers/infrastructure/github/github-app.provider', () => ({
-    GithubAppProvider: class GithubAppProvider {},
-}));
-// ...providers: [SomeService] — the GithubAppProvider token is silently the empty stub
-
-// After — import the real class, provide a mock against the real token
-import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
-
-const mockGithubAppProvider = {} as unknown as GithubAppProvider; // or { getClient: jest.fn() }
-const moduleRef = await Test.createTestingModule({
-    controllers: [SomeController],
-    providers: [
-        { provide: SomeService, useValue: mockSomeService },
-        { provide: GithubAppProvider, useValue: mockGithubAppProvider },
-    ],
-}).compile();
-```
+- `Test.createTestingModule({ providers: [{ provide: RealClass, useValue: mockRealClass }] })`, or `.overrideProvider(RealClass).useValue(...)`.
+- Mock only the methods the SUT calls; if it calls none, a minimal `{} as unknown as RealClass` through the real token is enough.
+- **Anti-pattern:** redeclaring an empty local class as the token (`jest.mock('.../x.provider', () => ({ RealClass: class RealClass {} }))`). This bypasses real DI wiring and is not the [documented NestJS approach](https://docs.nestjs.com/fundamentals/testing).
 
 ### ESM-only third-party libs (`@octokit/*`) — stubbed centrally
 
-`@octokit/rest` and `@octokit/auth-app` (and their transitive deps) are **ESM-only** — `"type": "module"` with no CommonJS build. ts-jest compiles the app's imports to `require()`, and requiring untransformed ESM from `node_modules` throws `SyntaxError: Cannot use import statement outside a module`. Any spec whose import graph transitively reaches these libs (e.g. through `github-app.provider`) hits this.
+`@octokit/rest` / `@octokit/auth-app` (and transitive deps) are ESM-only; ts-jest compiles app imports to `require()`, and requiring untransformed ESM throws `SyntaxError: Cannot use import statement outside a module`. Any spec whose import graph transitively reaches them (e.g. via `github-app.provider`) hits this.
 
-**Standard fix: stub them once, globally — never per spec.** `moduleNameMapper` in `apps/backend/jest.config.js` redirects each ESM package to a hand-written stub under `apps/backend/test/stubs/`. `rootDir` is `src`, so `<rootDir>/..` resolves to `apps/backend`:
-
-```js
-// apps/backend/jest.config.js
-moduleNameMapper: {
-    // ...existing @core / @features aliases...
-    '^@octokit/rest$': '<rootDir>/../test/stubs/octokit-rest.stub.ts',
-    '^@octokit/auth-app$': '<rootDir>/../test/stubs/octokit-auth-app.stub.ts',
-},
-```
-
-```ts
-// apps/backend/test/stubs/octokit-rest.stub.ts
-export const Octokit = jest.fn().mockImplementation(() => ({
-    paginate: jest.fn().mockResolvedValue([]),
-    request: jest.fn().mockResolvedValue({ data: {} }),
-}));
-
-// apps/backend/test/stubs/octokit-auth-app.stub.ts
-export const createAppAuth = jest.fn();
-```
-
-Because the stubbed `Octokit` / `createAppAuth` are real `jest.fn()`s, **specs need no `jest.mock('@octokit/...')` boilerplate** — and no empty-class stub of `github-app.provider` either. A spec can `import { Octokit } from '@octokit/rest'` and assert on it directly — e.g. `(Octokit as unknown as jest.Mock)` and `expect(Octokit).toHaveBeenCalledWith(...)` — and `jest.clearAllMocks()` in `beforeEach` resets them like any other mock.
-
-**Adding a new ESM-only package that breaks tests:** add one `moduleNameMapper` entry plus a stub file under `test/stubs/` exporting the symbols the app uses as `jest.fn()`s. Do **not** add per-spec `jest.mock` calls for it.
+- **Fix: stubbed once, globally — never per spec.** `moduleNameMapper` in `apps/backend/jest.config.js` redirects each package to a hand-written stub under `apps/backend/test/stubs/` (e.g. `octokit-rest.stub.ts`, `octokit-auth-app.stub.ts`) that exports the used symbols as `jest.fn()`s.
+- Because the stubs are real `jest.fn()`s, specs need **no** `jest.mock('@octokit/...')` boilerplate and no empty-class stub of `github-app.provider`. A spec may import and assert on them directly (e.g. `expect(Octokit).toHaveBeenCalledWith(...)`); `clearAllMocks()` resets them like any mock.
+- **Adding a new ESM-only package that breaks tests:** add one `moduleNameMapper` entry plus a `test/stubs/` file exporting the used symbols as `jest.fn()`s. Do **not** add per-spec `jest.mock`.
 
 ### File placement
 
-Specs in a `__tests__/` dir next to the SUT, `<name>.spec.ts`. Exception: root `app.controller.spec.ts` / `app.service.spec.ts` sit directly beside the code.
+Specs live in a `__tests__/` dir next to the SUT, named `<name>.spec.ts`. Exception: root `app.controller.spec.ts` / `app.service.spec.ts` sit directly beside the code.
 
 ### Run
 
-- Scoped: `pnpm --filter backend test -- <spec-name>`.
-- Full suite: `pnpm --filter backend test`.
+- Scoped: `pnpm --filter backend test -- <spec-name>`. Full suite: `pnpm --filter backend test`.
 - Never run ESLint, install deps, or run Playwright/E2E.
 
 ---
 
 ## Use case testing
 
-Use cases in `application/` are **pure functions** taking their ports as arguments.
+Use cases in `application/` are **framework-agnostic pure functions** taking ports as arguments — no DI container, no HTTP boundary. Spec them with NestJS **isolated testing**: import the function, call it with fake ports, assert observable behavior. Reference specs: `create-log.use-case.spec.ts` (CRUD delegation), `refresh.use-case.spec.ts` (guards + error branches), `remove-orphaned-containers.use-case.spec.ts` (composition/mapping).
 
-- **Build:** call the function directly with fake ports (`jest.fn()`); **no testing module**.
-- **Assert:** delegation to ports with correct arguments, the returned/composed value, and that a port's rejection propagates.
-- Follow the naming convention and `jest.clearAllMocks()` from Common conventions.
+Plus all [Common conventions].
 
-```ts
-const mockRepository = { findByService: jest.fn() };
+### Building the SUT
 
-it('delegates to the repository with the service id', async () => {
-    mockRepository.findByService.mockResolvedValue([]);
-    await getDeploymentsByServiceUseCase(mockRepository as never, 'svc-id');
-    expect(mockRepository.findByService).toHaveBeenCalledWith('svc-id');
-});
-```
+- **Call the function directly with fake ports — never a testing module.** No `Test.createTestingModule`, no value-providers, no `moduleRef.get`, no HTTP concerns.
+- **No `sut` alias.** The `sut` rule targets class instances; a use case is a function, so invoke it by its imported name (`createLogUseCase(...)`, `refreshUseCase(...)`).
+
+### Canonical port mock
+
+- Declare each port as `jest.Mocked<Pick<Port, 'onlyCalledMethods'>>` (object literal of `jest.fn()`s), then pass it at the call site with a single **`as unknown as Port`** cast (drop the older `as never`).
+- **Why the cast:** ports arrive as plain function args, not a typed DI token, so there's no provider machinery to accept the `Pick`. The mock variable stays fully typed, so the compiler still flags drift. Uniform regardless of how many methods are exercised (e.g. `refreshUseCase` casts all three ports this way). A full `jest.Mocked<Port>` is only a rare fallback — prefer the tight `Pick`.
+- `mock`-prefix naming per [Common].
+
+### `clearAllMocks` carve-out
+
+- Keep the invariant: with a `beforeEach`, `clearAllMocks()` is its first statement.
+- **Carve-out:** a spec that builds every fixture inline, shares no mutable state, and has **no `beforeEach`** need not add one just to hold the reset.
+
+### What to assert — observable behavior only
+
+Assert only what a caller observes; no internals, no DI/HTTP verification.
+
+- **Delegation:** each port method called **once** with exact args — `toHaveBeenCalledTimes(1)` + `toHaveBeenCalledWith(...)`.
+- **Return / mapping / composition:** `toBe(result)` for pass-through; `toEqual({...})` for a composed/mapped shape (e.g. `refreshUseCase` → `{ accessToken, refreshToken }`; `removeOrphanedContainersUseCase` mapping to compose-project names).
+- **Edge cases:** `null` (`toBeNull()`), empty list (`toEqual([])`), empty input (port receives `[]`).
+- **Error propagation is MANDATORY for CRUD-style use cases:** a `propagates errors…` test with `mockRejectedValue(error)` → `rejects.toThrow(error)` (or `.rejects.toBeInstanceOf(DomainError)` for a translated error).
+- **Guards / short-circuits:** on a guarded branch, assert the downstream port/sibling is **not** reached — `expect(mockPort.method).not.toHaveBeenCalled()` (e.g. `refreshUseCase` never calls `revoke` when verification fails or the record is missing).
+
+### Composing use cases — mock the delegated sibling
+
+When a use case orchestrates **another** use case, mock the sibling and assert only this use case's orchestration (mirrors the Service-layer "always mock the delegated use case" rule; keeps structurally-identical orchestrations from drifting). See `refresh.use-case.spec.ts`.
+
+- `jest.mock('<path>/<sibling>.use-case')`, type as `jest.MockedFunction<typeof siblingUseCase>`, name `mock<UseCaseName>`.
+- Assert the sibling is called with the exact ports/args forwarded, and that this use case returns the sibling's result unchanged. Do **not** run the real sibling against a mocked repository — that tests the sibling.
+- **Carve-out:** a trivial one-line pass-through wrapper (e.g. `loginUseCase` → `issueTokensUseCase`) may run the real sibling, since mocking yields a near-tautological test. Reserve for genuine one-liners with no orchestration of their own.
+
+### Differs from service / controller specs
+
+No DI container / testing module, no injection-token wiring, no HTTP translation — collaborators are **function arguments**, which is why the localized `as unknown as Port` cast exists and why there is no `sut`.
 
 ---
 
 ## Infrastructure implementation testing
 
-Infrastructure adapters/providers (e.g. the GitHub provider, external clients wired as Nest providers).
+Infrastructure adapters/providers (e.g. the GitHub provider, external clients wired as Nest providers). Plus all [Common conventions].
 
-- **Build via the NestJS testing module** when the adapter is a Nest provider: `Test.createTestingModule({ providers: [Adapter, { provide: Dep, useValue: mockDep }] }).compile()`, then `moduleRef.get(Adapter)`.
-- Importing a real infrastructure provider can transitively pull in the ESM-only `@octokit/*` libs; these are stubbed globally — see ESM-only third-party libs. A spec may assert directly on the stubbed `Octokit` / `createAppAuth` `jest.fn()`s.
+- **Nest-provider adapters:** build via the testing module — `Test.createTestingModule({ providers: [Adapter, { provide: Dep, useValue: mockDep }] }).compile()`, then `moduleRef.get(Adapter)`.
+- Importing a real provider can transitively pull in ESM-only `@octokit/*` — stubbed globally (see ESM-only third-party libs); a spec may assert directly on the stubbed `Octokit` / `createAppAuth` fns.
 
-_TODO: full infrastructure-provider conventions (auth flows, pagination assertions) to be documented._
+_TODO: full infrastructure-provider conventions (auth flows, pagination assertions)._
 
 ### Infra clients (`docker.client`, `redis.client`)
 
-These are **not** Nest providers.
+**Not** Nest providers. See `redis.client.spec.ts`, `docker.client.spec.ts`.
 
-- **Build via plain instantiation:** `new Client(config)`, and `jest.mock` the transport module (`dockerode`, `ioredis`).
+- **Build via plain instantiation** (`new Client(config)`) and `jest.mock` the transport module (`dockerode`, `ioredis`).
 - **Assert:** the transport constructor is called with config-derived options; config fallbacks apply when env vars are absent.
-
-```ts
-jest.mock('ioredis', () => jest.fn().mockImplementation(() => ({ disconnect: jest.fn() })));
-const RedisMock = Redis as unknown as jest.Mock;
-// new RedisClient(configWith({ REDIS_HOST, REDIS_PORT })) → assert RedisMock called with that host/port
-```
 
 ### Repositories
 
-_TODO: repository (TypeORM) testing conventions to be documented._
+_TODO: repository (TypeORM) testing conventions._
 
 ### Transformers / mappers & DTO validation
 
-_TODO: transformer/mapper and DTO-validation testing conventions to be documented._
+_TODO: transformer/mapper and DTO-validation testing conventions._
 
 ---
 
 ## Service testing
 
-Domain/application services (UI services orchestrating use cases and repositories). Unlike a controller — a thin HTTP boundary — **a service owns and exercises orchestration logic**, so its spec asserts the branching, mapping, and error translation the service itself performs. Reference specs: `apps/backend/src/features/networks/ui/services/__tests__/networks.service.spec.ts` and `apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts`.
+Domain/application services (UI services orchestrating use cases and repositories). Unlike a controller (a thin HTTP boundary), **a service owns orchestration logic**, so its spec asserts the branching, mapping, and error translation the service performs. Reference specs: `networks.service.spec.ts`, `services.service.spec.ts`, `deployments.service.spec.ts` (delegated-use-case mocking).
+
+Plus all [Common conventions].
 
 ### Building the SUT
 
-- **Build via `Test.createTestingModule` and resolve with `moduleRef.get(...)` (C1).** Register the SUT and every injected collaborator (as a mock value-provider through its real injection token) under `providers: [...]`; `beforeEach` is `async`. Going through the testing module exercises the real DI token bindings — the [documented NestJS approach](https://docs.nestjs.com/fundamentals/testing) — rather than hand-wiring the constructor.
-  - **Carve-out — plain `new` only for a zero-dependency utility service.** A service that injects nothing and merely spies on a framework primitive (e.g. `DiagnosticLoggerService`, which only wraps `Logger.prototype`) may use `new SutClass()`. This is the exception, not a free choice: the moment a service injects a collaborator, build it through the testing module.
-- **Always mock the delegated use case (C3).** When the service delegates to an `application/` use case, mock that use-case **module** — `jest.mock('../../../application/<name>.use-case')` — and type the reference as `jest.MockedFunction<typeof useCase>`, named `mock<UseCaseName>` per the naming convention. Assert delegation with the **real collaborators the service passes** (`toHaveBeenCalledWith(mockNetworksRepository, service, …args)`) and that the service returns the use case's result unchanged. Do **not** let the real use case run against a mocked repository — that tests the use case, not the service's orchestration, and drifts structurally-identical services apart.
-- **Mock injected collaborators (repositories, other providers) through their real injection token**, exposing only the methods the SUT calls (`jest.Mocked<Pick<Repo, 'findById'>>`).
+- **Build via `Test.createTestingModule` + `moduleRef.get(...)`; `beforeEach` is `async`.** Register the SUT and every injected collaborator (mock value-provider through its real token) under `providers`. Going through the module exercises real DI token bindings — the [documented NestJS approach](https://docs.nestjs.com/fundamentals/testing) — not a hand-wired constructor.
+  - **Carve-out — plain `new` only for a zero-dependency utility service** that injects nothing and merely spies on a framework primitive (e.g. `DiagnosticLoggerService`, which only wraps `Logger.prototype`). The moment a service injects a collaborator, use the testing module.
+- **Always mock the delegated use case.** `jest.mock('../../../application/<name>.use-case')`, type as `jest.MockedFunction<typeof useCase>`, name `mock<UseCaseName>`. Assert delegation with the **real collaborators the service passes** (`toHaveBeenCalledWith(mockRepo, service, …args)`) and that the service returns the result unchanged. Do **not** run the real use case against a mocked repository.
+- **Mock injected collaborators through their real token**, exposing only called methods (`jest.Mocked<Pick<Repo, 'findById'>>`).
 
-### What a service spec SHOULD assert (C6)
+### What a service spec SHOULD assert (per public method)
 
-Per public method:
-
-- **Delegation:** the use case / repository is called **once** with the exact real collaborators and arguments the service passes down — `toHaveBeenCalledTimes(1)` + `toHaveBeenCalledWith(...)`.
-- **Return / mapping:** the service returns (or maps) what the collaborator produced — `toBe(result)` for pass-through, `toEqual(...)` for a shape the service composes.
+- **Delegation:** use case/repository called **once** with the exact real collaborators and args passed down.
+- **Return / mapping:** `toBe(result)` for pass-through, `toEqual(...)` for a composed shape.
 - **Edge cases:** empty list (`toEqual([])`), absent result (`toBeNull()`), config fallbacks.
-- **Error propagation:** a collaborator rejection the service does not translate bubbles up unchanged — `rejects.toBe(error)` / `rejects.toThrow(error)`.
-- **Error translation the service performs:** a domain error mapped to an `HttpException` (e.g. a missing entity → `NotFoundException`), plus the **short-circuit guard** — assert the downstream collaborator is **not** called on that branch (`expect(mockUseCase).not.toHaveBeenCalled()`).
-
-Do **not** assert framework mechanics you don't own (DI resolution, pipes, validation).
-
-```ts
-import { Test } from '@nestjs/testing';
-
-import { getDeploymentsByServiceUseCase } from '../../../application/get-deployments-by-service.use-case';
-import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
-import { DeploymentsService } from '../deployments.service';
-
-jest.mock('../../../application/get-deployments-by-service.use-case');
-
-const mockGetDeploymentsByServiceUseCase = getDeploymentsByServiceUseCase as jest.MockedFunction<
-    typeof getDeploymentsByServiceUseCase
->;
-
-describe('DeploymentsService', () => {
-    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsDatabaseRepository, 'findByService'>>;
-    let sut: DeploymentsService;
-
-    beforeEach(async () => {
-        jest.clearAllMocks();
-
-        mockDeploymentsRepository = { findByService: jest.fn() };
-
-        const moduleRef = await Test.createTestingModule({
-            providers: [
-                DeploymentsService,
-                { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
-            ],
-        }).compile();
-
-        sut = moduleRef.get(DeploymentsService);
-    });
-
-    it('delegates to the use case with the repository and service id', async () => {
-        mockGetDeploymentsByServiceUseCase.mockResolvedValue([]);
-
-        await sut.getAllByService('svc-id');
-
-        expect(mockGetDeploymentsByServiceUseCase).toHaveBeenCalledTimes(1);
-        expect(mockGetDeploymentsByServiceUseCase).toHaveBeenCalledWith(mockDeploymentsRepository, 'svc-id');
-    });
-});
-```
+- **Error propagation:** an untranslated collaborator rejection bubbles up unchanged (`rejects.toBe/toThrow(error)`).
+- **Error translation the service performs:** a domain error mapped to an `HttpException` (e.g. missing entity → `NotFoundException`), plus the **short-circuit guard** — downstream collaborator **not** called on that branch (`expect(mockUseCase).not.toHaveBeenCalled()`).
+- Do **not** assert framework mechanics you don't own (DI resolution, pipes, validation).
 
 ### Flushing async work in stateful-service specs
 
-A stateful/async service (e.g. an RxJS-driven runner) may need pending microtasks/macrotasks drained before you assert. The common helper wraps a timer in a Promise — **write the executor with a block body, not an expression body:**
+A stateful/async service (e.g. an RxJS-driven runner) may need pending micro/macrotasks drained before asserting. The common helper wraps a timer in a Promise — **write the executor with a block body, not an expression body.** See `deployment-runner.service.spec.ts`.
 
-```ts
-// Correct — executor returns nothing
-const flush = (): Promise<void> => new Promise<void>((resolve) => {
-    setImmediate(resolve);
-});
-```
-
-- **Why:** an expression-body executor `(resolve) => setImmediate(resolve)` implicitly **returns** the `setImmediate` handle. The `Promise` constructor ignores an executor's return value, and ESLint/TS flag it as `no-promise-executor-return` ("Return values from promise executor functions cannot be read").
-- **Fix:** the block body `{ setImmediate(resolve); }` returns nothing, satisfies the rule, and behaves identically — resolving on the next `setImmediate` macrotask tick. Same applies to `setTimeout(resolve, 0)` flush helpers.
+- **Why:** an expression body `(resolve) => setImmediate(resolve)` implicitly returns the handle; the `Promise` constructor ignores it and ESLint/TS flag `no-promise-executor-return`.
+- **Fix:** a block body `{ setImmediate(resolve); }` returns nothing, satisfies the rule, and resolves on the next tick. Same for `setTimeout(resolve, 0)` flush helpers.
 
 ---
 
 ## Controller testing
 
-NestJS UI controllers (`ui/controllers/*.controller.ts`). Reference spec: `apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts` (SUT: `ServicesController`).
+NestJS UI controllers (`ui/controllers/*.controller.ts`). A controller is a **thin HTTP boundary**: it delegates to a service and translates the result into an HTTP outcome (return shape, status code, or `HttpException`). Verify exactly that boundary — nothing deeper. Reference spec: `services.controller.spec.ts`.
 
-A controller is a **thin HTTP boundary**: it delegates to a service and translates the result into an HTTP-facing outcome (return shape, status code, or an `HttpException`). Its spec must verify exactly that boundary — nothing deeper.
+Plus all [Common conventions].
 
 ### Building the SUT
 
-Use the NestJS testing module. Register the controller under `controllers: [...]` and every injected dependency as a mock value-provider under its real injection token. `beforeEach` is `async`; resolve with `moduleRef.get(...)`.
-
-- **Mock collaborator services with `jest.fn()`s exposing only the methods the controller calls.** Type the mock as `jest.Mocked<Pick<Service, 'methodA' | 'methodB'>>` so the compiler enforces that you stub exactly what the handler invokes.
-- Follow the `mock`-prefix naming convention (`mockServicesService`).
-- Assign the mock fresh inside `beforeEach` and rely on `jest.clearAllMocks()` to reset call state between tests — this is the stateful case of the module `const` vs. `beforeEach` rule.
-
-```ts
-import { NotFoundException } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-
-import { ServicesService } from '../../services/services.service';
-import { ServicesController } from '../services.controller';
-
-const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
-const service = { id: serviceId, name: 'api-gateway' } as never;
-
-describe('ServicesController', () => {
-    let mockServicesService: jest.Mocked<Pick<ServicesService, 'findById' | 'delete'>>;
-    let sut: ServicesController;
-
-    beforeEach(async () => {
-        jest.clearAllMocks();
-
-        mockServicesService = {
-            findById: jest.fn(),
-            delete: jest.fn(),
-        };
-
-        const moduleRef = await Test.createTestingModule({
-            controllers: [ServicesController],
-            providers: [
-                { provide: ServicesService, useValue: mockServicesService },
-            ],
-        }).compile();
-
-        sut = moduleRef.get(ServicesController);
-    });
-
-    it('delegates to the service with the received id', async () => {
-        mockServicesService.findById.mockResolvedValue(service);
-
-        await sut.findById(serviceId);
-
-        expect(mockServicesService.findById).toHaveBeenCalledTimes(1);
-        expect(mockServicesService.findById).toHaveBeenCalledWith(serviceId);
-    });
-
-    it('throws a NotFoundException when the service does not exist', async () => {
-        mockServicesService.findById.mockResolvedValue(null);
-
-        await expect(sut.findById(serviceId)).rejects.toBeInstanceOf(NotFoundException);
-    });
-});
-```
+- **NestJS testing module:** controller under `controllers: [...]`, every injected dependency as a mock value-provider under its real token; `beforeEach` is `async`; resolve with `moduleRef.get(...)`.
+- Mock collaborator services with `jest.fn()`s exposing only called methods (`jest.Mocked<Pick<Service, 'methodA' | 'methodB'>>`), `mock`-prefix naming, assigned fresh in `beforeEach` (the stateful case of the module-`const`-vs-`beforeEach` rule).
 
 ### What a controller spec SHOULD assert
 
-- **Delegation:** the handler calls the collaborator service method **once** with the exact arguments it received (route params, query params, DTO body) — `toHaveBeenCalledTimes(1)` + `toHaveBeenCalledWith(...)`.
-- **Return shape / mapping:** the handler returns what the service produced (`toBe(service)` for pass-through, `toEqual([service])` / `toEqual([])` for lists).
-- **HTTP-facing translation the controller itself performs:**
-  - Absent result (`null`/`false`) → the controller throws `NotFoundException` (`rejects.toBeInstanceOf(NotFoundException)`), and the thrown message includes the id (`rejects.toThrow(\`Service ${id} not found\`)`).
-  - A no-content handler (`@HttpCode(204)`, `Promise<void>`) resolves with no value (`resolves.toBeUndefined()`) on success.
-  - Where a controller wraps daemon/adapter errors, assert the mapped exception (e.g. `ServiceUnavailableException`), and that a pre-thrown `HttpException` is rethrown unchanged. Such error-branch tests legitimately emit `logger.error` output — expected, not a failure.
-- **Error propagation:** a rejection from the service that the controller does not translate bubbles up unchanged (`rejects.toBe(error)`).
+- **Delegation:** the handler calls the service method **once** with the exact args received (route/query params, DTO body).
+- **Return shape / mapping:** `toBe(service)` for pass-through, `toEqual([service])` / `toEqual([])` for lists.
+- **HTTP-facing translation the controller performs:**
+  - Absent result (`null`/`false`) → throws `NotFoundException` (`rejects.toBeInstanceOf(NotFoundException)`), message includes the id (`rejects.toThrow(\`Service ${id} not found\`)`).
+  - No-content handler (`@HttpCode(204)`, `Promise<void>`) resolves with no value (`resolves.toBeUndefined()`) on success.
+  - Where it wraps daemon/adapter errors, assert the mapped exception (e.g. `ServiceUnavailableException`) and that a pre-thrown `HttpException` is rethrown unchanged. Such error-branch tests legitimately emit `logger.error` output — expected, not a failure.
+- **Error propagation:** an untranslated service rejection bubbles up unchanged (`rejects.toBe(error)`).
 
 ### What a controller spec should NOT do
 
-- **Do not exercise real service logic.** The injected service is always a mock; repository access, use-case orchestration, and validation belong to service tests and lower layers.
-- **Do not assert on framework mechanics** you don't own — `ParseUUIDPipe` parsing, routing, and `class-validator` DTO validation run in the HTTP pipeline, not in a controller unit test. Pass already-valid arguments directly to the handler method.
+- **Do not exercise real service logic** — the injected service is always a mock; repository access, use-case orchestration, and validation belong to lower layers.
+- **Do not assert framework mechanics** you don't own (`ParseUUIDPipe`, routing, `class-validator` DTO validation run in the HTTP pipeline). Pass already-valid arguments directly to the handler.
 
 ### Testing `@Sse` / `Observable`-returning handlers
 
-A `@Sse`-decorated handler returns an `Observable<MessageEvent>` (not a `Promise`): it pipes the service's domain-event stream through `map` into the SSE shape `{ data: JSON.stringify(event) }`. Test the delegation and the mapping — not RxJS itself. Reference spec: `apps/backend/src/features/logs/ui/controllers/__tests__/logs.controller.spec.ts` (`LogsController.streamLogs`).
+A `@Sse` handler returns an `Observable<MessageEvent>` (not a `Promise`), piping the service's domain-event stream through `map` into `{ data: JSON.stringify(event) }`. Test delegation and mapping — not RxJS. Reference: `logs.controller.spec.ts` (`LogsController.streamLogs`).
 
-- **Mock the collaborator to return an observable, not a promise.** Use `mockReturnValue(of(...events))` (or `mockReturnValue(EMPTY)` for the empty case) — NOT `mockResolvedValue`, which would hand the handler a `Promise` it never awaits.
-- **Assert delegation synchronously.** Because the handler returns an `Observable` rather than a `Promise`, the delegation test does not `await`: call `sut.streamLogs(id)` and assert `expect(service.streamLogs).toHaveBeenCalledWith(id)` directly.
-- **Verify the SSE mapping by collecting the stream as a Promise.** For a finite/completing stream, pipe through `toArray()` and `await firstValueFrom(...)`, then assert the whole emitted array equals the expected SSE messages.
-
-```ts
-import { EMPTY, firstValueFrom, of, toArray } from 'rxjs';
-// ...
-it('wraps each log event into an SSE message with JSON-encoded data', async () => {
-    const events: LogEvent[] = [
-        { type: 'line', data: 'building…' },
-        { type: 'end', status: 'success' },
-    ];
-    service.streamLogs.mockReturnValue(of(...events));
-
-    const received = await firstValueFrom(sut.streamLogs(deploymentId).pipe(toArray()));
-
-    expect(received).toEqual([
-        { data: JSON.stringify(events[0]) },
-        { data: JSON.stringify(events[1]) },
-    ]);
-});
-```
-
-Two RxJS-specific rules for these specs:
-
-- **Empty stream → use `EMPTY`, not `of()`.** The zero-argument `of<T>()` overload is deprecated in RxJS; represent an empty observable with `EMPTY` from `rxjs`. Argument-bearing `of(a, b, …)` is fine and not deprecated.
-- **Return a Promise; do not use Jest's `done` callback.** The `jest/no-done-callback` rule flags `it('…', (done) => { … })`. With `done`, a failing `expect` inside a `subscribe`/`complete` callback doesn't fail cleanly — it times out, and an un-handled stream `error` hangs the test. Prefer an `async` test that `await`s `firstValueFrom(obs.pipe(toArray()))` so assertions fail directly and stream errors reject the Promise. (If a mechanical conversion is ever unavoidable, wrap the subscription in a returned `new Promise((resolve, reject) => …)` with try/catch → `reject` in the `complete`/`error` callbacks — but the `toArray()` form is preferred for finite streams.)
+- **Mock the collaborator to return an observable:** `mockReturnValue(of(...events))` (or `mockReturnValue(EMPTY)` for empty) — NOT `mockResolvedValue`, which hands back a `Promise` the handler never awaits.
+- **Assert delegation synchronously** — the handler returns an `Observable`, so don't `await`: call `sut.streamLogs(id)` and assert `expect(service.streamLogs).toHaveBeenCalledWith(id)` directly.
+- **Verify SSE mapping by collecting the stream:** pipe through `toArray()` and `await firstValueFrom(...)`, then assert the emitted array equals the expected SSE messages.
+- **Empty stream → `EMPTY`, not `of()`** (the zero-arg `of<T>()` overload is deprecated; argument-bearing `of(a, b, …)` is fine).
+- **Return a Promise; never use Jest's `done` callback** (`jest/no-done-callback`). With `done`, a failing `expect` inside `subscribe`/`complete` times out instead of failing cleanly, and an unhandled stream `error` hangs. Prefer an `async` test that `await`s `firstValueFrom(obs.pipe(toArray()))`. (If a mechanical conversion is unavoidable, wrap the subscription in a returned `new Promise((resolve, reject) => …)` with try/catch → `reject` in `complete`/`error` — but `toArray()` is preferred for finite streams.)
 
 ### Controller-specific gotchas
 
-- **Provide exactly the dependencies the controller injects — no more, no fewer.** Check the controller's constructor. Every token it injects must be provided or Nest fails to instantiate it; conversely, do NOT register a provider/mock for a class the controller does not inject — that's dead wiring that misleads the next reader. Most UI controllers inject only their sibling service: `ServicesController` injects only `ServicesService`, and `LogsController` only `LogsService`, so each spec provides just that one token. A genuinely-injected-but-uncalled dependency still gets a minimal `{} as unknown as X` stub through its real token — see real injection token. Never substitute an anonymous inline `class {}` (or a `jest.mock('.../x.provider', () => ({ X: class X {} }))`) for the token.
-- **Transitive ESM imports.** Importing a controller (or a provider it depends on) can pull in the ESM-only `@octokit/*` libs and break the spec with `Cannot use import statement outside a module`. This is already handled globally — see ESM-only third-party libs. Do not add per-spec `jest.mock('@octokit/...')` and do not stub the product provider with an empty class.
+- **Provide exactly the dependencies the controller injects — no more, no fewer.** Check the constructor: every injected token must be provided or Nest fails to instantiate; conversely, don't register a provider for a class it doesn't inject (misleading dead wiring). Most UI controllers inject only their sibling service (e.g. `ServicesController`→`ServicesService`, `LogsController`→`LogsService`). A genuinely-injected-but-uncalled dependency still gets a minimal `{} as unknown as X` stub through its real token. Never substitute an anonymous inline `class {}` (or `jest.mock('.../x.provider', () => ({ X: class X {} }))`).
+- **Transitive ESM imports** (importing a controller/provider pulls in `@octokit/*`) are handled globally — see ESM-only third-party libs. No per-spec `jest.mock('@octokit/...')`, no empty-class stub of the product provider.
 
 ---
 
 ## Guards & Passport strategies
+
+See `jwt-auth.guard.spec.ts`, `jwt.strategy.spec.ts`, `local.strategy.spec.ts`. Plus all [Common conventions].
 
 - **Build via plain instantiation:** `new Guard(reflectorMock)` / `new Strategy(...mockedPorts)` with a fake `ExecutionContext`.
 - For a guard extending Passport's `AuthGuard`, stub the base `canActivate` (spy on the prototype's prototype) so no real strategy runs; drive the `@Public()` branch via the mocked `Reflector`.

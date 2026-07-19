@@ -5,33 +5,34 @@ import { getLogsByDeploymentUseCase } from '../get-logs-by-deployment.use-case';
 describe('getLogsByDeploymentUseCase', () => {
     const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
 
-    let repository: jest.Mocked<LogsRepository>;
+    let mockLogsRepository: jest.Mocked<Pick<LogsRepository, 'getAllByDeployment'>>;
 
     beforeEach(() => {
-        repository = {
+        jest.clearAllMocks();
+        mockLogsRepository = {
             getAllByDeployment: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            createMany: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates to the repository with the deployment id and returns its result', async () => {
         const logs: Log[] = [];
-        repository.getAllByDeployment.mockResolvedValue(logs);
+        mockLogsRepository.getAllByDeployment.mockResolvedValue(logs);
 
-        const result = await getLogsByDeploymentUseCase(repository, deploymentId);
+        const result = await getLogsByDeploymentUseCase(
+            mockLogsRepository as unknown as LogsRepository,
+            deploymentId,
+        );
 
-        expect(repository.getAllByDeployment).toHaveBeenCalledWith(deploymentId);
+        expect(mockLogsRepository.getAllByDeployment).toHaveBeenCalledWith(deploymentId);
         expect(result).toBe(logs);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('db unreachable');
-        repository.getAllByDeployment.mockRejectedValue(error);
+        mockLogsRepository.getAllByDeployment.mockRejectedValue(error);
 
-        await expect(getLogsByDeploymentUseCase(repository, deploymentId)).rejects.toThrow(error);
+        await expect(
+            getLogsByDeploymentUseCase(mockLogsRepository as unknown as LogsRepository, deploymentId),
+        ).rejects.toThrow(error);
     });
 });

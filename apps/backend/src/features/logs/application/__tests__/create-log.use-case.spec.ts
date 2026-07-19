@@ -12,33 +12,31 @@ describe('createLogUseCase', () => {
         status: null,
     };
 
-    let repository: jest.Mocked<LogsRepository>;
+    let mockLogsRepository: jest.Mocked<Pick<LogsRepository, 'create'>>;
 
     beforeEach(() => {
-        repository = {
-            getAllByDeployment: jest.fn(),
-            findById: jest.fn(),
+        jest.clearAllMocks();
+        mockLogsRepository = {
             create: jest.fn(),
-            createMany: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates to the repository with the DTO and returns the created log entry', async () => {
         const created = { id: 'x' } as Log;
-        repository.create.mockResolvedValue(created);
+        mockLogsRepository.create.mockResolvedValue(created);
 
-        const result = await createLogUseCase(repository, createDto);
+        const result = await createLogUseCase(mockLogsRepository as unknown as LogsRepository, createDto);
 
-        expect(repository.create).toHaveBeenCalledWith(createDto);
+        expect(mockLogsRepository.create).toHaveBeenCalledWith(createDto);
         expect(result).toBe(created);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('db unreachable');
-        repository.create.mockRejectedValue(error);
+        mockLogsRepository.create.mockRejectedValue(error);
 
-        await expect(createLogUseCase(repository, createDto)).rejects.toThrow(error);
+        await expect(
+            createLogUseCase(mockLogsRepository as unknown as LogsRepository, createDto),
+        ).rejects.toThrow(error);
     });
 });

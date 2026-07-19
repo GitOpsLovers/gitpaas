@@ -4,16 +4,16 @@ import { checkReadinessUseCase } from '../check-readiness.use-case';
 /**
  * Builds a health probe stub whose `check()` resolves to the given value.
  */
-function upProbe(name: string, up: boolean): jest.Mocked<HealthProbe> {
+const upProbe = (name: string, up: boolean): jest.Mocked<HealthProbe> => {
     return { name, check: jest.fn().mockResolvedValue(up) };
-}
+};
 
 /**
  * Builds a health probe stub whose `check()` rejects with the given error.
  */
-function throwingProbe(name: string, error: unknown): jest.Mocked<HealthProbe> {
+const throwingProbe = (name: string, error: unknown): jest.Mocked<HealthProbe> => {
     return { name, check: jest.fn().mockRejectedValue(error) };
-}
+};
 
 describe('checkReadinessUseCase', () => {
     it('runs every probe exactly once', async () => {

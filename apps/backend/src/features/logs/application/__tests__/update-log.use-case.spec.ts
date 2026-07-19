@@ -7,34 +7,39 @@ describe('updateLogUseCase', () => {
     const id = 'a1b2c3d4-0000-0000-0000-000000000000';
     const updateDto: UpdateLogDto = { content: 'edited line' };
 
-    let repository: jest.Mocked<LogsRepository>;
+    let mockLogsRepository: jest.Mocked<Pick<LogsRepository, 'update'>>;
 
     beforeEach(() => {
-        repository = {
-            getAllByDeployment: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            createMany: jest.fn(),
+        jest.clearAllMocks();
+        mockLogsRepository = {
             update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates to the repository with the id and DTO and returns the updated log entry', async () => {
         const updated = { id } as Log;
-        repository.update.mockResolvedValue(updated);
+        mockLogsRepository.update.mockResolvedValue(updated);
 
-        const result = await updateLogUseCase(repository, id, updateDto);
+        const result = await updateLogUseCase(mockLogsRepository as unknown as LogsRepository, id, updateDto);
 
-        expect(repository.update).toHaveBeenCalledWith(id, updateDto);
+        expect(mockLogsRepository.update).toHaveBeenCalledWith(id, updateDto);
         expect(result).toBe(updated);
     });
 
     it('returns null when the log entry does not exist', async () => {
-        repository.update.mockResolvedValue(null);
+        mockLogsRepository.update.mockResolvedValue(null);
 
-        const result = await updateLogUseCase(repository, id, updateDto);
+        const result = await updateLogUseCase(mockLogsRepository as unknown as LogsRepository, id, updateDto);
 
         expect(result).toBeNull();
+    });
+
+    it('propagates errors thrown by the repository', async () => {
+        const error = new Error('db unreachable');
+        mockLogsRepository.update.mockRejectedValue(error);
+
+        await expect(
+            updateLogUseCase(mockLogsRepository as unknown as LogsRepository, id, updateDto),
+        ).rejects.toThrow(error);
     });
 });

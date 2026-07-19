@@ -26,35 +26,38 @@ describe('getNetworksByServiceUseCase', () => {
         },
     ];
 
-    let repository: jest.Mocked<NetworksRepository>;
+    let mockNetworksRepository: jest.Mocked<Pick<NetworksRepository, 'listByService'>>;
 
     beforeEach(() => {
-        repository = {
+        jest.clearAllMocks();
+        mockNetworksRepository = {
             listByService: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided service', async () => {
-        repository.listByService.mockResolvedValue(networks);
+        mockNetworksRepository.listByService.mockResolvedValue(networks);
 
-        await getNetworksByServiceUseCase(repository, service);
+        await getNetworksByServiceUseCase(mockNetworksRepository, service);
 
-        expect(repository.listByService).toHaveBeenCalledTimes(1);
-        expect(repository.listByService).toHaveBeenCalledWith(service);
+        expect(mockNetworksRepository.listByService).toHaveBeenCalledTimes(1);
+        expect(mockNetworksRepository.listByService).toHaveBeenCalledWith(service);
     });
 
     it('returns the networks found by the repository', async () => {
-        repository.listByService.mockResolvedValue(networks);
+        mockNetworksRepository.listByService.mockResolvedValue(networks);
 
-        const result = await getNetworksByServiceUseCase(repository, service);
+        const result = await getNetworksByServiceUseCase(mockNetworksRepository, service);
 
         expect(result).toBe(networks);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('daemon unreachable');
-        repository.listByService.mockRejectedValue(error);
+        mockNetworksRepository.listByService.mockRejectedValue(error);
 
-        await expect(getNetworksByServiceUseCase(repository, service)).rejects.toThrow(error);
+        await expect(
+            getNetworksByServiceUseCase(mockNetworksRepository as unknown as NetworksRepository, service),
+        ).rejects.toThrow(error);
     });
 });

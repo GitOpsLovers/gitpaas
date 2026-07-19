@@ -18,40 +18,38 @@ describe('createServiceUseCase', () => {
         composerPath: 'docker-compose.yml',
     };
 
-    let repository: jest.Mocked<ServicesRepository>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'create'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
-            getAllByProject: jest.fn(),
-            findById: jest.fn(),
+        jest.clearAllMocks();
+        mockServicesRepository = {
             create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates creation to the repository with the provided DTO', async () => {
-        repository.create.mockResolvedValue(createdService);
+        mockServicesRepository.create.mockResolvedValue(createdService);
 
-        await createServiceUseCase(repository, createDto);
+        await createServiceUseCase(mockServicesRepository as unknown as ServicesRepository, createDto);
 
-        expect(repository.create).toHaveBeenCalledTimes(1);
-        expect(repository.create).toHaveBeenCalledWith(createDto);
+        expect(mockServicesRepository.create).toHaveBeenCalledTimes(1);
+        expect(mockServicesRepository.create).toHaveBeenCalledWith(createDto);
     });
 
     it('returns the service created by the repository', async () => {
-        repository.create.mockResolvedValue(createdService);
+        mockServicesRepository.create.mockResolvedValue(createdService);
 
-        const result = await createServiceUseCase(repository, createDto);
+        const result = await createServiceUseCase(mockServicesRepository as unknown as ServicesRepository, createDto);
 
         expect(result).toBe(createdService);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.create.mockRejectedValue(error);
+        mockServicesRepository.create.mockRejectedValue(error);
 
-        await expect(createServiceUseCase(repository, createDto)).rejects.toThrow(error);
+        await expect(
+            createServiceUseCase(mockServicesRepository as unknown as ServicesRepository, createDto),
+        ).rejects.toThrow(error);
     });
 });

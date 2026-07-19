@@ -16,113 +16,118 @@ describe('runDeploymentUseCase', () => {
 
     const archive = Buffer.from('gzipped-repo-tarball');
 
-    let deploymentsRepository: jest.Mocked<DeploymentsRepository>;
-    let providersRepository: jest.Mocked<ProvidersRepository>;
-    let dockerExecutor: jest.Mocked<DockerExecutor>;
-    let logStore: jest.Mocked<LogStoreRepository>;
+    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'update'>>;
+    let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getRepositoryArchive'>>;
+    let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
+    let mockLogStoreRepository: jest.Mocked<Pick<LogStoreRepository, 'append' | 'complete'>>;
+
+    const run = (): Promise<void> => {
+        return runDeploymentUseCase(
+            mockDeploymentsRepository as unknown as DeploymentsRepository,
+            mockProvidersRepository as unknown as ProvidersRepository,
+            mockDockerExecutor,
+            mockLogStoreRepository as unknown as LogStoreRepository,
+            payload,
+        );
+    };
 
     beforeEach(() => {
-        deploymentsRepository = {
-            getAllByService: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
+        jest.clearAllMocks();
+        mockDeploymentsRepository = {
             update: jest.fn(),
-            delete: jest.fn(),
         };
-        providersRepository = {
-            listRepositories: jest.fn(),
-            listBranches: jest.fn(),
-            getCommit: jest.fn(),
-            getFileContent: jest.fn(),
+        mockProvidersRepository = {
             getRepositoryArchive: jest.fn(),
         };
-        dockerExecutor = {
+        mockDockerExecutor = {
             up: jest.fn(),
         };
-        logStore = {
+        mockLogStoreRepository = {
             append: jest.fn(),
             complete: jest.fn(),
-            stream: jest.fn(),
-            purge: jest.fn(),
         };
     });
 
     it('marks the deployment as running before doing any work', async () => {
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockResolvedValue(undefined);
+        mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(deploymentsRepository.update).toHaveBeenNthCalledWith(1, payload.deploymentId, { status: 'running' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(1, payload.deploymentId, { status: 'running' });
     });
 
     it('downloads the repository archive for the payload repository and commit', async () => {
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockResolvedValue(undefined);
+        mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(providersRepository.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.commit);
+        expect(mockProvidersRepository.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.commit);
     });
 
     it('brings the stack up with the archive, compose path, project name and a log listener', async () => {
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockResolvedValue(undefined);
+        mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(dockerExecutor.up).toHaveBeenCalledWith(archive, payload.composerPath, payload.projectName, expect.any(Function));
+        expect(mockDockerExecutor.up).toHaveBeenCalledWith(archive, payload.composerPath, payload.projectName, expect.any(Function));
     });
 
     it('fans executor output out live through the log store', async () => {
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockImplementation(async (_archive, _composePath, _project, onLog) => {
+        mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
+
+            return Promise.resolve();
         });
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(logStore.append).toHaveBeenCalledWith(payload.deploymentId, 'building service');
+        expect(mockLogStoreRepository.append).toHaveBeenCalledWith(payload.deploymentId, 'building service');
     });
 
     it('marks the deployment successful and completes the log when the stack comes up', async () => {
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockImplementation(async (_archive, _composePath, _project, onLog) => {
+        mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
             onLog?.('stack up');
+
+            return Promise.resolve();
         });
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(deploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
-        expect(logStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'success');
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
+        expect(mockLogStoreRepository.complete).toHaveBeenCalledWith(payload.deploymentId, 'success');
     });
 
     it('marks the deployment failed, streams the failure line and completes when the executor throws', async () => {
-        providersRepository.getRepositoryArchive.mockResolvedValue(archive);
-        dockerExecutor.up.mockRejectedValue(new Error('build failed'));
+        mockProvidersRepository.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockRejectedValue(new Error('build failed'));
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(deploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'build failed' });
-        expect(logStore.append).toHaveBeenCalledWith(payload.deploymentId, '✖ Deployment failed: build failed');
-        expect(logStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'build failed' });
+        expect(mockLogStoreRepository.append).toHaveBeenCalledWith(payload.deploymentId, '✖ Deployment failed: build failed');
+        expect(mockLogStoreRepository.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
     });
 
     it('marks the deployment as failed when downloading the archive throws', async () => {
-        providersRepository.getRepositoryArchive.mockRejectedValue(new Error('archive not found'));
+        mockProvidersRepository.getRepositoryArchive.mockRejectedValue(new Error('archive not found'));
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(dockerExecutor.up).not.toHaveBeenCalled();
-        expect(deploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'archive not found' });
+        expect(mockDockerExecutor.up).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'archive not found' });
     });
 
     it('stringifies non-Error failures', async () => {
-        providersRepository.getRepositoryArchive.mockRejectedValue('boom');
+        mockProvidersRepository.getRepositoryArchive.mockRejectedValue('boom');
 
-        await runDeploymentUseCase(deploymentsRepository, providersRepository, dockerExecutor, logStore, payload);
+        await run();
 
-        expect(deploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'boom' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'boom' });
     });
 });

@@ -8,7 +8,12 @@ import { RedisLogStoreRepository } from '../redis-log-store.repository';
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
 /** Resolves after pending microtasks/timers, letting the subscribe callback run. */
-const flush = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
+const flush = (): Promise<void> =>
+    // Block body: a Promise executor's return value is ignored; an expression body would
+    // implicitly return the NodeJS.Immediate handle, tripping no-promise-executor-return.
+    new Promise<void>((resolve) => {
+        setImmediate(resolve);
+    });
 
 /**
  * Minimal in-memory stand-in for {@link RedisClient} implementing just the list,
@@ -49,7 +54,7 @@ function createFakeRedis(): RedisClient {
 
             return Promise.resolve(1);
         },
-        multi() {
+        multi: () => {
             const builder = {
                 rpush: (key: string, value: string) => {
                     const list = lists.get(key) ?? [];
@@ -81,7 +86,7 @@ function createFakeRedis(): RedisClient {
             handler = (message: string) => connection.emit('message', channel, message);
             bus.on(channel, handler);
             // ioredis invokes the callback asynchronously once subscribed.
-            void Promise.resolve().then(() => { cb(null); });
+            Promise.resolve().then(() => { cb(null); });
         };
         connection.disconnect = () => {
             if (channelName && handler) {

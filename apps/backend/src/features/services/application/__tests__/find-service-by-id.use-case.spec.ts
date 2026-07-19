@@ -14,48 +14,46 @@ describe('findServiceByIdUseCase', () => {
         composerPath: 'docker-compose.yml',
     };
 
-    let repository: jest.Mocked<ServicesRepository>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
 
     beforeEach(() => {
-        repository = {
-            getAll: jest.fn(),
-            getAllByProject: jest.fn(),
+        jest.clearAllMocks();
+        mockServicesRepository = {
             findById: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided id', async () => {
-        repository.findById.mockResolvedValue(service);
+        mockServicesRepository.findById.mockResolvedValue(service);
 
-        await findServiceByIdUseCase(repository, id);
+        await findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id);
 
-        expect(repository.findById).toHaveBeenCalledTimes(1);
-        expect(repository.findById).toHaveBeenCalledWith(id);
+        expect(mockServicesRepository.findById).toHaveBeenCalledTimes(1);
+        expect(mockServicesRepository.findById).toHaveBeenCalledWith(id);
     });
 
     it('returns the service found by the repository', async () => {
-        repository.findById.mockResolvedValue(service);
+        mockServicesRepository.findById.mockResolvedValue(service);
 
-        const result = await findServiceByIdUseCase(repository, id);
+        const result = await findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id);
 
         expect(result).toBe(service);
     });
 
     it('returns null when the service does not exist', async () => {
-        repository.findById.mockResolvedValue(null);
+        mockServicesRepository.findById.mockResolvedValue(null);
 
-        const result = await findServiceByIdUseCase(repository, id);
+        const result = await findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id);
 
         expect(result).toBeNull();
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
-        repository.findById.mockRejectedValue(error);
+        mockServicesRepository.findById.mockRejectedValue(error);
 
-        await expect(findServiceByIdUseCase(repository, id)).rejects.toThrow(error);
+        await expect(
+            findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id),
+        ).rejects.toThrow(error);
     });
 });

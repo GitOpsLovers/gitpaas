@@ -2,35 +2,36 @@ import { ServerPrunerRepository } from '../../domain/repositories/server-pruner.
 import { pruneVolumesUseCase } from '../prune-volumes.use-case';
 
 describe('pruneVolumesUseCase', () => {
-    let pruner: jest.Mocked<ServerPrunerRepository>;
+    let mockPruner: jest.Mocked<Pick<ServerPrunerRepository, 'pruneVolumes'>>;
 
     beforeEach(() => {
-        pruner = {
-            pruneImages: jest.fn(),
+        jest.clearAllMocks();
+        mockPruner = {
             pruneVolumes: jest.fn(),
-            pruneContainers: jest.fn(),
         };
     });
 
     it('delegates to the pruner', async () => {
-        pruner.pruneVolumes.mockResolvedValue({ deletedCount: 0, spaceReclaimed: 0 });
+        mockPruner.pruneVolumes.mockResolvedValue({ deletedCount: 0, spaceReclaimed: 0 });
 
-        await pruneVolumesUseCase(pruner);
+        await pruneVolumesUseCase(mockPruner as unknown as ServerPrunerRepository);
 
-        expect(pruner.pruneVolumes).toHaveBeenCalledTimes(1);
+        expect(mockPruner.pruneVolumes).toHaveBeenCalledTimes(1);
     });
 
     it('returns the prune result from the pruner', async () => {
         const result = { deletedCount: 2, spaceReclaimed: 2048 };
-        pruner.pruneVolumes.mockResolvedValue(result);
+        mockPruner.pruneVolumes.mockResolvedValue(result);
 
-        expect(await pruneVolumesUseCase(pruner)).toBe(result);
+        expect(await pruneVolumesUseCase(mockPruner as unknown as ServerPrunerRepository)).toBe(result);
     });
 
     it('propagates errors thrown by the pruner', async () => {
         const error = new Error('daemon unreachable');
-        pruner.pruneVolumes.mockRejectedValue(error);
+        mockPruner.pruneVolumes.mockRejectedValue(error);
 
-        await expect(pruneVolumesUseCase(pruner)).rejects.toThrow(error);
+        await expect(
+            pruneVolumesUseCase(mockPruner as unknown as ServerPrunerRepository),
+        ).rejects.toThrow(error);
     });
 });

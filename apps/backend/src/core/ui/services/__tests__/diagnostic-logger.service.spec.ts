@@ -9,6 +9,7 @@ describe('DiagnosticLoggerService', () => {
     let errorSpy: jest.SpyInstance;
 
     beforeEach(() => {
+        jest.clearAllMocks();
         logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
         warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
         errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
