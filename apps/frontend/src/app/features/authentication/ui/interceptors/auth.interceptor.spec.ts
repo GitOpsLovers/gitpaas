@@ -5,14 +5,16 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
+import { environment } from '@environments/environment';
+
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
 import { authInterceptor } from './auth.interceptor';
 
-const API_URL = 'http://localhost:3000/api/v1/deployments';
-const LOGIN_URL = 'http://localhost:3000/api/v1/auth/login';
-const REFRESH_URL = 'http://localhost:3000/api/v1/auth/refresh';
+const API_URL = `${environment.apiBaseUrl}/deployments`;
+const LOGIN_URL = `${environment.apiBaseUrl}/auth/login`;
+const REFRESH_URL = `${environment.apiBaseUrl}/auth/refresh`;
 const EXTERNAL_URL = 'https://example.com/data';
 
 const freshTokens: AuthTokens = { accessToken: 'new-access', refreshToken: 'new-refresh' };

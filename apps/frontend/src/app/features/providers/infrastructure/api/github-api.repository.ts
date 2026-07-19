@@ -4,13 +4,15 @@ import { Injectable } from '@angular/core';
 import { GitBranch } from '../../domain/models/git-branch.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
 
+import { environment } from '@environments/environment';
+
 @Injectable()
 
 /**
  * GitHub provider API repository
  */
 export class GithubApiRepository {
-    private readonly url = 'http://localhost:3000/api/v1/github';
+    private readonly url = `${environment.apiBaseUrl}/github`;
 
     /**
      * Resource with the repositories accessible to the installation

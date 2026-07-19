@@ -6,6 +6,8 @@ import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.model';
 
+import { environment } from '@environments/environment';
+
 @Injectable()
 
 /**
@@ -14,7 +16,7 @@ import { Service } from '../../domain/models/service.model';
 export class ServicesApiRepository {
     private readonly http = inject(HttpClient);
 
-    private readonly url = 'http://localhost:3000/api/v1/services';
+    private readonly url = `${environment.apiBaseUrl}/services`;
 
     /**
      * Identifier of the project whose services are being listed

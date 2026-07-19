@@ -2,12 +2,13 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { environment } from '@environments/environment';
 import { User } from '@features/users/domain/models/user.model';
 
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { AuthenticationApiRepository } from './authentication-api.repository';
 
-const BASE_URL = 'http://localhost:3000/api/v1/auth';
+const BASE_URL = `${environment.apiBaseUrl}/auth`;
 
 const tokens: AuthTokens = { accessToken: 'access-1', refreshToken: 'refresh-1' };
 

@@ -6,6 +6,8 @@ import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.model';
 
+import { environment } from '@environments/environment';
+
 @Injectable()
 
 /**
@@ -14,7 +16,7 @@ import { Project } from '../../domain/models/project.model';
 export class ProjectsApiRepository {
     private readonly http = inject(HttpClient);
 
-    private readonly url = 'http://localhost:3000/api/v1/projects';
+    private readonly url = `${environment.apiBaseUrl}/projects`;
 
     /**
      * Resource with all projects

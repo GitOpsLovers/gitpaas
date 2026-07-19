@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { LoginDto } from '../../domain/dtos/login.dto';
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
 
+import { environment } from '@environments/environment';
 import { User } from '@features/users/domain/models/user.model';
 
 @Injectable({ providedIn: 'root' })
@@ -15,7 +16,7 @@ import { User } from '@features/users/domain/models/user.model';
 export class AuthenticationApiRepository {
     private readonly http = inject(HttpClient);
 
-    private readonly url = 'http://localhost:3000/api/v1/auth';
+    private readonly url = `${environment.apiBaseUrl}/auth`;
 
     /**
      * Authenticates with email + password and receives a token pair
