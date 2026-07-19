@@ -38,16 +38,16 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 
 ## ✨ Features
 
-| | Feature | What it means for you |
-|---|---|---|
-| 🔀 | **Git-based deploys** | Deploy any repo at a resolved commit — builds the `build:` services, pulls the rest, and brings the compose stack up. |
-| 📬 | **Durable deployment queue** | DB-backed, at-least-once queue with bounded retries, dead-lettering, and restart recovery. In-flight work survives a restart. |
-| 📡 | **Live log streaming** | Deployment output streams to the browser over Server-Sent Events *and* is persisted, so history is replayable after the run ends. |
-| 🔐 | **Remote Docker over mTLS** | The control plane drives a remote Docker daemon over mutually-authenticated TLS — the same runtime model as Coolify and Dokploy. |
-| 🏠 | **Own your infrastructure** | Self-hosted by design. Your code, your data, your servers — no third-party platform in between. |
-| 🐙 | **GitHub App integration** | Browse repositories and branches, resolve commits, and pull archives through a GitHub App. |
-| 🛡️ | **Built-in authentication** | JWT with Passport, refresh-token rotation, and argon2 password hashing. |
-| 🩺 | **Operational tooling** | Readiness probes for PostgreSQL, Redis, and Docker, plus image/volume/container pruning and read-only inspection. |
+|    | Feature                      | What it means for you                                                                                                             |
+|----|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| 🔀 | **Git-based deploys**        | Deploy any repo at a resolved commit — builds the `build:` services, pulls the rest, and brings the compose stack up.             |
+| 📬 | **Durable deployment queue** | DB-backed, at-least-once queue with bounded retries, dead-lettering, and restart recovery. In-flight work survives a restart.     |
+| 📡 | **Live log streaming**       | Deployment output streams to the browser over Server-Sent Events *and* is persisted, so history is replayable after the run ends. |
+| 🔐 | **Remote Docker over mTLS**  | The control plane drives a remote Docker daemon over mutually-authenticated TLS — the same runtime model as Coolify and Dokploy.  |
+| 🏠 | **Own your infrastructure**  | Self-hosted by design. Your code, your data, your servers — no third-party platform in between.                                   |
+| 🐙 | **GitHub App integration**   | Browse repositories and branches, resolve commits, and pull archives through a GitHub App.                                        |
+| 🛡️ | **Built-in authentication**  | JWT with Passport, refresh-token rotation, and argon2 password hashing.                                                           |
+| 🩺 | **Operational tooling**      | Readiness probes for PostgreSQL, Redis, and Docker, plus image/volume/container pruning and read-only inspection.                 |
 
 ---
 
@@ -85,13 +85,13 @@ A single deployment is one self-contained unit of work — *"bring this service'
 
 Artifactory is a **Turborepo + pnpm** monorepo with two apps under `apps/`:
 
-| Area | Stack |
-|---|---|
-| 🧩 **Backend** (`apps/backend`) | NestJS v11 REST API + deploy engine, hexagonal architecture, TypeORM |
-| 🎨 **Frontend** (`apps/frontend`) | Angular v22 SPA, Tailwind CSS, Signals |
-| 🗄️ **Data** | PostgreSQL (durable state) · Redis (live logs & pub/sub) |
-| 📦 **Runtime** | Docker (remote daemon over mTLS) |
-| 🧰 **Tooling** | TypeScript · Turborepo · pnpm · Node 26.1.0 (pinned in `.tool-versions`) |
+| Area                              | Stack                                                                    |
+|-----------------------------------|--------------------------------------------------------------------------|
+| 🧩 **Backend** (`apps/backend`)   | NestJS v11 REST API + deploy engine, hexagonal architecture, TypeORM     |
+| 🎨 **Frontend** (`apps/frontend`) | Angular v22 SPA, Tailwind CSS, Signals                                   |
+| 🗄️ **Data**                       | PostgreSQL (durable state) · Redis (live logs & pub/sub)                 |
+| 📦 **Runtime**                    | Docker (remote daemon over mTLS)                                         |
+| 🧰 **Tooling**                    | TypeScript · Turborepo · pnpm · Node 26.1.0 (pinned in `.tool-versions`) |
 
 ---
 
@@ -119,13 +119,13 @@ pnpm dev
 
 Handy root scripts (all powered by Turborepo):
 
-| Script | What it does |
-|---|---|
-| `pnpm dev` | Run backend + frontend in watch mode |
-| `pnpm build` | Build every app |
-| `pnpm test` | Run the test suites |
-| `pnpm lint` | Lint the workspace |
-| `pnpm check-types` | Type-check the workspace |
+| Script             | What it does                         |
+|--------------------|--------------------------------------|
+| `pnpm dev`         | Run backend + frontend in watch mode |
+| `pnpm build`       | Build every app                      |
+| `pnpm test`        | Run the test suites                  |
+| `pnpm lint`        | Lint the workspace                   |
+| `pnpm check-types` | Type-check the workspace             |
 
 ### 📦 Released images
 
@@ -140,13 +140,13 @@ ghcr.io/gitopslovers/artifactory-frontend:{version|latest}
 
 ## 📚 Documentation
 
-| Doc | What's inside |
-|---|---|
-| 🧩 [Backend Architecture](./docs/backend-architecture.md) | The NestJS API's hexagonal layout, ports & adapters, persistence |
-| 💼 [Backend Business](./docs/backend-business.md) | The domain workflows behind the deploy engine |
-| 🎨 [Frontend Architecture](./docs/frontend-architecture.md) | The Angular SPA's feature folders, layering, and conventions |
-| 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The two-plane model, dev vs. production, and image publishing |
-| 🗺️ [Deployment Roadmap](./docs/deployment-roadmap.md) | The product vision and the phased path to a full PaaS |
+| Doc                                                                     | What's inside                                                    |
+|-------------------------------------------------------------------------|------------------------------------------------------------------|
+| 🧩 [Backend Architecture](./docs/backend-architecture.md)               | The NestJS API's hexagonal layout, ports & adapters, persistence |
+| 💼 [Backend Business](./docs/backend-business.md)                       | The domain workflows behind the deploy engine                    |
+| 🎨 [Frontend Architecture](./docs/frontend-architecture.md)             | The Angular SPA's feature folders, layering, and conventions     |
+| 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The two-plane model, dev vs. production, and image publishing    |
+| 🗺️ [Deployment Roadmap](./docs/deployment-roadmap.md)                   | The product vision and the phased path to a full PaaS            |
 
 ---
 
