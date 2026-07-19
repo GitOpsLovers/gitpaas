@@ -107,7 +107,9 @@ describe('LogsDatabaseRepository', () => {
 
     describe('createMany', () => {
         it('creates entities from the DTOs, saves them, and returns the saved log entries', async () => {
-            const entities = [log(), log({ seq: 2, type: 'end', content: null, status: 'success' })];
+            const entities = [log(), log({
+                seq: 2, type: 'end', content: null, status: 'success',
+            })];
             const dtos: CreateLogDto[] = [createDto, {
                 deploymentId: createDto.deploymentId, seq: 2, type: 'end', content: null, status: 'success',
             }];

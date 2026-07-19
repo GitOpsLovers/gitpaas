@@ -5,10 +5,18 @@ describe('toLogRows', () => {
         const rows = toLogRows('d-1', ['pulling', 'building', 'starting'], 'success');
 
         expect(rows).toEqual([
-            { deploymentId: 'd-1', seq: 1, type: 'line', content: 'pulling', status: null },
-            { deploymentId: 'd-1', seq: 2, type: 'line', content: 'building', status: null },
-            { deploymentId: 'd-1', seq: 3, type: 'line', content: 'starting', status: null },
-            { deploymentId: 'd-1', seq: 4, type: 'end', content: null, status: 'success' },
+            {
+                deploymentId: 'd-1', seq: 1, type: 'line', content: 'pulling', status: null,
+            },
+            {
+                deploymentId: 'd-1', seq: 2, type: 'line', content: 'building', status: null,
+            },
+            {
+                deploymentId: 'd-1', seq: 3, type: 'line', content: 'starting', status: null,
+            },
+            {
+                deploymentId: 'd-1', seq: 4, type: 'end', content: null, status: 'success',
+            },
         ]);
     });
 
@@ -16,8 +24,12 @@ describe('toLogRows', () => {
         const rows = toLogRows('d-2', ['boom'], 'failed');
 
         expect(rows).toEqual([
-            { deploymentId: 'd-2', seq: 1, type: 'line', content: 'boom', status: null },
-            { deploymentId: 'd-2', seq: 2, type: 'end', content: null, status: 'failed' },
+            {
+                deploymentId: 'd-2', seq: 1, type: 'line', content: 'boom', status: null,
+            },
+            {
+                deploymentId: 'd-2', seq: 2, type: 'end', content: null, status: 'failed',
+            },
         ]);
     });
 
@@ -25,7 +37,9 @@ describe('toLogRows', () => {
         const rows = toLogRows('d-3', [], 'success');
 
         expect(rows).toEqual([
-            { deploymentId: 'd-3', seq: 1, type: 'end', content: null, status: 'success' },
+            {
+                deploymentId: 'd-3', seq: 1, type: 'end', content: null, status: 'success',
+            },
         ]);
     });
 

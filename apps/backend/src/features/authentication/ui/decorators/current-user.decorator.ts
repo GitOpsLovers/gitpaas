@@ -1,4 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { Request } from 'express';
 
 import { User } from '@features/users/domain/models/user.model';
