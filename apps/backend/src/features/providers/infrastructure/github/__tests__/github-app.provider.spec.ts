@@ -9,6 +9,11 @@ import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.ser
 
 const OctokitMock = Octokit as unknown as jest.Mock;
 
+/**
+ * Documented fake for the Octokit client the SUT talks to. Octokit's `paginate`
+ * / `request` are heavily overloaded, so a `jest.Mocked<Pick<Octokit, …>>` is
+ * impractical here — this narrow interface of `jest.Mock`s is the fallback.
+ */
 interface FakeClient {
     paginate: jest.Mock;
     request: jest.Mock;
@@ -27,22 +32,26 @@ describe('GithubAppProvider', () => {
         jest.clearAllMocks();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     // --- Layer A: API method mapping (Octokit isolated via a spied `getClient`) ---
     describe('API method mapping', () => {
-        let provider: GithubAppProvider;
-        let client: FakeClient;
+        let sut: GithubAppProvider;
+        let mockClient: FakeClient;
 
         beforeEach(() => {
-            provider = new GithubAppProvider(createConfig(), createDiagnostics());
-            client = { paginate: jest.fn(), request: jest.fn() };
+            sut = new GithubAppProvider(createConfig(), createDiagnostics());
+            mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             // `getClient()` is private, so cast through `unknown` to spy on it and hand
             // back the fake client. This isolates the mapping logic from Octokit entirely.
-            jest.spyOn(provider as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(client);
+            jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
         });
 
         it('maps installation repositories to the domain shape', async () => {
-            client.paginate.mockResolvedValue([
+            mockClient.paginate.mockResolvedValue([
                 {
                     id: 1, full_name: 'o/r', default_branch: 'main', private: true,
                 },
@@ -51,9 +60,9 @@ describe('GithubAppProvider', () => {
                 },
             ]);
 
-            const result = await provider.listRepositories();
+            const result = await sut.listRepositories();
 
-            expect(client.paginate).toHaveBeenCalledWith('GET /installation/repositories');
+            expect(mockClient.paginate).toHaveBeenCalledWith('GET /installation/repositories');
             expect(result).toEqual([
                 {
                     id: 1, fullName: 'o/r', defaultBranch: 'main', private: true,
@@ -65,13 +74,13 @@ describe('GithubAppProvider', () => {
         });
 
         it('resolves the repository full name and maps its branches', async () => {
-            client.request.mockResolvedValue({ data: { full_name: 'octo/hello' } });
-            client.paginate.mockResolvedValue([{ name: 'main' }, { name: 'dev' }]);
+            mockClient.request.mockResolvedValue({ data: { full_name: 'octo/hello' } });
+            mockClient.paginate.mockResolvedValue([{ name: 'main' }, { name: 'dev' }]);
 
-            const result = await provider.listBranches(42);
+            const result = await sut.listBranches(42);
 
-            expect(client.request).toHaveBeenCalledWith('GET /repositories/{id}', { id: 42 });
-            expect(client.paginate).toHaveBeenCalledWith('GET /repos/{owner}/{repo}/branches', {
+            expect(mockClient.request).toHaveBeenCalledWith('GET /repositories/{id}', { id: 42 });
+            expect(mockClient.paginate).toHaveBeenCalledWith('GET /repos/{owner}/{repo}/branches', {
                 owner: 'octo',
                 repo: 'hello',
             });
@@ -79,14 +88,14 @@ describe('GithubAppProvider', () => {
         });
 
         it('resolves a ref to its head commit', async () => {
-            client.request
+            mockClient.request
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockResolvedValueOnce({ data: { sha: 'abc123', commit: { message: 'Fix thing\n\nbody' } } });
 
-            const result = await provider.getCommit(42, 'main');
+            const result = await sut.getCommit(42, 'main');
 
-            expect(client.request).toHaveBeenNthCalledWith(1, 'GET /repositories/{id}', { id: 42 });
-            expect(client.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/commits/{ref}', {
+            expect(mockClient.request).toHaveBeenNthCalledWith(1, 'GET /repositories/{id}', { id: 42 });
+            expect(mockClient.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/commits/{ref}', {
                 owner: 'octo',
                 repo: 'hello',
                 ref: 'main',
@@ -95,15 +104,15 @@ describe('GithubAppProvider', () => {
         });
 
         it('reads and decodes a file content', async () => {
-            client.request
+            mockClient.request
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockResolvedValueOnce({
                     data: { type: 'file', content: Buffer.from('hello world').toString('base64') },
                 });
 
-            const result = await provider.getFileContent(42, 'src/index.ts', 'main');
+            const result = await sut.getFileContent(42, 'src/index.ts', 'main');
 
-            expect(client.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/contents/{+path}', {
+            expect(mockClient.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/contents/{+path}', {
                 owner: 'octo',
                 repo: 'hello',
                 path: 'src/index.ts',
@@ -117,22 +126,22 @@ describe('GithubAppProvider', () => {
             ['the entry is not a file', { type: 'dir' }],
             ['the content is not a string', { type: 'file', content: undefined }],
         ])('throws NotFoundException when %s', async (_case, data) => {
-            client.request
+            mockClient.request
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockResolvedValueOnce({ data });
 
-            await expect(provider.getFileContent(42, 'some/path', 'main')).rejects.toThrow(NotFoundException);
+            await expect(sut.getFileContent(42, 'some/path', 'main')).rejects.toThrow(NotFoundException);
         });
 
         it('returns the repository archive bytes as a Buffer', async () => {
             const bytes = new TextEncoder().encode('tar-bytes').buffer;
-            client.request
+            mockClient.request
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockResolvedValueOnce({ data: bytes });
 
-            const result = await provider.getRepositoryArchive(42, 'main');
+            const result = await sut.getRepositoryArchive(42, 'main');
 
-            expect(client.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/tarball/{ref}', {
+            expect(mockClient.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/tarball/{ref}', {
                 owner: 'octo',
                 repo: 'hello',
                 ref: 'main',
@@ -145,7 +154,7 @@ describe('GithubAppProvider', () => {
     // --- Layer B: createClient / config wiring (real createClient, mocked Octokit) ---
     describe('client creation', () => {
         it('throws ServiceUnavailableException and never builds a client when config is missing', async () => {
-            const provider = new GithubAppProvider(
+            const sut = new GithubAppProvider(
                 createConfig({
                     GITHUB_APP_ID: '123',
                     GITHUB_APP_PRIVATE_KEY: undefined,
@@ -154,12 +163,12 @@ describe('GithubAppProvider', () => {
                 createDiagnostics(),
             );
 
-            await expect(provider.listRepositories()).rejects.toThrow(ServiceUnavailableException);
+            await expect(sut.listRepositories()).rejects.toThrow(ServiceUnavailableException);
             expect(OctokitMock).not.toHaveBeenCalled();
         });
 
         it('constructs Octokit with the decoded private key and app-auth strategy', async () => {
-            const provider = new GithubAppProvider(
+            const sut = new GithubAppProvider(
                 createConfig({
                     GITHUB_APP_ID: '123',
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
@@ -168,7 +177,7 @@ describe('GithubAppProvider', () => {
                 createDiagnostics(),
             );
 
-            await provider.listRepositories();
+            await sut.listRepositories();
 
             expect(OctokitMock).toHaveBeenCalledTimes(1);
             expect(OctokitMock).toHaveBeenCalledWith({
@@ -182,7 +191,7 @@ describe('GithubAppProvider', () => {
         });
 
         it('memoizes the client across calls, building Octokit only once', async () => {
-            const provider = new GithubAppProvider(
+            const sut = new GithubAppProvider(
                 createConfig({
                     GITHUB_APP_ID: '123',
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
@@ -191,8 +200,8 @@ describe('GithubAppProvider', () => {
                 createDiagnostics(),
             );
 
-            await provider.listRepositories();
-            await provider.listRepositories();
+            await sut.listRepositories();
+            await sut.listRepositories();
 
             expect(OctokitMock).toHaveBeenCalledTimes(1);
         });
