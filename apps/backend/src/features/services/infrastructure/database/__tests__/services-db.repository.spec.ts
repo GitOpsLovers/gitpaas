@@ -6,19 +6,17 @@ import { ServiceDbEntity } from '../service-db.entity';
 import { ServicesDatabaseRepository } from '../services-db.repository';
 
 /**
- * Builds a service entity fixture, overriding only the fields under test.
+ * Builds a service database-entity fixture, overriding only the fields under test.
  */
-function service(overrides: Partial<ServiceDbEntity> = {}): ServiceDbEntity {
-    return {
-        id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-        name: 'checkout',
-        projectId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-        repositoryId: 'repo-1',
-        deploymentBranch: 'main',
-        composerPath: 'services/checkout',
-        ...overrides,
-    };
-}
+const serviceEntity = (overrides: Partial<ServiceDbEntity> = {}): ServiceDbEntity => ({
+    id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+    name: 'checkout',
+    projectId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+    repositoryId: 'repo-1',
+    deploymentBranch: 'main',
+    composerPath: 'services/checkout',
+    ...overrides,
+});
 
 describe('ServicesDatabaseRepository', () => {
     const projectId = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
@@ -28,18 +26,15 @@ describe('ServicesDatabaseRepository', () => {
         projectId,
     };
 
-    let mockRepo: {
-        find: jest.Mock;
-        findOneBy: jest.Mock;
-        create: jest.Mock;
-        merge: jest.Mock;
-        save: jest.Mock;
-        delete: jest.Mock;
-    };
-    let repository: ServicesDatabaseRepository;
+    let mockRepository: jest.Mocked<
+        Pick<Repository<ServiceDbEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
+    >;
+    let sut: ServicesDatabaseRepository;
 
     beforeEach(() => {
-        mockRepo = {
+        jest.clearAllMocks();
+
+        mockRepository = {
             find: jest.fn(),
             findOneBy: jest.fn(),
             create: jest.fn(),
@@ -47,39 +42,48 @@ describe('ServicesDatabaseRepository', () => {
             save: jest.fn(),
             delete: jest.fn(),
         };
-        repository = new ServicesDatabaseRepository(
-            mockRepo as unknown as Repository<ServiceDbEntity>,
+        sut = new ServicesDatabaseRepository(
+            mockRepository as unknown as Repository<ServiceDbEntity>,
         );
     });
 
     describe('getAll', () => {
-        it('finds every service across all projects and returns them', async () => {
+        it('finds every service across all projects and maps them to domain', async () => {
             const services = [
-                service({ id: '11111111-1111-4111-8111-111111111111' }),
-                service({ id: '22222222-2222-4222-8222-222222222222' }),
+                serviceEntity({ id: '11111111-1111-4111-8111-111111111111' }),
+                serviceEntity({ id: '22222222-2222-4222-8222-222222222222' }),
             ];
-            mockRepo.find.mockResolvedValue(services);
+            mockRepository.find.mockResolvedValue(services);
 
-            const result = await repository.getAll();
+            const result = await sut.getAll();
 
-            expect(mockRepo.find).toHaveBeenCalledTimes(1);
-            expect(mockRepo.find).toHaveBeenCalledWith();
+            expect(mockRepository.find).toHaveBeenCalledTimes(1);
+            expect(mockRepository.find).toHaveBeenCalledWith();
             expect(result).toEqual(services);
+        });
+
+        it('returns an empty list when there are no services', async () => {
+            mockRepository.find.mockResolvedValue([]);
+
+            const result = await sut.getAll();
+
+            expect(mockRepository.find).toHaveBeenCalledTimes(1);
+            expect(result).toEqual([]);
         });
     });
 
     describe('getAllByProject', () => {
-        it('finds the project services newest first and returns them', async () => {
+        it('finds the project services newest first and maps them to domain', async () => {
             const services = [
-                service({ id: '11111111-1111-4111-8111-111111111111' }),
-                service({ id: '22222222-2222-4222-8222-222222222222' }),
+                serviceEntity({ id: '11111111-1111-4111-8111-111111111111' }),
+                serviceEntity({ id: '22222222-2222-4222-8222-222222222222' }),
             ];
-            mockRepo.find.mockResolvedValue(services);
+            mockRepository.find.mockResolvedValue(services);
 
-            const result = await repository.getAllByProject(projectId);
+            const result = await sut.getAllByProject(projectId);
 
-            expect(mockRepo.find).toHaveBeenCalledTimes(1);
-            expect(mockRepo.find).toHaveBeenCalledWith({
+            expect(mockRepository.find).toHaveBeenCalledTimes(1);
+            expect(mockRepository.find).toHaveBeenCalledWith({
                 where: { projectId },
                 order: { id: 'DESC' },
             });
@@ -88,88 +92,88 @@ describe('ServicesDatabaseRepository', () => {
     });
 
     describe('findById', () => {
-        it('finds a service by id and returns it', async () => {
-            const entity = service();
-            mockRepo.findOneBy.mockResolvedValue(entity);
+        it('finds a service by id and maps it into the domain model', async () => {
+            const entity = serviceEntity();
+            mockRepository.findOneBy.mockResolvedValue(entity);
 
-            const result = await repository.findById(entity.id);
+            const result = await sut.findById(entity.id);
 
-            expect(mockRepo.findOneBy).toHaveBeenCalledWith({ id: entity.id });
+            expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: entity.id });
             expect(result).toEqual(entity);
         });
 
         it('returns null when no service matches the id', async () => {
-            mockRepo.findOneBy.mockResolvedValue(null);
+            mockRepository.findOneBy.mockResolvedValue(null);
 
-            const result = await repository.findById('missing-id');
+            const result = await sut.findById('missing-id');
 
             expect(result).toBeNull();
         });
     });
 
     describe('create', () => {
-        it('creates an entity from the DTO, saves it, and returns the saved value', async () => {
-            const entity = service({ name: createDto.name });
-            const saved = service({ name: createDto.name });
-            mockRepo.create.mockReturnValue(entity);
-            mockRepo.save.mockResolvedValue(saved);
+        it('creates an entity from the DTO, saves it, and returns the mapped service', async () => {
+            const entity = serviceEntity({ name: createDto.name });
+            const saved = serviceEntity({ name: createDto.name });
+            mockRepository.create.mockReturnValue(entity);
+            mockRepository.save.mockResolvedValue(saved);
 
-            const result = await repository.create(createDto);
+            const result = await sut.create(createDto);
 
-            expect(mockRepo.create).toHaveBeenCalledWith(createDto);
-            expect(mockRepo.save).toHaveBeenCalledWith(entity);
+            expect(mockRepository.create).toHaveBeenCalledWith(createDto);
+            expect(mockRepository.save).toHaveBeenCalledWith(entity);
             expect(result).toEqual(saved);
         });
     });
 
     describe('update', () => {
         it('returns null and does not merge or save when the service is not found', async () => {
-            mockRepo.findOneBy.mockResolvedValue(null);
+            mockRepository.findOneBy.mockResolvedValue(null);
 
-            const result = await repository.update('missing-id', { name: 'renamed' });
+            const result = await sut.update('missing-id', { name: 'renamed' });
 
             expect(result).toBeNull();
-            expect(mockRepo.merge).not.toHaveBeenCalled();
-            expect(mockRepo.save).not.toHaveBeenCalled();
+            expect(mockRepository.merge).not.toHaveBeenCalled();
+            expect(mockRepository.save).not.toHaveBeenCalled();
         });
 
-        it('merges the DTO into the found service, saves it, and returns the saved entity', async () => {
-            const existing = service();
-            const saved = service({ name: 'renamed' });
-            mockRepo.findOneBy.mockResolvedValue(existing);
-            mockRepo.save.mockResolvedValue(saved);
+        it('merges the DTO into the found service, saves it, and returns the mapped service', async () => {
+            const existing = serviceEntity();
+            const saved = serviceEntity({ name: 'renamed' });
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockResolvedValue(saved);
 
             const updateDto: UpdateServiceDto = { name: 'renamed' };
-            const result = await repository.update(existing.id, updateDto);
+            const result = await sut.update(existing.id, updateDto);
 
-            expect(mockRepo.merge).toHaveBeenCalledWith(existing, updateDto);
-            expect(mockRepo.save).toHaveBeenCalledWith(existing);
+            expect(mockRepository.merge).toHaveBeenCalledWith(existing, updateDto);
+            expect(mockRepository.save).toHaveBeenCalledWith(existing);
             expect(result).toEqual(saved);
         });
     });
 
     describe('delete', () => {
         it('returns true when a row was affected', async () => {
-            mockRepo.delete.mockResolvedValue({ affected: 1, raw: [] });
+            mockRepository.delete.mockResolvedValue({ affected: 1, raw: [] });
 
-            const result = await repository.delete('some-id');
+            const result = await sut.delete('some-id');
 
-            expect(mockRepo.delete).toHaveBeenCalledWith('some-id');
+            expect(mockRepository.delete).toHaveBeenCalledWith('some-id');
             expect(result).toBe(true);
         });
 
         it('returns false when no rows were affected', async () => {
-            mockRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
+            mockRepository.delete.mockResolvedValue({ affected: 0, raw: [] });
 
-            const result = await repository.delete('some-id');
+            const result = await sut.delete('some-id');
 
             expect(result).toBe(false);
         });
 
         it('returns false when affected is undefined', async () => {
-            mockRepo.delete.mockResolvedValue({ affected: undefined, raw: [] });
+            mockRepository.delete.mockResolvedValue({ affected: undefined, raw: [] });
 
-            const result = await repository.delete('some-id');
+            const result = await sut.delete('some-id');
 
             expect(result).toBe(false);
         });
