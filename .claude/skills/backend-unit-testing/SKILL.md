@@ -127,7 +127,28 @@ _TODO: full infrastructure-provider conventions (auth flows, pagination assertio
 
 ### Repositories
 
-_TODO: repository (TypeORM) testing conventions._
+Database repositories (`infrastructure/database/*-db.repository.ts`) are TypeORM adapters implementing a domain repository port. Each is a **thin single-collaborator adapter** over an injected `Repository<XxxDbEntity>`, delegating to `Repository` methods and mapping persistence entities into domain models via a `toXxx` transformer. Verify exactly that delegation + mapping boundary. Reference specs: `users-db.repository.spec.ts` (simplest read/create), `services-db.repository.spec.ts` (merge-update + delete), `deployments-db.repository.spec.ts` (field-mutation update), `refresh-tokens-db.repository.spec.ts` (`update` → `{ affected }`), `logs-db.repository.spec.ts` (bulk `createMany`).
+
+Plus all [Common conventions].
+
+### Building the SUT
+
+- **Build via plain instantiation** — `const sut = new XxxDatabaseRepository(mockRepository as unknown as Repository<XxxDbEntity>)` in `beforeEach` — NOT a testing module. A single injected `Repository` needs no `getRepositoryToken`; the structural mock is simpler and keeps the whole layer uniform. **Fallback:** if a repository ever injects more than the one `Repository`, switch to `Test.createTestingModule` with `getRepositoryToken(Entity)` value-providers.
+- **Class-instance SUT named `sut`** (Common rule).
+- **Mock the injected `Repository` as `mockRepository`**, typed `jest.Mocked<Pick<Repository<XxxDbEntity>, '<only the methods the SUT calls>'>>` — a tight `Pick` so the compiler flags drift when the SUT starts calling a new TypeORM method. Declare it `let` at `describe` scope, recreate it fresh in `beforeEach`; `jest.clearAllMocks()` is the first statement of `beforeEach`.
+- **Entity fixtures are `const` arrow helpers returning the Db entity type** (`XxxDbEntity`) — the shape TypeORM hands back — with a `Partial<XxxDbEntity>` overrides param. Assert expected results as the mapped domain model.
+
+### What to assert (per method)
+
+- **Reads** (`findOneBy` / `find` / `findOne`): the TypeORM method called once with the EXACT options object (`{ email }`, `{ where, relations, order }`, or the no-arg `find()`); result mapped to the domain model (`toEqual<Domain>({...})`); single-fetch **absent → `toBeNull()`**; list **empty → `toEqual([])`**.
+- **Create:** `create` called with the input (including any DTO mutation the SUT performs — e.g. deployments injecting `status: 'pending'`), `save` called with the created entity, mapped result asserted. **Bulk create** (`createMany`): the DTO array is passed straight through `create` and `save`.
+- **Update** (find → `merge` → save, or find → direct field-mutation → save as in deployments, including terminal-status setting `finishedAt`): find called, merge/mutation applied, `save` called with the merged entity, mapped result; preserve the not-found branch (returns `null`, `merge`/`save` not called).
+- **`delete` / `update` returning `{ affected }`:** the three uniform cases — `affected: 1` → `true`/count, `0` → `false`/0, `undefined` (`{}`) → `false`/0. When typing the `update`/`delete` mock, the `{ affected }` stub may need the full `UpdateResult` / `DeleteResult` shape (`raw`, `generatedMaps`) to satisfy the `jest.Mocked<Pick<...>>` typing.
+- **Mapping:** assert the mapped domain shape wherever the SUT runs a `toXxx` transformer; where a method returns the raw persistence entity, assert that actual shape — don't assume mapping.
+
+### Not currently present
+
+QueryBuilder chains, `manager.transaction`, and `upsert` do not occur in the current DB repositories, so the convention above targets the plain `Repository`-method style. A QueryBuilder/transaction pattern can be added here if and when a repository adopts one — do not invent one now.
 
 ### Transformers / mappers & DTO validation
 
