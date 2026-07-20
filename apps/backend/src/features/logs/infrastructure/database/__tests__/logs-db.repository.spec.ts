@@ -128,7 +128,7 @@ describe('LogsDatabaseRepository', () => {
                 },
             ];
             (mockRepository.create as jest.Mock).mockReturnValue(entities);
-            mockRepository.save.mockResolvedValue(entities);
+            (mockRepository.save as jest.Mock).mockResolvedValue(entities);
 
             const result = await sut.createMany(dtos);
 
