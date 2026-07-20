@@ -22,7 +22,9 @@ describe('Public decorator', () => {
             }
         }
 
-        expect(reflector.get<boolean>(IS_PUBLIC_KEY, Controller.prototype.handler)).toBe(true);
+        const { value: handler } = Object.getOwnPropertyDescriptor(Controller.prototype, 'handler') ?? {};
+
+        expect(reflector.get<boolean>(IS_PUBLIC_KEY, handler)).toBe(true);
     });
 
     it('sets the public metadata flag to true on a decorated class', () => {
@@ -39,6 +41,8 @@ describe('Public decorator', () => {
             }
         }
 
-        expect(reflector.get<boolean>(IS_PUBLIC_KEY, Controller.prototype.handler)).toBeUndefined();
+        const { value: handler } = Object.getOwnPropertyDescriptor(Controller.prototype, 'handler') ?? {};
+
+        expect(reflector.get<boolean>(IS_PUBLIC_KEY, handler)).toBeUndefined();
     });
 });
