@@ -6,7 +6,9 @@ import { JwtAuthGuard } from '../jwt-auth.guard';
 
 const handler = (): void => undefined;
 
-class Controller {}
+class Controller {
+    public readonly marker = 'jwt-auth-test';
+}
 
 const contextFor = (): ExecutionContext => {
     const mockGetHandler = jest.fn().mockReturnValue(handler);

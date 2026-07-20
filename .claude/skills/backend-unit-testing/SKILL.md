@@ -231,9 +231,15 @@ Plus all [Common conventions].
 - **Absent flag (`undefined`):** also enforces the base — same delegation as the non-public branch.
 - **Do NOT assert framework mechanics** — real Passport strategy execution, guard registration, or how Nest dispatches to `canActivate()`.
 
-### Behavior-free `AuthGuard` subclass — no spec
+### Behavior-free `AuthGuard` subclass — minimal smoke spec
 
-A guard that only selects a strategy with no constructor and no overridden methods (e.g. `LocalAuthGuard extends AuthGuard('local') {}`) carries no unit-testable logic of its own — a test would exercise only framework code. It warrants NO spec, like a trivial one-line pass-through wrapper.
+A guard that only selects a strategy — no constructor, no overridden methods (e.g. `LocalAuthGuard extends AuthGuard('local') {}`) — has no logic of its own. Its spec is therefore a **minimal smoke spec that verifies the guard is correctly wired as a Passport guard, not an attempt to run the real strategy.** Reference spec: `local-auth.guard.spec.ts`.
+
+- **Follow the guard conventions:** plain instantiation (`new LocalAuthGuard()`), class-instance SUT named `sut`, `jest.clearAllMocks()` as the first statement of `beforeEach`. There are no spies, so no `afterEach` restore is needed.
+- **Assert only stable, observable facts:**
+  - the guard is instantiable — `expect(sut).toBeInstanceOf(LocalAuthGuard)`.
+  - it inherits the Passport guard contract — `expect(typeof sut.canActivate).toBe('function')`, and optionally `handleRequest` / `logIn`.
+- **Do NOT assert framework internals that aren't stably observable** (e.g. the private strategy name), and do NOT fabricate behavior the class does not have. The class defines nothing of its own, so there is nothing further to verify.
 
 ---
 
