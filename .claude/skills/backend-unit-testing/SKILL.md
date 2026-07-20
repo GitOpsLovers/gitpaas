@@ -151,6 +151,32 @@ Plus all [Common conventions].
 
 QueryBuilder chains, `manager.transaction`, and `upsert` do not occur in the current DB repositories, so the convention above targets the plain `Repository`-method style. A QueryBuilder/transaction pattern can be added here if and when a repository adopts one — do not invent one now.
 
+### Docker repositories
+
+Docker repositories (`infrastructure/docker/*.repository.ts`) are adapters over the shared `DockerClient` wrapper: each calls `this.client.getClient()` to obtain a `dockerode` `Docker` handle, invokes daemon operations on it, and maps the results into domain models. They list/prune/tear-down resources scoped by the `com.docker.compose.project` label. Verify exactly that daemon-call + map/teardown boundary. Reference specs: `docker-containers.repository.spec.ts` and `docker-networks.repository.spec.ts` (list + map), `docker-server-pruner.repository.spec.ts` (prune → `PruneResult`), `docker-service-footprint.repository.spec.ts` (teardown: list + nested per-id `remove`, error resilience), `docker-orphan-containers.repository.spec.ts` (teardown: known-project skip, per-removal error resilience).
+
+`DockerClient` itself — including the daemon/cert `ServiceUnavailableException` on a missing handle — is tested separately as an infra client (see Infra clients). The Docker *repositories* assume a live handle and never re-test that failure.
+
+Plus all [Common conventions].
+
+### Building the SUT
+
+- **Build via plain instantiation** — `const sut = new DockerXxxRepository(mockDockerClient[, mockDiagnostics])` in `beforeEach` — NOT a testing module. **Class-instance SUT named `sut`** (Common rule).
+- **Mock the injected `DockerClient` as `mockDockerClient`**, typed `jest.Mocked<Pick<DockerClient, 'getClient'>>`, whose `getClient` is a `jest.fn()` returning a **mocked `dockerode` handle** typed `jest.Mocked<Pick<Docker, '<only the daemon methods the SUT calls>'>>` (e.g. `listContainers`, `listNetworks`, `listImages`, `pruneImages`/`pruneVolumes`/`pruneContainers`, `getContainer`/`getNetwork`/`getImage`), cast `as unknown as Docker` when returned. Use a **type-only import** of `Docker` from `dockerode` (`import type Docker from 'dockerode'`) — no spec imports `dockerode` at runtime.
+- **Mock-prefix every collaborator and hoisted daemon-op mock:** `mockDockerClient`, `mockDiagnostics` (`jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn'>>` — only the methods used), and each daemon op as its own `jest.Mock` — `mockListContainers`, `mockPruneImages`, `mockRemove`, `mockGetContainer`, etc. `let` at `describe` scope, recreated fresh in `beforeEach`; `jest.clearAllMocks()` is the first statement of `beforeEach`.
+- **Nested per-id handle stubbing:** `getX(id)` returns a resource handle, so stub `mockGetContainer = jest.fn().mockReturnValue({ remove: mockRemove })` (same for `getNetwork`/`getImage`). For distinct handles per id, use `mockReturnValueOnce`/`mockImplementation((id) => …)`.
+- **Fixtures are `const` arrow builders returning the dockerode response type** — `containerInfo(overrides): Docker.ContainerInfo`, `networkInfo(overrides): Docker.NetworkInspectInfo`, prune-info builders returning `Docker.Prune*Info`. A minimal inline literal is fine for a genuine one-off (e.g. an empty `{}` prune response).
+
+### What to assert
+
+- **list + map** (containers/networks): the list method called **once** with the EXACT args (the `com.docker.compose.project` label filter, `all: true` where used); result mapped to the domain model (`toEqual`); empty list → `toEqual([])`; the name/port/short-id/`createdAt` fallbacks and the compose-project `service-<id>` slug fallback when the service name slugifies to empty.
+- **prune** (pruner): each `prune*` called; `{ XDeleted, SpaceReclaimed }` mapped to the `PruneResult` shape; both the populated case AND the empty/undefined-response fallback (counts/space defaulting to 0).
+- **teardown** (footprint/orphans): list called with the right filters; the nested `getX(id).remove(...)` called with the right options (`{ force: true, v: true }`, `{ force: true }`, etc.); the known-project skip (`getX` not called, count/names stay empty); returned counts/names; the summary log. Plus the **error-resilience branches** — a single resource/removal failure is caught, `mockDiagnostics.warn` is called, and iteration continues (assert the survivor); footprint's "daemon unreachable while listing" branch resolves and warns once per list op. Daemon/cert unavailability itself is a `DockerClient` concern, not re-tested here.
+
+### `COMPOSE_PROJECT_LABEL` / slug helper are private, duplicated consts
+
+- The `COMPOSE_PROJECT_LABEL` string and the `composeProjectName` slug helper are currently **private, duplicated consts inside each Docker SUT with no shared export**, so specs **re-declare the label locally** (see `docker-orphan-containers.repository.spec.ts`). If they are ever extracted to a shared exported module, specs should import the real symbols rather than re-declare them.
+
 ### Transformers / mappers & DTO validation
 
 _TODO: transformer/mapper and DTO-validation testing conventions._

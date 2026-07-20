@@ -1,39 +1,70 @@
+import type Docker from 'dockerode';
+
 import { PruneResult } from '../../../domain/models/prune-result.model';
 import { DockerServerPrunerRepository } from '../docker-server-pruner.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 
+/**
+ * Builds a Dockerode image-prune response with the given deleted count and reclaimed bytes.
+ */
+const imagesPruned = (deletedCount: number, spaceReclaimed: number): Docker.PruneImagesInfo => ({
+    ImagesDeleted: Array.from({ length: deletedCount }, () => ({})),
+    SpaceReclaimed: spaceReclaimed,
+} as Docker.PruneImagesInfo);
+
+/**
+ * Builds a Dockerode volume-prune response with the given deleted count and reclaimed bytes.
+ */
+const volumesPruned = (deletedCount: number, spaceReclaimed: number): Docker.PruneVolumesInfo => (({
+    VolumesDeleted: Array.from({ length: deletedCount }, (_, index) => `vol-${index}`),
+    SpaceReclaimed: spaceReclaimed,
+}));
+
+/**
+ * Builds a Dockerode container-prune response with the given deleted count and reclaimed bytes.
+ */
+const containersPruned = (deletedCount: number, spaceReclaimed: number): Docker.PruneContainersInfo => (({
+    ContainersDeleted: Array.from({ length: deletedCount }, (_, index) => `ctr-${index}`),
+    SpaceReclaimed: spaceReclaimed,
+}));
+
 describe('DockerServerPrunerRepository', () => {
-    let pruneImages: jest.Mock;
-    let pruneVolumes: jest.Mock;
-    let pruneContainers: jest.Mock;
-    let client: jest.Mocked<DockerClient>;
-    let repository: DockerServerPrunerRepository;
+    let mockPruneImages: jest.Mock;
+    let mockPruneVolumes: jest.Mock;
+    let mockPruneContainers: jest.Mock;
+    let mockDockerClient: jest.Mocked<Pick<DockerClient, 'getClient'>>;
+    let sut: DockerServerPrunerRepository;
 
     beforeEach(() => {
-        pruneImages = jest.fn().mockResolvedValue({});
-        pruneVolumes = jest.fn().mockResolvedValue({});
-        pruneContainers = jest.fn().mockResolvedValue({});
-        client = {
-            getClient: jest.fn().mockReturnValue({ pruneImages, pruneVolumes, pruneContainers }),
-        } as unknown as jest.Mocked<DockerClient>;
-        repository = new DockerServerPrunerRepository(client);
+        jest.clearAllMocks();
+
+        mockPruneImages = jest.fn().mockResolvedValue({});
+        mockPruneVolumes = jest.fn().mockResolvedValue({});
+        mockPruneContainers = jest.fn().mockResolvedValue({});
+        const handle = {
+            pruneImages: mockPruneImages,
+            pruneVolumes: mockPruneVolumes,
+            pruneContainers: mockPruneContainers,
+        } as unknown as jest.Mocked<Pick<Docker, 'pruneImages' | 'pruneVolumes' | 'pruneContainers'>>;
+        mockDockerClient = { getClient: jest.fn().mockReturnValue(handle) };
+        sut = new DockerServerPrunerRepository(mockDockerClient as unknown as DockerClient);
     });
 
     describe('pruneImages', () => {
         it('maps a populated daemon response into a PruneResult', async () => {
-            pruneImages.mockResolvedValue({ ImagesDeleted: [{}, {}, {}], SpaceReclaimed: 1024 });
+            mockPruneImages.mockResolvedValue(imagesPruned(3, 1024));
 
-            const result = await repository.pruneImages();
+            const result = await sut.pruneImages();
 
-            expect(pruneImages).toHaveBeenCalledTimes(1);
+            expect(mockPruneImages).toHaveBeenCalledTimes(1);
             expect(result).toEqual<PruneResult>({ deletedCount: 3, spaceReclaimed: 1024 });
         });
 
         it('falls back to zero counts when the daemon response is empty', async () => {
-            pruneImages.mockResolvedValue({});
+            mockPruneImages.mockResolvedValue({});
 
-            const result = await repository.pruneImages();
+            const result = await sut.pruneImages();
 
             expect(result).toEqual<PruneResult>({ deletedCount: 0, spaceReclaimed: 0 });
         });
@@ -41,18 +72,18 @@ describe('DockerServerPrunerRepository', () => {
 
     describe('pruneVolumes', () => {
         it('maps a populated daemon response into a PruneResult', async () => {
-            pruneVolumes.mockResolvedValue({ VolumesDeleted: [{}, {}], SpaceReclaimed: 2048 });
+            mockPruneVolumes.mockResolvedValue(volumesPruned(2, 2048));
 
-            const result = await repository.pruneVolumes();
+            const result = await sut.pruneVolumes();
 
-            expect(pruneVolumes).toHaveBeenCalledTimes(1);
+            expect(mockPruneVolumes).toHaveBeenCalledTimes(1);
             expect(result).toEqual<PruneResult>({ deletedCount: 2, spaceReclaimed: 2048 });
         });
 
         it('falls back to zero counts when the daemon response is empty', async () => {
-            pruneVolumes.mockResolvedValue({});
+            mockPruneVolumes.mockResolvedValue({});
 
-            const result = await repository.pruneVolumes();
+            const result = await sut.pruneVolumes();
 
             expect(result).toEqual<PruneResult>({ deletedCount: 0, spaceReclaimed: 0 });
         });
@@ -60,18 +91,18 @@ describe('DockerServerPrunerRepository', () => {
 
     describe('pruneContainers', () => {
         it('maps a populated daemon response into a PruneResult', async () => {
-            pruneContainers.mockResolvedValue({ ContainersDeleted: [{}, {}, {}, {}], SpaceReclaimed: 4096 });
+            mockPruneContainers.mockResolvedValue(containersPruned(4, 4096));
 
-            const result = await repository.pruneContainers();
+            const result = await sut.pruneContainers();
 
-            expect(pruneContainers).toHaveBeenCalledTimes(1);
+            expect(mockPruneContainers).toHaveBeenCalledTimes(1);
             expect(result).toEqual<PruneResult>({ deletedCount: 4, spaceReclaimed: 4096 });
         });
 
         it('falls back to zero counts when the daemon response is empty', async () => {
-            pruneContainers.mockResolvedValue({});
+            mockPruneContainers.mockResolvedValue({});
 
-            const result = await repository.pruneContainers();
+            const result = await sut.pruneContainers();
 
             expect(result).toEqual<PruneResult>({ deletedCount: 0, spaceReclaimed: 0 });
         });
