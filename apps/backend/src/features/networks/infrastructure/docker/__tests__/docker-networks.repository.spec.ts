@@ -1,4 +1,4 @@
-import Docker from 'dockerode';
+import type Docker from 'dockerode';
 
 import { Network } from '../../../domain/models/network.model';
 import { DockerNetworksRepository } from '../docker-networks.repository';
@@ -9,25 +9,23 @@ import { Service } from '@features/services/domain/models/service.model';
 /**
  * Builds a Dockerode network summary, overriding only the fields under test.
  */
-function networkInfo(overrides: Partial<Docker.NetworkInspectInfo> = {}): Docker.NetworkInspectInfo {
-    return {
-        Id: 'a1b2c3d4e5f6a1b2c3d4e5f6',
-        Name: 'my-service_default',
-        Driver: 'bridge',
-        Scope: 'local',
-        Internal: false,
-        Attachable: true,
-        Created: '2025-07-11T00:00:00.000Z',
-        EnableIPv6: false,
-        IPAM: { Driver: 'default', Config: [] },
-        Ingress: false,
-        ConfigOnly: false,
-        Containers: {},
-        Options: {},
-        Labels: {},
-        ...overrides,
-    };
-}
+const networkInfo = (overrides: Partial<Docker.NetworkInspectInfo> = {}): Docker.NetworkInspectInfo => ({
+    Id: 'a1b2c3d4e5f6a1b2c3d4e5f6',
+    Name: 'my-service_default',
+    Driver: 'bridge',
+    Scope: 'local',
+    Internal: false,
+    Attachable: true,
+    Created: '2025-07-11T00:00:00.000Z',
+    EnableIPv6: false,
+    IPAM: { Driver: 'default', Config: [] },
+    Ingress: false,
+    ConfigOnly: false,
+    Containers: {},
+    Options: {},
+    Labels: {},
+    ...overrides,
+});
 
 describe('DockerNetworksRepository', () => {
     const service: Service = {
@@ -39,23 +37,26 @@ describe('DockerNetworksRepository', () => {
         composerPath: 'docker-compose.yml',
     };
 
-    let listNetworks: jest.Mock;
-    let client: jest.Mocked<DockerClient>;
-    let repository: DockerNetworksRepository;
+    let mockListNetworks: jest.Mock;
+    let mockDockerClient: jest.Mocked<Pick<DockerClient, 'getClient'>>;
+    let sut: DockerNetworksRepository;
 
     beforeEach(() => {
-        listNetworks = jest.fn().mockResolvedValue([]);
-        client = {
-            getClient: jest.fn().mockReturnValue({ listNetworks }),
-        } as unknown as jest.Mocked<DockerClient>;
-        repository = new DockerNetworksRepository(client);
+        jest.clearAllMocks();
+
+        mockListNetworks = jest.fn().mockResolvedValue([]);
+        const handle = {
+            listNetworks: mockListNetworks,
+        } as unknown as jest.Mocked<Pick<Docker, 'listNetworks'>>;
+        mockDockerClient = { getClient: jest.fn().mockReturnValue(handle) };
+        sut = new DockerNetworksRepository(mockDockerClient as unknown as DockerClient);
     });
 
     it('lists networks filtered by the compose project label derived from the service name', async () => {
-        await repository.listByService(service);
+        await sut.listByService(service);
 
-        expect(listNetworks).toHaveBeenCalledTimes(1);
-        expect(listNetworks).toHaveBeenCalledWith({
+        expect(mockListNetworks).toHaveBeenCalledTimes(1);
+        expect(mockListNetworks).toHaveBeenCalledWith({
             filters: { label: ['com.docker.compose.project=my-service'] },
         });
     });
@@ -63,17 +64,17 @@ describe('DockerNetworksRepository', () => {
     it('falls back to a service-<id> label when the name slugifies to empty', async () => {
         const unnamed: Service = { ...service, name: '!!!' };
 
-        await repository.listByService(unnamed);
+        await sut.listByService(unnamed);
 
-        expect(listNetworks).toHaveBeenCalledWith({
+        expect(mockListNetworks).toHaveBeenCalledWith({
             filters: { label: [`com.docker.compose.project=service-${unnamed.id}`] },
         });
     });
 
     it('maps a full network summary into the domain model', async () => {
-        listNetworks.mockResolvedValue([networkInfo()]);
+        mockListNetworks.mockResolvedValue([networkInfo()]);
 
-        const result = await repository.listByService(service);
+        const result = await sut.listByService(service);
 
         expect(result).toEqual<Network[]>([
             {
@@ -89,9 +90,9 @@ describe('DockerNetworksRepository', () => {
     });
 
     it('returns an empty array when the daemon reports no networks', async () => {
-        listNetworks.mockResolvedValue([]);
+        mockListNetworks.mockResolvedValue([]);
 
-        const result = await repository.listByService(service);
+        const result = await sut.listByService(service);
 
         expect(result).toEqual([]);
     });
