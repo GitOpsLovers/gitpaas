@@ -242,14 +242,14 @@ export class DockerodeDockerExecutor implements DockerExecutor {
      * @param emit Line emitter
      */
     private followBuild(stream: NodeJS.ReadableStream, emit: DockerLogListener): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolvePromise, reject) => {
             this.docker.getClient().modem.followProgress(
                 stream,
                 (error) => {
                     if (error) {
                         reject(error instanceof Error ? error : new Error(String(error)));
                     } else {
-                        resolve();
+                        resolvePromise();
                     }
                 },
                 (event: { stream?: string; status?: string }) => {
@@ -304,14 +304,14 @@ export class DockerodeDockerExecutor implements DockerExecutor {
      * @param emit Line emitter
      */
     private followPull(stream: NodeJS.ReadableStream, emit: DockerLogListener): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolvePromise, reject) => {
             this.docker.getClient().modem.followProgress(
                 stream,
                 (error) => {
                     if (error) {
                         reject(error);
                     } else {
-                        resolve();
+                        resolvePromise();
                     }
                 },
                 (event: { status?: string; id?: string; progress?: string }) => {
@@ -399,6 +399,7 @@ export class DockerodeDockerExecutor implements DockerExecutor {
         const units: Record<string, number> = {
             ns: 1, us: 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9,
         };
+        // eslint-disable-next-line security/detect-unsafe-regex
         const pattern = /(\d+(?:\.\d+)?)(ns|us|ms|s|m|h)/g;
         let total = 0;
         let matched = false;
