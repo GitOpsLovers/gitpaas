@@ -22,7 +22,7 @@ describe('Public decorator', () => {
             }
         }
 
-        const { value: handler } = Object.getOwnPropertyDescriptor(Controller.prototype, 'handler') ?? {};
+        const handler = Object.getOwnPropertyDescriptor(Controller.prototype, 'handler')?.value as () => void;
 
         expect(reflector.get<boolean>(IS_PUBLIC_KEY, handler)).toBe(true);
     });
@@ -41,7 +41,7 @@ describe('Public decorator', () => {
             }
         }
 
-        const { value: handler } = Object.getOwnPropertyDescriptor(Controller.prototype, 'handler') ?? {};
+        const handler = Object.getOwnPropertyDescriptor(Controller.prototype, 'handler')?.value as () => void;
 
         expect(reflector.get<boolean>(IS_PUBLIC_KEY, handler)).toBeUndefined();
     });
