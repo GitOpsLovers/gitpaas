@@ -9,109 +9,154 @@ import { HttpAdapterHost } from '@nestjs/core';
 import { AllExceptionsFilter } from '../all-exceptions.filter';
 
 /**
- * Builds an `ArgumentsHost` whose HTTP context exposes a fake request/response.
+ * Consistent error-envelope shape asserted at the `reply(...)` boundary.
  */
-function createHost(request: unknown): ArgumentsHost {
-    return {
-        switchToHttp: () => ({
-            getRequest: () => request,
-            getResponse: () => ({}),
-        }),
-    } as unknown as ArgumentsHost;
+interface ErrorEnvelope {
+    statusCode: number;
+    message: string | string[];
+    error: string;
+    timestamp: string;
+    path: string;
 }
 
+const REQUEST_PATH = '/api/v1/resource';
+
+/**
+ * Builds a fake `ArgumentsHost` from `jest.fn()` mocks whose HTTP context hands
+ * back the fixture request/response — mirrors the decorator spec's fake
+ * `ExecutionContext`.
+ */
+const hostFor = (
+    request: unknown,
+    response: unknown,
+): ArgumentsHost => {
+    const mockGetRequest = jest.fn().mockReturnValue(request);
+    const mockGetResponse = jest.fn().mockReturnValue(response);
+    const mockSwitchToHttp = jest
+        .fn()
+        .mockReturnValue({ getRequest: mockGetRequest, getResponse: mockGetResponse });
+
+    return {
+        switchToHttp: mockSwitchToHttp,
+    } as unknown as ArgumentsHost;
+};
+
 describe('AllExceptionsFilter', () => {
-    let reply: jest.Mock;
-    let filter: AllExceptionsFilter;
+    const request = { url: REQUEST_PATH };
+    const response = {};
+
+    let mockReply: jest.Mock;
+    let mockGetRequestUrl: jest.Mock;
+    let mockHttpAdapterHost: HttpAdapterHost;
+    let mockWarn: jest.SpyInstance;
+    let mockError: jest.SpyInstance;
+    let sut: AllExceptionsFilter;
 
     beforeEach(() => {
-        reply = jest.fn();
+        jest.clearAllMocks();
 
-        const httpAdapterHost = {
-            httpAdapter: {
-                getRequestUrl: () => '/api/v1/resource',
-                reply,
-            },
-        } as unknown as HttpAdapterHost;
+        mockReply = jest.fn();
+        mockGetRequestUrl = jest.fn().mockReturnValue(REQUEST_PATH);
 
-        filter = new AllExceptionsFilter(httpAdapterHost);
+        const httpAdapter: jest.Mocked<Pick<
+            HttpAdapterHost['httpAdapter'],
+            'getRequestUrl' | 'reply'
+        >> = {
+            getRequestUrl: mockGetRequestUrl,
+            reply: mockReply,
+        };
 
-        jest.spyOn(Logger.prototype, 'error').mockImplementation();
-        jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+        mockHttpAdapterHost = { httpAdapter } as unknown as HttpAdapterHost;
+
+        mockWarn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+        mockError = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+
+        sut = new AllExceptionsFilter(mockHttpAdapterHost);
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
     });
 
-    it('formats an HttpException preserving status code and message', () => {
-        const warn = jest.spyOn(Logger.prototype, 'warn');
+    it('formats an HttpException into an envelope preserving status code and message', () => {
+        sut.catch(new NotFoundException('Item missing'), hostFor(request, response));
 
-        filter.catch(new NotFoundException('Item missing'), createHost({}));
-
-        const [, body, status] = reply.mock.calls[0] as [
+        expect(mockReply).toHaveBeenCalledTimes(1);
+        const [replyResponse, envelope, statusCode] = mockReply.mock.calls[0] as [
             unknown,
-            Record<string, unknown>,
+            ErrorEnvelope,
             number,
         ];
 
-        expect(status).toBe(404);
-        expect(body).toMatchObject({
+        expect(replyResponse).toBe(response);
+        expect(statusCode).toBe(404);
+        expect(envelope).toEqual({
             statusCode: 404,
             message: 'Item missing',
             error: 'Not Found',
-            path: '/api/v1/resource',
+            path: REQUEST_PATH,
+            timestamp: expect.any(String),
         });
-        expect(typeof body.timestamp).toBe('string');
-        expect(warn).toHaveBeenCalledTimes(1);
+        expect(mockWarn).toHaveBeenCalledTimes(1);
+        expect(mockError).not.toHaveBeenCalled();
     });
 
     it('preserves the validation message array from a BadRequestException', () => {
         const validationMessages = ['name must be a string', 'age must be an integer'];
 
-        filter.catch(
-            new BadRequestException(validationMessages),
-            createHost({}),
-        );
+        sut.catch(new BadRequestException(validationMessages), hostFor(request, response));
 
-        const [, body, status] = reply.mock.calls[0] as [
+        expect(mockReply).toHaveBeenCalledTimes(1);
+        const [replyResponse, envelope, statusCode] = mockReply.mock.calls[0] as [
             unknown,
-            Record<string, unknown>,
+            ErrorEnvelope,
             number,
         ];
 
-        expect(status).toBe(400);
-        expect(body).toMatchObject({
+        expect(replyResponse).toBe(response);
+        expect(statusCode).toBe(400);
+        expect(envelope).toEqual({
             statusCode: 400,
             message: validationMessages,
             error: 'Bad Request',
+            path: REQUEST_PATH,
+            timestamp: expect.any(String),
         });
-        expect(Array.isArray(body.message)).toBe(true);
+        expect(Array.isArray(envelope.message)).toBe(true);
+        expect(mockWarn).toHaveBeenCalledTimes(1);
     });
 
-    it('returns a generic 500 for unexpected errors without leaking details', () => {
-        const error = jest.spyOn(Logger.prototype, 'error');
+    it('returns a generic 500 for an unexpected error without leaking internal details', () => {
+        const error = new Error('secret db connection string leaked');
 
-        filter.catch(
-            new Error('secret db connection string leaked'),
-            createHost({}),
-        );
+        sut.catch(error, hostFor(request, response));
 
-        const [, body, status] = reply.mock.calls[0] as [
+        expect(mockReply).toHaveBeenCalledTimes(1);
+        const [replyResponse, envelope, statusCode] = mockReply.mock.calls[0] as [
             unknown,
-            Record<string, unknown>,
+            ErrorEnvelope,
             number,
         ];
 
-        expect(status).toBe(500);
-        expect(body).toMatchObject({
+        expect(replyResponse).toBe(response);
+        expect(statusCode).toBe(500);
+        expect(envelope).toEqual({
             statusCode: 500,
             message: 'Internal server error',
             error: 'Internal Server Error',
+            path: REQUEST_PATH,
+            timestamp: expect.any(String),
         });
-        expect(JSON.stringify(body)).not.toContain('secret db connection string');
-        expect(error).toHaveBeenCalledTimes(1);
-        // Stack trace is passed as the second argument (server-side only).
-        expect(error.mock.calls[0][1]).toContain('Error: secret db connection string leaked');
+        expect(JSON.stringify(envelope)).not.toContain('secret db connection string');
+    });
+
+    it('logs an unexpected error at error level with the stack as the second argument', () => {
+        const error = new Error('secret db connection string leaked');
+
+        sut.catch(error, hostFor(request, response));
+
+        expect(mockError).toHaveBeenCalledTimes(1);
+        expect(mockWarn).not.toHaveBeenCalled();
+        expect(mockError.mock.calls[0][1]).toBe(error.stack);
     });
 });

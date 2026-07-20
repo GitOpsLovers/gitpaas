@@ -218,6 +218,35 @@ See `jwt-auth.guard.spec.ts`, `jwt.strategy.spec.ts`, `local.strategy.spec.ts`. 
 
 ---
 
+## Exception filters
+
+NestJS `@Catch()` exception filters (`ui/filters/*.filter.ts`) — the same thin UI/framework-primitive family as guards & decorators. A filter owns no orchestration: it shapes every thrown value into a JSON envelope and hands it to the platform adapter. Verify exactly that observable boundary — nothing about the HTTP pipeline. Reference spec: `all-exceptions.filter.spec.ts` (global `AllExceptionsFilter`).
+
+Plus all [Common conventions].
+
+### Building the SUT
+
+- **Build via plain instantiation:** `new AllExceptionsFilter(mockHttpAdapterHost)` — no `Test.createTestingModule` (mirrors guards & strategies). Call `sut.catch(exception, host)` directly.
+- **Class-instance SUT is named `sut`** (Common rule).
+- **Fake `ArgumentsHost` from `jest.fn()` mocks** via a `const` arrow helper (e.g. `hostFor(request, response)`): `switchToHttp` is a `jest.fn()` returning `{ getRequest, getResponse }`, each a `jest.fn()` handing back the fixture — mirrors the decorator spec's fake `ExecutionContext`.
+- **Mock the injected `HttpAdapterHost` structurally**, `mock`-prefixed names (`mockHttpAdapterHost`, `mockReply`, `mockGetRequestUrl`), exposing only the methods the SUT calls (`getRequestUrl`, `reply`) via `jest.Mocked<Pick<HttpAdapterHost['httpAdapter'], …>>` with a single `as unknown as HttpAdapterHost` cast.
+- **Spy-based reset pairing:** because the filter spies `Logger.prototype`, do BOTH — `jest.clearAllMocks()` first in `beforeEach` AND `jest.restoreAllMocks()` in `afterEach` (see the Common `clearAllMocks` + `restoreAllMocks` rule).
+
+### What to assert — observable boundary only
+
+- **Reply call:** `httpAdapter.reply` called **once** with `(response, envelope, statusCode)` — identity `toBe(response)` for the response arg, `toEqual({...})` (with `timestamp: expect.any(String)`) for the envelope.
+- **Status preserved for `HttpException`:** the subclass's status code and message survive into the envelope (e.g. `NotFoundException` → 404).
+- **Validation arrays preserved:** a `BadRequestException` carrying a `message` array keeps it as an array in the envelope.
+- **No leakage on unexpected errors:** a non-HTTP `Error` maps to a generic 500 with no internal detail — assert the stack/secret is absent (`JSON.stringify(envelope)` does not contain it).
+- **Logging split:** 4xx logs `warn` **once** (`error` not called); 5xx logs `error` **once** with the stack as the 2nd arg (`warn` not called).
+- **Do NOT assert framework mechanics** — filter registration, the HTTP pipeline, or how Nest dispatches to `catch()`.
+
+### Product code
+
+Already fully unit-testable by calling `catch()` directly — no refactor needed (like the `Public` metadata decorator). A filter that could not be tested cleanly would follow the decorator's extract-a-testable-unit approach.
+
+---
+
 ## Decorator testing
 
 Custom decorators under `ui/decorators/` — param decorators (`createParamDecorator`) and metadata decorators (`SetMetadata` wrappers). Same thin UI/auth-primitive family as guards & strategies: no testing module, plain instantiation/direct calls. Reference specs: `current-user.decorator.spec.ts`, `public.decorator.spec.ts`.
