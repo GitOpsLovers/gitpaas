@@ -4,25 +4,32 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 
-function contextFor(): ExecutionContext {
-    const handler = (): void => undefined;
+const handler = (): void => undefined;
 
-    class Controller {}
-
-    return {
-        getHandler: () => handler,
-        getClass: () => Controller,
-    } as unknown as ExecutionContext;
+class Controller {
+    public readonly marker = 'jwt-auth-test';
 }
 
+const contextFor = (): ExecutionContext => {
+    const mockGetHandler = jest.fn().mockReturnValue(handler);
+    const mockGetClass = jest.fn().mockReturnValue(Controller);
+
+    return {
+        getHandler: mockGetHandler,
+        getClass: mockGetClass,
+    } as unknown as ExecutionContext;
+};
+
 describe('JwtAuthGuard', () => {
-    let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
-    let guard: JwtAuthGuard;
+    let mockReflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+    let sut: JwtAuthGuard;
     let superCanActivate: jest.SpyInstance;
 
     beforeEach(() => {
-        reflector = { getAllAndOverride: jest.fn() };
-        guard = new JwtAuthGuard(reflector as unknown as Reflector);
+        jest.clearAllMocks();
+
+        mockReflector = { getAllAndOverride: jest.fn() };
+        sut = new JwtAuthGuard(mockReflector as unknown as Reflector);
         // Stub the passport AuthGuard base so no real strategy runs.
         superCanActivate = jest
             .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype) as JwtAuthGuard, 'canActivate')
@@ -30,36 +37,40 @@ describe('JwtAuthGuard', () => {
     });
 
     afterEach(() => {
-        superCanActivate.mockRestore();
+        jest.restoreAllMocks();
     });
 
     it('lets a route flagged @Public() through without invoking the JWT strategy', () => {
-        reflector.getAllAndOverride.mockReturnValue(true);
+        mockReflector.getAllAndOverride.mockReturnValue(true);
         const context = contextFor();
 
-        const result = guard.canActivate(context);
+        const result = sut.canActivate(context);
 
-        expect(reflector.getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);
+        expect(mockReflector.getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
         expect(result).toBe(true);
         expect(superCanActivate).not.toHaveBeenCalled();
     });
 
     it('enforces the JWT strategy for a non-public route', () => {
-        reflector.getAllAndOverride.mockReturnValue(false);
+        mockReflector.getAllAndOverride.mockReturnValue(false);
         const context = contextFor();
 
-        const result = guard.canActivate(context);
+        const result = sut.canActivate(context);
 
         expect(superCanActivate).toHaveBeenCalledWith(context);
         expect(result).toBe(true);
     });
 
     it('enforces the JWT strategy when the public flag is absent (undefined)', () => {
-        reflector.getAllAndOverride.mockReturnValue(undefined);
+        mockReflector.getAllAndOverride.mockReturnValue(undefined);
         const context = contextFor();
 
-        guard.canActivate(context);
+        const result = sut.canActivate(context);
 
         expect(superCanActivate).toHaveBeenCalledWith(context);
+        expect(result).toBe(true);
     });
 });

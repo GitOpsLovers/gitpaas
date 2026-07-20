@@ -211,10 +211,36 @@ A `@Sse` handler returns an `Observable<MessageEvent>` (not a `Promise`), piping
 
 ## Guards & Passport strategies
 
-See `jwt-auth.guard.spec.ts`, `jwt.strategy.spec.ts`, `local.strategy.spec.ts`. Plus all [Common conventions].
+Guards (`ui/guards/`) are the same thin UI/framework-primitive family as decorators & filters. A guard owns no orchestration: it decides whether a request may proceed, typically by reading route metadata and/or deferring to a Passport strategy. Verify exactly that observable boundary — nothing about the auth pipeline or real strategy execution. Reference spec: `jwt-auth.guard.spec.ts` (global `JwtAuthGuard`). Passport strategies (`ui/strategies/`) are plain-instantiated with mocked ports — see `jwt.strategy.spec.ts`, `local.strategy.spec.ts`.
 
-- **Build via plain instantiation:** `new Guard(reflectorMock)` / `new Strategy(...mockedPorts)` with a fake `ExecutionContext`.
-- For a guard extending Passport's `AuthGuard`, stub the base `canActivate` (spy on the prototype's prototype) so no real strategy runs; drive the `@Public()` branch via the mocked `Reflector`.
+Plus all [Common conventions].
+
+### Building the SUT (guard)
+
+- **Build via plain instantiation:** `new JwtAuthGuard(mockReflector as unknown as Reflector)` — no `Test.createTestingModule` (mirrors filters & strategies). Call `sut.canActivate(context)` directly.
+- **Class-instance SUT is named `sut`** (Common rule).
+- **For a guard extending Passport's `AuthGuard`, stub the base `canActivate`** by spying on the prototype's prototype — `jest.spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'canActivate').mockReturnValue(true)` — so no real strategy runs; drive the `@Public()` branch through the mocked `Reflector`.
+- **Fake `ExecutionContext` from `jest.fn()` mocks** via a `const` arrow helper (e.g. `contextFor()`): `getHandler` / `getClass` are `jest.fn()`s returning a stable handler fn / throwaway class — mirrors the decorator/filter fake-context pattern.
+- **Mock the injected `Reflector` structurally**, `mock`-prefixed name (`mockReflector`), typed `jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>`, `let` at `describe` scope and recreated in `beforeEach` (the stateful case of the module-`const`-vs-`beforeEach` rule).
+- **Spy-based reset pairing:** because the base `canActivate` is spied, do BOTH — `jest.clearAllMocks()` first in `beforeEach` AND `jest.restoreAllMocks()` in `afterEach` (see the Common `clearAllMocks` + `restoreAllMocks` rule).
+
+### What to assert — observable boundary only
+
+- **`@Public()` branch (flag `true`):** returns `true`, calls `reflector.getAllAndOverride` with `(IS_PUBLIC_KEY, [handler, class])`, and does NOT invoke the Passport base — `expect(baseCanActivate).not.toHaveBeenCalled()`.
+- **Non-public route (flag `false`):** delegates to `super.canActivate(context)` (`toHaveBeenCalledWith(context)`) and returns its result.
+- **Absent flag (`undefined`):** also enforces the base — same delegation as the non-public branch.
+- **Always capture and assert `canActivate`'s return value.** `AuthGuard.canActivate` returns a `boolean | Promise<boolean> | Observable<boolean>` union, so bind it (`const result = sut.canActivate(context); expect(result).toBe(...)`) rather than calling it as a bare discarded statement — a discarded call trips `@typescript-eslint/no-floating-promises`. Reference spec: `jwt-auth.guard.spec.ts`.
+- **Do NOT assert framework mechanics** — real Passport strategy execution, guard registration, or how Nest dispatches to `canActivate()`.
+
+### Behavior-free `AuthGuard` subclass — minimal smoke spec
+
+A guard that only selects a strategy — no constructor, no overridden methods (e.g. `LocalAuthGuard extends AuthGuard('local') {}`) — has no logic of its own. Its spec is therefore a **minimal smoke spec that verifies the guard is correctly wired as a Passport guard, not an attempt to run the real strategy.** Reference spec: `local-auth.guard.spec.ts`.
+
+- **Follow the guard conventions:** plain instantiation (`new LocalAuthGuard()`), class-instance SUT named `sut`, `jest.clearAllMocks()` as the first statement of `beforeEach`. There are no spies, so no `afterEach` restore is needed.
+- **Assert only stable, observable facts:**
+  - the guard is instantiable — `expect(sut).toBeInstanceOf(LocalAuthGuard)`.
+  - it inherits the Passport guard contract — `expect(typeof sut.canActivate).toBe('function')`, and optionally `handleRequest` / `logIn`.
+- **Do NOT assert framework internals that aren't stably observable** (e.g. the private strategy name), and do NOT fabricate behavior the class does not have. The class defines nothing of its own, so there is nothing further to verify.
 
 ---
 
