@@ -116,7 +116,26 @@ Infrastructure adapters/providers (e.g. the GitHub provider, external clients wi
 - **Nest-provider adapters:** build via the testing module — `Test.createTestingModule({ providers: [Adapter, { provide: Dep, useValue: mockDep }] }).compile()`, then `moduleRef.get(Adapter)`.
 - Importing a real provider can transitively pull in ESM-only `@octokit/*` — stubbed globally (see ESM-only third-party libs); a spec may assert directly on the stubbed `Octokit` / `createAppAuth` fns.
 
-_TODO: full infrastructure-provider conventions (auth flows, pagination assertions)._
+### External-API providers
+
+External-API providers (`infrastructure/<provider>/*.provider.ts`, e.g. `github-app.provider.ts`) are Nest-provider adapters wrapping a third-party SDK client (e.g. `Octokit`) that is **lazily built and memoized**, authenticated via an auth strategy, exposing domain methods that map SDK responses into domain models. Verify exactly that endpoint/params + mapping boundary and the client-creation/auth wiring — never the real SDK. Reference spec: `github-app.provider.spec.ts`.
+
+Plus all [Common conventions].
+
+### Building the SUT
+
+- **Plain instantiation, class-instance SUT named `sut`** — `new GithubAppProvider(mockConfig, mockDiagnostics)`, NOT a testing module (the SUT needs no DI wiring beyond its constructor collaborators). Collaborators come from **`const` arrow factory builders**: `createConfig(values)` returns a `ConfigService` stub whose `get` returns the seeded values, `createDiagnostics()` returns a no-op `DiagnosticLoggerService` stub. The fake SDK client is `mockClient`.
+- **The ESM-only SDK (`@octokit/*`) is globally stubbed via `moduleNameMapper`** (see Common) — reference the stubbed constructor directly (`const OctokitMock = Octokit as unknown as jest.Mock`); never add a per-spec `jest.mock('@octokit/...')`. The SDK client is heavily overloaded, so a narrow hand-written `FakeClient` interface of `jest.Mock`s (`paginate`, `request`) is the pragmatic fallback over `jest.Mocked<Pick<Octokit, …>>`.
+
+### Two-layer spec structure
+
+Split the spec into two `describe` layers — mapping isolated from the SDK, then creation/auth against the stubbed SDK.
+
+- **Layer A — API method mapping (SDK isolated):** spy the private client-getter to hand back the fake client — `jest.spyOn(sut as unknown as { getClient(): unknown }, 'getClient').mockReturnValue(mockClient)` — so tests exercise pure endpoint/params + mapping + pagination + error logic with no real SDK. Because this spies, pair `jest.clearAllMocks()` (first in `beforeEach`) with `jest.restoreAllMocks()` in `afterEach` (the Common spy-reset rule).
+  - **Assert:** each SDK call made with the EXACT endpoint + params (e.g. `paginate('GET /installation/repositories')`, `request('GET /repositories/{id}', { id })`); multi-step call ordering via `toHaveBeenNthCalledWith`; the domain-mapped result (`toEqual`); decode/transform steps (base64 file content, archive `Buffer`); and error translation (`NotFoundException` for non-file content) — parametrize related error cases with `it.each`.
+  - **Pagination:** assert the adapter delegates to the SDK's `paginate` helper with the endpoint + params and returns all items mapped; do NOT simulate real page-boundary fetching (that is the SDK's responsibility).
+- **Layer B — client creation / auth wiring (real `createClient`, mocked SDK constructor):** drive `createClient` through a real domain call and assert against the globally-stubbed `Octokit`.
+  - **Assert:** missing config → `ServiceUnavailableException` AND the SDK constructor is **never** called (`expect(OctokitMock).not.toHaveBeenCalled()`); correct construction args (auth strategy + decoded/parsed secrets — e.g. base64-decoded private key, numeric installation id); and **memoization** (constructor called once across multiple domain calls).
 
 ### Infra clients (`docker.client`, `redis.client`)
 
