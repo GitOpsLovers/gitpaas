@@ -12,4 +12,5 @@ import { buildDataSourceOptions } from './data-source-options';
  * factory registers. This makes the CLI self-contained and independent of the
  * Nest DI container.
  */
+// eslint-disable-next-line import/no-anonymous-default-export
 export default new DataSource(buildDataSourceOptions());

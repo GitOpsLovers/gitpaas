@@ -31,7 +31,8 @@ export class DockerClient {
     private createClient(): Docker {
         const host = this.config.get<string>('VPS_DOCKER_HOST');
         const port = Number(this.config.get('VPS_DOCKER_PORT'));
-        const certPath = this.config.get<string>('VPS_DOCKER_CERT_PATH') as string;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const certPath = this.config.get<string>('VPS_DOCKER_CERT_PATH')!;
 
         let ca: Buffer;
         let cert: Buffer;

@@ -1,5 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+// eslint-disable-next-line import/named
 import { Strategy } from 'passport-local';
 
 import { validateUserUseCase } from '../../application/validate-user.use-case';

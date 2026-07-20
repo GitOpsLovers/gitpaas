@@ -105,7 +105,7 @@ export class DatabaseDeploymentQueue implements DeploymentQueue {
      */
     public async recoverPending(): Promise<void> {
         const pending = await this.repository.find({
-            where: { status: In(['queued', 'processing'] satisfies QueuedDeploymentTask['status'][]) },
+            where: { status: In(['queued', 'processing'] satisfies Array<QueuedDeploymentTask['status']>) },
             order: { createdAt: 'ASC' },
         });
 

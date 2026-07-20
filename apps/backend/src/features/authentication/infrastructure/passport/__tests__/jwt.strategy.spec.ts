@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { validateJwtUserUseCase } from '../../../application/validate-jwt-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
 import { AccessTokenPayload } from '../../../domain/models/token.model';
+import { JwtStrategy } from '../jwt.strategy';
+
 import { User, UserRole } from '@features/users/domain/models/user.model';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
-import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
-import { JwtStrategy } from '../jwt.strategy';
 
 jest.mock('../../../application/validate-jwt-user.use-case');
 
@@ -41,7 +41,7 @@ describe('JwtStrategy', () => {
             create: jest.fn(),
         };
         const config = { getOrThrow: jest.fn().mockReturnValue('access-secret') } as unknown as ConfigService;
-        strategy = new JwtStrategy(usersRepository as unknown as UsersDatabaseRepository, config);
+        strategy = new JwtStrategy(usersRepository, config);
     });
 
     it('resolves the user via the use case for a verified token', async () => {

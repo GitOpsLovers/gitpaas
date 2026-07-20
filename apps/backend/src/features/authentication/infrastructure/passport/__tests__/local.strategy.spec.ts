@@ -2,12 +2,11 @@ import { UnauthorizedException } from '@nestjs/common';
 
 import { validateUserUseCase } from '../../../application/validate-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
+import { PasswordHasher } from '../../../domain/security/password-hasher';
+import { LocalStrategy } from '../local.strategy';
+
 import { User, UserRole } from '@features/users/domain/models/user.model';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
-import { PasswordHasher } from '../../../domain/security/password-hasher';
-import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
-import { Argon2PasswordHasher } from '../../security/argon2-password-hasher';
-import { LocalStrategy } from '../local.strategy';
 
 jest.mock('../../../application/validate-user.use-case');
 
@@ -37,8 +36,8 @@ describe('LocalStrategy', () => {
         };
         passwordHasher = { hash: jest.fn(), verify: jest.fn() };
         strategy = new LocalStrategy(
-            usersRepository as unknown as UsersDatabaseRepository,
-            passwordHasher as unknown as Argon2PasswordHasher,
+            usersRepository,
+            passwordHasher,
         );
     });
 
