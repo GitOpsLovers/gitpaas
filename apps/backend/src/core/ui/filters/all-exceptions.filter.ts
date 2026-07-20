@@ -7,6 +7,7 @@ import {
     Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { Request, Response } from 'express';
 
 /**
@@ -35,7 +36,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-    catch(exception: unknown, host: ArgumentsHost): void {
+    public catch(exception: unknown, host: ArgumentsHost): void {
         const { httpAdapter } = this.httpAdapterHost;
         const ctx = host.switchToHttp();
         const request = ctx.getRequest<Request>();
