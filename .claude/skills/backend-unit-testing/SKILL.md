@@ -177,6 +177,24 @@ Plus all [Common conventions].
 
 - The `COMPOSE_PROJECT_LABEL` string and the `composeProjectName` slug helper are currently **private, duplicated consts inside each Docker SUT with no shared export**, so specs **re-declare the label locally** (see `docker-orphan-containers.repository.spec.ts`). If they are ever extracted to a shared exported module, specs should import the real symbols rather than re-declare them.
 
+### Docker executors
+
+Docker executors (`infrastructure/docker/*.executor.ts`) are **I/O-bound infrastructure orchestrators** that drive `dockerode` + `dockerode-compose` + `tar`/`node:fs` to build/pull/run a stack, streaming progress. Each injects `DockerClient` (→ `getClient()` daemon handle) and `DiagnosticLoggerService`, and keeps its logic almost entirely in **private helpers** behind a single public `up()` orchestration. Reference spec: `dockerode-docker.executor.spec.ts`.
+
+Plus all [Common conventions].
+
+### Building the SUT
+
+- **Plain instantiation, class-instance SUT named `sut`** — `new DockerodeDockerExecutor(mockDockerClient, mockDiagnostics)`, NOT a testing module. Use a **`const` arrow builder** (e.g. `executorWithDaemon(fakeDaemon)`) that returns a `sut` backed by a **fake daemon exposing only the members a given test needs** (`buildImage`, `pull`, `modem.followProgress`, container `inspect`/`logs`) via `mockDockerClient.getClient()`, plus a `mockDiagnostics` logger stub.
+- **Module-mock the external I/O libs** — `jest.mock('node:fs/promises')`, `jest.mock('tar')`, `jest.mock('dockerode-compose')` — and reference the mocked fns via `X as jest.Mock`. These are NOT the centrally-stubbed `@octokit/*` libs (see ESM-only third-party libs); a per-spec `jest.mock` is the correct tool for them.
+- **`jest.clearAllMocks()` is the first statement of a top-level `beforeEach`;** a nested `beforeEach` (e.g. for the `up()` tests) then seeds module-mock return values — it runs after the outer reset.
+- **`const` arrow helpers/fixtures throughout** (Common rule).
+
+### Two-tier testing strategy
+
+- **Tier 1 — private-helper unit tests (justified private access):** the class is all-private + I/O-bound, so its deterministic helpers are reached directly through a typed `ExecutorInternals` interface + a `const internals = (sut) => sut as unknown as ExecutorInternals` cast. This is an **accepted, documented exception** to public-boundary-only testing, justified by the class shape (all-private logic + I/O); keep an explanatory comment at the cast. Cover: the pure transforms (duration → nanoseconds parsing incl. compound and unparseable inputs, build-arg list/map normalization, build-path resolution, recipe-service extraction, healthcheck normalization); the progress-stream helpers (`followPull`/`followBuild` resolve on `onFinished()` / reject on `onFinished(error)`, and emit discrete status lines while skipping byte-level progress frames and status-less events, driven by a fake `modem.followProgress(stream, onFinished, onProgress)`); the pull de-dup / skip-built / skip-imageless logic; and the best-effort `captureStartupLogs` (swallows errors without emitting or throwing).
+- **Tier 2 — public `up()` orchestration:** with the I/O libs module-mocked and a fake `dockerode-compose` instance shaped per test (recipe + stubbed `down`/`up`), assert the emitted lifecycle-line order, the `down`-before-`up()` ordering (via `mock.invocationCallOrder`), and temp-dir cleanup in the `finally` — including that when an early step (e.g. archive extraction) throws, the temp dir is still removed and the error propagates.
+
 ### Transformers / mappers & DTO validation
 
 _TODO: transformer/mapper and DTO-validation testing conventions._
