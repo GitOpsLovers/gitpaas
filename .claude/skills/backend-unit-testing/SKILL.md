@@ -211,10 +211,29 @@ A `@Sse` handler returns an `Observable<MessageEvent>` (not a `Promise`), piping
 
 ## Guards & Passport strategies
 
-See `jwt-auth.guard.spec.ts`, `jwt.strategy.spec.ts`, `local.strategy.spec.ts`. Plus all [Common conventions].
+Guards (`ui/guards/`) are the same thin UI/framework-primitive family as decorators & filters. A guard owns no orchestration: it decides whether a request may proceed, typically by reading route metadata and/or deferring to a Passport strategy. Verify exactly that observable boundary — nothing about the auth pipeline or real strategy execution. Reference spec: `jwt-auth.guard.spec.ts` (global `JwtAuthGuard`). Passport strategies (`ui/strategies/`) are plain-instantiated with mocked ports — see `jwt.strategy.spec.ts`, `local.strategy.spec.ts`.
 
-- **Build via plain instantiation:** `new Guard(reflectorMock)` / `new Strategy(...mockedPorts)` with a fake `ExecutionContext`.
-- For a guard extending Passport's `AuthGuard`, stub the base `canActivate` (spy on the prototype's prototype) so no real strategy runs; drive the `@Public()` branch via the mocked `Reflector`.
+Plus all [Common conventions].
+
+### Building the SUT (guard)
+
+- **Build via plain instantiation:** `new JwtAuthGuard(mockReflector as unknown as Reflector)` — no `Test.createTestingModule` (mirrors filters & strategies). Call `sut.canActivate(context)` directly.
+- **Class-instance SUT is named `sut`** (Common rule).
+- **For a guard extending Passport's `AuthGuard`, stub the base `canActivate`** by spying on the prototype's prototype — `jest.spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'canActivate').mockReturnValue(true)` — so no real strategy runs; drive the `@Public()` branch through the mocked `Reflector`.
+- **Fake `ExecutionContext` from `jest.fn()` mocks** via a `const` arrow helper (e.g. `contextFor()`): `getHandler` / `getClass` are `jest.fn()`s returning a stable handler fn / throwaway class — mirrors the decorator/filter fake-context pattern.
+- **Mock the injected `Reflector` structurally**, `mock`-prefixed name (`mockReflector`), typed `jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>`, `let` at `describe` scope and recreated in `beforeEach` (the stateful case of the module-`const`-vs-`beforeEach` rule).
+- **Spy-based reset pairing:** because the base `canActivate` is spied, do BOTH — `jest.clearAllMocks()` first in `beforeEach` AND `jest.restoreAllMocks()` in `afterEach` (see the Common `clearAllMocks` + `restoreAllMocks` rule).
+
+### What to assert — observable boundary only
+
+- **`@Public()` branch (flag `true`):** returns `true`, calls `reflector.getAllAndOverride` with `(IS_PUBLIC_KEY, [handler, class])`, and does NOT invoke the Passport base — `expect(baseCanActivate).not.toHaveBeenCalled()`.
+- **Non-public route (flag `false`):** delegates to `super.canActivate(context)` (`toHaveBeenCalledWith(context)`) and returns its result.
+- **Absent flag (`undefined`):** also enforces the base — same delegation as the non-public branch.
+- **Do NOT assert framework mechanics** — real Passport strategy execution, guard registration, or how Nest dispatches to `canActivate()`.
+
+### Behavior-free `AuthGuard` subclass — no spec
+
+A guard that only selects a strategy with no constructor and no overridden methods (e.g. `LocalAuthGuard extends AuthGuard('local') {}`) carries no unit-testable logic of its own — a test would exercise only framework code. It warrants NO spec, like a trivial one-line pass-through wrapper.
 
 ---
 
