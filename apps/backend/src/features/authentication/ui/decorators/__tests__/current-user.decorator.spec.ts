@@ -1,8 +1,8 @@
 import { ExecutionContext } from '@nestjs/common';
 
-import { User, UserRole } from '@features/users/domain/models/user.model';
-
 import { currentUserFactory } from '../current-user.decorator';
+
+import { User, UserRole } from '@features/users/domain/models/user.model';
 
 // The `CurrentUser` decorator produced by `createParamDecorator` wraps this
 // factory in a way NestJS keeps internal (unreachable in a unit test), which is
@@ -18,7 +18,9 @@ const mockUser: User = {
     updatedAt: new Date('2026-01-02T00:00:00.000Z'),
 };
 
-const contextFor = (request: unknown): { context: ExecutionContext; mockGetRequest: jest.Mock } => {
+const contextFor = (
+    request: unknown,
+): { context: ExecutionContext; mockGetRequest: jest.Mock; mockSwitchToHttp: jest.Mock } => {
     const mockGetRequest = jest.fn().mockReturnValue(request);
     const mockSwitchToHttp = jest.fn().mockReturnValue({ getRequest: mockGetRequest });
 
@@ -26,7 +28,7 @@ const contextFor = (request: unknown): { context: ExecutionContext; mockGetReque
         switchToHttp: mockSwitchToHttp,
     } as unknown as ExecutionContext;
 
-    return { context, mockGetRequest };
+    return { context, mockGetRequest, mockSwitchToHttp };
 };
 
 describe('currentUserFactory', () => {
@@ -35,21 +37,21 @@ describe('currentUserFactory', () => {
     });
 
     it('returns the user attached to the request by the JWT strategy', () => {
-        const { context, mockGetRequest } = contextFor({ user: mockUser });
+        const { context, mockGetRequest, mockSwitchToHttp } = contextFor({ user: mockUser });
 
         const result = currentUserFactory(undefined, context);
 
         expect(result).toBe(mockUser);
-        expect(context.switchToHttp).toHaveBeenCalledTimes(1);
+        expect(mockSwitchToHttp).toHaveBeenCalledTimes(1);
         expect(mockGetRequest).toHaveBeenCalledTimes(1);
     });
 
     it('reads the user through switchToHttp().getRequest()', () => {
-        const { context, mockGetRequest } = contextFor({ user: mockUser });
+        const { context, mockGetRequest, mockSwitchToHttp } = contextFor({ user: mockUser });
 
         currentUserFactory(undefined, context);
 
-        expect(context.switchToHttp).toHaveBeenCalledTimes(1);
+        expect(mockSwitchToHttp).toHaveBeenCalledTimes(1);
         expect(mockGetRequest).toHaveBeenCalledTimes(1);
     });
 
