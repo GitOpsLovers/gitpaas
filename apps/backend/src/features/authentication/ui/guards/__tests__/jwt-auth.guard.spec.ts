@@ -68,8 +68,9 @@ describe('JwtAuthGuard', () => {
         mockReflector.getAllAndOverride.mockReturnValue(undefined);
         const context = contextFor();
 
-        sut.canActivate(context);
+        const result = sut.canActivate(context);
 
         expect(superCanActivate).toHaveBeenCalledWith(context);
+        expect(result).toBe(true);
     });
 });

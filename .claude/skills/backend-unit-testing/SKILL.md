@@ -229,6 +229,7 @@ Plus all [Common conventions].
 - **`@Public()` branch (flag `true`):** returns `true`, calls `reflector.getAllAndOverride` with `(IS_PUBLIC_KEY, [handler, class])`, and does NOT invoke the Passport base — `expect(baseCanActivate).not.toHaveBeenCalled()`.
 - **Non-public route (flag `false`):** delegates to `super.canActivate(context)` (`toHaveBeenCalledWith(context)`) and returns its result.
 - **Absent flag (`undefined`):** also enforces the base — same delegation as the non-public branch.
+- **Always capture and assert `canActivate`'s return value.** `AuthGuard.canActivate` returns a `boolean | Promise<boolean> | Observable<boolean>` union, so bind it (`const result = sut.canActivate(context); expect(result).toBe(...)`) rather than calling it as a bare discarded statement — a discarded call trips `@typescript-eslint/no-floating-promises`. Reference spec: `jwt-auth.guard.spec.ts`.
 - **Do NOT assert framework mechanics** — real Passport strategy execution, guard registration, or how Nest dispatches to `canActivate()`.
 
 ### Behavior-free `AuthGuard` subclass — minimal smoke spec
