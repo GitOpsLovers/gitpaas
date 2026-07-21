@@ -1,72 +1,20 @@
-# GitPaaS — Project conventions
+# Guide for AI agents working on GitPaaS
 
 ## Tech stack
 
-- **Monorepo:** Turborepo with pnpm workspaces
-- **Package manager:** pnpm
-- **Node:** 26.1.0 (pinned in `.tool-versions`)
-- **Backend:** NestJS v11
-- **Frontend:** Angular v22
+- **Monorepo:** Turborepo
+- **Package manager:** pNPM
+- **Node:** 26.1.0
+- **Backend:** NestJS
+- **Frontend:** Angular
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Database:** PostgreSQL via TypeORM
-- **Linting:** ESLint v10 with `@gitopslovers/eslint-config-multistack`
-
-## Monorepo structure
-
-```
-├── .claude/              # Instructions, skills, and agents for AI
-├── .devcontainer/        # Dev container configuration
-├── .vscode/              # VS Code workspace settings
-├── apps/
-│   ├── backend/          # NestJS
-│   └── frontend/         # Angular
-├── docs/                 # Project documentation
-├── iac/                  # Infrastructure for development and production
-├── .gitignore            # Ignores for Git
-├── .tool-versions        # Node/pnpm version pins
-├── CLAUDE.md             # General instructions for the AI Agent
-├── CONTRIBUTING.md       # Document for making contributions
-├── package.json          # Root dependencies
-├── pnpm-workspace.yaml   # Workspace definition
-├── README.md             # Project description
-└── turbo.json            # Turborepo task pipeline
-```
+- **Linting:** ESLint
 
 ---
 
-## App: Backend (`apps/backend/`)
-
-If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md) or [backend-business document](./docs/backend-business.md) documents.
-
----
-
-## App: Frontend (`apps/frontend/`)
-
-If the agent needs information about the frontend application, refer to the [frontend-architecture document](./docs/frontend-architecture.md) document.
-
----
-
-## Root Level
-
-### Scripts
-
-| Script  | Command           | Purpose |
-|---------|-------------------|---------|
-| `dev`   | `turbo run dev`   |
-| `build` | `turbo run build` |
-| `lint`  | `turbo run lint`  |
-| `test`  | `turbo run test`  |
-
-### Turborepo Pipeline
-
-- `build`: depends on `^build` (parallelizable across apps).
-- `dev`: no cache, persistent.
-- `lint`: depends on `^lint`.
-
----
-
-## Work process
+## Main instructions
 
 The main agent acts as an **orchestrator**. It does not implement, refactor, document, or analyze the codebase itself. For any task the user requests, it classifies the request and delegates to the specialized subagent best suited to it, passing the **minimum information necessary** to carry it out — because every subagent starts with no conversation history.
 
@@ -99,19 +47,15 @@ Pick the subagent by the type of task requested:
 - Do not install dependencies; if a task needs one, surface which package is required and let the user install it.
 - Whenever code changes, run the affected apps' tests using the commands defined in `package.json` — but never run E2E tests with Playwright.
 
-### Git & GitHub Workflow
+### Git & GitHub workflow
 
 **All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference).
 
 **Commit and open a PR by default — do not ask.** Whenever a task changes product code and the post-change `tester` run passes, the orchestrator automatically delegates to `git-manager` to create the branch, commit, and open the Pull Request as the final step. It does this without asking the user for confirmation. Skip this only when the user explicitly asks not to commit/PR, or when the change touches no version-controllable work (e.g. a read-only analysis).
 
-The canonical, complete workflow — trunk-based branch strategy, Conventional Commits, tests-before-commit, and the GitHub-App commit/PR flow (Verified commits authored by the app's bot) — lives in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the single source of truth; this section is only a pointer.
+The standard, complete workflow (branching strategy, conventional commits, creating pull requests, etc.) can be found in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the only reliable source of information; this section is for reference only.
 
-When a task reaches the version-control step, follow the `git-github-workflow` skill: the orchestrator can invoke it via the Skill tool, and `git-manager` executes it.
-
----
-
-## Task reporting
+### Task reporting
 
 After completing each task the user requests, the orchestrator **must append a token usage report to the very end of its response**, after the normal summary of results. This applies to every task delegated to subagents. Skip it only for pure conversational replies that did no work (clarifying questions, quick explanations with no tool use).
 
@@ -137,3 +81,21 @@ Rules for the report:
 - **Numbers are right-aligned and thousands-separated.**
 - The **`Total` row** sums all listed subagents.
 - If **only one subagent ran**, still show the single row plus the total.
+
+---
+
+## Project information
+
+This section lists the various components that make up the GitPaaS project.
+
+### Monorepo
+
+If the agent needs information about the monorepo configuration, refer to the [monorepo-architecture](./docs/monorepo-architecture.md) document.
+
+### Backend (`apps/backend/`)
+
+If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md) or [backend-business document](./docs/backend-business.md) documents.
+
+### Frontend (`apps/frontend/`)
+
+If the agent needs information about the frontend application, refer to the [frontend-architecture document](./docs/frontend-architecture.md) document.
