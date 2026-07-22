@@ -22,21 +22,6 @@
       "sourceType": "autoskills-registry",
       "computedHash": "7361ab02fb6b09913e3bdd9cf61c629ed6c17de9485e6a781054e5d437ccfc29"
     },
-    "reference-compiler-cli": {
-      "source": "angular/angular",
-      "sourceType": "autoskills-registry",
-      "computedHash": "69549be6dce5f8439ae946a3041ad428cf6897e98005270fc3ca4aa6cfc4a88e"
-    },
-    "reference-core": {
-      "source": "angular/angular",
-      "sourceType": "autoskills-registry",
-      "computedHash": "c58f7263272eef8b59bccbb62887ac82c57e6eb3cee2b4a8dbc15e3887e12774"
-    },
-    "reference-signal-forms": {
-      "source": "angular/angular",
-      "sourceType": "autoskills-registry",
-      "computedHash": "af28226f655ee620b5ece85e7bcf0950f86542cc77cc316fb699ec998e198475"
-    },
     "turborepo": {
       "source": "vercel/turborepo",
       "sourceType": "autoskills-registry",
