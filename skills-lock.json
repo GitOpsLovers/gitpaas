@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "TailAdmin UI Patterns": {
+      "source": "kaakati/rails-enterprise-dev",
+      "sourceType": "github",
+      "skillPath": "plugins/rails-enterprise-dev/skills/tailadmin-patterns/SKILL.md",
+      "computedHash": "9de21a5374dd5f0b14040263b8e8e330177283a92348727b47c3e4a4840a363f"
+    },
     "angular-developer": {
       "source": "angular/skills",
       "sourceType": "github",
@@ -24,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "skills/nodejs-best-practices/SKILL.md",
       "computedHash": "3e025f24a1948fcbfe666eabc757f5b426271b08a420a86dba1ea7518cc7b369"
+    },
+    "tailwind-4-docs": {
+      "source": "lombiq/tailwind-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tailwind-4-docs/SKILL.md",
+      "computedHash": "de756f5f03cc20a029983875b00b9dfef9d0ba8567d242c5cbb0262037d0a134"
     },
     "turborepo": {
       "source": "vercel/turborepo",
