@@ -9,8 +9,9 @@
     },
     "nestjs-best-practices": {
       "source": "kadajett/agent-nestjs-skills",
-      "sourceType": "autoskills-registry",
-      "computedHash": "7f14f088a79090183152c2aa556f708b2f5b7d0dacfb0ad339df2d498ba52aa3"
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "1b6f82e889d19d305e38e35594de08eca0242321f353cafa4cf5e61dd3aa1a73"
     },
     "nodejs-backend-patterns": {
       "source": "wshobson/agents",
