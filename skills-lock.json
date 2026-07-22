@@ -27,8 +27,9 @@
     },
     "turborepo": {
       "source": "vercel/turborepo",
-      "sourceType": "autoskills-registry",
-      "computedHash": "341f67c77a99b473c48207db023503509de7955af1517ce39e17b21a0127d79c"
+      "sourceType": "github",
+      "skillPath": "skills/turborepo/SKILL.md",
+      "computedHash": "1c05416a506eaf3e6da8cb958cf9d75827055222922a1d541545611727ea1106"
     },
     "typescript-advanced-types": {
       "source": "wshobson/agents",
