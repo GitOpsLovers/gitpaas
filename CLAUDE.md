@@ -92,10 +92,14 @@ This section lists the various components that make up the GitPaaS project.
 
 If the agent needs information about the monorepo configuration, refer to the [monorepo-architecture](./docs/monorepo-architecture.md) document.
 
-### Backend (`apps/backend/`)
+### Backend
 
 If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md) or [backend-business document](./docs/backend-business.md) documents.
 
-### Frontend (`apps/frontend/`)
+### Frontend
 
 If the agent needs information about the frontend application, refer to the [frontend-architecture document](./docs/frontend-architecture.md) document.
+
+### Infrastructure
+
+If the agent needs information about the infrastructure of the application, refer to the [infrastructure-architecture document](./docs/infrastructure-architecture.md) document.
