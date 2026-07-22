@@ -35,8 +35,6 @@
 | `lint`  | `turbo run lint`  |
 | `test`  | `turbo run test`  |
 
-### Turborepo Pipeline
+### Turborepo pipeline
 
-- `build`: depends on `^build` (parallelizable across apps).
-- `dev`: no cache, persistent.
-- `lint`: depends on `^lint`.
+The monorepo is managed using the Turborepo tool. Use the `turborepo` skill from `.claude/skills/turborepo` for more information on how to use it.
