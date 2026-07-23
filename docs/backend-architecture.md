@@ -1,207 +1,224 @@
-# Backend Architecture
+# Backend architecture
 
-Architectural principles of the backend app (`apps/backend`): a **NestJS v11** (Express) REST API over **PostgreSQL** via **TypeORM**. Code is split into **feature modules**, each following a **hexagonal / clean** layout. For the step-by-step procedure to add a feature, use the `backend-feature` skill; for the domain workflows, see [backend-business.md](./backend-business.md).
+This document details the architecture of the backend application (`apps/backend`), a REST API built with NestJS. 
 
-## The four layers
+## Overview
 
-Every feature is split into four layers with a strict inward dependency rule: **outer layers depend on inner, never the reverse.** `domain` and `application` are pure, framework-free TypeScript; NestJS and TypeORM live only at the edges (`infrastructure`, `ui`).
+The general architectural principle on which this application is built is **hexagonal/clean architecture**, such that most of the business logic is agnostic to the backend framework itself; as a result, NestJS, TypeORM, and other technologies live only at the edges.
 
-```
-ui ──────► application ──────► domain
-(controllers,  (use cases)   (models, ports, DTOs)
- services)                        ▲
-   └────► infrastructure ─────────┘
-          (adapters: TypeORM, Docker, Redis, GitHub…)
-```
+In addition, **vertical slicing** is implemented, so each business domain is encapsulated within its own feature (`src/features/`), thereby ensuring that the code reflects the organization’s structure.
 
-| Layer | Holds | Framework? |
-|------------|---|---|
-| **domain** | `models/` (plain interfaces + input/filter types), `repositories/` (port interfaces, arrow-fn props, domain terms only), `dtos/` (class-validator classes). Sub-folders as needed: `queues/`, `executors/`, `errors/`, `security/`. | No — except DTOs |
-| **application** | One `<verb>-<entity>.use-case.ts` per operation: a pure function receiving ports as params, exported as `<verb><Entity>UseCase`. | No |
-| **infrastructure** | Adapters implementing the ports, sub-foldered by tech (`database/`, `docker/`, `redis/`, `github/`, `passport/`, `security/`, `log-store/`). Each persistence/vendor adapter pairs with a sibling `*.transformer.ts`. | Yes |
-| **ui** | `controllers/` (thin: routing, param/query extraction, HTTP errors) and `services/` (NestJS DI bridge handing injected adapters to use cases). Also holds delivery-mechanism concerns like `guards/` and `decorators/` when a feature needs them. | Yes |
+## Stack
 
-This keeps use cases trivially testable (call the function with a fake port) and business rules independent of delivery mechanism.
+| Concern        | Tool                                          |
+|----------------|-----------------------------------------------|
+| Framework      | NestJS 11 with Express platform               |
+| Persistence    | PostgreSQL via NestJS TypeORM                 |
+| Live logs      | Redis                                         |
+| Deploy engine  | `dockerode` and `dockerode-compose` over mTLS |
+| Source access  | GitHub App via `@octokit/` library            |
+| Auth           | Passport wirh local and JWT                   |
+| Hardening      | `helmet`, `/throttler` and `class-validator`  |
+| Testing        | Jest                                          |
 
-### Per-feature structure (`projects` = reference example)
+## Structure
 
-```
+### The four layers
+
+Each feature consists of four distinct layers, subject to a strict rule: **outer layers depend on inner, never the reverse.**
+
+**Domain Layer**
+
+This layer contains the models, interfaces, and repositories (ports), DTOs, errors, and all other elements that model the business. None of these elements have dependencies on other layers or rely on any specific technology, with the exception of the DTOs, which use `class-validator`.
+
+**Application Layer**
+
+This layer contains all business use cases, each in a specific file that adheres to the _single responsibility principle_. Use cases are pure functions that receive all necessary dependencies as parameters, so that they are only aware of elements in the domain layer.
+
+**Infrastructure Layer**
+
+This layer contains all implementations of the domain ports. This is where the specific technologies used by each interface or repository are defined, such as databases, GitHub access, etc.
+
+**UI Layer**
+
+This layer serves as the entry point to the application (HTTP routes), receiving requests via `controllers`, routing them to `services`, and where the `services` are responsible for invoking the use cases and declaring the necessary dependencies.
+
+### Structure of a feature
+
+As an example, here is the structure of the `projects` feature:
+
+```text
 features/projects/
   projects.module.ts
   domain/
-    models/project.model.ts               — Project { id, name }
-    repositories/projects.repository.ts    — ProjectsRepository (port)
-    dtos/{create,update}-project.dto.ts
-  application/                             — one *.use-case.ts per op
-  infrastructure/database/
-    project-db.entity.ts                   — ProjectDbEntity
-    projects-db.repository.ts              — ProjectsDatabaseRepository
-    projects-db.transformer.ts             — toProject
-  ui/{controllers,services}/
+    dtos/
+      create-project.dto.ts                — DTO that defines a project's creation data
+      upate-project.dto.ts                 — DTO that defines a project's update data
+    models/
+      project.model.ts                     — Project domain model
+    repositories/
+      projects.repository.ts               - Project persistence repository interface (port)
+  application/                             — The layer where all business use cases reside
+    create-project.use-case.ts
+    get-all-projects.use-case.ts
+    ...
+  infrastructure/
+    database/
+      project-db.entity.ts                  — Database model for the project entity
+      projects-db.repository.ts             — Concrete implementation of the persistence repository using a database
+      projects-db.transformer.ts            — Transformer from the database layer to the domain model
+  ui/
+    controllers/                            - HTTP entry point
+    services/                               - Business logic orchestration and dependency declaration
 ```
 
-## Ports & dependency injection
+In general, all features must follow this organizational structure for entities, although each layer may contain more or fewer elements.
 
-Repositories (and other collaborators like the queue) are expressed as **port + adapter**, wired **without a custom token**:
+### Module wiring
 
-- **Port** — a plain `interface` (e.g. `ProjectsRepository`), methods as arrow-fn properties in domain terms (accept/return domain models and DTOs, never ORM/vendor types). Use cases depend only on this.
-- **Adapter** — an `@Injectable()` class that `implements` the port (e.g. `ProjectsDatabaseRepository`).
-- **Wiring** — the module lists the **concrete class** in `providers`; consumers inject **by class** (`@Inject(ProjectsDatabaseRepository)`, `import type` for the port type) but type the dependency as the **port**. No `{ provide: TOKEN, useClass }` indirection. See [`apps/backend/src/features/projects/projects.module.ts`](../apps/backend/src/features/projects/projects.module.ts) for the reference wiring.
+Each feature declares its dependencies in its own module: `controllers`, `services`, `guards`, as well as specific infrastructure implementations, encapsulating the logic in a single location.
 
-DTOs **flow whole** through the write path (`create(dto)`, `update(id, dto)`) — never unpacked into primitives.
+If any element needs to be used in other features (for example, repositories for accessing the database), the module declares them under the `exports.` key.
 
-> The port-typed-dependency convention is the intended norm; a few edge services still inject concrete types directly. Follow the convention in new code.
+### Cross-cutting concerns
 
-### Transformers: infra always returns domain models
+Some behaviours apply to the whole application, so they are configured once at the root rather than repeated on every endpoint.
 
-No infrastructure repository returns raw ORM entities or vendor/Redis shapes. Mapping lives in a **sibling `*.transformer.ts`** next to the repository, named after the repo's file stem. Transformers are **plain exported functions** named `to<Model>(...)` (persistence/vendor → domain); the reverse direction, when needed, is another function in the same file. Repos import and call them (`rows.map(toProject)`). This holds across every infra flavour.
+- **Authentication** — A global JWT guard protects every route by default, so a request is authenticated unless it is explicitly marked otherwise. The `@Public()` decorator opts a route out.
+- **Rate limiting** — Two named throttlers are read from the environment: `default` applies globally, and `stream` covers long-lived SSE connections. Individual endpoints tune this locally; for example, login restricts itself with `@Throttle` (5 requests per 60 seconds), while the log stream skips the `default` throttler with `@SkipThrottle` and applies `@Throttle` on `stream` instead.
+- **Security headers** — `helmet()` sets secure HTTP headers at bootstrap.
+- **Environment validation** — A `class-validator` schema validates every variable when the application boots and fails fast on anything missing or malformed. There are no silent fallbacks.
+- **Error envelope** — A global exception filter returns a consistent shape, `{ statusCode, message, error, timestamp, path }`. It preserves the message arrays produced by the `ValidationPipe` and collapses unexpected errors into a generic 500. Server errors (5xx) log a full stack trace; client errors (4xx) log at warn level.
 
-## Persistence
+## Conventions
 
-- Root TypeORM connection configured once in `CoreModule` via `forRootAsync`, spreading the shared connection-options factory and adding `autoLoadEntities: true` on top. Features only call `forFeature`. No central entity list.
-- Entities: `@Entity('<plural_snake_case>')`, class names end `DbEntity`. **UUID PKs** (`@PrimaryGeneratedColumn('uuid')`; domain `id: string`).
-- Custom column transformers convert non-native types at the persistence boundary.
-- **Data-level FK** is a *table* relationship, independent of module-DI direction: a child owns `@ManyToOne(() => ParentDbEntity, { onDelete: 'CASCADE' })`. Two cascade relationships exist today: the `project ◄ service ◄ deployment ◄ logs` chain, and `refresh_token ► user` (a user's refresh tokens cascade-delete with the user). The persisted deployment-queue table deliberately has **no** FK to its deployment — the two have independent lifecycles.
+### Ports and dependency injection
 
-### Schema management (migrations)
+Repositories and other collaborators follow the **port and adapter** pattern:
 
-Production schema is owned by **versioned TypeORM migrations**; local **development and test still use `synchronize`** (both gated on `NODE_ENV !== 'production'`). The current schema — every entity — is captured as a single **baseline migration**, and every subsequent schema change ships as a generated, versioned migration. In production, entity edits are **no longer auto-applied**: they take effect only through a migration.
+- **Port**: a plain `interface` (for example, `ProjectsRepository`) whose methods are declared as arrow-function properties in domain terms: they accept and return domain models and DTOs, never ORM or vendor types. Use cases depend only on this interface.
+- **Adapter**: an `@Injectable()` class that `implements` the port (for example, `ProjectsDatabaseRepository`).
+- **Wiring**: the module lists the **concrete class** in its `providers`, and consumers inject it **by class** (`@Inject(ProjectsDatabaseRepository)`, with `import type` for the port) while typing the dependency as the **port**. This avoids the `{ provide: TOKEN, useClass }` indirection.
 
-A single **connection-options factory** built from `process.env` is the shared source of truth. It sets `synchronize` to `NODE_ENV !== 'production'` and `migrationsRun` to `false` (production runs migrations explicitly via a one-shot process, never implicitly at boot), and registers **entities and migrations by glob** — no code enumerates them. The glob extension is derived from how the process runs (`.ts` under ts-node for the local CLI, `.js` under `dist/` for the compiled runtime). Two consumers spread these options:
+### Transformers
 
-- The **NestJS runtime** (`CoreModule`) adds `autoLoadEntities: true` on top, so Nest also picks up entities registered via `forFeature`.
-- A standalone **`DataSource`** (the factory's default export) is the target the **TypeORM CLI** drives (`-d`); it deliberately omits `autoLoadEntities`, discovering entities purely through the glob so the CLI is independent of the Nest DI container.
+No infrastructure repository returns raw ORM entities or vendor shapes. Mapping lives in a sibling `*.transformer.ts` file, named after the repository's file stem, whose plain exported functions convert a persistence or vendor shape into a domain model — `to<Model>(...)`, for example. The reverse direction is a separate function in the same file, and repositories call them where needed (`rows.map(toProject)`). This holds for every flavour of infrastructure.
 
-Migrations are driven by **pnpm scripts** in the backend package. In development, `migration:generate` / `migration:create` run through ts-node against the source `DataSource`; `migration:revert` reverts the last migration. In production, `migration:run` executes the **compiled** migrations (`node` against `dist/`, no ts-node in the runtime image). Migration files live under the backend's `src/migrations/`. The workflow after changing an entity is: generate a migration, review it, and commit it alongside the entity change.
+### Persistence
 
-There is still **no user-provisioning endpoint or in-tree seed script**; the first user(s) are provisioned out-of-band (see the authentication section).
+- The root TypeORM connection is configured once, in `CoreModule` via `forRootAsync`; features only call `forFeature`, so there is no central list of entities.
+- Entities are declared with `@Entity('<plural_snake_case>')`, their class names end in `DbEntity`, and they use UUID primary keys (`@PrimaryGeneratedColumn('uuid')`, exposed as `id: string` on the domain model). Custom column transformers convert non-native types at the persistence boundary.
+- A **data-level foreign key** is a table relationship, independent of the direction of module dependency injection: the child owns the relation with `@ManyToOne(() => ParentDbEntity, { onDelete: 'CASCADE' })`. Two cascade chains exist — `project ◄ service ◄ deployment ◄ logs` and `refresh_token ► user`. The persisted deployment-queue table deliberately has **no** foreign key to its deployment, because the two have independent lifecycles.
+- `synchronize` is enabled only when `NODE_ENV !== 'production'` (development and test); in production the schema is owned by versioned migrations.
 
-## Validation
+### Validation
 
-Write endpoints validate through **DTO classes** (class-validator), enforced by the global `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`, `transform` in `main.ts`). DTOs live in `domain/dtos/`, are the only domain files allowed to import a framework, use the `!` assertion, and bind via `@Body()`. Unknown properties are rejected, so the DTO is the authoritative input contract. Nested payloads use `@ValidateNested({ each: true })` + `@Type(() => Dto)`; optional fields use `@IsOptional()`.
+Write endpoints validate their input through DTO classes, enforced by the global `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`, `transform`, configured in `main.ts`). DTOs live in `domain/dtos/`, are the only domain files allowed to import a framework and to use the `!` assertion, and bind to requests through `@Body()`. Unknown properties are rejected, so the DTO is the authoritative input contract. Nested payloads are validated with `@ValidateNested({ each: true })` and `@Type(() => Dto)`, and optional fields are marked with `@IsOptional()`.
 
-## HTTP & REST conventions
+### HTTP and REST
 
-Global prefix `api/v1` (set in `main.ts`). Bootstrap also installs `helmet()` for baseline security headers and enables **credentialed CORS** restricted to an allowlist parsed from the required `CORS_ORIGIN` env var. The listen port comes from the validated env (`getOrThrow('PORT')`) — there is no hard-coded fallback. Every route is **authenticated by default** (see [Authentication](#authentication-global-guard--tokens)); public endpoints opt out explicitly. Controllers declare only the resource path (`@Controller('projects')`). CRUD shape:
+The global route prefix is `api/v1`. The listen port comes from `getOrThrow('PORT')` with no hard-coded fallback, and CORS is credentialed and restricted to the allowlist parsed from the required `CORS_ORIGIN` variable. Controllers declare only their resource path (`@Controller('projects')`).
 
-| Method & path | Notes |
-|---|---|
-| `GET /` | list (optionally filtered via cleaned query params) |
-| `GET /:id` | 404 when missing |
-| `POST /` | `@Body()` create DTO |
-| `PUT /:id` | `@Body()` update DTO; 404 when missing |
-| `DELETE /:id` | `@HttpCode(204)`; 404 when missing |
+| Method & path | Notes                                               |
+|---------------|-----------------------------------------------------|
+| `GET /`       | list (optionally filtered via cleaned query params) |
+| `GET /:id`    | 404 when missing                                    |
+| `POST /`      | `@Body()` create DTO                                |
+| `PUT /:id`    | `@Body()` update DTO; 404 when missing              |
+| `DELETE /:id` | `@HttpCode(204)`; 404 when missing                  |
 
-`:id` bound with `@Param('id', ParseUUIDPipe)`. **Not-found is an HTTP concern**: repos return `null` and `delete()` returns `boolean`; the controller translates that into `NotFoundException`. The domain never throws HTTP exceptions.
+The `:id` segment binds with `@Param('id', ParseUUIDPipe)`. **Not-found is an HTTP concern**: repositories return `null` and `delete()` returns a `boolean`, and it is the controller that raises `NotFoundException`. The domain never throws HTTP exceptions — it raises domain errors that the UI edge translates.
 
-### Data flow
+### Naming and imports
 
-```
+- **Naming**: models are `<Entity>` in `models/<entity>.model.ts`; ports are `<Feature>Repository`; entities end in `DbEntity`; adapters end in `DatabaseRepository`; use cases are `<verb>-<entity>.use-case.ts` exporting `<verb><Entity>UseCase`; and tables are plural snake_case.
+- **Path aliases**: defined in `tsconfig.json`, `@core/*` maps to `./src/core/*` and `@features/*` to `./src/features/*`. Use them for cross-feature and core imports, and relative paths within a feature.
+- **JSDoc**: every export carries a one-line block, with fuller `@param` and `@returns` on repositories, services, and use cases. Mirror the existing style of the same file type.
+
+## Key flows
+
+### Request
+
+Every request travels through the layers in the same order, from the HTTP edge inward to persistence and back:
+
+```text
 HTTP → ValidationPipe → Controller → Service → Use Case → Repository port ◄ adapter → PostgreSQL
 ```
 
-## Cross-feature collaboration
+### Durable queue (background work)
 
-Most features collaborate by importing a neighbour and injecting its exported repository (one-way module DI). Two patterns cover what plain CRUD-over-import does not:
+To trigger work without coupling the caller to when it runs, the producer enqueues a task and a consumer dequeues it later. The queue is another port and adapter: the domain declares a `DeploymentQueue` port, and the producing feature's infrastructure supplies the adapter and **exports** it. The queue is **durable and at-least-once** — tasks survive restarts, are retried on failure, and are dead-lettered once their attempts run out. The `deployments` feature is the reference: its adapter persists each task as a `deployment_queue_tasks` row and uses an internal RxJS `Subject` only as the in-process dispatch channel.
 
-### Queue (durable, DB-backed background work)
-
-To trigger work without coupling the caller to when/how it runs, a task is enqueued and a consumer dequeues it. The queue is a **port + adapter**: domain declares a `DeploymentQueue` port; the producing feature's infrastructure supplies the adapter and **exports** it. Unlike a fire-and-forget in-memory queue, this queue is **durable and at-least-once** — tasks survive process restarts, are retried on failure, and are dead-lettered when their attempts run out. Payload is the `DeploymentRunTask` domain model.
-
-The **deployments** feature is the reference. The DB-backed adapter persists each task as a row in a `deployment_queue_tasks` table and uses an internal RxJS `Subject` **only** as the in-process dispatch channel to the runner — no queue state lives solely in memory. A queue row moves through three states:
-
-```
+```text
 queued ──(picked up)──► processing ──(ok)──► [row deleted]
    ▲                         │
    └──── retry (attempts<3) ─┤
                              └──(attempts exhausted)──► failed  (dead-letter;
-                                                         deployment marked failed)
+                                                        deployment marked failed)
 ```
 
-The port's operations map onto that lifecycle:
+Each port operation maps onto that lifecycle: `enqueue` persists the task as `queued` with `attempts=0` and then emits it; `markProcessing` sets the task to `processing` and increments its attempt count; `markCompleted` deletes the row, since the deployment itself carries the durable outcome; `markFailed` records the error and re-enqueues the task while `attempts < 3`, otherwise dead-letters it **and** marks the deployment `failed` so it is never stranded in `pending`; and `recoverPending`, on restart, resets every `queued` or `processing` row back to `queued` and re-emits it.
 
-- **enqueue** — persist a row (`status='queued'`, `attempts=0`), then emit it for immediate pickup.
-- **markProcessing** — set `processing` and increment `attempts`.
-- **markCompleted** — delete the row (terminal success; the deployment carries the durable outcome).
-- **markFailed** — record the error; re-enqueue while `attempts < MAX_ATTEMPTS` (=3), otherwise dead-letter the row (`status='failed'`) **and** mark the deployment `failed` so it is never stranded in `pending`.
-- **recoverPending** — on restart, reset every unfinished (`queued`/`processing`) row back to `queued` and re-emit it.
+`POST /deployments` validates the request, persists a `pending` record, enqueues a run task, and returns the record **with its id** immediately. `DeploymentRunnerService` (`OnModuleInit`) subscribes to the stream and only then calls `recoverPending()`. It serialises runs **per compose-project name** (`groupBy` + `concatMap`) while running distinct projects concurrently (`mergeMap`). Each run drives `runDeploymentUseCase`:
 
-`POST /deployments` validates, persists a `pending` deployment record, enqueues a run task, and returns the record (**with id**) immediately. A background `DeploymentRunnerService` (`OnModuleInit`) subscribes to the queue's stream and only then calls `recoverPending()` so interrupted work resumes. It serializes runs **per compose-project name** (RxJS `groupBy` + `concatMap`) while running distinct projects concurrently (`mergeMap`) — same-project `down`/`up` never race, but unrelated services still deploy in parallel. Each run drives `runDeploymentUseCase`:
-
-```
+```text
 markProcessing → fetch repo archive (providers) → docker executor up()
   (fans each output line to the logs write port `append`)
   → mark success/failed → logStore.complete(status) → markCompleted
 ```
 
-The use case self-handles expected failures (a failed run becomes a persisted `failed` status), and any truly-unexpected throw hits `markFailed` as a last-resort net that triggers retry/dead-lettering.
+The use case handles expected failures itself — a failed run becomes a persisted `failed` status — while an unexpected throw reaches `markFailed` as a last-resort safety net that triggers a retry or dead-lettering.
 
 ### Server-Sent Events (live streams)
 
-Streaming a long-running result uses **SSE**, not the CRUD table: a handler is `@Sse(...)` and returns an `Observable` of messages, one JSON-encoded event per emission, over a single long-lived response. It sits alongside the normal REST endpoints (which still serve durable history).
+Streaming a long-running result uses Server-Sent Events rather than the CRUD table. The handler is annotated with `@Sse(...)` and returns an `Observable` of messages, emitting one JSON-encoded event per value over a single long-lived response. It sits alongside the REST endpoints, which still serve durable history. The `logs` feature is the reference: it owns the durable `logs` table, the write port the runner appends to, `GET /logs/:deploymentId/stream` (a stream of SSE `LogEvent`s), and `GET /logs?deploymentId=` (the history).
 
-The **logs** feature is the reference. It records and streams a deployment's output, owning the durable `logs` table and the write port the runner appends to.
+The log-stream endpoint is **not** `@Public()`, so it requires a Bearer token. Because the native `EventSource` API cannot set headers, the frontend streams it with a token-capable SSE client.
 
-## Authentication (global guard & tokens)
+### Authentication
 
-Authentication is a cross-cutting security posture, not a per-endpoint opt-in. The **authentication** feature wires JWT + Passport and registers a **global** guard (`APP_GUARD`) so **every route across the app requires a valid access token by default**. Endpoints that must be reachable without a token opt out with a `@Public()` decorator (a reflector-driven metadata flag the global guard reads). Guards and decorators live in the feature's `ui/` layer, following the same layering rule as controllers.
+The `authentication` feature wires JWT and Passport together and registers the global guard, so every route requires a valid access token by default; `@Public()`, a reflector-driven metadata flag, opts a route out. It exposes `POST /auth/login` (public, rate-limited), `POST /auth/refresh` (public, rotates tokens), `POST /auth/logout` (public, an idempotent revoke), and `GET /auth/me` (protected, with the password hash stripped). A `@CurrentUser()` parameter decorator surfaces the request's user.
 
-The feature exposes an `auth` controller: `POST /auth/login` (public, rate-limited, credential check via a local Passport strategy), `POST /auth/refresh` (public — rotates tokens), `POST /auth/logout` (public, idempotent revoke), and `GET /auth/me` (protected, returns the current user with the password hash stripped). A `@CurrentUser()` param decorator surfaces the request's authenticated user.
+- **Tokens**: on login, a local strategy validates the email and password; on every protected request, a JWT strategy validates the Bearer token, re-resolves the user, and **rejects deactivated accounts** (`isActive`) so a disabled user is locked out immediately. Access and refresh tokens use separate secrets and lifetimes (`JWT_ACCESS_*` and `JWT_REFRESH_*`), and passwords are hashed with argon2.
+- **Rotation**: refresh tokens live in the `refresh_tokens` table (cascading with their user), stored only as a SHA-256 hash and keyed by a random `jti` carried in the token. Refreshing verifies the signature and expiry, looks the row up by `jti`, rejects it if it is missing, revoked, or expired, compares the hash, re-checks that the user is active, and then **revokes the old row and issues a fresh pair**. Rows are revoked, never deleted, so a replayed token is always rejected.
 
-**Token model.** Two Passport strategies back it: a local strategy validating email + password on login, and a JWT strategy validating the Bearer access token on every protected request. The JWT strategy re-resolves the user on each request and **rejects deactivated accounts** (`isActive`), so a disabled user is locked out immediately rather than at token expiry. Access and refresh tokens are signed with **separate secrets and lifetimes** (`JWT_ACCESS_*` / `JWT_REFRESH_*`). Passwords are hashed with **argon2**.
+> RBAC is deferred. A `role` (`admin` or `user`) is persisted on each user, but no authorization guard consumes it yet.
 
-**Refresh-token rotation.** Refresh tokens are persisted in a `refresh_tokens` table (cascading with their user), stored **only as a SHA-256 hash** — never in plaintext — and keyed by a random `jti` carried in the token. Refreshing verifies the signature/expiry, looks up the stored row by `jti`, rejects it if missing/revoked/expired, compares the hash, re-checks that the user still exists and is active, then **revokes the old row and issues a fresh pair**. Rows are revoked, never deleted, so a replayed or already-rotated token is rejected.
+### Docker-facing capabilities
 
-**Domain stays HTTP-free.** The feature raises domain errors (invalid credentials, invalid refresh token, inactive user); the service/strategy edge translates them into `UnauthorizedException`.
+- **Docker executor** (`deployments`): exposed as the `DockerExecutor` port with the `DockerodeDockerExecutor` adapter. Its `up(archive, composePath, projectName, onLog)` operation extracts the GitHub tarball, builds local `build:` services (streaming their output and rewriting them to image services), pulls registry images, brings the old stack `down()`, normalises healthcheck durations to nanoseconds (a dockerode-compose quirk), runs `up()`, and captures bounded per-container startup logs. All resources are grouped under a `com.docker.compose.project` name derived from a project-name slug.
+- **Log store** (`logs`): exposed as the `LogStoreRepository` port (`append`, `complete`, `stream`, `purge`) with two adapters. `RedisLogStoreRepository` is the live buffer: it keeps a per-deployment list key (capped at roughly 5000 lines), a sequence counter, an events channel, and a 24-hour TTL, and its `stream()` replays the buffer, then tails pub/sub, dedupes by sequence, and completes on the terminal `end` event. `PersistentLogStoreRepository` is the adapter consumers actually inject: it buffers in memory, delegates live fan-out to Redis, and on `complete` persists the finished stream to the `logs` table before completing Redis.
+- **Cleanup**: the database cascade removes `service → deployments → logs`, and Redis logs are purged when a deployment or a service is deleted. `deleteServiceUseCase` also tears down the Docker footprint through `ServiceFootprintRepository.remove(service)`, a best-effort step that force-removes labelled containers, compose networks, and images built as `${projectName}_*` while keeping shared pulled images.
+- **Server**: `ServerPrunerRepository` prunes images, volumes, and stopped containers, while `OrphanContainersRepository` force-removes GitPaaS-labelled containers whose project matches no service. A daemon-unreachable error maps to `503`. `GET /server/readiness` is **public** and checks PostgreSQL, Redis, and the Docker daemon in parallel, each through a `HealthProbe` port; a throw counts as `down` and never rejects the aggregate. It returns `200` with a per-dependency breakdown when all are up, or `503` with the same breakdown otherwise.
+- **Read-only**: `containers` and `networks` list a service's containers and compose networks by label; `providers` (a GitHub App) lists repositories and branches, resolves head commits, and fetches source archives. None of these touch the database.
 
-> **RBAC is deferred.** A `role` (`admin` | `user`) is persisted on users but **no authorization guard consumes it yet** — every authenticated user has equal access. The field is groundwork, not enforced authz.
+## Operations
 
-> **SSE and auth.** The log-stream endpoint is protected (not `@Public()`), so it needs a Bearer token. Native `EventSource` cannot set an `Authorization` header, so the frontend must stream via a token-capable SSE client.
+| Script                | Command                                                    |
+|-----------------------|------------------------------------------------------------|
+| `dev`                 | `nest start --watch`                                       |
+| `build`               | `nest build`                                               |
+| `start` / `start:prod`| `nest start` / `node dist/main`                            |
+| `lint` / `test`       | `eslint .` / `jest` (plus `test:e2e`)                      |
+| `migration:generate`  | ts-node TypeORM CLI against `src/.../data-source.ts`       |
+| `migration:create`    | ts-node TypeORM CLI, empty migration                       |
+| `migration:revert`    | reverts the last migration (source DataSource)             |
+| `migration:run`       | `node` TypeORM CLI against the compiled `dist/` DataSource |
 
-### Users (support feature)
+### Migrations
 
-The **users** feature is intentionally minimal: it has only `domain/` and `infrastructure/` layers — **no controller and no create-user use case**. It owns the `users` table (unique email, password hash, role, active flag, timestamps) and exports its repository (and `TypeOrmModule`) so `authentication` can read and verify credentials. There is deliberately **no public sign-up**: users are provisioned by an administrator out-of-band. This is the one feature that does not follow the full four-layer shape, by design.
+A single **connection-options factory**, built from `process.env`, is the shared source of truth. It sets `synchronize` to `NODE_ENV !== 'production'` and `migrationsRun` to `false` — production applies migrations through an explicit one-shot process, never at boot — and registers entities and migrations **by glob**, so no code enumerates them. The glob extension follows how the process runs: `.ts` under ts-node for the CLI, `.js` under `dist/` at runtime. Two consumers spread these options:
 
-## Notable infrastructure
+- `CoreModule` adds `autoLoadEntities: true` so that Nest also picks up entities registered through `forFeature`.
+- The standalone `DataSource` (the factory's default export) is what the TypeORM CLI drives with `-d`; it omits `autoLoadEntities`, keeping the CLI independent of the DI container.
 
-**Docker executor (deployments).** Port `DockerExecutor`; adapter `DockerodeDockerExecutor` (dockerode + dockerode-compose). `up(archive, composePath, projectName, onLog)`: extract the GitHub tarball, build local `build:` services (streaming output, rewriting to image services), pull registry images, `down()` the old stack, normalize healthcheck durations to nanoseconds (works around dockerode-compose quirks), `up()`, and capture bounded per-container startup logs. Resources are grouped under a `com.docker.compose.project` name derived from a project-name slug.
+The current schema ships as a single **baseline migration** under `src/migrations/`, and every later schema change ships as a generated, versioned migration. The workflow after editing an entity is to generate the migration, review it, and commit it alongside the entity change.
 
-**Logs write port + Redis + DB.** Port `LogStoreRepository` (`append` / `complete` / `stream` / `purge`), two adapters:
-- `RedisLogStoreRepository` — live buffer + pub/sub. Per-deployment list key (capped ~5000 lines), a seq counter, an events channel, 24h TTL. `stream()` replays the buffer then tails live pub/sub, dedupes by seq, completes on the terminal `end` event.
-- `PersistentLogStoreRepository` — **the port consumers actually inject**. Buffers in-memory, delegates live fan-out to Redis, and on `complete` persists the finished stream to the `logs` table (`createMany`), then completes Redis. `purge` drops in-memory + Redis; DB rows go by cascade.
+## Related docs
 
-SSE endpoint `GET /logs/:deploymentId/stream` emits `LogEvent`s; durable history via `GET /logs?deploymentId=`.
+For step-by-step instructions on adding a feature, use the `backend-feature` skill; to learn about the domain workflows, see [backend business](./backend-business.md).
 
-> The logs feature also exposes generic CRUD endpoints, but the append/stream path above is its real usage in the deployment flow.
-
-**Deletion / cleanup.** DB FK cascade removes `service → deployments → logs`. Redis logs are purged on **deployment delete** and **service delete**. On service delete, `deleteServiceUseCase` also tears down the service's Docker footprint via `ServiceFootprintRepository.remove(service)` (best-effort per-resource: force-removes labeled containers + compose networks + images built for that project as `${projectName}_*`, **keeping shared pulled images**), then purges each deployment's Redis logs.
-
-**Server maintenance & readiness.** `ServerPrunerRepository` prunes images/volumes/stopped-containers (`PruneResult`). A separate `OrphanContainersRepository` force-removes GitPaaS compose-labeled containers whose project matches no existing service (`OrphanRemovalResult`). The controller maps a daemon-unreachable error to `503` with a local-dev hint. The feature also exposes a **public readiness probe** — `GET /server/readiness` — that actively checks the critical dependencies (PostgreSQL, Redis, Docker daemon) in parallel via a `HealthProbe` port per dependency. Each probe is reported `up`/`down` (a throw counts as `down`, never rejecting the aggregate); the endpoint returns `200` with the per-dependency breakdown when all are up, or `503` carrying the same breakdown when any is down.
-
-**Read-only Docker features.** `containers` and `networks` list a service's running containers / compose networks by label; `providers` (GitHub App) lists repos/branches, resolves head commits, and fetches source archives. None use the DB.
-
-## Module wiring
-
-- `AppModule` imports `CoreModule` + every feature module, and provides the app-wide cross-cutting bindings: the **global exception filter** (`APP_FILTER`) and the **global rate-limit guard** (`APP_GUARD`, `ThrottlerGuard`). The **global auth guard** (`JwtAuthGuard`, a second `APP_GUARD`) is provided by the authentication module. Note: the exception filter is wired here in `AppModule`, not in `CoreModule`.
-- `services` ↔ `deployments` resolve their mutual dependency via `forwardRef` on both sides. `deployments` imports `logs`, `providers`, `services` and exports its DB repository + queue.
-- **`@Global() CoreModule`** provides shared, dependency-free infrastructure injectable everywhere without importing a feature: root TypeORM config, `DockerClient` (lazy Dockerode over **TLS** to the VPS/DinD daemon, reads certs from `VPS_DOCKER_CERT_PATH`, 503 if missing), `RedisClient`, `DiagnosticLoggerService` (thin `Logger` wrapper), and a docker controller. Env validation runs at bootstrap.
-
-### Cross-cutting concerns
-
-Beyond the per-feature layering, four app-wide concerns are configured once at the root:
-
-- **Authentication** — a global JWT guard makes every route auth-by-default (see above).
-- **Rate limiting** — `ThrottlerModule` defines two named throttlers configured from env: `default` (applied globally) and `stream` (for long-lived SSE). Endpoints tune it locally: login uses a strict `@Throttle` (5 requests / 60s) to blunt brute force, and the log-stream endpoint uses `@SkipThrottle` on `default` plus `@Throttle` on `stream` so a persistent connection is not counted against the normal budget.
-- **Security headers** — `helmet()` is applied globally at bootstrap.
-- **Env validation** — a class-validator schema validates all configuration at boot and **fails fast** on any missing/invalid var (DB, Redis, GitHub App, VPS Docker TLS, CORS, throttling, and JWT settings). No silent fallbacks.
-- **Error envelope** — the global exception filter returns a consistent JSON shape (`statusCode`, `message`, `error`, `timestamp`, `path`), preserves `ValidationPipe` message arrays, and collapses unexpected errors into a generic 500 (no internal leakage). 5xx are logged with a stack trace, 4xx at warn.
-
-## Conventions
-
-- **JSDoc:** one-line block on every export; fuller `@param`/`@returns` on repos, services, and use cases. Mirror the existing style of the same file type.
-- **Naming:** models `<Entity>` in `models/<entity>.model.ts`; ports `<Feature>Repository`; entities `…DbEntity`; adapters `…DatabaseRepository`; use cases `<verb>-<entity>.use-case.ts` → `<verb><Entity>UseCase`; tables plural snake_case.
-- **Path aliases** (`apps/backend/tsconfig.json`): `@core/*` → `./src/core/*`, `@features/*` → `./src/features/*`. Use them for cross-feature/core imports; relative paths within a feature.
-
-## Scripts (`apps/backend/package.json`)
-
-`dev` (`nest start --watch`), `build` (`nest build`), `start` / `start:prod`, `lint` (`eslint .`), `test` (`jest`), `test:e2e`.
+- [Backend business](./backend-business.md) — domain workflows and rules
+- [Frontend architecture](./frontend-architecture.md)
+- [Infrastructure architecture](./infrastructure-architecture.md)
+- [Monorepo architecture](./monorepo-architecture.md)
