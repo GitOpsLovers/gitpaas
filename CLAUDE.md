@@ -55,33 +55,6 @@ Pick the subagent by the type of task requested:
 
 The standard, complete workflow (branching strategy, conventional commits, creating pull requests, etc.) can be found in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the only reliable source of information; this section is for reference only.
 
-### Task reporting
-
-After completing each task the user requests, the orchestrator **must append a token usage report to the very end of its response**, after the normal summary of results. This applies to every task delegated to subagents. Skip it only for pure conversational replies that did no work (clarifying questions, quick explanations with no tool use).
-
-**Source the numbers from the harness-provided usage, not from a subagent's prose.** The authoritative figure for each subagent is the harness-provided usage attached to that subagent's completion result/notification — the `<usage><subagent_tokens>N</subagent_tokens></usage>` value the harness reports when the agent finishes. Use THAT number. Ignore any prose "token report" or usage claim a subagent writes in its own message body: subagents sometimes miscount or state they launched no sub-subagents (e.g. "no subagents launched, nothing to report"), and that self-report is not the source. List one row per subagent launched for the task, and include EVERY subagent regardless of its role — read-only analysis/audit agents (e.g. `architecture-analyst`), agents whose output was not committed, and agents that launched no sub-subagents of their own all still count and must each get a row. The only thing not listed is a step that launched no subagent at all. Sum every listed row into the Total, so the Total reflects the full end-to-end cost of the task.
-
-**Present it in a highly visual, easy-to-read way** using the fixed format below — a Markdown code block containing a header, one horizontal bar per subagent, and a total:
-
-```
-📊 Token Report — <short task name>
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-implementer   ███████████░░░   35,968
-tester        ██████████████   46,112
-git-manager   ████░░░░░░░░░░░   15,917
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total                          97,997
-```
-
-Rules for the report:
-
-- **Wrap it in a fenced code block** so the alignment renders cleanly in the terminal.
-- **Order rows largest-first** by `subagent_tokens`.
-- **Bar length** for each row = `round(14 × subagent_tokens / max_subagent_tokens)`, with a minimum of 1 filled `█` cell; fill the remainder of the ~14-cell bar with `░`.
-- **Numbers are right-aligned and thousands-separated.**
-- The **`Total` row** sums all listed subagents.
-- If **only one subagent ran**, still show the single row plus the total.
-
 ---
 
 ## Project information

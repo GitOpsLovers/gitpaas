@@ -1,1 +1,4 @@
 - [] Add issue templates.
+- [] Modify the agents so that git-manager only runs when changes are made to the apps, never during other tasks.
+- [] Add root turborepo.json
+- [] Add CHANGELOG to Semantic release pipeline
