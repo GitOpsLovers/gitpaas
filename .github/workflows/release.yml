@@ -35,33 +35,49 @@ jobs:
           # semantic-release needs full history + tags to determine the next version.
           fetch-depth: 0
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.1.3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26.1.0
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Run semantic-release natively. All plugins + the conventionalcommits preset are
+      # pinned in package.json (installed above), so the toolchain is deterministic —
+      # no runtime plugin resolution.
+      #
+      # Changelog wiring (from .releaserc.json): @semantic-release/release-notes-generator
+      # builds the list of changes since the previous tag (configured with the
+      # `conventionalcommits` preset for grouped, linked notes with a compare link).
+      # @semantic-release/changelog writes/updates a persistent CHANGELOG.md in the repo
+      # root from those notes, @semantic-release/github publishes the notes as the GitHub
+      # Release body, and @semantic-release/git commits the updated CHANGELOG.md back to
+      # the repo (with a `chore(release): … [skip ci]` message) — so every release both
+      # carries an auto-generated changelog and persists it in version control.
+      #
+      # The preset is PINNED to 9.3.1 in package.json: semantic-release@24 bundles
+      # release-notes-generator@14 / commit-analyzer@13, which use
+      # conventional-changelog-writer@8 (Handlebars string templates). The preset's
+      # v10 line switched to function-based templates that require writer@9, so an
+      # unpinned install (latest = v10) makes the notes writer emit an EMPTY body —
+      # only the version header, no Features/Bug Fixes sections. 9.3.1 is the version
+      # release-notes-generator@14 is tested against and renders the grouped sections.
+      #
+      # @semantic-release/exec (from .releaserc.json) runs during the `verifyRelease`
+      # step — only when a release is actually being made — and writes
+      # `new_release_version` / `new_release_published=true` to $GITHUB_OUTPUT, which
+      # surface here as `steps.semantic.outputs.*`. When no release is cut, neither
+      # output is set, so both resolve to empty and the `publish` gate stays false.
       - name: Run semantic-release
         id: semantic
-        # cycjimmy/semantic-release-action natively exposes `new_release_published`
-        # and `new_release_version` as step outputs, and installs semantic-release +
-        # its plugins in CI without touching the repo dependencies. semantic-release
-        # is pinned to its v24 major line; extra plugins are passed ad-hoc.
-        #
-        # Changelog wiring: @semantic-release/release-notes-generator builds the list
-        # of changes since the previous tag (configured with the `conventionalcommits`
-        # preset in .releaserc.json for grouped, linked notes with a compare link).
-        # @semantic-release/changelog then writes/updates a persistent CHANGELOG.md in
-        # the repo root from those notes, @semantic-release/github publishes the notes as
-        # the GitHub Release body, and @semantic-release/git commits the updated
-        # CHANGELOG.md back to the repo (with a `chore(release): … [skip ci]` message) —
-        # so every release both carries an auto-generated changelog and persists it in
-        # version control. The `conventionalcommits` preset package is installed here
-        # alongside the plugins.
-        uses: cycjimmy/semantic-release-action@v6.0.0
-        with:
-          semantic_version: 24
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/changelog
-            @semantic-release/github
-            @semantic-release/git
-            conventional-changelog-conventionalcommits
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

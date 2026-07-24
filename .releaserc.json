@@ -14,6 +14,12 @@
       }
     ],
     [
+      "@semantic-release/exec",
+      {
+        "verifyReleaseCmd": "echo \"new_release_version=${nextRelease.version}\" >> \"$GITHUB_OUTPUT\"\necho \"new_release_published=true\" >> \"$GITHUB_OUTPUT\""
+      }
+    ],
+    [
       "@semantic-release/changelog",
       {
         "changelogFile": "CHANGELOG.md"
