@@ -44,17 +44,23 @@ jobs:
         #
         # Changelog wiring: @semantic-release/release-notes-generator builds the list
         # of changes since the previous tag (configured with the `conventionalcommits`
-        # preset in .releaserc.json for grouped, linked notes with a compare link), and
-        # @semantic-release/github publishes those notes as the GitHub Release body — so
-        # every release carries an auto-generated changelog. The `conventionalcommits`
-        # preset package is installed here alongside the plugins.
+        # preset in .releaserc.json for grouped, linked notes with a compare link).
+        # @semantic-release/changelog then writes/updates a persistent CHANGELOG.md in
+        # the repo root from those notes, @semantic-release/github publishes the notes as
+        # the GitHub Release body, and @semantic-release/git commits the updated
+        # CHANGELOG.md back to the repo (with a `chore(release): … [skip ci]` message) —
+        # so every release both carries an auto-generated changelog and persists it in
+        # version control. The `conventionalcommits` preset package is installed here
+        # alongside the plugins.
         uses: cycjimmy/semantic-release-action@v6.0.0
         with:
           semantic_version: 24
           extra_plugins: |
             @semantic-release/commit-analyzer
             @semantic-release/release-notes-generator
+            @semantic-release/changelog
             @semantic-release/github
+            @semantic-release/git
             conventional-changelog-conventionalcommits
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
