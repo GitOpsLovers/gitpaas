@@ -1,6 +1,6 @@
 # Frontend architecture
 
-Architectural principles of `apps/frontend`: an Angular SPA, styled with Tailwind CSS, that consumes the backend REST API. For the step-by-step procedure to build or change a feature use the `frontend-feature` skill.
+This document details the architecture of the frontend application (`apps/frontend`), an Angular SPA styled with Tailwind CSS,
 
 ## Overview
 

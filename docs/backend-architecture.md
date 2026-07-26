@@ -84,11 +84,11 @@ If any element needs to be used in other features (for example, repositories for
 
 Some behaviours apply to the whole application, so they are configured once at the root rather than repeated on every endpoint.
 
-- **Authentication** — A global JWT guard protects every route by default, so a request is authenticated unless it is explicitly marked otherwise. The `@Public()` decorator opts a route out.
-- **Rate limiting** — Two named throttlers are read from the environment: `default` applies globally, and `stream` covers long-lived SSE connections. Individual endpoints tune this locally; for example, login restricts itself with `@Throttle` (5 requests per 60 seconds), while the log stream skips the `default` throttler with `@SkipThrottle` and applies `@Throttle` on `stream` instead.
-- **Security headers** — `helmet()` sets secure HTTP headers at bootstrap.
-- **Environment validation** — A `class-validator` schema validates every variable when the application boots and fails fast on anything missing or malformed. There are no silent fallbacks.
-- **Error envelope** — A global exception filter returns a consistent shape, `{ statusCode, message, error, timestamp, path }`. It preserves the message arrays produced by the `ValidationPipe` and collapses unexpected errors into a generic 500. Server errors (5xx) log a full stack trace; client errors (4xx) log at warn level.
+- **Authentication**: a global JWT guard protects every route by default, so a request is authenticated unless it is explicitly marked otherwise. The `@Public()` decorator opts a route out.
+- **Rate limiting**: two named throttlers are read from the environment: `default` applies globally, and `stream` covers long-lived SSE connections. Individual endpoints tune this locally; for example, login restricts itself with `@Throttle` (5 requests per 60 seconds), while the log stream skips the `default` throttler with `@SkipThrottle` and applies `@Throttle` on `stream` instead.
+- **Security headers**: `helmet()` sets secure HTTP headers at bootstrap.
+- **Environment validation**: a `class-validator` schema validates every variable when the application boots and fails fast on anything missing or malformed.
+- **Error envelope**: a global exception filter returns a consistent shape, `{ statusCode, message, error, timestamp, path }`. It preserves the message arrays produced by the `ValidationPipe` and collapses unexpected errors into a generic 500. Server errors (5xx) log a full stack trace; client errors (4xx) log at warn level.
 
 ## Conventions
 
