@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 
-import { toNetwork } from '../docker-networks.transformer';
+import { toNetwork } from '../networks-docker.transformer';
 
 describe('toNetwork', () => {
     it('maps every network field and converts the ISO created timestamp to a Date', () => {

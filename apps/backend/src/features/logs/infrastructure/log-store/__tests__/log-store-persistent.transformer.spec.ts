@@ -1,4 +1,4 @@
-import { toLogRows } from '../persistent-log-store.transformer';
+import { toLogRows } from '../log-store-persistent.transformer';
 
 describe('toLogRows', () => {
     it('produces one line row per captured line followed by a terminal end row', () => {

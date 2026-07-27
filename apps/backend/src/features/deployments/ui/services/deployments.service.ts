@@ -13,7 +13,7 @@ import { DatabaseDeploymentQueue } from '../../infrastructure/database/database-
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 
 import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';

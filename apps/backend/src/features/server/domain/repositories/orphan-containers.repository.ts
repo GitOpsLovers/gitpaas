@@ -9,6 +9,8 @@ export interface OrphanContainersRepository {
      * known set.
      *
      * @param knownProjects Compose project names of the services that still exist
+     *
+     * @returns Number of orphaned containers removed and their friendly names
      */
     removeOrphaned: (knownProjects: string[]) => Promise<OrphanRemovalResult>;
 }

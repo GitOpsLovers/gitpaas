@@ -14,7 +14,7 @@ import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/
 import { DeploymentsService } from '../deployments.service';
 
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 

@@ -10,7 +10,7 @@ import { DockerodeDockerExecutor } from '../../../infrastructure/docker/dockerod
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 
 jest.mock('../../../application/run-deployment.use-case');

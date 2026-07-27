@@ -9,11 +9,11 @@ import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { Service } from '../../../domain/models/service.models';
 import { ServicesDatabaseRepository } from '../../../infrastructure/database/services-db.repository';
-import { DockerServiceFootprintRepository } from '../../../infrastructure/docker/docker-service-footprint.repository';
+import { DockerServiceFootprintRepository } from '../../../infrastructure/docker/service-footprint-docker.repository';
 import { ServicesService } from '../services.service';
 
 import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 
 jest.mock('../../../application/create-service.use-case');
 jest.mock('../../../application/delete-service.use-case');

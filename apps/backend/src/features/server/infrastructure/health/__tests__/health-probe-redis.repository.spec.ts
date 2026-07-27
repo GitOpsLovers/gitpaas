@@ -1,4 +1,4 @@
-import { RedisHealthProbe } from '../redis-health-probe.repository';
+import { RedisHealthProbe } from '../health-probe-redis.repository';
 
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 

@@ -12,7 +12,7 @@ import { DockerodeDockerExecutor } from '../../infrastructure/docker/dockerode-d
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/persistent-log-store.repository';
+import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
 

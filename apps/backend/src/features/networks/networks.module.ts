@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { DockerNetworksRepository } from './infrastructure/docker/docker-networks.repository';
+import { DockerNetworksRepository } from './infrastructure/docker/networks-docker.repository';
 import { NetworksController } from './ui/controllers/networks.controller';
 import { NetworksService } from './ui/services/networks.service';
 

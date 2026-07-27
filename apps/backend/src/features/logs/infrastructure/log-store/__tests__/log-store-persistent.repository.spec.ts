@@ -1,8 +1,8 @@
 import { of } from 'rxjs';
 
 import { LogsDatabaseRepository } from '../../database/logs-db.repository';
-import { RedisLogStoreRepository } from '../../redis/redis-log-store.repository';
-import { PersistentLogStoreRepository } from '../persistent-log-store.repository';
+import { RedisLogStoreRepository } from '../../redis/log-store-redis.repository';
+import { PersistentLogStoreRepository } from '../log-store-persistent.repository';
 
 describe('PersistentLogStoreRepository', () => {
     const streamId = '9c858901-8a57-4791-81fe-4c455b099bc9';

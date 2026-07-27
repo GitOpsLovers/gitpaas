@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 import { firstValueFrom, toArray } from 'rxjs';
 
 import { LogEvent } from '../../../domain/models/log-event.models';
-import { RedisLogStoreRepository } from '../redis-log-store.repository';
+import { RedisLogStoreRepository } from '../log-store-redis.repository';
 
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 

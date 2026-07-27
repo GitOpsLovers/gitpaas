@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
 import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
 
-import { StoredEvent, toLogEvent } from './redis-log-store.transformer';
+import { StoredEvent, toLogEvent } from './log-store-redis.transformer';
 
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
@@ -46,6 +46,8 @@ export class RedisLogStoreRepository implements LogStoreRepository {
      * on the terminal `end` event.
      *
      * @param streamId Stream identifier
+     *
+     * @returns Cold observable of the stream's log events
      */
     public stream(streamId: string): Observable<LogEvent> {
         const channel = this.channelKey(streamId);
@@ -158,6 +160,10 @@ export class RedisLogStoreRepository implements LogStoreRepository {
 
     /**
      * Redis key for a log stream's buffer list.
+     *
+     * @param streamId Stream identifier
+     *
+     * @returns Redis list key
      */
     private listKey(streamId: string): string {
         return `logs:${streamId}`;
@@ -165,6 +171,10 @@ export class RedisLogStoreRepository implements LogStoreRepository {
 
     /**
      * Redis key for a log stream's sequence counter.
+     *
+     * @param streamId Stream identifier
+     *
+     * @returns Redis sequence-counter key
      */
     private seqKey(streamId: string): string {
         return `logs:${streamId}:seq`;
@@ -172,6 +182,10 @@ export class RedisLogStoreRepository implements LogStoreRepository {
 
     /**
      * Redis pub/sub channel for a log stream's live log events.
+     *
+     * @param streamId Stream identifier
+     *
+     * @returns Redis pub/sub channel name
      */
     private channelKey(streamId: string): string {
         return `logs:${streamId}:events`;

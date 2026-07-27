@@ -11,7 +11,7 @@ import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
 import { LogEvent } from '../../domain/models/log-event.models';
 import { Log } from '../../domain/models/log.models';
 import { LogsDatabaseRepository } from '../../infrastructure/database/logs-db.repository';
-import { RedisLogStoreRepository } from '../../infrastructure/redis/redis-log-store.repository';
+import { RedisLogStoreRepository } from '../../infrastructure/redis/log-store-redis.repository';
 
 /**
  * Logs service

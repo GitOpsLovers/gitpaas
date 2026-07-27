@@ -1,4 +1,4 @@
-import { StoredEvent, toLogEvent } from '../redis-log-store.transformer';
+import { StoredEvent, toLogEvent } from '../log-store-redis.transformer';
 
 describe('toLogEvent', () => {
     it('maps a stored "line" event to a domain line event, dropping the seq', () => {

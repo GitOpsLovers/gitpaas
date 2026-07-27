@@ -4,7 +4,7 @@ The core domain workflows of `apps/backend`, in plain terms. For the architectur
 
 ## Domain model
 
-A **project** groups **services**. A service is a deployable unit that references a Git repository, a compose file path, and a deployment branch. A **deployment** is a single attempt to bring a service's Docker Compose stack up on the VPS. A **user** is an operator who authenticates to use the API.
+A **project** groups **services**. A service is a deployable unit that references a Git repository, a compose file path, and a deployment branch. A **deployment** is a single attempt to bring a service's Docker Compose stack up on the server. A **user** is an operator who authenticates to use the API.
 
 ## Access & authentication
 

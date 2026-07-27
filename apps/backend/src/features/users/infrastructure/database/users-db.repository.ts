@@ -19,6 +19,13 @@ export class UsersDatabaseRepository implements UsersRepository {
         private readonly repository: Repository<UserDbEntity>,
     ) {}
 
+    /**
+     * Finds a single user by email
+     *
+     * @param email User email
+     *
+     * @returns User, or `null` when it does not exist
+     */
     public async findByEmail(email: string): Promise<User | null> {
         const user = await this.repository.findOneBy({ email });
 
@@ -29,6 +36,13 @@ export class UsersDatabaseRepository implements UsersRepository {
         return toUser(user);
     }
 
+    /**
+     * Finds a single user by id
+     *
+     * @param id User id
+     *
+     * @returns User, or `null` when it does not exist
+     */
     public async findById(id: string): Promise<User | null> {
         const user = await this.repository.findOneBy({ id });
 
@@ -39,6 +53,13 @@ export class UsersDatabaseRepository implements UsersRepository {
         return toUser(user);
     }
 
+    /**
+     * Creates a user
+     *
+     * @param input User data (with an already-hashed password)
+     *
+     * @returns Created user
+     */
     public async create(input: CreateUserDto): Promise<User> {
         const user = this.repository.create(input);
         const saved = await this.repository.save(user);

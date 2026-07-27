@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { DockerContainersRepository } from './infrastructure/docker/docker-containers.repository';
+import { DockerContainersRepository } from './infrastructure/docker/containers-docker.repository';
 import { ContainersController } from './ui/controllers/containers.controller';
 import { ContainersService } from './ui/services/containers.service';
 

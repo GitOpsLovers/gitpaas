@@ -1,7 +1,7 @@
 import type Docker from 'dockerode';
 
 import { Service } from '../../../domain/models/service.models';
-import { DockerServiceFootprintRepository } from '../docker-service-footprint.repository';
+import { DockerServiceFootprintRepository } from '../service-footprint-docker.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';

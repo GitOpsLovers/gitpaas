@@ -8,11 +8,11 @@ import { removeOrphanedContainersUseCase } from '../../../application/remove-orp
 import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.models';
 import { PruneResult } from '../../../domain/models/prune-result.models';
 import { ReadinessResult } from '../../../domain/models/readiness-result.models';
-import { DockerOrphanContainersRepository } from '../../../infrastructure/docker/docker-orphan-containers.repository';
-import { DockerServerPrunerRepository } from '../../../infrastructure/docker/docker-server-pruner.repository';
-import { DockerHealthProbe } from '../../../infrastructure/health/docker-health-probe.repository';
-import { PostgresHealthProbe } from '../../../infrastructure/health/postgres-health-probe.repository';
-import { RedisHealthProbe } from '../../../infrastructure/health/redis-health-probe.repository';
+import { DockerOrphanContainersRepository } from '../../../infrastructure/docker/orphan-containers-docker.repository';
+import { DockerServerPrunerRepository } from '../../../infrastructure/docker/server-pruner-docker.repository';
+import { DockerHealthProbe } from '../../../infrastructure/health/health-probe-docker.repository';
+import { PostgresHealthProbe } from '../../../infrastructure/health/health-probe-postgres.repository';
+import { RedisHealthProbe } from '../../../infrastructure/health/health-probe-redis.repository';
 import { ServerService } from '../server.service';
 
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';

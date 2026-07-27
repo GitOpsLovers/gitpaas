@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { LogDbEntity } from './infrastructure/database/log-db.entity';
 import { LogsDatabaseRepository } from './infrastructure/database/logs-db.repository';
-import { PersistentLogStoreRepository } from './infrastructure/log-store/persistent-log-store.repository';
-import { RedisLogStoreRepository } from './infrastructure/redis/redis-log-store.repository';
+import { PersistentLogStoreRepository } from './infrastructure/log-store/log-store-persistent.repository';
+import { RedisLogStoreRepository } from './infrastructure/redis/log-store-redis.repository';
 import { LogsController } from './ui/controllers/logs.controller';
 import { LogsService } from './ui/services/logs.service';
 

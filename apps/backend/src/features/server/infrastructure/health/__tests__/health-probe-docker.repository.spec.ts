@@ -1,6 +1,6 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 
-import { DockerHealthProbe } from '../docker-health-probe.repository';
+import { DockerHealthProbe } from '../health-probe-docker.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 

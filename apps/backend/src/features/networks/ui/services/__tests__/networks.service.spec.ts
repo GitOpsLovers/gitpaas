@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { getNetworksByServiceUseCase } from '../../../application/get-networks-by-service.use-case';
 import { Network } from '../../../domain/models/network.models';
-import { DockerNetworksRepository } from '../../../infrastructure/docker/docker-networks.repository';
+import { DockerNetworksRepository } from '../../../infrastructure/docker/networks-docker.repository';
 import { NetworksService } from '../networks.service';
 
 import { Service } from '@features/services/domain/models/service.models';

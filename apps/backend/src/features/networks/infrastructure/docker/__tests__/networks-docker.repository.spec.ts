@@ -1,7 +1,7 @@
 import type Docker from 'dockerode';
 
 import { Network } from '../../../domain/models/network.models';
-import { DockerNetworksRepository } from '../docker-networks.repository';
+import { DockerNetworksRepository } from '../networks-docker.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 import { Service } from '@features/services/domain/models/service.models';

@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 
-import { toContainer } from '../docker-containers.transformer';
+import { toContainer } from '../containers-docker.transformer';
 
 /**
  * Builds a Dockerode container summary fixture, overriding only fields under test.

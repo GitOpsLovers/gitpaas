@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ServiceDbEntity } from './infrastructure/database/service-db.entity';
 import { ServicesDatabaseRepository } from './infrastructure/database/services-db.repository';
-import { DockerServiceFootprintRepository } from './infrastructure/docker/docker-service-footprint.repository';
+import { DockerServiceFootprintRepository } from './infrastructure/docker/service-footprint-docker.repository';
 import { ServicesController } from './ui/controllers/services.controller';
 import { ServicesService } from './ui/services/services.service';
 

@@ -135,6 +135,7 @@ All files that make up the backend must follow a naming convention. They are as 
 
 - **Models**: `<name>.models.ts` where `name` is always in kebab-case.
 - **Ports**: `<name>.port.ts` where `name` is always in kebab-case.
+- **Repositories**: for domain layer use `<name>.repository.ts` where `name` is always in kebab-case. For the infrastructure layer, the name must be `<name>-<technology>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository.
 
 ### Imports
 
@@ -146,6 +147,7 @@ Every class, function, or interface must have a JSDoc comment block defined. The
 
 - **Models**: a line that concisely describes what that model is for.
 - **Ports**: a line that concisely describes what that port is for. Each method in the port must contain its own JSDoc block with a line describing the method's purpose. If it accepts parameters, they must be referenced using `@param parameterName Purpose`. If the method returns data, it must be referenced using `@returns Returned data`.
+- **Repositories**: a line that concisely describes what that repository is for. Each method in the repository must contain its own JSDoc block with a line describing the method's purpose. If it accepts parameters, they must be referenced using `@param parameterName Purpose`. If the method returns data, it must be referenced using `@returns Returned data`.
 
 ## Key flows
 

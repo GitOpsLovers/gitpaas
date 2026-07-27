@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
 import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
 import { LogsDatabaseRepository } from '../database/logs-db.repository';
-import { RedisLogStoreRepository } from '../redis/redis-log-store.repository';
+import { RedisLogStoreRepository } from '../redis/log-store-redis.repository';
 
-import { toLogRows } from './persistent-log-store.transformer';
+import { toLogRows } from './log-store-persistent.transformer';
 
 /**
  * Persistent log store repository.
@@ -61,6 +61,8 @@ export class PersistentLogStoreRepository implements LogStoreRepository {
      * terminal `end` event.
      *
      * @param streamId Stream identifier
+     *
+     * @returns Cold observable of the stream's log events
      */
     public stream(streamId: string): Observable<LogEvent> {
         return this.logStore.stream(streamId);
@@ -83,6 +85,8 @@ export class PersistentLogStoreRepository implements LogStoreRepository {
      * Returns the mutable line buffer for a stream, creating it on first use.
      *
      * @param streamId Stream identifier
+     *
+     * @returns Mutable buffer of captured lines for the stream
      */
     private buffer(streamId: string): string[] {
         let lines = this.buffers.get(streamId);

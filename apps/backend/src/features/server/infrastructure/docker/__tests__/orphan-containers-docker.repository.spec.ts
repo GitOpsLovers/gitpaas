@@ -1,7 +1,7 @@
 /* eslint-disable no-secrets/no-secrets */
 import type Docker from 'dockerode';
 
-import { DockerOrphanContainersRepository } from '../docker-orphan-containers.repository';
+import { DockerOrphanContainersRepository } from '../orphan-containers-docker.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';

@@ -24,12 +24,24 @@ export class GithubAppProvider implements ProvidersRepository {
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
 
+    /**
+     * List every repository the installation can access
+     *
+     * @returns A list of repositories
+     */
     public async listRepositories(): Promise<GitRepository[]> {
         const repositories = await this.getClient().paginate('GET /installation/repositories');
 
         return repositories.map(toGitRepository);
     }
 
+    /**
+     * List the branches of a repository
+     *
+     * @param repositoryId Repository identifier
+     *
+     * @returns A list of branches
+     */
     public async listBranches(repositoryId: number): Promise<GitBranch[]> {
         const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
             id: repositoryId,
@@ -45,6 +57,14 @@ export class GithubAppProvider implements ProvidersRepository {
         return branches.map(toGitBranch);
     }
 
+    /**
+     * Resolve a ref (branch, tag or commit) to its head commit
+     *
+     * @param repositoryId Repository identifier
+     * @param ref Branch, tag or commit to resolve
+     *
+     * @returns The resolved commit, with its SHA and message
+     */
     public async getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
         const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
             id: repositoryId,
@@ -61,6 +81,15 @@ export class GithubAppProvider implements ProvidersRepository {
         return toGitCommit(commit);
     }
 
+    /**
+     * Read the UTF-8 content of a file in a repository at a given ref
+     *
+     * @param repositoryId Repository identifier
+     * @param path Path to the file within the repository
+     * @param ref Branch, tag or commit to read the file from
+     *
+     * @returns The file content
+     */
     public async getFileContent(repositoryId: number, path: string, ref: string): Promise<string> {
         const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
             id: repositoryId,
@@ -84,6 +113,14 @@ export class GithubAppProvider implements ProvidersRepository {
         return Buffer.from(data.content, 'base64').toString('utf8');
     }
 
+    /**
+     * Download a repository's source as a gzipped tarball at a given ref
+     *
+     * @param repositoryId Repository identifier
+     * @param ref Branch, tag or commit to download
+     *
+     * @returns The gzipped tarball bytes
+     */
     public async getRepositoryArchive(repositoryId: number, ref: string): Promise<Buffer> {
         const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
             id: repositoryId,
@@ -103,6 +140,8 @@ export class GithubAppProvider implements ProvidersRepository {
 
     /**
      * Lazily-created, reused Octokit client authenticated as the installation.
+     *
+     * @returns Octokit client authenticated as the GitHub App installation
      */
     private getClient(): Octokit {
         this.client ??= this.createClient();
@@ -110,6 +149,12 @@ export class GithubAppProvider implements ProvidersRepository {
         return this.client;
     }
 
+    /**
+     * Builds an Octokit client authenticated as the GitHub App installation from
+     * the configured credentials.
+     *
+     * @returns Freshly created Octokit client
+     */
     private createClient(): Octokit {
         const appId = this.config.get<string>('GITHUB_APP_ID');
         const privateKey = this.config.get<string>('GITHUB_APP_PRIVATE_KEY');

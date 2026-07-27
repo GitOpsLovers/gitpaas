@@ -20,6 +20,11 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         private readonly repository: Repository<ProjectDbEntity>,
     ) {}
 
+    /**
+     * Gets all projects
+     *
+     * @returns All projects
+     */
     public async getAll(): Promise<Project[]> {
         const projects = await this.repository.find({
             relations: { services: true },
@@ -29,6 +34,13 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         return projects.map(toProject);
     }
 
+    /**
+     * Gets a single project by id
+     *
+     * @param id Project id
+     *
+     * @returns Project, or `null` when it does not exist
+     */
     public async findById(id: string): Promise<Project | null> {
         const project = await this.repository.findOne({
             where: { id },
@@ -42,12 +54,27 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         return toProject(project);
     }
 
+    /**
+     * Creates a project
+     *
+     * @param createDto Project data
+     *
+     * @returns Created project
+     */
     public create(createDto: CreateProjectDto): Promise<Project> {
         const project = this.repository.create(createDto);
 
         return this.repository.save(project);
     }
 
+    /**
+     * Updates a project
+     *
+     * @param id Project id
+     * @param updateDto Project data
+     *
+     * @returns Updated project, or `null` when it does not exist
+     */
     public async update(id: string, updateDto: UpdateProjectDto): Promise<Project | null> {
         const project = await this.repository.findOneBy({ id });
 
@@ -60,6 +87,13 @@ export class ProjectsDatabaseRepository implements ProjectsRepository {
         return this.repository.save(project);
     }
 
+    /**
+     * Deletes a project
+     *
+     * @param id Project id
+     *
+     * @returns `true` when a row was deleted, `false` otherwise
+     */
     public async delete(id: string): Promise<boolean> {
         const result = await this.repository.delete(id);
 

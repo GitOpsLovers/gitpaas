@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 
-import { PostgresHealthProbe } from '../postgres-health-probe.repository';
+import { PostgresHealthProbe } from '../health-probe-postgres.repository';
 
 describe('PostgresHealthProbe', () => {
     let query: jest.Mock;

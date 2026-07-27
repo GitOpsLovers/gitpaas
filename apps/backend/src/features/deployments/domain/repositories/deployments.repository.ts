@@ -28,6 +28,8 @@ export interface DeploymentsRepository {
      * Create a new deployment record in the `pending` state
      *
      * @param createDto Data for creating the deployment
+     *
+     * @returns Created deployment
      */
     create: (createDto: CreateDeploymentDto) => Promise<Deployment>;
 
@@ -36,6 +38,8 @@ export interface DeploymentsRepository {
      *
      * @param id Deployment identifier
      * @param updateDto New status (and failure message, when the status is `failed`)
+     *
+     * @returns Updated deployment, or `null` when it does not exist
      */
     update: (id: string, updateDto: UpdateDeploymentDto) => Promise<Deployment | null>;
 

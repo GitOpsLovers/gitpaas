@@ -8,6 +8,8 @@ import { Service } from '../models/service.models';
 export interface ServicesRepository {
     /**
      * Get every service across all projects
+     *
+     * @returns List of every service
      */
     getAll: () => Promise<Service[]>;
 
@@ -15,6 +17,8 @@ export interface ServicesRepository {
      * Get every service belonging to a project
      *
      * @param projectId Project identifier
+     *
+     * @returns List of services for the project
      */
     getAllByProject: (projectId: string) => Promise<Service[]>;
 
@@ -22,6 +26,8 @@ export interface ServicesRepository {
      * Find a single service by its identifier
      *
      * @param id Service identifier
+     *
+     * @returns Service, or `null` when it does not exist
      */
     findById: (id: string) => Promise<Service | null>;
 
@@ -29,6 +35,8 @@ export interface ServicesRepository {
      * Create a new service
      *
      * @param createDto Data for creating the service
+     *
+     * @returns Created service
      */
     create: (createDto: CreateServiceDto) => Promise<Service>;
 
@@ -37,6 +45,8 @@ export interface ServicesRepository {
      *
      * @param id Service identifier
      * @param updateDto Data for updating the service
+     *
+     * @returns Updated service, or `null` when it does not exist
      */
     update: (id: string, updateDto: UpdateServiceDto) => Promise<Service | null>;
 
@@ -44,6 +54,8 @@ export interface ServicesRepository {
      * Delete a service
      *
      * @param id Service identifier
+     *
+     * @returns `true` when a row was deleted, `false` otherwise
      */
     delete: (id: string) => Promise<boolean>;
 }

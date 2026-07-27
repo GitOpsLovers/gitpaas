@@ -1,4 +1,4 @@
-import { toPruneResult } from '../docker-server-pruner.transformer';
+import { toPruneResult } from '../server-pruner-docker.transformer';
 
 describe('toPruneResult', () => {
     it('counts the deleted resources and passes through the reclaimed space', () => {
