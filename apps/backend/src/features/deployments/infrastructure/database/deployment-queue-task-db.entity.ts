@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import type { QueuedDeploymentTaskStatus } from '../../domain/models/queued-deployment-task.model';
+import type { QueuedDeploymentTaskStatus } from '../../domain/models/queued-deployment-task.models';
 
 /**
  * Durable deployment queue task database entity.

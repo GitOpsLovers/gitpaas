@@ -1,6 +1,6 @@
-import { Container } from '../models/container.model';
+import { Container } from '../models/container.models';
 
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 
 /**
  * Containers repository

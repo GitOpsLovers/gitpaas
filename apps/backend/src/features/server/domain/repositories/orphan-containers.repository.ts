@@ -1,4 +1,4 @@
-import { OrphanRemovalResult } from '../models/orphan-removal-result.model';
+import { OrphanRemovalResult } from '../models/orphan-removal-result.models';
 
 /**
  * Orphan containers repository

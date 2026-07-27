@@ -1,4 +1,4 @@
-import { UserRole } from '../../../domain/models/user.model';
+import { UserRole } from '../../../domain/models/user.models';
 import { UserDbEntity } from '../user-db.entity';
 import { toUser } from '../users-db.transformer';
 

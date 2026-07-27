@@ -1,4 +1,4 @@
-import { GitBranch } from '../../domain/models/git-branch.model';
+import { GitBranch } from '../../domain/models/git-branch.models';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 import { listBranchesUseCase } from '../list-branches.use-case';
 

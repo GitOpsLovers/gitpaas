@@ -2,8 +2,8 @@ import { Test } from '@nestjs/testing';
 
 import { listBranchesUseCase } from '../../../application/list-branches.use-case';
 import { listRepositoriesUseCase } from '../../../application/list-repositories.use-case';
-import { GitBranch } from '../../../domain/models/git-branch.model';
-import { GitRepository } from '../../../domain/models/git-repository.model';
+import { GitBranch } from '../../../domain/models/git-branch.models';
+import { GitRepository } from '../../../domain/models/git-repository.models';
 import { GithubAppProvider } from '../../../infrastructure/github/github-app.provider';
 import { ProvidersService } from '../providers.service';
 

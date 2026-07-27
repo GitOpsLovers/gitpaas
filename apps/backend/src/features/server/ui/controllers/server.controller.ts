@@ -1,8 +1,8 @@
 import { Controller, Get, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
-import { PruneResult } from '../../domain/models/prune-result.model';
-import { ReadinessResult } from '../../domain/models/readiness-result.model';
+import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
+import { PruneResult } from '../../domain/models/prune-result.models';
+import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import { ServerService } from '../services/server.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';

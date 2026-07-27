@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { CreateProjectDto } from '../../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
-import { Project } from '../../../domain/models/project.model';
+import { Project } from '../../../domain/models/project.models';
 import { ProjectsService } from '../../services/projects.service';
 import { ProjectsController } from '../projects.controller';
 

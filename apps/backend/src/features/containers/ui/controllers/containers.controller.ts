@@ -1,6 +1,6 @@
 import { Controller, Get, NotFoundException, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
-import { Container } from '../../domain/models/container.model';
+import { Container } from '../../domain/models/container.models';
 import { ContainersService } from '../services/containers.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';

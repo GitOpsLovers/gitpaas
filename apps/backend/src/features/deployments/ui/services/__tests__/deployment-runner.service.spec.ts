@@ -2,8 +2,8 @@ import { Test } from '@nestjs/testing';
 import { Subject } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../../application/run-deployment.use-case';
-import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.model';
-import { DeploymentQueue } from '../../../domain/queues/deployment.queue';
+import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
+import { DeploymentQueue } from '../../../domain/queues/deployment-queue.port';
 import { DatabaseDeploymentQueue } from '../../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
 import { DockerodeDockerExecutor } from '../../../infrastructure/docker/dockerode-docker.executor';

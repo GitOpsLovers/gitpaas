@@ -1,5 +1,5 @@
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
-import { LogStatus } from '../../domain/models/log-event.model';
+import { LogStatus } from '../../domain/models/log-event.models';
 
 /**
  * Turns a run's captured lines and terminal status into ordered, persistable

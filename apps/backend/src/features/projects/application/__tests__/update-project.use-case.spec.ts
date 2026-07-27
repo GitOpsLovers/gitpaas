@@ -1,5 +1,5 @@
 import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { updateProjectUseCase } from '../update-project.use-case';
 

@@ -1,4 +1,4 @@
-import { Deployment } from '../../domain/models/deployment.model';
+import { Deployment } from '../../domain/models/deployment.models';
 
 import { DeploymentDbEntity } from './deployment-db.entity';
 

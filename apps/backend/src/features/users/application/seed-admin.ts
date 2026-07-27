@@ -1,7 +1,7 @@
-import { UserRole } from '../domain/models/user.model';
+import { UserRole } from '../domain/models/user.models';
 import { UsersRepository } from '../domain/repositories/users.repository';
 
-import { PasswordHasher } from '@core/domain/security/password-hasher';
+import { PasswordHasher } from '@core/domain/security/password-hasher.port';
 
 /**
  * Credentials for a single admin to provision.

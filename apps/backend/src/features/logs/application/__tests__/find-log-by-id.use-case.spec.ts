@@ -1,4 +1,4 @@
-import { Log } from '../../domain/models/log.model';
+import { Log } from '../../domain/models/log.models';
 import { LogsRepository } from '../../domain/repositories/logs.repository';
 import { findLogByIdUseCase } from '../find-log-by-id.use-case';
 

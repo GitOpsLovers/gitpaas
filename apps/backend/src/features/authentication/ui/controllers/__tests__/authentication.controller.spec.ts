@@ -2,11 +2,11 @@ import { Test } from '@nestjs/testing';
 
 import { LoginDto } from '../../../domain/dtos/login.dto';
 import { RefreshDto } from '../../../domain/dtos/refresh.dto';
-import { AuthTokens } from '../../../domain/models/auth-tokens.model';
+import { AuthTokens } from '../../../domain/models/auth-tokens.models';
 import { AuthenticatedUser, AuthenticationService } from '../../services/authentication.service';
 import { AuthenticationController } from '../authentication.controller';
 
-import { User, UserRole } from '@features/users/domain/models/user.model';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 
 const tokens: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'refresh.jwt.token' };
 

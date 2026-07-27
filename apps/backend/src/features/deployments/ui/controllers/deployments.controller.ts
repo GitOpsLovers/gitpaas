@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { Deployment } from '../../domain/models/deployment.model';
+import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsService } from '../services/deployments.service';
 
 /**

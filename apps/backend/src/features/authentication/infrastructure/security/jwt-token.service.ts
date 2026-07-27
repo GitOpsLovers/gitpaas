@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 
-import { AccessTokenPayload, IssuedRefreshToken, RefreshTokenPayload } from '../../domain/models/token.model';
-import { TokenService } from '../../domain/security/token-service';
+import { AccessTokenPayload, IssuedRefreshToken, RefreshTokenPayload } from '../../domain/models/token.models';
+import { TokenService } from '../../domain/security/token-service.port';
 
 /**
  * `@nestjs/jwt`-backed implementation of the {@link TokenService} port.

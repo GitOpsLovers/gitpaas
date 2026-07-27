@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
-import { GitBranch } from '../../../domain/models/git-branch.model';
-import { GitRepository } from '../../../domain/models/git-repository.model';
+import { GitBranch } from '../../../domain/models/git-branch.models';
+import { GitRepository } from '../../../domain/models/git-repository.models';
 import { ProvidersService } from '../../services/providers.service';
 import { ProvidersController } from '../providers.controller';
 

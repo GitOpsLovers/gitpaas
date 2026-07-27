@@ -1,6 +1,6 @@
 import { IsIn, IsOptional, IsString } from 'class-validator';
 
-import type { DeploymentStatus } from '../models/deployment.model';
+import type { DeploymentStatus } from '../models/deployment.models';
 
 /**
  * Allowed deployment statuses, used to validate the update DTO.

@@ -4,14 +4,14 @@ import { Throttle } from '@nestjs/throttler';
 
 import { LoginDto } from '../../domain/dtos/login.dto';
 import { RefreshDto } from '../../domain/dtos/refresh.dto';
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
+import { AuthTokens } from '../../domain/models/auth-tokens.models';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthenticationService } from '../services/authentication.service';
 import type { AuthenticatedUser } from '../services/authentication.service';
 
-import type { User } from '@features/users/domain/models/user.model';
+import type { User } from '@features/users/domain/models/user.models';
 
 /**
  * Authentication controller

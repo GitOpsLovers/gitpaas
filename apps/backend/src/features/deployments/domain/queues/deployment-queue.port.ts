@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 
-import { DeploymentRunTask } from '../models/deployment-run-task.model';
-import { QueuedDeploymentTask } from '../models/queued-deployment-task.model';
+import { DeploymentRunTask } from '../models/deployment-run-task.models';
+import { QueuedDeploymentTask } from '../models/queued-deployment-task.models';
 
 /**
  * Maximum number of processing attempts before a queued task is dead-lettered

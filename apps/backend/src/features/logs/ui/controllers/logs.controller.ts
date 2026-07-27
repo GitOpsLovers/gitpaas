@@ -7,7 +7,7 @@ import { map, Observable } from 'rxjs';
 
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
-import { Log } from '../../domain/models/log.model';
+import { Log } from '../../domain/models/log.models';
 import { LogsService } from '../services/logs.service';
 
 /**

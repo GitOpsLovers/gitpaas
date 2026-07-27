@@ -2,11 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { getContainersByServiceUseCase } from '../../../application/get-containers-by-service.use-case';
-import { Container } from '../../../domain/models/container.model';
+import { Container } from '../../../domain/models/container.models';
 import { DockerContainersRepository } from '../../../infrastructure/docker/docker-containers.repository';
 import { ContainersService } from '../containers.service';
 
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
 jest.mock('../../../application/get-containers-by-service.use-case');

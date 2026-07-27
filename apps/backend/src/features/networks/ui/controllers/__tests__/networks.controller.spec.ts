@@ -1,7 +1,7 @@
 import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { Network } from '../../../domain/models/network.model';
+import { Network } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
 import { NetworksController } from '../networks.controller';
 

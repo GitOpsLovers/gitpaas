@@ -1,4 +1,4 @@
-import { LogStatus } from './log-event.model';
+import { LogStatus } from './log-event.models';
 
 /**
  * Kind of a persisted log row.
@@ -11,7 +11,7 @@ export type LogType = 'line' | 'end';
 /**
  * A single persisted entry of a deployment's log stream.
  *
- * Rows faithfully mirror the live {@link import('./log-event.model').LogEvent}
+ * Rows faithfully mirror the live {@link import('./log-event.models').LogEvent}
  * stream: each captured line becomes a `line` row and the stream's terminal
  * status becomes a final `end` row, ordered by `seq`.
  */

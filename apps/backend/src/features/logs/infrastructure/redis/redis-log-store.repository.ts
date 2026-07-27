@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
-import { LogEvent, LogStatus } from '../../domain/models/log-event.model';
+import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
 import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
 
 import { StoredEvent, toLogEvent } from './redis-log-store.transformer';

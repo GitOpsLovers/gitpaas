@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
-import { Service } from '../../../domain/models/service.model';
+import { Service } from '../../../domain/models/service.models';
 import { ServicesService } from '../../services/services.service';
 import { ServicesController } from '../services.controller';
 

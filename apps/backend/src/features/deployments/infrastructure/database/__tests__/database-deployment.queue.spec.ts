@@ -1,9 +1,9 @@
 import { firstValueFrom } from 'rxjs';
 import { In, Repository } from 'typeorm';
 
-import { DeploymentRunTask } from '../../../domain/models/deployment-run-task.model';
-import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.model';
-import { MAX_ATTEMPTS } from '../../../domain/queues/deployment.queue';
+import { DeploymentRunTask } from '../../../domain/models/deployment-run-task.models';
+import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
+import { MAX_ATTEMPTS } from '../../../domain/queues/deployment-queue.port';
 import { DeploymentsRepository } from '../../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueue } from '../database-deployment.queue';
 import { DeploymentQueueTaskDbEntity } from '../deployment-queue-task-db.entity';

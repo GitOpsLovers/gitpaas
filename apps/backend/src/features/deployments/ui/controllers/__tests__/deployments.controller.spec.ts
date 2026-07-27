@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
-import { Deployment } from '../../../domain/models/deployment.model';
+import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
 

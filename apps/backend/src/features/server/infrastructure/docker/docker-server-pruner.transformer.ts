@@ -1,4 +1,4 @@
-import { PruneResult } from '../../domain/models/prune-result.model';
+import { PruneResult } from '../../domain/models/prune-result.models';
 
 /**
  * Normalizes a Docker prune response into the domain model, counting the

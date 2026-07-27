@@ -7,7 +7,7 @@ import { getAllProjectsUseCase } from '../../application/get-all-projects.use-ca
 import { updateProjectUseCase } from '../../application/update-project.use-case';
 import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 import { ProjectsDatabaseRepository } from '../../infrastructure/database/projects-db.repository';
 
 /**

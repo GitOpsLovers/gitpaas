@@ -1,9 +1,9 @@
-import { IssuedRefreshToken } from '../../domain/models/token.model';
+import { IssuedRefreshToken } from '../../domain/models/token.models';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
-import { TokenService } from '../../domain/security/token-service';
+import { TokenService } from '../../domain/security/token-service.port';
 import { loginUseCase } from '../login.use-case';
 
-import { User, UserRole } from '@features/users/domain/models/user.model';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',

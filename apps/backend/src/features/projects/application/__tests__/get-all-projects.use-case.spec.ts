@@ -1,4 +1,4 @@
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { getAllProjectsUseCase } from '../get-all-projects.use-case';
 

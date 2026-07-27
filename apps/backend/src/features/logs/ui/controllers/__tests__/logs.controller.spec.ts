@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 import { EMPTY, firstValueFrom, of, toArray } from 'rxjs';
 
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
-import { LogEvent } from '../../../domain/models/log-event.model';
-import { Log } from '../../../domain/models/log.model';
+import { LogEvent } from '../../../domain/models/log-event.models';
+import { Log } from '../../../domain/models/log.models';
 import { LogsService } from '../../services/logs.service';
 import { LogsController } from '../logs.controller';
 

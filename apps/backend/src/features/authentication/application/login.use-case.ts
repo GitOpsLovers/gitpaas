@@ -1,10 +1,10 @@
-import { AuthTokens } from '../domain/models/auth-tokens.model';
+import { AuthTokens } from '../domain/models/auth-tokens.models';
 import { RefreshTokensRepository } from '../domain/repositories/refresh-tokens.repository';
-import { TokenService } from '../domain/security/token-service';
+import { TokenService } from '../domain/security/token-service.port';
 
 import { issueTokensUseCase } from './issue-tokens.use-case';
 
-import { User } from '@features/users/domain/models/user.model';
+import { User } from '@features/users/domain/models/user.models';
 
 /**
  * Use case that completes a login for an already-validated user by issuing and

@@ -1,4 +1,4 @@
-import { DeploymentRunTask } from './deployment-run-task.model';
+import { DeploymentRunTask } from './deployment-run-task.models';
 
 /**
  * Lifecycle status of a persisted deployment queue row.

@@ -1,5 +1,5 @@
 import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
-import { Service } from '../../domain/models/service.model';
+import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { createServiceUseCase } from '../create-service.use-case';
 

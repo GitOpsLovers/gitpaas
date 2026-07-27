@@ -1,4 +1,4 @@
-import { DockerExecutor } from '../domain/executors/docker.executor';
+import { DockerExecutor } from '../domain/executors/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';

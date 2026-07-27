@@ -1,6 +1,6 @@
 import type Docker from 'dockerode';
 
-import { PruneResult } from '../../../domain/models/prune-result.model';
+import { PruneResult } from '../../../domain/models/prune-result.models';
 import { DockerServerPrunerRepository } from '../docker-server-pruner.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';

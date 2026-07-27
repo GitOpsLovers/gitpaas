@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
-import { Container } from '../../domain/models/container.model';
+import { Container } from '../../domain/models/container.models';
 import { ContainersRepository } from '../../domain/repositories/containers.repository';
 
 import { toContainer } from './docker-containers.transformer';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 
 /**
  * Compose label Docker stamps on every container it groups under a service's stack.

@@ -6,8 +6,8 @@ import { findDeploymentByIdUseCase } from '../../application/find-deployment-by-
 import { getDeploymentsByServiceUseCase } from '../../application/get-deployments-by-service.use-case';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
-import { Deployment } from '../../domain/models/deployment.model';
-import type { DeploymentQueue } from '../../domain/queues/deployment.queue';
+import { Deployment } from '../../domain/models/deployment.models';
+import type { DeploymentQueue } from '../../domain/queues/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueue } from '../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { CreateDeploymentDto } from '../../domain/dtos/create-deployment.dto';
 import { UpdateDeploymentDto } from '../../domain/dtos/update-deployment.dto';
-import { Deployment, DeploymentStatus } from '../../domain/models/deployment.model';
+import { Deployment, DeploymentStatus } from '../../domain/models/deployment.models';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
 import { DeploymentDbEntity } from './deployment-db.entity';

@@ -1,4 +1,4 @@
-import { User } from '../../domain/models/user.model';
+import { User } from '../../domain/models/user.models';
 
 import { UserDbEntity } from './user-db.entity';
 

@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 
 import { validateJwtUserUseCase } from '../../../application/validate-jwt-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
-import { AccessTokenPayload } from '../../../domain/models/token.model';
+import { AccessTokenPayload } from '../../../domain/models/token.models';
 import { JwtStrategy } from '../jwt.strategy';
 
-import { User, UserRole } from '@features/users/domain/models/user.model';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 jest.mock('../../../application/validate-jwt-user.use-case');

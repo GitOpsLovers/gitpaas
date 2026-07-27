@@ -1,4 +1,4 @@
-import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.model';
+import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
 
 import { DeploymentQueueTaskDbEntity } from './deployment-queue-task-db.entity';
 

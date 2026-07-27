@@ -1,5 +1,5 @@
 /* eslint-disable no-secrets/no-secrets */
-import { Deployment } from '../../domain/models/deployment.model';
+import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { findDeploymentByIdUseCase } from '../find-deployment-by-id.use-case';
 

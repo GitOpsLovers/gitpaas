@@ -5,9 +5,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { validateJwtUserUseCase } from '../../application/validate-jwt-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
-import { AccessTokenPayload } from '../../domain/models/token.model';
+import { AccessTokenPayload } from '../../domain/models/token.models';
 
-import { User } from '@features/users/domain/models/user.model';
+import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
 

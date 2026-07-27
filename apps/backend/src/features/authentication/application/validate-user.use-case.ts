@@ -1,7 +1,7 @@
 import { InvalidCredentialsError, UserInactiveError } from '../domain/errors/authentication.errors';
 
-import { PasswordHasher } from '@core/domain/security/password-hasher';
-import { User } from '@features/users/domain/models/user.model';
+import { PasswordHasher } from '@core/domain/security/password-hasher.port';
+import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 /**

@@ -1,10 +1,10 @@
-import { UserRole } from '../../domain/models/user.model';
+import { UserRole } from '../../domain/models/user.models';
 import { UsersRepository } from '../../domain/repositories/users.repository';
 import { seedAdminUseCase } from '../seed-admin';
 
-import { PasswordHasher } from '@core/domain/security/password-hasher';
+import { PasswordHasher } from '@core/domain/security/password-hasher.port';
 
-import { User } from '@features/users/domain/models/user.model';
+import { User } from '@features/users/domain/models/user.models';
 
 /**
  * Direct unit tests for the application-layer {@link seedAdminUseCase} — the

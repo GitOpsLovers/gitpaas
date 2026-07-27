@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
-import { Network } from '../../domain/models/network.model';
+import { Network } from '../../domain/models/network.models';
 import { NetworksRepository } from '../../domain/repositories/networks.repository';
 
 import { toNetwork } from './docker-networks.transformer';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 
 /**
  * Compose label Docker stamps on every network it groups under a service's stack.

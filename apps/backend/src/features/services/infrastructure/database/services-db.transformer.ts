@@ -1,4 +1,4 @@
-import { Service } from '../../domain/models/service.model';
+import { Service } from '../../domain/models/service.models';
 
 import { ServiceDbEntity } from './service-db.entity';
 

@@ -8,8 +8,8 @@ import { getLogsByDeploymentUseCase } from '../../application/get-logs-by-deploy
 import { updateLogUseCase } from '../../application/update-log.use-case';
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
-import { LogEvent } from '../../domain/models/log-event.model';
-import { Log } from '../../domain/models/log.model';
+import { LogEvent } from '../../domain/models/log-event.models';
+import { Log } from '../../domain/models/log.models';
 import { LogsDatabaseRepository } from '../../infrastructure/database/logs-db.repository';
 import { RedisLogStoreRepository } from '../../infrastructure/redis/redis-log-store.repository';
 

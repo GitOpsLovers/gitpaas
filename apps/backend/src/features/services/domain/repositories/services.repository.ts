@@ -1,6 +1,6 @@
 import { CreateServiceDto } from '../dtos/create-service.dto';
 import { UpdateServiceDto } from '../dtos/update-service.dto';
-import { Service } from '../models/service.model';
+import { Service } from '../models/service.models';
 
 /**
  * Services repository

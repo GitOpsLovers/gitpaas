@@ -1,4 +1,4 @@
-import { Deployment } from '../../domain/models/deployment.model';
+import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { getDeploymentsByServiceUseCase } from '../get-deployments-by-service.use-case';
 

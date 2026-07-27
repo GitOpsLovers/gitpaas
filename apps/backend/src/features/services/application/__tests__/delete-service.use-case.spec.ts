@@ -1,9 +1,9 @@
-import { Service } from '../../domain/models/service.model';
+import { Service } from '../../domain/models/service.models';
 import { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { deleteServiceUseCase } from '../delete-service.use-case';
 
-import { Deployment } from '@features/deployments/domain/models/deployment.model';
+import { Deployment } from '@features/deployments/domain/models/deployment.models';
 import { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
 

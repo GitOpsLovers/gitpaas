@@ -1,6 +1,6 @@
-import { RefreshTokenPayload } from '../domain/models/token.model';
+import { RefreshTokenPayload } from '../domain/models/token.models';
 import { RefreshTokensRepository } from '../domain/repositories/refresh-tokens.repository';
-import { TokenService } from '../domain/security/token-service';
+import { TokenService } from '../domain/security/token-service.port';
 
 /**
  * Use case that logs a client out by revoking the presented refresh token's

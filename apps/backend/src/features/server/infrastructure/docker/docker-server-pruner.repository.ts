@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { PruneResult } from '../../domain/models/prune-result.model';
+import { PruneResult } from '../../domain/models/prune-result.models';
 import { ServerPrunerRepository } from '../../domain/repositories/server-pruner.repository';
 
 import { toPruneResult } from './docker-server-pruner.transformer';

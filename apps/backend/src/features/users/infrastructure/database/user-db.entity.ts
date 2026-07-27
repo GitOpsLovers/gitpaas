@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { UserRole } from '../../domain/models/user.model';
+import { UserRole } from '../../domain/models/user.models';
 
 /**
  * Users database entity

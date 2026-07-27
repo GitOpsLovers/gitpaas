@@ -1,6 +1,6 @@
 import { CreateProjectDto } from '../dtos/create-project.dto';
 import { UpdateProjectDto } from '../dtos/update-project.dto';
-import { Project } from '../models/project.model';
+import { Project } from '../models/project.models';
 
 /**
  * Projects repository

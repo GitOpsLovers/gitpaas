@@ -1,8 +1,8 @@
-import { AuthTokens } from '../domain/models/auth-tokens.model';
+import { AuthTokens } from '../domain/models/auth-tokens.models';
 import { RefreshTokensRepository } from '../domain/repositories/refresh-tokens.repository';
-import { TokenService } from '../domain/security/token-service';
+import { TokenService } from '../domain/security/token-service.port';
 
-import { User } from '@features/users/domain/models/user.model';
+import { User } from '@features/users/domain/models/user.models';
 
 /**
  * Use case that mints a fresh access + refresh token pair for a user and

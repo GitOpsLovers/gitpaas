@@ -1,8 +1,8 @@
-import { Container } from '../../domain/models/container.model';
+import { Container } from '../../domain/models/container.models';
 import { ContainersRepository } from '../../domain/repositories/containers.repository';
 import { getContainersByServiceUseCase } from '../get-containers-by-service.use-case';
 
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 
 describe('getContainersByServiceUseCase', () => {
     const service: Service = {

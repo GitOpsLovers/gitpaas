@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 
-import { PasswordHasher } from '../../domain/security/password-hasher';
+import { PasswordHasher } from '../../domain/security/password-hasher.port';
 
 /**
  * argon2id-backed implementation of the {@link PasswordHasher} port.

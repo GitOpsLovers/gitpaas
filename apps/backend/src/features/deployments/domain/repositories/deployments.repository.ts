@@ -1,6 +1,6 @@
 import { CreateDeploymentDto } from '../dtos/create-deployment.dto';
 import { UpdateDeploymentDto } from '../dtos/update-deployment.dto';
-import { Deployment } from '../models/deployment.model';
+import { Deployment } from '../models/deployment.models';
 
 /**
  * Deployments repository

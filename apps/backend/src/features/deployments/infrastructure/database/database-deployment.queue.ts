@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Observable, Subject } from 'rxjs';
 import { In, Repository } from 'typeorm';
 
-import { DeploymentRunTask } from '../../domain/models/deployment-run-task.model';
-import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.model';
-import { DeploymentQueue, MAX_ATTEMPTS } from '../../domain/queues/deployment.queue';
+import { DeploymentRunTask } from '../../domain/models/deployment-run-task.models';
+import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
+import { DeploymentQueue, MAX_ATTEMPTS } from '../../domain/queues/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
 import { DeploymentQueueTaskDbEntity } from './deployment-queue-task-db.entity';

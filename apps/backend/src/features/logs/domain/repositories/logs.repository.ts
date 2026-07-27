@@ -1,6 +1,6 @@
 import { CreateLogDto } from '../dtos/create-log.dto';
 import { UpdateLogDto } from '../dtos/update-log.dto';
-import { Log } from '../models/log.model';
+import { Log } from '../models/log.models';
 
 /**
  * Logs repository

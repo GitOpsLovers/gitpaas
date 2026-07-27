@@ -1,4 +1,4 @@
-import { Log } from '../../domain/models/log.model';
+import { Log } from '../../domain/models/log.models';
 
 import { LogDbEntity } from './log-db.entity';
 

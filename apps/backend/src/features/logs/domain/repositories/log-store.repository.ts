@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-import { LogEvent, LogStatus } from '../models/log-event.model';
+import { LogEvent, LogStatus } from '../models/log-event.models';
 
 /**
  * Store for real-time log streams.

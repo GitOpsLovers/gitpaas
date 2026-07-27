@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 
-import { Network } from '../../domain/models/network.model';
+import { Network } from '../../domain/models/network.models';
 
 /**
  * Narrows a Dockerode network summary into the domain model.

@@ -1,6 +1,6 @@
 import { Controller, Get, NotFoundException, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
-import { Network } from '../../domain/models/network.model';
+import { Network } from '../../domain/models/network.models';
 import { NetworksService } from '../services/networks.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';

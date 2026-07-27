@@ -1,4 +1,4 @@
-import { GitRepository } from '../domain/models/git-repository.model';
+import { GitRepository } from '../domain/models/git-repository.models';
 import { ProvidersRepository } from '../domain/repositories/providers.repository';
 
 /**

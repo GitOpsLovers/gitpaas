@@ -1,7 +1,7 @@
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { validateJwtUserUseCase } from '../validate-jwt-user.use-case';
 
-import { User, UserRole } from '@features/users/domain/models/user.model';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 const user: User = {

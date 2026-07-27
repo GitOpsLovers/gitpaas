@@ -1,7 +1,7 @@
-import { RefreshToken } from '../../domain/models/refresh-token.model';
-import { RefreshTokenPayload } from '../../domain/models/token.model';
+import { RefreshToken } from '../../domain/models/refresh-token.models';
+import { RefreshTokenPayload } from '../../domain/models/token.models';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
-import { TokenService } from '../../domain/security/token-service';
+import { TokenService } from '../../domain/security/token-service.port';
 import { logoutUseCase } from '../logout.use-case';
 
 const RAW_TOKEN = 'presented.refresh.token';

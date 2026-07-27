@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { getNetworksByServiceUseCase } from '../../application/get-networks-by-service.use-case';
-import { Network } from '../../domain/models/network.model';
+import { Network } from '../../domain/models/network.models';
 import type { NetworksRepository } from '../../domain/repositories/networks.repository';
 import { DockerNetworksRepository } from '../../infrastructure/docker/docker-networks.repository';
 

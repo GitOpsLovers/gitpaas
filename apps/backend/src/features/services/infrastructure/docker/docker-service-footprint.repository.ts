@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { Service } from '../../domain/models/service.model';
+import { Service } from '../../domain/models/service.models';
 import { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';

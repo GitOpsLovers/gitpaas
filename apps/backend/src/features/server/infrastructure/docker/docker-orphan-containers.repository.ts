@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
+import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
 import { OrphanContainersRepository } from '../../domain/repositories/orphan-containers.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';

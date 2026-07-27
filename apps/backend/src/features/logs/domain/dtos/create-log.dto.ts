@@ -1,7 +1,7 @@
 import { IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
-import type { LogStatus } from '../models/log-event.model';
-import type { LogType } from '../models/log.model';
+import type { LogStatus } from '../models/log-event.models';
+import type { LogType } from '../models/log.models';
 
 /**
  * Allowed log entry types, used to validate the create DTO.

@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import type { DeploymentStatus } from '../../domain/models/deployment.model';
+import type { DeploymentStatus } from '../../domain/models/deployment.models';
 
 import { ServiceDbEntity } from '@features/services/infrastructure/database/service-db.entity';
 

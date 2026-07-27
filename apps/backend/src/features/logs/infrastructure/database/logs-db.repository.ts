@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
-import { Log } from '../../domain/models/log.model';
+import { Log } from '../../domain/models/log.models';
 import { LogsRepository } from '../../domain/repositories/logs.repository';
 
 import { LogDbEntity } from './log-db.entity';

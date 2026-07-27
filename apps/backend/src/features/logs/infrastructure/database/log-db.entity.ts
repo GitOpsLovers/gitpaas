@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import type { LogStatus } from '../../domain/models/log-event.model';
-import type { LogType } from '../../domain/models/log.model';
+import type { LogStatus } from '../../domain/models/log-event.models';
+import type { LogType } from '../../domain/models/log.models';
 
 import { DeploymentDbEntity } from '@features/deployments/infrastructure/database/deployment-db.entity';
 

@@ -1,4 +1,4 @@
-import { Service } from '../models/service.model';
+import { Service } from '../models/service.models';
 
 /**
  * Port for tearing down a service's runtime footprint.

@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { getContainersByServiceUseCase } from '../../application/get-containers-by-service.use-case';
-import { Container } from '../../domain/models/container.model';
+import { Container } from '../../domain/models/container.models';
 import type { ContainersRepository } from '../../domain/repositories/containers.repository';
 import { DockerContainersRepository } from '../../infrastructure/docker/docker-containers.repository';
 

@@ -1,5 +1,5 @@
 import { CreateRefreshTokenDto } from '../dtos/create-refresh-token.dto';
-import { RefreshToken } from '../models/refresh-token.model';
+import { RefreshToken } from '../models/refresh-token.models';
 
 /**
  * Refresh tokens repository

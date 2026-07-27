@@ -1,4 +1,4 @@
-import { UserRole } from '@features/users/domain/models/user.model';
+import { UserRole } from '@features/users/domain/models/user.models';
 
 /**
  * Claims carried by a signed access token.

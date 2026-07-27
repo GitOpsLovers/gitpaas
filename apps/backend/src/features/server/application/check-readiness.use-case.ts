@@ -1,4 +1,4 @@
-import { DependencyStatus, ReadinessResult } from '../domain/models/readiness-result.model';
+import { DependencyStatus, ReadinessResult } from '../domain/models/readiness-result.models';
 import { HealthProbe } from '../domain/repositories/health-probe.repository';
 
 /**

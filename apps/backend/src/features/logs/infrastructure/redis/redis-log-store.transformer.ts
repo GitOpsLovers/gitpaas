@@ -1,4 +1,4 @@
-import { LogEvent } from '../../domain/models/log-event.model';
+import { LogEvent } from '../../domain/models/log-event.models';
 
 /** A stored/published event carries a monotonic sequence used to dedupe replay vs. live. */
 export type StoredEvent = { seq: number } & LogEvent;

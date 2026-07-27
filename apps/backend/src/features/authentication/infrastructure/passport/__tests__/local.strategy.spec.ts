@@ -4,8 +4,8 @@ import { validateUserUseCase } from '../../../application/validate-user.use-case
 import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
 import { LocalStrategy } from '../local.strategy';
 
-import { PasswordHasher } from '@core/domain/security/password-hasher';
-import { User, UserRole } from '@features/users/domain/models/user.model';
+import { PasswordHasher } from '@core/domain/security/password-hasher.port';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 jest.mock('../../../application/validate-user.use-case');

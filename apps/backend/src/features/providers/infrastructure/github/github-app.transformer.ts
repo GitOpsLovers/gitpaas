@@ -1,6 +1,6 @@
-import { GitBranch } from '../../domain/models/git-branch.model';
-import { GitCommit } from '../../domain/models/git-commit.model';
-import { GitRepository } from '../../domain/models/git-repository.model';
+import { GitBranch } from '../../domain/models/git-branch.models';
+import { GitCommit } from '../../domain/models/git-commit.models';
+import { GitRepository } from '../../domain/models/git-repository.models';
 
 /**
  * Maps a GitHub repository payload into the domain model.

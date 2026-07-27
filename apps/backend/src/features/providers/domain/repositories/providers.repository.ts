@@ -1,6 +1,6 @@
-import { GitBranch } from '../models/git-branch.model';
-import { GitCommit } from '../models/git-commit.model';
-import { GitRepository } from '../models/git-repository.model';
+import { GitBranch } from '../models/git-branch.models';
+import { GitCommit } from '../models/git-commit.models';
+import { GitRepository } from '../models/git-repository.models';
 
 /**
  * Providers repository

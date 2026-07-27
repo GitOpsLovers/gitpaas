@@ -2,11 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { getNetworksByServiceUseCase } from '../../../application/get-networks-by-service.use-case';
-import { Network } from '../../../domain/models/network.model';
+import { Network } from '../../../domain/models/network.models';
 import { DockerNetworksRepository } from '../../../infrastructure/docker/docker-networks.repository';
 import { NetworksService } from '../networks.service';
 
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
 jest.mock('../../../application/get-networks-by-service.use-case');

@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 
-import { Container } from '../../domain/models/container.model';
+import { Container } from '../../domain/models/container.models';
 
 /**
  * Narrows a Dockerode container summary into the domain model.

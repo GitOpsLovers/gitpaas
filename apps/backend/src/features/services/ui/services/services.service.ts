@@ -7,7 +7,7 @@ import { getServicesByProjectUseCase } from '../../application/get-services-by-p
 import { updateServiceUseCase } from '../../application/update-service.use-case';
 import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
-import { Service } from '../../domain/models/service.model';
+import { Service } from '../../domain/models/service.models';
 import type { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
 import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
 import { DockerServiceFootprintRepository } from '../../infrastructure/docker/docker-service-footprint.repository';

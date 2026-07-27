@@ -1,4 +1,4 @@
-import { PruneResult } from '../domain/models/prune-result.model';
+import { PruneResult } from '../domain/models/prune-result.models';
 import { ServerPrunerRepository } from '../domain/repositories/server-pruner.repository';
 
 /**

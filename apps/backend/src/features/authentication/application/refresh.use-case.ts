@@ -1,8 +1,8 @@
 import { InvalidRefreshTokenError, UserInactiveError } from '../domain/errors/authentication.errors';
-import { AuthTokens } from '../domain/models/auth-tokens.model';
-import { RefreshTokenPayload } from '../domain/models/token.model';
+import { AuthTokens } from '../domain/models/auth-tokens.models';
+import { RefreshTokenPayload } from '../domain/models/token.models';
 import { RefreshTokensRepository } from '../domain/repositories/refresh-tokens.repository';
-import { TokenService } from '../domain/security/token-service';
+import { TokenService } from '../domain/security/token-service.port';
 
 import { issueTokensUseCase } from './issue-tokens.use-case';
 

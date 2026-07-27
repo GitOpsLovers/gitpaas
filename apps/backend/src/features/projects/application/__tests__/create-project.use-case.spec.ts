@@ -1,5 +1,5 @@
 import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { createProjectUseCase } from '../create-project.use-case';
 

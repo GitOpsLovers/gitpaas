@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 
 import { CreateUserDto } from '../../../domain/dtos/create-user.dto';
-import { User, UserRole } from '../../../domain/models/user.model';
+import { User, UserRole } from '../../../domain/models/user.models';
 import { UserDbEntity } from '../user-db.entity';
 import { UsersDatabaseRepository } from '../users-db.repository';
 

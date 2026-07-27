@@ -1,4 +1,4 @@
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 
 import { ProjectDbEntity } from './project-db.entity';
 

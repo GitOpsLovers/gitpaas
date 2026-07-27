@@ -5,9 +5,9 @@ import { pruneContainersUseCase } from '../../application/prune-containers.use-c
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
-import { PruneResult } from '../../domain/models/prune-result.model';
-import { ReadinessResult } from '../../domain/models/readiness-result.model';
+import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
+import { PruneResult } from '../../domain/models/prune-result.models';
+import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import type { HealthProbe } from '../../domain/repositories/health-probe.repository';
 import type { OrphanContainersRepository } from '../../domain/repositories/orphan-containers.repository';
 import { DockerOrphanContainersRepository } from '../../infrastructure/docker/docker-orphan-containers.repository';

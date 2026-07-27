@@ -1,10 +1,10 @@
 import type Docker from 'dockerode';
 
-import { Network } from '../../../domain/models/network.model';
+import { Network } from '../../../domain/models/network.models';
 import { DockerNetworksRepository } from '../docker-networks.repository';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 
 /**
  * Builds a Dockerode network summary, overriding only the fields under test.

@@ -4,13 +4,13 @@ import { loginUseCase } from '../../application/login.use-case';
 import { logoutUseCase } from '../../application/logout.use-case';
 import { refreshUseCase } from '../../application/refresh.use-case';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../domain/errors/authentication.errors';
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
+import { AuthTokens } from '../../domain/models/auth-tokens.models';
 import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
-import type { TokenService } from '../../domain/security/token-service';
+import type { TokenService } from '../../domain/security/token-service.port';
 import { RefreshTokensDatabaseRepository } from '../../infrastructure/database/refresh-tokens-db.repository';
 import { JwtTokenService } from '../../infrastructure/security/jwt-token.service';
 
-import { User } from '@features/users/domain/models/user.model';
+import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
 

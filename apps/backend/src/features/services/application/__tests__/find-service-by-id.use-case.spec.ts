@@ -1,4 +1,4 @@
-import { Service } from '../../domain/models/service.model';
+import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { findServiceByIdUseCase } from '../find-service-by-id.use-case';
 

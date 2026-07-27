@@ -1,5 +1,5 @@
 /* eslint-disable no-secrets/no-secrets */
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { findProjectByIdUseCase } from '../find-project-by-id.use-case';
 

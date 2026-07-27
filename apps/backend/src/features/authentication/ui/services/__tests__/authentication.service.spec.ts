@@ -5,12 +5,12 @@ import { loginUseCase } from '../../../application/login.use-case';
 import { logoutUseCase } from '../../../application/logout.use-case';
 import { refreshUseCase } from '../../../application/refresh.use-case';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
-import { AuthTokens } from '../../../domain/models/auth-tokens.model';
+import { AuthTokens } from '../../../domain/models/auth-tokens.models';
 import { RefreshTokensDatabaseRepository } from '../../../infrastructure/database/refresh-tokens-db.repository';
 import { JwtTokenService } from '../../../infrastructure/security/jwt-token.service';
 import { AuthenticationService } from '../authentication.service';
 
-import { User, UserRole } from '@features/users/domain/models/user.model';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
 
 jest.mock('../../../application/login.use-case');

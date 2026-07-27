@@ -1,9 +1,9 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.model';
-import { PruneResult } from '../../../domain/models/prune-result.model';
-import { ReadinessResult } from '../../../domain/models/readiness-result.model';
+import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.models';
+import { PruneResult } from '../../../domain/models/prune-result.models';
+import { ReadinessResult } from '../../../domain/models/readiness-result.models';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 

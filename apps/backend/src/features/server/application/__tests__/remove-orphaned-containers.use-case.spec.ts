@@ -1,7 +1,7 @@
 import { OrphanContainersRepository } from '../../domain/repositories/orphan-containers.repository';
 import { removeOrphanedContainersUseCase } from '../remove-orphaned-containers.use-case';
 
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
 /**

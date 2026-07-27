@@ -1,4 +1,4 @@
-import { RefreshToken } from '../../domain/models/refresh-token.model';
+import { RefreshToken } from '../../domain/models/refresh-token.models';
 
 import { RefreshTokenDbEntity } from './refresh-token-db.entity';
 

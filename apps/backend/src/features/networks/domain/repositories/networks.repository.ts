@@ -1,6 +1,6 @@
-import { Network } from '../models/network.model';
+import { Network } from '../models/network.models';
 
-import { Service } from '@features/services/domain/models/service.model';
+import { Service } from '@features/services/domain/models/service.models';
 
 /**
  * Networks repository

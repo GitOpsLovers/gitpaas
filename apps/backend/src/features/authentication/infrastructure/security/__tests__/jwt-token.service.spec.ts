@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 
-import { AccessTokenPayload } from '../../../domain/models/token.model';
+import { AccessTokenPayload } from '../../../domain/models/token.models';
 import { JwtTokenService } from '../jwt-token.service';
 
-import { UserRole } from '@features/users/domain/models/user.model';
+import { UserRole } from '@features/users/domain/models/user.models';
 
 const REFRESH_SECRET = 'refresh-secret';
 const REFRESH_EXPIRES_IN = '7d';

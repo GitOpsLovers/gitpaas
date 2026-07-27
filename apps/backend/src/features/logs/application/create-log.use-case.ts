@@ -1,5 +1,5 @@
 import { CreateLogDto } from '../domain/dtos/create-log.dto';
-import { Log } from '../domain/models/log.model';
+import { Log } from '../domain/models/log.models';
 import { LogsRepository } from '../domain/repositories/logs.repository';
 
 /**

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateRefreshTokenDto } from '../../domain/dtos/create-refresh-token.dto';
-import { RefreshToken } from '../../domain/models/refresh-token.model';
+import { RefreshToken } from '../../domain/models/refresh-token.models';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 
 import { RefreshTokenDbEntity } from './refresh-token-db.entity';

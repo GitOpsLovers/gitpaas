@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
-import { Project } from '../../domain/models/project.model';
+import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 
 import { ProjectDbEntity } from './project-db.entity';

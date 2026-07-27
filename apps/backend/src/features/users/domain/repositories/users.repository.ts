@@ -1,5 +1,5 @@
 import { CreateUserDto } from '../dtos/create-user.dto';
-import { User } from '../models/user.model';
+import { User } from '../models/user.models';
 
 /**
  * Users repository

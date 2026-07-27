@@ -2,9 +2,9 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { Subscription, concatMap, from, groupBy, mergeMap } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
-import type { DockerExecutor } from '../../domain/executors/docker.executor';
-import type { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.model';
-import type { DeploymentQueue } from '../../domain/queues/deployment.queue';
+import type { DockerExecutor } from '../../domain/executors/docker-executor.port';
+import type { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
+import type { DeploymentQueue } from '../../domain/queues/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueue } from '../../infrastructure/database/database-deployment.queue';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';

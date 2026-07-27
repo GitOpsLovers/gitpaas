@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { SeedAdminInput, seedAdminUseCase } from '../../application/seed-admin';
 import { UsersDatabaseRepository } from '../../infrastructure/database/users-db.repository';
 
-import type { PasswordHasher } from '@core/domain/security/password-hasher';
+import type { PasswordHasher } from '@core/domain/security/password-hasher.port';
 import { Argon2PasswordHasher } from '@core/infrastructure/security/argon2-password-hasher';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
