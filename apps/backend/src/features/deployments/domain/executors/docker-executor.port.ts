@@ -6,11 +6,11 @@
 export type DockerLogListener = (line: string) => void;
 
 /**
- * Docker executor interface
+ * Docker executor port
  */
 export interface DockerExecutor {
     /**
-     * Build (from source) and run a stack from a repository archive
+     * Build and run a stack from a repository archive
      *
      * @param archive Gzipped tarball of the repository source
      * @param composePath Path to the compose file within the repository

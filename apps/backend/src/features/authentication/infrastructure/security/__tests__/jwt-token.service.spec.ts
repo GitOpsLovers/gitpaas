@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 
-import { AccessTokenPayload } from '../../../domain/models/token.models';
+import { AccessTokenPayload } from '../../../domain/models/token-payloads.models';
 import { JwtTokenService } from '../jwt-token.service';
 
 import { UserRole } from '@features/users/domain/models/user.models';

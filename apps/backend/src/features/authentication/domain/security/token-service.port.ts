@@ -1,4 +1,4 @@
-import { AccessTokenPayload, IssuedRefreshToken, RefreshTokenPayload } from '../models/token.models';
+import { AccessTokenPayload, IssuedRefreshToken, RefreshTokenPayload } from '../models/token-payloads.models';
 
 /**
  * Token signing/verification port.

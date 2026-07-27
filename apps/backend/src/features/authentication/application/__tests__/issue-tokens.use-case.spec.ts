@@ -1,4 +1,4 @@
-import { IssuedRefreshToken } from '../../domain/models/token.models';
+import { IssuedRefreshToken } from '../../domain/models/token-payloads.models';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { TokenService } from '../../domain/security/token-service.port';
 import { issueTokensUseCase } from '../issue-tokens.use-case';

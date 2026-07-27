@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { validateJwtUserUseCase } from '../../../application/validate-jwt-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
-import { AccessTokenPayload } from '../../../domain/models/token.models';
+import { AccessTokenPayload } from '../../../domain/models/token-payloads.models';
 import { JwtStrategy } from '../jwt.strategy';
 
 import { User, UserRole } from '@features/users/domain/models/user.models';

@@ -7,8 +7,7 @@ export enum UserRole {
 }
 
 /**
- * An authenticated principal of the platform. Users are provisioned by an
- * administrator (or the seed script) — there is no public sign-up.
+ * An authenticated principal of the platform.
  */
 export interface User {
     id: string;

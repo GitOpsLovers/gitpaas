@@ -1,4 +1,4 @@
-import { RefreshTokenPayload } from '../domain/models/token.models';
+import { RefreshTokenPayload } from '../domain/models/token-payloads.models';
 import { RefreshTokensRepository } from '../domain/repositories/refresh-tokens.repository';
 import { TokenService } from '../domain/security/token-service.port';
 
