@@ -2,7 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import { IsDefined, IsEnum, IsNotEmpty, IsNumber, IsString, validateSync } from 'class-validator';
 
 /**
- * Runtime environment the application boots into.
+ * Runtime environment the application boots into
  */
 enum Environment {
     Development = 'development',
@@ -11,12 +11,7 @@ enum Environment {
 }
 
 /**
- * Shape and constraints of the environment variables the backend understands.
- *
- * Every variable is mandatory: the app fails fast at boot if any is missing,
- * in all environments including development, rather than degrading to insecure
- * defaults. Validation also rejects values that are present but malformed
- * (e.g. a non-numeric port or an unknown {@link Environment}).
+ * Shape and constraints of the environment variables the backend understands
  */
 export class EnvironmentVariables {
     @IsDefined()
@@ -132,10 +127,9 @@ export class EnvironmentVariables {
 }
 
 /**
- * Validates the raw environment at boot and fails fast when a variable is
- * missing or malformed. Wired into `ConfigModule.forRoot({ validate })`.
+ * Validates the raw environment at boot
  *
- * @param config Raw environment record (typically `process.env` merged with `.env`)
+ * @param config Raw environment record
  *
  * @returns The validated, type-coerced configuration
  */

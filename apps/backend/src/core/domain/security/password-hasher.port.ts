@@ -1,5 +1,5 @@
 /**
- * Password hashing port.
+ * Password hashing port
  */
 export interface PasswordHasher {
     /**

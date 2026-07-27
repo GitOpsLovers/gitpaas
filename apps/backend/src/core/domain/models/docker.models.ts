@@ -1,6 +1,5 @@
 /**
- * Subset of the Docker daemon's `/info` payload that we consume.
- * Dockerode types `info()` as `Promise<any>`, so we narrow it here.
+ * Status of a Docker instance
  */
 export interface DockerInfo {
     ServerVersion: string;

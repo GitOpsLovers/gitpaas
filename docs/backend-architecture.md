@@ -88,7 +88,7 @@ Some behaviours apply to the whole application, so they are configured once at t
 - **Rate limiting**: two named throttlers are read from the environment: `default` applies globally, and `stream` covers long-lived SSE connections. Individual endpoints tune this locally; for example, login restricts itself with `@Throttle` (5 requests per 60 seconds), while the log stream skips the `default` throttler with `@SkipThrottle` and applies `@Throttle` on `stream` instead.
 - **Security headers**: `helmet()` sets secure HTTP headers at bootstrap.
 - **Environment validation**: a `class-validator` schema validates every variable when the application boots and fails fast on anything missing or malformed.
-- **Error envelope**: a global exception filter returns a consistent shape, `{ statusCode, message, error, timestamp, path }`. It preserves the message arrays produced by the `ValidationPipe` and collapses unexpected errors into a generic 500. Server errors (5xx) log a full stack trace; client errors (4xx) log at warn level.
+- **Error envelope**: a global exception filter returns a consistent shape. It preserves the message arrays produced by the `ValidationPipe` and collapses unexpected errors into a generic 500.
 
 ## Conventions
 
@@ -129,11 +129,23 @@ The global route prefix is `api/v1`. The listen port comes from `getOrThrow('POR
 
 The `:id` segment binds with `@Param('id', ParseUUIDPipe)`. **Not-found is an HTTP concern**: repositories return `null` and `delete()` returns a `boolean`, and it is the controller that raises `NotFoundException`. The domain never throws HTTP exceptions — it raises domain errors that the UI edge translates.
 
-### Naming and imports
+### File naming
 
-- **Naming**: models are `<Entity>` in `models/<entity>.model.ts`; ports are `<Feature>Repository`; entities end in `DbEntity`; adapters end in `DatabaseRepository`; use cases are `<verb>-<entity>.use-case.ts` exporting `<verb><Entity>UseCase`; and tables are plural snake_case.
+All files that make up the backend must follow a naming convention. They are as follows:
+
+- **Models**: `<name>.models.ts` where `name` is always in kebab-case.
+- **Ports**: `<name>.port.ts` where `name` is always in kebab-case.
+
+### Imports
+
 - **Path aliases**: defined in `tsconfig.json`, `@core/*` maps to `./src/core/*` and `@features/*` to `./src/features/*`. Use them for cross-feature and core imports, and relative paths within a feature.
-- **JSDoc**: every export carries a one-line block, with fuller `@param` and `@returns` on repositories, services, and use cases. Mirror the existing style of the same file type.
+
+### Inline comments
+
+Every class, function, or interface must have a JSDoc comment block defined. The conventions are:
+
+- **Models**: a line that concisely describes what that model is for.
+- **Ports**: a line that concisely describes what that port is for. Each method in the port must contain its own JSDoc block with a line describing the method's purpose. If it accepts parameters, they must be referenced using `@param parameterName Purpose`. If the method returns data, it must be referenced using `@returns Returned data`.
 
 ## Key flows
 
