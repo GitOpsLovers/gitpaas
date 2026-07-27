@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UserDbEntity } from './infrastructure/database/user-db.entity';
 import { UsersDatabaseRepository } from './infrastructure/database/users-db.repository';
+import { UsersService } from './ui/services/users.service';
 
 /**
  * Users feature module.
@@ -13,7 +14,7 @@ import { UsersDatabaseRepository } from './infrastructure/database/users-db.repo
  */
 @Module({
     imports: [TypeOrmModule.forFeature([UserDbEntity])],
-    providers: [UsersDatabaseRepository],
-    exports: [UsersDatabaseRepository, TypeOrmModule],
+    providers: [UsersDatabaseRepository, UsersService],
+    exports: [UsersDatabaseRepository, UsersService, TypeOrmModule],
 })
 export class UsersModule {}

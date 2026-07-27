@@ -6,6 +6,7 @@ import { validate } from './infrastructure/config/env.validation';
 import { buildDataSourceOptions } from './infrastructure/database/data-source-options';
 import { DockerClient } from './infrastructure/docker/docker.client';
 import { RedisClient } from './infrastructure/redis/redis.client';
+import { Argon2PasswordHasher } from './infrastructure/security/argon2-password-hasher';
 import { DockerController } from './ui/controllers/docker.controller';
 import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service';
 import { DockerService } from './ui/services/docker.service';
@@ -32,8 +33,8 @@ import { DockerService } from './ui/services/docker.service';
         }),
     ],
     controllers: [DockerController],
-    providers: [DockerClient, DockerService, RedisClient, DiagnosticLoggerService],
-    exports: [DockerClient, RedisClient, DiagnosticLoggerService],
+    providers: [DockerClient, DockerService, RedisClient, DiagnosticLoggerService, Argon2PasswordHasher],
+    exports: [DockerClient, RedisClient, DiagnosticLoggerService, Argon2PasswordHasher],
 })
 
 export class CoreModule {}

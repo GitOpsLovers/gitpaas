@@ -2,9 +2,9 @@ import { UnauthorizedException } from '@nestjs/common';
 
 import { validateUserUseCase } from '../../../application/validate-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
-import { PasswordHasher } from '../../../domain/security/password-hasher';
 import { LocalStrategy } from '../local.strategy';
 
+import { PasswordHasher } from '@core/domain/security/password-hasher';
 import { User, UserRole } from '@features/users/domain/models/user.model';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 

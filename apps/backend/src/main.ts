@@ -5,6 +5,8 @@ import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 
+import { UsersService } from '@features/users/ui/services/users.service';
+
 /**
  * Parses the comma-separated `CORS_ORIGIN` value into a clean origin allowlist,
  * trimming entries and dropping empties. `CORS_ORIGIN` is a required, validated
@@ -41,6 +43,11 @@ async function bootstrap() {
     );
 
     await app.listen(config.getOrThrow<number>('PORT'));
+
+    // Provide an administrative user for the application in development mode
+    if (config.get<string>('NODE_ENV') === 'development') {
+        await app.get(UsersService).seedDevelopmentAdmin();
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises

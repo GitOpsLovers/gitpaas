@@ -1,45 +1,26 @@
 # Infrastructure architecture
 
-How GitPaaS runs at the infrastructure level, in development and production. For where the platform is headed see [deployment roadmap](./deployment-roadmap.md).
+This document details the infrastructure on which the GitPaaS application runs.
 
 ## Overview
 
 The topology splits into **two planes**, and keeping them separate is the central idea of the design:
 
-- **Control plane** — GitPaaS itself: the NestJS backend (API + deploy engine), the Angular SPA served as static files by nginx, and the backend's own stores, PostgreSQL (durable state) and Redis (live log buffer + pub/sub).
-- **Workload plane** — a remote Docker host where the user's deployed applications run. The control plane never runs user workloads in its own containers; it drives a Docker daemon over the network via mTLS and brings compose stacks up there.
-
-```text
-        Operator / users (browser)
-                  │  HTTPS/HTTP
-                  ▼
-  ┌────────────────────────────────────────┐
-  │            CONTROL PLANE               │
-  │  frontend (nginx SPA) ── backend (API) │
-  │                          │  │          │
-  │                 Postgres ┘  └ Redis    │
-  └────────────────────────────────────────┘
-                  │  Docker Engine API over mTLS (tcp 2376)
-                  ▼
-  ┌────────────────────────────────────────┐
-  │            WORKLOAD PLANE              │
-  │  remote Docker daemon                  │
-  │   └─ deployed apps (compose stacks)    │
-  └────────────────────────────────────────┘
-```
+- **Control plane**: GitPaaS itself: the backend and frontend applications, a PostgreSQL for durable state and Redis for live logs buffer and pub/sub events.
+- **Workload plane**: a remote Docker host where the user's deployed applications run. The control plane never runs user workloads in its own containers; it drives a Docker daemon over the network via mTLS and brings compose stacks up there.
 
 The split holds in both environments; only where the daemon lives and how the control plane is packaged change. Development emulates the workload plane with a Docker-in-Docker container on the developer's machine; production uses a real Docker host.
 
 ## Stack
 
-| Concern             | Tool                                                      |
-|---------------------|-----------------------------------------------------------|
-| Orchestration       | Docker Compose (`iac/development/`, `iac/production/`)     |
-| Images              | Multi-stage Dockerfiles, build context = repo root         |
-| Database / cache    | `postgres:17.6-alpine`, `redis:8.8.0-alpine`               |
-| Emulated VPS (dev)  | `docker:29.6.1-dind-alpine`, privileged                    |
-| Static serving      | nginx-unprivileged                                         |
-| Release             | GitHub Actions + semantic-release, images on GHCR          |
+| Concern             | Tool                                                   |
+|---------------------|--------------------------------------------------------|
+| Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
+| Images              | Multi-stage Dockerfiles                                |
+| Database / cache    | `postgres:17.6-alpine`, `redis:8.8.0-alpine`           |
+| Emulated VPS (dev)  | `docker:29.6.1-dind-alpine`, privileged                |
+| Static serving      | nginx-unprivileged                                     |
+| Release             | GitHub Actions + semantic-release, images on GHCR      |
 
 ## Structure
 
@@ -50,7 +31,7 @@ The split holds in both environments; only where the daemon lives and how the co
 | Service        | Role                                                         | Host port |
 |----------------|--------------------------------------------------------------|-----------|
 | `vps`          | Docker-in-Docker container emulating the remote VPS           | 2376 (TLS), 8080→80 and 8443→443 reserved for a future proxy |
-| `postgres`     | Control-plane database; seeds an admin user on first init     | 5432      |
+| `postgres`     | Control-plane database | 5432      |
 | `redis`        | Live deployment-log buffer + pub/sub                          | 6379      |
 | `pgadmin`      | Optional Postgres web UI, server pre-registered               | 5050      |
 | `redisinsight` | Optional Redis web UI, server pre-connected                   | 5540      |
@@ -63,6 +44,12 @@ host: backend (pnpm dev)  ──mTLS──►  127.0.0.1:2376  ──►  DinD d
         ├─ 127.0.0.1:5432 ► postgres
         └─ 127.0.0.1:6379 ► redis
 ```
+
+#### Development admin seeding
+
+The dev Postgres container starts **empty** — it runs no SQL init scripts. On boot with `NODE_ENV=development`, TypeORM `synchronize` provisions the full schema (including the `users` table), then `apps/backend/src/main.ts` triggers the seeding after `app.listen()`: it resolves `UsersService` (`apps/backend/src/features/users/ui/services/users.service.ts`) and calls `seedDevelopmentAdmin()`, which seeds a fixed local admin (`admin@gitpaas.dev` / `gitpaas`). `main.ts` owns the trigger and the `NODE_ENV` gate; the seeding logic itself lives in `UsersService` (the composition edge that injects the concrete adapters), which delegates to the shared `seedAdminUseCase` in `apps/backend/src/features/users/application/seed-admin.ts` — the **same** code path the production installer's CLI uses — so dev and prod seed through one identical mechanism, differing only in their trigger and credentials (dev auto-seeds fixed throwaway creds on boot; prod seeds prompted-email + generated-password via the installer's one-shot CLI).
+
+The seed is idempotent — it looks the admin up by email through the `UsersRepository` port and only creates one when none exists (no raw SQL) — so it is a harmless no-op once the admin exists, and a seed failure is logged without aborting boot. To re-seed, there is no need to recreate the `postgres-data` volume: delete the existing admin row and restart the backend (or simply let the no-op stand if the row is fine).
 
 ### Production
 
@@ -99,6 +86,92 @@ Both images build from multi-stage Dockerfiles whose **build context is the repo
 | JWT               | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`   |
 
 `VPS_CERT_HOST_PATH` is consumed only by compose; every other variable except the `POSTGRES_*` pair is validated by the backend.
+
+## Installation
+
+### One-line installer
+
+A fresh VPS becomes a running GitPaaS control plane with a single command:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
+```
+
+The installer (`scripts/install.sh`) is a dependency-free POSIX `/bin/sh` script. It fails fast (`set -e`), escalates with `sudo` when not run as root, and is safe to re-run: existing certificates and `.env` are preserved, and the admin seed is idempotent. It requires `curl`, `openssl`, and `tar` on the host.
+
+#### Version selection
+
+By default the installer installs `latest`, resolved from the GitHub **latest release** tag, falling back to the newest tag, then to `main` if no releases or tags are reachable (or the API is rate-limited). Pin a specific ref with either a flag or an environment variable:
+
+```sh
+# Flag form
+curl -fsSL …/install.sh | sh -s -- --version v1.0.0
+
+# Environment form
+GITPAAS_VERSION=v1.0.0 sh -c "$(curl -fsSL …/install.sh)"
+```
+
+Because the source is fetched from GitHub's `codeload` tarball endpoint, `--version` accepts any tag **or** branch name.
+
+#### Options
+
+Every option is a flag with an environment-variable equivalent:
+
+| Flag | Environment variable | Default | Purpose |
+|---|---|---|---|
+| `--version <ref>` | `GITPAAS_VERSION` | `latest` | Tag or branch to install. |
+| `--dir <path>` | `GITPAAS_DIR` | `/opt/gitpaas` | Install directory the source is unpacked into. |
+| `--email <email>` | `GITPAAS_ADMIN_EMAIL` | *(prompted)* | First admin's email; skips the interactive prompt. |
+| `--docker-host <host>` | `GITPAAS_DOCKER_HOST` | *(empty)* | Remote Docker host (hostname or IP) to bake into the server cert SAN and into `.env`. |
+
+#### What the installer does
+
+The script runs six ordered steps:
+
+1. **Ensure Docker.** If Docker or the compose plugin is missing, it installs both via the official `get.docker.com` convenience script and enables the daemon.
+2. **Resolve version and fetch source.** It resolves the ref (see above) and downloads the repo tarball from `codeload.github.com` into the install directory. An existing install (a directory that already holds `iac/production/docker-compose.yml`) is reused rather than re-fetched.
+3. **Generate mTLS material.** It creates a CA, a `clientAuth` certificate for the control plane, and a `serverAuth` certificate for the remote Docker daemon (see [mTLS material](#mtls-material) below).
+4. **Write `.env`.** It copies `iac/production/.env.example` to `.env` and fills in secure random secrets — a shared `POSTGRES_PASSWORD`/`DB_PASSWORD`, and `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET` (32-byte hex) — sets `NODE_ENV=production`, and points `CORS_ORIGIN` at the host's own address on port `8080`. If `--docker-host` was given it also fills `VPS_DOCKER_HOST`. GitHub App credentials (and `VPS_DOCKER_HOST` when not supplied) are left as placeholders.
+5. **Bring up the stack.** It runs `docker compose … up -d --build` for the production stack (postgres, redis, the one-shot `migrate` job, backend, frontend), then polls the `gitpaas-backend` container's health until it reports `healthy` (up to ~5 minutes). A healthy backend implies migrations completed, since the backend gates on the `migrate` job.
+6. **Seed the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
+
+On success it prints a summary with the frontend/API URLs, the admin credentials, and the remaining manual follow-ups.
+
+#### mTLS material
+
+The installer generates the same mutual-TLS material the control plane uses to reach the remote Docker daemon (mirroring the dev DinD setup). Under `iac/production/` it writes:
+
+- `certs/` — the **client** side, mounted read-only into the backend (`VPS_CERT_HOST_PATH`): `ca.pem`, `cert.pem` (a `clientAuth` cert), and `key.pem`.
+- `certs-remote-docker/` — the **server** side, for the operator to install on the remote Docker host: `ca.pem`, `server-cert.pem` (a `serverAuth` cert), and `server-key.pem`.
+
+The server certificate's SAN must cover the address the control plane dials. If `--docker-host` is supplied, that host is baked into the SAN (as an `IP:` or `DNS:` entry, plus `localhost`). If it is not, the server cert only covers `localhost`, and the script warns that the operator must regenerate it with a matching SAN once the host address is known.
+
+#### Interactive admin seeding
+
+After the stack is healthy, the installer provisions the **first** administrator. If no email was passed via `--email`/`GITPAAS_ADMIN_EMAIL`, it prompts for one on the controlling terminal (`/dev/tty`, because stdin is the piped script itself). It then generates a random alphanumeric password and runs the compiled seed CLI as a one-shot in the already-built backend image:
+
+```sh
+docker compose … run --rm --no-deps \
+  -e ADMIN_EMAIL=… -e ADMIN_PASSWORD=… \
+  backend node dist/src/features/users/infrastructure/cli/seed-admin.cli.js
+```
+
+The seeding CLI adapter `apps/backend/src/features/users/infrastructure/cli/seed-admin.cli.ts` reads `ADMIN_EMAIL`/`ADMIN_PASSWORD` (both required, no fallback), boots a slim Nest context, and resolves `UsersService` to run the shared `seedAdminUseCase` in `apps/backend/src/features/users/application/seed-admin.ts` — the **same** code path the development seeding uses (see [Development admin seeding](#development-admin-seeding)). That routine hashes the password through the `PasswordHasher` port — the shared `Argon2PasswordHasher` adapter provided by the global `CoreModule` (so login verifies it byte-for-byte) — then creates the user with `role=admin` and `isActive=true` through the `UsersRepository` port. It is therefore idempotent: it finds the admin by email first and only creates one when none exists, so re-running with an existing email is a no-op and does **not** rotate the password. Because `synchronize` is disabled in production, this must run after migrations have created the `users` table — the one-shot runs on the `migrate`-gated `backend` image, so the schema is already current. The generated password is printed once in the final summary — it is never stored in readable form, so the operator must copy it immediately.
+
+#### Manual follow-ups
+
+The installer stands up a running control plane, but a working *deployment* target still needs operator input. The summary reminds the operator to, in `iac/production/.env`:
+
+- Fill in the GitHub App credentials: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64-encoded PEM), and `GITHUB_APP_INSTALLATION_ID`.
+- Set `VPS_DOCKER_HOST` (the remote Docker daemon address) — and, if it was not passed via `--docker-host`, regenerate the server certificate with a SAN matching that host.
+
+And, on the remote Docker host:
+
+- Install `certs-remote-docker/{ca,server-cert,server-key}.pem` and configure `dockerd` for mTLS on `:2376`.
+
+After editing `.env`, apply the changes with `docker compose -f <dir>/iac/production/docker-compose.yml up -d`.
+
+> **Known limitation.** The production frontend image bakes `apiBaseUrl: http://localhost:3000/api/v1` at build time, so opening the UI from a machine **other than** the VPS currently calls the wrong API host. A future frontend build-arg fix will make the API base configurable at install time.
 
 ## Key flows
 
@@ -152,15 +225,15 @@ Versioning is entirely commit-driven: `fix:` → patch, `feat:` → minor, break
 | Task                | How                                                                                          |
 |---------------------|-----------------------------------------------------------------------------------------------|
 | Start dev stack     | `docker compose up -d` from `iac/development/`, then `pnpm dev` at the repo root               |
-| Dev credentials     | A fresh `postgres-data` volume seeds `admin@gitpaas.dev` / `gitpaas` via `postgres/init/`; re-seed by recreating the volume |
+| Dev credentials     | The backend seeds `admin@gitpaas.dev` / `gitpaas` on boot (`NODE_ENV=development`) via the shared `seedAdminUseCase`; idempotent, so re-seed by deleting the admin row and restarting — no volume recreation needed. See [Development admin seeding](#development-admin-seeding) |
 | Dev schema          | Created by TypeORM `synchronize` on backend boot (dev only)                                    |
 | Start prod stack    | `cp .env.example .env`, fill it in, then `docker compose -f iac/production/docker-compose.yml up -d --build` |
+| Install on a VPS    | `curl -fsSL …/scripts/install.sh | sh` — see [Installation](#installation) |
+| Prod admin seeding  | The installer seeds the first admin; re-seed via `docker compose … run --rm --no-deps backend node dist/src/features/users/infrastructure/cli/seed-admin.cli.js` (idempotent) |
 
 ### Not covered yet
 
 - **Reverse proxy, automatic TLS, and domain routing** for deployed apps — Phase 2.
-- **A one-line installer** — a later Phase 1 slice.
-- **Production admin seeding** — the admin seed is dev-only Postgres init SQL, so the first production admin must be provisioned out-of-band until the installer lands.
 
 ## Related docs
 

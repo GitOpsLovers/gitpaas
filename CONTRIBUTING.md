@@ -4,11 +4,11 @@ Thanks for contributing to **GitPaaS**, a self-hostable PaaS for deploying perso
 
 For architecture and design context, start with the docs and come back here for the day-to-day workflow:
 
-- [Backend architecture](./docs/backend-architecture.md) — layering, modules, data flow
-- [Backend business logic](./docs/backend-business.md) — how the deploy engine behaves
-- [Frontend architecture](./docs/frontend-architecture.md) — layering, containers vs. components
-- [Infrastructure architecture](./docs/infrastructure-architecture.md) — control plane vs. workload plane, dev/prod topology, release images
-- [Deployment roadmap](./docs/deployment-roadmap.md) — where the platform is headed
+- [Backend architecture](./docs/backend-architecture.md)
+- [Backend business logic](./docs/backend-business.md)
+- [Frontend architecture](./docs/frontend-architecture.md)
+- [Infrastructure architecture](./docs/infrastructure-architecture.md)
+- [Deployment roadmap](./docs/deployment-roadmap.md)
 
 ## Prerequisites
 
@@ -46,13 +46,13 @@ The variables cover:
 
 GitPaaS deploys applications by driving a **remote Docker daemon over mTLS** (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally, the stack in `iac/development/docker-compose.yml` reproduces everything the apps depend on:
 
-- **`vps`** — a Docker-in-Docker (DinD) container that emulates the remote VPS. Its daemon listens on TLS `127.0.0.1:2376`, and everything GitPaaS deploys lives inside it.
-- **`postgres`** — the application database. On a fresh volume it seeds an initial admin user for login (`admin@gitpaas.dev` / `gitpaas`).
-- **`redis`** — buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
-- **`pgadmin`** — web UI for the local Postgres at http://127.0.0.1:5050.
-- **`redisinsight`** — web UI for the local Redis at http://127.0.0.1:5540.
+- **`vps emulator`**: a Docker-in-Docker (DinD) container that emulates the remote VPS. Its daemon listens on TLS `127.0.0.1:2376`, and everything GitPaaS deploys lives inside it.
+- **`postgres`**: the application database. It starts empty; TypeORM `synchronize` creates the schema on backend boot. TThe initial admin user (`admin@gitpaas.dev` / `gitpaas`) is seeded by the backend itself through a development-only bootstrap hook that runs after the server starts.
+- **`redis`**: buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
+- **`pgadmin`**: web UI for the local Postgres at http://127.0.0.1:5050.
+- **`redisinsight`**: web UI for the local Redis at http://127.0.0.1:5540.
 
-Bring the stack up (and wait for health) before running the apps, and manage it with Docker Compose from `iac/development/`:
+Bring the stack up before running the apps, and manage it with Docker Compose from `iac/development/`:
 
 ```bash
 cd iac/development
@@ -67,16 +67,16 @@ On first `docker compose up` the `vps` container generates TLS certificates and 
 
 ### Database schema and migrations
 
-Locally, TypeORM `synchronize` is on (dev and test), so schema changes to entities are applied automatically on backend boot — you do not need a migration just to run the app.
+In devevlopment, TypeORM `synchronize` is on, so schema changes to entities are applied automatically on backend boot.
 
-**Production**, however, runs with `synchronize` off and is managed by **versioned migrations**. So whenever you add or change an entity in a way that will ship to production, generate a migration and commit it with your change, from `apps/backend`:
+Schema changes are nonetheless shipped as **versioned migrations**. So whenever you add or change an entity, generate a migration and commit it alongside your change, from `apps/backend`:
 
 ```bash
 pnpm --filter backend migration:generate src/migrations/<DescriptiveName>   # diff entities → new migration
 pnpm --filter backend migration:revert                                      # undo the last applied migration
 ```
 
-Review the generated file before committing. (In production the compiled migrations are applied by a one-shot step via `migration:run`; see [infrastructure-architecture.md](./docs/infrastructure-architecture.md).)
+Review the generated file before committing.
 
 ## Running the apps
 
@@ -123,7 +123,7 @@ When in doubt about where something belongs, mirror the `projects` feature — i
 
 ## Commit & PR conventions
 
-This project uses **[Conventional Commits](https://www.conventionalcommits.org)**, and it is not just a style preference: **semantic-release reads your commit messages to compute the next version** (see [Release process](#release-process)). Get the type right.
+This project follows the **[Conventional Commits](https://www.conventionalcommits.org)** convention for commit messages. Keep the history clean and the type accurate.
 
 ```
 <type>(optional scope): <short summary>
@@ -133,27 +133,8 @@ This project uses **[Conventional Commits](https://www.conventionalcommits.org)*
 [optional footer, e.g. BREAKING CHANGE: ...]
 ```
 
-Common types and how they affect a release:
-
-| Commit type                                              | Example                                  | Release impact   |
-|----------------------------------------------------------|------------------------------------------|------------------|
-| `fix:`                                                   | `fix(auth): reject expired refresh token`| Patch (x.y.**z**)|
-| `feat:`                                                  | `feat(projects): add project archiving`  | Minor (x.**y**.0)|
-| any type with `!` or `BREAKING CHANGE:` footer           | `feat!: drop v0 deploy API`              | Major (**x**.0.0)|
-| `docs:`, `chore:`, `refactor:`, `test:`, `ci:`, `style:` | `docs: expand contributing guide`        | No release       |
-
 ### Branches and pull requests
 
 - Branch off `main` using a short, descriptive name (e.g. `feat/project-archiving`, `fix/refresh-token-expiry`).
 - Keep commits scoped and messages in the Conventional Commits format.
 - Open your PR **against `main`**. Ensure the affected apps' lint, type-check, and unit tests pass first.
-- Because release notes and versions are generated from commit messages, a clear, correctly-typed history directly shapes the changelog.
-
-## Release process
-
-Releases are **cut manually**, not on every merge to `main`. A maintainer triggers the `Release` GitHub Actions workflow (`workflow_dispatch`), which:
-
-1. Runs **semantic-release** to compute the next version from the Conventional Commits since the last tag, then creates the git tag and GitHub Release with generated notes.
-2. Only if a new release was published, builds and pushes multi-arch backend and frontend images to **GHCR** (`ghcr.io/gitopslovers/gitpaas-backend` and `-frontend`), tagged with the resolved version and `latest`.
-
-See [infrastructure-architecture.md](./docs/infrastructure-architecture.md) for the full image/deploy detail — this section is only a pointer.

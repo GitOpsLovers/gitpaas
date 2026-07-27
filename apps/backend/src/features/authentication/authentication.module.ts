@@ -9,7 +9,6 @@ import { RefreshTokenDbEntity } from './infrastructure/database/refresh-token-db
 import { RefreshTokensDatabaseRepository } from './infrastructure/database/refresh-tokens-db.repository';
 import { JwtStrategy } from './infrastructure/passport/jwt.strategy';
 import { LocalStrategy } from './infrastructure/passport/local.strategy';
-import { Argon2PasswordHasher } from './infrastructure/security/argon2-password-hasher';
 import { JwtTokenService } from './infrastructure/security/jwt-token.service';
 import { AuthenticationController } from './ui/controllers/authentication.controller';
 import { JwtAuthGuard } from './ui/guards/jwt-auth.guard';
@@ -42,7 +41,6 @@ import { UsersModule } from '@features/users/users.module';
     providers: [
         AuthenticationService,
         RefreshTokensDatabaseRepository,
-        Argon2PasswordHasher,
         JwtTokenService,
         JwtStrategy,
         LocalStrategy,

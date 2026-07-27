@@ -5,9 +5,9 @@ import { Strategy } from 'passport-local';
 
 import { validateUserUseCase } from '../../application/validate-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
-import type { PasswordHasher } from '../../domain/security/password-hasher';
-import { Argon2PasswordHasher } from '../security/argon2-password-hasher';
 
+import type { PasswordHasher } from '@core/domain/security/password-hasher';
+import { Argon2PasswordHasher } from '@core/infrastructure/security/argon2-password-hasher';
 import { User } from '@features/users/domain/models/user.model';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';

@@ -14,12 +14,10 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Turborepo](https://img.shields.io/badge/Turborepo-EF4444?logo=turborepo&logoColor=white)](https://turbo.build/)
-[![pnpm](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
 [![GHCR Images](https://img.shields.io/badge/images-ghcr.io-2088FF?logo=github&logoColor=white)](https://github.com/orgs/gitopslovers/packages)
-[![Conventional Commits](https://img.shields.io/badge/commits-conventional-FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-actively%20evolving-blueviolet)](./docs/deployment-roadmap.md)
 
 </div>
@@ -46,7 +44,7 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 | 🔐 | **Remote Docker over mTLS**  | The control plane drives a remote Docker daemon over mutually-authenticated TLS — the same runtime model as Coolify and Dokploy.  |
 | 🏠 | **Own your infrastructure**  | Self-hosted by design. Your code, your data, your servers — no third-party platform in between.                                   |
 | 🐙 | **GitHub App integration**   | Browse repositories and branches, resolve commits, and pull archives through a GitHub App.                                        |
-| 🛡️ | **Built-in authentication**  | JWT with Passport, refresh-token rotation, and argon2 password hashing.                                                           |
+| 🛡️ | **Built-in authentication**  | JWT with refresh-token rotation and argon2 password hashing.                                                                      |
 | 🩺 | **Operational tooling**      | Readiness probes for PostgreSQL, Redis, and Docker, plus image/volume/container pruning and read-only inspection.                 |
 
 ---
@@ -81,60 +79,42 @@ A single deployment is one self-contained unit of work — *"bring this service'
 
 ---
 
-## 🛠️ Tech stack
+## 🚀 Install
 
-GitPaaS is a **Turborepo + pnpm** monorepo with two apps under `apps/`:
-
-| Area                              | Stack                                                                    |
-|-----------------------------------|--------------------------------------------------------------------------|
-| 🧩 **Backend** (`apps/backend`)   | NestJS v11 REST API + deploy engine, hexagonal architecture, TypeORM     |
-| 🎨 **Frontend** (`apps/frontend`) | Angular v22 SPA, Tailwind CSS, Signals                                   |
-| 🗄️ **Data**                       | PostgreSQL (durable state) · Redis (live logs & pub/sub)                 |
-| 📦 **Runtime**                    | Docker (remote daemon over mTLS)                                         |
-| 🧰 **Tooling**                    | TypeScript · Turborepo · pnpm · Node 26.1.0 (pinned in `.tool-versions`) |
-
----
-
-## 🚀 Getting started
-
-> ℹ️ This is a quick developer preview. For the full contributor setup (environment variables, the emulated-VPS dev stack, and more), see **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
+Self-host GitPaaS on your own VPS with a single command.
 
 ### Prerequisites
 
-- **Node** `26.1.0` and **pnpm** `11.1.3` (see [`.tool-versions`](./.tool-versions))
-- **Docker** running on your host
+- **A Linux VPS** for the control plane, with `curl`, `openssl`, and `tar` available. **Docker** is required — the installer provisions Docker and the compose plugin for you if they're missing.
+- **A remote Docker host** where your deployed apps will run. The installer generates the mTLS certificates for it; you install the server certs there and enable Docker's TLS socket. This can be wired up after the initial install.
 
-### Install & run
+### One-line installer
+
+On a fresh VPS, install and start the whole control plane with a single command:
 
 ```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Bring up the local dev dependencies (Postgres, Redis, and an emulated VPS)
-#    from iac/development/ — see CONTRIBUTING.md for details
-
-# 3. Start the backend + frontend in dev mode (Turborepo)
-pnpm dev
+curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
 ```
 
-Handy root scripts (all powered by Turborepo):
+The installer provisions Docker if it's missing, fetches the source, generates the mTLS material, writes `iac/production/.env` with secure random secrets, brings up the production stack, runs the database migrations, and seeds your **first admin** (it prompts for an email and prints a generated password once — copy it). When it finishes it prints your URLs.
 
-| Script             | What it does                         |
-|--------------------|--------------------------------------|
-| `pnpm dev`         | Run backend + frontend in watch mode |
-| `pnpm build`       | Build every app                      |
-| `pnpm test`        | Run the test suites                  |
-| `pnpm lint`        | Lint the workspace                   |
-| `pnpm check-types` | Type-check the workspace             |
+It installs the **`latest`** release by default. Pin a specific version with `--version` (or the `GITPAAS_VERSION` env var):
 
-### 📦 Released images
-
-Tagged releases publish **public, multi-arch** (`amd64` + `arm64`) container images to the GitHub Container Registry:
-
+```bash
+# Pin a specific release
+curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh -s -- --version v1.0.0
 ```
-ghcr.io/gitopslovers/gitpaas-backend:{version|latest}
-ghcr.io/gitopslovers/gitpaas-frontend:{version|latest}
-```
+
+Key options (each flag has an environment-variable equivalent):
+
+| Flag                   | Env var               | Default        | Purpose                                                     |
+|------------------------|-----------------------|----------------|-------------------------------------------------------------|
+| `--version <ref>`      | `GITPAAS_VERSION`     | `latest`       | Release tag (or branch) to install.                         |
+| `--dir <path>`         | `GITPAAS_DIR`         | `/opt/gitpaas` | Directory the source is installed into.                     |
+| `--email <email>`      | `GITPAAS_ADMIN_EMAIL` | *(prompted)*   | First admin's email; skips the interactive prompt.          |
+| `--docker-host <host>` | `GITPAAS_DOCKER_HOST` | *(empty)*      | Remote Docker host baked into the server cert and `.env`.   |
+
+The installer is safe to re-run: existing certificates and `.env` are preserved, and the admin seed is idempotent.
 
 ---
 
@@ -150,34 +130,19 @@ ghcr.io/gitopslovers/gitpaas-frontend:{version|latest}
 
 ---
 
-## 🗺️ Roadmap
-
-GitPaaS today is a **working single-tenant deploy engine** — git → build → compose-up on a remote Docker host, with a durable queue and live logs. It's honestly **a work in progress**, actively evolving toward the full self-host PaaS vision.
-
-The phased plan (each phase unlocks the next):
-
-1. **🧱 Self-host foundation** — production images ✅ and migrations ✅ have landed; a one-line installer is still to come.
-2. **🌐 Public URLs** — a reverse proxy with automatic TLS and domain routing for deployed apps.
-3. **🔑 Env & secrets** — per-service configuration and encrypted secrets, injected at deploy time.
-4. **👥 Multi-tenancy** — ownership, attribution, and enforced RBAC.
-5. **💫 Developer experience** — push-to-deploy webhooks, build-packs, redeploy & rollback.
-
-👉 The full breakdown lives in the [Deployment Roadmap](./docs/deployment-roadmap.md).
-
 ---
 
 ## 🤝 Contributing
 
 Contributions are warmly welcome! 🎉 Whether it's a bug fix, a doc tweak, or a whole new feature, we'd love your help pushing GitPaaS toward the full PaaS vision.
 
-- Read **[CONTRIBUTING.md](./CONTRIBUTING.md)** for setup and workflow.
-- We follow **[Conventional Commits](https://www.conventionalcommits.org/)** — commit messages drive semantic versioning and releases.
+📖 See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for setup and workflow.
 
 ---
 
 ## 📄 License
 
-No license file is currently present in this repository. Until one is added, all rights are reserved by the project authors. If you'd like to use, distribute, or contribute, please open an issue to discuss licensing.
+Released under the [MIT License](./LICENSE).
 
 ---
 
