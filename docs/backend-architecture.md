@@ -29,7 +29,7 @@ Each feature consists of four distinct layers, subject to a strict rule: **outer
 
 **Domain Layer**
 
-This layer contains the models, interfaces, and repositories (ports), DTOs, errors, and all other elements that model the business. None of these elements have dependencies on other layers or rely on any specific technology, with the exception of the DTOs, which use `class-validator`.
+This layer contains the models, the repository and port interfaces, the DTOs, the errors, and all other elements that model the business. None of these elements have dependencies on other layers or rely on any specific technology, with the exception of the DTOs, which use `class-validator`.
 
 **Application Layer**
 
@@ -45,31 +45,34 @@ This layer serves as the entry point to the application (HTTP routes), receiving
 
 ### Structure of a feature
 
-As an example, here is the structure of the `projects` feature:
+Every feature is laid out the same way. The layer folders are always singular (`domain`, `application`, `infrastructure`, `ui`); the folders inside them are **plural nouns that name the kind of artefact**. Here is the canonical shape:
 
 ```text
-features/projects/
-  projects.module.ts
+features/<feature>/
+  <feature>.module.ts                       — Module wiring: controllers, services, adapters, exports
   domain/
-    dtos/
-      create-project.dto.ts                — DTO that defines a project's creation data
-      upate-project.dto.ts                 — DTO that defines a project's update data
     models/
-      project.model.ts                     — Project domain model
+      <entity>.models.ts                    — Domain types for the entity
+    dtos/
+      create-<entity>.dto.ts                — Validated input contract
+      update-<entity>.dto.ts
     repositories/
-      projects.repository.ts               - Project persistence repository interface (port)
-  application/                             — The layer where all business use cases reside
-    create-project.use-case.ts
-    get-all-projects.use-case.ts
-    ...
+      <feature>.repository.ts               — Aggregate-collection port
+    ports/
+      <collaborator>.port.ts                — Every other driven port
+    errors/
+      <feature>.errors.ts                   — Domain error classes
+  application/
+    <verb>-<entity>.use-case.ts             — One pure function per business operation
   infrastructure/
-    database/
-      project-db.entity.ts                  — Database model for the project entity
-      projects-db.repository.ts             — Concrete implementation of the persistence repository using a database
-      projects-db.transformer.ts            — Transformer from the database layer to the domain model
+    <technology>/                           — Folder named after the technology or vendor
+      <entity>-db.entity.ts                 — ORM entity
+      <feature>-<technology>.repository.ts  — Implementation of a repositories/ interface
+      <port>-<technology>.adapter.ts        — Implementation of a ports/ interface
+      <stem>.transformer.ts                 — Persistence/vendor shape ◄► domain model
   ui/
-    controllers/                            - HTTP entry point
-    services/                               - Business logic orchestration and dependency declaration
+    controllers/                            — HTTP entry point
+    services/                               — Orchestration and dependency declaration
 ```
 
 In general, all features must follow this organizational structure for entities, although each layer may contain more or fewer elements.
@@ -96,8 +99,8 @@ Some behaviours apply to the whole application, so they are configured once at t
 
 Repositories and other collaborators follow the **port and adapter** pattern:
 
-- **Port**: a plain `interface` (for example, `ProjectsRepository`) whose methods are declared as arrow-function properties in domain terms: they accept and return domain models and DTOs, never ORM or vendor types. Use cases depend only on this interface.
-- **Adapter**: an `@Injectable()` class that `implements` the port (for example, `ProjectsDatabaseRepository`).
+- **Port**: a plain `interface` (for example, `DockerExecutor`) whose methods are declared as arrow-function properties in domain terms: they accept and return domain models and DTOs, never ORM or vendor types. Use cases depend only on this interface.
+- **Adapter**: an `@Injectable()` class that `implements` the port (for example, `DockerExecutorDockerodeAdapter`) for a `ports/` interface
 - **Wiring**: the module lists the **concrete class** in its `providers`, and consumers inject it **by class** (`@Inject(ProjectsDatabaseRepository)`, with `import type` for the port) while typing the dependency as the **port**. This avoids the `{ provide: TOKEN, useClass }` indirection.
 
 ### Transformers
@@ -134,7 +137,7 @@ The `:id` segment binds with `@Param('id', ParseUUIDPipe)`. **Not-found is an HT
 All files that make up the backend must follow a naming convention. They are as follows:
 
 - **Models**: `<name>.models.ts` where `name` is always in kebab-case.
-- **Ports**: `<name>.port.ts` where `name` is always in kebab-case.
+- **Ports**: for domain layer use `<name>.port.ts` where `name` is always in kebab-case. For the infrastructure layer, the name must be `<name>-<technology>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that port.
 - **Repositories**: for domain layer use `<name>.repository.ts` where `name` is always in kebab-case. For the infrastructure layer, the name must be `<name>-<technology>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository.
 
 ### Imports
@@ -200,10 +203,10 @@ The `authentication` feature wires JWT and Passport together and registers the g
 
 ### Docker-facing capabilities
 
-- **Docker executor** (`deployments`): exposed as the `DockerExecutor` port with the `DockerodeDockerExecutor` adapter. Its `up(archive, composePath, projectName, onLog)` operation extracts the GitHub tarball, builds local `build:` services (streaming their output and rewriting them to image services), pulls registry images, brings the old stack `down()`, normalises healthcheck durations to nanoseconds (a dockerode-compose quirk), runs `up()`, and captures bounded per-container startup logs. All resources are grouped under a `com.docker.compose.project` name derived from a project-name slug.
-- **Log store** (`logs`): exposed as the `LogStoreRepository` port (`append`, `complete`, `stream`, `purge`) with two adapters. `RedisLogStoreRepository` is the live buffer: it keeps a per-deployment list key (capped at roughly 5000 lines), a sequence counter, an events channel, and a 24-hour TTL, and its `stream()` replays the buffer, then tails pub/sub, dedupes by sequence, and completes on the terminal `end` event. `PersistentLogStoreRepository` is the adapter consumers actually inject: it buffers in memory, delegates live fan-out to Redis, and on `complete` persists the finished stream to the `logs` table before completing Redis.
-- **Cleanup**: the database cascade removes `service → deployments → logs`, and Redis logs are purged when a deployment or a service is deleted. `deleteServiceUseCase` also tears down the Docker footprint through `ServiceFootprintRepository.remove(service)`, a best-effort step that force-removes labelled containers, compose networks, and images built as `${projectName}_*` while keeping shared pulled images.
-- **Server**: `ServerPrunerRepository` prunes images, volumes, and stopped containers, while `OrphanContainersRepository` force-removes GitPaaS-labelled containers whose project matches no service. A daemon-unreachable error maps to `503`. `GET /server/readiness` is **public** and checks PostgreSQL, Redis, and the Docker daemon in parallel, each through a `HealthProbe` port; a throw counts as `down` and never rejects the aggregate. It returns `200` with a per-dependency breakdown when all are up, or `503` with the same breakdown otherwise.
+- **Docker executor** (`deployments`): exposed as the `DockerExecutor` port with the `DockerExecutorDockerodeAdapter` adapter. Its `up(archive, composePath, projectName, onLog)` operation extracts the GitHub tarball, builds local `build:` services (streaming their output and rewriting them to image services), pulls registry images, brings the old stack `down()`, normalises healthcheck durations to nanoseconds (a dockerode-compose quirk), runs `up()`, and captures bounded per-container startup logs. All resources are grouped under a `com.docker.compose.project` name derived from a project-name slug.
+- **Log store** (`logs`): exposed as the `LogStore` port (`append`, `complete`, `stream`, `purge`) with two adapters. `LogStoreRedisAdapter` is the live buffer: it keeps a per-deployment list key (capped at roughly 5000 lines), a sequence counter, an events channel, and a 24-hour TTL, and its `stream()` replays the buffer, then tails pub/sub, dedupes by sequence, and completes on the terminal `end` event. `PersistentLogStoreRepository` is the adapter consumers actually inject: it buffers in memory, delegates live fan-out to Redis, and on `complete` persists the finished stream to the `logs` table before completing Redis.
+- **Cleanup**: the database cascade removes `service → deployments → logs`, and Redis logs are purged when a deployment or a service is deleted. `deleteServiceUseCase` also tears down the Docker footprint through the `ServiceFootprint` port's `remove(service)`, a best-effort step that force-removes labelled containers, compose networks, and images built as `${projectName}_*` while keeping shared pulled images.
+- **Server**: the `ServerPruner` port prunes images, volumes, and stopped containers, while the `OrphanContainers` port force-removes GitPaaS-labelled containers whose project matches no service. A daemon-unreachable error maps to `503`. `GET /server/readiness` is **public** and checks PostgreSQL, Redis, and the Docker daemon in parallel, each through a `HealthProbe` port; a throw counts as `down` and never rejects the aggregate. It returns `200` with a per-dependency breakdown when all are up, or `503` with the same breakdown otherwise.
 - **Read-only**: `containers` and `networks` list a service's containers and compose networks by label; `providers` (a GitHub App) lists repositories and branches, resolves head commits, and fetches source archives. None of these touch the database.
 
 ## Operations

@@ -1,4 +1,4 @@
-import { OrphanContainersRepository } from '../../domain/repositories/orphan-containers.repository';
+import { OrphanContainers } from '../../domain/ports/orphan-containers.port';
 import { removeOrphanedContainersUseCase } from '../remove-orphaned-containers.use-case';
 
 import { Service } from '@features/services/domain/models/service.models';
@@ -20,12 +20,12 @@ const service = (overrides: Partial<Service> = {}): Service => {
 };
 
 describe('removeOrphanedContainersUseCase', () => {
-    let mockOrphanContainersRepository: jest.Mocked<Pick<OrphanContainersRepository, 'removeOrphaned'>>;
+    let mockOrphanContainers: jest.Mocked<Pick<OrphanContainers, 'removeOrphaned'>>;
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'getAll'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockOrphanContainersRepository = { removeOrphaned: jest.fn().mockResolvedValue({ removed: 0, names: [] }) };
+        mockOrphanContainers = { removeOrphaned: jest.fn().mockResolvedValue({ removed: 0, names: [] }) };
         mockServicesRepository = { getAll: jest.fn().mockResolvedValue([]) };
     });
 
@@ -36,31 +36,31 @@ describe('removeOrphanedContainersUseCase', () => {
         ]);
 
         await removeOrphanedContainersUseCase(
-            mockOrphanContainersRepository,
+            mockOrphanContainers,
             mockServicesRepository as unknown as ServicesRepository,
         );
 
         expect(mockServicesRepository.getAll).toHaveBeenCalledTimes(1);
-        expect(mockOrphanContainersRepository.removeOrphaned).toHaveBeenCalledWith(['checkout-api', 'billing-svc']);
+        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith(['checkout-api', 'billing-svc']);
     });
 
     it('falls back to the id-based project name when the slug is empty', async () => {
         mockServicesRepository.getAll.mockResolvedValue([service({ id: 'svc-7', name: '///' })]);
 
         await removeOrphanedContainersUseCase(
-            mockOrphanContainersRepository,
+            mockOrphanContainers,
             mockServicesRepository as unknown as ServicesRepository,
         );
 
-        expect(mockOrphanContainersRepository.removeOrphaned).toHaveBeenCalledWith(['service-svc-7']);
+        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith(['service-svc-7']);
     });
 
     it('returns the result produced by the repository', async () => {
         const result = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
-        mockOrphanContainersRepository.removeOrphaned.mockResolvedValue(result);
+        mockOrphanContainers.removeOrphaned.mockResolvedValue(result);
 
         const actual = await removeOrphanedContainersUseCase(
-            mockOrphanContainersRepository,
+            mockOrphanContainers,
             mockServicesRepository as unknown as ServicesRepository,
         );
 
@@ -69,10 +69,10 @@ describe('removeOrphanedContainersUseCase', () => {
 
     it('passes an empty known set when there are no services', async () => {
         await removeOrphanedContainersUseCase(
-            mockOrphanContainersRepository,
+            mockOrphanContainers,
             mockServicesRepository as unknown as ServicesRepository,
         );
 
-        expect(mockOrphanContainersRepository.removeOrphaned).toHaveBeenCalledWith([]);
+        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith([]);
     });
 });

@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unassigned-import
 import 'reflect-metadata';
 
-import { validate } from '../env.validation';
+import { validate } from '../env-validation.config';
 
 /** A complete, valid environment covering every mandatory variable. */
 const validEnv = (): Record<string, unknown> => ({

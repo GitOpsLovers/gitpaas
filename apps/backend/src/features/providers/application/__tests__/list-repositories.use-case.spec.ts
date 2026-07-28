@@ -1,5 +1,5 @@
 import { GitRepository } from '../../domain/models/git-repository.models';
-import { ProvidersRepository } from '../../domain/repositories/providers.repository';
+import { Providers } from '../../domain/ports/providers.port';
 import { listRepositoriesUseCase } from '../list-repositories.use-case';
 
 describe('listRepositoriesUseCase', () => {
@@ -9,37 +9,37 @@ describe('listRepositoriesUseCase', () => {
         },
     ];
 
-    let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'listRepositories'>>;
+    let mockProviders: jest.Mocked<Pick<Providers, 'listRepositories'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockProvidersRepository = {
+        mockProviders = {
             listRepositories: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository', async () => {
-        mockProvidersRepository.listRepositories.mockResolvedValue(repositories);
+        mockProviders.listRepositories.mockResolvedValue(repositories);
 
-        await listRepositoriesUseCase(mockProvidersRepository as unknown as ProvidersRepository);
+        await listRepositoriesUseCase(mockProviders as unknown as Providers);
 
-        expect(mockProvidersRepository.listRepositories).toHaveBeenCalledTimes(1);
+        expect(mockProviders.listRepositories).toHaveBeenCalledTimes(1);
     });
 
     it('returns the repositories listed by the repository', async () => {
-        mockProvidersRepository.listRepositories.mockResolvedValue(repositories);
+        mockProviders.listRepositories.mockResolvedValue(repositories);
 
-        const result = await listRepositoriesUseCase(mockProvidersRepository as unknown as ProvidersRepository);
+        const result = await listRepositoriesUseCase(mockProviders as unknown as Providers);
 
         expect(result).toBe(repositories);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('provider unavailable');
-        mockProvidersRepository.listRepositories.mockRejectedValue(error);
+        mockProviders.listRepositories.mockRejectedValue(error);
 
         await expect(
-            listRepositoriesUseCase(mockProvidersRepository as unknown as ProvidersRepository),
+            listRepositoriesUseCase(mockProviders as unknown as Providers),
         ).rejects.toThrow(error);
     });
 });

@@ -1,6 +1,6 @@
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import { LogStore } from '@features/logs/domain/ports/log-store.port';
 
 /**
  * Use case for deleting a deployment
@@ -17,7 +17,7 @@ import { LogStoreRepository } from '@features/logs/domain/repositories/log-store
  */
 export async function deleteDeploymentUseCase(
     repository: DeploymentsRepository,
-    logStore: LogStoreRepository,
+    logStore: LogStore,
     id: string,
 ): Promise<boolean> {
     const deleted = await repository.delete(id);

@@ -6,9 +6,9 @@ import { refreshUseCase } from '../../application/refresh.use-case';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../domain/models/auth-tokens.models';
 import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
-import type { TokenService } from '../../domain/security/token-service.port';
+import type { TokenService } from '../../domain/ports/token-service.port';
 import { RefreshTokensDatabaseRepository } from '../../infrastructure/database/refresh-tokens-db.repository';
-import { JwtTokenService } from '../../infrastructure/security/jwt-token.service';
+import { TokenServiceJwtAdapter } from '../../infrastructure/security/token-service-jwt.adapter';
 
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
@@ -30,7 +30,7 @@ export class AuthenticationService {
         private readonly usersRepository: UsersRepository,
         @Inject(RefreshTokensDatabaseRepository)
         private readonly refreshTokensRepository: RefreshTokensRepository,
-        @Inject(JwtTokenService)
+        @Inject(TokenServiceJwtAdapter)
         private readonly tokenService: TokenService,
     ) {}
 

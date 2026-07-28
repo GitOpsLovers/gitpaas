@@ -4,7 +4,7 @@ import { listBranchesUseCase } from '../../../application/list-branches.use-case
 import { listRepositoriesUseCase } from '../../../application/list-repositories.use-case';
 import { GitBranch } from '../../../domain/models/git-branch.models';
 import { GitRepository } from '../../../domain/models/git-repository.models';
-import { GithubAppProvider } from '../../../infrastructure/github/github-app.provider';
+import { ProvidersGithubAdapter } from '../../../infrastructure/github/providers-github.adapter';
 import { ProvidersService } from '../providers.service';
 
 jest.mock('../../../application/list-repositories.use-case');
@@ -35,18 +35,18 @@ const repositories: GitRepository[] = [
 const branches: GitBranch[] = [{ name: 'main' }, { name: 'develop' }];
 
 describe('ProvidersService', () => {
-    let mockProvider: jest.Mocked<GithubAppProvider>;
+    let mockProvider: jest.Mocked<ProvidersGithubAdapter>;
     let sut: ProvidersService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockProvider = {} as jest.Mocked<GithubAppProvider>;
+        mockProvider = {} as jest.Mocked<ProvidersGithubAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ProvidersService,
-                { provide: GithubAppProvider, useValue: mockProvider },
+                { provide: ProvidersGithubAdapter, useValue: mockProvider },
             ],
         }).compile();
 

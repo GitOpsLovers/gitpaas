@@ -2,12 +2,12 @@ import { CreateDeploymentDto } from '../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../domain/errors/deployment.errors';
 import { Deployment } from '../domain/models/deployment.models';
-import { DeploymentQueue } from '../domain/queues/deployment-queue.port';
+import { DeploymentQueue } from '../domain/ports/deployment-queue.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { persistDeploymentUseCase } from './persist-deployment.use-case';
 
-import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { Providers } from '@features/providers/domain/ports/providers.port';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
@@ -44,7 +44,7 @@ function composeProjectName(service: Service): string {
 export async function createDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
-    providersRepository: ProvidersRepository,
+    providersRepository: Providers,
     queue: DeploymentQueue,
     triggerDto: TriggerDeploymentDto,
 ): Promise<Deployment> {

@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
 import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
-import { LogStoreRepository } from '../../domain/repositories/log-store.repository';
+import { LogStore } from '../../domain/ports/log-store.port';
 import { LogsDatabaseRepository } from '../database/logs-db.repository';
-import { RedisLogStoreRepository } from '../redis/log-store-redis.repository';
+import { LogStoreRedisAdapter } from '../redis/log-store-redis.adapter';
 
 import { toLogRows } from './log-store-persistent.transformer';
 
@@ -18,13 +18,13 @@ import { toLogRows } from './log-store-persistent.transformer';
  * logs-internal concern behind this adapter.
  */
 @Injectable()
-export class PersistentLogStoreRepository implements LogStoreRepository {
+export class PersistentLogStoreRepository implements LogStore {
     /** Per-stream in-memory buffer of captured lines, flushed to the DB on `complete`. */
     private readonly buffers = new Map<string, string[]>();
 
     constructor(
-        @Inject(RedisLogStoreRepository)
-        private readonly logStore: RedisLogStoreRepository,
+        @Inject(LogStoreRedisAdapter)
+        private readonly logStore: LogStoreRedisAdapter,
         @Inject(LogsDatabaseRepository)
         private readonly logsRepository: LogsDatabaseRepository,
     ) {}

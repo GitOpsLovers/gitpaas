@@ -1,5 +1,5 @@
 import { OrphanRemovalResult } from '../domain/models/orphan-removal-result.models';
-import { OrphanContainersRepository } from '../domain/repositories/orphan-containers.repository';
+import { OrphanContainers } from '../domain/ports/orphan-containers.port';
 
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
@@ -31,7 +31,7 @@ function composeProjectName(service: Service): string {
  * @returns Number of orphaned containers removed and their names
  */
 export async function removeOrphanedContainersUseCase(
-    orphanContainers: OrphanContainersRepository,
+    orphanContainers: OrphanContainers,
     servicesRepository: ServicesRepository,
 ): Promise<OrphanRemovalResult> {
     const services = await servicesRepository.getAll();

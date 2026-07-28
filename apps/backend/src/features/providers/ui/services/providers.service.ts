@@ -4,7 +4,7 @@ import { listBranchesUseCase } from '../../application/list-branches.use-case';
 import { listRepositoriesUseCase } from '../../application/list-repositories.use-case';
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
-import { GithubAppProvider } from '../../infrastructure/github/github-app.provider';
+import { ProvidersGithubAdapter } from '../../infrastructure/github/providers-github.adapter';
 
 /**
  * Providers service
@@ -12,8 +12,8 @@ import { GithubAppProvider } from '../../infrastructure/github/github-app.provid
 @Injectable()
 export class ProvidersService {
     constructor(
-        @Inject(GithubAppProvider)
-        private readonly provider: GithubAppProvider,
+        @Inject(ProvidersGithubAdapter)
+        private readonly provider: ProvidersGithubAdapter,
     ) {}
 
     /**

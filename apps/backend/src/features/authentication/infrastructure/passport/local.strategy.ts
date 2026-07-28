@@ -6,8 +6,8 @@ import { Strategy } from 'passport-local';
 import { validateUserUseCase } from '../../application/validate-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
 
-import type { PasswordHasher } from '@core/domain/security/password-hasher.port';
-import { Argon2PasswordHasher } from '@core/infrastructure/security/argon2-password-hasher';
+import type { PasswordHasher } from '@core/domain/ports/password-hasher.port';
+import { PasswordHasherArgon2Adapter } from '@core/infrastructure/security/password-hasher-argon2.adapter';
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
@@ -22,7 +22,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     constructor(
         @Inject(UsersDatabaseRepository)
         private readonly usersRepository: UsersRepository,
-        @Inject(Argon2PasswordHasher)
+        @Inject(PasswordHasherArgon2Adapter)
         private readonly passwordHasher: PasswordHasher,
     ) {
         super({ usernameField: 'email' });

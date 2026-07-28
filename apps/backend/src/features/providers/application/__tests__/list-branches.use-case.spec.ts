@@ -1,5 +1,5 @@
 import { GitBranch } from '../../domain/models/git-branch.models';
-import { ProvidersRepository } from '../../domain/repositories/providers.repository';
+import { Providers } from '../../domain/ports/providers.port';
 import { listBranchesUseCase } from '../list-branches.use-case';
 
 describe('listBranchesUseCase', () => {
@@ -7,38 +7,38 @@ describe('listBranchesUseCase', () => {
 
     const branches: GitBranch[] = [{ name: 'main' }, { name: 'develop' }];
 
-    let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'listBranches'>>;
+    let mockProviders: jest.Mocked<Pick<Providers, 'listBranches'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockProvidersRepository = {
+        mockProviders = {
             listBranches: jest.fn(),
         };
     });
 
     it('delegates the lookup to the repository with the provided repository id', async () => {
-        mockProvidersRepository.listBranches.mockResolvedValue(branches);
+        mockProviders.listBranches.mockResolvedValue(branches);
 
-        await listBranchesUseCase(mockProvidersRepository as unknown as ProvidersRepository, repositoryId);
+        await listBranchesUseCase(mockProviders as unknown as Providers, repositoryId);
 
-        expect(mockProvidersRepository.listBranches).toHaveBeenCalledTimes(1);
-        expect(mockProvidersRepository.listBranches).toHaveBeenCalledWith(repositoryId);
+        expect(mockProviders.listBranches).toHaveBeenCalledTimes(1);
+        expect(mockProviders.listBranches).toHaveBeenCalledWith(repositoryId);
     });
 
     it('returns the branches listed by the repository', async () => {
-        mockProvidersRepository.listBranches.mockResolvedValue(branches);
+        mockProviders.listBranches.mockResolvedValue(branches);
 
-        const result = await listBranchesUseCase(mockProvidersRepository as unknown as ProvidersRepository, repositoryId);
+        const result = await listBranchesUseCase(mockProviders as unknown as Providers, repositoryId);
 
         expect(result).toBe(branches);
     });
 
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('provider unavailable');
-        mockProvidersRepository.listBranches.mockRejectedValue(error);
+        mockProviders.listBranches.mockRejectedValue(error);
 
         await expect(
-            listBranchesUseCase(mockProvidersRepository as unknown as ProvidersRepository, repositoryId),
+            listBranchesUseCase(mockProviders as unknown as Providers, repositoryId),
         ).rejects.toThrow(error);
     });
 });

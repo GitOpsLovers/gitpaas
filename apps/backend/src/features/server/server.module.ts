@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { DockerOrphanContainersRepository } from './infrastructure/docker/orphan-containers-docker.repository';
-import { DockerServerPrunerRepository } from './infrastructure/docker/server-pruner-docker.repository';
-import { DockerHealthProbe } from './infrastructure/health/health-probe-docker.repository';
-import { PostgresHealthProbe } from './infrastructure/health/health-probe-postgres.repository';
-import { RedisHealthProbe } from './infrastructure/health/health-probe-redis.repository';
+import { OrphanContainersDockerAdapter } from './infrastructure/docker/orphan-containers-docker.adapter';
+import { ServerPrunerDockerAdapter } from './infrastructure/docker/server-pruner-docker.adapter';
+import { HealthProbeDockerAdapter } from './infrastructure/health/health-probe-docker.adapter';
+import { HealthProbePostgresAdapter } from './infrastructure/health/health-probe-postgres.adapter';
+import { HealthProbeRedisAdapter } from './infrastructure/health/health-probe-redis.adapter';
 import { ServerController } from './ui/controllers/server.controller';
 import { ServerService } from './ui/services/server.service';
 
@@ -18,11 +18,11 @@ import { ServicesModule } from '@features/services/services.module';
     controllers: [ServerController],
     providers: [
         ServerService,
-        DockerServerPrunerRepository,
-        DockerOrphanContainersRepository,
-        PostgresHealthProbe,
-        RedisHealthProbe,
-        DockerHealthProbe,
+        ServerPrunerDockerAdapter,
+        OrphanContainersDockerAdapter,
+        HealthProbePostgresAdapter,
+        HealthProbeRedisAdapter,
+        HealthProbeDockerAdapter,
     ],
 })
 export class ServerModule {}

@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ServiceDbEntity } from './infrastructure/database/service-db.entity';
 import { ServicesDatabaseRepository } from './infrastructure/database/services-db.repository';
-import { DockerServiceFootprintRepository } from './infrastructure/docker/service-footprint-docker.repository';
+import { ServiceFootprintDockerAdapter } from './infrastructure/docker/service-footprint-docker.adapter';
 import { ServicesController } from './ui/controllers/services.controller';
 import { ServicesService } from './ui/services/services.service';
 
@@ -23,7 +23,7 @@ import { LogsModule } from '@features/logs/logs.module';
     providers: [
         ServicesService,
         ServicesDatabaseRepository,
-        DockerServiceFootprintRepository,
+        ServiceFootprintDockerAdapter,
     ],
     exports: [ServicesDatabaseRepository],
 })

@@ -7,15 +7,15 @@ import { getDeploymentsByServiceUseCase } from '../../application/get-deployment
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.models';
-import type { DeploymentQueue } from '../../domain/queues/deployment-queue.port';
+import type { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
-import { DatabaseDeploymentQueue } from '../../infrastructure/database/database-deployment.queue';
+import { DeploymentQueueDatabaseAdapter } from '../../infrastructure/database/deployment-queue-db.adapter';
 import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
 
-import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
-import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
-import { GithubAppProvider } from '@features/providers/infrastructure/github/github-app.provider';
+import type { Providers } from '@features/providers/domain/ports/providers.port';
+import { ProvidersGithubAdapter } from '@features/providers/infrastructure/github/providers-github.adapter';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
 
@@ -29,12 +29,12 @@ export class DeploymentsService {
         private readonly repository: DeploymentsRepository,
         @Inject(ServicesDatabaseRepository)
         private readonly servicesRepository: ServicesRepository,
-        @Inject(GithubAppProvider)
-        private readonly providersRepository: ProvidersRepository,
-        @Inject(DatabaseDeploymentQueue)
+        @Inject(ProvidersGithubAdapter)
+        private readonly providersRepository: Providers,
+        @Inject(DeploymentQueueDatabaseAdapter)
         private readonly queue: DeploymentQueue,
         @Inject(PersistentLogStoreRepository)
-        private readonly logStore: LogStoreRepository,
+        private readonly logStore: LogStore,
     ) {}
 
     /**

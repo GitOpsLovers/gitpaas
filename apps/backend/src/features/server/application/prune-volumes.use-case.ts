@@ -1,5 +1,5 @@
 import { PruneResult } from '../domain/models/prune-result.models';
-import { ServerPrunerRepository } from '../domain/repositories/server-pruner.repository';
+import { ServerPruner } from '../domain/ports/server-pruner.port';
 
 /**
  * Use case for removing unused local volumes from the server
@@ -8,6 +8,6 @@ import { ServerPrunerRepository } from '../domain/repositories/server-pruner.rep
  *
  * @returns Number of volumes removed and disk space reclaimed
  */
-export function pruneVolumesUseCase(pruner: ServerPrunerRepository): Promise<PruneResult> {
+export function pruneVolumesUseCase(pruner: ServerPruner): Promise<PruneResult> {
     return pruner.pruneVolumes();
 }

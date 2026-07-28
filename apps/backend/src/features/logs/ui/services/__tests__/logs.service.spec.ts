@@ -10,7 +10,7 @@ import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { LogEvent } from '../../../domain/models/log-event.models';
 import { Log } from '../../../domain/models/log.models';
 import { LogsDatabaseRepository } from '../../../infrastructure/database/logs-db.repository';
-import { RedisLogStoreRepository } from '../../../infrastructure/redis/log-store-redis.repository';
+import { LogStoreRedisAdapter } from '../../../infrastructure/redis/log-store-redis.adapter';
 import { LogsService } from '../logs.service';
 
 jest.mock('../../../application/create-log.use-case');
@@ -31,20 +31,20 @@ const entry = { id: logId } as Log;
 
 describe('LogsService', () => {
     let mockLogsRepository: jest.Mocked<LogsDatabaseRepository>;
-    let mockLogStoreRepository: jest.Mocked<Pick<RedisLogStoreRepository, 'stream'>>;
+    let mockLogStore: jest.Mocked<Pick<LogStoreRedisAdapter, 'stream'>>;
     let sut: LogsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
         mockLogsRepository = {} as jest.Mocked<LogsDatabaseRepository>;
-        mockLogStoreRepository = { stream: jest.fn() };
+        mockLogStore = { stream: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 LogsService,
                 { provide: LogsDatabaseRepository, useValue: mockLogsRepository },
-                { provide: RedisLogStoreRepository, useValue: mockLogStoreRepository },
+                { provide: LogStoreRedisAdapter, useValue: mockLogStore },
             ],
         }).compile();
 
@@ -185,17 +185,17 @@ describe('LogsService', () => {
     describe('streamLogs', () => {
         it('delegates to the log store repository with the deployment id and returns its observable', () => {
             const stream$ = of<LogEvent>({ type: 'end', status: 'success' });
-            mockLogStoreRepository.stream.mockReturnValue(stream$);
+            mockLogStore.stream.mockReturnValue(stream$);
 
             const result = sut.streamLogs(deploymentId);
 
-            expect(mockLogStoreRepository.stream).toHaveBeenCalledWith(deploymentId);
+            expect(mockLogStore.stream).toHaveBeenCalledWith(deploymentId);
             expect(result).toBe(stream$);
         });
 
         it('propagates errors thrown while opening the stream', () => {
             const error = new Error('redis unreachable');
-            mockLogStoreRepository.stream.mockImplementation(() => {
+            mockLogStore.stream.mockImplementation(() => {
                 throw error;
             });
 

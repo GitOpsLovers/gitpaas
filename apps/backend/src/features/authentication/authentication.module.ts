@@ -9,7 +9,7 @@ import { RefreshTokenDbEntity } from './infrastructure/database/refresh-token-db
 import { RefreshTokensDatabaseRepository } from './infrastructure/database/refresh-tokens-db.repository';
 import { JwtStrategy } from './infrastructure/passport/jwt.strategy';
 import { LocalStrategy } from './infrastructure/passport/local.strategy';
-import { JwtTokenService } from './infrastructure/security/jwt-token.service';
+import { TokenServiceJwtAdapter } from './infrastructure/security/token-service-jwt.adapter';
 import { AuthenticationController } from './ui/controllers/authentication.controller';
 import { JwtAuthGuard } from './ui/guards/jwt-auth.guard';
 import { AuthenticationService } from './ui/services/authentication.service';
@@ -41,7 +41,7 @@ import { UsersModule } from '@features/users/users.module';
     providers: [
         AuthenticationService,
         RefreshTokensDatabaseRepository,
-        JwtTokenService,
+        TokenServiceJwtAdapter,
         JwtStrategy,
         LocalStrategy,
         {

@@ -1,8 +1,8 @@
-import { DockerExecutor } from '../domain/executors/docker-executor.port';
+import { DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
-import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { LogStore } from '@features/logs/domain/ports/log-store.port';
+import { Providers } from '@features/providers/domain/ports/providers.port';
 
 /**
  * Run deployment payload
@@ -33,9 +33,9 @@ export interface RunDeploymentPayload {
  */
 export async function runDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
-    providersRepository: ProvidersRepository,
+    providersRepository: Providers,
     dockerExecutor: DockerExecutor,
-    logStore: LogStoreRepository,
+    logStore: LogStore,
     payload: RunDeploymentPayload,
 ): Promise<void> {
     const {

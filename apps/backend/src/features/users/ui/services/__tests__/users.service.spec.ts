@@ -2,7 +2,7 @@ import { UserRole } from '../../../domain/models/user.models';
 import { UsersRepository } from '../../../domain/repositories/users.repository';
 import { UsersService } from '../users.service';
 
-import { PasswordHasher } from '@core/domain/security/password-hasher.port';
+import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
 
 import { User } from '@features/users/domain/models/user.models';
 

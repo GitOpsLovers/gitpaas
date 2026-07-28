@@ -1,20 +1,20 @@
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { deleteDeploymentUseCase } from '../delete-deployment.use-case';
 
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import { LogStore } from '@features/logs/domain/ports/log-store.port';
 
 describe('deleteDeploymentUseCase', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
     let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'delete'>>;
-    let mockLogStoreRepository: jest.Mocked<Pick<LogStoreRepository, 'purge'>>;
+    let mockLogStore: jest.Mocked<Pick<LogStore, 'purge'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockDeploymentsRepository = {
             delete: jest.fn(),
         };
-        mockLogStoreRepository = {
+        mockLogStore = {
             purge: jest.fn(),
         };
     });
@@ -24,7 +24,7 @@ describe('deleteDeploymentUseCase', () => {
 
         await deleteDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStoreRepository as unknown as LogStoreRepository,
+            mockLogStore as unknown as LogStore,
             id,
         );
 
@@ -37,12 +37,12 @@ describe('deleteDeploymentUseCase', () => {
 
         await deleteDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStoreRepository as unknown as LogStoreRepository,
+            mockLogStore as unknown as LogStore,
             id,
         );
 
-        expect(mockLogStoreRepository.purge).toHaveBeenCalledTimes(1);
-        expect(mockLogStoreRepository.purge).toHaveBeenCalledWith(id);
+        expect(mockLogStore.purge).toHaveBeenCalledTimes(1);
+        expect(mockLogStore.purge).toHaveBeenCalledWith(id);
     });
 
     it('does not purge the buffered logs when nothing was deleted', async () => {
@@ -50,11 +50,11 @@ describe('deleteDeploymentUseCase', () => {
 
         await deleteDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStoreRepository as unknown as LogStoreRepository,
+            mockLogStore as unknown as LogStore,
             id,
         );
 
-        expect(mockLogStoreRepository.purge).not.toHaveBeenCalled();
+        expect(mockLogStore.purge).not.toHaveBeenCalled();
     });
 
     it('returns true when the repository deletes a row', async () => {
@@ -62,7 +62,7 @@ describe('deleteDeploymentUseCase', () => {
 
         const result = await deleteDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStoreRepository as unknown as LogStoreRepository,
+            mockLogStore as unknown as LogStore,
             id,
         );
 
@@ -74,7 +74,7 @@ describe('deleteDeploymentUseCase', () => {
 
         const result = await deleteDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStoreRepository as unknown as LogStoreRepository,
+            mockLogStore as unknown as LogStore,
             id,
         );
 
@@ -88,7 +88,7 @@ describe('deleteDeploymentUseCase', () => {
         await expect(
             deleteDeploymentUseCase(
                 mockDeploymentsRepository as unknown as DeploymentsRepository,
-                mockLogStoreRepository as unknown as LogStoreRepository,
+                mockLogStore as unknown as LogStore,
                 id,
             ),
         ).rejects.toThrow(error);

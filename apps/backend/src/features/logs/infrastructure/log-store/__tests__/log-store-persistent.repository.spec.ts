@@ -1,13 +1,13 @@
 import { of } from 'rxjs';
 
 import { LogsDatabaseRepository } from '../../database/logs-db.repository';
-import { RedisLogStoreRepository } from '../../redis/log-store-redis.repository';
+import { LogStoreRedisAdapter } from '../../redis/log-store-redis.adapter';
 import { PersistentLogStoreRepository } from '../log-store-persistent.repository';
 
 describe('PersistentLogStoreRepository', () => {
     const streamId = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
-    let logStore: jest.Mocked<Pick<RedisLogStoreRepository, 'append' | 'complete' | 'stream' | 'purge'>>;
+    let logStore: jest.Mocked<Pick<LogStoreRedisAdapter, 'append' | 'complete' | 'stream' | 'purge'>>;
     let logsRepository: jest.Mocked<Pick<LogsDatabaseRepository, 'createMany'>>;
     let sut: PersistentLogStoreRepository;
 
@@ -23,7 +23,7 @@ describe('PersistentLogStoreRepository', () => {
         };
 
         sut = new PersistentLogStoreRepository(
-            logStore as unknown as RedisLogStoreRepository,
+            logStore as unknown as LogStoreRedisAdapter,
             logsRepository as unknown as LogsDatabaseRepository,
         );
     });

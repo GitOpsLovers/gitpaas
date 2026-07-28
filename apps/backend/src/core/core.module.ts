@@ -2,11 +2,11 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { validate } from './infrastructure/config/env.validation';
+import { validate } from './infrastructure/config/env-validation.config';
 import { buildDataSourceOptions } from './infrastructure/database/data-source-options';
 import { DockerClient } from './infrastructure/docker/docker.client';
 import { RedisClient } from './infrastructure/redis/redis.client';
-import { Argon2PasswordHasher } from './infrastructure/security/argon2-password-hasher';
+import { PasswordHasherArgon2Adapter } from './infrastructure/security/password-hasher-argon2.adapter';
 import { DockerController } from './ui/controllers/docker.controller';
 import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service';
 import { DockerService } from './ui/services/docker.service';
@@ -33,8 +33,8 @@ import { DockerService } from './ui/services/docker.service';
         }),
     ],
     controllers: [DockerController],
-    providers: [DockerClient, DockerService, RedisClient, DiagnosticLoggerService, Argon2PasswordHasher],
-    exports: [DockerClient, RedisClient, DiagnosticLoggerService, Argon2PasswordHasher],
+    providers: [DockerClient, DockerService, RedisClient, DiagnosticLoggerService, PasswordHasherArgon2Adapter],
+    exports: [DockerClient, RedisClient, DiagnosticLoggerService, PasswordHasherArgon2Adapter],
 })
 
 export class CoreModule {}

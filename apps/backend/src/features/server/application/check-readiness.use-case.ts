@@ -1,5 +1,5 @@
 import { DependencyStatus, ReadinessResult } from '../domain/models/readiness-result.models';
-import { HealthProbe } from '../domain/repositories/health-probe.repository';
+import { HealthProbe } from '../domain/ports/health-probe.port';
 
 /**
  * Use case for checking whether the server's critical dependencies are ready.

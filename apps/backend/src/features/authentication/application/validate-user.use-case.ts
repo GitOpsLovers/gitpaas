@@ -1,6 +1,6 @@
 import { InvalidCredentialsError, UserInactiveError } from '../domain/errors/authentication.errors';
 
-import { PasswordHasher } from '@core/domain/security/password-hasher.port';
+import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
 import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 

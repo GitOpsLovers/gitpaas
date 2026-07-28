@@ -17,12 +17,32 @@ Mirror the **`projects`** feature (`apps/backend/src/features/projects/`) — th
 
 Build bottom-up (inner layers first) under `apps/backend/src/features/<feature>/`:
 
-1. **domain** — `models/<entity>.model.ts` (plain interface), `dtos/{create,update}-<entity>.dto.ts` (class-validator, `!` assertion), `repositories/<feature>.repository.ts` (the `<Feature>Repository` port).
-2. **infrastructure** — `database/<entity>-db.entity.ts` (`@Entity('<plural_snake_case>')`, `…DbEntity`, UUID PK), `database/<feature>-db.transformer.ts` (plain `to<Entity>(entity)` functions), `database/<feature>-db.repository.ts` (`…DatabaseRepository implements <Feature>Repository`, returns domain models via the transformer).
-3. **application** — one `<verb>-<entity>.use-case.ts` pure function per operation, exported as `<verb><Entity>UseCase`, receiving ports as params.
+1. **domain** — `models/<entity>.models.ts` (plain interfaces; the `.models.ts` suffix is plural even for one type), `dtos/{create,update}-<entity>.dto.ts` (class-validator, `!` assertion), `repositories/<feature>.repository.ts` (the `<Feature>Repository` port). Add `ports/<collaborator>.port.ts` only when the feature needs a non-collection collaborator, and `errors/<feature>.errors.ts` only when it raises domain errors.
+2. **infrastructure** — `database/<entity>-db.entity.ts` (`@Entity('<plural_snake_case>')`, `…DbEntity`, UUID PK), `database/<feature>-db.transformer.ts` (plain `to<Entity>(entity)` functions), `database/<feature>-db.repository.ts` (`<Feature>DatabaseRepository implements <Feature>Repository`, returns domain models via the transformer). Sub-folders are named after the technology (`database`, `docker`, `redis`, `github`, …).
+3. **application** — one `<verb>-<entity>.use-case.ts` pure function per operation, exported as `<verb><Entity>UseCase`, receiving ports as params. No file in `application/` may use any other suffix.
 4. **ui** — `services/<feature>.service.ts` (DI bridge; injects the concrete repo by class, delegates to use cases) and `controllers/<feature>.controller.ts` (`@Controller('<feature>')`, thin, `ParseUUIDPipe` on `:id`, `NotFoundException` on `null`).
 5. **module** — `<feature>.module.ts`: `TypeOrmModule.forFeature([<Entity>DbEntity])`, the controller, and `[<Feature>Service, <Feature>DatabaseRepository]` as providers.
 6. **register** — add the module to `imports` in `apps/backend/src/app.module.ts` (import via `@features/<feature>/<feature>.module`).
+
+## Naming (get this right or the feature is wrong)
+
+Layer folders are singular (`domain`, `application`, `infrastructure`, `ui`). Folders inside them are plural nouns naming the **kind of artefact**, never the subject matter. The domain layer has exactly five possible folders — `models/`, `dtos/`, `repositories/`, `ports/`, `errors/`. Never create a sixth (no `domain/security/`, `domain/queues/`, `domain/executors/`).
+
+**`repositories/` vs `ports/`** — the one rule scaffolding gets wrong:
+
+- `repositories/<feature>.repository.ts` → interface `<Feature>Repository`. **Aggregate collections only**: `findById` / `getAll` / `save` / `delete` over an entity this feature owns.
+- `ports/<collaborator>.port.ts` → interface named for the concept with **no suffix** (`LogStore`, `HealthProbe`, `DockerExecutor`, `DeploymentQueue`). Everything else: gateways, executors, queues, hashers, probes, pruners, stores.
+
+**Infrastructure implementations** put the domain concept first in both the file and the class name:
+
+| Implements                | File                                   | Class                            |
+|---------------------------|----------------------------------------|----------------------------------|
+| a `repositories/` interface | `<feature>-<technology>.repository.ts` | `<Feature><Technology>Repository` |
+| a `ports/` interface        | `<port>-<technology>.adapter.ts`       | `<Port><Technology>Adapter`       |
+
+e.g. `logs/infrastructure/redis/log-store-redis.adapter.ts` → `LogStoreRedisAdapter`. In file names the `database` technology is abbreviated `db` (`projects-db.repository.ts` → `ProjectsDatabaseRepository`).
+
+Infrastructure sub-folders are named after the technology/vendor (`database`, `docker`, `redis`, `github`, `passport`, `cli`). Escape hatch: an adapter with no vendor — an in-process decorator or composite — goes in a folder named after the port instead (`features/logs/infrastructure/log-store/`).
 
 No central entity list: entities auto-load, and in dev/test `synchronize` creates tables automatically. Production, however, is migration-managed (`synchronize` off), so **adding or changing an entity requires a versioned migration** — after editing entities, run the backend's `migration:generate` pnpm script, review the generated file, and commit it with your change (`migration:revert` undoes the last one). See the "Schema management" section of `docs/backend-architecture.md`.
 

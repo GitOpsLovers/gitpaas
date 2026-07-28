@@ -8,13 +8,13 @@ import { updateServiceUseCase } from '../../application/update-service.use-case'
 import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
-import type { ServiceFootprintRepository } from '../../domain/repositories/service-footprint.repository';
+import type { ServiceFootprint } from '../../domain/ports/service-footprint.port';
 import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
-import { DockerServiceFootprintRepository } from '../../infrastructure/docker/service-footprint-docker.repository';
+import { ServiceFootprintDockerAdapter } from '../../infrastructure/docker/service-footprint-docker.adapter';
 
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
-import type { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 
 /**
@@ -27,10 +27,10 @@ export class ServicesService {
         private readonly repository: ServicesDatabaseRepository,
         @Inject(DeploymentsDatabaseRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
-        @Inject(DockerServiceFootprintRepository)
-        private readonly serviceFootprint: ServiceFootprintRepository,
+        @Inject(ServiceFootprintDockerAdapter)
+        private readonly serviceFootprint: ServiceFootprint,
         @Inject(PersistentLogStoreRepository)
-        private readonly logStore: LogStoreRepository,
+        private readonly logStore: LogStore,
     ) {}
 
     public getAllByProject(projectId: string): Promise<Service[]> {

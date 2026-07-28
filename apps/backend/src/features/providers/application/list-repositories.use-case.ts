@@ -1,5 +1,5 @@
 import { GitRepository } from '../domain/models/git-repository.models';
-import { ProvidersRepository } from '../domain/repositories/providers.repository';
+import { Providers } from '../domain/ports/providers.port';
 
 /**
  * Use case that lists the repositories accessible to the installation.
@@ -8,6 +8,6 @@ import { ProvidersRepository } from '../domain/repositories/providers.repository
  *
  * @returns Accessible repositories
  */
-export function listRepositoriesUseCase(repository: ProvidersRepository): Promise<GitRepository[]> {
+export function listRepositoriesUseCase(repository: Providers): Promise<GitRepository[]> {
     return repository.listRepositories();
 }

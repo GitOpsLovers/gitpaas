@@ -1,4 +1,4 @@
-import { HealthProbe } from '../../domain/repositories/health-probe.repository';
+import { HealthProbe } from '../../domain/ports/health-probe.port';
 import { checkReadinessUseCase } from '../check-readiness.use-case';
 
 /**

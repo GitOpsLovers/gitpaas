@@ -11,7 +11,7 @@ import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
 import { LogEvent } from '../../domain/models/log-event.models';
 import { Log } from '../../domain/models/log.models';
 import { LogsDatabaseRepository } from '../../infrastructure/database/logs-db.repository';
-import { RedisLogStoreRepository } from '../../infrastructure/redis/log-store-redis.repository';
+import { LogStoreRedisAdapter } from '../../infrastructure/redis/log-store-redis.adapter';
 
 /**
  * Logs service
@@ -21,8 +21,8 @@ export class LogsService {
     constructor(
         @Inject(LogsDatabaseRepository)
         private readonly repository: LogsDatabaseRepository,
-        @Inject(RedisLogStoreRepository)
-        private readonly logStoreRepository: RedisLogStoreRepository,
+        @Inject(LogStoreRedisAdapter)
+        private readonly logStoreRepository: LogStoreRedisAdapter,
     ) {}
 
     /**

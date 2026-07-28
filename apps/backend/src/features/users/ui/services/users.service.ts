@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { SeedAdminInput, seedAdminUseCase } from '../../application/seed-admin';
+import { SeedAdminInput, seedAdminUseCase } from '../../application/seed-admin.use-case';
 import { UsersDatabaseRepository } from '../../infrastructure/database/users-db.repository';
 
-import type { PasswordHasher } from '@core/domain/security/password-hasher.port';
-import { Argon2PasswordHasher } from '@core/infrastructure/security/argon2-password-hasher';
+import type { PasswordHasher } from '@core/domain/ports/password-hasher.port';
+import { PasswordHasherArgon2Adapter } from '@core/infrastructure/security/password-hasher-argon2.adapter';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 /**
@@ -21,7 +21,7 @@ export class UsersService {
     constructor(
         @Inject(UsersDatabaseRepository)
         private readonly usersRepository: UsersRepository,
-        @Inject(Argon2PasswordHasher)
+        @Inject(PasswordHasherArgon2Adapter)
         private readonly passwordHasher: PasswordHasher,
     ) {}
 

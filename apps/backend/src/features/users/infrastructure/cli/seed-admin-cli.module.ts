@@ -8,7 +8,7 @@ import { UsersModule } from '@features/users/users.module';
  *
  * It imports only what is needed to resolve {@link UsersService}:
  * {@link CoreModule} provides the validated environment/config, the TypeORM root
- * connection and the argon2 {@link Argon2PasswordHasher}, and {@link UsersModule}
+ * connection and the argon2 {@link PasswordHasherArgon2Adapter}, and {@link UsersModule}
  * provides the service and users repository.
  *
  * It deliberately does NOT pull in the HTTP layer, the global auth/throttler

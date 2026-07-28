@@ -1,8 +1,8 @@
-import { ServiceFootprintRepository } from '../domain/repositories/service-footprint.repository';
+import { ServiceFootprint } from '../domain/ports/service-footprint.port';
 import { ServicesRepository } from '../domain/repositories/services.repository';
 
 import { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
-import { LogStoreRepository } from '@features/logs/domain/repositories/log-store.repository';
+import { LogStore } from '@features/logs/domain/ports/log-store.port';
 
 /**
  * Use case for deleting a service
@@ -26,8 +26,8 @@ import { LogStoreRepository } from '@features/logs/domain/repositories/log-store
 export async function deleteServiceUseCase(
     servicesRepository: ServicesRepository,
     deploymentsRepository: DeploymentsRepository,
-    serviceFootprint: ServiceFootprintRepository,
-    logStore: LogStoreRepository,
+    serviceFootprint: ServiceFootprint,
+    logStore: LogStore,
     id: string,
 ): Promise<boolean> {
     const service = await servicesRepository.findById(id);
