@@ -12,7 +12,7 @@ import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-
 import { ToastService } from '@shared/services/toast.service';
 
 /**
- * Prunable Docker resource on the VPS.
+ * Prunable Docker resource on the server.
  */
 type PruneResource = 'images' | 'volumes' | 'containers';
 
@@ -50,7 +50,7 @@ const BYTES_PER_UNIT = 1024;
 /**
  * Server maintenance component
  *
- * Card exposing one-click actions to reclaim disk space on the VPS by pruning
+ * Card exposing one-click actions to reclaim disk space on the server by pruning
  * unused Docker images, volumes and containers.
  */
 export class ServerMaintenanceComponent {
@@ -64,21 +64,21 @@ export class ServerMaintenanceComponent {
             label: 'Clear unused images',
             description: 'Remove dangling images that are no longer referenced by any container.',
             icon: 'images',
-            confirmMessage: 'Dangling images on the VPS will be permanently removed. This action cannot be undone.',
+            confirmMessage: 'Dangling images on the server will be permanently removed. This action cannot be undone.',
         },
         {
             resource: 'volumes',
             label: 'Clear unused volumes',
             description: 'Remove local volumes that are not used by at least one container.',
             icon: 'volumes',
-            confirmMessage: 'Unused local volumes on the VPS will be permanently removed. This action cannot be undone.',
+            confirmMessage: 'Unused local volumes on the server will be permanently removed. This action cannot be undone.',
         },
         {
             resource: 'containers',
             label: 'Clear unused containers',
             description: 'Remove containers that are stopped and no longer running.',
             icon: 'containers',
-            confirmMessage: 'Stopped containers on the VPS will be permanently removed. This action cannot be undone.',
+            confirmMessage: 'Stopped containers on the server will be permanently removed. This action cannot be undone.',
         },
     ];
 
@@ -87,7 +87,7 @@ export class ServerMaintenanceComponent {
         description: 'Force-stop and remove leftover containers from deleted or stuck services.',
         confirmMessage:
             'Orphaned containers (from deleted or stuck services) will be force-stopped and permanently '
-            + 'removed from the VPS. This cannot be undone.',
+            + 'removed from the server. This cannot be undone.',
     } as const;
 
     protected readonly pending = signal<PruneAction | null>(null);
@@ -141,7 +141,7 @@ export class ServerMaintenanceComponent {
         } catch {
             this.toast.error(
                 'Cleanup failed',
-                'Could not reach the VPS Docker daemon. Please verify it is running and try again.',
+                'Could not reach the server Docker daemon. Please verify it is running and try again.',
             );
         } finally {
             this.running.set(false);
@@ -176,7 +176,7 @@ export class ServerMaintenanceComponent {
         } catch {
             this.toast.error(
                 'Cleanup failed',
-                'Could not reach the VPS Docker daemon. Please verify it is running and try again.',
+                'Could not reach the server Docker daemon. Please verify it is running and try again.',
             );
         } finally {
             this.running.set(false);

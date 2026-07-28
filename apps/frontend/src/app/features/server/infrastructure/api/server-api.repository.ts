@@ -18,7 +18,7 @@ export class ServerApiRepository {
     private readonly url = `${environment.apiBaseUrl}/server`;
 
     /**
-     * Removes dangling images from the VPS
+     * Removes dangling images from the server
      *
      * @returns Number of images removed and disk space reclaimed
      */
@@ -27,7 +27,7 @@ export class ServerApiRepository {
     }
 
     /**
-     * Removes unused local volumes from the VPS
+     * Removes unused local volumes from the server
      *
      * @returns Number of volumes removed and disk space reclaimed
      */
@@ -36,7 +36,7 @@ export class ServerApiRepository {
     }
 
     /**
-     * Removes stopped containers from the VPS
+     * Removes stopped containers from the server
      *
      * @returns Number of containers removed and disk space reclaimed
      */
@@ -45,7 +45,7 @@ export class ServerApiRepository {
     }
 
     /**
-     * Force-removes orphaned GitPaaS containers from the VPS
+     * Force-removes orphaned GitPaaS containers from the server
      *
      * @returns Number of orphaned containers removed and their names
      */

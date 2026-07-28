@@ -164,7 +164,7 @@ describe('ServerController', () => {
         it('includes remediation guidance in the wrapped error message', async () => {
             mockServerService.pruneImages.mockRejectedValue(new Error('ECONNREFUSED'));
 
-            await expect(sut.pruneImages()).rejects.toThrow(/emulated VPS/);
+            await expect(sut.pruneImages()).rejects.toThrow(/emulated server/);
         });
 
         it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
@@ -351,7 +351,7 @@ describe('ServerController', () => {
         it('includes remediation guidance in the wrapped error message', async () => {
             mockServerService.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
 
-            await expect(sut.removeOrphanedContainers()).rejects.toThrow(/emulated VPS/);
+            await expect(sut.removeOrphanedContainers()).rejects.toThrow(/emulated server/);
         });
 
         it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {

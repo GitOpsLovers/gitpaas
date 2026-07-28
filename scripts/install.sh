@@ -2,7 +2,7 @@
 #
 # GitPaaS one-line installer.
 #
-# Turns a fresh VPS into a running GitPaaS control plane with a single command:
+# Turns a fresh server into a running GitPaaS control plane with a single command:
 #
 #   curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
 #
@@ -183,15 +183,15 @@ fetch_source() {
 # Step 3 — Generate mTLS material
 # ---------------------------------------------------------------------------
 # The control plane reaches the remote Docker daemon over mutual TLS, exactly as
-# in local development (.dev/vps-certs). We generate:
+# in local development (.dev/server-certs). We generate:
 #   * a CA (signs both ends),
 #   * a CLIENT cert (extendedKeyUsage=clientAuth) used by the control plane —
-#     ca.pem/cert.pem/key.pem are mounted into the backend (VPS_CERT_HOST_PATH),
+#     ca.pem/cert.pem/key.pem are mounted into the backend (server_CERT_HOST_PATH),
 #   * a SERVER cert (extendedKeyUsage=serverAuth) for the remote Docker daemon,
 #     left for the operator to install on that host.
 generate_certs() {
     PROD_DIR="$GITPAAS_DIR/iac/production"
-    CLIENT_DIR="$PROD_DIR/certs"                 # mounted into the backend (VPS_CERT_HOST_PATH default)
+    CLIENT_DIR="$PROD_DIR/certs"                 # mounted into the backend (server_CERT_HOST_PATH default)
     SERVER_DIR="$PROD_DIR/certs-remote-docker"   # for the operator to install on the Docker host
 
     if [ -f "$CLIENT_DIR/cert.pem" ]; then
@@ -217,7 +217,7 @@ generate_certs() {
         -out "$work/client-cert.pem" >/dev/null 2>&1
 
     # --- Server cert (remote Docker daemon), extendedKeyUsage=serverAuth ---
-    # The SAN must cover the address the control plane dials (VPS_DOCKER_HOST).
+    # The SAN must cover the address the control plane dials (SERVER_DOCKER_HOST).
     # If we know it, bake it in; otherwise ship a localhost SAN and warn that the
     # operator must regenerate the server cert once the host address is known.
     if [ -n "$GITPAAS_DOCKER_HOST" ]; then
@@ -253,7 +253,7 @@ generate_certs() {
     log "mTLS material generated (client certs in $CLIENT_DIR; server certs in $SERVER_DIR)."
     if [ -z "$GITPAAS_DOCKER_HOST" ]; then
         warn "No remote Docker host was provided, so the server cert only covers localhost."
-        warn "Once you know the host address, regenerate the server cert with a matching SAN before wiring VPS_DOCKER_HOST."
+        warn "Once you know the host address, regenerate the server cert with a matching SAN before wiring SERVER_DOCKER_HOST."
     fi
 }
 
@@ -297,10 +297,10 @@ generate_env() {
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"
 
     if [ -n "$GITPAAS_DOCKER_HOST" ]; then
-        set_env "VPS_DOCKER_HOST" "$GITPAAS_DOCKER_HOST"
+        set_env "SERVER_DOCKER_HOST" "$GITPAAS_DOCKER_HOST"
     fi
 
-    log ".env written. GitHub App credentials and (if not provided) VPS_DOCKER_HOST remain as placeholders you must fill in."
+    log ".env written. GitHub App credentials and (if not provided) SERVER_DOCKER_HOST remain as placeholders you must fill in."
 }
 
 # ---------------------------------------------------------------------------
@@ -374,7 +374,7 @@ print_summary() {
     printf '  %sStill to do manually:%s\n' "$C_BOLD" "$C_RESET"
     printf '   * Fill GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_INSTALLATION_ID in\n'
     printf '     %s/iac/production/.env\n' "$GITPAAS_DIR"
-    printf '   * Set VPS_DOCKER_HOST (the remote Docker daemon address) in that .env.\n'
+    printf '   * Set SERVER_DOCKER_HOST (the remote Docker daemon address) in that .env.\n'
     printf '   * Install %s/iac/production/certs-remote-docker/{ca,server-cert,server-key}.pem\n' "$GITPAAS_DIR"
     printf '     on the remote Docker host and configure dockerd for mTLS on :2376.\n'
     printf '   * After editing .env, apply changes: %ssudo docker compose -f %s/iac/production/docker-compose.yml up -d%s\n' "$C_BOLD" "$GITPAAS_DIR" "$C_RESET"

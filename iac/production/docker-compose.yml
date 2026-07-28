@@ -1,9 +1,9 @@
 # Production control-plane stack for GitPaaS.
 #
-# Brings up GitPaaS itself (the control plane) on a VPS: the NestJS backend,
+# Brings up GitPaaS itself (the control plane) on a server: the NestJS backend,
 # the Angular frontend (static SPA served by nginx), and the backend's own data
 # stores (PostgreSQL + Redis). This is the app that RUNS deployments; the apps it
-# deploys live on a remote Docker daemon reached over mTLS (VPS_DOCKER_*), exactly
+# deploys live on a remote Docker daemon reached over mTLS (SERVER_DOCKER_*), exactly
 # as in local development (see iac/development/docker-compose.yml).
 #
 # This stack intentionally does NOT include a reverse proxy / TLS termination —
@@ -92,8 +92,8 @@ services:
       - "${BACKEND_PORT:-3000}:${PORT:-3000}"
     volumes:
       # mTLS client certs (ca.pem / cert.pem / key.pem) used to reach the remote
-      # Docker daemon. Mounted read-only at VPS_DOCKER_CERT_PATH inside the app.
-      - ${VPS_CERT_HOST_PATH:-./certs}:${VPS_DOCKER_CERT_PATH:-/certs}:ro
+      # Docker daemon. Mounted read-only at SERVER_DOCKER_CERT_PATH inside the app.
+      - ${SERVER_CERT_HOST_PATH:-./certs}:${SERVER_DOCKER_CERT_PATH:-/certs}:ro
     depends_on:
       postgres:
         condition: service_healthy

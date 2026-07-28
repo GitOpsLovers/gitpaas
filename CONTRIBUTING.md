@@ -1,23 +1,22 @@
 # Contributing
 
-Thanks for contributing to **GitPaaS**, a self-hostable PaaS for deploying personal projects. This repo is a [Turborepo](https://turborepo.dev) monorepo managed with pnpm workspaces; the backend is [NestJS](https://nestjs.com) and the frontend is [Angular](https://angular.dev), both TypeScript.
+Thanks for contributing to **GitPaaS**, a self-hostable PaaS for deploying personal projects. This repository is a monorepo managed with [Turborepo](https://turborepo.dev) and [pnpm](https://pnpm.io/) workspaces.
 
-For architecture and design context, start with the docs and come back here for the day-to-day workflow:
+For architecture and design context, start with the documentation and come back here for the day-to-day workflow:
 
 - [Backend architecture](./docs/backend-architecture.md)
 - [Backend business logic](./docs/backend-business.md)
 - [Frontend architecture](./docs/frontend-architecture.md)
 - [Infrastructure architecture](./docs/infrastructure-architecture.md)
-- [Deployment roadmap](./docs/deployment-roadmap.md)
 
 ## Prerequisites
 
 - **Node** `26.1.0` and **pnpm** `11.1.3` — both pinned in `.tool-versions`. Using a version manager (asdf, mise, `corepack`) that reads `.tool-versions` is the easiest way to match them.
-- **Docker** running on your host — the local dev stack runs entirely in containers.
+- **Docker** running on your host.
 
 ## Setup
 
-Install all workspace dependencies from the repo root:
+Install all workspace dependencies from the repository root:
 
 ```bash
 pnpm install
@@ -25,7 +24,7 @@ pnpm install
 
 ### Environment configuration
 
-The backend validates its environment at boot and **fails fast if any variable is missing or malformed** — there are no code-level fallbacks, in any environment including development. Copy the template and fill in every value before running:
+Copy the template containing the environment variables needed to run the backend service.
 
 ```bash
 cp apps/backend/.env.example apps/backend/.env
@@ -34,19 +33,18 @@ cp apps/backend/.env.example apps/backend/.env
 The variables cover: 
 
 - Runtime: `NODE_ENV`, `PORT`
-- CORS: `CORS_ORIGIN`
-- Rate limiting: `THROTTLE_TTL`/`THROTTLE_LIMIT` and the SSE-stream pair `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
+- Security: `CORS_ORIGIN`, `THROTTLE_TTL`/`THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
 - PostgreSQL: `DB_*`
 - Redis: `REDIS_*`, 
 - GitHub App: `GITHUB_APP_*`, 
-- VPS Docker daemon: `VPS_DOCKER_*`
-- JWT authentication: `JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`
+- Docker daemon: `SERVER_DOCKER_*`
+- Authentication: `JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`
 
-## Local development stack
+## Development stack
 
 GitPaaS deploys applications by driving a **remote Docker daemon over mTLS** (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally, the stack in `iac/development/docker-compose.yml` reproduces everything the apps depend on:
 
-- **`vps emulator`**: a Docker-in-Docker (DinD) container that emulates the remote VPS. Its daemon listens on TLS `127.0.0.1:2376`, and everything GitPaaS deploys lives inside it.
+- **`server emulator`**: a Docker-in-Docker (DinD) container that emulates a remote server. Its daemon listens on TLS `127.0.0.1:2376`, and everything GitPaaS deploys lives inside it.
 - **`postgres`**: the application database. It starts empty; TypeORM `synchronize` creates the schema on backend boot. TThe initial admin user (`admin@gitpaas.dev` / `gitpaas`) is seeded by the backend itself through a development-only bootstrap hook that runs after the server starts.
 - **`redis`**: buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
 - **`pgadmin`**: web UI for the local Postgres at http://127.0.0.1:5050.
@@ -57,13 +55,13 @@ Bring the stack up before running the apps, and manage it with Docker Compose fr
 ```bash
 cd iac/development
 
-docker compose up -d --wait                             # start and wait until healthy
-docker compose down                                     # stop (keeps images/volumes)
-docker compose logs -f vps                              # follow a service's logs
-docker compose down -v && rm -rf ../../.dev/vps-certs   # wipe all state
+docker compose up -d --wait                                # start and wait until healthy
+docker compose down                                        # stop (keeps images/volumes)
+docker compose logs -f server                                 # follow a service's logs
+docker compose down -v && rm -rf ../../.dev/server-certs   # wipe all state
 ```
 
-On first `docker compose up` the `vps` container generates TLS certificates and shares the client certs with the host under `.dev/vps-certs/client/`; the backend reads them from there. Ports `8080`→`80` and `8443`→`443` on the `vps` are reserved for a future reverse proxy for deployed apps.
+On first `docker compose up` the `server` container generates TLS certificates and shares the client certs with the host under `.dev/server-certs/client/`; the backend reads them from there. Ports `8080`→`80` and `8443`→`443` on the `server` are reserved for a future reverse proxy for deployed apps.
 
 ### Database schema and migrations
 
@@ -92,9 +90,9 @@ With the dev stack healthy, run the apps from the repo root. Root scripts fan ou
 
 To work on a single app, filter it: e.g. `pnpm --filter backend dev` (`nest start --watch`) or `pnpm --filter frontend dev` (`ng serve`).
 
-The backend builds its Docker client from `VPS_DOCKER_HOST`, `VPS_DOCKER_PORT` and `VPS_DOCKER_CERT_PATH` (typical local values: `127.0.0.1`, `2376`, and `../../.dev/vps-certs/client`).
+The backend builds its Docker client from `SERVER_DOCKER_HOST`, `SERVER_DOCKER_PORT` and `SERVER_DOCKER_CERT_PATH` (typical local values: `127.0.0.1`, `2376`, and `../../.dev/server-certs/client`).
 
-All backend routes are served under the `api/v1` prefix, and every endpoint requires a JWT access token by default. The readiness probe is public and actively checks Postgres, Redis, and the VPS Docker daemon — use it to verify the whole stack is wired up:
+All backend routes are served under the `api/v1` prefix, and every endpoint requires a JWT access token by default. The readiness probe is public and actively checks Postgres, Redis, and the server Docker daemon — use it to verify the whole stack is wired up:
 
 ```bash
 curl http://localhost:3000/api/v1/server/readiness

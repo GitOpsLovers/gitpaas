@@ -34,8 +34,8 @@ export class NetworksController {
             this.diagnostics.error(`Failed to list networks for service ${serviceId}`, error, NetworksController.name);
 
             throw new ServiceUnavailableException(
-                'Could not reach the VPS Docker daemon. Verify the VPS is running and reachable; '
-                    + 'in local development, start the emulated VPS (see CONTRIBUTING.md).',
+                'Could not reach the server Docker daemon. Verify the server is running and reachable; '
+                    + 'in local development, start the emulated server (see CONTRIBUTING.md).',
             );
         }
     }

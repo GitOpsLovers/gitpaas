@@ -89,7 +89,7 @@ describe('DockerController', () => {
         it('includes remediation guidance in the wrapped error message', async () => {
             mockDockerService.info.mockRejectedValue(new Error('ECONNREFUSED'));
 
-            await expect(sut.getStatus()).rejects.toThrow(/Could not reach the VPS Docker daemon/);
+            await expect(sut.getStatus()).rejects.toThrow(/Could not reach the server Docker daemon/);
         });
 
         it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {

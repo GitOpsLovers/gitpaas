@@ -1,6 +1,6 @@
 # Local development stack.
 #
-# - vps:      a Docker-in-Docker (DinD) container that acts as the remote VPS
+# - server:      a Docker-in-Docker (DinD) container that acts as the remote server
 #             where GitPaaS deploys applications. The backend app (running on
 #             this host) talks to its Docker daemon through Dockerode over TLS.
 #             Everything GitPaaS deploys lives inside this container.
@@ -11,7 +11,7 @@
 #             the local database server is pre-registered via pgadmin/servers.json.
 # - redis:    in-memory store used to buffer and fan-out real-time deployment logs.
 #             The backend RPUSHes captured `docker-compose up` output here and streams
-#             it to the browser over SSE. In production this same store runs on the VPS.
+#             it to the browser over SSE. In production this same store runs on the server.
 # - redisinsight: a web UI to inspect the local Redis. Reachable at
 #             http://127.0.0.1:5540; the local redis server is pre-connected via
 #             RI_REDIS_* env vars, so it opens ready-to-browse with no login.
@@ -21,9 +21,9 @@
 name: gitpaas-dev
 
 services:
-  vps:
+  server:
     image: docker:29.6.1-dind-alpine3.24
-    container_name: gitpaas-vps
+    container_name: gitpaas-server
     privileged: true
     restart: unless-stopped
     environment:
@@ -36,9 +36,9 @@ services:
       - "127.0.0.1:8443:443"  # reserved: reverse proxy (deployed apps) HTTPS
     volumes:
       # Client certs are shared to the host so the backend can authenticate.
-      - ../../.dev/vps-certs:/certs
-      # Persist the emulated VPS's images/volumes across restarts.
-      - vps-data:/var/lib/docker
+      - ../../.dev/server-certs:/certs
+      # Persist the emulated server's images/volumes across restarts.
+      - server-data:/var/lib/docker
     healthcheck:
       test: ["CMD-SHELL", "docker -H unix:///var/run/docker.sock info >/dev/null 2>&1 || exit 1"]
       interval: 5s
@@ -117,7 +117,7 @@ services:
         condition: service_healthy
 
 volumes:
-  vps-data:
+  server-data:
   postgres-data:
   pgadmin-data:
   redis-data:

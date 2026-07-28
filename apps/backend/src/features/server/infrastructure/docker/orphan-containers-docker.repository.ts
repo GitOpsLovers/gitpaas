@@ -61,7 +61,7 @@ export class DockerOrphanContainersRepository implements OrphanContainersReposit
         }
 
         this.diagnostics.log(
-            `Removed ${names.length} orphaned container(s) from the VPS`,
+            `Removed ${names.length} orphaned container(s) from the server`,
             DockerOrphanContainersRepository.name,
         );
 

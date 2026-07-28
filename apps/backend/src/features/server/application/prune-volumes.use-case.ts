@@ -2,7 +2,7 @@ import { PruneResult } from '../domain/models/prune-result.models';
 import { ServerPrunerRepository } from '../domain/repositories/server-pruner.repository';
 
 /**
- * Use case for removing unused local volumes from the VPS
+ * Use case for removing unused local volumes from the server
  *
  * @param pruner Server pruner repository
  *

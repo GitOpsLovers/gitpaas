@@ -11,7 +11,7 @@ import { LogStoreRepository } from '@features/logs/domain/repositories/log-store
  * when the delete actually succeeded. It enumerates the service's deployments
  * (needed for the log purge) before deleting the row, since the database cascade
  * removes the deployment and log rows. After a successful delete it tears down
- * the service's own Docker resources on the VPS (best-effort) and purges each of
+ * the service's own Docker resources on the server (best-effort) and purges each of
  * its deployments' buffered Redis logs. If the delete removes nothing, external
  * state is left untouched.
  *

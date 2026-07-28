@@ -5,7 +5,7 @@ import { Service } from '../models/service.models';
  */
 export interface ServiceFootprintRepository {
     /**
-     * Removes the service's Docker footprint from the VPS: its containers, its
+     * Removes the service's Docker footprint from the server: its containers, its
      * compose network(s) and the images it built locally. Shared pulled images
      * (base/registry images) are kept. Best-effort — a single failure or an
      * unreachable daemon does not abort the rest.

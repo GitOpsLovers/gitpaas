@@ -29,26 +29,26 @@ export class DockerClient {
      * Creates a new Dockerode client
      */
     private createClient(): Docker {
-        const host = this.config.get<string>('VPS_DOCKER_HOST');
-        const port = Number(this.config.get('VPS_DOCKER_PORT'));
+        const host = this.config.get<string>('SERVER_DOCKER_HOST');
+        const port = Number(this.config.get('SERVER_DOCKER_PORT'));
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const certPath = this.config.get<string>('VPS_DOCKER_CERT_PATH')!;
+        const certPath = this.config.get<string>('SERVER_DOCKER_CERT_PATH')!;
 
         let ca: Buffer;
         let cert: Buffer;
         let key: Buffer;
 
         try {
-            /* eslint-disable security/detect-non-literal-fs-filename -- certPath comes from trusted deployment config (VPS_DOCKER_CERT_PATH), never user input */
+            /* eslint-disable security/detect-non-literal-fs-filename -- certPath comes from trusted deployment config (SERVER_DOCKER_CERT_PATH), never user input */
             ca = readFileSync(join(certPath, 'ca.pem'));
             cert = readFileSync(join(certPath, 'cert.pem'));
             key = readFileSync(join(certPath, 'key.pem'));
             /* eslint-enable security/detect-non-literal-fs-filename */
         } catch {
             throw new ServiceUnavailableException(
-                `Could not read VPS TLS certificates at "${certPath}". `
-                    + 'Check VPS_DOCKER_CERT_PATH, or in local development start the '
-                    + 'emulated VPS (see CONTRIBUTING.md).',
+                `Could not read server TLS certificates at "${certPath}". `
+                    + 'Check SERVER_DOCKER_CERT_PATH, or in local development start the '
+                    + 'emulated server (see CONTRIBUTING.md).',
             );
         }
 

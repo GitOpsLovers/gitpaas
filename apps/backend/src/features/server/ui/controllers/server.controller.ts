@@ -11,7 +11,7 @@ import { Public } from '@features/authentication/ui/decorators/public.decorator'
 /**
  * Server controller
  *
- * Exposes maintenance actions that reclaim disk space on the VPS by pruning
+ * Exposes maintenance actions that reclaim disk space on the server by pruning
  * unused Docker resources.
  */
 @Controller('server')
@@ -41,7 +41,7 @@ export class ServerController {
     }
 
     /**
-     * Remove dangling images from the VPS
+     * Remove dangling images from the server
      *
      * @returns Number of images removed and disk space reclaimed
      */
@@ -52,7 +52,7 @@ export class ServerController {
     }
 
     /**
-     * Remove unused local volumes from the VPS
+     * Remove unused local volumes from the server
      *
      * @returns Number of volumes removed and disk space reclaimed
      */
@@ -63,7 +63,7 @@ export class ServerController {
     }
 
     /**
-     * Remove stopped containers from the VPS
+     * Remove stopped containers from the server
      *
      * @returns Number of containers removed and disk space reclaimed
      */
@@ -74,7 +74,7 @@ export class ServerController {
     }
 
     /**
-     * Force-remove orphaned containers from the VPS
+     * Force-remove orphaned containers from the server
      *
      * @returns Number of orphaned containers removed and their names
      */
@@ -86,7 +86,7 @@ export class ServerController {
 
     /**
      * Runs a prune action, translating daemon connectivity failures into a
-     * 503 with a hint about the emulated VPS in local development.
+     * 503 with a hint about the emulated server in local development.
      *
      * @param resource Human-readable resource name used in the error message
      * @param action Prune action to execute
@@ -101,11 +101,11 @@ export class ServerController {
                 throw error;
             }
 
-            this.diagnostics.error(`Failed to prune ${resource} on the VPS Docker daemon`, error, ServerController.name);
+            this.diagnostics.error(`Failed to prune ${resource} on the server Docker daemon`, error, ServerController.name);
 
             throw new ServiceUnavailableException(
-                `Could not prune ${resource}. Verify the VPS is running and reachable; `
-                    + 'in local development, start the emulated VPS (see CONTRIBUTING.md).',
+                `Could not prune ${resource}. Verify the server is running and reachable; `
+                    + 'in local development, start the emulated server (see CONTRIBUTING.md).',
             );
         }
     }

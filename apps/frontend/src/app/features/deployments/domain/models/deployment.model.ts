@@ -4,7 +4,7 @@
 export type DeploymentStatus = 'pending' | 'running' | 'success' | 'failed';
 
 /**
- * A deployment is a single attempt to bring a service's compose stack up on the VPS.
+ * A deployment is a single attempt to bring a service's compose stack up on the server.
  */
 export interface Deployment {
     id: string;

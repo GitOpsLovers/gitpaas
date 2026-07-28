@@ -4,7 +4,7 @@
 
 ### Your apps. Your servers. Your platform.
 
-**GitPaaS is an open, self-hostable PaaS** — install it on your own VPS and deploy applications straight from git, the way you would with Vercel, Dokploy, or Coolify. Except here, *you* own the infrastructure end to end.
+**GitPaaS is an open, self-hostable PaaS** — install it on your own server and deploy applications straight from git, the way you would with Vercel, Dokploy, or Coolify. Except here, *you* own the infrastructure end to end.
 
 <br />
 
@@ -30,7 +30,7 @@ Point GitPaaS at a git repository and it does the rest: it clones the repo at a 
 
 There is no managed cloud in the middle. The platform and the apps it runs both live on *your* servers. You get the convenience of a modern PaaS with the control and privacy of self-hosting.
 
-> 💡 **In one line:** GitPaaS is the control panel; your VPS is the runway.
+> 💡 **In one line:** GitPaaS is the control panel; your server is the runway.
 
 ---
 
@@ -68,12 +68,12 @@ flowchart TD
 
     CP -->|"Docker Engine API over mTLS"| WP
 
-    subgraph WP["📦 Workload Plane · your VPS"]
+    subgraph WP["📦 Workload Plane · your server"]
         DK["Remote Docker daemon"] --> APPS["Your deployed apps<br/>(compose stacks)"]
     end
 ```
 
-A single deployment is one self-contained unit of work — *"bring this service's compose stack up on the VPS"* — orchestrated end to end by the control plane, streamed live, and recorded for replay.
+A single deployment is one self-contained unit of work — *"bring this service's compose stack up on the server"* — orchestrated end to end by the control plane, streamed live, and recorded for replay.
 
 📖 Dive deeper in the [Infrastructure Architecture](./docs/infrastructure-architecture.md).
 
@@ -81,16 +81,16 @@ A single deployment is one self-contained unit of work — *"bring this service'
 
 ## 🚀 Install
 
-Self-host GitPaaS on your own VPS with a single command.
+Self-host GitPaaS on your own server with a single command.
 
 ### Prerequisites
 
-- **A Linux VPS** for the control plane, with `curl`, `openssl`, and `tar` available. **Docker** is required — the installer provisions Docker and the compose plugin for you if they're missing.
+- **A Linux server** for the control plane, with `curl`, `openssl`, and `tar` available. **Docker** is required — the installer provisions Docker and the compose plugin for you if they're missing.
 - **A remote Docker host** where your deployed apps will run. The installer generates the mTLS certificates for it; you install the server certs there and enable Docker's TLS socket. This can be wired up after the initial install.
 
 ### One-line installer
 
-On a fresh VPS, install and start the whole control plane with a single command:
+On a fresh server, install and start the whole control plane with a single command:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh

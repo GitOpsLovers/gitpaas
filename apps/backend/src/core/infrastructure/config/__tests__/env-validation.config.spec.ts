@@ -17,9 +17,9 @@ const validEnv = (): Record<string, unknown> => ({
     GITHUB_APP_ID: '123',
     GITHUB_APP_PRIVATE_KEY: 'key',
     GITHUB_APP_INSTALLATION_ID: '456',
-    VPS_DOCKER_HOST: '127.0.0.1',
-    VPS_DOCKER_PORT: '2376',
-    VPS_DOCKER_CERT_PATH: '/certs',
+    SERVER_DOCKER_HOST: '127.0.0.1',
+    SERVER_DOCKER_PORT: '2376',
+    SERVER_DOCKER_CERT_PATH: '/certs',
     CORS_ORIGIN: 'http://localhost:4200',
     THROTTLE_TTL: '60000',
     THROTTLE_LIMIT: '100',
@@ -83,7 +83,7 @@ describe('validate', () => {
         expect(result.PORT).toBe(4000);
         expect(result.DB_PORT).toBe(5432);
         expect(result.REDIS_PORT).toBe(6379);
-        expect(result.VPS_DOCKER_PORT).toBe(2376);
+        expect(result.SERVER_DOCKER_PORT).toBe(2376);
     });
 
     it('coerces the throttler settings to numbers', () => {

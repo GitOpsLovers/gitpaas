@@ -123,7 +123,7 @@ describe('DockerOrphanContainersRepository', () => {
         await sut.removeOrphaned([]);
 
         expect(mockDiagnostics.log).toHaveBeenCalledWith(
-            'Removed 1 orphaned container(s) from the VPS',
+            'Removed 1 orphaned container(s) from the server',
             'DockerOrphanContainersRepository',
         );
     });

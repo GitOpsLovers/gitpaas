@@ -29,7 +29,7 @@ function composeProjectName(service: Service): string {
 /**
  * Docker service footprint repository.
  *
- * Removes a service's own Docker footprint from the VPS. All removals are
+ * Removes a service's own Docker footprint from the server. All removals are
  * best-effort: each individual resource is removed inside its own try/catch so a
  * single failure — or an unreachable daemon — is logged and skipped rather than
  * aborting the teardown.

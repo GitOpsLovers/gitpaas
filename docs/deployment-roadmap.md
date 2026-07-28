@@ -9,7 +9,7 @@ and [frontend-architecture.md](./frontend-architecture.md).
 ## Vision
 
 GitPaaS aims to be a **self-hosted PaaS** in the spirit of Vercel, Dokploy, and Coolify:
-a user installs it on their own VPS and deploys their applications through it. The product
+a user installs it on their own server and deploys their applications through it. The product
 promise is simple — point GitPaaS at a git repository, and it builds, runs, and exposes
 the app over HTTPS on a domain, all on infrastructure the user owns and controls. There is no
 managed cloud in the middle: the control plane and the workloads it runs both live on the
@@ -19,7 +19,7 @@ user's own servers.
 
 GitPaaS is already a **working single-tenant deploy engine**, not merely a data store with
 a job queue. The control plane runs one deployment as a self-contained unit of work — "bring a
-service's compose stack up on the VPS" — by cloning a GitHub repository at a resolved commit,
+service's compose stack up on the server" — by cloning a GitHub repository at a resolved commit,
 building the repo's `build:` services and pulling the rest, and running the resulting
 `docker-compose` stack on a **remote Docker daemon reached over mTLS**. This control-plane →
 remote-Docker-host split is the same runtime model Coolify and Dokploy use.
@@ -96,9 +96,9 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
 
 ### Phase 1 — Self-host foundation
 
-**Goal:** a fresh VPS can be turned into a running GitPaaS control plane with one command.
+**Goal:** a fresh server can be turned into a running GitPaaS control plane with one command.
 
-**Definition of done:** running the install script on a fresh VPS produces a reachable GitPaaS
+**Definition of done:** running the install script on a fresh server produces a reachable GitPaaS
 control plane, with the database created via migrations (no `synchronize`) and an admin account
 seeded — no manual cert or database setup required.
 

@@ -35,9 +35,9 @@ describe('DockerClient', () => {
         it('reads the TLS certificates and constructs a Docker client with the configured connection options', () => {
             const client = new DockerClient(
                 createConfig({
-                    VPS_DOCKER_HOST: '10.0.0.5',
-                    VPS_DOCKER_PORT: 4242,
-                    VPS_DOCKER_CERT_PATH: '/certs',
+                    SERVER_DOCKER_HOST: '10.0.0.5',
+                    SERVER_DOCKER_PORT: 4242,
+                    SERVER_DOCKER_CERT_PATH: '/certs',
                 }),
             );
 
@@ -62,9 +62,9 @@ describe('DockerClient', () => {
         it('coerces a string port from config into a number', () => {
             const client = new DockerClient(
                 createConfig({
-                    VPS_DOCKER_HOST: '10.0.0.5',
-                    VPS_DOCKER_PORT: '5000',
-                    VPS_DOCKER_CERT_PATH: '/certs',
+                    SERVER_DOCKER_HOST: '10.0.0.5',
+                    SERVER_DOCKER_PORT: '5000',
+                    SERVER_DOCKER_CERT_PATH: '/certs',
                 }),
             );
 
@@ -74,7 +74,7 @@ describe('DockerClient', () => {
         });
 
         it('memoizes the client, building Docker only once across calls', () => {
-            const client = new DockerClient(createConfig({ VPS_DOCKER_CERT_PATH: '/certs' }));
+            const client = new DockerClient(createConfig({ SERVER_DOCKER_CERT_PATH: '/certs' }));
 
             const first = client.getClient();
             const second = client.getClient();
@@ -89,7 +89,7 @@ describe('DockerClient', () => {
             readFileSyncMock.mockImplementation(() => {
                 throw new Error('ENOENT');
             });
-            const client = new DockerClient(createConfig({ VPS_DOCKER_CERT_PATH: '/missing' }));
+            const client = new DockerClient(createConfig({ SERVER_DOCKER_CERT_PATH: '/missing' }));
 
             expect(() => client.getClient()).toThrow(ServiceUnavailableException);
             expect(() => client.getClient()).toThrow('/missing');
@@ -100,7 +100,7 @@ describe('DockerClient', () => {
             readFileSyncMock.mockImplementationOnce(() => {
                 throw new Error('ENOENT');
             });
-            const client = new DockerClient(createConfig({ VPS_DOCKER_CERT_PATH: '/certs' }));
+            const client = new DockerClient(createConfig({ SERVER_DOCKER_CERT_PATH: '/certs' }));
 
             expect(() => client.getClient()).toThrow(ServiceUnavailableException);
 

@@ -5,14 +5,14 @@ import { DockerService } from '../services/docker.service';
 /**
  * Docker controller
  */
-@Controller('vps')
+@Controller('server')
 export class DockerController {
     private readonly logger = new Logger(DockerController.name);
 
     constructor(private readonly service: DockerService) {}
 
     /**
-     * Health check for the connection to the VPS's Docker daemon.
+     * Health check for the connection to the server's Docker daemon.
      *
      * Confirms the daemon is reachable and Dockerode's TLS auth is valid
      */
@@ -39,11 +39,11 @@ export class DockerController {
                 throw error;
             }
 
-            this.logger.error('Failed to reach the VPS Docker daemon', error);
+            this.logger.error('Failed to reach the server Docker daemon', error);
 
             throw new ServiceUnavailableException(
-                'Could not reach the VPS Docker daemon. Verify the VPS is running and '
-                    + 'reachable; in local development, start the emulated VPS (see CONTRIBUTING.md).',
+                'Could not reach the server Docker daemon. Verify the server is running and '
+                    + 'reachable; in local development, start the emulated server (see CONTRIBUTING.md).',
             );
         }
     }

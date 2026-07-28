@@ -18,7 +18,7 @@ The split holds in both environments; only where the daemon lives and how the co
 | Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
 | Images              | Multi-stage Dockerfiles                                |
 | Database / cache    | `postgres:17.6-alpine`, `redis:8.8.0-alpine`           |
-| Emulated VPS (dev)  | `docker:29.6.1-dind-alpine`, privileged                |
+| Emulated server (dev)  | `docker:29.6.1-dind-alpine`, privileged                |
 | Static serving      | nginx-unprivileged                                     |
 | Release             | GitHub Actions + semantic-release, images on GHCR      |
 
@@ -26,17 +26,17 @@ The split holds in both environments; only where the daemon lives and how the co
 
 ### Development
 
-`iac/development/docker-compose.yml` (project `gitpaas-dev`) stands up the control plane's dependencies plus a stand-in for the remote VPS. The backend and frontend themselves run **on the host** via `pnpm dev`, pointing at these services on `127.0.0.1`. Every published port binds to loopback only.
+`iac/development/docker-compose.yml` (project `gitpaas-dev`) stands up the control plane's dependencies plus a stand-in for the remote server. The backend and frontend themselves run **on the host** via `pnpm dev`, pointing at these services on `127.0.0.1`. Every published port binds to loopback only.
 
 | Service        | Role                                                         | Host port |
 |----------------|--------------------------------------------------------------|-----------|
-| `vps`          | Docker-in-Docker container emulating the remote VPS           | 2376 (TLS), 8080→80 and 8443→443 reserved for a future proxy |
+| `server`          | Docker-in-Docker container emulating the remote server           | 2376 (TLS), 8080→80 and 8443→443 reserved for a future proxy |
 | `postgres`     | Control-plane database | 5432      |
 | `redis`        | Live deployment-log buffer + pub/sub                          | 6379      |
 | `pgadmin`      | Optional Postgres web UI, server pre-registered               | 5050      |
 | `redisinsight` | Optional Redis web UI, server pre-connected                   | 5540      |
 
-The `vps` service runs privileged with `DOCKER_TLS_CERTDIR=/certs`, so its inner daemon listens on `tcp://0.0.0.0:2376` with TLS and generates client certificates under `/certs/client`. `/certs` is bind-mounted to the repo-root `.dev/vps-certs`, so `ca.pem` / `cert.pem` / `key.pem` are visible to the host-run backend, which reads them from `VPS_DOCKER_CERT_PATH` and connects with mutual TLS. Missing certs fail fast, surfaced as `503` with a local-dev hint. Everything GitPaaS deploys lives inside that container, exactly as real workloads live on a remote VPS; the `vps-data` volume persists its images and volumes across restarts.
+The `server` service runs privileged with `DOCKER_TLS_CERTDIR=/certs`, so its inner daemon listens on `tcp://0.0.0.0:2376` with TLS and generates client certificates under `/certs/client`. `/certs` is bind-mounted to the repo-root `.dev/server-certs`, so `ca.pem` / `cert.pem` / `key.pem` are visible to the host-run backend, which reads them from `SERVER_DOCKER_CERT_PATH` and connects with mutual TLS. Missing certs fail fast, surfaced as `503` with a local-dev hint. Everything GitPaaS deploys lives inside that container, exactly as real workloads live on a remote server; the `server-data` volume persists its images and volumes across restarts.
 
 ```text
 host: backend (pnpm dev)  ──mTLS──►  127.0.0.1:2376  ──►  DinD daemon
@@ -69,7 +69,7 @@ Both images build from multi-stage Dockerfiles whose **build context is the repo
 ## Conventions
 
 - **Configuration is environment-driven.** `iac/production/.env.example` documents the full contract; the operator copies it to `.env`, which compose auto-loads both for `${…}` interpolation and, via `env_file`, as the backend's runtime configuration. The backend validates every variable at boot and fails fast — no silent fallbacks. A real `.env` is never committed.
-- **Secrets stay out of images.** The mTLS client certs are supplied by a read-only bind mount from `VPS_CERT_HOST_PATH` into the backend container at `VPS_DOCKER_CERT_PATH`.
+- **Secrets stay out of images.** The mTLS client certs are supplied by a read-only bind mount from `server_CERT_HOST_PATH` into the backend container at `SERVER_DOCKER_CERT_PATH`.
 - **Version pins live in one place** (`.tool-versions`) and flow into the compose build args and CI.
 - **Production never auto-creates schema.** `NODE_ENV=production` disables TypeORM `synchronize`; migrations own the schema.
 
@@ -82,16 +82,16 @@ Both images build from multi-stage Dockerfiles whose **build context is the repo
 | PostgreSQL        | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` |
 | Redis             | `REDIS_HOST`, `REDIS_PORT`                                                                     |
 | GitHub App        | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64 PEM), `GITHUB_APP_INSTALLATION_ID`           |
-| Remote Docker     | `VPS_DOCKER_HOST`, `VPS_DOCKER_PORT`, `VPS_DOCKER_CERT_PATH`, `VPS_CERT_HOST_PATH`             |
+| Remote Docker     | `SERVER_DOCKER_HOST`, `SERVER_DOCKER_PORT`, `SERVER_DOCKER_CERT_PATH`, `server_CERT_HOST_PATH`             |
 | JWT               | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`   |
 
-`VPS_CERT_HOST_PATH` is consumed only by compose; every other variable except the `POSTGRES_*` pair is validated by the backend.
+`server_CERT_HOST_PATH` is consumed only by compose; every other variable except the `POSTGRES_*` pair is validated by the backend.
 
 ## Installation
 
 ### One-line installer
 
-A fresh VPS becomes a running GitPaaS control plane with a single command:
+A fresh server becomes a running GitPaaS control plane with a single command:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
@@ -131,7 +131,7 @@ The script runs six ordered steps:
 1. **Ensure Docker.** If Docker or the compose plugin is missing, it installs both via the official `get.docker.com` convenience script and enables the daemon.
 2. **Resolve version and fetch source.** It resolves the ref (see above) and downloads the repo tarball from `codeload.github.com` into the install directory. An existing install (a directory that already holds `iac/production/docker-compose.yml`) is reused rather than re-fetched.
 3. **Generate mTLS material.** It creates a CA, a `clientAuth` certificate for the control plane, and a `serverAuth` certificate for the remote Docker daemon (see [mTLS material](#mtls-material) below).
-4. **Write `.env`.** It copies `iac/production/.env.example` to `.env` and fills in secure random secrets — a shared `POSTGRES_PASSWORD`/`DB_PASSWORD`, and `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET` (32-byte hex) — sets `NODE_ENV=production`, and points `CORS_ORIGIN` at the host's own address on port `8080`. If `--docker-host` was given it also fills `VPS_DOCKER_HOST`. GitHub App credentials (and `VPS_DOCKER_HOST` when not supplied) are left as placeholders.
+4. **Write `.env`.** It copies `iac/production/.env.example` to `.env` and fills in secure random secrets — a shared `POSTGRES_PASSWORD`/`DB_PASSWORD`, and `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET` (32-byte hex) — sets `NODE_ENV=production`, and points `CORS_ORIGIN` at the host's own address on port `8080`. If `--docker-host` was given it also fills `SERVER_DOCKER_HOST`. GitHub App credentials (and `SERVER_DOCKER_HOST` when not supplied) are left as placeholders.
 5. **Bring up the stack.** It runs `docker compose … up -d --build` for the production stack (postgres, redis, the one-shot `migrate` job, backend, frontend), then polls the `gitpaas-backend` container's health until it reports `healthy` (up to ~5 minutes). A healthy backend implies migrations completed, since the backend gates on the `migrate` job.
 6. **Seed the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
 
@@ -141,7 +141,7 @@ On success it prints a summary with the frontend/API URLs, the admin credentials
 
 The installer generates the same mutual-TLS material the control plane uses to reach the remote Docker daemon (mirroring the dev DinD setup). Under `iac/production/` it writes:
 
-- `certs/` — the **client** side, mounted read-only into the backend (`VPS_CERT_HOST_PATH`): `ca.pem`, `cert.pem` (a `clientAuth` cert), and `key.pem`.
+- `certs/` — the **client** side, mounted read-only into the backend (`server_CERT_HOST_PATH`): `ca.pem`, `cert.pem` (a `clientAuth` cert), and `key.pem`.
 - `certs-remote-docker/` — the **server** side, for the operator to install on the remote Docker host: `ca.pem`, `server-cert.pem` (a `serverAuth` cert), and `server-key.pem`.
 
 The server certificate's SAN must cover the address the control plane dials. If `--docker-host` is supplied, that host is baked into the SAN (as an `IP:` or `DNS:` entry, plus `localhost`). If it is not, the server cert only covers `localhost`, and the script warns that the operator must regenerate it with a matching SAN once the host address is known.
@@ -163,7 +163,7 @@ The seeding CLI adapter `apps/backend/src/features/users/infrastructure/cli/seed
 The installer stands up a running control plane, but a working *deployment* target still needs operator input. The summary reminds the operator to, in `iac/production/.env`:
 
 - Fill in the GitHub App credentials: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64-encoded PEM), and `GITHUB_APP_INSTALLATION_ID`.
-- Set `VPS_DOCKER_HOST` (the remote Docker daemon address) — and, if it was not passed via `--docker-host`, regenerate the server certificate with a SAN matching that host.
+- Set `SERVER_DOCKER_HOST` (the remote Docker daemon address) — and, if it was not passed via `--docker-host`, regenerate the server certificate with a SAN matching that host.
 
 And, on the remote Docker host:
 
@@ -171,7 +171,7 @@ And, on the remote Docker host:
 
 After editing `.env`, apply the changes with `docker compose -f <dir>/iac/production/docker-compose.yml up -d`.
 
-> **Known limitation.** The production frontend image bakes `apiBaseUrl: http://localhost:3000/api/v1` at build time, so opening the UI from a machine **other than** the VPS currently calls the wrong API host. A future frontend build-arg fix will make the API base configurable at install time.
+> **Known limitation.** The production frontend image bakes `apiBaseUrl: http://localhost:3000/api/v1` at build time, so opening the UI from a machine **other than** the server currently calls the wrong API host. A future frontend build-arg fix will make the API base configurable at install time.
 
 ## Key flows
 
@@ -228,7 +228,7 @@ Versioning is entirely commit-driven: `fix:` → patch, `feat:` → minor, break
 | Dev credentials     | The backend seeds `admin@gitpaas.dev` / `gitpaas` on boot (`NODE_ENV=development`) via the shared `seedAdminUseCase`; idempotent, so re-seed by deleting the admin row and restarting — no volume recreation needed. See [Development admin seeding](#development-admin-seeding) |
 | Dev schema          | Created by TypeORM `synchronize` on backend boot (dev only)                                    |
 | Start prod stack    | `cp .env.example .env`, fill it in, then `docker compose -f iac/production/docker-compose.yml up -d --build` |
-| Install on a VPS    | `curl -fsSL …/scripts/install.sh | sh` — see [Installation](#installation) |
+| Install on a server    | `curl -fsSL …/scripts/install.sh | sh` — see [Installation](#installation) |
 | Prod admin seeding  | The installer seeds the first admin; re-seed via `docker compose … run --rm --no-deps backend node dist/src/features/users/infrastructure/cli/seed-admin.cli.js` (idempotent) |
 
 ### Not covered yet

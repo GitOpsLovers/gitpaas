@@ -39,7 +39,7 @@ describe('DockerHealthProbe', () => {
 
     it('swallows the synchronous ServiceUnavailableException from getClient and reports down', async () => {
         getClient.mockImplementation(() => {
-            throw new ServiceUnavailableException('Could not read VPS TLS certificates');
+            throw new ServiceUnavailableException('Could not read server TLS certificates');
         });
 
         await expect(probe.check()).resolves.toBe(false);

@@ -2,7 +2,7 @@ import { PruneResult } from '../domain/models/prune-result.models';
 import { ServerPrunerRepository } from '../domain/repositories/server-pruner.repository';
 
 /**
- * Use case for removing dangling images from the VPS
+ * Use case for removing dangling images from the server
  *
  * @param pruner Server pruner repository
  *

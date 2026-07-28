@@ -97,7 +97,7 @@ describe('NetworksController', () => {
         it('includes remediation guidance in the wrapped error message', async () => {
             mockNetworksService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
-            await expect(sut.getByService(serviceId)).rejects.toThrow(/Could not reach the VPS Docker daemon/);
+            await expect(sut.getByService(serviceId)).rejects.toThrow(/Could not reach the server Docker daemon/);
         });
 
         it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {

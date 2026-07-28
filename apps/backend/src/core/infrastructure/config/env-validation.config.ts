@@ -73,16 +73,16 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNotEmpty()
     @IsString()
-    public VPS_DOCKER_HOST!: string;
+    public SERVER_DOCKER_HOST!: string;
 
     @IsDefined()
     @IsNumber()
-    public VPS_DOCKER_PORT!: number;
+    public SERVER_DOCKER_PORT!: number;
 
     @IsDefined()
     @IsNotEmpty()
     @IsString()
-    public VPS_DOCKER_CERT_PATH!: string;
+    public SERVER_DOCKER_CERT_PATH!: string;
 
     @IsDefined()
     @IsNotEmpty()

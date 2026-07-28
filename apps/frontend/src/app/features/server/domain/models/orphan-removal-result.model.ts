@@ -1,5 +1,5 @@
 /**
- * Outcome of removing orphaned GitPaaS containers from the VPS.
+ * Outcome of removing orphaned GitPaaS containers from the server.
  */
 export interface OrphanRemovalResult {
     removed: number;
