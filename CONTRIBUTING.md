@@ -37,14 +37,12 @@ The variables cover:
 - PostgreSQL: `DB_*`
 - Redis: `REDIS_*`, 
 - GitHub App: `GITHUB_APP_*`, 
-- Docker daemon: `SERVER_DOCKER_*`
 - Authentication: `JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`
 
 ### Local infrastructure
 
-GitPaaS deploys applications by driving a **remote Docker daemon over mTLS** (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally, the stack in `iac/development/docker-compose.yml` reproduces everything the project depend on:
+GitPaaS deploys applications by driving the **local Docker daemon** through the `/var/run/docker.sock` unix socket (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally that is your own Docker, so everything you deploy lands on your machine — no extra setup and no certificates. The stack in `iac/development/docker-compose.yml` provides the remaining services the project depends on:
 
-- **`server emulator`**: a Docker-in-Docker (DinD) container that emulates a remote server. Its daemon listens on TLS `127.0.0.1:2376`, and everything GitPaaS deploys lives inside it.
 - **`postgres`**: the application database.
 - **`redis`**: buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
 - **`pgadmin`**: web UI for the local Postgres at `http://127.0.0.1:5050`.
@@ -57,11 +55,11 @@ cd iac/development
 
 docker compose up -d --wait                                # Start and wait until healthy
 docker compose down                                        # Stop (keeps images/volumes)
-docker compose logs -f server                              # Follow a service's logs
-docker compose down -v && rm -rf ../../.dev/server-certs   # Wipe all state
+docker compose logs -f postgres                            # Follow a service's logs
+docker compose down -v                                     # Wipe all state
 ```
 
-On first `docker compose up` the `server` container generates TLS certificates and shares the client certs with the host under `.dev/server-certs/client/`; the backend reads them from there. Ports `8080`→`80` and `8443`→`443` on the `server` are reserved for a future reverse proxy for deployed apps.
+Your local Docker daemon must be running: the backend connects to `/var/run/docker.sock` and fails its Docker-backed endpoints if the socket is unavailable.
 
 ### Database schema and migrations
 

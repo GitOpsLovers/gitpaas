@@ -10,16 +10,16 @@ In addition, **vertical slicing** is implemented, so each business domain is enc
 
 ## Stack
 
-| Concern        | Tool                                          |
-|----------------|-----------------------------------------------|
-| Framework      | NestJS 11 with Express platform               |
-| Persistence    | PostgreSQL via NestJS TypeORM                 |
-| Live logs      | Redis                                         |
-| Deploy engine  | `dockerode` and `dockerode-compose` over mTLS |
-| Source access  | GitHub App via `@octokit/` library            |
-| Auth           | Passport wirh local and JWT                   |
-| Hardening      | `helmet`, `/throttler` and `class-validator`  |
-| Testing        | Jest                                          |
+| Concern        | Tool                                                             |
+|----------------|------------------------------------------------------------------|
+| Framework      | NestJS 11 with Express platform                                  |
+| Persistence    | PostgreSQL via NestJS TypeORM                                    |
+| Live logs      | Redis                                                            |
+| Deploy engine  | `dockerode` and `dockerode-compose` over the local Docker socket |
+| Source access  | GitHub App via `@octokit/` library                               |
+| Auth           | Passport wirh local and JWT                                      |
+| Hardening      | `helmet`, `/throttler` and `class-validator`                     |
+| Testing        | Jest                                                             |
 
 ## Structure
 

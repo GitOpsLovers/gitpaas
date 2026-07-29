@@ -10,30 +10,29 @@
 #   1. Ensures Docker + the compose plugin are installed (provisions them if not).
 #   2. Resolves the version to install ("latest" release tag by default, or an
 #      explicit tag/branch you pick) and fetches the repo source at that version.
-#   3. Generates the mTLS certificate material the control plane uses to reach the
-#      remote Docker daemon (a CA, a clientAuth cert for the control plane, and a
-#      serverAuth cert for the remote daemon).
-#   4. Writes iac/production/.env with secure random secrets (DB password + JWT
-#      secrets), leaving operator-supplied values (GitHub App, remote Docker host)
-#      as clearly-marked placeholders you fill in.
-#   5. Brings up the production compose stack — postgres, redis, the one-shot
+#   3. Writes iac/production/.env with secure random secrets (DB password + JWT
+#      secrets) and the host's docker group id (DOCKER_GID, so the non-root
+#      backend container can use the mounted Docker socket), leaving
+#      operator-supplied values (GitHub App) as clearly-marked placeholders.
+#   4. Brings up the production compose stack — postgres, redis, the one-shot
 #      `migrate` service (which creates the schema via TypeORM migrations), the
 #      backend, and the frontend.
-#   6. Seeds the FIRST admin: prompts for your email, generates a random password,
+#   5. Seeds the FIRST admin: prompts for your email, generates a random password,
 #      stores it as an argon2id hash (via the backend's own hasher), and prints the
 #      password for you to copy.
 #
+# GitPaaS runs everything on THIS server: the backend drives the host's own Docker
+# daemon through the bind-mounted /var/run/docker.sock. The only thing that needs
+# resolving is the socket's group id, which the installer detects for you.
+#
 # It is written for POSIX /bin/sh, fails fast (set -e), and is safe to re-run:
-# existing certs and .env are preserved, and the admin seed is idempotent.
+# an existing .env is preserved, and the admin seed is idempotent.
 #
 # Configuration (flags OR environment variables):
 #   --version <ref>   / GITPAAS_VERSION   Tag or branch to install. Default: the
 #                                         latest release tag (falls back to "main").
 #   --dir <path>      / GITPAAS_DIR       Install directory. Default: /opt/gitpaas.
 #   --email <email>   / GITPAAS_ADMIN_EMAIL   Admin email (skips the prompt).
-#   --docker-host <h> / GITPAAS_DOCKER_HOST   Remote Docker host (hostname or IP)
-#                                         to bake into the server cert's SAN and
-#                                         into .env. Optional; can be filled later.
 
 set -e
 
@@ -47,7 +46,6 @@ REPO_SLUG="${REPO_OWNER}/${REPO_NAME}"
 GITPAAS_VERSION="${GITPAAS_VERSION:-latest}"
 GITPAAS_DIR="${GITPAAS_DIR:-/opt/gitpaas}"
 GITPAAS_ADMIN_EMAIL="${GITPAAS_ADMIN_EMAIL:-}"
-GITPAAS_DOCKER_HOST="${GITPAAS_DOCKER_HOST:-}"
 
 # ---------------------------------------------------------------------------
 # Logging helpers (kept dependency-free; colours only when stdout is a TTY)
@@ -75,10 +73,8 @@ while [ $# -gt 0 ]; do
         --dir=*)       GITPAAS_DIR="${1#*=}"; shift ;;
         --email)       GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
         --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
-        --docker-host)   GITPAAS_DOCKER_HOST="$2"; shift 2 ;;
-        --docker-host=*) GITPAAS_DOCKER_HOST="${1#*=}"; shift ;;
         -h|--help)
-            sed -n '2,45p' "$0" 2>/dev/null || true
+            sed -n '2,34p' "$0" 2>/dev/null || true
             exit 0 ;;
         *) die "Unknown argument: $1 (try --help)" ;;
     esac
@@ -180,85 +176,7 @@ fetch_source() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 3 — Generate mTLS material
-# ---------------------------------------------------------------------------
-# The control plane reaches the remote Docker daemon over mutual TLS, exactly as
-# in local development (.dev/server-certs). We generate:
-#   * a CA (signs both ends),
-#   * a CLIENT cert (extendedKeyUsage=clientAuth) used by the control plane —
-#     ca.pem/cert.pem/key.pem are mounted into the backend (server_CERT_HOST_PATH),
-#   * a SERVER cert (extendedKeyUsage=serverAuth) for the remote Docker daemon,
-#     left for the operator to install on that host.
-generate_certs() {
-    PROD_DIR="$GITPAAS_DIR/iac/production"
-    CLIENT_DIR="$PROD_DIR/certs"                 # mounted into the backend (server_CERT_HOST_PATH default)
-    SERVER_DIR="$PROD_DIR/certs-remote-docker"   # for the operator to install on the Docker host
-
-    if [ -f "$CLIENT_DIR/cert.pem" ]; then
-        log "mTLS material already present in $CLIENT_DIR — keeping it."
-        return
-    fi
-
-    log "Generating mTLS certificate material ..."
-    work="$(mktemp -d)"
-
-    # --- Certificate Authority ---
-    openssl genrsa -out "$work/ca-key.pem" 4096 >/dev/null 2>&1
-    openssl req -x509 -new -nodes -key "$work/ca-key.pem" -sha256 -days 3650 \
-        -subj "/CN=gitpaas-ca" -out "$work/ca.pem" >/dev/null 2>&1
-
-    # --- Client cert (control plane -> daemon), extendedKeyUsage=clientAuth ---
-    printf 'extendedKeyUsage = clientAuth\n' > "$work/client-ext.cnf"
-    openssl genrsa -out "$work/client-key.pem" 4096 >/dev/null 2>&1
-    openssl req -new -key "$work/client-key.pem" -subj "/CN=gitpaas-client" \
-        -out "$work/client.csr" >/dev/null 2>&1
-    openssl x509 -req -in "$work/client.csr" -CA "$work/ca.pem" -CAkey "$work/ca-key.pem" \
-        -CAcreateserial -days 3650 -sha256 -extfile "$work/client-ext.cnf" \
-        -out "$work/client-cert.pem" >/dev/null 2>&1
-
-    # --- Server cert (remote Docker daemon), extendedKeyUsage=serverAuth ---
-    # The SAN must cover the address the control plane dials (SERVER_DOCKER_HOST).
-    # If we know it, bake it in; otherwise ship a localhost SAN and warn that the
-    # operator must regenerate the server cert once the host address is known.
-    if [ -n "$GITPAAS_DOCKER_HOST" ]; then
-        server_cn="$GITPAAS_DOCKER_HOST"
-        case "$GITPAAS_DOCKER_HOST" in
-            *[!0-9.]*) san="DNS:${GITPAAS_DOCKER_HOST},DNS:localhost,IP:127.0.0.1" ;;
-            *)         san="IP:${GITPAAS_DOCKER_HOST},DNS:localhost,IP:127.0.0.1" ;;
-        esac
-    else
-        server_cn="localhost"
-        san="DNS:localhost,IP:127.0.0.1"
-    fi
-    printf 'extendedKeyUsage = serverAuth\nsubjectAltName = %s\n' "$san" > "$work/server-ext.cnf"
-    openssl genrsa -out "$work/server-key.pem" 4096 >/dev/null 2>&1
-    openssl req -new -key "$work/server-key.pem" -subj "/CN=${server_cn}" \
-        -out "$work/server.csr" >/dev/null 2>&1
-    openssl x509 -req -in "$work/server.csr" -CA "$work/ca.pem" -CAkey "$work/ca-key.pem" \
-        -CAcreateserial -days 3650 -sha256 -extfile "$work/server-ext.cnf" \
-        -out "$work/server-cert.pem" >/dev/null 2>&1
-
-    # --- Place the client material where compose mounts it (ca/cert/key.pem) ---
-    $SUDO mkdir -p "$CLIENT_DIR" "$SERVER_DIR"
-    $SUDO cp "$work/ca.pem"          "$CLIENT_DIR/ca.pem"
-    $SUDO cp "$work/client-cert.pem" "$CLIENT_DIR/cert.pem"
-    $SUDO cp "$work/client-key.pem"  "$CLIENT_DIR/key.pem"
-
-    # --- Leave the CA + server material for the operator's Docker host ---
-    $SUDO cp "$work/ca.pem"          "$SERVER_DIR/ca.pem"
-    $SUDO cp "$work/server-cert.pem" "$SERVER_DIR/server-cert.pem"
-    $SUDO cp "$work/server-key.pem"  "$SERVER_DIR/server-key.pem"
-
-    rm -rf "$work"
-    log "mTLS material generated (client certs in $CLIENT_DIR; server certs in $SERVER_DIR)."
-    if [ -z "$GITPAAS_DOCKER_HOST" ]; then
-        warn "No remote Docker host was provided, so the server cert only covers localhost."
-        warn "Once you know the host address, regenerate the server cert with a matching SAN before wiring SERVER_DOCKER_HOST."
-    fi
-}
-
-# ---------------------------------------------------------------------------
-# Step 4 — Generate .env with secure secrets
+# Step 3 — Generate .env with secure secrets
 # ---------------------------------------------------------------------------
 rand_secret() { openssl rand -hex 32; }
 # Password we display to the operator: alphanumeric so it's trivial to copy and
@@ -272,12 +190,49 @@ set_env() {
     $SUDO sed -i.bak "s|^${key}=.*|${key}=${val}|" "$ENV_FILE" && $SUDO rm -f "$ENV_FILE.bak"
 }
 
+# Same as set_env, but appends the key when .env does not carry it yet (an .env
+# generated by an older installer, which we otherwise preserve untouched).
+upsert_env() {
+    if $SUDO grep -q "^$1=" "$ENV_FILE" 2>/dev/null; then
+        set_env "$1" "$2"
+    else
+        printf '%s=%s\n' "$1" "$2" | $SUDO tee -a "$ENV_FILE" >/dev/null
+    fi
+}
+
+# The backend container runs as the non-root `node` user, so it can only use the
+# bind-mounted /var/run/docker.sock if it joins the group that owns that socket.
+# Compose does that through `group_add: ["${DOCKER_GID}"]`, so resolve the GID
+# here: the host's `docker` group first, then whatever group actually owns the
+# socket (covers distros/setups where the group is named differently).
+detect_docker_gid() {
+    DOCKER_GID="$(getent group docker 2>/dev/null | cut -d: -f3 || true)"
+
+    if [ -z "$DOCKER_GID" ]; then
+        DOCKER_GID="$(stat -c '%g' /var/run/docker.sock 2>/dev/null || true)"
+    fi
+    if [ -z "$DOCKER_GID" ]; then
+        DOCKER_GID="$(stat -f '%g' /var/run/docker.sock 2>/dev/null || true)"
+    fi
+
+    case "$DOCKER_GID" in
+        ''|*[!0-9]*)
+            die "Could not resolve the GID of the group owning /var/run/docker.sock (tried 'getent group docker' and stat on the socket). Make sure Docker is installed and running, then re-run the installer — or set DOCKER_GID by hand in $GITPAAS_DIR/iac/production/.env." ;;
+    esac
+
+    log "Host Docker socket group id: $DOCKER_GID (the backend container joins it)."
+}
+
 generate_env() {
     PROD_DIR="$GITPAAS_DIR/iac/production"
     ENV_FILE="$PROD_DIR/.env"
 
+    detect_docker_gid
+
     if [ -f "$ENV_FILE" ]; then
         log "$ENV_FILE already exists — keeping it (edit it by hand to change secrets)."
+        # DOCKER_GID is host-specific and must always match this machine.
+        upsert_env "DOCKER_GID" "$DOCKER_GID"
         return
     fi
 
@@ -296,15 +251,14 @@ generate_env() {
     # Point CORS at the origin the frontend is actually served from so login works.
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"
 
-    if [ -n "$GITPAAS_DOCKER_HOST" ]; then
-        set_env "SERVER_DOCKER_HOST" "$GITPAAS_DOCKER_HOST"
-    fi
+    # Lets the non-root backend container use the mounted Docker socket.
+    upsert_env "DOCKER_GID" "$DOCKER_GID"
 
-    log ".env written. GitHub App credentials and (if not provided) SERVER_DOCKER_HOST remain as placeholders you must fill in."
+    log ".env written. GitHub App credentials remain as placeholders you must fill in."
 }
 
 # ---------------------------------------------------------------------------
-# Step 5 — Bring up the stack
+# Step 4 — Bring up the stack
 # ---------------------------------------------------------------------------
 compose() { docker_cmd compose -f "$GITPAAS_DIR/iac/production/docker-compose.yml" "$@"; }
 
@@ -329,7 +283,7 @@ bring_up() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 6 — Seed the first admin
+# Step 5 — Seed the first admin
 # ---------------------------------------------------------------------------
 seed_admin() {
     # Prompt for the email if it was not supplied. When piped from curl, stdin is
@@ -365,6 +319,7 @@ print_summary() {
     printf '%s────────────────────────────────────────────────────────%s\n' "$C_GREEN$C_BOLD" "$C_RESET"
     printf '  Frontend : http://%s:8080\n' "$HOST_ADDR"
     printf '  API      : http://%s:3000/api/v1\n' "$HOST_ADDR"
+    printf '  Docker   : local socket /var/run/docker.sock (backend joins group id %s)\n' "$DOCKER_GID"
     printf '\n'
     printf '  %sAdmin email%s    : %s\n' "$C_BOLD" "$C_RESET" "$GITPAAS_ADMIN_EMAIL"
     printf '  %sAdmin password%s : %s%s%s\n' "$C_BOLD" "$C_RESET" "$C_YELLOW$C_BOLD" "$ADMIN_PASSWORD" "$C_RESET"
@@ -374,9 +329,6 @@ print_summary() {
     printf '  %sStill to do manually:%s\n' "$C_BOLD" "$C_RESET"
     printf '   * Fill GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_INSTALLATION_ID in\n'
     printf '     %s/iac/production/.env\n' "$GITPAAS_DIR"
-    printf '   * Set SERVER_DOCKER_HOST (the remote Docker daemon address) in that .env.\n'
-    printf '   * Install %s/iac/production/certs-remote-docker/{ca,server-cert,server-key}.pem\n' "$GITPAAS_DIR"
-    printf '     on the remote Docker host and configure dockerd for mTLS on :2376.\n'
     printf '   * After editing .env, apply changes: %ssudo docker compose -f %s/iac/production/docker-compose.yml up -d%s\n' "$C_BOLD" "$GITPAAS_DIR" "$C_RESET"
     printf '%s────────────────────────────────────────────────────────%s\n\n' "$C_GREEN$C_BOLD" "$C_RESET"
 }
@@ -394,7 +346,6 @@ main() {
     ensure_docker
     resolve_version
     fetch_source
-    generate_certs
     generate_env
     bring_up
     seed_admin

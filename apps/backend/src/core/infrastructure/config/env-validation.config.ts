@@ -73,20 +73,6 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNotEmpty()
     @IsString()
-    public SERVER_DOCKER_HOST!: string;
-
-    @IsDefined()
-    @IsNumber()
-    public SERVER_DOCKER_PORT!: number;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public SERVER_DOCKER_CERT_PATH!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
     public CORS_ORIGIN!: string;
 
     @IsDefined()

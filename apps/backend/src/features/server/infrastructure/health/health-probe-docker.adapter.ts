@@ -7,8 +7,8 @@ import { DockerClient } from '@core/infrastructure/docker/docker.client';
 /**
  * Docker daemon health probe.
  *
- * Probes the daemon with a `ping`, reporting `down` on any error — including the
- * `ServiceUnavailableException` `getClient()` throws when TLS certs are missing.
+ * Probes the daemon with a `ping`, reporting `down` on any error — both a rejected
+ * ping and any failure thrown while `getClient()` opens the Docker socket.
  */
 @Injectable()
 export class HealthProbeDockerAdapter implements HealthProbe {

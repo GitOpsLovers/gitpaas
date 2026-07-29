@@ -1,5 +1,3 @@
-import { ServiceUnavailableException } from '@nestjs/common';
-
 import { HealthProbeDockerAdapter } from '../health-probe-docker.adapter';
 
 import { DockerClient } from '@core/infrastructure/docker/docker.client';
@@ -37,10 +35,16 @@ describe('HealthProbeDockerAdapter', () => {
         await expect(probe.check()).resolves.toBe(false);
     });
 
-    it('swallows the synchronous ServiceUnavailableException from getClient and reports down', async () => {
+    it('swallows a synchronous throw from getClient and reports down', async () => {
         getClient.mockImplementation(() => {
-            throw new ServiceUnavailableException('Could not read server TLS certificates');
+            throw new Error('could not create the Docker client');
         });
+
+        await expect(probe.check()).resolves.toBe(false);
+    });
+
+    it('reports down when the ping rejects with a non-Error value', async () => {
+        ping.mockRejectedValue('socket hang up');
 
         await expect(probe.check()).resolves.toBe(false);
     });

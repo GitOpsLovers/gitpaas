@@ -41,7 +41,7 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 | 🔀 | **Git-based deploys**        | Deploy any repo at a resolved commit — builds the `build:` services, pulls the rest, and brings the compose stack up.             |
 | 📬 | **Durable deployment queue** | DB-backed, at-least-once queue with bounded retries, dead-lettering, and restart recovery. In-flight work survives a restart.     |
 | 📡 | **Live log streaming**       | Deployment output streams to the browser over Server-Sent Events *and* is persisted, so history is replayable after the run ends. |
-| 🔐 | **Remote Docker over mTLS**  | The control plane drives a remote Docker daemon over mutually-authenticated TLS — the same runtime model as Coolify and Dokploy.  |
+| 🔐 | **Single-server by design**  | GitPaaS and your apps run on the *same* machine; the engine drives the local Docker daemon through its unix socket — nothing to wire up.  |
 | 🏠 | **Own your infrastructure**  | Self-hosted by design. Your code, your data, your servers — no third-party platform in between.                                   |
 | 🐙 | **GitHub App integration**   | Browse repositories and branches, resolve commits, and pull archives through a GitHub App.                                        |
 | 🛡️ | **Built-in authentication**  | JWT with refresh-token rotation and argon2 password hashing.                                                                      |
@@ -51,29 +51,30 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 
 ## 🧭 How it works
 
-GitPaaS splits cleanly into **two planes** — and keeping them separate is the core idea of the whole design.
+GitPaaS runs **entirely on one server** — yours.
 
-- **🎛️ Control plane** — GitPaaS *itself*: a NestJS API + deploy engine, an Angular web UI, plus its own **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is what you install and log into.
-- **📦 Workload plane** — a **remote Docker host** where your deployed apps actually run. The control plane never runs your workloads in its own containers; it reaches out to a Docker daemon over the network via **mTLS** and brings your compose stacks up there.
+- **🎛️ GitPaaS itself** — a NestJS API + deploy engine, an Angular web UI, plus its own **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is what you install and log into.
+- **📦 Your apps** — deployed as compose stacks on that same server's **Docker daemon**, which the deploy engine drives through the mounted `/var/run/docker.sock` socket.
 
 ```mermaid
 flowchart TD
     U["🧑‍💻 Operator / Users (browser)"] -->|HTTPS| CP
 
-    subgraph CP["🎛️ Control Plane · GitPaaS"]
-        FE["Angular UI"] --- BE["NestJS API + deploy engine"]
-        BE --- PG[("PostgreSQL")]
-        BE --- RD[("Redis")]
-    end
+    subgraph SRV["🖥️ Your server"]
+        subgraph CP["🎛️ GitPaaS"]
+            FE["Angular UI"] --- BE["NestJS API + deploy engine"]
+            BE --- PG[("PostgreSQL")]
+            BE --- RD[("Redis")]
+        end
 
-    CP -->|"Docker Engine API over mTLS"| WP
-
-    subgraph WP["📦 Workload Plane · your server"]
-        DK["Remote Docker daemon"] --> APPS["Your deployed apps<br/>(compose stacks)"]
+        BE -->|"Docker Engine API over /var/run/docker.sock"| DK["Local Docker daemon"]
+        DK --> APPS["Your deployed apps<br/>(compose stacks)"]
     end
 ```
 
 A single deployment is one self-contained unit of work — *"bring this service's compose stack up on the server"* — orchestrated end to end by the control plane, streamed live, and recorded for replay.
+
+> 🔑 **Worth knowing:** mounting `/var/run/docker.sock` into the backend gives it full control of the host's Docker daemon, which is equivalent to root on that server. Treat the GitPaaS instance — and everyone who can log into it — as trusted, and run it on a machine you are willing to dedicate to it.
 
 📖 Dive deeper in the [Infrastructure Architecture](./docs/infrastructure-architecture.md).
 
@@ -95,7 +96,7 @@ A single deployment is one self-contained unit of work — *"bring this service'
 
 To install a specific release instead of the latest one, add `-s -- --version v1.0.0`. The installer is safe to re-run.
 
-> ⚙️ **Before your first deploy**, edit `/opt/gitpaas/iac/production/.env` to add your GitHub App credentials and the address of the Docker host that will run your apps (`SERVER_DOCKER_HOST`), then re-apply with `sudo docker compose -f /opt/gitpaas/iac/production/docker-compose.yml up -d`. The installer prints the exact steps when it finishes.
+> ⚙️ **Before your first deploy**, edit `/opt/gitpaas/iac/production/.env` to add your GitHub App credentials, then re-apply with `sudo docker compose -f /opt/gitpaas/iac/production/docker-compose.yml up -d`. The installer prints the exact steps when it finishes.
 
 🛠️ Setting up GitPaaS to work on it instead? See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
@@ -108,7 +109,7 @@ To install a specific release instead of the latest one, add `-s -- --version v1
 | 🧩 [Backend Architecture](./docs/backend-architecture.md)               | The NestJS API's hexagonal layout, ports & adapters, persistence |
 | 💼 [Backend Business](./docs/backend-business.md)                       | The domain workflows behind the deploy engine                    |
 | 🎨 [Frontend Architecture](./docs/frontend-architecture.md)             | The Angular SPA's feature folders, layering, and conventions     |
-| 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The two-plane model, dev vs. production, and image publishing    |
+| 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The single-server model, dev vs. production, and image publishing |
 | 🗺️ [Deployment Roadmap](./docs/deployment-roadmap.md)                   | The product vision and the phased path to a full PaaS            |
 
 ---

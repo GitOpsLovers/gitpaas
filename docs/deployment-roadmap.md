@@ -12,8 +12,8 @@ GitPaaS aims to be a **self-hosted PaaS** in the spirit of Vercel, Dokploy, and 
 a user installs it on their own server and deploys their applications through it. The product
 promise is simple — point GitPaaS at a git repository, and it builds, runs, and exposes
 the app over HTTPS on a domain, all on infrastructure the user owns and controls. There is no
-managed cloud in the middle: the control plane and the workloads it runs both live on the
-user's own servers.
+managed cloud in the middle: GitPaaS and the workloads it runs both live on the user's own
+server.
 
 ## Current state
 
@@ -21,8 +21,18 @@ GitPaaS is already a **working single-tenant deploy engine**, not merely a data 
 a job queue. The control plane runs one deployment as a self-contained unit of work — "bring a
 service's compose stack up on the server" — by cloning a GitHub repository at a resolved commit,
 building the repo's `build:` services and pulling the rest, and running the resulting
-`docker-compose` stack on a **remote Docker daemon reached over mTLS**. This control-plane →
-remote-Docker-host split is the same runtime model Coolify and Dokploy use.
+`docker-compose` stack on the **local Docker daemon, reached through the `/var/run/docker.sock`
+unix socket**. GitPaaS and the apps it deploys therefore share one machine; this single-server
+model is the same shape Coolify and Dokploy start from.
+
+An earlier iteration split the two apart — GitPaaS on one host driving a *remote* Docker daemon
+over TCP with mTLS. That split was removed: the daemon is now always local, the socket is
+bind-mounted into the backend container in production, and no certificate material exists
+anywhere in the topology. Mounting that socket gives the backend effective root on the host,
+which is the security cost of the model (see
+[infrastructure-architecture.md](./infrastructure-architecture.md)). Reaching more than one
+server is not on this roadmap; it would return as a second executor adapter behind the existing
+`DockerExecutor` port.
 
 What works end to end today:
 
@@ -53,7 +63,7 @@ intended to be extended, not replaced:
 | Building block | What it gives us |
 |---|---|
 | Durable retry/DLQ deployment queue | Reliable, restart-safe orchestration for any long-running deploy work |
-| git → build → compose-up executor | Real deployment execution over remote Docker mTLS |
+| git → build → compose-up executor | Real deployment execution on the server's own Docker daemon |
 | Live + persisted log streaming | Observability for every deployment, replayable after the fact |
 | GitHub App integration | Source access: repos, branches, commits, archives |
 | Container/network inspection + server pruning | Operational visibility and housekeeping |
@@ -68,9 +78,9 @@ grouped by priority.
 ### Critical
 
 - **Reverse proxy, automatic TLS, and domain routing for deployed apps.** This is the defining
-  PaaS feature and it does not exist. The dev stack *reserves* the proxy ports (host `80`/`443`)
-  but nothing routes traffic to deployed services or issues certificates. This needs a proxy
-  adapter, a domain/route model, and Let's Encrypt automation.
+  PaaS feature and it does not exist. Neither stack runs a proxy: nothing routes traffic to
+  deployed services or issues certificates, and the server's `80`/`443` are unclaimed. This needs
+  a proxy adapter, a domain/route model, and Let's Encrypt automation.
 
 ### High
 
@@ -100,7 +110,7 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
 
 **Definition of done:** running the install script on a fresh server produces a reachable GitPaaS
 control plane, with the database created via migrations (no `synchronize`) and an admin account
-seeded — no manual cert or database setup required.
+seeded — no manual database setup required, and no wiring beyond the host's own Docker socket.
 
 ### Phase 2 — Public URLs for deployed apps
 
@@ -108,8 +118,8 @@ seeded — no manual cert or database setup required.
 
 **Work items:**
 
-- Introduce a **reverse proxy** (Traefik or Caddy) as part of the runtime, wired to the already-
-  reserved host `80`/`443` ports.
+- Introduce a **reverse proxy** (Traefik or Caddy) as part of the runtime, publishing the server's
+  `80`/`443` ports and fronting both GitPaaS itself and the apps it deploys.
 - Add **automatic TLS** via Let's Encrypt (certificate issuance and renewal handled by the proxy).
 - Add a **domain/route model** so a service can be assigned a domain or subdomain, and generate the
   proxy routing configuration from it as part of bringing the stack up.
