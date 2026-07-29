@@ -81,40 +81,23 @@ A single deployment is one self-contained unit of work — *"bring this service'
 
 ## 🚀 Install
 
-Self-host GitPaaS on your own server with a single command.
+**Requirements:** a Linux server with root (or `sudo`) access and `curl`, `openssl` and `tar` available. Docker is installed for you if it's missing.
 
-### Prerequisites
+1. **Run the installer** on the server:
 
-- **A Linux server** for the control plane, with `curl`, `openssl`, and `tar` available. **Docker** is required — the installer provisions Docker and the compose plugin for you if they're missing.
-- **A remote Docker host** where your deployed apps will run. The installer generates the mTLS certificates for it; you install the server certs there and enable Docker's TLS socket. This can be wired up after the initial install.
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
+   ```
 
-### One-line installer
+2. **Enter your admin email** when prompted, and **copy the generated password** it prints — it is shown only once.
 
-On a fresh server, install and start the whole control plane with a single command:
+3. **Open the app** at the frontend URL the installer prints (`http://<your-server>:8080`) and log in with that email and password.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
-```
+To install a specific release instead of the latest one, add `-s -- --version v1.0.0`. The installer is safe to re-run.
 
-The installer provisions Docker if it's missing, fetches the source, generates the mTLS material, writes `iac/production/.env` with secure random secrets, brings up the production stack, runs the database migrations, and seeds your **first admin** (it prompts for an email and prints a generated password once — copy it). When it finishes it prints your URLs.
+> ⚙️ **Before your first deploy**, edit `/opt/gitpaas/iac/production/.env` to add your GitHub App credentials and the address of the Docker host that will run your apps (`SERVER_DOCKER_HOST`), then re-apply with `sudo docker compose -f /opt/gitpaas/iac/production/docker-compose.yml up -d`. The installer prints the exact steps when it finishes.
 
-It installs the **`latest`** release by default. Pin a specific version with `--version` (or the `GITPAAS_VERSION` env var):
-
-```bash
-# Pin a specific release
-curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh -s -- --version v1.0.0
-```
-
-Key options (each flag has an environment-variable equivalent):
-
-| Flag                   | Env var               | Default        | Purpose                                                     |
-|------------------------|-----------------------|----------------|-------------------------------------------------------------|
-| `--version <ref>`      | `GITPAAS_VERSION`     | `latest`       | Release tag (or branch) to install.                         |
-| `--dir <path>`         | `GITPAAS_DIR`         | `/opt/gitpaas` | Directory the source is installed into.                     |
-| `--email <email>`      | `GITPAAS_ADMIN_EMAIL` | *(prompted)*   | First admin's email; skips the interactive prompt.          |
-| `--docker-host <host>` | `GITPAAS_DOCKER_HOST` | *(empty)*      | Remote Docker host baked into the server cert and `.env`.   |
-
-The installer is safe to re-run: existing certificates and `.env` are preserved, and the admin seed is idempotent.
+🛠️ Setting up GitPaaS to work on it instead? See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ---
 
