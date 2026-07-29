@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger } from '@nestjs/common';
 import Docker from 'dockerode';
+
+/** Unix socket of the local Docker daemon, mounted into the backend container. */
+const DOCKER_SOCKET_PATH = '/var/run/docker.sock';
 
 /**
  * Docker client
@@ -13,8 +12,6 @@ export class DockerClient {
     private readonly logger = new Logger(DockerClient.name);
 
     private client: Docker | undefined;
-
-    constructor(private readonly config: ConfigService) {}
 
     /**
      * Lazily-created, reused Dockerode client.
@@ -29,33 +26,8 @@ export class DockerClient {
      * Creates a new Dockerode client
      */
     private createClient(): Docker {
-        const host = this.config.get<string>('SERVER_DOCKER_HOST');
-        const port = Number(this.config.get('SERVER_DOCKER_PORT'));
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const certPath = this.config.get<string>('SERVER_DOCKER_CERT_PATH')!;
+        this.logger.log(`Connecting to the local Docker daemon at ${DOCKER_SOCKET_PATH}`);
 
-        let ca: Buffer;
-        let cert: Buffer;
-        let key: Buffer;
-
-        try {
-            /* eslint-disable security/detect-non-literal-fs-filename -- certPath comes from trusted deployment config (SERVER_DOCKER_CERT_PATH), never user input */
-            ca = readFileSync(join(certPath, 'ca.pem'));
-            cert = readFileSync(join(certPath, 'cert.pem'));
-            key = readFileSync(join(certPath, 'key.pem'));
-            /* eslint-enable security/detect-non-literal-fs-filename */
-        } catch {
-            throw new ServiceUnavailableException(
-                `Could not read server TLS certificates at "${certPath}". `
-                    + 'Check SERVER_DOCKER_CERT_PATH, or in local development start the '
-                    + 'emulated server (see CONTRIBUTING.md).',
-            );
-        }
-
-        this.logger.log(`Connecting to Docker daemon at https://${host}:${port}`);
-
-        return new Docker({
-            protocol: 'https', host, port, ca, cert, key,
-        });
+        return new Docker({ socketPath: DOCKER_SOCKET_PATH });
     }
 }
