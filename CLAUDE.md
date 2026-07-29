@@ -51,7 +51,7 @@ Pick the subagent by the type of task requested:
 
 **All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference).
 
-**Commit and open a PR by default — do not ask.** Whenever a task changes product code and the post-change `tester` run passes, the orchestrator automatically delegates to `git-manager` to create the branch, commit, and open the Pull Request as the final step. It does this without asking the user for confirmation. Skip this only when the user explicitly asks not to commit/PR, or when the change touches no version-controllable work (e.g. a read-only analysis).
+**`git-manager` only runs by default for app changes.** "App changes" means the task modified files under `apps/` (i.e. `apps/backend` or `apps/frontend`). In that case — and once the post-change `tester` run passes — the orchestrator automatically delegates to `git-manager` to create the branch, commit, and open the Pull Request as the final step, without asking the user for confirmation.
 
 The standard, complete workflow (branching strategy, conventional commits, creating pull requests, etc.) can be found in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the only reliable source of information; this section is for reference only.
 
