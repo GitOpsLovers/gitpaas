@@ -1,0 +1,69 @@
+name: Question / support request
+description: Ask about setting up, running, or using GitPaaS.
+title: "question: "
+labels:
+  - status/todo
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a question, check the [Contributing guide](https://github.com/GitOpsLovers/gitpaas/blob/main/CONTRIBUTING.md) for setup, environment variables, and local infrastructure, and the [`docs/`](https://github.com/GitOpsLovers/gitpaas/tree/main/docs) pages for architecture context.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What you are trying to do, and where you are stuck.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have already tried
+      description: Commands you ran, documentation you read, and what happened.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Related area
+      multiple: true
+      options:
+        - Backend
+        - Frontend
+        - Infrastructure
+        - Tooling
+        - Contributing workflow
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Fill this in for setup or runtime questions. Node is pinned at `26.1.0` and pnpm at `11.1.3` in `.tool-versions`.
+      value: |
+        - GitPaaS version or commit SHA:
+        - OS:
+        - Node (`node -v`):
+        - pnpm (`pnpm -v`):
+        - Docker (`docker -v`):
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and error output
+      description: Any relevant output. Redact secrets and tokens first.
+      render: shell
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the existing issues and documentation before asking.
+          required: true
+        - label: I removed every secret, token, and credential from the details above.
+          required: true

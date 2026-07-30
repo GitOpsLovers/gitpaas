@@ -1,3 +1,3 @@
-- [] Add issue templates.
 - [] Add root turborepo.json
 - [] Si gestionamos secretos a traves de Docker secret?
+- [] Deberiamos prefixear o identificar de algun modo los contenedors/volumenes/networks relacionadas con GitPaaS para que no interfieran con lo que ya teniamos de Docker antes (sino se borra todo!)

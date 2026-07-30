@@ -1,0 +1,68 @@
+name: Documentation issue
+description: Report something missing, unclear, or wrong in the documentation.
+title: "docs: "
+labels:
+  - status/todo
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The project documentation lives in `docs/`, plus the root `README.md` and `CONTRIBUTING.md`. Tell us which page is off and what tripped you up.
+
+  - type: input
+    id: location
+    attributes:
+      label: Page or section
+      description: Path to the file, and the heading if you can narrow it down.
+      placeholder: docs/infrastructure-architecture.md — "Local infrastructure"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of documentation issue
+      options:
+        - Incorrect or outdated information
+        - Missing information
+        - Unclear or hard to follow
+        - Broken link or example
+        - Typo or formatting
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong
+      description: Quote the affected text if it helps, and explain what it made you expect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: How you would word or structure it instead.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Related area
+      description: Which part of the project the documentation describes.
+      multiple: true
+      options:
+        - Backend
+        - Frontend
+        - Infrastructure
+        - Tooling
+        - Contributing workflow
+        - Not sure
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true

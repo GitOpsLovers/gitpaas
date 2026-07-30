@@ -1,0 +1,89 @@
+name: Bug report
+description: Report something in GitPaaS that behaves incorrectly.
+title: "fix: "
+labels:
+  - status/todo
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve **GitPaaS**. Please fill in as much detail as you can — a reproducible report is the fastest path to a fix.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear, short summary of the problem.
+      placeholder: Deploying a project fails silently after the build step.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact steps someone else can follow to see the bug.
+      placeholder: |
+        1. Start the dev stack from `iac/development` with `docker compose up -d --wait`.
+        2. Run `pnpm dev` from the repository root.
+        3. Create a project pointing at a public repository.
+        4. Trigger a deployment.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the application the bug appears in. Select all that apply.
+      multiple: true
+      options:
+        - Backend
+        - Frontend
+        - Infrastructure
+        - Documentation
+        - Tooling
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and error output
+      description: Relevant backend logs, browser console output, or deployment logs. Redact secrets and tokens first.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, recordings, or anything else that helps.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I read the [Contributing guide](https://github.com/GitOpsLovers/gitpaas/blob/main/CONTRIBUTING.md) and the relevant `docs/` pages.
+          required: true
+        - label: I removed every secret, token, and credential from the details above.
+          required: true

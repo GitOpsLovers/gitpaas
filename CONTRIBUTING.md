@@ -41,7 +41,7 @@ The variables cover:
 
 ### Local infrastructure
 
-GitPaaS deploys applications by driving the **local Docker daemon** through the `/var/run/docker.sock` unix socket (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally that is your own Docker, so everything you deploy lands on your machine — no extra setup and no certificates. The stack in `iac/development/docker-compose.yml` provides the remaining services the project depends on:
+GitPaaS deploys applications by driving the **local Docker daemon** through the `/var/run/docker.sock` unix socket (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally that is your own Docker, so everything you deploy lands on your machine. The stack in `iac/development/docker-compose.yml` provides the remaining services the project depends on:
 
 - **`postgres`**: the application database.
 - **`redis`**: buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
@@ -53,10 +53,10 @@ You can set up the development environment using the following commands. You mus
 ```bash
 cd iac/development
 
-docker compose up -d --wait                                # Start and wait until healthy
-docker compose down                                        # Stop (keeps images/volumes)
-docker compose logs -f postgres                            # Follow a service's logs
-docker compose down -v                                     # Wipe all state
+docker compose up -d --wait      # Start and wait until healthy
+docker compose down              # Stop (keeps images/volumes)
+docker compose logs -f postgres  # Follow a service's logs
+docker compose down -v           # Wipe all state
 ```
 
 Your local Docker daemon must be running: the backend connects to `/var/run/docker.sock` and fails its Docker-backed endpoints if the socket is unavailable.

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/GitOpsLovers/gitpaas/blob/main/CONTRIBUTING.md
+    about: Guide on how to contribute to the project.
+  - name: Project documentation
+    url: https://github.com/GitOpsLovers/gitpaas/tree/main/docs
+    about: Architecture and design context of the project.

@@ -1,0 +1,77 @@
+name: Feature request
+description: Propose a new capability or an improvement to an existing one.
+title: "feat: "
+labels:
+  - status/todo
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for shaping **GitPaaS**, a self-hostable PaaS for deploying personal projects. Describe the problem before the solution so we can discuss the approach.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is painful or impossible today? Focus on the need, not the implementation.
+      placeholder: There is no way to archive a project, so the dashboard fills up with projects I no longer deploy.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What you would like GitPaaS to do, and how a user would experience it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches or workarounds you weighed, and why they fall short.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the application the change would touch. Select all that apply.
+      multiple: true
+      options:
+        - Backend
+        - Frontend
+        - Infrastructure
+        - Documentation
+        - Tooling
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Are you willing to contribute this?
+      description: Optional, and never a requirement for opening a request.
+      options:
+        - Yes, I would like to open a pull request.
+        - Yes, with guidance on where to start.
+        - No, I am only proposing the idea.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, links, prior art, or related issues.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I read the [Contributing guide](https://github.com/GitOpsLovers/gitpaas/blob/main/CONTRIBUTING.md) and the relevant `docs/` pages.
+          required: true
