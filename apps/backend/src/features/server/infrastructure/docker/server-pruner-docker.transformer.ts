@@ -1,20 +1,17 @@
 import { PruneResult } from '../../domain/models/prune-result.models';
 
+import type { RuntimePruneReport } from '@core/domain/models/container-runtime.models';
+
 /**
- * Normalizes a Docker prune response into the domain model, counting the
- * removed resources and defaulting missing values to zero.
+ * Narrows a container-runtime prune report into the server's domain model.
  *
- * @param deleted Identifiers of the resources Docker removed, if any
- * @param spaceReclaimed Bytes of disk space Docker reclaimed, if any
+ * @param report Prune report returned by the container runtime
  *
  * @returns Normalized prune result
  */
-export function toPruneResult(
-    deleted: readonly unknown[] | null | undefined,
-    spaceReclaimed: number | null | undefined,
-): PruneResult {
+export function toPruneResult(report: RuntimePruneReport): PruneResult {
     return {
-        deletedCount: deleted?.length ?? 0,
-        spaceReclaimed: spaceReclaimed ?? 0,
+        deletedCount: report.deletedCount,
+        spaceReclaimed: report.spaceReclaimed,
     };
 }

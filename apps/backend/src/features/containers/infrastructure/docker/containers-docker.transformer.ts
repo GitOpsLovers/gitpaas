@@ -1,26 +1,26 @@
-import Docker from 'dockerode';
-
 import { Container } from '../../domain/models/container.models';
 
+import type { RuntimeContainerSummary } from '@core/domain/models/container-runtime.models';
+
 /**
- * Narrows a Dockerode container summary into the domain model.
+ * Narrows a container-runtime container summary into the domain model.
  *
- * @param info Dockerode container summary
+ * @param info Container-runtime container summary
  *
  * @returns Normalized container
  */
-export function toContainer(info: Docker.ContainerInfo): Container {
+export function toContainer(info: RuntimeContainerSummary): Container {
     return {
-        id: info.Id,
-        name: info.Names?.[0]?.replace(/^\//, '') ?? info.Id.slice(0, 12),
-        image: info.Image,
-        state: info.State,
-        status: info.Status,
-        createdAt: new Date(info.Created * 1000),
-        ports: (info.Ports ?? []).map((port) => ({
-            privatePort: port.PrivatePort,
-            publicPort: port.PublicPort ?? null,
-            type: port.Type,
+        id: info.id,
+        name: info.names[0]?.replace(/^\//, '') ?? info.id.slice(0, 12),
+        image: info.image,
+        state: info.state,
+        status: info.status,
+        createdAt: info.createdAt,
+        ports: info.ports.map((port) => ({
+            privatePort: port.privatePort,
+            publicPort: port.publicPort,
+            type: port.type,
         })),
     };
 }

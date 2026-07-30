@@ -1,20 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { HealthProbe } from '../../domain/ports/health-probe.port';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 
 /**
  * Docker daemon health probe.
- *
- * Probes the daemon with a `ping`, reporting `down` on any error — both a rejected
- * ping and any failure thrown while `getClient()` opens the Docker socket.
  */
 @Injectable()
 export class HealthProbeDockerAdapter implements HealthProbe {
     public readonly name = 'docker';
 
-    constructor(private readonly client: DockerClient) {}
+    constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
     /**
      * Probes the Docker daemon connectivity.
@@ -23,7 +21,7 @@ export class HealthProbeDockerAdapter implements HealthProbe {
      */
     public async check(): Promise<boolean> {
         try {
-            await this.client.getClient().ping();
+            await this.client.ping();
 
             return true;
         } catch {

@@ -1,15 +1,15 @@
 import { Controller, Get, Logger, ServiceUnavailableException } from '@nestjs/common';
 
-import { DockerService } from '../services/docker.service';
+import { ContainerRuntimeService } from '../services/container-runtime.service';
 
 /**
- * Docker controller
+ * Container runtime controller
  */
 @Controller('server')
-export class DockerController {
-    private readonly logger = new Logger(DockerController.name);
+export class ContainerRuntimeController {
+    private readonly logger = new Logger(ContainerRuntimeController.name);
 
-    constructor(private readonly service: DockerService) {}
+    constructor(private readonly service: ContainerRuntimeService) {}
 
     /**
      * Health check for the connection to the server's Docker daemon.
@@ -29,10 +29,7 @@ export class DockerController {
 
             return {
                 connected: true,
-                serverVersion: info.ServerVersion,
-                operatingSystem: info.OperatingSystem,
-                containers: info.Containers,
-                images: info.Images,
+                ...info,
             };
         } catch (error) {
             if (error instanceof ServiceUnavailableException) {

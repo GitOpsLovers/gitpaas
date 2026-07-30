@@ -56,7 +56,7 @@ The four-state lifecycle is `pending → running → success | failed`.
 ## Deletion & cleanup
 
 - **Delete a deployment** → cascade removes its log rows; its Redis logs are purged.
-- **Delete a service** → tear down its Docker footprint (force-remove labeled containers, compose networks, and images built for it, keeping shared pulled images), purge each deployment's Redis logs, and let the DB cascade remove deployment + log rows.
+- **Delete a service** → tear down its Docker resources (force-remove labeled containers, compose networks, and images built for it, keeping shared pulled images), purge each deployment's Redis logs, and let the DB cascade remove deployment + log rows.
 
 ## Server maintenance
 

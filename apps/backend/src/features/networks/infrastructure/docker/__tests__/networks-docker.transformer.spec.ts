@@ -1,18 +1,18 @@
-import Docker from 'dockerode';
-
 import { toNetwork } from '../networks-docker.transformer';
 
+import type { RuntimeNetworkSummary } from '@core/domain/models/container-runtime.models';
+
 describe('toNetwork', () => {
-    it('maps every network field and converts the ISO created timestamp to a Date', () => {
-        const info = {
-            Id: 'n-1',
-            Name: 'gitpaas_default',
-            Driver: 'bridge',
-            Scope: 'local',
-            Internal: false,
-            Attachable: true,
-            Created: '2026-07-11T00:00:00.000Z',
-        } as Docker.NetworkInspectInfo;
+    it('maps every network field of a runtime summary', () => {
+        const info: RuntimeNetworkSummary = {
+            id: 'n-1',
+            name: 'gitpaas_default',
+            driver: 'bridge',
+            scope: 'local',
+            internal: false,
+            attachable: true,
+            createdAt: new Date('2026-07-11T00:00:00.000Z'),
+        };
 
         expect(toNetwork(info)).toEqual({
             id: 'n-1',
@@ -26,15 +26,15 @@ describe('toNetwork', () => {
     });
 
     it('preserves the boolean flags for an internal, non-attachable network', () => {
-        const info = {
-            Id: 'n-2',
-            Name: 'internal-net',
-            Driver: 'overlay',
-            Scope: 'swarm',
-            Internal: true,
-            Attachable: false,
-            Created: '2026-01-01T12:30:00.000Z',
-        } as Docker.NetworkInspectInfo;
+        const info: RuntimeNetworkSummary = {
+            id: 'n-2',
+            name: 'internal-net',
+            driver: 'overlay',
+            scope: 'swarm',
+            internal: true,
+            attachable: false,
+            createdAt: new Date('2026-01-01T12:30:00.000Z'),
+        };
 
         const result = toNetwork(info);
 

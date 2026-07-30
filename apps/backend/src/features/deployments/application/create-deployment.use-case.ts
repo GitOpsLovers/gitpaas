@@ -7,24 +7,9 @@ import { DeploymentsRepository } from '../domain/repositories/deployments.reposi
 
 import { persistDeploymentUseCase } from './persist-deployment.use-case';
 
+import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import { Providers } from '@features/providers/domain/ports/providers.port';
-import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-
-/**
- * Builds the Docker Compose project name for a service from its name, falling
- * back to its id. This value groups all of the service's Docker resources under
- * the `com.docker.compose.project` label.
- *
- * @param service Service to derive the project name from
- *
- * @returns Compose project name
- */
-function composeProjectName(service: Service): string {
-    const slug = service.name.toLowerCase().replace(/[^\da-z]+/g, '-').replace(/^-+|-+$/g, '');
-
-    return slug || `service-${service.id}`;
-}
 
 /**
  * Use case that orchestrates triggering a new deployment for a service:
@@ -76,7 +61,7 @@ export async function createDeploymentUseCase(
         repositoryId: Number(service.repositoryId),
         commit: deployment.commit ?? deployment.branch,
         composerPath: deployment.composerPath,
-        projectName: composeProjectName(service),
+        projectName: serviceProjectNameUseCase(service),
     });
 
     return deployment;

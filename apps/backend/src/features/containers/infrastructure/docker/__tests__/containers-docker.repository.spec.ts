@@ -1,34 +1,28 @@
-import type Docker from 'dockerode';
-
 import { Container } from '../../../domain/models/container.models';
 import { DockerContainersRepository } from '../containers-docker.repository';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
+import type { RuntimeContainerSummary, RuntimeSelector } from '@core/domain/models/container-runtime.models';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 import { Service } from '@features/services/domain/models/service.models';
 
+/** GitPaaS ownership marker every listing is scoped to. */
+const managedLabels = { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE };
+
 /**
- * Builds a Dockerode container summary, overriding only the fields under test.
+ * Builds a runtime container summary, overriding only the fields under test.
  */
-const containerInfo = (overrides: Partial<Docker.ContainerInfo> = {}): Docker.ContainerInfo => ({
-    Id: 'a1b2c3d4e5f6a1b2c3d4e5f6',
-    Names: ['/web-frontend-app-1'],
-    Image: 'web-frontend_app',
-    ImageID: 'sha256:deadbeef',
-    Command: 'node server.js',
-    Created: 1_752_192_000,
-    State: 'running',
-    Status: 'Up 3 minutes',
-    Ports: [{
-        IP: '0.0.0.0', PrivatePort: 3000, PublicPort: 8080, Type: 'tcp',
-    }],
-    Labels: {},
-    SizeRw: 0,
-    SizeRootFs: 0,
-    HostConfig: { NetworkMode: 'default' },
-    NetworkSettings: { Networks: {} },
-    Mounts: [],
+const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): RuntimeContainerSummary => ({
+    id: 'a1b2c3d4e5f6a1b2c3d4e5f6',
+    names: ['/web-frontend-app-1'],
+    image: 'web-frontend_app',
+    state: 'running',
+    status: 'Up 3 minutes',
+    createdAt: new Date(1_752_192_000 * 1000),
+    projects: ['my-service', 'my-service'],
+    ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
     ...overrides,
-} as Docker.ContainerInfo);
+});
 
 describe('DockerContainersRepository', () => {
     const service: Service = {
@@ -41,43 +35,37 @@ describe('DockerContainersRepository', () => {
     };
 
     let mockListContainers: jest.Mock;
-    let mockDockerClient: jest.Mocked<Pick<DockerClient, 'getClient'>>;
+    let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'listContainers'>>;
     let sut: DockerContainersRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
         mockListContainers = jest.fn().mockResolvedValue([]);
-        const handle = {
-            listContainers: mockListContainers,
-        } as unknown as jest.Mocked<Pick<Docker, 'listContainers'>>;
-        mockDockerClient = { getClient: jest.fn().mockReturnValue(handle) };
-        sut = new DockerContainersRepository(mockDockerClient as unknown as DockerClient);
+        mockContainerRuntime = { listContainers: mockListContainers };
+        sut = new DockerContainersRepository(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
     });
 
-    it('lists all containers filtered by the compose project label derived from the service name', async () => {
+    it('lists all containers scoped to the GitPaaS marker and the service project', async () => {
         await sut.listByService(service);
 
         expect(mockListContainers).toHaveBeenCalledTimes(1);
-        expect(mockListContainers).toHaveBeenCalledWith({
-            all: true,
-            filters: { label: ['com.docker.compose.project=my-service'] },
-        });
+        expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, project: 'my-service' }, true);
     });
 
-    it('falls back to a service-<id> label when the name slugifies to empty', async () => {
+    it('falls back to a service-<id> project when the name slugifies to empty', async () => {
         const unnamed: Service = { ...service, name: '!!!' };
 
         await sut.listByService(unnamed);
 
-        expect(mockListContainers).toHaveBeenCalledWith({
-            all: true,
-            filters: { label: [`com.docker.compose.project=service-${unnamed.id}`] },
-        });
+        expect(mockListContainers).toHaveBeenCalledWith(
+            { labels: managedLabels, project: `service-${unnamed.id}` },
+            true,
+        );
     });
 
     it('maps a full container summary into the domain model', async () => {
-        mockListContainers.mockResolvedValue([containerInfo()]);
+        mockListContainers.mockResolvedValue([containerSummary()]);
 
         const result = await sut.listByService(service);
 
@@ -94,9 +82,9 @@ describe('DockerContainersRepository', () => {
         ]);
     });
 
-    it('sets publicPort to null when the port is not published', async () => {
+    it('keeps an unpublished port as a null public port', async () => {
         mockListContainers.mockResolvedValue([
-            containerInfo({ Ports: [{ PrivatePort: 5432, Type: 'tcp' } as Docker.Port] }),
+            containerSummary({ ports: [{ privatePort: 5432, publicPort: null, type: 'tcp' }] }),
         ]);
 
         const [container] = await sut.listByService(service);
@@ -104,31 +92,40 @@ describe('DockerContainersRepository', () => {
         expect(container.ports).toEqual([{ privatePort: 5432, publicPort: null, type: 'tcp' }]);
     });
 
-    it('falls back to the truncated id for the name when Names is missing or empty', async () => {
+    it('falls back to the truncated id for the name when the container has no names', async () => {
         mockListContainers.mockResolvedValue([
-            containerInfo({ Names: undefined }),
-            containerInfo({ Id: 'zzzzzzzzzzzzffffffffffff', Names: [] }),
+            containerSummary({ id: 'zzzzzzzzzzzzffffffffffff', names: [] }),
         ]);
 
-        const [fromMissing, fromEmpty] = await sut.listByService(service);
+        const [container] = await sut.listByService(service);
 
-        expect(fromMissing.name).toBe('a1b2c3d4e5f6');
-        expect(fromEmpty.name).toBe('zzzzzzzzzzzz');
+        expect(container.name).toBe('zzzzzzzzzzzz');
     });
 
     it('returns an empty ports array when the summary has no ports', async () => {
-        mockListContainers.mockResolvedValue([
-            containerInfo({ Ports: undefined }),
-            containerInfo({ Ports: [] }),
-        ]);
+        mockListContainers.mockResolvedValue([containerSummary({ ports: [] })]);
 
-        const [fromUndefined, fromEmpty] = await sut.listByService(service);
+        const [container] = await sut.listByService(service);
 
-        expect(fromUndefined.ports).toEqual([]);
-        expect(fromEmpty.ports).toEqual([]);
+        expect(container.ports).toEqual([]);
     });
 
-    it('returns an empty array when the daemon reports no containers', async () => {
+    it('never surfaces a container the runtime did not select for the service', async () => {
+        const owned = containerSummary({ id: 'aaaaaaaaaaaaaaaaaaaaaaaa' });
+        const foreign = containerSummary({ id: 'bbbbbbbbbbbbbbbbbbbbbbbb', projects: [] });
+        // Honours the requested selector the way the runtime does, so the SUT is
+        // driven against an unfiltered host set rather than a pre-filtered one.
+        mockListContainers.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
+            [owned, foreign].filter((container) => container.projects.includes(String(selector.project))),
+        ));
+
+        const result = await sut.listByService(service);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('aaaaaaaaaaaaaaaaaaaaaaaa');
+    });
+
+    it('returns an empty array when the runtime reports no containers', async () => {
         mockListContainers.mockResolvedValue([]);
 
         const result = await sut.listByService(service);
