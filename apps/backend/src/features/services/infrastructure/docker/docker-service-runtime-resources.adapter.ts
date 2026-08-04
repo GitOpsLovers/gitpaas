@@ -6,27 +6,10 @@ import { ServiceRuntimeResources } from '../../domain/ports/service-runtime-reso
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
 import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import { GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
-import type { LabelSelector, RuntimeSelector } from '@core/domain/models/container-runtime.models';
+import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
-
-/**
- * Encodes the GitPaaS ownership policy narrowed to a single project: the
- * ownership marker built by `selectOwnedResourcesUseCase` plus the GitPaaS
- * project label. The marker is always kept, so a project-scoped selection can
- * never widen beyond GitPaaS-managed resources.
- *
- * @param projectName Compose project name to scope to
- *
- * @returns Selector matching the ownership marker and the GitPaaS project label
- */
-function gitpaasProjectSelector(projectName: string): LabelSelector {
-    return {
-        ...selectOwnedResourcesUseCase(),
-        [GITPAAS_PROJECT_LABEL]: projectName,
-    };
-}
 
 /**
  * Docker service runtime resources adapter.
@@ -39,15 +22,12 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
 
-    public async remove(service: Service): Promise<void> {
+    public async removeContainers(service: Service): Promise<void> {
         const projectName = serviceProjectNameUseCase(service);
         const selector: RuntimeSelector = { labels: selectOwnedResourcesUseCase(), project: projectName };
 
         let containersRemoved = 0;
-        let networksRemoved = 0;
-        let imagesRemoved = 0;
 
-        // a. Containers
         try {
             const containers = await this.client.listContainers(selector, true);
 
@@ -69,7 +49,18 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
             );
         }
 
-        // b. Networks
+        this.diagnostics.log(
+            `Removed Docker containers for service "${projectName}": ${containersRemoved} container(s)`,
+            DockerServiceRuntimeResourcesAdapter.name,
+        );
+    }
+
+    public async removeNetworks(service: Service): Promise<void> {
+        const projectName = serviceProjectNameUseCase(service);
+        const selector: RuntimeSelector = { labels: selectOwnedResourcesUseCase(), project: projectName };
+
+        let networksRemoved = 0;
+
         try {
             const networks = await this.client.listNetworks(selector);
 
@@ -91,11 +82,23 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
             );
         }
 
-        // c. Images — only those GitPaaS built locally for this project. They are
-        // identified by the GitPaaS labels stamped at build time, so shared pulled
-        // images and unrelated host images are never matched.
+        this.diagnostics.log(
+            `Removed Docker networks for service "${projectName}": ${networksRemoved} network(s)`,
+            DockerServiceRuntimeResourcesAdapter.name,
+        );
+    }
+
+    public async removeImages(service: Service): Promise<void> {
+        const projectName = serviceProjectNameUseCase(service);
+
+        let imagesRemoved = 0;
+
         try {
-            const builtImages = await this.client.listImages({ labels: gitpaasProjectSelector(projectName) });
+            const labels = {
+                ...selectOwnedResourcesUseCase(),
+                [GITPAAS_PROJECT_LABEL]: projectName,
+            };
+            const builtImages = await this.client.listImages({ labels });
 
             for (const image of builtImages) {
                 try {
@@ -116,8 +119,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
         }
 
         this.diagnostics.log(
-            `Removed Docker resources for service "${projectName}": `
-                + `${containersRemoved} container(s), ${networksRemoved} network(s), ${imagesRemoved} image(s)`,
+            `Removed Docker images for service "${projectName}": ${imagesRemoved} image(s)`,
             DockerServiceRuntimeResourcesAdapter.name,
         );
     }

@@ -5,7 +5,7 @@ import Docker from 'dockerode';
 import { DockerContainerRuntimeAdapter } from '../container-runtime-docker.adapter';
 
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
-import { gitpaasProjectSelector } from '@core/domain/utils/gitpaas-labels.util';
+import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 
 // `dockerode` is replaced by a `jest.fn()` constructor so `new Docker(...)` never
 // opens a real connection; we assert the exact options passed to it.
@@ -126,7 +126,9 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('adds the GitPaaS project label to the marker', async () => {
             const { sut, daemon } = buildSut();
 
-            await sut.listImages({ labels: gitpaasProjectSelector('my-service') });
+            const labels = { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [GITPAAS_PROJECT_LABEL]: 'my-service' };
+
+            await sut.listImages({ labels });
 
             expect(daemon.listImages).toHaveBeenCalledWith({
                 filters: { label: ['io.gitpaas.managed=true', 'io.gitpaas.project=my-service'] },

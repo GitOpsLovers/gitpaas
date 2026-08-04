@@ -10,7 +10,7 @@ import {
 } from '../container-runtime.transformer';
 
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
-import { gitpaasProjectSelector } from '@core/domain/utils/gitpaas-labels.util';
+import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 
 /** A daemon container summary as the tests declare it: only the fields under test. */
 type PartialContainerInfo = Partial<Omit<Docker.ContainerInfo, 'Ports'>> & { Ports?: Partial<Docker.Port>[] };
@@ -64,7 +64,9 @@ describe('toLabelFilter', () => {
     });
 
     it('adds the GitPaaS project label to the marker', () => {
-        expect(toLabelFilter({ labels: gitpaasProjectSelector('my-service') })).toEqual({
+        const labels = { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [GITPAAS_PROJECT_LABEL]: 'my-service' };
+
+        expect(toLabelFilter({ labels })).toEqual({
             label: ['io.gitpaas.managed=true', 'io.gitpaas.project=my-service'],
         });
     });

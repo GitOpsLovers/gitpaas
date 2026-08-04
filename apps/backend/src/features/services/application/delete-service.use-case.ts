@@ -36,7 +36,9 @@ export async function deleteServiceUseCase(
         return false;
     }
 
-    await serviceRuntimeResources.remove(service);
+    await serviceRuntimeResources.removeContainers(service);
+    await serviceRuntimeResources.removeNetworks(service);
+    await serviceRuntimeResources.removeImages(service);
 
     for (const deployment of deployments) {
         await logStore.purge(deployment.id);

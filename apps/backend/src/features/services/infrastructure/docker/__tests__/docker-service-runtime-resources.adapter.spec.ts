@@ -107,65 +107,175 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         );
     });
 
-    it('lists containers and networks scoped to the GitPaaS marker and the service project', async () => {
-        await sut.remove(service);
+    describe('removeContainers', () => {
+        it('lists containers scoped to the GitPaaS marker and the service project', async () => {
+            await sut.removeContainers(service);
 
-        expect(mockListContainers).toHaveBeenCalledWith(projectSelector, true);
-        expect(mockListNetworks).toHaveBeenCalledWith(projectSelector);
+            expect(mockListContainers).toHaveBeenCalledWith(projectSelector, true);
+        });
+
+        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
+            const unnamed: Service = { ...service, name: '!!!' };
+
+            await sut.removeContainers(unnamed);
+
+            expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` }, true);
+        });
+
+        it('force-removes each container of the service', async () => {
+            mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
+
+            await sut.removeContainers(service);
+
+            expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
+            expect(mockRemoveContainer).toHaveBeenCalledWith('c1', { force: true, removeVolumes: true });
+            expect(mockRemoveContainer).toHaveBeenCalledWith('c2', { force: true, removeVolumes: true });
+        });
+
+        it('catches a single container failure, logs a warning and continues with the rest', async () => {
+            mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
+            mockRemoveContainer.mockRejectedValueOnce(new Error('boom'));
+
+            await expect(sut.removeContainers(service)).resolves.toBeUndefined();
+
+            expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
+            expect(mockDiagnostics.warn).toHaveBeenCalled();
+        });
+
+        it('does not throw when the runtime is unreachable while listing', async () => {
+            mockListContainers.mockRejectedValue(new Error('daemon down'));
+
+            await expect(sut.removeContainers(service)).resolves.toBeUndefined();
+
+            expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+            expect(mockRemoveContainer).not.toHaveBeenCalled();
+        });
+
+        it('logs a summary of the removed containers', async () => {
+            mockListContainers.mockResolvedValue([containerSummary('c1')]);
+
+            await sut.removeContainers(service);
+
+            expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
+            expect(mockDiagnostics.log).toHaveBeenCalledWith(
+                expect.stringContaining('1 container(s)'),
+                DockerServiceRuntimeResourcesAdapter.name,
+            );
+        });
     });
 
-    it('falls back to a service-<id> project when the name slugifies to empty', async () => {
-        const unnamed: Service = { ...service, name: '!!!' };
+    describe('removeNetworks', () => {
+        it('lists networks scoped to the GitPaaS marker and the service project', async () => {
+            await sut.removeNetworks(service);
 
-        await sut.remove(unnamed);
+            expect(mockListNetworks).toHaveBeenCalledWith(projectSelector);
+        });
 
-        const fallbackSelector = { labels: managedLabels, project: `service-${unnamed.id}` };
-        expect(mockListContainers).toHaveBeenCalledWith(fallbackSelector, true);
-        expect(mockListNetworks).toHaveBeenCalledWith(fallbackSelector);
+        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
+            const unnamed: Service = { ...service, name: '!!!' };
+
+            await sut.removeNetworks(unnamed);
+
+            expect(mockListNetworks).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` });
+        });
+
+        it('removes each compose network of the service', async () => {
+            mockListNetworks.mockResolvedValue([networkSummary('n1')]);
+
+            await sut.removeNetworks(service);
+
+            expect(mockRemoveNetwork).toHaveBeenCalledTimes(1);
+            expect(mockRemoveNetwork).toHaveBeenCalledWith('n1');
+        });
+
+        it('catches a single network failure, logs a warning and continues with the rest', async () => {
+            mockListNetworks.mockResolvedValue([networkSummary('n1'), networkSummary('n2')]);
+            mockRemoveNetwork.mockRejectedValueOnce(new Error('boom'));
+
+            await expect(sut.removeNetworks(service)).resolves.toBeUndefined();
+
+            expect(mockRemoveNetwork).toHaveBeenCalledTimes(2);
+            expect(mockDiagnostics.warn).toHaveBeenCalled();
+        });
+
+        it('does not throw when the runtime is unreachable while listing', async () => {
+            mockListNetworks.mockRejectedValue(new Error('daemon down'));
+
+            await expect(sut.removeNetworks(service)).resolves.toBeUndefined();
+
+            expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+            expect(mockRemoveNetwork).not.toHaveBeenCalled();
+        });
+
+        it('logs a summary of the removed networks', async () => {
+            mockListNetworks.mockResolvedValue([networkSummary('n1')]);
+
+            await sut.removeNetworks(service);
+
+            expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
+            expect(mockDiagnostics.log).toHaveBeenCalledWith(
+                expect.stringContaining('1 network(s)'),
+                DockerServiceRuntimeResourcesAdapter.name,
+            );
+        });
     });
 
-    it('force-removes each container of the service', async () => {
-        mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
+    describe('removeImages', () => {
+        it('asks the runtime for the project\'s GitPaaS-labelled images only', async () => {
+            await sut.removeImages(service);
 
-        await sut.remove(service);
+            expect(mockListImages).toHaveBeenCalledWith(imageSelector);
+        });
 
-        expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
-        expect(mockRemoveContainer).toHaveBeenCalledWith('c1', { force: true, removeVolumes: true });
-        expect(mockRemoveContainer).toHaveBeenCalledWith('c2', { force: true, removeVolumes: true });
-    });
+        it('removes every image the runtime reports for the project', async () => {
+            mockListImages.mockResolvedValue([imageSummary('img-built-app'), imageSummary('img-built-worker')]);
 
-    it('removes each compose network of the service', async () => {
-        mockListNetworks.mockResolvedValue([networkSummary('n1')]);
+            await sut.removeImages(service);
 
-        await sut.remove(service);
+            expect(mockRemoveImage).toHaveBeenCalledTimes(2);
+            expect(mockRemoveImage).toHaveBeenCalledWith('img-built-app', { force: true });
+            expect(mockRemoveImage).toHaveBeenCalledWith('img-built-worker', { force: true });
+        });
 
-        expect(mockRemoveNetwork).toHaveBeenCalledTimes(1);
-        expect(mockRemoveNetwork).toHaveBeenCalledWith('n1');
-    });
+        it('scopes the image query by label only, never by an image tag/reference heuristic', async () => {
+            await sut.removeImages(service);
 
-    it('asks the runtime for the project\'s GitPaaS-labelled images only', async () => {
-        await sut.remove(service);
+            const [selector] = mockListImages.mock.calls[0] as [RuntimeSelector];
 
-        expect(mockListImages).toHaveBeenCalledWith(imageSelector);
-    });
+            expect(Object.keys(selector)).toEqual(['labels']);
+            expect(selector).not.toHaveProperty('reference');
+        });
 
-    it('removes every image the runtime reports for the project', async () => {
-        mockListImages.mockResolvedValue([imageSummary('img-built-app'), imageSummary('img-built-worker')]);
+        it('catches a single image failure, logs a warning and continues with the rest', async () => {
+            mockListImages.mockResolvedValue([imageSummary('img-1'), imageSummary('img-2')]);
+            mockRemoveImage.mockRejectedValueOnce(new Error('boom'));
 
-        await sut.remove(service);
+            await expect(sut.removeImages(service)).resolves.toBeUndefined();
 
-        expect(mockRemoveImage).toHaveBeenCalledTimes(2);
-        expect(mockRemoveImage).toHaveBeenCalledWith('img-built-app', { force: true });
-        expect(mockRemoveImage).toHaveBeenCalledWith('img-built-worker', { force: true });
-    });
+            expect(mockRemoveImage).toHaveBeenCalledTimes(2);
+            expect(mockDiagnostics.warn).toHaveBeenCalled();
+        });
 
-    it('scopes the image query by label only, never by an image tag/reference heuristic', async () => {
-        await sut.remove(service);
+        it('does not throw when the runtime is unreachable while listing', async () => {
+            mockListImages.mockRejectedValue(new Error('daemon down'));
 
-        const [selector] = mockListImages.mock.calls[0] as [RuntimeSelector];
+            await expect(sut.removeImages(service)).resolves.toBeUndefined();
 
-        expect(Object.keys(selector)).toEqual(['labels']);
-        expect(selector).not.toHaveProperty('reference');
+            expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+            expect(mockRemoveImage).not.toHaveBeenCalled();
+        });
+
+        it('logs a summary of the removed images', async () => {
+            mockListImages.mockResolvedValue([imageSummary('img')]);
+
+            await sut.removeImages(service);
+
+            expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
+            expect(mockDiagnostics.log).toHaveBeenCalledWith(
+                expect.stringContaining('1 image(s)'),
+                DockerServiceRuntimeResourcesAdapter.name,
+            );
+        });
     });
 
     describe('against an unfiltered host set, with the runtime honouring the selector', () => {
@@ -210,7 +320,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         });
 
         it('removes only the project\'s GitPaaS-labelled image, sparing a same-prefix host image', async () => {
-            await sut.remove(service);
+            await sut.removeImages(service);
 
             expect(mockRemoveImage).toHaveBeenCalledTimes(1);
             expect(mockRemoveImage).toHaveBeenCalledWith('img-built', { force: true });
@@ -220,54 +330,33 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         });
 
         it('removes only its own container, sparing a foreign container sharing the compose project name', async () => {
-            await sut.remove(service);
+            await sut.removeContainers(service);
 
             expect(mockRemoveContainer).toHaveBeenCalledTimes(1);
             expect(mockRemoveContainer).toHaveBeenCalledWith('ctr-own', { force: true, removeVolumes: true });
             expect(mockRemoveContainer).not.toHaveBeenCalledWith('ctr-foreign', expect.anything());
         });
 
-        it('reports only the resources it actually owned in the summary', async () => {
-            await sut.remove(service);
+        it('reports only the resources it actually owned in each summary', async () => {
+            await sut.removeContainers(service);
+            await sut.removeNetworks(service);
+            await sut.removeImages(service);
 
-            expect(mockDiagnostics.log).toHaveBeenCalledWith(
-                expect.stringContaining('1 container(s), 0 network(s), 1 image(s)'),
+            expect(mockDiagnostics.log).toHaveBeenNthCalledWith(
+                1,
+                expect.stringContaining('1 container(s)'),
+                DockerServiceRuntimeResourcesAdapter.name,
+            );
+            expect(mockDiagnostics.log).toHaveBeenNthCalledWith(
+                2,
+                expect.stringContaining('0 network(s)'),
+                DockerServiceRuntimeResourcesAdapter.name,
+            );
+            expect(mockDiagnostics.log).toHaveBeenNthCalledWith(
+                3,
+                expect.stringContaining('1 image(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,
             );
         });
-    });
-
-    it('catches a single resource failure, logs a warning and continues with the rest', async () => {
-        mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
-        mockRemoveContainer.mockRejectedValueOnce(new Error('boom'));
-
-        await expect(sut.remove(service)).resolves.toBeUndefined();
-
-        expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
-        expect(mockDiagnostics.warn).toHaveBeenCalled();
-    });
-
-    it('does not throw when the runtime is unreachable while listing', async () => {
-        mockListContainers.mockRejectedValue(new Error('daemon down'));
-        mockListNetworks.mockRejectedValue(new Error('daemon down'));
-        mockListImages.mockRejectedValue(new Error('daemon down'));
-
-        await expect(sut.remove(service)).resolves.toBeUndefined();
-
-        expect(mockDiagnostics.warn).toHaveBeenCalledTimes(3);
-    });
-
-    it('logs a summary of the removed resources', async () => {
-        mockListContainers.mockResolvedValue([containerSummary('c1')]);
-        mockListNetworks.mockResolvedValue([networkSummary('n1')]);
-        mockListImages.mockResolvedValue([imageSummary('img')]);
-
-        await sut.remove(service);
-
-        expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
-        expect(mockDiagnostics.log).toHaveBeenCalledWith(
-            expect.stringContaining('1 container(s), 1 network(s), 1 image(s)'),
-            DockerServiceRuntimeResourcesAdapter.name,
-        );
     });
 });

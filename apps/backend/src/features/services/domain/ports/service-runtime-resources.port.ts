@@ -5,9 +5,23 @@ import { Service } from '../models/service.models';
  */
 export interface ServiceRuntimeResources {
     /**
-     * Removes the runtime resources the service owns on the server.
+     * Removes the containers the service owns on the server.
      *
-     * @param service Service whose runtime resources should be removed
+     * @param service Service whose containers should be removed
      */
-    remove: (service: Service) => Promise<void>;
+    removeContainers: (service: Service) => Promise<void>;
+
+    /**
+     * Removes the networks the service owns on the server.
+     *
+     * @param service Service whose networks should be removed
+     */
+    removeNetworks: (service: Service) => Promise<void>;
+
+    /**
+     * Removes the images the service owns on the server.
+     *
+     * @param service Service whose images should be removed
+     */
+    removeImages: (service: Service) => Promise<void>;
 }
