@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, ServiceUnavailableException } from '@nestjs/common';
 
+import { ContainerRuntimeInfo } from '../../domain/models/container-runtime.models';
 import { ContainerRuntimeService } from '../services/container-runtime.service';
 
 /**
@@ -17,13 +18,7 @@ export class ContainerRuntimeController {
      * Confirms the daemon is reachable and Dockerode's TLS auth is valid
      */
     @Get('status')
-    public async getStatus(): Promise<{
-        connected: boolean;
-        serverVersion: string;
-        operatingSystem: string;
-        containers: number;
-        images: number;
-    }> {
+    public async getStatus(): Promise<ContainerRuntimeInfo & { connected: boolean }> {
         try {
             const info = await this.service.info();
 

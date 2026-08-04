@@ -13,10 +13,28 @@ import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-exe
 
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
-import { gitpaasLabels } from '@core/domain/utils/gitpaas-labels.util';
+import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/container-runtime.transformer';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+
+/**
+ * Builds the set of GitPaaS labels every resource of a project must carry. These
+ * are the ownership marker and project keys declared in
+ * `@core/domain/constants/gitpaas-labels.constants`; without them a resource is
+ * invisible to the ownership and project selectors and so is never listed nor
+ * removed.
+ *
+ * @param projectName Compose project name the resource belongs to
+ *
+ * @returns Map of GitPaaS labels to stamp on the resource
+ */
+function gitpaasLabels(projectName: string): Record<string, string> {
+    return {
+        [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
+        [GITPAAS_PROJECT_LABEL]: projectName,
+    };
+}
 
 /** Number of trailing startup log lines captured per container after it starts. */
 const STARTUP_LOG_TAIL = 100;

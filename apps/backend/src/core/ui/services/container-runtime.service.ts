@@ -9,10 +9,7 @@ import { DockerContainerRuntimeAdapter } from '../../infrastructure/docker/conta
  */
 @Injectable()
 export class ContainerRuntimeService {
-    constructor(
-        @Inject(DockerContainerRuntimeAdapter)
-        private readonly client: ContainerRuntime,
-    ) {}
+    constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
     /**
      * Returns `true` when the daemon answers a ping.
@@ -22,7 +19,7 @@ export class ContainerRuntimeService {
     }
 
     /**
-     * Returns the daemon's info (server version, container counts, etc.).
+     * Returns the daemon's information.
      */
     public async info(): Promise<ContainerRuntimeInfo> {
         return this.client.info();
