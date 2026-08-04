@@ -8,7 +8,7 @@ export interface ContainerPort {
 }
 
 /**
- * A Docker container belonging to a service's compose stack.
+ * A container belonging to a service's stack.
  */
 export interface Container {
     id: string;

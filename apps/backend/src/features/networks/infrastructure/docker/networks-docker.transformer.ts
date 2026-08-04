@@ -1,22 +1,22 @@
-import Docker from 'dockerode';
-
 import { Network } from '../../domain/models/network.models';
 
+import type { RuntimeNetworkSummary } from '@core/domain/models/container-runtime.models';
+
 /**
- * Narrows a Dockerode network summary into the domain model.
+ * Narrows a container-runtime network summary into the domain model.
  *
- * @param info Dockerode network summary
+ * @param info Container-runtime network summary
  *
  * @returns Normalized network
  */
-export function toNetwork(info: Docker.NetworkInspectInfo): Network {
+export function toNetwork(info: RuntimeNetworkSummary): Network {
     return {
-        id: info.Id,
-        name: info.Name,
-        driver: info.Driver,
-        scope: info.Scope,
-        internal: info.Internal,
-        attachable: info.Attachable,
-        createdAt: new Date(info.Created),
+        id: info.id,
+        name: info.name,
+        driver: info.driver,
+        scope: info.scope,
+        internal: info.internal,
+        attachable: info.attachable,
+        createdAt: info.createdAt,
     };
 }

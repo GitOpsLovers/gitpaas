@@ -9,7 +9,7 @@ import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { Service } from '../../../domain/models/service.models';
 import { ServicesDatabaseRepository } from '../../../infrastructure/database/services-db.repository';
-import { ServiceFootprintDockerAdapter } from '../../../infrastructure/docker/service-footprint-docker.adapter';
+import { DockerServiceRuntimeResourcesAdapter } from '../../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { ServicesService } from '../services.service';
 
 import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
@@ -52,7 +52,7 @@ const service: Service = {
 describe('ServicesService', () => {
     let mockServicesRepository: jest.Mocked<ServicesDatabaseRepository>;
     let mockDeploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
-    let mockServiceFootprint: jest.Mocked<ServiceFootprintDockerAdapter>;
+    let mockServiceRuntimeResources: jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
     let mockLogStore: jest.Mocked<PersistentLogStoreRepository>;
     let sut: ServicesService;
 
@@ -61,7 +61,7 @@ describe('ServicesService', () => {
 
         mockServicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
         mockDeploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
-        mockServiceFootprint = {} as jest.Mocked<ServiceFootprintDockerAdapter>;
+        mockServiceRuntimeResources = {} as jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
         mockLogStore = {} as jest.Mocked<PersistentLogStoreRepository>;
 
         const moduleRef = await Test.createTestingModule({
@@ -69,7 +69,7 @@ describe('ServicesService', () => {
                 ServicesService,
                 { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
                 { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
-                { provide: ServiceFootprintDockerAdapter, useValue: mockServiceFootprint },
+                { provide: DockerServiceRuntimeResourcesAdapter, useValue: mockServiceRuntimeResources },
                 { provide: PersistentLogStoreRepository, useValue: mockLogStore },
             ],
         }).compile();
@@ -225,7 +225,7 @@ describe('ServicesService', () => {
             expect(mockDeleteServiceUseCase).toHaveBeenCalledWith(
                 mockServicesRepository,
                 mockDeploymentsRepository,
-                mockServiceFootprint,
+                mockServiceRuntimeResources,
                 mockLogStore,
                 serviceId,
             );

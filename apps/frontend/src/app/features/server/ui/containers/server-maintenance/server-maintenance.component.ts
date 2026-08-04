@@ -49,9 +49,6 @@ const BYTES_PER_UNIT = 1024;
 
 /**
  * Server maintenance component
- *
- * Card exposing one-click actions to reclaim disk space on the server by pruning
- * unused Docker images, volumes and containers.
  */
 export class ServerMaintenanceComponent {
     private readonly repository = inject(ServerApiRepository);
@@ -69,16 +66,18 @@ export class ServerMaintenanceComponent {
         {
             resource: 'volumes',
             label: 'Clear unused volumes',
-            description: 'Remove local volumes that are not used by at least one container.',
+            description: 'Remove volumes that are not used by at least one container.',
             icon: 'volumes',
-            confirmMessage: 'Unused local volumes on the server will be permanently removed. This action cannot be undone.',
+            confirmMessage:
+                'Unused volumes on the server will be permanently removed. This action cannot be undone.',
         },
         {
             resource: 'containers',
             label: 'Clear unused containers',
             description: 'Remove containers that are stopped and no longer running.',
             icon: 'containers',
-            confirmMessage: 'Stopped containers on the server will be permanently removed. This action cannot be undone.',
+            confirmMessage:
+                'Stopped containers on the server will be permanently removed. This action cannot be undone.',
         },
     ];
 

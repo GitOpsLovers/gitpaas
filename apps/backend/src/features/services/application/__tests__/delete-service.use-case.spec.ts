@@ -1,5 +1,5 @@
 import { Service } from '../../domain/models/service.models';
-import { ServiceFootprint } from '../../domain/ports/service-footprint.port';
+import { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { deleteServiceUseCase } from '../delete-service.use-case';
 
@@ -26,14 +26,14 @@ describe('deleteServiceUseCase', () => {
 
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById' | 'delete'>>;
     let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'getAllByService'>>;
-    let mockServiceFootprint: jest.Mocked<Pick<ServiceFootprint, 'remove'>>;
+    let mockServiceRuntimeResources: jest.Mocked<Pick<ServiceRuntimeResources, 'remove'>>;
     let mockLogStore: jest.Mocked<Pick<LogStore, 'purge'>>;
 
     const run = (): Promise<boolean> => {
         return deleteServiceUseCase(
             mockServicesRepository as unknown as ServicesRepository,
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockServiceFootprint,
+            mockServiceRuntimeResources,
             mockLogStore as unknown as LogStore,
             id,
         );
@@ -48,7 +48,7 @@ describe('deleteServiceUseCase', () => {
         mockDeploymentsRepository = {
             getAllByService: jest.fn(),
         };
-        mockServiceFootprint = {
+        mockServiceRuntimeResources = {
             remove: jest.fn().mockResolvedValue(undefined),
         };
         mockLogStore = {
@@ -63,20 +63,20 @@ describe('deleteServiceUseCase', () => {
 
         expect(result).toBe(false);
         expect(mockDeploymentsRepository.getAllByService).not.toHaveBeenCalled();
-        expect(mockServiceFootprint.remove).not.toHaveBeenCalled();
+        expect(mockServiceRuntimeResources.remove).not.toHaveBeenCalled();
         expect(mockLogStore.purge).not.toHaveBeenCalled();
         expect(mockServicesRepository.delete).not.toHaveBeenCalled();
     });
 
-    it('tears down the service Docker footprint with the found service', async () => {
+    it('tears down the service runtime resources with the found service', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
         mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
         mockServicesRepository.delete.mockResolvedValue(true);
 
         await run();
 
-        expect(mockServiceFootprint.remove).toHaveBeenCalledTimes(1);
-        expect(mockServiceFootprint.remove).toHaveBeenCalledWith(service);
+        expect(mockServiceRuntimeResources.remove).toHaveBeenCalledTimes(1);
+        expect(mockServiceRuntimeResources.remove).toHaveBeenCalledWith(service);
     });
 
     it('purges the log buffer of every enumerated deployment', async () => {
@@ -112,7 +112,7 @@ describe('deleteServiceUseCase', () => {
         await run();
 
         const deleteOrder = mockServicesRepository.delete.mock.invocationCallOrder[0];
-        const removeOrder = mockServiceFootprint.remove.mock.invocationCallOrder[0];
+        const removeOrder = mockServiceRuntimeResources.remove.mock.invocationCallOrder[0];
         const firstPurgeOrder = mockLogStore.purge.mock.invocationCallOrder[0];
 
         expect(deleteOrder).toBeLessThan(removeOrder);
@@ -128,7 +128,7 @@ describe('deleteServiceUseCase', () => {
 
         expect(result).toBe(false);
         expect(mockServicesRepository.delete).toHaveBeenCalledTimes(1);
-        expect(mockServiceFootprint.remove).not.toHaveBeenCalled();
+        expect(mockServiceRuntimeResources.remove).not.toHaveBeenCalled();
         expect(mockLogStore.purge).not.toHaveBeenCalled();
     });
 });

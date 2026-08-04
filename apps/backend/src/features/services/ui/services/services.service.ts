@@ -8,9 +8,9 @@ import { updateServiceUseCase } from '../../application/update-service.use-case'
 import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
-import type { ServiceFootprint } from '../../domain/ports/service-footprint.port';
+import type { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
-import { ServiceFootprintDockerAdapter } from '../../infrastructure/docker/service-footprint-docker.adapter';
+import { DockerServiceRuntimeResourcesAdapter } from '../../infrastructure/docker/docker-service-runtime-resources.adapter';
 
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
@@ -27,8 +27,8 @@ export class ServicesService {
         private readonly repository: ServicesDatabaseRepository,
         @Inject(DeploymentsDatabaseRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
-        @Inject(ServiceFootprintDockerAdapter)
-        private readonly serviceFootprint: ServiceFootprint,
+        @Inject(DockerServiceRuntimeResourcesAdapter)
+        private readonly serviceRuntimeResources: ServiceRuntimeResources,
         @Inject(PersistentLogStoreRepository)
         private readonly logStore: LogStore,
     ) {}
@@ -53,7 +53,7 @@ export class ServicesService {
         return deleteServiceUseCase(
             this.repository,
             this.deploymentsRepository,
-            this.serviceFootprint,
+            this.serviceRuntimeResources,
             this.logStore,
             id,
         );

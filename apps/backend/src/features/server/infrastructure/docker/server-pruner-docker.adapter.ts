@@ -1,49 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { PruneResult } from '../../domain/models/prune-result.models';
 import { ServerPruner } from '../../domain/ports/server-pruner.port';
 
 import { toPruneResult } from './server-pruner-docker.transformer';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
+import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 
 /**
  * Docker server pruner adapter
  */
 @Injectable()
 export class ServerPrunerDockerAdapter implements ServerPruner {
-    constructor(private readonly client: DockerClient) {}
+    constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
-    /**
-     * Removes dangling images, mirroring `docker image prune`.
-     *
-     * @returns Number of images removed and disk space reclaimed
-     */
     public async pruneImages(): Promise<PruneResult> {
-        const { ImagesDeleted, SpaceReclaimed } = await this.client.getClient().pruneImages();
+        const labels = selectOwnedResourcesUseCase();
+        const result = await this.client.pruneImages({ labels });
 
-        return toPruneResult(ImagesDeleted, SpaceReclaimed);
+        return toPruneResult(result);
     }
 
-    /**
-     * Removes unused local volumes, mirroring `docker volume prune`.
-     *
-     * @returns Number of volumes removed and disk space reclaimed
-     */
     public async pruneVolumes(): Promise<PruneResult> {
-        const { VolumesDeleted, SpaceReclaimed } = await this.client.getClient().pruneVolumes();
+        const labels = selectOwnedResourcesUseCase();
+        const result = await this.client.pruneVolumes({ labels });
 
-        return toPruneResult(VolumesDeleted, SpaceReclaimed);
+        return toPruneResult(result);
     }
 
-    /**
-     * Removes stopped containers, mirroring `docker container prune`.
-     *
-     * @returns Number of containers removed and disk space reclaimed
-     */
     public async pruneContainers(): Promise<PruneResult> {
-        const { ContainersDeleted, SpaceReclaimed } = await this.client.getClient().pruneContainers();
+        const labels = selectOwnedResourcesUseCase();
+        const result = await this.client.pruneContainers({ labels });
 
-        return toPruneResult(ContainersDeleted, SpaceReclaimed);
+        return toPruneResult(result);
     }
 }

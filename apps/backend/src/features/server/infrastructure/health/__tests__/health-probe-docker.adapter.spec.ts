@@ -1,17 +1,15 @@
 import { HealthProbeDockerAdapter } from '../health-probe-docker.adapter';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 
 describe('HealthProbeDockerAdapter', () => {
     let ping: jest.Mock;
-    let getClient: jest.Mock;
-    let client: jest.Mocked<DockerClient>;
+    let client: jest.Mocked<DockerContainerRuntimeAdapter>;
     let probe: HealthProbeDockerAdapter;
 
     beforeEach(() => {
-        ping = jest.fn().mockResolvedValue('OK');
-        getClient = jest.fn().mockReturnValue({ ping });
-        client = { getClient } as unknown as jest.Mocked<DockerClient>;
+        ping = jest.fn().mockResolvedValue(true);
+        client = { ping } as unknown as jest.Mocked<DockerContainerRuntimeAdapter>;
         probe = new HealthProbeDockerAdapter(client);
     });
 
@@ -29,14 +27,20 @@ describe('HealthProbeDockerAdapter', () => {
         await expect(probe.check()).resolves.toBe(true);
     });
 
+    it('reports up on any answer from the daemon, whatever its acknowledgement', async () => {
+        ping.mockResolvedValue(false);
+
+        await expect(probe.check()).resolves.toBe(true);
+    });
+
     it('reports down when the ping rejects, without throwing', async () => {
         ping.mockRejectedValue(new Error('daemon unreachable'));
 
         await expect(probe.check()).resolves.toBe(false);
     });
 
-    it('swallows a synchronous throw from getClient and reports down', async () => {
-        getClient.mockImplementation(() => {
+    it('swallows a synchronous throw from the runtime and reports down', async () => {
+        ping.mockImplementation(() => {
             throw new Error('could not create the Docker client');
         });
 

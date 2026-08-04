@@ -1,68 +1,55 @@
-import type Docker from 'dockerode';
-
 import { PruneResult } from '../../../domain/models/prune-result.models';
 import { ServerPrunerDockerAdapter } from '../server-pruner-docker.adapter';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
+import type { RuntimePruneReport } from '@core/domain/models/container-runtime.models';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 
 /**
- * Builds a Dockerode image-prune response with the given deleted count and reclaimed bytes.
+ * Selector every prune must be scoped to, so nothing GitPaaS did not create is
+ * ever reaped.
  */
-const imagesPruned = (deletedCount: number, spaceReclaimed: number): Docker.PruneImagesInfo => ({
-    ImagesDeleted: Array.from({ length: deletedCount }, () => ({})),
-    SpaceReclaimed: spaceReclaimed,
-} as Docker.PruneImagesInfo);
+const managedSelector = { labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE } };
 
 /**
- * Builds a Dockerode volume-prune response with the given deleted count and reclaimed bytes.
+ * Builds a runtime prune report with the given deleted count and reclaimed bytes.
  */
-const volumesPruned = (deletedCount: number, spaceReclaimed: number): Docker.PruneVolumesInfo => (({
-    VolumesDeleted: Array.from({ length: deletedCount }, (_, index) => `vol-${index}`),
-    SpaceReclaimed: spaceReclaimed,
-}));
-
-/**
- * Builds a Dockerode container-prune response with the given deleted count and reclaimed bytes.
- */
-const containersPruned = (deletedCount: number, spaceReclaimed: number): Docker.PruneContainersInfo => (({
-    ContainersDeleted: Array.from({ length: deletedCount }, (_, index) => `ctr-${index}`),
-    SpaceReclaimed: spaceReclaimed,
-}));
+const pruned = (deletedCount: number, spaceReclaimed: number): RuntimePruneReport => ({ deletedCount, spaceReclaimed });
 
 describe('ServerPrunerDockerAdapter', () => {
     let mockPruneImages: jest.Mock;
     let mockPruneVolumes: jest.Mock;
     let mockPruneContainers: jest.Mock;
-    let mockDockerClient: jest.Mocked<Pick<DockerClient, 'getClient'>>;
+    let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'pruneImages' | 'pruneVolumes' | 'pruneContainers'>>;
     let sut: ServerPrunerDockerAdapter;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockPruneImages = jest.fn().mockResolvedValue({});
-        mockPruneVolumes = jest.fn().mockResolvedValue({});
-        mockPruneContainers = jest.fn().mockResolvedValue({});
-        const handle = {
+        mockPruneImages = jest.fn().mockResolvedValue(pruned(0, 0));
+        mockPruneVolumes = jest.fn().mockResolvedValue(pruned(0, 0));
+        mockPruneContainers = jest.fn().mockResolvedValue(pruned(0, 0));
+        mockContainerRuntime = {
             pruneImages: mockPruneImages,
             pruneVolumes: mockPruneVolumes,
             pruneContainers: mockPruneContainers,
-        } as unknown as jest.Mocked<Pick<Docker, 'pruneImages' | 'pruneVolumes' | 'pruneContainers'>>;
-        mockDockerClient = { getClient: jest.fn().mockReturnValue(handle) };
-        sut = new ServerPrunerDockerAdapter(mockDockerClient as unknown as DockerClient);
+        };
+        sut = new ServerPrunerDockerAdapter(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
     });
 
     describe('pruneImages', () => {
-        it('maps a populated daemon response into a PruneResult', async () => {
-            mockPruneImages.mockResolvedValue(imagesPruned(3, 1024));
+        it('maps a populated runtime report into a PruneResult', async () => {
+            mockPruneImages.mockResolvedValue(pruned(3, 1024));
 
             const result = await sut.pruneImages();
 
             expect(mockPruneImages).toHaveBeenCalledTimes(1);
+            expect(mockPruneImages).toHaveBeenCalledWith(managedSelector);
             expect(result).toEqual<PruneResult>({ deletedCount: 3, spaceReclaimed: 1024 });
         });
 
-        it('falls back to zero counts when the daemon response is empty', async () => {
-            mockPruneImages.mockResolvedValue({});
+        it('passes a zeroed report straight through', async () => {
+            mockPruneImages.mockResolvedValue(pruned(0, 0));
 
             const result = await sut.pruneImages();
 
@@ -71,17 +58,18 @@ describe('ServerPrunerDockerAdapter', () => {
     });
 
     describe('pruneVolumes', () => {
-        it('maps a populated daemon response into a PruneResult', async () => {
-            mockPruneVolumes.mockResolvedValue(volumesPruned(2, 2048));
+        it('maps a populated runtime report into a PruneResult', async () => {
+            mockPruneVolumes.mockResolvedValue(pruned(2, 2048));
 
             const result = await sut.pruneVolumes();
 
             expect(mockPruneVolumes).toHaveBeenCalledTimes(1);
+            expect(mockPruneVolumes).toHaveBeenCalledWith(managedSelector);
             expect(result).toEqual<PruneResult>({ deletedCount: 2, spaceReclaimed: 2048 });
         });
 
-        it('falls back to zero counts when the daemon response is empty', async () => {
-            mockPruneVolumes.mockResolvedValue({});
+        it('passes a zeroed report straight through', async () => {
+            mockPruneVolumes.mockResolvedValue(pruned(0, 0));
 
             const result = await sut.pruneVolumes();
 
@@ -90,17 +78,18 @@ describe('ServerPrunerDockerAdapter', () => {
     });
 
     describe('pruneContainers', () => {
-        it('maps a populated daemon response into a PruneResult', async () => {
-            mockPruneContainers.mockResolvedValue(containersPruned(4, 4096));
+        it('maps a populated runtime report into a PruneResult', async () => {
+            mockPruneContainers.mockResolvedValue(pruned(4, 4096));
 
             const result = await sut.pruneContainers();
 
             expect(mockPruneContainers).toHaveBeenCalledTimes(1);
+            expect(mockPruneContainers).toHaveBeenCalledWith(managedSelector);
             expect(result).toEqual<PruneResult>({ deletedCount: 4, spaceReclaimed: 4096 });
         });
 
-        it('falls back to zero counts when the daemon response is empty', async () => {
-            mockPruneContainers.mockResolvedValue({});
+        it('passes a zeroed report straight through', async () => {
+            mockPruneContainers.mockResolvedValue(pruned(0, 0));
 
             const result = await sut.pruneContainers();
 

@@ -7,7 +7,7 @@ import * as tar from 'tar';
 
 import { DockerExecutorDockerodeAdapter } from '../docker-executor-dockerode.adapter';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 jest.mock('node:fs/promises');
@@ -32,6 +32,13 @@ interface ExecutorInternals {
     resolveBuild: (build: unknown, baseDir: string) => unknown;
     recipeServices: (compose: unknown) => Record<string, unknown>;
     normalizeHealthchecks: (compose: unknown) => void;
+    stampLabels: (compose: unknown, projectName: string) => void;
+    buildServices: (
+        compose: unknown,
+        composeFile: string,
+        projectName: string,
+        emit: (line: string) => void,
+    ) => Promise<Set<string>>;
     pullWithProgress: (compose: unknown, emit: (line: string) => void, builtImages: Set<string>) => Promise<void>;
     followPull: (stream: unknown, emit: (line: string) => void) => Promise<void>;
     followBuild: (stream: unknown, emit: (line: string) => void) => Promise<void>;
@@ -46,16 +53,16 @@ const internals = (sut: DockerExecutorDockerodeAdapter): ExecutorInternals => su
 /**
  * Builds an executor backed by a fake daemon exposing only the members a given
  * test needs (`buildImage`, `pull`, `modem.followProgress`, container
- * `inspect`/`logs`). The injected `DockerClient` / `DiagnosticLoggerService`
+ * `inspect`/`logs`). The injected `DockerContainerRuntimeAdapter` / `DiagnosticLoggerService`
  * collaborators are stored under `mock*` names.
  */
 const executorWithDaemon = (fakeDaemon: unknown): DockerExecutorDockerodeAdapter => {
-    const mockDockerClient = { getClient: (): unknown => fakeDaemon } as unknown as DockerClient;
+    const mockContainerRuntime = { getClient: (): unknown => fakeDaemon } as unknown as DockerContainerRuntimeAdapter;
     const mockDiagnostics = {
         log: jest.fn(), warn: jest.fn(), error: jest.fn(),
     } as unknown as DiagnosticLoggerService;
 
-    return new DockerExecutorDockerodeAdapter(mockDockerClient, mockDiagnostics);
+    return new DockerExecutorDockerodeAdapter(mockContainerRuntime, mockDiagnostics);
 };
 
 describe('DockerExecutorDockerodeAdapter', () => {
@@ -184,6 +191,120 @@ describe('DockerExecutorDockerodeAdapter', () => {
 
             expect(withCheck.healthcheck).toEqual({ interval: 5e9, timeout: 2e9, start_period: 0 });
             expect(withoutCheck.healthcheck).toBeUndefined();
+        });
+    });
+
+    describe('stampLabels', () => {
+        it('stamps the GitPaaS and compose labels on a service with no labels of its own', () => {
+            const sut = executorWithDaemon({});
+            const web = {} as { labels?: unknown };
+            const compose = { recipe: { services: { web } } };
+
+            internals(sut).stampLabels(compose, 'my-project');
+
+            expect(web.labels).toEqual([
+                'io.gitpaas.managed=true',
+                'io.gitpaas.project=my-project',
+                'com.docker.compose.project=my-project',
+                'com.docker.compose.service=web',
+            ]);
+        });
+
+        it('merges into user-declared list-form labels instead of clobbering them', () => {
+            const sut = executorWithDaemon({});
+            const web = { labels: ['traefik.enable=true', 'bare'] } as { labels?: unknown };
+            const compose = { recipe: { services: { web } } };
+
+            internals(sut).stampLabels(compose, 'my-project');
+
+            expect(web.labels).toEqual([
+                'traefik.enable=true',
+                'bare=',
+                'io.gitpaas.managed=true',
+                'io.gitpaas.project=my-project',
+                'com.docker.compose.project=my-project',
+                'com.docker.compose.service=web',
+            ]);
+        });
+
+        it('normalises user-declared map-form labels into the list form the library parses', () => {
+            const sut = executorWithDaemon({});
+            const web = { labels: { 'app.tier': 'edge', 'app.replicas': 2 } } as { labels?: unknown };
+            const compose = { recipe: { services: { web } } };
+
+            internals(sut).stampLabels(compose, 'my-project');
+
+            expect(web.labels).toEqual([
+                'app.tier=edge',
+                'app.replicas=2',
+                'io.gitpaas.managed=true',
+                'io.gitpaas.project=my-project',
+                'com.docker.compose.project=my-project',
+                'com.docker.compose.service=web',
+            ]);
+        });
+
+        it('merges the GitPaaS labels as a map into top-level volumes and networks', () => {
+            const sut = executorWithDaemon({});
+            const compose = {
+                recipe: {
+                    services: {},
+                    volumes: { data: null, cache: { labels: { keep: 'me' } } },
+                    networks: { edge: null },
+                },
+            };
+
+            internals(sut).stampLabels(compose, 'my-project');
+
+            const gitpaas = { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' };
+            expect(compose.recipe.volumes.data).toEqual({ labels: gitpaas });
+            expect(compose.recipe.volumes.cache).toEqual({ labels: { keep: 'me', ...gitpaas } });
+            expect(compose.recipe.networks.edge).toEqual({ labels: gitpaas });
+        });
+
+        it('does nothing when the recipe declares no services, volumes or networks', () => {
+            const sut = executorWithDaemon({});
+
+            expect(() => internals(sut).stampLabels({ recipe: {} }, 'my-project')).not.toThrow();
+            expect(() => internals(sut).stampLabels({}, 'my-project')).not.toThrow();
+        });
+    });
+
+    describe('buildServices', () => {
+        it('stamps the GitPaaS labels on every locally built image and rewrites the service to an image service', async () => {
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const buildImage = jest.fn().mockResolvedValue({});
+            const sut = executorWithDaemon({ buildImage, modem: { followProgress } });
+            const web = { build: 'app' } as { build?: unknown; image?: string };
+            const cache = { image: 'redis:7' };
+            const compose = { recipe: { services: { web, cache } } };
+
+            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', jest.fn());
+
+            expect(buildImage).toHaveBeenCalledTimes(1);
+
+            const [, options] = buildImage.mock.calls[0] as [unknown, Record<string, unknown>];
+
+            expect(options).toEqual({
+                t: 'my-project_web',
+                dockerfile: 'Dockerfile',
+                buildargs: undefined,
+                target: undefined,
+                labels: { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' },
+            });
+            expect(built).toEqual(new Set(['my-project_web']));
+            expect(web).toEqual({ image: 'my-project_web' });
+        });
+
+        it('builds nothing when no service declares a build context', async () => {
+            const buildImage = jest.fn();
+            const sut = executorWithDaemon({ buildImage, modem: { followProgress: jest.fn() } });
+            const compose = { recipe: { services: { cache: { image: 'redis:7' } } } };
+
+            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', jest.fn());
+
+            expect(buildImage).not.toHaveBeenCalled();
+            expect(built).toEqual(new Set());
         });
     });
 
@@ -351,6 +472,44 @@ describe('DockerExecutorDockerodeAdapter', () => {
 
             expect(downOrder).toBeLessThan(upOrder);
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
+        });
+
+        it('has the GitPaaS labels already stamped on services, volumes and networks by the time the stack is created', async () => {
+            const web = { image: 'nginx', labels: { 'app.tier': 'edge' } } as { image: string; labels?: unknown };
+            const recipe = {
+                services: { web },
+                volumes: { data: null as unknown },
+                networks: { edge: null as unknown },
+            };
+            let stampedAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                stampedAtUp = {
+                    service: web.labels,
+                    volume: recipe.volumes.data,
+                    network: recipe.networks.edge,
+                };
+
+                return Promise.resolve({ services: [] });
+            });
+            mockCompose.instance = { recipe, down: jest.fn().mockResolvedValue(undefined), up: composeUp };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithDaemon({ pull: jest.fn().mockResolvedValue({}), modem: { followProgress } });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', jest.fn());
+
+            const gitpaas = { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'test-project' };
+            expect(stampedAtUp).toEqual({
+                service: [
+                    'app.tier=edge',
+                    'io.gitpaas.managed=true',
+                    'io.gitpaas.project=test-project',
+                    'com.docker.compose.project=test-project',
+                    'com.docker.compose.service=web',
+                ],
+                volume: { labels: gitpaas },
+                network: { labels: gitpaas },
+            });
         });
 
         it('still cleans up the temp dir when an early step throws', async () => {

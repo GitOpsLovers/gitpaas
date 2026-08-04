@@ -4,7 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
 import DockerodeCompose from 'dockerode-compose';
 import * as tar from 'tar';
@@ -13,7 +13,9 @@ import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-exe
 
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
-import { DockerClient } from '@core/infrastructure/docker/docker.client';
+import { gitpaasLabels } from '@core/domain/utils/gitpaas-labels.util';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/container-runtime.transformer';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /** Number of trailing startup log lines captured per container after it starts. */
@@ -29,16 +31,27 @@ interface ComposeHealthcheck {
     start_period?: string | number;
 }
 
+/** A compose `labels` block, in either the list (`KEY=value`) or map form. */
+type ComposeLabels = string[] | Record<string, unknown>;
+
 /** The subset of a compose service the executor reads/rewrites. */
 interface ComposeService {
     image?: string;
     build?: ComposeBuild;
     healthcheck?: ComposeHealthcheck;
+    labels?: ComposeLabels;
+}
+
+/** The subset of a top-level compose volume/network the executor rewrites. */
+interface ComposeResource {
+    labels?: ComposeLabels;
 }
 
 /** The parsed compose recipe exposed by `dockerode-compose`. */
 interface ComposeRecipe {
     services?: Record<string, ComposeService>;
+    volumes?: Record<string, ComposeResource | null>;
+    networks?: Record<string, ComposeResource | null>;
 }
 
 /** A resolved build definition ready to hand to `docker.buildImage`. */
@@ -51,11 +64,18 @@ interface ResolvedBuild {
 
 /**
  * Dockerode Docker executor
+ *
+ * The Docker implementation of the deployments' own executor port, and the only
+ * consumer allowed to reach for the runtime adapter's Dockerode client: Compose
+ * orchestration and image building have no vendor-free equivalent, so the
+ * adapter is injected as its concrete class rather than through the
+ * `ContainerRuntime` port, purely to reuse its socket configuration.
  */
 @Injectable()
 export class DockerExecutorDockerodeAdapter implements DockerExecutor {
     constructor(
-        private readonly docker: DockerClient,
+        @Inject(DockerContainerRuntimeAdapter)
+        private readonly docker: DockerContainerRuntimeAdapter,
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
 
@@ -95,6 +115,10 @@ export class DockerExecutorDockerodeAdapter implements DockerExecutor {
             // mis-parses second-based durations; pre-normalize them to numeric
             // nanoseconds, which it forwards to the daemon untouched.
             this.normalizeHealthchecks(compose);
+
+            // Stamp the GitPaaS ownership marker on every resource the stack creates,
+            // so later maintenance operations can be scoped to what GitPaaS owns.
+            this.stampLabels(compose, projectName);
 
             this.diagnostics.log(`Bringing project "${projectName}" up`, DockerExecutorDockerodeAdapter.name);
             emit('▶ Creating and starting containers…');
@@ -156,7 +180,7 @@ export class DockerExecutorDockerodeAdapter implements DockerExecutor {
             this.diagnostics.log(`Building service "${name}" as "${tag}"`, DockerExecutorDockerodeAdapter.name);
             emit(`▶ Building ${name} (${tag})…`);
 
-            await this.buildImage(build, tag, emit);
+            await this.buildImage(build, tag, projectName, emit);
 
             // Treat the freshly built image as a normal image service: `up()` will run
             // it and the pull step will skip it (it isn't in any registry).
@@ -217,9 +241,10 @@ export class DockerExecutorDockerodeAdapter implements DockerExecutor {
      *
      * @param build Resolved build definition
      * @param tag Image tag to apply
+     * @param projectName Compose project name, stamped on the image as a GitPaaS label
      * @param emit Line emitter
      */
-    private async buildImage(build: ResolvedBuild, tag: string, emit: DockerLogListener): Promise<void> {
+    private async buildImage(build: ResolvedBuild, tag: string, projectName: string, emit: DockerLogListener): Promise<void> {
         // `tar.c` returns a Minipass `Pack` stream — runtime-compatible with, but not
         // structurally typed as, a Node readable, so cast for dockerode's signature.
         const context = tar.c({ cwd: build.contextPath, gzip: false }, ['.']) as unknown as NodeJS.ReadableStream;
@@ -229,6 +254,7 @@ export class DockerExecutorDockerodeAdapter implements DockerExecutor {
             dockerfile: build.dockerfile,
             buildargs: build.buildargs,
             target: build.target,
+            labels: gitpaasLabels(projectName),
         });
 
         await this.followBuild(stream, emit);
@@ -378,6 +404,103 @@ export class DockerExecutorDockerodeAdapter implements DockerExecutor {
             healthcheck.timeout = this.toNanoseconds(healthcheck.timeout);
             healthcheck.start_period = this.toNanoseconds(healthcheck.start_period);
         }
+    }
+
+    /**
+     * Stamps the GitPaaS ownership labels on every resource the stack will create:
+     * each service's containers plus the top-level volumes and networks.
+     *
+     * `dockerode-compose` **overwrites** a container's labels with the service's
+     * own `labels` block whenever one is declared, discarding the compose
+     * project/service labels it had set — and it only understands the list form
+     * (`KEY=value`). Both the GitPaaS labels and the compose labels are therefore
+     * merged into a normalised list form here, preserving user-declared labels.
+     * Volumes and networks are safe to merge as a map, since the library spreads
+     * their `labels` object.
+     *
+     * @param compose Dockerode-compose instance
+     * @param projectName Compose project name the stack is grouped under
+     */
+    private stampLabels(compose: DockerodeCompose, projectName: string): void {
+        const gitpaas = gitpaasLabels(projectName);
+
+        for (const [name, service] of Object.entries(this.recipeServices(compose))) {
+            service.labels = this.toLabelList({
+                ...this.toLabelMap(service.labels),
+                ...gitpaas,
+                [COMPOSE_PROJECT_LABEL]: projectName,
+                [COMPOSE_SERVICE_LABEL]: name,
+            });
+        }
+
+        for (const resource of this.recipeResources(compose)) {
+            resource.labels = { ...this.toLabelMap(resource.labels), ...gitpaas };
+        }
+    }
+
+    /**
+     * Normalises a compose `labels` block (list or map form) into a label map.
+     *
+     * @param labels Compose labels block, if any
+     *
+     * @returns Labels as a `{ key: value }` map
+     */
+    private toLabelMap(labels?: ComposeLabels): Record<string, string> {
+        if (!labels) {
+            return {};
+        }
+
+        if (Array.isArray(labels)) {
+            return Object.fromEntries(labels.map((entry) => {
+                const separator = entry.indexOf('=');
+
+                return separator === -1
+                    ? [entry, '']
+                    : [entry.slice(0, separator), entry.slice(separator + 1)];
+            }));
+        }
+
+        return Object.fromEntries(Object.entries(labels).map(([key, value]) => [key, String(value)]));
+    }
+
+    /**
+     * Renders a label map as the `KEY=value` list form `dockerode-compose` parses.
+     *
+     * @param labels Label map
+     *
+     * @returns Labels as a `KEY=value` list
+     */
+    private toLabelList(labels: Record<string, string>): string[] {
+        return Object.entries(labels).map(([key, value]) => `${key}=${value}`);
+    }
+
+    /**
+     * Returns every top-level volume and network declared by a compose recipe,
+     * materialising the `null` shorthand (`volumes: { data: }`) into an object.
+     *
+     * @param compose Dockerode-compose instance
+     *
+     * @returns Declared volume and network definitions
+     */
+    private recipeResources(compose: DockerodeCompose): ComposeResource[] {
+        const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
+        const resources: ComposeResource[] = [];
+
+        for (const collection of [recipe?.volumes, recipe?.networks]) {
+            if (!collection) {
+                continue;
+            }
+
+            for (const [key, resource] of Object.entries(collection)) {
+                const defined = resource ?? {};
+
+                // eslint-disable-next-line security/detect-object-injection
+                collection[key] = defined;
+                resources.push(defined);
+            }
+        }
+
+        return resources;
     }
 
     /**
