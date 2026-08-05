@@ -3,11 +3,11 @@ import { Test } from '@nestjs/testing';
 
 import { getNetworksByServiceUseCase } from '../../../application/get-networks-by-service.use-case';
 import { Network } from '../../../domain/models/network.models';
-import { DockerNetworksRepository } from '../../../infrastructure/docker/networks-docker.repository';
+import { DockerNetworksRepository } from '../../../infrastructure/docker/docker-networks.repository';
 import { NetworksService } from '../networks.service';
 
 import { Service } from '@features/services/domain/models/service.models';
-import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/get-networks-by-service.use-case');
 
@@ -39,7 +39,7 @@ const networks: Network[] = [
 ];
 
 describe('NetworksService', () => {
-    let mockServicesRepository: jest.Mocked<Pick<ServicesDatabaseRepository, 'findById'>>;
+    let mockServicesRepository: jest.Mocked<Pick<DatabaseServicesRepository, 'findById'>>;
     let mockNetworksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService'>>;
     let sut: NetworksService;
 
@@ -52,7 +52,7 @@ describe('NetworksService', () => {
         const moduleRef = await Test.createTestingModule({
             providers: [
                 NetworksService,
-                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
+                { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DockerNetworksRepository, useValue: mockNetworksRepository },
             ],
         }).compile();

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { ProjectDbEntity } from './infrastructure/database/project-db.entity';
-import { ProjectsDatabaseRepository } from './infrastructure/database/projects-db.repository';
+import { ProjectDbEntity } from './infrastructure/database/db-project.entity';
+import { DatabaseProjectsRepository } from './infrastructure/database/db-projects.repository';
 import { ProjectsController } from './ui/controllers/projects.controller';
 import { ProjectsService } from './ui/services/projects.service';
 
@@ -14,7 +14,7 @@ import { ProjectsService } from './ui/services/projects.service';
     controllers: [ProjectsController],
     providers: [
         ProjectsService,
-        ProjectsDatabaseRepository,
+        DatabaseProjectsRepository,
     ],
 })
 export class ProjectsModule {}

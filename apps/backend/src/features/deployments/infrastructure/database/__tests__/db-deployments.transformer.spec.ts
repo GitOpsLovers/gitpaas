@@ -1,5 +1,5 @@
-import { DeploymentDbEntity } from '../deployment-db.entity';
-import { toDeployment } from '../deployments-db.transformer';
+import { DeploymentDbEntity } from '../db-deployment.entity';
+import { toDeployment } from '../db-deployments.transformer';
 
 describe('toDeployment', () => {
     it('maps every deployment entity field into the domain model', () => {

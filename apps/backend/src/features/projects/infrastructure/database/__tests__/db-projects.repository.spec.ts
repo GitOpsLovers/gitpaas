@@ -3,8 +3,8 @@ import { Repository } from 'typeorm';
 import { CreateProjectDto } from '../../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
 import { Project } from '../../../domain/models/project.models';
-import { ProjectDbEntity } from '../project-db.entity';
-import { ProjectsDatabaseRepository } from '../projects-db.repository';
+import { ProjectDbEntity } from '../db-project.entity';
+import { DatabaseProjectsRepository } from '../db-projects.repository';
 
 /**
  * Builds a project database-entity fixture, overriding only the fields under test.
@@ -16,7 +16,7 @@ const projectEntity = (overrides: Partial<ProjectDbEntity> = {}): ProjectDbEntit
     ...overrides,
 });
 
-describe('ProjectsDatabaseRepository', () => {
+describe('DatabaseProjectsRepository', () => {
     const createDto: CreateProjectDto = {
         name: 'new-project',
     };
@@ -27,7 +27,7 @@ describe('ProjectsDatabaseRepository', () => {
             'find' | 'findOne' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'
         >
     >;
-    let sut: ProjectsDatabaseRepository;
+    let sut: DatabaseProjectsRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -41,7 +41,7 @@ describe('ProjectsDatabaseRepository', () => {
             save: jest.fn(),
             delete: jest.fn(),
         };
-        sut = new ProjectsDatabaseRepository(
+        sut = new DatabaseProjectsRepository(
             mockRepository as unknown as Repository<ProjectDbEntity>,
         );
     });

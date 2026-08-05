@@ -1,9 +1,9 @@
 import { PruneResult } from '../../../domain/models/prune-result.models';
-import { ServerPrunerDockerAdapter } from '../server-pruner-docker.adapter';
+import { DockerServerPrunerAdapter } from '../docker-server-pruner.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimePruneReport } from '@core/domain/models/container-runtime.models';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 
 /**
  * Selector every prune must be scoped to, so nothing GitPaaS did not create is
@@ -16,12 +16,12 @@ const managedSelector = { labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VAL
  */
 const pruned = (deletedCount: number, spaceReclaimed: number): RuntimePruneReport => ({ deletedCount, spaceReclaimed });
 
-describe('ServerPrunerDockerAdapter', () => {
+describe('DockerServerPrunerAdapter', () => {
     let mockPruneImages: jest.Mock;
     let mockPruneVolumes: jest.Mock;
     let mockPruneContainers: jest.Mock;
     let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'pruneImages' | 'pruneVolumes' | 'pruneContainers'>>;
-    let sut: ServerPrunerDockerAdapter;
+    let sut: DockerServerPrunerAdapter;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -34,7 +34,7 @@ describe('ServerPrunerDockerAdapter', () => {
             pruneVolumes: mockPruneVolumes,
             pruneContainers: mockPruneContainers,
         };
-        sut = new ServerPrunerDockerAdapter(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
+        sut = new DockerServerPrunerAdapter(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
     });
 
     describe('pruneImages', () => {

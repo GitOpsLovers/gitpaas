@@ -1,16 +1,16 @@
 import { DataSource } from 'typeorm';
 
-import { HealthProbePostgresAdapter } from '../health-probe-postgres.adapter';
+import { PostgresHealthProbeAdapter } from '../postgres-health-probe.adapter';
 
-describe('HealthProbePostgresAdapter', () => {
+describe('PostgresHealthProbeAdapter', () => {
     let query: jest.Mock;
     let dataSource: jest.Mocked<DataSource>;
-    let probe: HealthProbePostgresAdapter;
+    let probe: PostgresHealthProbeAdapter;
 
     beforeEach(() => {
         query = jest.fn().mockResolvedValue([{ '?column?': 1 }]);
         dataSource = { query } as unknown as jest.Mocked<DataSource>;
-        probe = new HealthProbePostgresAdapter(dataSource);
+        probe = new PostgresHealthProbeAdapter(dataSource);
     });
 
     it('is named postgres', () => {

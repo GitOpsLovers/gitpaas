@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { ServiceDbEntity } from '@features/services/infrastructure/database/service-db.entity';
+import { ServiceDbEntity } from '@features/services/infrastructure/database/db-service.entity';
 
 /**
  * Projects database entity

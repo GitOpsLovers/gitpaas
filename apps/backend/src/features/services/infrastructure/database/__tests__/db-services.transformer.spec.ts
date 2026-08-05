@@ -1,5 +1,5 @@
-import { ServiceDbEntity } from '../service-db.entity';
-import { toService } from '../services-db.transformer';
+import { ServiceDbEntity } from '../db-service.entity';
+import { toService } from '../db-services.transformer';
 
 describe('toService', () => {
     it('maps every service entity field into the domain model', () => {

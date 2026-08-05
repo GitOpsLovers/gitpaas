@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 
 import { ContainerRuntimeInfo } from '../../../domain/models/container-runtime.models';
 import type { ContainerRuntime } from '../../../domain/ports/container-runtime.port';
-import { DockerContainerRuntimeAdapter } from '../../../infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '../../../infrastructure/docker/docker-container-runtime.adapter';
 import { ContainerRuntimeService } from '../container-runtime.service';
 
 const runtimeInfo: ContainerRuntimeInfo = {

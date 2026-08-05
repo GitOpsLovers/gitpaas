@@ -1,4 +1,4 @@
-import { toNetwork } from '../networks-docker.transformer';
+import { toNetwork } from '../docker-networks.transformer';
 
 import type { RuntimeNetworkSummary } from '@core/domain/models/container-runtime.models';
 

@@ -2,8 +2,8 @@ import { Repository } from 'typeorm';
 
 import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
-import { ServiceDbEntity } from '../service-db.entity';
-import { ServicesDatabaseRepository } from '../services-db.repository';
+import { ServiceDbEntity } from '../db-service.entity';
+import { DatabaseServicesRepository } from '../db-services.repository';
 
 /**
  * Builds a service database-entity fixture, overriding only the fields under test.
@@ -18,7 +18,7 @@ const serviceEntity = (overrides: Partial<ServiceDbEntity> = {}): ServiceDbEntit
     ...overrides,
 });
 
-describe('ServicesDatabaseRepository', () => {
+describe('DatabaseServicesRepository', () => {
     const projectId = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
 
     const createDto: CreateServiceDto = {
@@ -29,7 +29,7 @@ describe('ServicesDatabaseRepository', () => {
     let mockRepository: jest.Mocked<
         Pick<Repository<ServiceDbEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
     >;
-    let sut: ServicesDatabaseRepository;
+    let sut: DatabaseServicesRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -42,7 +42,7 @@ describe('ServicesDatabaseRepository', () => {
             save: jest.fn(),
             delete: jest.fn(),
         };
-        sut = new ServicesDatabaseRepository(
+        sut = new DatabaseServicesRepository(
             mockRepository as unknown as Repository<ServiceDbEntity>,
         );
     });

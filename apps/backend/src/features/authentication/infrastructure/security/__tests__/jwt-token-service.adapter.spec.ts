@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 
 import { AccessTokenPayload } from '../../../domain/models/token-payloads.models';
-import { TokenServiceJwtAdapter } from '../token-service-jwt.adapter';
+import { JwtTokenServiceAdapter } from '../jwt-token-service.adapter';
 
 import { UserRole } from '@features/users/domain/models/user.models';
 
@@ -18,10 +18,10 @@ const payload: AccessTokenPayload = {
     role: UserRole.Admin,
 };
 
-describe('TokenServiceJwtAdapter', () => {
+describe('JwtTokenServiceAdapter', () => {
     let mockJwtService: jest.Mocked<Pick<JwtService, 'sign' | 'decode' | 'verify'>>;
     let mockConfigService: jest.Mocked<Pick<ConfigService, 'getOrThrow'>>;
-    let sut: TokenServiceJwtAdapter;
+    let sut: JwtTokenServiceAdapter;
 
     beforeEach(async () => {
         jest.clearAllMocks();
@@ -47,13 +47,13 @@ describe('TokenServiceJwtAdapter', () => {
 
         const moduleRef = await Test.createTestingModule({
             providers: [
-                TokenServiceJwtAdapter,
+                JwtTokenServiceAdapter,
                 { provide: JwtService, useValue: mockJwtService },
                 { provide: ConfigService, useValue: mockConfigService },
             ],
         }).compile();
 
-        sut = moduleRef.get(TokenServiceJwtAdapter);
+        sut = moduleRef.get(JwtTokenServiceAdapter);
     });
 
     describe('signAccessToken', () => {

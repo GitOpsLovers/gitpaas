@@ -8,7 +8,7 @@ import { updateProjectUseCase } from '../../../application/update-project.use-ca
 import { CreateProjectDto } from '../../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
 import { Project } from '../../../domain/models/project.models';
-import { ProjectsDatabaseRepository } from '../../../infrastructure/database/projects-db.repository';
+import { DatabaseProjectsRepository } from '../../../infrastructure/database/db-projects.repository';
 import { ProjectsService } from '../projects.service';
 
 jest.mock('../../../application/create-project.use-case');
@@ -42,18 +42,18 @@ const project: Project = {
 };
 
 describe('ProjectsService', () => {
-    let mockProjectsRepository: jest.Mocked<ProjectsDatabaseRepository>;
+    let mockProjectsRepository: jest.Mocked<DatabaseProjectsRepository>;
     let sut: ProjectsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockProjectsRepository = {} as jest.Mocked<ProjectsDatabaseRepository>;
+        mockProjectsRepository = {} as jest.Mocked<DatabaseProjectsRepository>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ProjectsService,
-                { provide: ProjectsDatabaseRepository, useValue: mockProjectsRepository },
+                { provide: DatabaseProjectsRepository, useValue: mockProjectsRepository },
             ],
         }).compile();
 

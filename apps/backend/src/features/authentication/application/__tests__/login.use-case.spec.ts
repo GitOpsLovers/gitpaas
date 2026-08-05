@@ -1,6 +1,6 @@
 import { IssuedRefreshToken } from '../../domain/models/token-payloads.models';
-import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { TokenService } from '../../domain/ports/token-service.port';
+import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { loginUseCase } from '../login.use-case';
 
 import { User, UserRole } from '@features/users/domain/models/user.models';

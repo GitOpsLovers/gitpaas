@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { ProjectDbEntity } from '@features/projects/infrastructure/database/project-db.entity';
+import { ProjectDbEntity } from '@features/projects/infrastructure/database/db-project.entity';
 
 /**
  * Services database entity

@@ -1,5 +1,5 @@
-import { DeploymentQueueTaskDbEntity } from '../deployment-queue-task-db.entity';
-import { toQueuedDeploymentTask } from '../deployment-queue-task-db.transformer';
+import { DeploymentQueueTaskDbEntity } from '../db-deployment-queue-task.entity';
+import { toQueuedDeploymentTask } from '../db-deployment-queue-task.transformer';
 
 describe('toQueuedDeploymentTask', () => {
     it('maps the queue task entity payload and bookkeeping fields into the domain model', () => {

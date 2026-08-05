@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 import Docker from 'dockerode';
 
-import { DockerContainerRuntimeAdapter } from '../container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '../docker-container-runtime.adapter';
 
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
@@ -294,7 +294,6 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(daemon.listContainers).toHaveBeenNthCalledWith(1, { all: true, filters: { label: [] } });
             expect(daemon.listContainers).toHaveBeenNthCalledWith(2, { all: false, filters: { label: [] } });
         });
-
     });
 
     describe('listNetworks', () => {

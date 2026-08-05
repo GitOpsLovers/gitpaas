@@ -7,13 +7,13 @@ import {
     toLabelFilter,
     toNetworkSummary,
     toPruneReport,
-} from '../container-runtime.transformer';
+} from '../docker-container-runtime.transformer';
 
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 
 /** A daemon container summary as the tests declare it: only the fields under test. */
-type PartialContainerInfo = Partial<Omit<Docker.ContainerInfo, 'Ports'>> & { Ports?: Partial<Docker.Port>[] };
+type PartialContainerInfo = Partial<Omit<Docker.ContainerInfo, 'Ports'>> & { Ports?: Array<Partial<Docker.Port>> };
 
 /** Widens a partial daemon container summary into the shape Dockerode declares. */
 const containerInfo = (info: PartialContainerInfo): Docker.ContainerInfo => info as Docker.ContainerInfo;

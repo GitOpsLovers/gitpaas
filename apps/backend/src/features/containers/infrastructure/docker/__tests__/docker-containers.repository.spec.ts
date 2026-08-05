@@ -1,9 +1,9 @@
 import { Container } from '../../../domain/models/container.models';
-import { DockerContainersRepository } from '../containers-docker.repository';
+import { DockerContainersRepository } from '../docker-containers.repository';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary, RuntimeSelector } from '@core/domain/models/container-runtime.models';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { Service } from '@features/services/domain/models/service.models';
 
 /** GitPaaS ownership marker every listing is scoped to. */

@@ -1,6 +1,6 @@
 import { Service } from '../../domain/models/service.models';
 
-import { ServiceDbEntity } from './service-db.entity';
+import { ServiceDbEntity } from './db-service.entity';
 
 /**
  * Maps a service database entity into its domain model.

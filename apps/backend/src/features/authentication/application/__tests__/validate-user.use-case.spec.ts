@@ -2,7 +2,6 @@ import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/
 import { validateUserUseCase } from '../validate-user.use-case';
 
 import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
-
 import { User, UserRole } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 

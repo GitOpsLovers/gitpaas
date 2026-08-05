@@ -1,10 +1,10 @@
-import { PasswordHasherArgon2Adapter } from '../password-hasher-argon2.adapter';
+import { Argon2PasswordHasherAdapter } from '../argon2-password-hasher.adapter';
 
-describe('PasswordHasherArgon2Adapter', () => {
-    let hasher: PasswordHasherArgon2Adapter;
+describe('Argon2PasswordHasherAdapter', () => {
+    let hasher: Argon2PasswordHasherAdapter;
 
     beforeEach(() => {
-        hasher = new PasswordHasherArgon2Adapter();
+        hasher = new Argon2PasswordHasherAdapter();
     });
 
     it('hashes a password into an argon2id digest that is not the plaintext', async () => {

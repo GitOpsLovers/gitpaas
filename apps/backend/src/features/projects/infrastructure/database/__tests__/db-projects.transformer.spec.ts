@@ -1,7 +1,7 @@
-import { ProjectDbEntity } from '../project-db.entity';
-import { toProject } from '../projects-db.transformer';
+import { ProjectDbEntity } from '../db-project.entity';
+import { toProject } from '../db-projects.transformer';
 
-import { ServiceDbEntity } from '@features/services/infrastructure/database/service-db.entity';
+import { ServiceDbEntity } from '@features/services/infrastructure/database/db-service.entity';
 
 describe('toProject', () => {
     it('maps the entity fields and derives servicesCount from the loaded relation', () => {

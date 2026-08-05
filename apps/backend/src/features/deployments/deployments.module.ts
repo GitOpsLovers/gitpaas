@@ -1,11 +1,11 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { DeploymentQueueDatabaseAdapter } from './infrastructure/database/deployment-queue-db.adapter';
-import { DeploymentDbEntity } from './infrastructure/database/deployment-db.entity';
-import { DeploymentQueueTaskDbEntity } from './infrastructure/database/deployment-queue-task-db.entity';
-import { DeploymentsDatabaseRepository } from './infrastructure/database/deployments-db.repository';
-import { DockerExecutorDockerodeAdapter } from './infrastructure/docker/docker-executor-dockerode.adapter';
+import { DeploymentQueueTaskDbEntity } from './infrastructure/database/db-deployment-queue-task.entity';
+import { DatabaseDeploymentQueueAdapter } from './infrastructure/database/db-deployment-queue.adapter';
+import { DeploymentDbEntity } from './infrastructure/database/db-deployment.entity';
+import { DatabaseDeploymentsRepository } from './infrastructure/database/db-deployments.repository';
+import { DockerodeDockerExecutorAdapter } from './infrastructure/docker/dockerode-docker-executor.adapter';
 import { DeploymentsController } from './ui/controllers/deployments.controller';
 import { DeploymentRunnerService } from './ui/services/deployment-runner.service';
 import { DeploymentsService } from './ui/services/deployments.service';
@@ -27,11 +27,11 @@ import { ServicesModule } from '@features/services/services.module';
     controllers: [DeploymentsController],
     providers: [
         DeploymentsService,
-        DeploymentsDatabaseRepository,
-        DeploymentQueueDatabaseAdapter,
-        DockerExecutorDockerodeAdapter,
+        DatabaseDeploymentsRepository,
+        DatabaseDeploymentQueueAdapter,
+        DockerodeDockerExecutorAdapter,
         DeploymentRunnerService,
     ],
-    exports: [DeploymentsDatabaseRepository, DeploymentQueueDatabaseAdapter],
+    exports: [DatabaseDeploymentsRepository, DatabaseDeploymentQueueAdapter],
 })
 export class DeploymentsModule {}

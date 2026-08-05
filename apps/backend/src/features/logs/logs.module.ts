@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { LogDbEntity } from './infrastructure/database/log-db.entity';
-import { LogsDatabaseRepository } from './infrastructure/database/logs-db.repository';
+import { LogDbEntity } from './infrastructure/database/db-log.entity';
+import { DatabaseLogsRepository } from './infrastructure/database/db-logs.repository';
 import { PersistentLogStoreRepository } from './infrastructure/log-store/log-store-persistent.repository';
-import { LogStoreRedisAdapter } from './infrastructure/redis/log-store-redis.adapter';
+import { RedisLogStoreAdapter } from './infrastructure/redis/redis-log-store.adapter';
 import { LogsController } from './ui/controllers/logs.controller';
 import { LogsService } from './ui/services/logs.service';
 
@@ -22,8 +22,8 @@ import { LogsService } from './ui/services/logs.service';
     controllers: [LogsController],
     providers: [
         LogsService,
-        LogsDatabaseRepository,
-        LogStoreRedisAdapter,
+        DatabaseLogsRepository,
+        RedisLogStoreAdapter,
         PersistentLogStoreRepository,
     ],
     exports: [PersistentLogStoreRepository],

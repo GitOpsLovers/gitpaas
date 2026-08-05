@@ -1,6 +1,6 @@
 import { Log } from '../../domain/models/log.models';
 
-import { LogDbEntity } from './log-db.entity';
+import { LogDbEntity } from './db-log.entity';
 
 /**
  * Maps a log database entity into its domain model.

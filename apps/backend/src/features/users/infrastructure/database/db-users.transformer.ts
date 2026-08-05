@@ -1,6 +1,6 @@
 import { User } from '../../domain/models/user.models';
 
-import { UserDbEntity } from './user-db.entity';
+import { UserDbEntity } from './db-user.entity';
 
 /**
  * Maps a user database entity into its domain model.

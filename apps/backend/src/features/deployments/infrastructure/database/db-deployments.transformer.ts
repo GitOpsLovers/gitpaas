@@ -1,6 +1,6 @@
 import { Deployment } from '../../domain/models/deployment.models';
 
-import { DeploymentDbEntity } from './deployment-db.entity';
+import { DeploymentDbEntity } from './db-deployment.entity';
 
 /**
  * Maps a deployment database entity into its domain model.

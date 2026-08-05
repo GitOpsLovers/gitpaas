@@ -1,18 +1,18 @@
-import { HealthProbeRedisAdapter } from '../health-probe-redis.adapter';
+import { RedisHealthProbeAdapter } from '../redis-health-probe.adapter';
 
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
-describe('HealthProbeRedisAdapter', () => {
+describe('RedisHealthProbeAdapter', () => {
     let ping: jest.Mock;
     let getClient: jest.Mock;
     let client: jest.Mocked<RedisClient>;
-    let probe: HealthProbeRedisAdapter;
+    let probe: RedisHealthProbeAdapter;
 
     beforeEach(() => {
         ping = jest.fn().mockResolvedValue('PONG');
         getClient = jest.fn().mockReturnValue({ ping });
         client = { getClient } as unknown as jest.Mocked<RedisClient>;
-        probe = new HealthProbeRedisAdapter(client);
+        probe = new RedisHealthProbeAdapter(client);
     });
 
     it('is named redis', () => {

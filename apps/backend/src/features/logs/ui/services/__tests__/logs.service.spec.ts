@@ -9,8 +9,8 @@ import { updateLogUseCase } from '../../../application/update-log.use-case';
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { LogEvent } from '../../../domain/models/log-event.models';
 import { Log } from '../../../domain/models/log.models';
-import { LogsDatabaseRepository } from '../../../infrastructure/database/logs-db.repository';
-import { LogStoreRedisAdapter } from '../../../infrastructure/redis/log-store-redis.adapter';
+import { DatabaseLogsRepository } from '../../../infrastructure/database/db-logs.repository';
+import { RedisLogStoreAdapter } from '../../../infrastructure/redis/redis-log-store.adapter';
 import { LogsService } from '../logs.service';
 
 jest.mock('../../../application/create-log.use-case');
@@ -30,21 +30,21 @@ const logId = 'a1b2c3d4-0000-0000-0000-000000000000';
 const entry = { id: logId } as Log;
 
 describe('LogsService', () => {
-    let mockLogsRepository: jest.Mocked<LogsDatabaseRepository>;
-    let mockLogStore: jest.Mocked<Pick<LogStoreRedisAdapter, 'stream'>>;
+    let mockLogsRepository: jest.Mocked<DatabaseLogsRepository>;
+    let mockLogStore: jest.Mocked<Pick<RedisLogStoreAdapter, 'stream'>>;
     let sut: LogsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockLogsRepository = {} as jest.Mocked<LogsDatabaseRepository>;
+        mockLogsRepository = {} as jest.Mocked<DatabaseLogsRepository>;
         mockLogStore = { stream: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 LogsService,
-                { provide: LogsDatabaseRepository, useValue: mockLogsRepository },
-                { provide: LogStoreRedisAdapter, useValue: mockLogStore },
+                { provide: DatabaseLogsRepository, useValue: mockLogsRepository },
+                { provide: RedisLogStoreAdapter, useValue: mockLogStore },
             ],
         }).compile();
 

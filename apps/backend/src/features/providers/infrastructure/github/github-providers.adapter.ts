@@ -167,7 +167,7 @@ export class GithubProvidersAdapter implements Providers {
             );
         }
 
-        this.diagnostics.log('Creating GitHub App installation client', ProvidersGithubAdapter.name);
+        this.diagnostics.log('Creating GitHub App installation client', GithubProvidersAdapter.name);
 
         return new Octokit({
             authStrategy: createAppAuth,

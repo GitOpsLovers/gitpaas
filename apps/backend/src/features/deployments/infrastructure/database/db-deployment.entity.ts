@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 
 import type { DeploymentStatus } from '../../domain/models/deployment.models';
 
-import { ServiceDbEntity } from '@features/services/infrastructure/database/service-db.entity';
+import { ServiceDbEntity } from '@features/services/infrastructure/database/db-service.entity';
 
 /**
  * Deployments database entity

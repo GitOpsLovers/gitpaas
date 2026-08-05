@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
-import { ProvidersGithubAdapter } from '../providers-github.adapter';
+import { GithubProvidersAdapter } from '../github-providers.adapter';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
@@ -38,11 +38,11 @@ describe('ProvidersGithubAdapter', () => {
 
     // --- Layer A: API method mapping (Octokit isolated via a spied `getClient`) ---
     describe('API method mapping', () => {
-        let sut: ProvidersGithubAdapter;
+        let sut: GithubProvidersAdapter;
         let mockClient: FakeClient;
 
         beforeEach(() => {
-            sut = new ProvidersGithubAdapter(createConfig(), createDiagnostics());
+            sut = new GithubProvidersAdapter(createConfig(), createDiagnostics());
             mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             // `getClient()` is private, so cast through `unknown` to spy on it and hand
@@ -154,7 +154,7 @@ describe('ProvidersGithubAdapter', () => {
     // --- Layer B: createClient / config wiring (real createClient, mocked Octokit) ---
     describe('client creation', () => {
         it('throws ServiceUnavailableException and never builds a client when config is missing', async () => {
-            const sut = new ProvidersGithubAdapter(
+            const sut = new GithubProvidersAdapter(
                 createConfig({
                     GITHUB_APP_ID: '123',
                     GITHUB_APP_PRIVATE_KEY: undefined,
@@ -168,7 +168,7 @@ describe('ProvidersGithubAdapter', () => {
         });
 
         it('constructs Octokit with the decoded private key and app-auth strategy', async () => {
-            const sut = new ProvidersGithubAdapter(
+            const sut = new GithubProvidersAdapter(
                 createConfig({
                     GITHUB_APP_ID: '123',
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
@@ -191,7 +191,7 @@ describe('ProvidersGithubAdapter', () => {
         });
 
         it('memoizes the client across calls, building Octokit only once', async () => {
-            const sut = new ProvidersGithubAdapter(
+            const sut = new GithubProvidersAdapter(
                 createConfig({
                     GITHUB_APP_ID: '123',
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),

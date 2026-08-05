@@ -1,16 +1,16 @@
-import { HealthProbeDockerAdapter } from '../health-probe-docker.adapter';
+import { DockerHealthProbeAdapter } from '../docker-health-probe.adapter';
 
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 
-describe('HealthProbeDockerAdapter', () => {
+describe('DockerHealthProbeAdapter', () => {
     let ping: jest.Mock;
     let client: jest.Mocked<DockerContainerRuntimeAdapter>;
-    let probe: HealthProbeDockerAdapter;
+    let probe: DockerHealthProbeAdapter;
 
     beforeEach(() => {
         ping = jest.fn().mockResolvedValue(true);
         client = { ping } as unknown as jest.Mocked<DockerContainerRuntimeAdapter>;
-        probe = new HealthProbeDockerAdapter(client);
+        probe = new DockerHealthProbeAdapter(client);
     });
 
     it('is named docker', () => {

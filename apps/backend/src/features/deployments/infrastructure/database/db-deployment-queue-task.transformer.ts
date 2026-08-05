@@ -1,6 +1,6 @@
 import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
 
-import { DeploymentQueueTaskDbEntity } from './deployment-queue-task-db.entity';
+import { DeploymentQueueTaskDbEntity } from './db-deployment-queue-task.entity';
 
 /**
  * Maps a deployment queue task database entity into its domain model.

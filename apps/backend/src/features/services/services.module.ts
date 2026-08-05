@@ -1,8 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { ServiceDbEntity } from './infrastructure/database/service-db.entity';
-import { ServicesDatabaseRepository } from './infrastructure/database/services-db.repository';
+import { ServiceDbEntity } from './infrastructure/database/db-service.entity';
+import { DatabaseServicesRepository } from './infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from './infrastructure/docker/docker-service-runtime-resources.adapter';
 import { ServicesController } from './ui/controllers/services.controller';
 import { ServicesService } from './ui/services/services.service';
@@ -22,9 +22,9 @@ import { LogsModule } from '@features/logs/logs.module';
     controllers: [ServicesController],
     providers: [
         ServicesService,
-        ServicesDatabaseRepository,
+        DatabaseServicesRepository,
         DockerServiceRuntimeResourcesAdapter,
     ],
-    exports: [ServicesDatabaseRepository],
+    exports: [DatabaseServicesRepository],
 })
 export class ServicesModule {}

@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 import { firstValueFrom, toArray } from 'rxjs';
 
 import { LogEvent } from '../../../domain/models/log-event.models';
-import { LogStoreRedisAdapter } from '../log-store-redis.adapter';
+import { RedisLogStoreAdapter } from '../redis-log-store.adapter';
 
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
@@ -108,11 +108,11 @@ describe('LogStoreRedisAdapter', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
     let redis: RedisClient;
-    let store: LogStoreRedisAdapter;
+    let store: RedisLogStoreAdapter;
 
     beforeEach(() => {
         redis = createFakeRedis();
-        store = new LogStoreRedisAdapter(redis);
+        store = new RedisLogStoreAdapter(redis);
     });
 
     it('replays buffered lines then completes for a finished stream', async () => {

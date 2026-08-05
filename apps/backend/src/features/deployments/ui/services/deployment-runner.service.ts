@@ -2,19 +2,19 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { Subscription, concatMap, from, groupBy, mergeMap } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
-import type { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import type { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
 import type { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
+import type { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
-import { DeploymentQueueDatabaseAdapter } from '../../infrastructure/database/deployment-queue-db.adapter';
-import { DeploymentsDatabaseRepository } from '../../infrastructure/database/deployments-db.repository';
-import { DockerExecutorDockerodeAdapter } from '../../infrastructure/docker/docker-executor-dockerode.adapter';
+import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db-deployment-queue.adapter';
+import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
+import { DockerodeDockerExecutorAdapter } from '../../infrastructure/docker/dockerode-docker-executor.adapter';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 import type { Providers } from '@features/providers/domain/ports/providers.port';
-import { ProvidersGithubAdapter } from '@features/providers/infrastructure/github/providers-github.adapter';
+import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
 /**
  * Deployment runner.
@@ -28,15 +28,15 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     private subscription?: Subscription;
 
     constructor(
-        @Inject(DeploymentsDatabaseRepository)
+        @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
-        @Inject(ProvidersGithubAdapter)
+        @Inject(GithubProvidersAdapter)
         private readonly providersRepository: Providers,
-        @Inject(DockerExecutorDockerodeAdapter)
+        @Inject(DockerodeDockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
         @Inject(PersistentLogStoreRepository)
         private readonly logStore: LogStore,
-        @Inject(DeploymentQueueDatabaseAdapter)
+        @Inject(DatabaseDeploymentQueueAdapter)
         private readonly queue: DeploymentQueue,
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}

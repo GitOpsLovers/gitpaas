@@ -9,11 +9,12 @@ import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import type { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
-import { ServicesDatabaseRepository } from '../../infrastructure/database/services-db.repository';
+import type { ServicesRepository } from '../../domain/repositories/services.repository';
+import { DatabaseServicesRepository } from '../../infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from '../../infrastructure/docker/docker-service-runtime-resources.adapter';
 
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
-import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
+import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 
@@ -23,9 +24,9 @@ import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-
 @Injectable()
 export class ServicesService {
     constructor(
-        @Inject(ServicesDatabaseRepository)
-        private readonly repository: ServicesDatabaseRepository,
-        @Inject(DeploymentsDatabaseRepository)
+        @Inject(DatabaseServicesRepository)
+        private readonly repository: ServicesRepository,
+        @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
         @Inject(DockerServiceRuntimeResourcesAdapter)
         private readonly serviceRuntimeResources: ServiceRuntimeResources,

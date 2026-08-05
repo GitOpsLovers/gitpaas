@@ -3,8 +3,8 @@ import { Observable } from 'rxjs';
 
 import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
 import { LogStore } from '../../domain/ports/log-store.port';
-import { LogsDatabaseRepository } from '../database/logs-db.repository';
-import { LogStoreRedisAdapter } from '../redis/log-store-redis.adapter';
+import { DatabaseLogsRepository } from '../database/db-logs.repository';
+import { RedisLogStoreAdapter } from '../redis/redis-log-store.adapter';
 
 import { toLogRows } from './log-store-persistent.transformer';
 
@@ -23,10 +23,10 @@ export class PersistentLogStoreRepository implements LogStore {
     private readonly buffers = new Map<string, string[]>();
 
     constructor(
-        @Inject(LogStoreRedisAdapter)
-        private readonly logStore: LogStoreRedisAdapter,
-        @Inject(LogsDatabaseRepository)
-        private readonly logsRepository: LogsDatabaseRepository,
+        @Inject(RedisLogStoreAdapter)
+        private readonly logStore: RedisLogStoreAdapter,
+        @Inject(DatabaseLogsRepository)
+        private readonly logsRepository: DatabaseLogsRepository,
     ) {}
 
     /**

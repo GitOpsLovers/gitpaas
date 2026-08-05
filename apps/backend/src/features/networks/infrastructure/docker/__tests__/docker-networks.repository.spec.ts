@@ -1,9 +1,9 @@
 import { Network } from '../../../domain/models/network.models';
-import { DockerNetworksRepository } from '../networks-docker.repository';
+import { DockerNetworksRepository } from '../docker-networks.repository';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeNetworkSummary } from '@core/domain/models/container-runtime.models';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { Service } from '@features/services/domain/models/service.models';
 
 /** GitPaaS ownership marker every listing is scoped to. */

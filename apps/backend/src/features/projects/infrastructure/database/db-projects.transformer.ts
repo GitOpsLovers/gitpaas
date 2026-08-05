@@ -1,6 +1,6 @@
 import { Project } from '../../domain/models/project.models';
 
-import { ProjectDbEntity } from './project-db.entity';
+import { ProjectDbEntity } from './db-project.entity';
 
 /**
  * Maps a project database entity into its domain model, deriving the services

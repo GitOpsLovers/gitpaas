@@ -8,11 +8,11 @@ import { updateServiceUseCase } from '../../../application/update-service.use-ca
 import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { Service } from '../../../domain/models/service.models';
-import { ServicesDatabaseRepository } from '../../../infrastructure/database/services-db.repository';
+import { DatabaseServicesRepository } from '../../../infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from '../../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { ServicesService } from '../services.service';
 
-import { DeploymentsDatabaseRepository } from '@features/deployments/infrastructure/database/deployments-db.repository';
+import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
 
 jest.mock('../../../application/create-service.use-case');
@@ -50,8 +50,8 @@ const service: Service = {
 };
 
 describe('ServicesService', () => {
-    let mockServicesRepository: jest.Mocked<ServicesDatabaseRepository>;
-    let mockDeploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
+    let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
+    let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServiceRuntimeResources: jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
     let mockLogStore: jest.Mocked<PersistentLogStoreRepository>;
     let sut: ServicesService;
@@ -59,16 +59,16 @@ describe('ServicesService', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockServicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
-        mockDeploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
+        mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
+        mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServiceRuntimeResources = {} as jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
         mockLogStore = {} as jest.Mocked<PersistentLogStoreRepository>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ServicesService,
-                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
-                { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
+                { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
+                { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DockerServiceRuntimeResourcesAdapter, useValue: mockServiceRuntimeResources },
                 { provide: PersistentLogStoreRepository, useValue: mockLogStore },
             ],

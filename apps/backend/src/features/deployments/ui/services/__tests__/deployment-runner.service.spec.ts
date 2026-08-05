@@ -4,14 +4,14 @@ import { Subject } from 'rxjs';
 import { runDeploymentUseCase } from '../../../application/run-deployment.use-case';
 import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
-import { DeploymentQueueDatabaseAdapter } from '../../../infrastructure/database/deployment-queue-db.adapter';
-import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
-import { DockerExecutorDockerodeAdapter } from '../../../infrastructure/docker/docker-executor-dockerode.adapter';
+import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
+import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/db-deployments.repository';
+import { DockerodeDockerExecutorAdapter } from '../../../infrastructure/docker/dockerode-docker-executor.adapter';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
-import { ProvidersGithubAdapter } from '@features/providers/infrastructure/github/providers-github.adapter';
+import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
 jest.mock('../../../application/run-deployment.use-case');
 
@@ -64,9 +64,9 @@ const taskFor = (projectName: string, id: string, deploymentId: string): QueuedD
 });
 
 describe('DeploymentRunnerService', () => {
-    let mockDeploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
-    let mockProviders: jest.Mocked<ProvidersGithubAdapter>;
-    let mockDockerExecutor: jest.Mocked<DockerExecutorDockerodeAdapter>;
+    let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
+    let mockProviders: jest.Mocked<GithubProvidersAdapter>;
+    let mockDockerExecutor: jest.Mocked<DockerodeDockerExecutorAdapter>;
     let mockLogStore: jest.Mocked<PersistentLogStoreRepository>;
     let dequeued: Subject<QueuedDeploymentTask>;
     let mockQueue: jest.Mocked<DeploymentQueue>;
@@ -76,9 +76,9 @@ describe('DeploymentRunnerService', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockDeploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
-        mockProviders = {} as jest.Mocked<ProvidersGithubAdapter>;
-        mockDockerExecutor = {} as jest.Mocked<DockerExecutorDockerodeAdapter>;
+        mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
+        mockProviders = {} as jest.Mocked<GithubProvidersAdapter>;
+        mockDockerExecutor = {} as jest.Mocked<DockerodeDockerExecutorAdapter>;
         mockLogStore = {} as jest.Mocked<PersistentLogStoreRepository>;
         dequeued = new Subject<QueuedDeploymentTask>();
         mockQueue = {
@@ -94,11 +94,11 @@ describe('DeploymentRunnerService', () => {
         const moduleRef = await Test.createTestingModule({
             providers: [
                 DeploymentRunnerService,
-                { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
-                { provide: ProvidersGithubAdapter, useValue: mockProviders },
-                { provide: DockerExecutorDockerodeAdapter, useValue: mockDockerExecutor },
+                { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
+                { provide: GithubProvidersAdapter, useValue: mockProviders },
+                { provide: DockerodeDockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: PersistentLogStoreRepository, useValue: mockLogStore },
-                { provide: DeploymentQueueDatabaseAdapter, useValue: mockQueue },
+                { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
             ],
         }).compile();

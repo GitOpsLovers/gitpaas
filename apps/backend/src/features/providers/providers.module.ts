@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { ProvidersGithubAdapter } from './infrastructure/github/providers-github.adapter';
+import { GithubProvidersAdapter } from './infrastructure/github/github-providers.adapter';
 import { ProvidersController } from './ui/controllers/providers.controller';
 import { ProvidersService } from './ui/services/providers.service';
 
@@ -11,8 +11,8 @@ import { ProvidersService } from './ui/services/providers.service';
     controllers: [ProvidersController],
     providers: [
         ProvidersService,
-        ProvidersGithubAdapter,
+        GithubProvidersAdapter,
     ],
-    exports: [ProvidersGithubAdapter],
+    exports: [GithubProvidersAdapter],
 })
 export class ProvidersModule {}

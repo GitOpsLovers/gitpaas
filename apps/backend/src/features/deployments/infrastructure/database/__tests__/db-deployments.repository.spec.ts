@@ -2,8 +2,8 @@ import { Repository } from 'typeorm';
 
 import { CreateDeploymentDto } from '../../../domain/dtos/create-deployment.dto';
 import { UpdateDeploymentDto } from '../../../domain/dtos/update-deployment.dto';
-import { DeploymentDbEntity } from '../deployment-db.entity';
-import { DeploymentsDatabaseRepository } from '../deployments-db.repository';
+import { DeploymentDbEntity } from '../db-deployment.entity';
+import { DatabaseDeploymentsRepository } from '../db-deployments.repository';
 
 /**
  * Builds a deployment database-entity fixture, overriding only the fields under test.
@@ -23,7 +23,7 @@ const deploymentEntity = (overrides: Partial<DeploymentDbEntity> = {}): Deployme
     ...overrides,
 });
 
-describe('DeploymentsDatabaseRepository', () => {
+describe('DatabaseDeploymentsRepository', () => {
     const createDto: CreateDeploymentDto = {
         serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
         branch: 'main',
@@ -36,7 +36,7 @@ describe('DeploymentsDatabaseRepository', () => {
     let mockRepository: jest.Mocked<
         Pick<Repository<DeploymentDbEntity>, 'find' | 'findOneBy' | 'create' | 'save' | 'delete'>
     >;
-    let sut: DeploymentsDatabaseRepository;
+    let sut: DatabaseDeploymentsRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -48,7 +48,7 @@ describe('DeploymentsDatabaseRepository', () => {
             save: jest.fn(),
             delete: jest.fn(),
         };
-        sut = new DeploymentsDatabaseRepository(
+        sut = new DatabaseDeploymentsRepository(
             mockRepository as unknown as Repository<DeploymentDbEntity>,
         );
     });

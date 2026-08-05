@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 
 import { CreateRefreshTokenDto } from '../../../domain/dtos/create-refresh-token.dto';
-import { RefreshTokenDbEntity } from '../refresh-token-db.entity';
-import { RefreshTokensDatabaseRepository } from '../refresh-tokens-db.repository';
+import { RefreshTokenDbEntity } from '../db-refresh-token.entity';
+import { DatabaseRefreshTokensRepository } from '../db-refresh-tokens.repository';
 
 /**
  * Builds a refresh-token database-entity fixture, overriding only the fields under test.
@@ -19,11 +19,11 @@ const tokenEntity = (overrides: Partial<RefreshTokenDbEntity> = {}): RefreshToke
     ...overrides,
 });
 
-describe('RefreshTokensDatabaseRepository', () => {
+describe('DatabaseRefreshTokensRepository', () => {
     let mockRepository: jest.Mocked<
         Pick<Repository<RefreshTokenDbEntity>, 'create' | 'save' | 'findOneBy' | 'update'>
     >;
-    let sut: RefreshTokensDatabaseRepository;
+    let sut: DatabaseRefreshTokensRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -34,7 +34,7 @@ describe('RefreshTokensDatabaseRepository', () => {
             findOneBy: jest.fn(),
             update: jest.fn(),
         };
-        sut = new RefreshTokensDatabaseRepository(
+        sut = new DatabaseRefreshTokensRepository(
             mockRepository as unknown as Repository<RefreshTokenDbEntity>,
         );
     });

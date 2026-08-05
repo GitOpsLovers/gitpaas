@@ -9,7 +9,7 @@ import { AccessTokenPayload } from '../../domain/models/token-payloads.models';
 
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
-import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
+import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 
 /**
  * Passport JWT strategy backing the global access-token guard. Verifies the
@@ -19,7 +19,7 @@ import { UsersDatabaseRepository } from '@features/users/infrastructure/database
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
-        @Inject(UsersDatabaseRepository)
+        @Inject(DatabaseUsersRepository)
         private readonly usersRepository: UsersRepository,
         config: ConfigService,
     ) {

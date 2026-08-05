@@ -48,7 +48,6 @@ const invokeSeedAdmin = async (): Promise<number> => {
     });
 
     jest.isolateModules(() => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('../seed-admin.cli');
     });
 

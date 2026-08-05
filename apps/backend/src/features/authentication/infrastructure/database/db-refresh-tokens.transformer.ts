@@ -1,6 +1,6 @@
 import { RefreshToken } from '../../domain/models/refresh-token.models';
 
-import { RefreshTokenDbEntity } from './refresh-token-db.entity';
+import { RefreshTokenDbEntity } from './db-refresh-token.entity';
 
 /**
  * Maps a refresh token database entity into its domain model.

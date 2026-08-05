@@ -8,7 +8,8 @@ import { updateProjectUseCase } from '../../application/update-project.use-case'
 import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
-import { ProjectsDatabaseRepository } from '../../infrastructure/database/projects-db.repository';
+import type { ProjectsRepository } from '../../domain/repositories/projects.repository';
+import { DatabaseProjectsRepository } from '../../infrastructure/database/db-projects.repository';
 
 /**
  * Projects service
@@ -16,8 +17,8 @@ import { ProjectsDatabaseRepository } from '../../infrastructure/database/projec
 @Injectable()
 export class ProjectsService {
     constructor(
-        @Inject(ProjectsDatabaseRepository)
-        private readonly repository: ProjectsDatabaseRepository,
+        @Inject(DatabaseProjectsRepository)
+        private readonly repository: ProjectsRepository,
     ) {}
 
     /**

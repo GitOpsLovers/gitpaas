@@ -55,14 +55,14 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
             } catch {
                 this.diagnostics.warn(
                     `Failed to remove orphaned container "${name}" (${container.id})`,
-                    OrphanContainersDockerAdapter.name,
+                    DockerOrphanContainersAdapter.name,
                 );
             }
         }
 
         this.diagnostics.log(
             `Removed ${names.length} orphaned container(s) from the server`,
-            OrphanContainersDockerAdapter.name,
+            DockerOrphanContainersAdapter.name,
         );
 
         return { removed: names.length, names };

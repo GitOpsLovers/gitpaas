@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { SeedAdminInput, seedAdminUseCase } from '../../application/seed-admin.use-case';
-import { UsersDatabaseRepository } from '../../infrastructure/database/users-db.repository';
+import { DatabaseUsersRepository } from '../../infrastructure/database/db-users.repository';
 
 import type { PasswordHasher } from '@core/domain/ports/password-hasher.port';
-import { PasswordHasherArgon2Adapter } from '@core/infrastructure/security/password-hasher-argon2.adapter';
+import { Argon2PasswordHasherAdapter } from '@core/infrastructure/security/argon2-password-hasher.adapter';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 /**
@@ -19,9 +19,9 @@ const DEV_ADMIN_PASSWORD = 'gitpaas';
 @Injectable()
 export class UsersService {
     constructor(
-        @Inject(UsersDatabaseRepository)
+        @Inject(DatabaseUsersRepository)
         private readonly usersRepository: UsersRepository,
-        @Inject(PasswordHasherArgon2Adapter)
+        @Inject(Argon2PasswordHasherAdapter)
         private readonly passwordHasher: PasswordHasher,
     ) {}
 

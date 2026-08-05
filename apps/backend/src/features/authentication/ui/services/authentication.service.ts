@@ -5,14 +5,14 @@ import { logoutUseCase } from '../../application/logout.use-case';
 import { refreshUseCase } from '../../application/refresh.use-case';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../domain/models/auth-tokens.models';
-import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import type { TokenService } from '../../domain/ports/token-service.port';
-import { RefreshTokensDatabaseRepository } from '../../infrastructure/database/refresh-tokens-db.repository';
-import { TokenServiceJwtAdapter } from '../../infrastructure/security/token-service-jwt.adapter';
+import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
+import { DatabaseRefreshTokensRepository } from '../../infrastructure/database/db-refresh-tokens.repository';
+import { JwtTokenServiceAdapter } from '../../infrastructure/security/jwt-token-service.adapter';
 
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
-import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
+import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 
 /**
  * Public projection of a user, exposed by `GET /auth/me` — never carries the
@@ -26,11 +26,11 @@ export type AuthenticatedUser = Omit<User, 'passwordHash'>;
 @Injectable()
 export class AuthenticationService {
     constructor(
-        @Inject(UsersDatabaseRepository)
+        @Inject(DatabaseUsersRepository)
         private readonly usersRepository: UsersRepository,
-        @Inject(RefreshTokensDatabaseRepository)
+        @Inject(DatabaseRefreshTokensRepository)
         private readonly refreshTokensRepository: RefreshTokensRepository,
-        @Inject(TokenServiceJwtAdapter)
+        @Inject(JwtTokenServiceAdapter)
         private readonly tokenService: TokenService,
     ) {}
 

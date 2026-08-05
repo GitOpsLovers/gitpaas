@@ -1,6 +1,6 @@
 import { UserRole } from '../../../domain/models/user.models';
-import { UserDbEntity } from '../user-db.entity';
-import { toUser } from '../users-db.transformer';
+import { UserDbEntity } from '../db-user.entity';
+import { toUser } from '../db-users.transformer';
 
 describe('toUser', () => {
     it('maps every user entity field into the domain model', () => {

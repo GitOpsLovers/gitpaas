@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { UserDbEntity } from '@features/users/infrastructure/database/user-db.entity';
+import { UserDbEntity } from '@features/users/infrastructure/database/db-user.entity';
 
 /**
  * Refresh tokens database entity.

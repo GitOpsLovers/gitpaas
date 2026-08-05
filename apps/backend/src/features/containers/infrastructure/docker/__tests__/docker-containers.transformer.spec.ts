@@ -1,4 +1,4 @@
-import { toContainer } from '../containers-docker.transformer';
+import { toContainer } from '../docker-containers.transformer';
 
 import type { RuntimeContainerSummary } from '@core/domain/models/container-runtime.models';
 

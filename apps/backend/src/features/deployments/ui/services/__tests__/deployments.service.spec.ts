@@ -9,14 +9,14 @@ import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dt
 import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
-import { DeploymentQueueDatabaseAdapter } from '../../../infrastructure/database/deployment-queue-db.adapter';
-import { DeploymentsDatabaseRepository } from '../../../infrastructure/database/deployments-db.repository';
+import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
+import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/db-deployments.repository';
 import { DeploymentsService } from '../deployments.service';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
-import { ProvidersGithubAdapter } from '@features/providers/infrastructure/github/providers-github.adapter';
-import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
+import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/create-deployment.use-case');
 jest.mock('../../../application/delete-deployment.use-case');
@@ -54,9 +54,9 @@ const deployment: Deployment = {
 };
 
 describe('DeploymentsService', () => {
-    let mockDeploymentsRepository: jest.Mocked<DeploymentsDatabaseRepository>;
-    let mockServicesRepository: jest.Mocked<ServicesDatabaseRepository>;
-    let mockProviders: jest.Mocked<ProvidersGithubAdapter>;
+    let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
+    let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
+    let mockProviders: jest.Mocked<GithubProvidersAdapter>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
     let mockLogStore: jest.Mocked<LogStore>;
     let sut: DeploymentsService;
@@ -64,9 +64,9 @@ describe('DeploymentsService', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockDeploymentsRepository = {} as jest.Mocked<DeploymentsDatabaseRepository>;
-        mockServicesRepository = {} as jest.Mocked<ServicesDatabaseRepository>;
-        mockProviders = {} as jest.Mocked<ProvidersGithubAdapter>;
+        mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
+        mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
+        mockProviders = {} as jest.Mocked<GithubProvidersAdapter>;
         mockQueue = { enqueue: jest.fn().mockResolvedValue(undefined) };
         mockLogStore = {
             append: jest.fn(),
@@ -78,10 +78,10 @@ describe('DeploymentsService', () => {
         const moduleRef = await Test.createTestingModule({
             providers: [
                 DeploymentsService,
-                { provide: DeploymentsDatabaseRepository, useValue: mockDeploymentsRepository },
-                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
-                { provide: ProvidersGithubAdapter, useValue: mockProviders },
-                { provide: DeploymentQueueDatabaseAdapter, useValue: mockQueue },
+                { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
+                { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
+                { provide: GithubProvidersAdapter, useValue: mockProviders },
+                { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: PersistentLogStoreRepository, useValue: mockLogStore },
             ],
         }).compile();

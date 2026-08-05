@@ -1,5 +1,5 @@
-import { LogDbEntity } from '../log-db.entity';
-import { toLog } from '../logs-db.transformer';
+import { LogDbEntity } from '../db-log.entity';
+import { toLog } from '../db-logs.transformer';
 
 describe('toLog', () => {
     it('maps a "line" log entity, keeping content set and status null', () => {

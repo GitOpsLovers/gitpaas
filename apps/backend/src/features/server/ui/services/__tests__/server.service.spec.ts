@@ -8,14 +8,14 @@ import { removeOrphanedContainersUseCase } from '../../../application/remove-orp
 import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.models';
 import { PruneResult } from '../../../domain/models/prune-result.models';
 import { ReadinessResult } from '../../../domain/models/readiness-result.models';
-import { OrphanContainersDockerAdapter } from '../../../infrastructure/docker/orphan-containers-docker.adapter';
-import { ServerPrunerDockerAdapter } from '../../../infrastructure/docker/server-pruner-docker.adapter';
-import { HealthProbeDockerAdapter } from '../../../infrastructure/health/health-probe-docker.adapter';
-import { HealthProbePostgresAdapter } from '../../../infrastructure/health/health-probe-postgres.adapter';
-import { HealthProbeRedisAdapter } from '../../../infrastructure/health/health-probe-redis.adapter';
+import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
+import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
+import { DockerHealthProbeAdapter } from '../../../infrastructure/health/docker-health-probe.adapter';
+import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postgres-health-probe.adapter';
+import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
 import { ServerService } from '../server.service';
 
-import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/prune-images.use-case');
 jest.mock('../../../application/prune-volumes.use-case');
@@ -52,33 +52,33 @@ const readinessResult: ReadinessResult = {
 };
 
 describe('ServerService', () => {
-    let mockPruner: jest.Mocked<ServerPrunerDockerAdapter>;
-    let mockOrphanContainers: jest.Mocked<OrphanContainersDockerAdapter>;
-    let mockServices: jest.Mocked<ServicesDatabaseRepository>;
-    let mockPostgresProbe: jest.Mocked<HealthProbePostgresAdapter>;
-    let mockRedisProbe: jest.Mocked<HealthProbeRedisAdapter>;
-    let mockDockerProbe: jest.Mocked<HealthProbeDockerAdapter>;
+    let mockPruner: jest.Mocked<DockerServerPrunerAdapter>;
+    let mockOrphanContainers: jest.Mocked<DockerOrphanContainersAdapter>;
+    let mockServices: jest.Mocked<DatabaseServicesRepository>;
+    let mockPostgresProbe: jest.Mocked<PostgresHealthProbeAdapter>;
+    let mockRedisProbe: jest.Mocked<RedisHealthProbeAdapter>;
+    let mockDockerProbe: jest.Mocked<DockerHealthProbeAdapter>;
     let sut: ServerService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
-        mockPruner = {} as jest.Mocked<ServerPrunerDockerAdapter>;
-        mockOrphanContainers = {} as jest.Mocked<OrphanContainersDockerAdapter>;
-        mockServices = {} as jest.Mocked<ServicesDatabaseRepository>;
-        mockPostgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<HealthProbePostgresAdapter>;
-        mockRedisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<HealthProbeRedisAdapter>;
-        mockDockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<HealthProbeDockerAdapter>;
+        mockPruner = {} as jest.Mocked<DockerServerPrunerAdapter>;
+        mockOrphanContainers = {} as jest.Mocked<DockerOrphanContainersAdapter>;
+        mockServices = {} as jest.Mocked<DatabaseServicesRepository>;
+        mockPostgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbeAdapter>;
+        mockRedisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<RedisHealthProbeAdapter>;
+        mockDockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbeAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ServerService,
-                { provide: ServerPrunerDockerAdapter, useValue: mockPruner },
-                { provide: OrphanContainersDockerAdapter, useValue: mockOrphanContainers },
-                { provide: ServicesDatabaseRepository, useValue: mockServices },
-                { provide: HealthProbePostgresAdapter, useValue: mockPostgresProbe },
-                { provide: HealthProbeRedisAdapter, useValue: mockRedisProbe },
-                { provide: HealthProbeDockerAdapter, useValue: mockDockerProbe },
+                { provide: DockerServerPrunerAdapter, useValue: mockPruner },
+                { provide: DockerOrphanContainersAdapter, useValue: mockOrphanContainers },
+                { provide: DatabaseServicesRepository, useValue: mockServices },
+                { provide: PostgresHealthProbeAdapter, useValue: mockPostgresProbe },
+                { provide: RedisHealthProbeAdapter, useValue: mockRedisProbe },
+                { provide: DockerHealthProbeAdapter, useValue: mockDockerProbe },
             ],
         }).compile();
 

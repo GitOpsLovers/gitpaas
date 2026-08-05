@@ -3,11 +3,11 @@ import { Test } from '@nestjs/testing';
 
 import { getContainersByServiceUseCase } from '../../../application/get-containers-by-service.use-case';
 import { Container } from '../../../domain/models/container.models';
-import { DockerContainersRepository } from '../../../infrastructure/docker/containers-docker.repository';
+import { DockerContainersRepository } from '../../../infrastructure/docker/docker-containers.repository';
 import { ContainersService } from '../containers.service';
 
 import { Service } from '@features/services/domain/models/service.models';
-import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/get-containers-by-service.use-case');
 
@@ -39,7 +39,7 @@ const containers: Container[] = [
 ];
 
 describe('ContainersService', () => {
-    let mockServicesRepository: jest.Mocked<Pick<ServicesDatabaseRepository, 'findById'>>;
+    let mockServicesRepository: jest.Mocked<Pick<DatabaseServicesRepository, 'findById'>>;
     let mockContainersRepository: jest.Mocked<Pick<DockerContainersRepository, 'listByService'>>;
     let sut: ContainersService;
 
@@ -52,7 +52,7 @@ describe('ContainersService', () => {
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ContainersService,
-                { provide: ServicesDatabaseRepository, useValue: mockServicesRepository },
+                { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DockerContainersRepository, useValue: mockContainersRepository },
             ],
         }).compile();

@@ -1,5 +1,5 @@
 /* eslint-disable no-secrets/no-secrets */
-import { OrphanContainersDockerAdapter } from '../orphan-containers-docker.adapter';
+import { DockerOrphanContainersAdapter } from '../docker-orphan-containers.adapter';
 
 import {
     GITPAAS_MANAGED_LABEL,
@@ -7,7 +7,7 @@ import {
     GITPAAS_PROJECT_LABEL,
 } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary, RuntimeSelector } from '@core/domain/models/container-runtime.models';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /** Compose project label the runtime maps a project scope onto, kept here to describe host containers. */
@@ -59,12 +59,12 @@ const matchesSelector = (labels: Record<string, string>, selector: RuntimeSelect
     return Object.entries(required).every(([key, value]) => (value === null ? key in labels : labels[key] === value));
 };
 
-describe('OrphanContainersDockerAdapter', () => {
+describe('DockerOrphanContainersAdapter', () => {
     let mockListContainers: jest.Mock;
     let mockRemoveContainer: jest.Mock;
     let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'listContainers' | 'removeContainer'>>;
     let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn'>>;
-    let sut: OrphanContainersDockerAdapter;
+    let sut: DockerOrphanContainersAdapter;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -76,7 +76,7 @@ describe('OrphanContainersDockerAdapter', () => {
             removeContainer: mockRemoveContainer,
         };
         mockDiagnostics = { log: jest.fn(), warn: jest.fn() };
-        sut = new OrphanContainersDockerAdapter(
+        sut = new DockerOrphanContainersAdapter(
             mockContainerRuntime as unknown as DockerContainerRuntimeAdapter,
             mockDiagnostics as unknown as DiagnosticLoggerService,
         );
@@ -219,7 +219,7 @@ describe('OrphanContainersDockerAdapter', () => {
             [GITPAAS_PROJECT_LABEL]: 'oneoff',
         });
 
-        const listing = (host: { labels: Record<string, string>; summary: RuntimeContainerSummary }[]) => (
+        const listing = (host: Array<{ labels: Record<string, string>; summary: RuntimeContainerSummary }>) => (
             (selector: RuntimeSelector): Promise<RuntimeContainerSummary[]> => Promise.resolve(
                 host.filter((container) => matchesSelector(container.labels, selector)).map((container) => container.summary),
             )
@@ -277,7 +277,7 @@ describe('OrphanContainersDockerAdapter', () => {
 
         expect(mockDiagnostics.log).toHaveBeenCalledWith(
             'Removed 1 orphaned container(s) from the server',
-            'OrphanContainersDockerAdapter',
+            'DockerOrphanContainersAdapter',
         );
     });
 });

@@ -10,14 +10,14 @@ import { PruneResult } from '../../domain/models/prune-result.models';
 import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
 import type { OrphanContainers } from '../../domain/ports/orphan-containers.port';
-import { OrphanContainersDockerAdapter } from '../../infrastructure/docker/orphan-containers-docker.adapter';
-import { ServerPrunerDockerAdapter } from '../../infrastructure/docker/server-pruner-docker.adapter';
-import { HealthProbeDockerAdapter } from '../../infrastructure/health/health-probe-docker.adapter';
-import { HealthProbePostgresAdapter } from '../../infrastructure/health/health-probe-postgres.adapter';
-import { HealthProbeRedisAdapter } from '../../infrastructure/health/health-probe-redis.adapter';
+import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';
+import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
+import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-health-probe.adapter';
+import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
+import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
 
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { ServicesDatabaseRepository } from '@features/services/infrastructure/database/services-db.repository';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 /**
  * Server service
@@ -25,16 +25,16 @@ import { ServicesDatabaseRepository } from '@features/services/infrastructure/da
 @Injectable()
 export class ServerService {
     constructor(
-        private readonly pruner: ServerPrunerDockerAdapter,
-        @Inject(OrphanContainersDockerAdapter)
+        private readonly pruner: DockerServerPrunerAdapter,
+        @Inject(DockerOrphanContainersAdapter)
         private readonly orphanContainers: OrphanContainers,
-        @Inject(ServicesDatabaseRepository)
+        @Inject(DatabaseServicesRepository)
         private readonly services: ServicesRepository,
-        @Inject(HealthProbePostgresAdapter)
+        @Inject(PostgresHealthProbeAdapter)
         private readonly postgresProbe: HealthProbe,
-        @Inject(HealthProbeRedisAdapter)
+        @Inject(RedisHealthProbeAdapter)
         private readonly redisProbe: HealthProbe,
-        @Inject(HealthProbeDockerAdapter)
+        @Inject(DockerHealthProbeAdapter)
         private readonly dockerProbe: HealthProbe,
     ) {}
 

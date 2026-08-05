@@ -6,12 +6,12 @@ import { logoutUseCase } from '../../../application/logout.use-case';
 import { refreshUseCase } from '../../../application/refresh.use-case';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../../domain/models/auth-tokens.models';
-import { RefreshTokensDatabaseRepository } from '../../../infrastructure/database/refresh-tokens-db.repository';
-import { TokenServiceJwtAdapter } from '../../../infrastructure/security/token-service-jwt.adapter';
+import { DatabaseRefreshTokensRepository } from '../../../infrastructure/database/db-refresh-tokens.repository';
+import { JwtTokenServiceAdapter } from '../../../infrastructure/security/jwt-token-service.adapter';
 import { AuthenticationService } from '../authentication.service';
 
 import { User, UserRole } from '@features/users/domain/models/user.models';
-import { UsersDatabaseRepository } from '@features/users/infrastructure/database/users-db.repository';
+import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 
 jest.mock('../../../application/login.use-case');
 jest.mock('../../../application/logout.use-case');
@@ -34,23 +34,23 @@ const user: User = {
 };
 
 describe('AuthenticationService', () => {
-    let mockUsersRepository: jest.Mocked<UsersDatabaseRepository>;
-    let mockRefreshTokensRepository: jest.Mocked<RefreshTokensDatabaseRepository>;
-    let mockTokenService: jest.Mocked<TokenServiceJwtAdapter>;
+    let mockUsersRepository: jest.Mocked<DatabaseUsersRepository>;
+    let mockRefreshTokensRepository: jest.Mocked<DatabaseRefreshTokensRepository>;
+    let mockTokenService: jest.Mocked<JwtTokenServiceAdapter>;
     let sut: AuthenticationService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockUsersRepository = {} as jest.Mocked<UsersDatabaseRepository>;
-        mockRefreshTokensRepository = {} as jest.Mocked<RefreshTokensDatabaseRepository>;
-        mockTokenService = {} as jest.Mocked<TokenServiceJwtAdapter>;
+        mockUsersRepository = {} as jest.Mocked<DatabaseUsersRepository>;
+        mockRefreshTokensRepository = {} as jest.Mocked<DatabaseRefreshTokensRepository>;
+        mockTokenService = {} as jest.Mocked<JwtTokenServiceAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 AuthenticationService,
-                { provide: UsersDatabaseRepository, useValue: mockUsersRepository },
-                { provide: RefreshTokensDatabaseRepository, useValue: mockRefreshTokensRepository },
-                { provide: TokenServiceJwtAdapter, useValue: mockTokenService },
+                { provide: DatabaseUsersRepository, useValue: mockUsersRepository },
+                { provide: DatabaseRefreshTokensRepository, useValue: mockRefreshTokensRepository },
+                { provide: JwtTokenServiceAdapter, useValue: mockTokenService },
             ],
         }).compile();
 

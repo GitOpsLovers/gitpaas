@@ -5,9 +5,9 @@ import { DeploymentRunTask } from '../../../domain/models/deployment-run-task.mo
 import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
 import { MAX_ATTEMPTS } from '../../../domain/ports/deployment-queue.port';
 import { DeploymentsRepository } from '../../../domain/repositories/deployments.repository';
-import { DeploymentQueueDatabaseAdapter } from '../deployment-queue-db.adapter';
-import { DeploymentQueueTaskDbEntity } from '../deployment-queue-task-db.entity';
-import { toQueuedDeploymentTask } from '../deployment-queue-task-db.transformer';
+import { DeploymentQueueTaskDbEntity } from '../db-deployment-queue-task.entity';
+import { toQueuedDeploymentTask } from '../db-deployment-queue-task.transformer';
+import { DatabaseDeploymentQueueAdapter } from '../db-deployment-queue.adapter';
 
 /**
  * Builds a queue task entity fixture, overriding only the fields under test.
@@ -37,7 +37,7 @@ const runTask: DeploymentRunTask = {
     projectName: 'gitpaas',
 };
 
-describe('DeploymentQueueDatabaseAdapter', () => {
+describe('DatabaseDeploymentQueueAdapter', () => {
     let mockRepo: {
         create: jest.Mock;
         save: jest.Mock;
@@ -48,7 +48,7 @@ describe('DeploymentQueueDatabaseAdapter', () => {
         find: jest.Mock;
     };
     let deploymentsRepository: jest.Mocked<DeploymentsRepository>;
-    let sut: DeploymentQueueDatabaseAdapter;
+    let sut: DatabaseDeploymentQueueAdapter;
 
     beforeEach(() => {
         mockRepo = {
@@ -67,7 +67,7 @@ describe('DeploymentQueueDatabaseAdapter', () => {
             update: jest.fn(),
             delete: jest.fn(),
         };
-        sut = new DeploymentQueueDatabaseAdapter(
+        sut = new DatabaseDeploymentQueueAdapter(
             mockRepo as unknown as Repository<DeploymentQueueTaskDbEntity>,
             deploymentsRepository,
         );

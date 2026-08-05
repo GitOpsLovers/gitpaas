@@ -1,4 +1,4 @@
-import { toPruneResult } from '../server-pruner-docker.transformer';
+import { toPruneResult } from '../docker-server-pruner.transformer';
 
 describe('toPruneResult', () => {
     it('carries the deleted count and the reclaimed space over to the domain model', () => {

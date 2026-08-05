@@ -5,9 +5,9 @@ import { Writable } from 'node:stream';
 import DockerodeCompose from 'dockerode-compose';
 import * as tar from 'tar';
 
-import { DockerExecutorDockerodeAdapter } from '../docker-executor-dockerode.adapter';
+import { DockerodeDockerExecutorAdapter } from '../dockerode-docker-executor.adapter';
 
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 jest.mock('node:fs/promises');
@@ -48,7 +48,7 @@ interface ExecutorInternals {
 /**
  * Casts the executor to its private surface for direct helper testing.
  */
-const internals = (sut: DockerExecutorDockerodeAdapter): ExecutorInternals => sut as unknown as ExecutorInternals;
+const internals = (sut: DockerodeDockerExecutorAdapter): ExecutorInternals => sut as unknown as ExecutorInternals;
 
 /**
  * Builds an executor backed by a fake daemon exposing only the members a given
@@ -56,16 +56,16 @@ const internals = (sut: DockerExecutorDockerodeAdapter): ExecutorInternals => su
  * `inspect`/`logs`). The injected `DockerContainerRuntimeAdapter` / `DiagnosticLoggerService`
  * collaborators are stored under `mock*` names.
  */
-const executorWithDaemon = (fakeDaemon: unknown): DockerExecutorDockerodeAdapter => {
+const executorWithDaemon = (fakeDaemon: unknown): DockerodeDockerExecutorAdapter => {
     const mockContainerRuntime = { getClient: (): unknown => fakeDaemon } as unknown as DockerContainerRuntimeAdapter;
     const mockDiagnostics = {
         log: jest.fn(), warn: jest.fn(), error: jest.fn(),
     } as unknown as DiagnosticLoggerService;
 
-    return new DockerExecutorDockerodeAdapter(mockContainerRuntime, mockDiagnostics);
+    return new DockerodeDockerExecutorAdapter(mockContainerRuntime, mockDiagnostics);
 };
 
-describe('DockerExecutorDockerodeAdapter', () => {
+describe('DockerodeDockerExecutorAdapter', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -265,8 +265,8 @@ describe('DockerExecutorDockerodeAdapter', () => {
         it('does nothing when the recipe declares no services, volumes or networks', () => {
             const sut = executorWithDaemon({});
 
-            expect(() => internals(sut).stampLabels({ recipe: {} }, 'my-project')).not.toThrow();
-            expect(() => internals(sut).stampLabels({}, 'my-project')).not.toThrow();
+            expect(() => { internals(sut).stampLabels({ recipe: {} }, 'my-project'); }).not.toThrow();
+            expect(() => { internals(sut).stampLabels({}, 'my-project'); }).not.toThrow();
         });
     });
 

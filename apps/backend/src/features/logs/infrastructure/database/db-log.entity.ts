@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 import type { LogStatus } from '../../domain/models/log-event.models';
 import type { LogType } from '../../domain/models/log.models';
 
-import { DeploymentDbEntity } from '@features/deployments/infrastructure/database/deployment-db.entity';
+import { DeploymentDbEntity } from '@features/deployments/infrastructure/database/db-deployment.entity';
 
 /**
  * Logs database entity

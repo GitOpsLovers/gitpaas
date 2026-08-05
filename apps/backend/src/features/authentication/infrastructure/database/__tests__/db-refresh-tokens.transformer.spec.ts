@@ -1,5 +1,5 @@
-import { RefreshTokenDbEntity } from '../refresh-token-db.entity';
-import { toRefreshToken } from '../refresh-tokens-db.transformer';
+import { RefreshTokenDbEntity } from '../db-refresh-token.entity';
+import { toRefreshToken } from '../db-refresh-tokens.transformer';
 
 describe('toRefreshToken', () => {
     it('maps every refresh token entity field into the domain model', () => {

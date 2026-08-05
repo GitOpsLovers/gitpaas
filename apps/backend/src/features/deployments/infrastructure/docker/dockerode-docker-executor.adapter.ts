@@ -121,7 +121,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             // rewrites them into plain image services in the recipe.
             const builtImages = await this.buildServices(compose, composeFile, projectName, emit);
 
-            this.diagnostics.log(`Pulling images for project "${projectName}"`, DockerExecutorDockerodeAdapter.name);
+            this.diagnostics.log(`Pulling images for project "${projectName}"`, DockerodeDockerExecutorAdapter.name);
             emit('▶ Pulling images…');
 
             await this.pullWithProgress(compose, emit, builtImages);
@@ -138,7 +138,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             // so later maintenance operations can be scoped to what GitPaaS owns.
             this.stampLabels(compose, projectName);
 
-            this.diagnostics.log(`Bringing project "${projectName}" up`, DockerExecutorDockerodeAdapter.name);
+            this.diagnostics.log(`Bringing project "${projectName}" up`, DockerodeDockerExecutorAdapter.name);
             emit('▶ Creating and starting containers…');
 
             const result = (await compose.up()) as { services?: Docker.Container[] };
@@ -195,7 +195,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             const tag = `${projectName}_${name}`;
             const build = this.resolveBuild(service.build, baseDir);
 
-            this.diagnostics.log(`Building service "${name}" as "${tag}"`, DockerExecutorDockerodeAdapter.name);
+            this.diagnostics.log(`Building service "${name}" as "${tag}"`, DockerodeDockerExecutorAdapter.name);
             emit(`▶ Building ${name} (${tag})…`);
 
             await this.buildImage(build, tag, projectName, emit);
@@ -396,7 +396,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             lines.forEach(emit);
         } catch (error) {
             // Startup logs are best-effort; a failure here must not fail the deploy.
-            this.diagnostics.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerExecutorDockerodeAdapter.name);
+            this.diagnostics.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerodeDockerExecutorAdapter.name);
         }
     }
 
