@@ -109,7 +109,7 @@ Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-u
 **Goal:** a fresh server can be turned into a running GitPaaS control plane with one command.
 
 **Definition of done:** running the install script on a fresh server produces a reachable GitPaaS
-control plane, with the database created via migrations (no `synchronize`) and an admin account
+control plane, with the database created via the installer's SQL migrations (no `synchronize`) and an admin account
 seeded — no manual database setup required, and no wiring beyond the host's own Docker socket.
 
 ### Phase 2 — Public URLs for deployed apps

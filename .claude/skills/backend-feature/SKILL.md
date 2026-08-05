@@ -44,7 +44,7 @@ e.g. `logs/infrastructure/redis/log-store-redis.adapter.ts` → `LogStoreRedisAd
 
 Infrastructure sub-folders are named after the technology/vendor (`database`, `docker`, `redis`, `github`, `passport`, `cli`). Escape hatch: an adapter with no vendor — an in-process decorator or composite — goes in a folder named after the port instead (`features/logs/infrastructure/log-store/`).
 
-No central entity list: entities auto-load, and in dev/test `synchronize` creates tables automatically. Production, however, is migration-managed (`synchronize` off), so **adding or changing an entity requires a versioned migration** — after editing entities, run the backend's `migration:generate` pnpm script, review the generated file, and commit it with your change (`migration:revert` undoes the last one). See the "Schema management" section of `docs/backend-architecture.md`.
+No central entity list: entities auto-load, and in dev/test `synchronize` creates tables automatically. Production, however, has `synchronize` off and its schema lives in plain SQL files under `iac/production/migrations/` (applied by `scripts/install.sh`, not by the backend, which ships no migration machinery). So **adding or changing an entity requires a hand-written `.sql` migration**: add `iac/production/migrations/NNN_short_description.sql` with the next free number, idempotent SQL, and the exact column types, defaults and constraint names TypeORM expects, and commit it with your change. See the "Schema management" section of `docs/backend-architecture.md` and `iac/production/migrations/README.md`.
 
 ## Authentication (auth by default)
 

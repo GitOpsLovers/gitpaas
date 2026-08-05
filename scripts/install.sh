@@ -14,19 +14,26 @@
 #      secrets) and the host's docker group id (DOCKER_GID, so the non-root
 #      backend container can use the mounted Docker socket), leaving
 #      operator-supplied values (GitHub App) as clearly-marked placeholders.
-#   4. Brings up the production compose stack — postgres, redis, the one-shot
-#      `migrate` service (which creates the schema via TypeORM migrations), the
-#      backend, and the frontend.
-#   5. Seeds the FIRST admin: prompts for your email, generates a random password,
-#      stores it as an argon2id hash (via the backend's own hasher), and prints the
-#      password for you to copy.
+#   4. Starts ONLY the data stores (postgres + redis) and waits for Postgres.
+#   5. Applies the SQL migrations in iac/production/migrations/ (in filename
+#      order) straight into Postgres, tracking what ran in a `schema_migrations`
+#      ledger table, so the schema is complete before anything else runs.
+#   6. Bootstraps the FIRST admin straight into Postgres, with no application
+#      container involved: prompts for your email, generates a random password,
+#      hashes it as argon2id in a throwaway container, inserts the row, and
+#      prints the password for you to copy.
+#   7. Only then brings up the application stack — the backend and the frontend —
+#      and waits for the backend to become healthy.
+#
+# The application therefore never boots against a database without an admin in it.
 #
 # GitPaaS runs everything on THIS server: the backend drives the host's own Docker
 # daemon through the bind-mounted /var/run/docker.sock. The only thing that needs
 # resolving is the socket's group id, which the installer detects for you.
 #
 # It is written for POSIX /bin/sh, fails fast (set -e), and is safe to re-run:
-# an existing .env is preserved, and the admin seed is idempotent.
+# an existing .env is preserved, already-applied migrations are skipped, and the
+# admin seed is idempotent.
 #
 # Configuration (flags OR environment variables):
 #   --version <ref>   / GITPAAS_VERSION   Tag or branch to install. Default: the
@@ -46,6 +53,10 @@ REPO_SLUG="${REPO_OWNER}/${REPO_NAME}"
 GITPAAS_VERSION="${GITPAAS_VERSION:-latest}"
 GITPAAS_DIR="${GITPAAS_DIR:-/opt/gitpaas}"
 GITPAAS_ADMIN_EMAIL="${GITPAAS_ADMIN_EMAIL:-}"
+
+# Throwaway image used to hash the admin password with the argon2 CLI, so the
+# bootstrap needs no application container at all. Pinned for reproducibility.
+ARGON2_IMAGE="alpine:3.22"
 
 # ---------------------------------------------------------------------------
 # Logging helpers (kept dependency-free; colours only when stdout is a TTY)
@@ -74,7 +85,7 @@ while [ $# -gt 0 ]; do
         --email)       GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
         --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
         -h|--help)
-            sed -n '2,34p' "$0" 2>/dev/null || true
+            sed -n '2,42p' "$0" 2>/dev/null || true
             exit 0 ;;
         *) die "Unknown argument: $1 (try --help)" ;;
     esac
@@ -245,7 +256,7 @@ generate_env() {
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
 
-    # Schema comes from migrations, never synchronize.
+    # Schema comes from the SQL migrations applied below, never synchronize.
     set_env "NODE_ENV" "production"
 
     # Point CORS at the origin the frontend is actually served from so login works.
@@ -258,16 +269,177 @@ generate_env() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 4 — Bring up the stack
+# Step 4 — Start the data stores only
 # ---------------------------------------------------------------------------
 compose() { docker_cmd compose -f "$GITPAAS_DIR/iac/production/docker-compose.yml" "$@"; }
 
+# Read a single value out of the generated .env. The file is root-owned, hence
+# the $SUDO; `cut -f2-` keeps values that themselves contain '='.
+env_value() { $SUDO grep -m1 "^$1=" "$ENV_FILE" | cut -d= -f2- ; }
+
+start_data_stores() {
+    log "Starting the data stores (postgres, redis) ..."
+    # Deliberately NOT `up -d`: the backend and frontend must stay down until the
+    # first admin exists, so the app never boots against an admin-less database.
+    # Both services use published images, so nothing needs building here.
+    compose up -d postgres redis
+
+    log "Waiting for Postgres to become healthy ..."
+    i=0
+    while [ "$i" -lt 60 ]; do
+        status="$(docker_cmd inspect --format '{{.State.Health.Status}}' gitpaas-postgres 2>/dev/null || echo starting)"
+        case "$status" in
+            healthy) log "Postgres is healthy."; return ;;
+            unhealthy) die "Postgres became unhealthy. Inspect logs with: $SUDO docker compose -f $GITPAAS_DIR/iac/production/docker-compose.yml logs postgres" ;;
+        esac
+        i=$((i + 1))
+        sleep 5
+    done
+    die "Timed out waiting for Postgres to become healthy. Inspect: $SUDO docker compose -f $GITPAAS_DIR/iac/production/docker-compose.yml logs postgres"
+}
+
+# ---------------------------------------------------------------------------
+# Step 5 — Apply the SQL migrations
+# ---------------------------------------------------------------------------
+
+# Read the Postgres credentials out of the generated .env into the globals the
+# psql helpers use. Cheap and side-effect free, so every step that talks to the
+# database can call it and stay self-contained.
+load_db_credentials() {
+    POSTGRES_USER="$(env_value POSTGRES_USER)"
+    POSTGRES_PASSWORD="$(env_value POSTGRES_PASSWORD)"
+    POSTGRES_DB="$(env_value POSTGRES_DB)"
+    [ -n "$POSTGRES_USER" ] && [ -n "$POSTGRES_DB" ] \
+        || die "POSTGRES_USER / POSTGRES_DB are missing from $ENV_FILE."
+}
+
+# Run SQL inside the postgres container, reading the statements from stdin.
+# ON_ERROR_STOP makes psql exit non-zero on the first failure so we abort the
+# install instead of continuing on a half-built schema.
+psql_run() {
+    compose exec -T -e PGPASSWORD="$POSTGRES_PASSWORD" postgres \
+        psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"
+}
+
+# Production schema is owned by the plain .sql files in
+# iac/production/migrations/, applied here — never by the backend, which ships no
+# migration machinery at all. Files run in filename order (the numeric prefix IS
+# the order) and each applied file is recorded in a `schema_migrations` ledger,
+# so re-running the installer applies nothing.
+run_migrations() {
+    load_db_credentials
+
+    migrations_dir="$GITPAAS_DIR/iac/production/migrations"
+    [ -d "$migrations_dir" ] || die "Migrations directory not found: $migrations_dir"
+
+    log "Applying database migrations ..."
+    psql_run >/dev/null <<'SQL' || die "Could not create the schema_migrations ledger table."
+CREATE TABLE IF NOT EXISTS "schema_migrations" ("filename" text PRIMARY KEY, "applied_at" timestamptz NOT NULL DEFAULT now());
+SQL
+
+    applied_any=0
+    for migration_file in "$migrations_dir"/*.sql; do
+        # Guards the literal glob when the directory holds no .sql file.
+        [ -f "$migration_file" ] || continue
+        migration_name="${migration_file##*/}"
+
+        # Already in the ledger? Nothing to do. The filename travels as a psql
+        # variable, so psql — not the shell — does the quoting.
+        already_applied="$(psql_run -tA -v fname="$migration_name" <<'SQL'
+SELECT 1 FROM "schema_migrations" WHERE "filename" = :'fname';
+SQL
+        )" || die "Could not read the schema_migrations ledger."
+        [ -z "$already_applied" ] || continue
+
+        log "Applying $migration_name ..."
+        # The file and its ledger row go in as ONE transaction, so a failed
+        # migration is never recorded as applied.
+        {
+            echo 'BEGIN;'
+            cat "$migration_file"
+            cat <<'SQL'
+
+INSERT INTO "schema_migrations" ("filename") VALUES (:'fname');
+COMMIT;
+SQL
+        } | psql_run -v fname="$migration_name" >/dev/null \
+            || die "Migration $migration_name failed; the database was left untouched by it. Fix the file (or the database) and re-run the installer."
+
+        applied_any=1
+    done
+
+    if [ "$applied_any" -eq 0 ]; then
+        log "Database schema is already up to date — no migrations to apply."
+    else
+        log "Database migrations applied."
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Step 6 — Bootstrap the first admin (no application container involved)
+# ---------------------------------------------------------------------------
+
+# Hash the password with the argon2 CLI in a throwaway container. The parameters
+# mirror node-argon2's defaults (m=65536 i.e. -m 16, t=3, p=4, 32-byte tag), so
+# the backend's argon2id verifier accepts the encoded string as-is. Password and
+# salt travel as env vars, never as arguments, so they stay out of `ps` output.
+hash_password() {
+    salt="$(openssl rand -hex 16)"
+
+    ADMIN_PASSWORD_HASH="$(docker_cmd run --rm \
+        -e GITPAAS_PW="$1" -e GITPAAS_SALT="$salt" \
+        "$ARGON2_IMAGE" \
+        sh -c 'apk add --no-cache argon2 >/dev/null 2>&1 || exit 1; printf %s "$GITPAAS_PW" | argon2 "$GITPAAS_SALT" -id -t 3 -m 16 -p 4 -l 32 -e' \
+        || true)"
+
+    [ -n "$ADMIN_PASSWORD_HASH" ] \
+        || die "Could not hash the admin password (the argon2 helper container produced no output). Check that this host can pull $ARGON2_IMAGE and reach the Alpine package mirrors."
+
+    # Guard against a CLI whose defaults ever drift: the backend only verifies
+    # argon2id strings with exactly these parameters.
+    case "$ADMIN_PASSWORD_HASH" in
+        '$argon2id$v=19$m=65536,t=3,p=4$'*) : ;;
+        *) die "The generated password hash is not in the expected argon2id format (\$argon2id\$v=19\$m=65536,t=3,p=4\$...), so the backend could not verify it. Aborting instead of creating an admin that cannot log in." ;;
+    esac
+}
+
+bootstrap_admin() {
+    # Prompt for the email if it was not supplied. When piped from curl, stdin is
+    # the script itself, so read from the controlling terminal instead.
+    if [ -z "$GITPAAS_ADMIN_EMAIL" ]; then
+        if [ -r /dev/tty ]; then
+            printf '%sAdmin email:%s ' "$C_BOLD" "$C_RESET" > /dev/tty
+            read -r GITPAAS_ADMIN_EMAIL < /dev/tty
+        fi
+    fi
+    [ -n "$GITPAAS_ADMIN_EMAIL" ] || die "No admin email provided (use --email <addr> or GITPAAS_ADMIN_EMAIL when running non-interactively)."
+
+    load_db_credentials
+
+    ADMIN_PASSWORD="$(rand_password)"
+    log "Hashing the admin password (argon2id) ..."
+    hash_password "$ADMIN_PASSWORD"
+
+    log "Creating the first admin ($GITPAAS_ADMIN_EMAIL) ..."
+    # Email and hash go in as psql variables, so psql — not the shell — does the
+    # quoting and no value can break out of the statement. ON CONFLICT keeps the
+    # install re-runnable: an existing admin keeps its current password.
+    psql_run -v "email=$GITPAAS_ADMIN_EMAIL" -v "hash=$ADMIN_PASSWORD_HASH" <<'SQL'
+INSERT INTO "users" ("email", "passwordHash", "role", "isActive")
+VALUES (:'email', :'hash', 'admin', true)
+ON CONFLICT ("email") DO NOTHING;
+SQL
+}
+
+# ---------------------------------------------------------------------------
+# Step 7 — Bring up the application stack
+# ---------------------------------------------------------------------------
 bring_up() {
-    log "Building images and bringing up the production stack (this can take a while on first run) ..."
+    log "Building images and bringing up the rest of the stack (this can take a while on first run) ..."
+    # The schema is migrated and the admin exists, so it is safe to start the
+    # application containers: the backend, then the frontend.
     compose up -d --build
 
-    # The `migrate` one-shot runs (and must complete) before the backend starts,
-    # so a healthy backend implies the schema exists. Wait for it before seeding.
     log "Waiting for the backend to become healthy ..."
     i=0
     while [ "$i" -lt 60 ]; do
@@ -280,34 +452,6 @@ bring_up() {
         sleep 5
     done
     die "Timed out waiting for the backend to become healthy. Inspect: $SUDO docker compose -f $GITPAAS_DIR/iac/production/docker-compose.yml logs"
-}
-
-# ---------------------------------------------------------------------------
-# Step 5 — Seed the first admin
-# ---------------------------------------------------------------------------
-seed_admin() {
-    # Prompt for the email if it was not supplied. When piped from curl, stdin is
-    # the script itself, so read from the controlling terminal instead.
-    if [ -z "$GITPAAS_ADMIN_EMAIL" ]; then
-        if [ -r /dev/tty ]; then
-            printf '%sAdmin email:%s ' "$C_BOLD" "$C_RESET" > /dev/tty
-            read -r GITPAAS_ADMIN_EMAIL < /dev/tty
-        fi
-    fi
-    [ -n "$GITPAAS_ADMIN_EMAIL" ] || die "No admin email provided (use --email <addr> or GITPAAS_ADMIN_EMAIL when running non-interactively)."
-
-    ADMIN_PASSWORD="$(rand_password)"
-
-    log "Seeding the first admin ($GITPAAS_ADMIN_EMAIL) ..."
-    # Run the compiled seed CLI as a one-shot in the already-built backend image:
-    # it hashes the password with the backend's argon2id hasher and inserts the
-    # admin idempotently (ON CONFLICT (email) DO NOTHING). --no-deps keeps it from
-    # restarting the running services; it joins the compose network so DB_HOST
-    # (=postgres) resolves.
-    compose run --rm --no-deps \
-        -e ADMIN_EMAIL="$GITPAAS_ADMIN_EMAIL" \
-        -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-        backend node dist/src/features/users/infrastructure/cli/seed-admin.cli.js
 }
 
 # ---------------------------------------------------------------------------
@@ -347,8 +491,10 @@ main() {
     resolve_version
     fetch_source
     generate_env
+    start_data_stores
+    run_migrations
+    bootstrap_admin
     bring_up
-    seed_admin
     print_summary
 }
 

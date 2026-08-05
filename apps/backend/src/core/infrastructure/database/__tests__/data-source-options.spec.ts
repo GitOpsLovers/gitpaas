@@ -60,10 +60,6 @@ describe('buildDataSourceOptions', () => {
         expect(buildDataSourceOptions().synchronize).toBe(false);
     });
 
-    it('never runs migrations at build time', () => {
-        expect(buildDataSourceOptions().migrationsRun).toBe(false);
-    });
-
     it('registers a non-empty entity glob', () => {
         const { entities } = buildDataSourceOptions();
 
@@ -72,11 +68,12 @@ describe('buildDataSourceOptions', () => {
         expect(entities?.[0]).toMatch(/\*\.entity\.(ts|js)$/);
     });
 
-    it('registers a non-empty migrations glob anchored to the migrations dir', () => {
-        const { migrations } = buildDataSourceOptions();
+    // The backend owns no migration machinery: production schema lives in the
+    // SQL files under iac/production/migrations/, applied by the installer.
+    it('registers no migrations at all', () => {
+        const options = buildDataSourceOptions();
 
-        expect(Array.isArray(migrations)).toBe(true);
-        expect(migrations).toHaveLength(1);
-        expect(migrations?.[0]).toMatch(/migrations[/\\]\*\.(ts|js)$/);
+        expect(options.migrations).toBeUndefined();
+        expect(options.migrationsRun).toBeUndefined();
     });
 });

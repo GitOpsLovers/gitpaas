@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { SeedAdminInput, seedAdminUseCase } from '../../application/seed-admin.use-case';
+import { seedAdminUseCase } from '../../application/seed-admin.use-case';
 import { DatabaseUsersRepository } from '../../infrastructure/database/db-users.repository';
 
 import type { PasswordHasher } from '@core/domain/ports/password-hasher.port';
@@ -26,30 +26,19 @@ export class UsersService {
     ) {}
 
     /**
-     * Provision a single administrator, hashing the password with argon2id and
-     * persisting through the users repository. Idempotent: an existing admin is
-     * left untouched and its password is NOT rotated.
-     *
-     * @param input The admin credentials to seed
-     */
-    public async seedAdmin(input: SeedAdminInput): Promise<void> {
-        const email = input.email.trim();
-
-        const result = await seedAdminUseCase(this.usersRepository, this.passwordHasher, input);
-
-        if (result === 'seeded') {
-            console.log(`Seeded admin user "${email}".`);
-        } else {
-            console.log(`Admin user "${email}" already exists — left unchanged.`);
-        }
-    }
-
-    /**
-     * Development-only convenience seeding.
+     * Add administrative user to the database for local development.
      */
     public async seedDevelopmentAdmin(): Promise<void> {
         try {
-            await this.seedAdmin({ email: DEV_ADMIN_EMAIL, password: DEV_ADMIN_PASSWORD });
+            const email = DEV_ADMIN_EMAIL.trim();
+
+            const result = await seedAdminUseCase(this.usersRepository, this.passwordHasher, { email, password: DEV_ADMIN_PASSWORD });
+
+            if (result === 'seeded') {
+                console.log(`Seeded admin user "${email}".`);
+            } else {
+                console.log(`Admin user "${email}" already exists — left unchanged.`);
+            }
         } catch (error: unknown) {
             console.error(
                 'Development admin seed failed:',

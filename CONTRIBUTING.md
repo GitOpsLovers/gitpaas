@@ -63,16 +63,15 @@ Your local Docker daemon must be running: the backend connects to `/var/run/dock
 
 ### Database schema and migrations
 
-In devevlopment, TypeORM `synchronize` is on, so schema changes to entities are applied automatically on backend boot.
+In development, TypeORM `synchronize` is on, so schema changes to entities are applied automatically on backend boot.
 
-Schema changes are nonetheless shipped as **versioned migrations**. So whenever you add or change an entity, generate a migration and commit it alongside your change, from `apps/backend`:
+Production is different: the backend ships **no migrations at all**. The production schema lives in plain SQL files under `iac/production/migrations/`, which `scripts/install.sh` applies straight into Postgres (tracked in a `schema_migrations` ledger) before any application container starts.
 
-```bash
-pnpm --filter backend migration:generate src/migrations/<DescriptiveName>   # Diff entities → new migration
-pnpm --filter backend migration:revert                                      # Undo the last applied migration
-```
+So whenever you add or change an entity, **hand-write the matching migration** and commit it alongside your change:
 
-Review the generated file before committing.
+1. Add `iac/production/migrations/NNN_short_description.sql`, using the next free number.
+2. Write idempotent SQL (`CREATE TABLE IF NOT EXISTS`, constraints added inside a `pg_constraint` guard) with the exact column types, defaults and constraint names TypeORM expects — otherwise production drifts from the entities while your local `synchronize` keeps working.
+3. Never edit a file that already shipped; add a new numbered one.
 
 ## Running the apps
 
