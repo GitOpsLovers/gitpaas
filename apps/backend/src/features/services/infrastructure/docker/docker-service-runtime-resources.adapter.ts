@@ -8,7 +8,7 @@ import { serviceProjectNameUseCase } from '@core/application/service-project-nam
 import { GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /**

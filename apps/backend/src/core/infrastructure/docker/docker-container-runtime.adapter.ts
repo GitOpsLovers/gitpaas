@@ -20,7 +20,7 @@ import {
     toLabelFilter,
     toNetworkSummary,
     toPruneReport,
-} from './container-runtime.transformer';
+} from './docker-container-runtime.transformer';
 
 /**
  * Unix socket of the local Docker daemon.

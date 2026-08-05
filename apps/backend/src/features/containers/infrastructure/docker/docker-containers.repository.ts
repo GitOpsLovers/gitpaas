@@ -3,12 +3,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Container } from '../../domain/models/container.models';
 import { ContainersRepository } from '../../domain/repositories/containers.repository';
 
-import { toContainer } from './containers-docker.transformer';
+import { toContainer } from './docker-containers.transformer';
 
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
 import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { Service } from '@features/services/domain/models/service.models';
 
 /**

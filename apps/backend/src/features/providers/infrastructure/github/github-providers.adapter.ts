@@ -16,7 +16,7 @@ import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.ser
  * GitHub App provider.
  */
 @Injectable()
-export class ProvidersGithubAdapter implements Providers {
+export class GithubProvidersAdapter implements Providers {
     private client: Octokit | undefined;
 
     constructor(

@@ -9,7 +9,7 @@ import { HealthProbe } from '../../domain/ports/health-probe.port';
  * Probes the database with a trivial `SELECT 1`, reporting `down` on any error.
  */
 @Injectable()
-export class HealthProbePostgresAdapter implements HealthProbe {
+export class PostgresHealthProbeAdapter implements HealthProbe {
     public readonly name = 'postgres';
 
     constructor(private readonly dataSource: DataSource) {}

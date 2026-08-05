@@ -7,14 +7,14 @@ import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 
-import { ProjectDbEntity } from './project-db.entity';
-import { toProject } from './projects-db.transformer';
+import { ProjectDbEntity } from './db-project.entity';
+import { toProject } from './db-projects.transformer';
 
 /**
  * Projects database repository
  */
 @Injectable()
-export class ProjectsDatabaseRepository implements ProjectsRepository {
+export class DatabaseProjectsRepository implements ProjectsRepository {
     constructor(
         @InjectRepository(ProjectDbEntity)
         private readonly repository: Repository<ProjectDbEntity>,

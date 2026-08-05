@@ -10,7 +10,7 @@ import { RedisClient } from '@core/infrastructure/redis/redis.client';
  * Probes Redis with a `PING`, reporting `down` on any error or unexpected reply.
  */
 @Injectable()
-export class HealthProbeRedisAdapter implements HealthProbe {
+export class RedisHealthProbeAdapter implements HealthProbe {
     public readonly name = 'redis';
 
     constructor(private readonly client: RedisClient) {}

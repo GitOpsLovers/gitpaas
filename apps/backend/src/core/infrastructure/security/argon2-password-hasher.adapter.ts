@@ -7,7 +7,7 @@ import { PasswordHasher } from '../../domain/ports/password-hasher.port';
  * argon2id-backed implementation of the {@link PasswordHasher} port.
  */
 @Injectable()
-export class PasswordHasherArgon2Adapter implements PasswordHasher {
+export class Argon2PasswordHasherAdapter implements PasswordHasher {
     public hash(plain: string): Promise<string> {
         return argon2.hash(plain, { type: argon2.argon2id });
     }

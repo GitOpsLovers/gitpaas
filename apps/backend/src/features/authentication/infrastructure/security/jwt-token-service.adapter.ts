@@ -17,7 +17,7 @@ import { TokenService } from '../../domain/ports/token-service.port';
  * up and compared without a per-row salt.
  */
 @Injectable()
-export class TokenServiceJwtAdapter implements TokenService {
+export class JwtTokenServiceAdapter implements TokenService {
     private readonly refreshSecret: string;
 
     private readonly refreshExpiresIn: JwtSignOptions['expiresIn'];

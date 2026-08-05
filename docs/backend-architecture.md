@@ -140,9 +140,18 @@ The `:id` segment binds with `@Param('id', ParseUUIDPipe)`. **Not-found is an HT
 
 All files that make up the backend must follow a naming convention. They are as follows:
 
-- **Models**: `<name>.models.ts` where `name` is always in kebab-case.
-- **Ports**: for domain layer use `<name>.port.ts` where `name` is always in kebab-case. For the infrastructure layer, the name must be `<name>-<technology>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that port.
-- **Repositories**: for domain layer use `<name>.repository.ts` where `name` is always in kebab-case. For the infrastructure layer, the name must be `<name>-<technology>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository.
+- **Models**: `<name>.models.ts` where `name` is always in kebab-case. Example: `user.models.ts`.
+- **Ports**: use `<name>.port.ts` where `name` is always in kebab-case. Example: `container-runtime.port.ts`.
+- **Adapters**: in the infrastructure layer, the name must be `<technology>-<name>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that port. Example: `docker-container-runtime.adapter.ts`.
+- **Domain repositories**: use `<name>.repository.ts` where `name` is always in kebab-case. Example: `users.repository.ts`.
+- **Infrastructure repository implementations**: the name must be `<technology>-<name>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository. Example: `db-users.repository.ts`.
+
+### Class and function naming
+
+- **Ports**: name in `PascalCase`. Example: `ContainerRuntime`.
+- **Adapters**: a name in `PascalCase` consisting of the technology name, the entity name, and `Adapter` concatenated together. Example: `DockerContainerRuntimeAdapter`.
+- **Domain repositories**: name in `PascalCase`, formed by concatenating the entity name and `Repository`. Examle: `UsersRepository`.
+- **Infrastructure repository implementations**: a name in `PascalCase` consisting of the technology name, the entity name, and `Repository` concatenated together. Example: `DatabaseUsersRepository`.
 
 ### Imports
 

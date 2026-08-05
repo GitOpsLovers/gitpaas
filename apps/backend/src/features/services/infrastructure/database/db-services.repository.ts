@@ -7,14 +7,14 @@ import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
-import { ServiceDbEntity } from './service-db.entity';
-import { toService } from './services-db.transformer';
+import { ServiceDbEntity } from './db-service.entity';
+import { toService } from './db-services.transformer';
 
 /**
  * Services database repository
  */
 @Injectable()
-export class ServicesDatabaseRepository implements ServicesRepository {
+export class DatabaseServicesRepository implements ServicesRepository {
     constructor(
         @InjectRepository(ServiceDbEntity)
         private readonly repository: Repository<ServiceDbEntity>,

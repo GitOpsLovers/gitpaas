@@ -7,14 +7,14 @@ import { selectOwnedResourcesUseCase } from '@core/application/select-owned-reso
 import { GITPAAS_CONTROL_PLANE_PROJECTS } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /**
  * Docker orphan containers adapter
  */
 @Injectable()
-export class OrphanContainersDockerAdapter implements OrphanContainers {
+export class DockerOrphanContainersAdapter implements OrphanContainers {
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly client: ContainerRuntime,

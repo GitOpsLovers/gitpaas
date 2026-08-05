@@ -14,8 +14,8 @@ import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-exe
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
-import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/container-runtime.transformer';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /**
@@ -90,7 +90,7 @@ interface ResolvedBuild {
  * `ContainerRuntime` port, purely to reuse its socket configuration.
  */
 @Injectable()
-export class DockerExecutorDockerodeAdapter implements DockerExecutor {
+export class DockerodeDockerExecutorAdapter implements DockerExecutor {
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly docker: DockerContainerRuntimeAdapter,

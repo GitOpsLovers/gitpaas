@@ -7,8 +7,8 @@ import { UpdateDeploymentDto } from '../../domain/dtos/update-deployment.dto';
 import { Deployment, DeploymentStatus } from '../../domain/models/deployment.models';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
-import { DeploymentDbEntity } from './deployment-db.entity';
-import { toDeployment } from './deployments-db.transformer';
+import { DeploymentDbEntity } from './db-deployment.entity';
+import { toDeployment } from './db-deployments.transformer';
 
 /**
  * Statuses that end a deployment's lifecycle.
@@ -19,7 +19,7 @@ const TERMINAL_STATUSES: ReadonlySet<DeploymentStatus> = new Set(['success', 'fa
  * Deployments database repository
  */
 @Injectable()
-export class DeploymentsDatabaseRepository implements DeploymentsRepository {
+export class DatabaseDeploymentsRepository implements DeploymentsRepository {
     constructor(
         @InjectRepository(DeploymentDbEntity)
         private readonly repository: Repository<DeploymentDbEntity>,

@@ -7,14 +7,14 @@ import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
 import { Log } from '../../domain/models/log.models';
 import { LogsRepository } from '../../domain/repositories/logs.repository';
 
-import { LogDbEntity } from './log-db.entity';
-import { toLog } from './logs-db.transformer';
+import { LogDbEntity } from './db-log.entity';
+import { toLog } from './db-logs.transformer';
 
 /**
  * Logs database repository
  */
 @Injectable()
-export class LogsDatabaseRepository implements LogsRepository {
+export class DatabaseLogsRepository implements LogsRepository {
     constructor(
         @InjectRepository(LogDbEntity)
         private readonly repository: Repository<LogDbEntity>,

@@ -3,17 +3,17 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PruneResult } from '../../domain/models/prune-result.models';
 import { ServerPruner } from '../../domain/ports/server-pruner.port';
 
-import { toPruneResult } from './server-pruner-docker.transformer';
+import { toPruneResult } from './docker-server-pruner.transformer';
 
 import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 
 /**
  * Docker server pruner adapter
  */
 @Injectable()
-export class ServerPrunerDockerAdapter implements ServerPruner {
+export class DockerServerPrunerAdapter implements ServerPruner {
     constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
     public async pruneImages(): Promise<PruneResult> {

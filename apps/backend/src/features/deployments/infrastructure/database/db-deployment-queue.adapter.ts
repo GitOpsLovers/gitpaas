@@ -8,9 +8,9 @@ import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task
 import { DeploymentQueue, MAX_ATTEMPTS } from '../../domain/ports/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
-import { DeploymentQueueTaskDbEntity } from './deployment-queue-task-db.entity';
-import { toQueuedDeploymentTask } from './deployment-queue-task-db.transformer';
-import { DeploymentsDatabaseRepository } from './deployments-db.repository';
+import { DeploymentQueueTaskDbEntity } from './db-deployment-queue-task.entity';
+import { toQueuedDeploymentTask } from './db-deployment-queue-task.transformer';
+import { DatabaseDeploymentsRepository } from './db-deployments.repository';
 
 /**
  * Database-backed deployment queue.
@@ -21,13 +21,13 @@ import { DeploymentsDatabaseRepository } from './deployments-db.repository';
  * serialization). No queue state lives only in memory.
  */
 @Injectable()
-export class DeploymentQueueDatabaseAdapter implements DeploymentQueue {
+export class DatabaseDeploymentQueueAdapter implements DeploymentQueue {
     private readonly requests = new Subject<QueuedDeploymentTask>();
 
     constructor(
         @InjectRepository(DeploymentQueueTaskDbEntity)
         private readonly repository: Repository<DeploymentQueueTaskDbEntity>,
-        @Inject(DeploymentsDatabaseRepository)
+        @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
     ) {}
 

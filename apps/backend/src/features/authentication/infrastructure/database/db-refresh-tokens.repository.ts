@@ -6,14 +6,14 @@ import { CreateRefreshTokenDto } from '../../domain/dtos/create-refresh-token.dt
 import { RefreshToken } from '../../domain/models/refresh-token.models';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 
-import { RefreshTokenDbEntity } from './refresh-token-db.entity';
-import { toRefreshToken } from './refresh-tokens-db.transformer';
+import { RefreshTokenDbEntity } from './db-refresh-token.entity';
+import { toRefreshToken } from './db-refresh-tokens.transformer';
 
 /**
  * Refresh tokens database repository
  */
 @Injectable()
-export class RefreshTokensDatabaseRepository implements RefreshTokensRepository {
+export class DatabaseRefreshTokensRepository implements RefreshTokensRepository {
     constructor(
         @InjectRepository(RefreshTokenDbEntity)
         private readonly repository: Repository<RefreshTokenDbEntity>,

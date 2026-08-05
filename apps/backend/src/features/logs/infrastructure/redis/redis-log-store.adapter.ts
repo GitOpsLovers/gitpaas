@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
 import { LogStore } from '../../domain/ports/log-store.port';
 
-import { StoredEvent, toLogEvent } from './log-store-redis.transformer';
+import { StoredEvent, toLogEvent } from './redis-log-store.transformer';
 
 import { RedisClient } from '@core/infrastructure/redis/redis.client';
 
@@ -18,7 +18,7 @@ const MAX_LINES = 5000;
  * Redis log store adapter
  */
 @Injectable()
-export class LogStoreRedisAdapter implements LogStore {
+export class RedisLogStoreAdapter implements LogStore {
     constructor(private readonly redis: RedisClient) {}
 
     /**
