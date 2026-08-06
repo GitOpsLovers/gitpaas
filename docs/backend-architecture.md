@@ -113,10 +113,9 @@ No infrastructure repository returns raw ORM entities or vendor shapes. Mapping 
 
 ### Persistence
 
-- The root TypeORM connection is configured once, in `CoreModule` via `forRootAsync`; features only call `forFeature`, so there is no central list of entities.
-- Entities are declared with `@Entity('<plural_snake_case>')`, their class names end in `DbEntity`, and they use UUID primary keys (`@PrimaryGeneratedColumn('uuid')`, exposed as `id: string` on the domain model). Custom column transformers convert non-native types at the persistence boundary.
-- A **data-level foreign key** is a table relationship, independent of the direction of module dependency injection: the child owns the relation with `@ManyToOne(() => ParentDbEntity, { onDelete: 'CASCADE' })`. Two cascade chains exist — `project ◄ service ◄ deployment ◄ logs` and `refresh_token ► user`. The persisted deployment-queue table deliberately has **no** foreign key to its deployment, because the two have independent lifecycles.
-- `synchronize` is enabled only when `NODE_ENV !== 'production'` (development and test); in production the schema is owned by versioned migrations.
+- The TypeORM connection is configured once in `CoreModule` via `forRootAsync`; features only call `forFeature`, so there is no central list of entities.
+- Entities are declared with `@Entity('<plural_snake_case>')` decorator. They use UUID primary keys (`@PrimaryGeneratedColumn('uuid')`, exposed as `id: string` on the domain model).
+- `synchronize` is enabled only in development environment. In production, the infrastructure migration system is used.
 
 ### Validation
 
@@ -247,25 +246,21 @@ The executor stamps all four on every container the stack creates and the two Gi
 
 ## Operations
 
-| Script                | Command                                                    |
-|-----------------------|------------------------------------------------------------|
-| `dev`                 | `nest start --watch`                                       |
-| `build`               | `nest build`                                               |
-| `start` / `start:prod`| `nest start` / `node dist/main`                            |
-| `lint` / `test`       | `eslint .` / `jest` (plus `test:e2e`)                      |
-| `migration:generate`  | ts-node TypeORM CLI against `src/.../data-source.ts`       |
-| `migration:create`    | ts-node TypeORM CLI, empty migration                       |
-| `migration:revert`    | reverts the last migration (source DataSource)             |
-| `migration:run`       | `node` TypeORM CLI against the compiled `dist/` DataSource |
+| Script                | Command                               |
+|-----------------------|---------------------------------------|
+| `dev`                 | `nest start --watch`                  |
+| `build`               | `nest build`                          |
+| `start` / `start:prod`| `nest start` / `node dist/main`       |
+| `lint` / `test`       | `eslint .` / `jest` (plus `test:e2e`) |
 
-### Migrations
+### Schema management
 
-A single **connection-options factory**, built from `process.env`, is the shared source of truth. It sets `synchronize` to `NODE_ENV !== 'production'` and `migrationsRun` to `false` — production applies migrations through an explicit one-shot process, never at boot — and registers entities and migrations **by glob**, so no code enumerates them. The glob extension follows how the process runs: `.ts` under ts-node for the CLI, `.js` under `dist/` at runtime. Two consumers spread these options:
+The backend has a **factory** that is the source of truth for the database connection. It sets `synchronize` to `NODE_ENV !== 'production'` and registers entities **by glob**, so no code enumerates them; the glob extension follows how the process runs (`.ts` under ts-jest/ts-node, `.js` under `dist/` at runtime). `CoreModule` spreads those options and adds `autoLoadEntities: true` so Nest also picks up entities registered through `forFeature`.
 
-- `CoreModule` adds `autoLoadEntities: true` so that Nest also picks up entities registered through `forFeature`.
-- The standalone `DataSource` (the factory's default export) is what the TypeORM CLI drives with `-d`; it omits `autoLoadEntities`, keeping the CLI independent of the DI container.
+- **Development**: TypeORM `synchronize` creates and updates the schema from the entities.
+- **Production**: the schema lives in plain SQL files under `iac/production/migrations/`. See [infrastructure architecture](./infrastructure-architecture.md#schema-bootstrap).
 
-The current schema ships as a single **baseline migration** under `src/migrations/`, and every later schema change ships as a generated, versioned migration. The workflow after editing an entity is to generate the migration, review it, and commit it alongside the entity change.
+When there are changes to the schemas, **this change must be mirrored by a hand-written `.sql` file** in `iac/production/migrations/`, using the exact column types, defaults and constraint names TypeORM expects.
 
 ## Related docs
 

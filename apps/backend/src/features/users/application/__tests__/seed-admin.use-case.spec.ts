@@ -6,8 +6,7 @@ import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
 
 /**
  * Direct unit tests for the application-layer {@link seedAdminUseCase} — the
- * single, port-driven code path reused by both the production install CLI
- * (`seed-admin.cli.ts`) and the development bootstrap hook (`UsersService`).
+ * port-driven code path behind the development bootstrap hook (`UsersService`).
  *
  * Collaborators are mocked at their domain-port boundaries, so no real Postgres
  * is touched and no native argon2 work runs:

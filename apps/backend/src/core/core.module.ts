@@ -20,12 +20,6 @@ import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service
         ConfigModule.forRoot({ isGlobal: true, validate }),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
-            // Connection options come from the shared factory so the Nest
-            // runtime and the standalone CLI DataSource stay in lockstep. The
-            // factory reads from the same validated environment ConfigService
-            // exposes. The runtime additionally uses autoLoadEntities so Nest's
-            // feature modules register their own entities; the standalone
-            // DataSource must not rely on that and discovers entities by glob.
             useFactory: (_config: ConfigService) => ({
                 ...buildDataSourceOptions(),
                 autoLoadEntities: true,
