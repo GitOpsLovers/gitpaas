@@ -1,0 +1,29 @@
+apps/backend/src/bootstrap.ts
+  s_36f3a883d80b79::t_22c70a4e845e69 1-51
+apps/backend/src/main.ts
+  s_b0006b8f944988::t_992873db7d8348 1,3-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "daae1fef199e40eabf61565d7ba73fceed722ccc",
+  "prompts": {},
+  "sessions": {
+    "s_36f3a883d80b79": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af8e039d351bb1436",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b0006b8f944988": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af312217051ce7d27",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
