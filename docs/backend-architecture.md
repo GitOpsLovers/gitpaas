@@ -139,11 +139,20 @@ The `:id` segment binds with `@Param('id', ParseUUIDPipe)`. **Not-found is an HT
 
 All files that make up the backend must follow a naming convention. They are as follows:
 
-- **Models**: `<name>.models.ts` where `name` is always in kebab-case. Example: `user.models.ts`.
-- **Ports**: use `<name>.port.ts` where `name` is always in kebab-case. Example: `container-runtime.port.ts`.
-- **Adapters**: in the infrastructure layer, the name must be `<technology>-<name>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that port. Example: `docker-container-runtime.adapter.ts`.
-- **Domain repositories**: use `<name>.repository.ts` where `name` is always in kebab-case. Example: `users.repository.ts`.
-- **Infrastructure repository implementations**: the name must be `<technology>-<name>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository. Example: `db-users.repository.ts`.
+#### Domain
+
+- **Models**: `<name>.models.ts`, where `name` is always in kebab-case. Example: `user.models.ts`.
+- **Ports**: `<name>.port.ts`, where `name` is always in kebab-case. Example: `container-runtime.port.ts`.
+- **Repositories**: `<name>.repository.ts`, where `name` is always in kebab-case. Example: `users.repository.ts`.
+
+#### Application
+
+- **Use cases**: `<name>.use-case.ts`, where `name` reflects the purpose of the use case. Example: `get-containers-by-service.use-case.ts`.
+
+#### Infrastructure
+
+- **Adapters**: `<technology>-<name>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that port. Example: `docker-container-runtime.adapter.ts`.
+- **Repository implementations**: `<technology>-<name>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository. Example: `db-users.repository.ts`.
 
 ### Class and function naming
 

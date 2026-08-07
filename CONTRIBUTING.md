@@ -85,6 +85,8 @@ With the dev stack healthy, you can run the apps with the following commands:
 | `pnpm test`       | `turbo run test`        | Run apps' unit tests     |
 | `pnpm check-types`| `turbo run check-types` | Type-check apps          |
 
+Once you have successfully set up the local infrastructure and started the Backend and Frontend applications, you can log in using the credentials `admin@gitpaas.dev`/`gitpaas`.
+
 ## Testing
 
 Run the affected app's tests before pushing, and keep them green:
