@@ -2,21 +2,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 
-import { bootstrap } from '../main';
+import { bootstrap } from '../bootstrap';
 
 import { UsersService } from '@features/users/ui/services/users.service';
-
-/**
- * Unit tests for `main.ts`'s `bootstrap()`.
- *
- * The heavy Nest bootstrap machinery is mocked at its module boundary so no real
- * HTTP server, DI container, or database work runs:
- *  - `@nestjs/core` → `NestFactory.create` resolves to a hand-rolled `app` stub.
- *  - `./app.module` → `AppModule` is a sentinel token (never actually instantiated).
- *  - `helmet` → a jest mock returning a sentinel middleware we can identify.
- *
- * `bootstrap` is imported directly from `main` and awaited in each case.
- */
 
 jest.mock('@nestjs/core', () => ({
     NestFactory: {
@@ -35,18 +23,19 @@ jest.mock('helmet', () => ({
     default: jest.fn(() => HELMET_MIDDLEWARE),
 }));
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockNestFactoryCreate = NestFactory.create as jest.Mock;
 const mockHelmet = helmet as unknown as jest.Mock;
 
 /**
- * Builds the `app` stub returned by `NestFactory.create`, wiring a `ConfigService`
- * double driven by the given env map and a `UsersService` stub whose
- * `seedDevelopmentAdmin` is a jest mock.
+ * Builds the `app` stub returned by `NestFactory.create`
  */
 function buildApp(env: Record<string, string | undefined>) {
     const config = {
+        // eslint-disable-next-line security/detect-object-injection
         get: jest.fn((key: string) => env[key]),
         getOrThrow: jest.fn((key: string) => {
+            // eslint-disable-next-line security/detect-object-injection
             const value = env[key];
 
             if (value === undefined) {
@@ -70,10 +59,10 @@ function buildApp(env: Record<string, string | undefined>) {
         listen: jest.fn().mockResolvedValue(undefined),
     };
 
-    return { app, config, usersService };
+    return { app, usersService };
 }
 
-describe('bootstrap (main.ts)', () => {
+describe('bootstrap (bootstrap.ts)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
