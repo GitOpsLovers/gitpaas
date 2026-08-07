@@ -1,12 +1,12 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { ProjectDbEntity } from '@features/projects/infrastructure/database/db-project.entity';
+import { DbProjectEntity } from '@features/projects/infrastructure/database/db-project.entity';
 
 /**
  * Services database entity
  */
 @Entity('services')
-export class ServiceDbEntity {
+export class DbServiceEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
 
@@ -25,7 +25,7 @@ export class ServiceDbEntity {
     @Column({ type: 'text', default: '' })
     public composerPath!: string;
 
-    @ManyToOne(() => ProjectDbEntity, (project) => project.services, { onDelete: 'CASCADE' })
+    @ManyToOne(() => DbProjectEntity, (project) => project.services, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'projectId' })
-    public project?: ProjectDbEntity;
+    public project?: DbProjectEntity;
 }

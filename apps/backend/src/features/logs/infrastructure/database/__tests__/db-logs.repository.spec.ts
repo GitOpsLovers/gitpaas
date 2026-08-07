@@ -1,13 +1,13 @@
 import { Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
-import { LogDbEntity } from '../db-log.entity';
+import { DbLogEntity } from '../db-log.entity';
 import { DatabaseLogsRepository } from '../db-logs.repository';
 
 /**
  * Builds a log database-entity fixture, overriding only the fields under test.
  */
-const logEntity = (overrides: Partial<LogDbEntity> = {}): LogDbEntity => ({
+const logEntity = (overrides: Partial<DbLogEntity> = {}): DbLogEntity => ({
     id: '9c858901-8a57-4791-81fe-4c455b099bc9',
     deploymentId: 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b',
     seq: 1,
@@ -28,7 +28,7 @@ describe('DatabaseLogsRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<LogDbEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
+        Pick<Repository<DbLogEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
     >;
     let sut: DatabaseLogsRepository;
 
@@ -44,7 +44,7 @@ describe('DatabaseLogsRepository', () => {
             delete: jest.fn(),
         };
         sut = new DatabaseLogsRepository(
-            mockRepository as unknown as Repository<LogDbEntity>,
+            mockRepository as unknown as Repository<DbLogEntity>,
         );
     });
 

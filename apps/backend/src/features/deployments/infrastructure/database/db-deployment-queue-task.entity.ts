@@ -10,7 +10,7 @@ import type { QueuedDeploymentTaskStatus } from '../../domain/models/queued-depl
  * terminal state.
  */
 @Entity('deployment_queue_tasks')
-export class DeploymentQueueTaskDbEntity {
+export class DbDeploymentQueueTaskEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
 

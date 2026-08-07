@@ -1,6 +1,6 @@
 import { Log } from '../../domain/models/log.models';
 
-import { LogDbEntity } from './db-log.entity';
+import { DbLogEntity } from './db-log.entity';
 
 /**
  * Maps a log database entity into its domain model.
@@ -9,7 +9,7 @@ import { LogDbEntity } from './db-log.entity';
  *
  * @returns Domain log entry
  */
-export function toLog(entity: LogDbEntity): Log {
+export function toLog(entity: DbLogEntity): Log {
     return {
         id: entity.id,
         deploymentId: entity.deploymentId,

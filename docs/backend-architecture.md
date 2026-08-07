@@ -8,6 +8,8 @@ The general architectural principle on which this application is built is **hexa
 
 In addition, **vertical slicing** is implemented, so each business domain is encapsulated within its own feature (`src/features/`), thereby ensuring that the code reflects the organization’s structure.
 
+---
+
 ## Stack
 
 | Concern        | Tool                                                             |
@@ -20,6 +22,8 @@ In addition, **vertical slicing** is implemented, so each business domain is enc
 | Auth           | Passport wirh local and JWT                                      |
 | Hardening      | `helmet`, `/throttler` and `class-validator`                     |
 | Testing        | Jest                                                             |
+
+---
 
 ## Structure
 
@@ -116,6 +120,7 @@ No infrastructure repository returns raw ORM entities or vendor shapes. Mapping 
 - The TypeORM connection is configured once in `CoreModule` via `forRootAsync`; features only call `forFeature`, so there is no central list of entities.
 - Entities are declared with `@Entity('<plural_snake_case>')` decorator. They use UUID primary keys (`@PrimaryGeneratedColumn('uuid')`, exposed as `id: string` on the domain model).
 - `synchronize` is enabled only in development environment. In production, the infrastructure migration system is used.
+- Virtually all infrastructure entities have a corresponding model in the domain layer. The purpose of each entity is to reflect the business model as it is translated into a persistence system.
 
 ### Validation
 
@@ -153,13 +158,24 @@ All files that make up the backend must follow a naming convention. They are as 
 
 - **Adapters**: `<technology>-<name>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that port. Example: `docker-container-runtime.adapter.ts`.
 - **Repository implementations**: `<technology>-<name>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` refers to the type of integration used by that repository. Example: `db-users.repository.ts`.
+- **Database entities**: `<db>-<name>.entity.ts`, where `<name>` it's always lowercase. Example: `db-project.entity.ts`.
 
 ### Class and function naming
 
+#### Domain
+
 - **Ports**: name in `PascalCase`. Example: `ContainerRuntime`.
-- **Adapters**: a name in `PascalCase` consisting of the technology name, the entity name, and `Adapter` concatenated together. Example: `DockerContainerRuntimeAdapter`.
-- **Domain repositories**: name in `PascalCase`, formed by concatenating the entity name and `Repository`. Examle: `UsersRepository`.
-- **Infrastructure repository implementations**: a name in `PascalCase` consisting of the technology name, the entity name, and `Repository` concatenated together. Example: `DatabaseUsersRepository`.
+- **Eepositories**: name in `PascalCase`, formed by concatenating the entity name and `Repository`. Examle: `UsersRepository`.
+
+#### Application
+
+- **Use cases**: name in `camelCase` that describes the purpose of the use case and is concatenated with `UseCase`. Example: `createProjectUseCase`.
+
+#### Infrastructure
+
+- **Adapters**: name in `PascalCase`, consisting of the technology name, the entity name, and `Adapter` concatenated together. Example: `DockerContainerRuntimeAdapter`.
+- **Repository implementations**: name in `PascalCase`, consisting of the technology name, the entity name, and `Repository` concatenated together. Example: `DatabaseUsersRepository`.
+- **Database entities**: name in `PascalCase` that always begins with `Db`, followed by the entity name and ends with `Entity`. Example: `DbProjectEntity`.
 
 ### Imports
 

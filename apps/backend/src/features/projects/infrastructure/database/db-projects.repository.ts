@@ -7,7 +7,7 @@ import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 
-import { ProjectDbEntity } from './db-project.entity';
+import { DbProjectEntity } from './db-project.entity';
 import { toProject } from './db-projects.transformer';
 
 /**
@@ -16,8 +16,8 @@ import { toProject } from './db-projects.transformer';
 @Injectable()
 export class DatabaseProjectsRepository implements ProjectsRepository {
     constructor(
-        @InjectRepository(ProjectDbEntity)
-        private readonly repository: Repository<ProjectDbEntity>,
+        @InjectRepository(DbProjectEntity)
+        private readonly repository: Repository<DbProjectEntity>,
     ) {}
 
     public async getAll(): Promise<Project[]> {

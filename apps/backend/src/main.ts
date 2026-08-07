@@ -23,7 +23,7 @@ function resolveCorsOrigins(raw: string): string[] {
         .filter((origin) => origin.length > 0);
 }
 
-async function bootstrap() {
+export async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
     const config = app.get(ConfigService);
@@ -50,5 +50,7 @@ async function bootstrap() {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-bootstrap();
+/* istanbul ignore next */
+if (require.main === module) {
+    void bootstrap();
+}

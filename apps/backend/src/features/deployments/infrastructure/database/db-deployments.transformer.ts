@@ -1,6 +1,6 @@
 import { Deployment } from '../../domain/models/deployment.models';
 
-import { DeploymentDbEntity } from './db-deployment.entity';
+import { DbDeploymentEntity } from './db-deployment.entity';
 
 /**
  * Maps a deployment database entity into its domain model.
@@ -9,7 +9,7 @@ import { DeploymentDbEntity } from './db-deployment.entity';
  *
  * @returns Domain deployment
  */
-export function toDeployment(entity: DeploymentDbEntity): Deployment {
+export function toDeployment(entity: DbDeploymentEntity): Deployment {
     return {
         id: entity.id,
         serviceId: entity.serviceId,

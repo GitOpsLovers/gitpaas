@@ -1,6 +1,6 @@
 import { Project } from '../../domain/models/project.models';
 
-import { ProjectDbEntity } from './db-project.entity';
+import { DbProjectEntity } from './db-project.entity';
 
 /**
  * Maps a project database entity into its domain model, deriving the services
@@ -10,7 +10,7 @@ import { ProjectDbEntity } from './db-project.entity';
  *
  * @returns Domain project
  */
-export function toProject(entity: ProjectDbEntity): Project {
+export function toProject(entity: DbProjectEntity): Project {
     return {
         id: entity.id,
         name: entity.name,

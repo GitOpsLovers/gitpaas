@@ -1,9 +1,9 @@
-import { DeploymentQueueTaskDbEntity } from '../db-deployment-queue-task.entity';
+import { DbDeploymentQueueTaskEntity } from '../db-deployment-queue-task.entity';
 import { toQueuedDeploymentTask } from '../db-deployment-queue-task.transformer';
 
 describe('toQueuedDeploymentTask', () => {
     it('maps the queue task entity payload and bookkeeping fields into the domain model', () => {
-        const entity: DeploymentQueueTaskDbEntity = {
+        const entity: DbDeploymentQueueTaskEntity = {
             id: 'q-1',
             deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
             repositoryId: 42,
@@ -30,7 +30,7 @@ describe('toQueuedDeploymentTask', () => {
     });
 
     it('omits persistence-only columns (lastError, timestamps) from the domain model', () => {
-        const entity: DeploymentQueueTaskDbEntity = {
+        const entity: DbDeploymentQueueTaskEntity = {
             id: 'q-2',
             deploymentId: 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b',
             repositoryId: 7,

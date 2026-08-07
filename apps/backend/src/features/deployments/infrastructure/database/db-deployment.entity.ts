@@ -2,13 +2,13 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 
 import type { DeploymentStatus } from '../../domain/models/deployment.models';
 
-import { ServiceDbEntity } from '@features/services/infrastructure/database/db-service.entity';
+import { DbServiceEntity } from '@features/services/infrastructure/database/db-service.entity';
 
 /**
  * Deployments database entity
  */
 @Entity('deployments')
-export class DeploymentDbEntity {
+export class DbDeploymentEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
 
@@ -42,7 +42,7 @@ export class DeploymentDbEntity {
     @Column({ type: 'timestamptz', nullable: true })
     public finishedAt!: Date | null;
 
-    @ManyToOne(() => ServiceDbEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => DbServiceEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'serviceId' })
-    public service?: ServiceDbEntity;
+    public service?: DbServiceEntity;
 }

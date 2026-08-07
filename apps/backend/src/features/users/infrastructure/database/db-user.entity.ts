@@ -6,7 +6,7 @@ import { UserRole } from '../../domain/models/user.models';
  * Users database entity
  */
 @Entity('users')
-export class UserDbEntity {
+export class DbUserEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
 

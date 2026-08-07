@@ -3,13 +3,13 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 import type { LogStatus } from '../../domain/models/log-event.models';
 import type { LogType } from '../../domain/models/log.models';
 
-import { DeploymentDbEntity } from '@features/deployments/infrastructure/database/db-deployment.entity';
+import { DbDeploymentEntity } from '@features/deployments/infrastructure/database/db-deployment.entity';
 
 /**
  * Logs database entity
  */
 @Entity('logs')
-export class LogDbEntity {
+export class DbLogEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
 
@@ -31,7 +31,7 @@ export class LogDbEntity {
     @CreateDateColumn({ type: 'timestamptz' })
     public createdAt!: Date;
 
-    @ManyToOne(() => DeploymentDbEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => DbDeploymentEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'deploymentId' })
-    public deployment?: DeploymentDbEntity;
+    public deployment?: DbDeploymentEntity;
 }

@@ -2,13 +2,13 @@ import { Repository } from 'typeorm';
 
 import { CreateUserDto } from '../../../domain/dtos/create-user.dto';
 import { User, UserRole } from '../../../domain/models/user.models';
-import { UserDbEntity } from '../db-user.entity';
+import { DbUserEntity } from '../db-user.entity';
 import { DatabaseUsersRepository } from '../db-users.repository';
 
 /**
  * Builds a user database-entity fixture, overriding only the fields under test.
  */
-const userEntity = (overrides: Partial<UserDbEntity> = {}): UserDbEntity => ({
+const userEntity = (overrides: Partial<DbUserEntity> = {}): DbUserEntity => ({
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     email: 'admin@example.com',
     passwordHash: 'argon2-hash',
@@ -20,7 +20,7 @@ const userEntity = (overrides: Partial<UserDbEntity> = {}): UserDbEntity => ({
 });
 
 describe('DatabaseUsersRepository', () => {
-    let mockRepository: jest.Mocked<Pick<Repository<UserDbEntity>, 'findOneBy' | 'create' | 'save'>>;
+    let mockRepository: jest.Mocked<Pick<Repository<DbUserEntity>, 'findOneBy' | 'create' | 'save'>>;
     let sut: DatabaseUsersRepository;
 
     beforeEach(() => {
@@ -31,7 +31,7 @@ describe('DatabaseUsersRepository', () => {
             create: jest.fn(),
             save: jest.fn(),
         };
-        sut = new DatabaseUsersRepository(mockRepository as unknown as Repository<UserDbEntity>);
+        sut = new DatabaseUsersRepository(mockRepository as unknown as Repository<DbUserEntity>);
     });
 
     describe('findByEmail', () => {

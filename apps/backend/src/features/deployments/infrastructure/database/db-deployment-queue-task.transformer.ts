@@ -1,6 +1,6 @@
 import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
 
-import { DeploymentQueueTaskDbEntity } from './db-deployment-queue-task.entity';
+import { DbDeploymentQueueTaskEntity } from './db-deployment-queue-task.entity';
 
 /**
  * Maps a deployment queue task database entity into its domain model.
@@ -9,7 +9,7 @@ import { DeploymentQueueTaskDbEntity } from './db-deployment-queue-task.entity';
  *
  * @returns Domain queued deployment task
  */
-export function toQueuedDeploymentTask(entity: DeploymentQueueTaskDbEntity): QueuedDeploymentTask {
+export function toQueuedDeploymentTask(entity: DbDeploymentQueueTaskEntity): QueuedDeploymentTask {
     return {
         id: entity.id,
         deploymentId: entity.deploymentId,

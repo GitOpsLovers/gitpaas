@@ -1,6 +1,6 @@
 import { User } from '../../domain/models/user.models';
 
-import { UserDbEntity } from './db-user.entity';
+import { DbUserEntity } from './db-user.entity';
 
 /**
  * Maps a user database entity into its domain model.
@@ -9,7 +9,7 @@ import { UserDbEntity } from './db-user.entity';
  *
  * @returns Domain user
  */
-export function toUser(entity: UserDbEntity): User {
+export function toUser(entity: DbUserEntity): User {
     return {
         id: entity.id,
         email: entity.email,

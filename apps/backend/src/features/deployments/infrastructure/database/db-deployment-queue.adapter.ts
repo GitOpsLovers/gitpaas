@@ -8,7 +8,7 @@ import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task
 import { DeploymentQueue, MAX_ATTEMPTS } from '../../domain/ports/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
-import { DeploymentQueueTaskDbEntity } from './db-deployment-queue-task.entity';
+import { DbDeploymentQueueTaskEntity } from './db-deployment-queue-task.entity';
 import { toQueuedDeploymentTask } from './db-deployment-queue-task.transformer';
 import { DatabaseDeploymentsRepository } from './db-deployments.repository';
 
@@ -25,8 +25,8 @@ export class DatabaseDeploymentQueueAdapter implements DeploymentQueue {
     private readonly requests = new Subject<QueuedDeploymentTask>();
 
     constructor(
-        @InjectRepository(DeploymentQueueTaskDbEntity)
-        private readonly repository: Repository<DeploymentQueueTaskDbEntity>,
+        @InjectRepository(DbDeploymentQueueTaskEntity)
+        private readonly repository: Repository<DbDeploymentQueueTaskEntity>,
         @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
     ) {}

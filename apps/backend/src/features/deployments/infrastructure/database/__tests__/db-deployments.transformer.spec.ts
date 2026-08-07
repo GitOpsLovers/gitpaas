@@ -1,11 +1,11 @@
-import { DeploymentDbEntity } from '../db-deployment.entity';
+import { DbDeploymentEntity } from '../db-deployment.entity';
 import { toDeployment } from '../db-deployments.transformer';
 
 describe('toDeployment', () => {
     it('maps every deployment entity field into the domain model', () => {
         const createdAt = new Date('2026-07-11T00:00:00.000Z');
         const finishedAt = new Date('2026-07-11T00:05:00.000Z');
-        const entity: DeploymentDbEntity = {
+        const entity: DbDeploymentEntity = {
             id: 'd-1',
             serviceId: 's-1',
             status: 'success',
@@ -36,7 +36,7 @@ describe('toDeployment', () => {
 
     it('preserves nullable commit, commitMessage, error and finishedAt fields', () => {
         const createdAt = new Date('2026-07-11T00:00:00.000Z');
-        const entity: DeploymentDbEntity = {
+        const entity: DbDeploymentEntity = {
             id: 'd-2',
             serviceId: 's-2',
             status: 'failed',

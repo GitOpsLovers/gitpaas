@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { LogDbEntity } from './infrastructure/database/db-log.entity';
+import { DbLogEntity } from './infrastructure/database/db-log.entity';
 import { DatabaseLogsRepository } from './infrastructure/database/db-logs.repository';
 import { PersistentLogStoreRepository } from './infrastructure/log-store/log-store-persistent.repository';
 import { RedisLogStoreAdapter } from './infrastructure/redis/redis-log-store.adapter';
@@ -18,7 +18,7 @@ import { LogsService } from './ui/services/logs.service';
  * stream and complete a run's output. It depends on no other feature module.
  */
 @Module({
-    imports: [TypeOrmModule.forFeature([LogDbEntity])],
+    imports: [TypeOrmModule.forFeature([DbLogEntity])],
     controllers: [LogsController],
     providers: [
         LogsService,

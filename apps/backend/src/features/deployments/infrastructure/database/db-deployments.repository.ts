@@ -7,7 +7,7 @@ import { UpdateDeploymentDto } from '../../domain/dtos/update-deployment.dto';
 import { Deployment, DeploymentStatus } from '../../domain/models/deployment.models';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 
-import { DeploymentDbEntity } from './db-deployment.entity';
+import { DbDeploymentEntity } from './db-deployment.entity';
 import { toDeployment } from './db-deployments.transformer';
 
 /**
@@ -21,8 +21,8 @@ const TERMINAL_STATUSES: ReadonlySet<DeploymentStatus> = new Set(['success', 'fa
 @Injectable()
 export class DatabaseDeploymentsRepository implements DeploymentsRepository {
     constructor(
-        @InjectRepository(DeploymentDbEntity)
-        private readonly repository: Repository<DeploymentDbEntity>,
+        @InjectRepository(DbDeploymentEntity)
+        private readonly repository: Repository<DbDeploymentEntity>,
     ) {}
 
     /**

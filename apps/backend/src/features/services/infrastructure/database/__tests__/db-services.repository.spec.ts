@@ -2,13 +2,13 @@ import { Repository } from 'typeorm';
 
 import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
 import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
-import { ServiceDbEntity } from '../db-service.entity';
+import { DbServiceEntity } from '../db-service.entity';
 import { DatabaseServicesRepository } from '../db-services.repository';
 
 /**
  * Builds a service database-entity fixture, overriding only the fields under test.
  */
-const serviceEntity = (overrides: Partial<ServiceDbEntity> = {}): ServiceDbEntity => ({
+const serviceEntity = (overrides: Partial<DbServiceEntity> = {}): DbServiceEntity => ({
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
     name: 'checkout',
     projectId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
@@ -27,7 +27,7 @@ describe('DatabaseServicesRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<ServiceDbEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
+        Pick<Repository<DbServiceEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
     >;
     let sut: DatabaseServicesRepository;
 
@@ -43,7 +43,7 @@ describe('DatabaseServicesRepository', () => {
             delete: jest.fn(),
         };
         sut = new DatabaseServicesRepository(
-            mockRepository as unknown as Repository<ServiceDbEntity>,
+            mockRepository as unknown as Repository<DbServiceEntity>,
         );
     });
 

@@ -6,7 +6,7 @@ import { CreateUserDto } from '../../domain/dtos/create-user.dto';
 import { User } from '../../domain/models/user.models';
 import { UsersRepository } from '../../domain/repositories/users.repository';
 
-import { UserDbEntity } from './db-user.entity';
+import { DbUserEntity } from './db-user.entity';
 import { toUser } from './db-users.transformer';
 
 /**
@@ -15,8 +15,8 @@ import { toUser } from './db-users.transformer';
 @Injectable()
 export class DatabaseUsersRepository implements UsersRepository {
     constructor(
-        @InjectRepository(UserDbEntity)
-        private readonly repository: Repository<UserDbEntity>,
+        @InjectRepository(DbUserEntity)
+        private readonly repository: Repository<DbUserEntity>,
     ) {}
 
     /**

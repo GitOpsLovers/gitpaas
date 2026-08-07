@@ -1,9 +1,9 @@
-import { ServiceDbEntity } from '../db-service.entity';
+import { DbServiceEntity } from '../db-service.entity';
 import { toService } from '../db-services.transformer';
 
 describe('toService', () => {
     it('maps every service entity field into the domain model', () => {
-        const entity: ServiceDbEntity = {
+        const entity: DbServiceEntity = {
             id: 's-1',
             name: 'api',
             projectId: 'p-1',
@@ -23,7 +23,7 @@ describe('toService', () => {
     });
 
     it('preserves empty-string defaults for optional persistence columns', () => {
-        const entity: ServiceDbEntity = {
+        const entity: DbServiceEntity = {
             id: 's-2',
             name: 'web',
             projectId: 'p-2',

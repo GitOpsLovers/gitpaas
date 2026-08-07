@@ -1,6 +1,6 @@
 import { Service } from '../../domain/models/service.models';
 
-import { ServiceDbEntity } from './db-service.entity';
+import { DbServiceEntity } from './db-service.entity';
 
 /**
  * Maps a service database entity into its domain model.
@@ -9,7 +9,7 @@ import { ServiceDbEntity } from './db-service.entity';
  *
  * @returns Domain service
  */
-export function toService(entity: ServiceDbEntity): Service {
+export function toService(entity: DbServiceEntity): Service {
     return {
         id: entity.id,
         name: entity.name,

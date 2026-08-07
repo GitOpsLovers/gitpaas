@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { UserDbEntity } from '@features/users/infrastructure/database/db-user.entity';
+import { DbUserEntity } from '@features/users/infrastructure/database/db-user.entity';
 
 /**
  * Refresh tokens database entity.
@@ -10,7 +10,7 @@ import { UserDbEntity } from '@features/users/infrastructure/database/db-user.en
  * logout, and cascade-deleted with their owning user.
  */
 @Entity('refresh_tokens')
-export class RefreshTokenDbEntity {
+export class DbRefreshTokenEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
 
@@ -35,7 +35,7 @@ export class RefreshTokenDbEntity {
     @UpdateDateColumn({ type: 'timestamptz' })
     public updatedAt!: Date;
 
-    @ManyToOne(() => UserDbEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => DbUserEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
-    public user?: UserDbEntity;
+    public user?: DbUserEntity;
 }

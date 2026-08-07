@@ -2,13 +2,13 @@ import { Repository } from 'typeorm';
 
 import { CreateDeploymentDto } from '../../../domain/dtos/create-deployment.dto';
 import { UpdateDeploymentDto } from '../../../domain/dtos/update-deployment.dto';
-import { DeploymentDbEntity } from '../db-deployment.entity';
+import { DbDeploymentEntity } from '../db-deployment.entity';
 import { DatabaseDeploymentsRepository } from '../db-deployments.repository';
 
 /**
  * Builds a deployment database-entity fixture, overriding only the fields under test.
  */
-const deploymentEntity = (overrides: Partial<DeploymentDbEntity> = {}): DeploymentDbEntity => ({
+const deploymentEntity = (overrides: Partial<DbDeploymentEntity> = {}): DbDeploymentEntity => ({
     id: '9c858901-8a57-4791-81fe-4c455b099bc9',
     serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     status: 'pending',
@@ -34,7 +34,7 @@ describe('DatabaseDeploymentsRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<DeploymentDbEntity>, 'find' | 'findOneBy' | 'create' | 'save' | 'delete'>
+        Pick<Repository<DbDeploymentEntity>, 'find' | 'findOneBy' | 'create' | 'save' | 'delete'>
     >;
     let sut: DatabaseDeploymentsRepository;
 
@@ -49,7 +49,7 @@ describe('DatabaseDeploymentsRepository', () => {
             delete: jest.fn(),
         };
         sut = new DatabaseDeploymentsRepository(
-            mockRepository as unknown as Repository<DeploymentDbEntity>,
+            mockRepository as unknown as Repository<DbDeploymentEntity>,
         );
     });
 
@@ -127,7 +127,7 @@ describe('DatabaseDeploymentsRepository', () => {
         it('sets a non-terminal status with an explicit error and a null finishedAt', async () => {
             const existing = deploymentEntity();
             mockRepository.findOneBy.mockResolvedValue(existing);
-            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DeploymentDbEntity));
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
 
             const updateDto: UpdateDeploymentDto = { status: 'running', error: 'boom' };
             const result = await sut.update(existing.id, updateDto);
@@ -142,7 +142,7 @@ describe('DatabaseDeploymentsRepository', () => {
         it('coerces an absent error to null for a non-terminal status', async () => {
             const existing = deploymentEntity({ error: 'previous error' });
             mockRepository.findOneBy.mockResolvedValue(existing);
-            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DeploymentDbEntity));
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
 
             await sut.update(existing.id, { status: 'running' });
 
@@ -153,7 +153,7 @@ describe('DatabaseDeploymentsRepository', () => {
         it('sets finishedAt to a Date for the terminal "success" status', async () => {
             const existing = deploymentEntity();
             mockRepository.findOneBy.mockResolvedValue(existing);
-            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DeploymentDbEntity));
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
 
             const result = await sut.update(existing.id, { status: 'success' });
 
@@ -167,7 +167,7 @@ describe('DatabaseDeploymentsRepository', () => {
         it('sets finishedAt to a Date and keeps the error for the terminal "failed" status', async () => {
             const existing = deploymentEntity();
             mockRepository.findOneBy.mockResolvedValue(existing);
-            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DeploymentDbEntity));
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
 
             await sut.update(existing.id, { status: 'failed', error: 'deploy crashed' });
 

@@ -1,10 +1,10 @@
 import { UserRole } from '../../../domain/models/user.models';
-import { UserDbEntity } from '../db-user.entity';
+import { DbUserEntity } from '../db-user.entity';
 import { toUser } from '../db-users.transformer';
 
 describe('toUser', () => {
     it('maps every user entity field into the domain model', () => {
-        const entity: UserDbEntity = {
+        const entity: DbUserEntity = {
             id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
             email: 'admin@example.com',
             passwordHash: 'argon2-hash',
@@ -26,7 +26,7 @@ describe('toUser', () => {
     });
 
     it('preserves the deactivated flag and the user role', () => {
-        const entity: UserDbEntity = {
+        const entity: DbUserEntity = {
             id: 'a1b2c3d4-0000-0000-0000-000000000000',
             email: 'user@example.com',
             passwordHash: 'hash',

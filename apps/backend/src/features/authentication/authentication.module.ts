@@ -5,7 +5,7 @@ import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { RefreshTokenDbEntity } from './infrastructure/database/db-refresh-token.entity';
+import { DbRefreshTokenEntity } from './infrastructure/database/db-refresh-token.entity';
 import { DatabaseRefreshTokensRepository } from './infrastructure/database/db-refresh-tokens.repository';
 import { JwtStrategy } from './infrastructure/passport/jwt.strategy';
 import { LocalStrategy } from './infrastructure/passport/local.strategy';
@@ -25,7 +25,7 @@ import { UsersModule } from '@features/users/users.module';
 @Module({
     imports: [
         UsersModule,
-        TypeOrmModule.forFeature([RefreshTokenDbEntity]),
+        TypeOrmModule.forFeature([DbRefreshTokenEntity]),
         PassportModule,
         JwtModule.registerAsync({
             inject: [ConfigService],

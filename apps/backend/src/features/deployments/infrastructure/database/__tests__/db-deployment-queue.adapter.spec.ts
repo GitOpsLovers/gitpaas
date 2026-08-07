@@ -5,14 +5,14 @@ import { DeploymentRunTask } from '../../../domain/models/deployment-run-task.mo
 import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
 import { MAX_ATTEMPTS } from '../../../domain/ports/deployment-queue.port';
 import { DeploymentsRepository } from '../../../domain/repositories/deployments.repository';
-import { DeploymentQueueTaskDbEntity } from '../db-deployment-queue-task.entity';
+import { DbDeploymentQueueTaskEntity } from '../db-deployment-queue-task.entity';
 import { toQueuedDeploymentTask } from '../db-deployment-queue-task.transformer';
 import { DatabaseDeploymentQueueAdapter } from '../db-deployment-queue.adapter';
 
 /**
  * Builds a queue task entity fixture, overriding only the fields under test.
  */
-function entity(overrides: Partial<DeploymentQueueTaskDbEntity> = {}): DeploymentQueueTaskDbEntity {
+function entity(overrides: Partial<DbDeploymentQueueTaskEntity> = {}): DbDeploymentQueueTaskEntity {
     return {
         id: 'q-1',
         deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
@@ -68,7 +68,7 @@ describe('DatabaseDeploymentQueueAdapter', () => {
             delete: jest.fn(),
         };
         sut = new DatabaseDeploymentQueueAdapter(
-            mockRepo as unknown as Repository<DeploymentQueueTaskDbEntity>,
+            mockRepo as unknown as Repository<DbDeploymentQueueTaskEntity>,
             deploymentsRepository,
         );
     });
@@ -119,7 +119,7 @@ describe('DatabaseDeploymentQueueAdapter', () => {
         it('re-queues and re-emits the task while attempts remain, recording the error', async () => {
             const existing = entity({ status: 'processing', attempts: MAX_ATTEMPTS - 1 });
             mockRepo.findOneBy.mockResolvedValue(existing);
-            mockRepo.save.mockImplementation((task: DeploymentQueueTaskDbEntity) => Promise.resolve(task));
+            mockRepo.save.mockImplementation((task: DbDeploymentQueueTaskEntity) => Promise.resolve(task));
 
             const emitted = firstValueFrom(sut.dequeued$);
             await sut.markFailed('q-1', 'boom');
@@ -134,7 +134,7 @@ describe('DatabaseDeploymentQueueAdapter', () => {
         it('dead-letters the row and fails the deployment once attempts are exhausted', async () => {
             const existing = entity({ status: 'processing', attempts: MAX_ATTEMPTS });
             mockRepo.findOneBy.mockResolvedValue(existing);
-            mockRepo.save.mockImplementation((task: DeploymentQueueTaskDbEntity) => Promise.resolve(task));
+            mockRepo.save.mockImplementation((task: DbDeploymentQueueTaskEntity) => Promise.resolve(task));
 
             const emissions: QueuedDeploymentTask[] = [];
             const subscription = sut.dequeued$.subscribe((task) => emissions.push(task));
@@ -158,7 +158,7 @@ describe('DatabaseDeploymentQueueAdapter', () => {
             const first = entity({ id: 'q-1', status: 'processing', projectName: 'a' });
             const second = entity({ id: 'q-2', status: 'queued', projectName: 'b' });
             mockRepo.find.mockResolvedValue([first, second]);
-            mockRepo.save.mockImplementation((task: DeploymentQueueTaskDbEntity) => Promise.resolve(task));
+            mockRepo.save.mockImplementation((task: DbDeploymentQueueTaskEntity) => Promise.resolve(task));
 
             const emissions: QueuedDeploymentTask[] = [];
             const subscription = sut.dequeued$.subscribe((task) => emissions.push(task));

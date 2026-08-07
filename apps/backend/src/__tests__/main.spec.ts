@@ -2,6 +2,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 
+import { bootstrap } from '../main';
+
 import { UsersService } from '@features/users/ui/services/users.service';
 
 /**
@@ -10,11 +12,10 @@ import { UsersService } from '@features/users/ui/services/users.service';
  * The heavy Nest bootstrap machinery is mocked at its module boundary so no real
  * HTTP server, DI container, or database work runs:
  *  - `@nestjs/core` → `NestFactory.create` resolves to a hand-rolled `app` stub.
- *  - `./app.module` → `AppModule` is a stub token (never actually instantiated).
+ *  - `./app.module` → `AppModule` is a sentinel token (never actually instantiated).
  *  - `helmet` → a jest mock returning a sentinel middleware we can identify.
  *
- * `main` is imported through `jest.isolateModules` on a fresh module registry per
- * case, because `bootstrap()` runs as a side effect at import time.
+ * `bootstrap` is imported directly from `main` and awaited in each case.
  */
 
 jest.mock('@nestjs/core', () => ({
@@ -24,7 +25,7 @@ jest.mock('@nestjs/core', () => ({
 }));
 
 jest.mock('../app.module', () => ({
-    AppModule: class AppModule {},
+    AppModule: Symbol('AppModule'),
 }));
 
 const HELMET_MIDDLEWARE = Symbol('helmet-middleware');
@@ -61,16 +62,7 @@ function buildApp(env: Record<string, string | undefined>) {
     };
 
     const app = {
-        get: jest.fn((token: unknown) => {
-            // `main` is loaded on an isolated module registry, so the `UsersService`
-            // token it passes is a distinct class object from the one imported here.
-            // Match by class name, which survives the registry reset.
-            if (typeof token === 'function' && token.name === UsersService.name) {
-                return usersService;
-            }
-
-            return config;
-        }),
+        get: jest.fn((token: unknown) => (token === UsersService ? usersService : config)),
         setGlobalPrefix: jest.fn(),
         enableCors: jest.fn(),
         use: jest.fn(),
@@ -79,19 +71,6 @@ function buildApp(env: Record<string, string | undefined>) {
     };
 
     return { app, config, usersService };
-}
-
-/**
- * Imports `main` on a fresh module registry, triggering `bootstrap()`, and waits
- * for any pending microtasks so the floating `bootstrap()` promise settles.
- */
-async function runBootstrap() {
-    jest.isolateModules(() => {
-        require('../main');
-    });
-
-    // Let the floating `bootstrap()` promise (and its awaited chain) settle.
-    await new Promise((resolve) => setImmediate(resolve));
 }
 
 describe('bootstrap (main.ts)', () => {
@@ -110,7 +89,7 @@ describe('bootstrap (main.ts)', () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(mockNestFactoryCreate).toHaveBeenCalledTimes(1);
         });
@@ -119,7 +98,7 @@ describe('bootstrap (main.ts)', () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(app.setGlobalPrefix).toHaveBeenCalledTimes(1);
             expect(app.setGlobalPrefix).toHaveBeenCalledWith('api/v1');
@@ -129,7 +108,7 @@ describe('bootstrap (main.ts)', () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(app.enableCors).toHaveBeenCalledTimes(1);
             expect(app.enableCors).toHaveBeenCalledWith({
@@ -142,7 +121,7 @@ describe('bootstrap (main.ts)', () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(mockHelmet).toHaveBeenCalledTimes(1);
             expect(app.use).toHaveBeenCalledTimes(1);
@@ -153,22 +132,20 @@ describe('bootstrap (main.ts)', () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(app.useGlobalPipes).toHaveBeenCalledTimes(1);
 
-            // Loaded on an isolated registry, so match the pipe by constructor name
-            // rather than an `instanceof` against this file's `ValidationPipe` copy.
             const pipe = app.useGlobalPipes.mock.calls[0][0];
 
-            expect(pipe.constructor.name).toBe(ValidationPipe.name);
+            expect(pipe).toBeInstanceOf(ValidationPipe);
         });
 
         it('listens on the configured PORT', async () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(app.listen).toHaveBeenCalledTimes(1);
             expect(app.listen).toHaveBeenCalledWith('3000');
@@ -184,7 +161,7 @@ describe('bootstrap (main.ts)', () => {
             });
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(app.enableCors).toHaveBeenCalledWith({
                 origin: ['http://a.com', 'http://b.com'],
@@ -202,7 +179,7 @@ describe('bootstrap (main.ts)', () => {
             });
             mockNestFactoryCreate.mockResolvedValue(app);
 
-            await runBootstrap();
+            await bootstrap();
 
             expect(usersService.seedDevelopmentAdmin).toHaveBeenCalledTimes(1);
 
@@ -223,7 +200,7 @@ describe('bootstrap (main.ts)', () => {
                 });
                 mockNestFactoryCreate.mockResolvedValue(app);
 
-                await runBootstrap();
+                await bootstrap();
 
                 expect(usersService.seedDevelopmentAdmin).not.toHaveBeenCalled();
                 expect(app.setGlobalPrefix).toHaveBeenCalledWith('api/v1');

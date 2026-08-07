@@ -1,9 +1,9 @@
-import { RefreshTokenDbEntity } from '../db-refresh-token.entity';
+import { DbRefreshTokenEntity } from '../db-refresh-token.entity';
 import { toRefreshToken } from '../db-refresh-tokens.transformer';
 
 describe('toRefreshToken', () => {
     it('maps every refresh token entity field into the domain model', () => {
-        const entity: RefreshTokenDbEntity = {
+        const entity: DbRefreshTokenEntity = {
             id: 'record-1',
             userId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
             jti: 'b1a2c3d4-0000-0000-0000-000000000000',
@@ -27,7 +27,7 @@ describe('toRefreshToken', () => {
     });
 
     it('omits the ORM relation column from the domain model', () => {
-        const entity: RefreshTokenDbEntity = {
+        const entity: DbRefreshTokenEntity = {
             id: 'record-2',
             userId: 'a1b2c3d4-0000-0000-0000-000000000000',
             jti: 'jti-2',
@@ -36,7 +36,7 @@ describe('toRefreshToken', () => {
             revoked: true,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:00:00.000Z'),
-            user: { id: 'a1b2c3d4-0000-0000-0000-000000000000' } as RefreshTokenDbEntity['user'],
+            user: { id: 'a1b2c3d4-0000-0000-0000-000000000000' } as DbRefreshTokenEntity['user'],
         };
 
         const result = toRefreshToken(entity);

@@ -1,5 +1,3 @@
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/container-runtime-docker.adapter';
-
 import { Service } from '../../../domain/models/service.models';
 import { DockerServiceRuntimeResourcesAdapter } from '../docker-service-runtime-resources.adapter';
 
@@ -14,6 +12,7 @@ import type {
     RuntimeNetworkSummary,
     RuntimeSelector,
 } from '@core/domain/models/container-runtime.models';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /** Compose project label the runtime maps a project scope onto, kept here to describe host resources. */

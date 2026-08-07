@@ -3,13 +3,13 @@ import { Repository } from 'typeorm';
 import { CreateProjectDto } from '../../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
 import { Project } from '../../../domain/models/project.models';
-import { ProjectDbEntity } from '../db-project.entity';
+import { DbProjectEntity } from '../db-project.entity';
 import { DatabaseProjectsRepository } from '../db-projects.repository';
 
 /**
  * Builds a project database-entity fixture, overriding only the fields under test.
  */
-const projectEntity = (overrides: Partial<ProjectDbEntity> = {}): ProjectDbEntity => ({
+const projectEntity = (overrides: Partial<DbProjectEntity> = {}): DbProjectEntity => ({
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
     name: 'gitpaas',
     services: [],
@@ -23,7 +23,7 @@ describe('DatabaseProjectsRepository', () => {
 
     let mockRepository: jest.Mocked<
         Pick<
-            Repository<ProjectDbEntity>,
+            Repository<DbProjectEntity>,
             'find' | 'findOne' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'
         >
     >;
@@ -42,7 +42,7 @@ describe('DatabaseProjectsRepository', () => {
             delete: jest.fn(),
         };
         sut = new DatabaseProjectsRepository(
-            mockRepository as unknown as Repository<ProjectDbEntity>,
+            mockRepository as unknown as Repository<DbProjectEntity>,
         );
     });
 
@@ -51,7 +51,7 @@ describe('DatabaseProjectsRepository', () => {
             const withServices = projectEntity({
                 id: '11111111-1111-4111-8111-111111111111',
                 name: 'with-services',
-                services: [{}, {}, {}] as ProjectDbEntity['services'],
+                services: [{}, {}, {}] as DbProjectEntity['services'],
             });
             const withoutServices = projectEntity({
                 id: '22222222-2222-4222-8222-222222222222',
@@ -86,7 +86,7 @@ describe('DatabaseProjectsRepository', () => {
     describe('findById', () => {
         it('finds a project by id with services and returns the mapped domain project', async () => {
             const entity = projectEntity({
-                services: [{}, {}] as ProjectDbEntity['services'],
+                services: [{}, {}] as DbProjectEntity['services'],
             });
             mockRepository.findOne.mockResolvedValue(entity);
 
