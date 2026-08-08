@@ -125,6 +125,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
      * Human-readable HTTP status name (e.g. 404 → "Not Found").
      */
     private statusName(statusCode: number): string {
+        // eslint-disable-next-line security/detect-object-injection
         const name = HttpStatus[statusCode] as string | undefined;
 
         if (!name) {

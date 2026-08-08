@@ -7,8 +7,15 @@ import { ReadinessResult } from '../../../domain/models/readiness-result.models'
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
+import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
+const runtimeInfo: ContainerRuntimeInfo = {
+    serverVersion: '27.1.1',
+    operatingSystem: 'Ubuntu 24.04',
+    containers: 4,
+    images: 12,
+};
 const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 };
 const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
@@ -35,7 +42,12 @@ describe('ServerController', () => {
     let mockServerService: jest.Mocked<
         Pick<
             ServerService,
-            'pruneImages' | 'pruneVolumes' | 'pruneContainers' | 'removeOrphanedContainers' | 'checkReadiness'
+            | 'pruneImages'
+            | 'pruneVolumes'
+            | 'pruneContainers'
+            | 'removeOrphanedContainers'
+            | 'checkReadiness'
+            | 'getStatus'
         >
     >;
     let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
@@ -50,6 +62,7 @@ describe('ServerController', () => {
             pruneContainers: jest.fn(),
             removeOrphanedContainers: jest.fn(),
             checkReadiness: jest.fn(),
+            getStatus: jest.fn(),
         };
 
         mockDiagnostics = {
@@ -105,6 +118,74 @@ describe('ServerController', () => {
             mockServerService.checkReadiness.mockRejectedValue(original);
 
             await expect(sut.readiness()).rejects.toBe(original);
+        });
+    });
+
+    describe('getStatus', () => {
+        it('delegates to the service to fetch the daemon info', async () => {
+            mockServerService.getStatus.mockResolvedValue(runtimeInfo);
+
+            await sut.getStatus();
+
+            expect(mockServerService.getStatus).toHaveBeenCalledTimes(1);
+        });
+
+        it('maps the daemon info into a connected status payload', async () => {
+            mockServerService.getStatus.mockResolvedValue(runtimeInfo);
+
+            const result = await sut.getStatus();
+
+            expect(result).toEqual({
+                connected: true,
+                serverVersion: runtimeInfo.serverVersion,
+                operatingSystem: runtimeInfo.operatingSystem,
+                containers: runtimeInfo.containers,
+                images: runtimeInfo.images,
+            });
+        });
+
+        it('reflects zeroed counts and empty strings from the daemon info', async () => {
+            mockServerService.getStatus.mockResolvedValue({
+                serverVersion: '',
+                operatingSystem: '',
+                containers: 0,
+                images: 0,
+            });
+
+            const result = await sut.getStatus();
+
+            expect(result).toEqual({
+                connected: true,
+                serverVersion: '',
+                operatingSystem: '',
+                containers: 0,
+                images: 0,
+            });
+        });
+
+        it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
+            const original = new ServiceUnavailableException('daemon down');
+            mockServerService.getStatus.mockRejectedValue(original);
+
+            await expect(sut.getStatus()).rejects.toBe(original);
+        });
+
+        it('wraps an unexpected error into a ServiceUnavailableException', async () => {
+            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            await expect(sut.getStatus()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('includes remediation guidance in the wrapped error message', async () => {
+            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            await expect(sut.getStatus()).rejects.toThrow(/Could not reach the server Docker daemon/);
+        });
+
+        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+            mockServerService.getStatus.mockRejectedValue('boom');
+
+            await expect(sut.getStatus()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
     });
 

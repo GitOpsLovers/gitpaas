@@ -6,8 +6,6 @@ import { validate } from './infrastructure/config/env-validation.config';
 import { buildDataSourceOptions } from './infrastructure/database/data-source-options';
 import { DockerContainerRuntimeAdapter } from './infrastructure/docker/docker-container-runtime.adapter';
 import { RedisClient } from './infrastructure/redis/redis.client';
-import { ContainerRuntimeController } from './ui/controllers/container-runtime.controller';
-import { ContainerRuntimeService } from './ui/services/container-runtime.service';
 import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service';
 
 /**
@@ -25,8 +23,7 @@ import { DiagnosticLoggerService } from './ui/services/diagnostic-logger.service
             }),
         }),
     ],
-    controllers: [ContainerRuntimeController],
-    providers: [DockerContainerRuntimeAdapter, ContainerRuntimeService, RedisClient, DiagnosticLoggerService],
+    providers: [DockerContainerRuntimeAdapter, RedisClient, DiagnosticLoggerService],
     exports: [DockerContainerRuntimeAdapter, RedisClient, DiagnosticLoggerService],
 })
 

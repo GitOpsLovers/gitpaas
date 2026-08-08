@@ -5,14 +5,12 @@ import { PruneResult } from '../../domain/models/prune-result.models';
 import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import { ServerService } from '../services/server.service';
 
+import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
 
 /**
  * Server controller
- *
- * Exposes maintenance actions that reclaim disk space on the server by pruning
- * unused Docker resources.
  */
 @Controller('server')
 export class ServerController {
@@ -22,11 +20,7 @@ export class ServerController {
     ) {}
 
     /**
-     * Report readiness by actively probing the server's critical dependencies
-     * (PostgreSQL, Redis, Docker daemon).
-     *
-     * @returns 200 with a per-dependency breakdown when every dependency is up;
-     * 503 carrying the same breakdown when any dependency is down
+     * Check the availability of the GitPaaS infrastructure.
      */
     @Public()
     @Get('readiness')
@@ -38,6 +32,32 @@ export class ServerController {
         }
 
         return result;
+    }
+
+    /**
+     * Health check for the connection to the server's Docker daemon.
+     */
+    @Get('status')
+    public async getStatus(): Promise<ContainerRuntimeInfo & { connected: boolean }> {
+        try {
+            const info = await this.service.getStatus();
+
+            return {
+                connected: true,
+                ...info,
+            };
+        } catch (error) {
+            if (error instanceof ServiceUnavailableException) {
+                throw error;
+            }
+
+            this.diagnostics.error('Failed to reach the server Docker daemon', error, ServerController.name);
+
+            throw new ServiceUnavailableException(
+                'Could not reach the server Docker daemon. Verify the server is running and '
+                    + 'reachable; in local development, start the emulated server (see CONTRIBUTING.md).',
+            );
+        }
     }
 
     /**

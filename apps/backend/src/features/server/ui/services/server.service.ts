@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
+import { getServerStatusUseCase } from '../../application/get-server-status.use-case';
 import { pruneContainersUseCase } from '../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
@@ -16,6 +17,9 @@ import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-hea
 import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
 
+import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
+import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
@@ -36,6 +40,8 @@ export class ServerService {
         private readonly redisProbe: HealthProbe,
         @Inject(DockerHealthProbeAdapter)
         private readonly dockerProbe: HealthProbe,
+        @Inject(DockerContainerRuntimeAdapter)
+        private readonly containerRuntime: ContainerRuntime,
     ) {}
 
     /**
@@ -82,5 +88,14 @@ export class ServerService {
      */
     public checkReadiness(): Promise<ReadinessResult> {
         return checkReadinessUseCase([this.postgresProbe, this.redisProbe, this.dockerProbe]);
+    }
+
+    /**
+     * Reads the information reported by the server's Docker daemon
+     *
+     * @returns Daemon information
+     */
+    public getStatus(): Promise<ContainerRuntimeInfo> {
+        return getServerStatusUseCase(this.containerRuntime);
     }
 }

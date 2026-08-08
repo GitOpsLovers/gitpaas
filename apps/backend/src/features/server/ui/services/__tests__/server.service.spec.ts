@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 
 import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
+import { getServerStatusUseCase } from '../../../application/get-server-status.use-case';
 import { pruneContainersUseCase } from '../../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
@@ -15,6 +16,8 @@ import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postg
 import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
 import { ServerService } from '../server.service';
 
+import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/prune-images.use-case');
@@ -22,7 +25,11 @@ jest.mock('../../../application/prune-volumes.use-case');
 jest.mock('../../../application/prune-containers.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
 jest.mock('../../../application/check-readiness.use-case');
+jest.mock('../../../application/get-server-status.use-case');
 
+const mockGetServerStatusUseCase = getServerStatusUseCase as jest.MockedFunction<
+    typeof getServerStatusUseCase
+>;
 const mockCheckReadinessUseCase = checkReadinessUseCase as jest.MockedFunction<
     typeof checkReadinessUseCase
 >;
@@ -42,6 +49,12 @@ const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
+const runtimeInfo: ContainerRuntimeInfo = {
+    serverVersion: '27.1.1',
+    operatingSystem: 'Ubuntu 24.04',
+    containers: 4,
+    images: 12,
+};
 const readinessResult: ReadinessResult = {
     status: 'ok',
     dependencies: [
@@ -58,6 +71,7 @@ describe('ServerService', () => {
     let mockPostgresProbe: jest.Mocked<PostgresHealthProbeAdapter>;
     let mockRedisProbe: jest.Mocked<RedisHealthProbeAdapter>;
     let mockDockerProbe: jest.Mocked<DockerHealthProbeAdapter>;
+    let mockContainerRuntime: jest.Mocked<DockerContainerRuntimeAdapter>;
     let sut: ServerService;
 
     beforeEach(async () => {
@@ -69,6 +83,7 @@ describe('ServerService', () => {
         mockPostgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbeAdapter>;
         mockRedisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<RedisHealthProbeAdapter>;
         mockDockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbeAdapter>;
+        mockContainerRuntime = {} as jest.Mocked<DockerContainerRuntimeAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -79,6 +94,7 @@ describe('ServerService', () => {
                 { provide: PostgresHealthProbeAdapter, useValue: mockPostgresProbe },
                 { provide: RedisHealthProbeAdapter, useValue: mockRedisProbe },
                 { provide: DockerHealthProbeAdapter, useValue: mockDockerProbe },
+                { provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime },
             ],
         }).compile();
 
@@ -301,6 +317,37 @@ describe('ServerService', () => {
             mockCheckReadinessUseCase.mockRejectedValue(error);
 
             await expect(sut.checkReadiness()).rejects.toThrow(error);
+        });
+    });
+
+    describe('getStatus', () => {
+        it('delegates to the get server status use case with the container runtime', async () => {
+            mockGetServerStatusUseCase.mockResolvedValue(runtimeInfo);
+
+            await sut.getStatus();
+
+            expect(mockGetServerStatusUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetServerStatusUseCase).toHaveBeenCalledWith(mockContainerRuntime);
+        });
+
+        it('returns the container runtime info produced by the use case', async () => {
+            mockGetServerStatusUseCase.mockResolvedValue(runtimeInfo);
+
+            const result = await sut.getStatus();
+
+            expect(result).toEqual({
+                serverVersion: '27.1.1',
+                operatingSystem: 'Ubuntu 24.04',
+                containers: 4,
+                images: 12,
+            });
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('docker daemon unreachable');
+            mockGetServerStatusUseCase.mockRejectedValue(error);
+
+            await expect(sut.getStatus()).rejects.toThrow(error);
         });
     });
 });
