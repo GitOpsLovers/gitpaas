@@ -218,7 +218,7 @@ HTTP → ValidationPipe → Controller → Service → Use Case → Repository p
 
 ### Durable queue (background work)
 
-To trigger work without coupling the caller to when it runs, the producer enqueues a task and a consumer dequeues it later. The queue is another port and adapter: the domain declares a `DeploymentQueue` port, and the producing feature's infrastructure supplies the adapter and **exports** it. The queue is **durable and at-least-once** — tasks survive restarts, are retried on failure, and are dead-lettered once their attempts run out. The `deployments` feature is the reference: its adapter persists each task as a `deployment_queue_tasks` row and uses an internal RxJS `Subject` only as the in-process dispatch channel.
+To trigger work without coupling the caller to when it runs, the producer enqueues a task and a consumer dequeues it later. The queue is **durable and at-least-once** — tasks survive restarts, are retried on failure, and are dead-lettered once their attempts run out. The `deployments` feature is the reference: its adapter persists each task as a `deployment_queue_tasks` row and uses an internal RxJS `Subject` only as the in-process dispatch channel.
 
 ```text
 queued ──(picked up)──► processing ──(ok)──► [row deleted]
@@ -228,9 +228,9 @@ queued ──(picked up)──► processing ──(ok)──► [row deleted]
                                                         deployment marked failed)
 ```
 
-Each port operation maps onto that lifecycle: `enqueue` persists the task as `queued` with `attempts=0` and then emits it; `markProcessing` sets the task to `processing` and increments its attempt count; `markCompleted` deletes the row, since the deployment itself carries the durable outcome; `markFailed` records the error and re-enqueues the task while `attempts < 3`, otherwise dead-letters it **and** marks the deployment `failed` so it is never stranded in `pending`; and `recoverPending`, on restart, resets every `queued` or `processing` row back to `queued` and re-emits it.
+Each operation maps onto that lifecycle: `enqueue` persists the task as `queued` with `attempts=0` and then emits it; `markProcessing` sets the task to `processing` and increments its attempt count; `markCompleted` deletes the row, since the deployment itself carries the durable outcome; `markFailed` records the error and re-enqueues the task while `attempts < 3`, otherwise dead-letters it **and** marks the deployment `failed` so it is never stranded in `pending`; and `recoverPending`, on restart, resets every `queued` or `processing` row back to `queued` and re-emits it.
 
-`POST /deployments` validates the request, persists a `pending` record, enqueues a run task, and returns the record **with its id** immediately. `DeploymentRunnerService` (`OnModuleInit`) subscribes to the stream and only then calls `recoverPending()`. It serialises runs **per compose-project name** (`groupBy` + `concatMap`) while running distinct projects concurrently (`mergeMap`). Each run drives `runDeploymentUseCase`:
+`POST /deployments` validates the request, persists a `pending` record, enqueues a run task, and returns the record **with its id** immediately. `DeploymentRunnerService` subscribes to the stream and only then calls `recoverPending()`. It serialises runs **per compose-project name** while running distinct projects concurrently:
 
 ```text
 markProcessing → fetch repo archive (providers) → docker executor up()
