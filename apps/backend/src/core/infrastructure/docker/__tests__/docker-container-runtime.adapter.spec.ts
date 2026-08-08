@@ -5,7 +5,7 @@ import Docker from 'dockerode';
 import { DockerContainerRuntimeAdapter } from '../docker-container-runtime.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
-import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
+import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 // `dockerode` is replaced by a `jest.fn()` constructor so `new Docker(...)` never
 // opens a real connection; we assert the exact options passed to it.
@@ -118,7 +118,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('scopes a query to GitPaaS-managed resources', async () => {
             const { sut, daemon } = buildSut();
 
-            await sut.pruneImages({ labels: getGitpaasResourceLabels() });
+            await sut.pruneImages({ labels: getGitpaasLabels() });
 
             expect(daemon.pruneImages).toHaveBeenCalledWith({ filters: { label: ['io.gitpaas.managed=true'] } });
         });
@@ -138,7 +138,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('maps a project scope onto the compose project label, keeping the marker', async () => {
             const { sut, daemon } = buildSut();
 
-            await sut.listNetworks({ labels: getGitpaasResourceLabels(), project: 'my-service' });
+            await sut.listNetworks({ labels: getGitpaasLabels(), project: 'my-service' });
 
             expect(daemon.listNetworks).toHaveBeenCalledWith({
                 filters: { label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'] },
@@ -148,7 +148,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('emits a bare compose project key for a null project, matching any project at all', async () => {
             const { sut, daemon } = buildSut();
 
-            await sut.listContainers({ labels: getGitpaasResourceLabels(), project: null }, true);
+            await sut.listContainers({ labels: getGitpaasLabels(), project: null }, true);
 
             expect(daemon.listContainers).toHaveBeenCalledWith({
                 all: true,
@@ -167,8 +167,8 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('scopes the volume and container prunes to the same serialised filter', async () => {
             const { sut, daemon } = buildSut();
 
-            await sut.pruneVolumes({ labels: getGitpaasResourceLabels() });
-            await sut.pruneContainers({ labels: getGitpaasResourceLabels(), project: 'my-service' });
+            await sut.pruneVolumes({ labels: getGitpaasLabels() });
+            await sut.pruneContainers({ labels: getGitpaasLabels(), project: 'my-service' });
 
             expect(daemon.pruneVolumes).toHaveBeenCalledWith({ filters: { label: ['io.gitpaas.managed=true'] } });
             expect(daemon.pruneContainers).toHaveBeenCalledWith({

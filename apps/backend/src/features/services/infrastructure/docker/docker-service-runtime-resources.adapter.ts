@@ -8,7 +8,7 @@ import type { RuntimeSelector } from '@core/domain/models/container-runtime.mode
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
-import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
+import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
@@ -24,7 +24,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
 
     public async removeContainers(service: Service): Promise<void> {
         const projectName = getServiceSlug(service);
-        const selector: RuntimeSelector = { labels: getGitpaasResourceLabels(), project: projectName };
+        const selector: RuntimeSelector = { labels: getGitpaasLabels(), project: projectName };
 
         let containersRemoved = 0;
 
@@ -57,7 +57,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
 
     public async removeNetworks(service: Service): Promise<void> {
         const projectName = getServiceSlug(service);
-        const selector: RuntimeSelector = { labels: getGitpaasResourceLabels(), project: projectName };
+        const selector: RuntimeSelector = { labels: getGitpaasLabels(), project: projectName };
 
         let networksRemoved = 0;
 
@@ -95,7 +95,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
 
         try {
             const labels = {
-                ...getGitpaasResourceLabels(),
+                ...getGitpaasLabels(),
                 [GITPAAS_PROJECT_LABEL]: projectName,
             };
             const builtImages = await this.client.listImages({ labels });

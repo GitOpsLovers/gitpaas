@@ -8,7 +8,7 @@ import type { RuntimeContainerSummary } from '@core/domain/models/container-runt
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
-import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
+import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
  * Docker orphan containers adapter
@@ -36,7 +36,7 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
     public async removeOrphaned(knownProjects: string[]): Promise<OrphanRemovalResult> {
         const known = new Set(knownProjects);
 
-        const candidates = await this.client.listContainers({ labels: getGitpaasResourceLabels(), project: null }, true);
+        const candidates = await this.client.listContainers({ labels: getGitpaasLabels(), project: null }, true);
 
         const names: string[] = [];
 
