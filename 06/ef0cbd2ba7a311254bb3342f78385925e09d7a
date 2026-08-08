@@ -1,0 +1,59 @@
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_cd2c7565bc4f58::t_0762ba1f56d552 7
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_cd2c7565bc4f58::t_7a28eb410e1a3e 12
+apps/backend/src/features/containers/infrastructure/docker/docker-containers.repository.ts
+  s_cd2c7565bc4f58::t_55d8b5d97fd472 8
+apps/backend/src/features/networks/infrastructure/docker/docker-networks.repository.ts
+  s_cd2c7565bc4f58::t_b2fd74ab3dc790 8
+apps/backend/src/features/server/infrastructure/docker/docker-orphan-containers.adapter.ts
+  s_cd2c7565bc4f58::t_ad01266a41825e 6
+apps/backend/src/features/server/infrastructure/docker/docker-server-pruner.adapter.ts
+  s_cd2c7565bc4f58::t_3241c763a03af4 8
+apps/backend/src/features/services/infrastructure/docker/docker-service-runtime-resources.adapter.ts
+  s_cd2c7565bc4f58::t_e6c17d2184fdf4 6
+.claude/skills/backend-feature/SKILL.md
+  s_b69708ab3b2e7b::t_5e4c0f5068cf2b 47-58
+.claude/skills/backend-unit-testing/SKILL.md
+  s_b69708ab3b2e7b::t_3b42bf869e6d51 10,24,100,110
+apps/backend/jest.config.js
+  s_642f13001418d3::t_c9873858558161 12
+apps/backend/src/shared/application/select-owned-resources.use-case.ts
+  s_642f13001418d3::t_80657c991002a7 1-2
+apps/backend/tsconfig.json
+  s_642f13001418d3::t_c56da29ebe86e3 27-28
+docs/backend-architecture.md
+  s_b69708ab3b2e7b::t_c693b6c047043a 30-48,201,270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "06ef0cbd2ba7a311254bb3342f78385925e09d7a",
+  "prompts": {},
+  "sessions": {
+    "s_642f13001418d3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a13a8dcbb1aecfd6e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b69708ab3b2e7b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad9606e24c58fbdb0",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cd2c7565bc4f58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "54dfa5ff-bb5c-42e5-986a-e3c5d009ffcb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
