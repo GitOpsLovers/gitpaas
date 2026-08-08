@@ -1,8 +1,8 @@
 import { OrphanRemovalResult } from '../domain/models/orphan-removal-result.models';
 import { OrphanContainers } from '../domain/ports/orphan-containers.port';
 
-import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Use case for force-removing orphaned GitPaaS containers from the server.
@@ -20,7 +20,7 @@ export async function removeOrphanedContainersUseCase(
     servicesRepository: ServicesRepository,
 ): Promise<OrphanRemovalResult> {
     const services = await servicesRepository.getAll();
-    const knownProjects = services.map(serviceProjectNameUseCase);
+    const knownProjects = services.map(getServiceSlug);
 
     return orphanContainers.removeOrphaned(knownProjects);
 }

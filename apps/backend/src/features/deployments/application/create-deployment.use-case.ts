@@ -7,9 +7,9 @@ import { DeploymentsRepository } from '../domain/repositories/deployments.reposi
 
 import { persistDeploymentUseCase } from './persist-deployment.use-case';
 
-import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import { Providers } from '@features/providers/domain/ports/providers.port';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Use case that orchestrates triggering a new deployment for a service:
@@ -61,7 +61,7 @@ export async function createDeploymentUseCase(
         repositoryId: Number(service.repositoryId),
         commit: deployment.commit ?? deployment.branch,
         composerPath: deployment.composerPath,
-        projectName: serviceProjectNameUseCase(service),
+        projectName: getServiceSlug(service),
     });
 
     return deployment;

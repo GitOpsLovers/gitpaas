@@ -9,6 +9,7 @@ module.exports = {
     moduleNameMapper: {
         '^@core/(.*)$': '<rootDir>/core/$1',
         '^@features/(.*)$': '<rootDir>/features/$1',
+        '^@shared/(.*)$': '<rootDir>/shared/$1',
         '^@octokit/rest$': '<rootDir>/../test/stubs/octokit-rest.stub.ts',
         '^@octokit/auth-app$': '<rootDir>/../test/stubs/octokit-auth-app.stub.ts',
     },

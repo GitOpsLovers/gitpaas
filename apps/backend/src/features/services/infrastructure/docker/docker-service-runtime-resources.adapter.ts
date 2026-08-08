@@ -3,13 +3,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Service } from '../../domain/models/service.models';
 import { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 
-import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
-import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import { GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
+import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Docker service runtime resources adapter.
@@ -23,8 +23,8 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
     ) {}
 
     public async removeContainers(service: Service): Promise<void> {
-        const projectName = serviceProjectNameUseCase(service);
-        const selector: RuntimeSelector = { labels: selectOwnedResourcesUseCase(), project: projectName };
+        const projectName = getServiceSlug(service);
+        const selector: RuntimeSelector = { labels: getGitpaasResourceLabels(), project: projectName };
 
         let containersRemoved = 0;
 
@@ -56,8 +56,8 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
     }
 
     public async removeNetworks(service: Service): Promise<void> {
-        const projectName = serviceProjectNameUseCase(service);
-        const selector: RuntimeSelector = { labels: selectOwnedResourcesUseCase(), project: projectName };
+        const projectName = getServiceSlug(service);
+        const selector: RuntimeSelector = { labels: getGitpaasResourceLabels(), project: projectName };
 
         let networksRemoved = 0;
 
@@ -89,13 +89,13 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
     }
 
     public async removeImages(service: Service): Promise<void> {
-        const projectName = serviceProjectNameUseCase(service);
+        const projectName = getServiceSlug(service);
 
         let imagesRemoved = 0;
 
         try {
             const labels = {
-                ...selectOwnedResourcesUseCase(),
+                ...getGitpaasResourceLabels(),
                 [GITPAAS_PROJECT_LABEL]: projectName,
             };
             const builtImages = await this.client.listImages({ labels });

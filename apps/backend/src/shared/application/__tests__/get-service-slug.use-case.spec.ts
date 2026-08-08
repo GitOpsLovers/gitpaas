@@ -1,13 +1,13 @@
-import { serviceProjectNameUseCase } from '../service-project-name.use-case';
+import { getServiceSlug } from '../get-service-slug.use-case';
 
-describe('service-project-name.use-case', () => {
-    describe('serviceProjectNameUseCase', () => {
+describe('get-service-slug.use-case', () => {
+    describe('getServiceSlug', () => {
         it('slugifies the service name', () => {
-            expect(serviceProjectNameUseCase({ id: 'abc', name: 'My Service!' })).toBe('my-service');
+            expect(getServiceSlug({ id: 'abc', name: 'My Service!' })).toBe('my-service');
         });
 
         it('trims leading and trailing separators', () => {
-            expect(serviceProjectNameUseCase({ id: 'abc', name: '--Web App--' })).toBe('web-app');
+            expect(getServiceSlug({ id: 'abc', name: '--Web App--' })).toBe('web-app');
         });
 
         it.each([
@@ -19,7 +19,7 @@ describe('service-project-name.use-case', () => {
             ['drops non-ascii characters', 'Café', 'caf'],
             ['leaves an already-slugified name untouched', 'billing-svc', 'billing-svc'],
         ])('%s', (_case, name, expected) => {
-            expect(serviceProjectNameUseCase({ id: 'abc', name })).toBe(expected);
+            expect(getServiceSlug({ id: 'abc', name })).toBe(expected);
         });
 
         it.each([
@@ -28,13 +28,13 @@ describe('service-project-name.use-case', () => {
             ['empty', ''],
             ['non-ascii only', '日本語'],
         ])('falls back to service-<id> when the name is %s', (_case, name) => {
-            expect(serviceProjectNameUseCase({ id: 'abc', name })).toBe('service-abc');
+            expect(getServiceSlug({ id: 'abc', name })).toBe('service-abc');
         });
 
         it('ignores the extra arguments Array.prototype.map passes it', () => {
             const services = [{ id: 'abc', name: 'Checkout API' }, { id: 'def', name: '!!!' }];
 
-            expect(services.map(serviceProjectNameUseCase)).toEqual(['checkout-api', 'service-def']);
+            expect(services.map(getServiceSlug)).toEqual(['checkout-api', 'service-def']);
         });
     });
 });

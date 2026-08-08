@@ -3,12 +3,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
 import { OrphanContainers } from '../../domain/ports/orphan-containers.port';
 
-import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
 import { GITPAAS_CONTROL_PLANE_PROJECTS } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
 
 /**
  * Docker orphan containers adapter
@@ -36,7 +36,7 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
     public async removeOrphaned(knownProjects: string[]): Promise<OrphanRemovalResult> {
         const known = new Set(knownProjects);
 
-        const candidates = await this.client.listContainers({ labels: selectOwnedResourcesUseCase(), project: null }, true);
+        const candidates = await this.client.listContainers({ labels: getGitpaasResourceLabels(), project: null }, true);
 
         const names: string[] = [];
 
