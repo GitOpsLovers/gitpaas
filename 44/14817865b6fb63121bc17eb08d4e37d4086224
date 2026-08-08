@@ -1,0 +1,85 @@
+apps/backend/jest.config.js
+  s_642f13001418d3::t_c9873858558161 12
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_cd2c7565bc4f58::t_7a28eb410e1a3e 12
+  s_cd2c7565bc4f58::t_a9027ffb4ee721 63,75,81,101,104
+apps/backend/src/features/server/infrastructure/docker/docker-orphan-containers.adapter.ts
+  s_cd2c7565bc4f58::t_ad01266a41825e 6
+  s_cd2c7565bc4f58::t_20eaadd3b96ae0 39
+apps/backend/src/features/server/infrastructure/docker/docker-server-pruner.adapter.ts
+  s_cd2c7565bc4f58::t_3241c763a03af4 8
+  s_cd2c7565bc4f58::t_f51b2b91b56cdf 20,27,34
+apps/backend/src/shared/application/get-gitpaas-resource-labels.use-case.ts
+  s_cd2c7565bc4f58::t_e0485fb3b8c0ac 1-2,5,7,9
+apps/backend/src/features/networks/infrastructure/docker/docker-networks.repository.ts
+  s_cd2c7565bc4f58::t_b2fd74ab3dc790 8
+  s_cd2c7565bc4f58::t_24ec418a2fdda3 22
+docs/backend-architecture.md
+  s_7971350c1f9953::t_e80279d0841666 270
+  s_b69708ab3b2e7b::t_c693b6c047043a 30-44,103-104,199,268
+.claude/skills/backend-unit-testing/SKILL.md
+  s_b69708ab3b2e7b::t_3b42bf869e6d51 10,24,100,110
+apps/backend/src/shared/application/__tests__/get-gitpaas-resource-labels.use-case.spec.ts
+  s_cd2c7565bc4f58::t_3018faaf1b54a6 1,3-4,6,10,13
+apps/backend/tsconfig.json
+  s_642f13001418d3::t_c56da29ebe86e3 27-28
+apps/backend/src/features/services/infrastructure/docker/docker-service-runtime-resources.adapter.ts
+  s_cd2c7565bc4f58::t_11837e6d9c18c7 27,60,98
+  s_cd2c7565bc4f58::t_e6c17d2184fdf4 6
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_cd2c7565bc4f58::t_0762ba1f56d552 7
+  s_cd2c7565bc4f58::t_755b830dcd1a77 121,141,151,170-171
+apps/backend/src/features/containers/infrastructure/docker/docker-containers.repository.ts
+  s_cd2c7565bc4f58::t_fa225a815f2ae5 22
+  s_cd2c7565bc4f58::t_55d8b5d97fd472 8
+.claude/skills/backend-feature/SKILL.md
+  s_587fe79c48aaab::t_1994c45effdcdb 3,8,10,12,14-15,19-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4414817865b6fb63121bc17eb08d4e37d4086224",
+  "prompts": {},
+  "sessions": {
+    "s_587fe79c48aaab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae6c25f3c8bbf2299",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_642f13001418d3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a13a8dcbb1aecfd6e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_7971350c1f9953": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2f91f13fb5a3d7eb",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b69708ab3b2e7b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad9606e24c58fbdb0",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cd2c7565bc4f58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "54dfa5ff-bb5c-42e5-986a-e3c5d009ffcb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
