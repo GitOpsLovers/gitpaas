@@ -1,16 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+
+import type { AppLogger } from '../../domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '../../infrastructure/logging/nest-logger.adapter';
 
 /**
  * Shared diagnostic logger.
  *
- * A single, dependency-free wrapper around the NestJS {@link Logger} that every
- * feature injects instead of instantiating its own `Logger`. Living in `core`
- * (which never imports a feature) keeps it importable from anywhere without
- * risking a circular module dependency.
+ * Thin delegation to {@link NestLoggerAdapter} so there is a single real
+ * logging implementation behind the {@link AppLogger} port.
+ *
+ * @deprecated Inject the {@link AppLogger} port (provided by
+ * {@link NestLoggerAdapter}) instead. Its relocation out of `ui/` is pending.
  */
 @Injectable()
 export class DiagnosticLoggerService {
-    private readonly logger = new Logger(DiagnosticLoggerService.name);
+    constructor(@Inject(NestLoggerAdapter) private readonly logger: AppLogger) {}
 
     /**
      * Write an informational diagnostic message.
@@ -40,6 +44,6 @@ export class DiagnosticLoggerService {
      * @param context Originating context (usually the caller's class name)
      */
     public error(message: string, trace?: unknown, context?: string): void {
-        this.logger.error(message, trace as string | undefined, context);
+        this.logger.error(message, trace, context);
     }
 }

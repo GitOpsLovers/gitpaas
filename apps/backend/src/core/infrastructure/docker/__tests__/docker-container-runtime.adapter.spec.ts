@@ -5,7 +5,16 @@ import Docker from 'dockerode';
 import { DockerContainerRuntimeAdapter } from '../docker-container-runtime.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
+
+/** Stubbed application logger injected into the adapter. */
+const buildLogger = (): jest.Mocked<AppLogger> => ({
+    debug: jest.fn(),
+    log: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+});
 
 // `dockerode` is replaced by a `jest.fn()` constructor so `new Docker(...)` never
 // opens a real connection; we assert the exact options passed to it.
@@ -35,7 +44,7 @@ interface FakeDaemon {
  * while never touching a socket.
  */
 const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } => {
-    const sut = new DockerContainerRuntimeAdapter();
+    const sut = new DockerContainerRuntimeAdapter(buildLogger());
     const daemon = sut.getClient() as unknown as FakeDaemon;
 
     daemon.ping = jest.fn().mockResolvedValue(Buffer.from('OK'));
@@ -60,7 +69,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
     describe('getClient', () => {
         it('constructs a Docker client bound to the local unix socket', () => {
-            const client = new DockerContainerRuntimeAdapter();
+            const client = new DockerContainerRuntimeAdapter(buildLogger());
 
             const result = client.getClient();
 
@@ -70,7 +79,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         });
 
         it('passes the socket path as the only connection option', () => {
-            new DockerContainerRuntimeAdapter().getClient();
+            new DockerContainerRuntimeAdapter(buildLogger()).getClient();
 
             const [options] = DockerMock.mock.calls[0] as [Record<string, unknown>];
 
@@ -81,7 +90,7 @@ describe('DockerContainerRuntimeAdapter', () => {
             const readFileSync = jest.spyOn(fs, 'readFileSync');
             const existsSync = jest.spyOn(fs, 'existsSync');
 
-            new DockerContainerRuntimeAdapter().getClient();
+            new DockerContainerRuntimeAdapter(buildLogger()).getClient();
 
             expect(readFileSync).not.toHaveBeenCalled();
             expect(existsSync).not.toHaveBeenCalled();
@@ -90,13 +99,36 @@ describe('DockerContainerRuntimeAdapter', () => {
             existsSync.mockRestore();
         });
 
-        it('needs no injected dependencies to be constructed', () => {
-            expect(DockerContainerRuntimeAdapter).toHaveLength(0);
-            expect(() => new DockerContainerRuntimeAdapter().getClient()).not.toThrow();
+        it('needs only the application logger to be constructed', () => {
+            expect(DockerContainerRuntimeAdapter).toHaveLength(1);
+            expect(() => new DockerContainerRuntimeAdapter(buildLogger()).getClient()).not.toThrow();
+        });
+
+        it('logs the socket it connects to through the injected logger', () => {
+            const logger = buildLogger();
+
+            new DockerContainerRuntimeAdapter(logger).getClient();
+
+            expect(logger.log).toHaveBeenCalledWith(
+                'Connecting to the local Docker daemon at /var/run/docker.sock',
+                'DockerContainerRuntimeAdapter',
+            );
+            expect(logger.error).not.toHaveBeenCalled();
+            expect(logger.warn).not.toHaveBeenCalled();
+        });
+
+        it('logs the connection once only, when the memoized client is created', () => {
+            const logger = buildLogger();
+            const client = new DockerContainerRuntimeAdapter(logger);
+
+            client.getClient();
+            client.getClient();
+
+            expect(logger.log).toHaveBeenCalledTimes(1);
         });
 
         it('memoizes the client, building Docker only once across calls', () => {
-            const client = new DockerContainerRuntimeAdapter();
+            const client = new DockerContainerRuntimeAdapter(buildLogger());
 
             const first = client.getClient();
             const second = client.getClient();
@@ -106,8 +138,8 @@ describe('DockerContainerRuntimeAdapter', () => {
         });
 
         it('keeps one client per DockerContainerRuntimeAdapter instance', () => {
-            const first = new DockerContainerRuntimeAdapter().getClient();
-            const second = new DockerContainerRuntimeAdapter().getClient();
+            const first = new DockerContainerRuntimeAdapter(buildLogger()).getClient();
+            const second = new DockerContainerRuntimeAdapter(buildLogger()).getClient();
 
             expect(DockerMock).toHaveBeenCalledTimes(2);
             expect(first).not.toBe(second);
