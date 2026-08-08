@@ -1,0 +1,21 @@
+docs/TODO.md
+  s_851fe1c6cd0c3d::t_203a804dbb3c2c 4-21
+docs/backend-architecture.md
+  s_851fe1c6cd0c3d::t_75d58f801e7035 221,231,233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a6ce88816ee8ac356ca90eec0e9f6bf332c47e0e",
+  "prompts": {},
+  "sessions": {
+    "s_851fe1c6cd0c3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f8184abc-6124-4ac6-b039-9ce309cf4a24",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
