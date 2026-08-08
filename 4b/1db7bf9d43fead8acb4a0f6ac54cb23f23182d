@@ -1,0 +1,45 @@
+apps/backend/src/features/users/application/__tests__/seed-admin.use-case.spec.ts
+  s_7e097053c253dd::t_fccd0ecba36246 5
+apps/backend/src/features/users/application/seed-admin.use-case.ts
+  s_7e097053c253dd::t_16d5225a614b54 5
+apps/backend/src/features/users/ui/services/__tests__/users.service.spec.ts
+  s_7e097053c253dd::t_d334fc1f7a38ea 7
+apps/backend/src/core/core.module.ts
+  s_e4c6c33d0b0b91::t_1a860ca764ac9e 29-30
+apps/backend/src/core/infrastructure/redis/redis.client.ts
+  s_e4c6c33d0b0b91::t_6027b571734290 59
+apps/backend/src/features/authentication/application/__tests__/validate-user.use-case.spec.ts
+  s_e4c6c33d0b0b91::t_46467a0f99e82f 6
+apps/backend/src/features/authentication/infrastructure/passport/__tests__/local.strategy.spec.ts
+  s_e4c6c33d0b0b91::t_c305aac7e56ebe 9
+apps/backend/src/features/authentication/infrastructure/passport/local.strategy.ts
+  s_e4c6c33d0b0b91::t_828c46fc53da36 12-13
+apps/backend/src/features/users/ui/services/users.service.ts
+  s_e4c6c33d0b0b91::t_73a5be931842fd 7-8
+apps/backend/src/features/users/users.module.ts
+  s_e4c6c33d0b0b91::t_fe2fcf01b10ab3 8-9,14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4b1db7bf9d43fead8acb4a0f6ac54cb23f23182d",
+  "prompts": {},
+  "sessions": {
+    "s_7e097053c253dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cba3f065-44ac-462f-99ef-b5e75f2de647",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e4c6c33d0b0b91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6332a6d96fe5d863",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
