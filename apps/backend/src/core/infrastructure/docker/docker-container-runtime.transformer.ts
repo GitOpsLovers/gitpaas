@@ -89,6 +89,7 @@ export function toContainerSummary(info: Docker.ContainerInfo): RuntimeContainer
         state: info.State,
         status: info.Status,
         createdAt: new Date(info.Created * 1000),
+        // eslint-disable-next-line security/detect-object-injection
         projects: [labels[GITPAAS_PROJECT_LABEL], labels[COMPOSE_PROJECT_LABEL]]
             .filter((project): project is string => typeof project === 'string'),
         ports: (info.Ports ?? []).map((port): RuntimePortMapping => ({

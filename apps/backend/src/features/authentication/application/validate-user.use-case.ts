@@ -1,23 +1,18 @@
 import { InvalidCredentialsError, UserInactiveError } from '../domain/errors/authentication.errors';
 
-import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
 import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
+import { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 
 /**
- * Use case that validates a set of login credentials: it looks the user up by
- * email, verifies the password against the stored hash and rejects deactivated
- * accounts. Backs the Passport local strategy.
+ * Use case that validates a set of login credentials.
  *
  * @param usersRepository Users repository
  * @param passwordHasher Password hashing port
  * @param email Candidate email
- * @param password Candidate plaintext password
+ * @param password Candidate password
  *
  * @returns The validated user
- *
- * @throws {InvalidCredentialsError} When the email is unknown or the password does not match
- * @throws {UserInactiveError} When the account is deactivated
  */
 export async function validateUserUseCase(
     usersRepository: UsersRepository,

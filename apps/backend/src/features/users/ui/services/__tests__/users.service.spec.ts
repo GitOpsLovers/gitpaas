@@ -4,7 +4,7 @@ import { seedAdminUseCase } from '../../../application/seed-admin.use-case';
 import { DatabaseUsersRepository } from '../../../infrastructure/database/db-users.repository';
 import { UsersService } from '../users.service';
 
-import { Argon2PasswordHasherAdapter } from '@core/infrastructure/security/argon2-password-hasher.adapter';
+import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 jest.mock('../../../application/seed-admin.use-case');
 

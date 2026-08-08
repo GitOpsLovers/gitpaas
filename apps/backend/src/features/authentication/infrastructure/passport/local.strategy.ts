@@ -6,11 +6,11 @@ import { Strategy } from 'passport-local';
 import { validateUserUseCase } from '../../application/validate-user.use-case';
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
 
-import type { PasswordHasher } from '@core/domain/ports/password-hasher.port';
-import { Argon2PasswordHasherAdapter } from '@core/infrastructure/security/argon2-password-hasher.adapter';
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
+import type { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
+import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 /**
  * Passport local strategy backing `POST /auth/login`. Validates the submitted

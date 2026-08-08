@@ -15,16 +15,15 @@ import { JwtAuthGuard } from './ui/guards/jwt-auth.guard';
 import { AuthenticationService } from './ui/services/authentication.service';
 
 import { UsersModule } from '@features/users/users.module';
+import { SharedModule } from '@shared/shared.module';
 
 /**
  * Authentication feature module.
- *
- * Wires JWT + Passport authentication and registers a global {@link JwtAuthGuard}
- * so every route across the app is protected by default; opt out with `@Public()`.
  */
 @Module({
     imports: [
         UsersModule,
+        SharedModule,
         TypeOrmModule.forFeature([DbRefreshTokenEntity]),
         PassportModule,
         JwtModule.registerAsync({

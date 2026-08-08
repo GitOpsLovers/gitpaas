@@ -2,7 +2,7 @@ import { SeedAdminDto } from '../domain/dtos/seed-admin.dto';
 import { UserRole } from '../domain/models/user.models';
 import { UsersRepository } from '../domain/repositories/users.repository';
 
-import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
+import { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 
 /**
  * Use case to seed a single administrative user into the system.

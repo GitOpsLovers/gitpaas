@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { seedAdminUseCase } from '../../application/seed-admin.use-case';
 import { DatabaseUsersRepository } from '../../infrastructure/database/db-users.repository';
 
-import type { PasswordHasher } from '@core/domain/ports/password-hasher.port';
-import { Argon2PasswordHasherAdapter } from '@core/infrastructure/security/argon2-password-hasher.adapter';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
+import type { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
+import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 /**
  * Fixed local-development admin credentials.

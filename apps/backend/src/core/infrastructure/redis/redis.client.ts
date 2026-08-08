@@ -56,7 +56,7 @@ export class RedisClient implements OnModuleDestroy {
     }
 
     /**
-     * Builds a new ioredis connection from configuration.
+     * Builds a new ioredis connection
      *
      * @param role Human-readable role, only used for logging
      */

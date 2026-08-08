@@ -1,9 +1,9 @@
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { validateUserUseCase } from '../validate-user.use-case';
 
-import { PasswordHasher } from '@core/domain/ports/password-hasher.port';
 import { User, UserRole } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
+import { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
