@@ -1,7 +1,7 @@
+import { RemoveContainerDto } from '../dtos/remove-container.dto';
+import { RemoveImageDto } from '../dtos/remove-image.dto';
 import type {
     ContainerRuntimeInfo,
-    RemoveContainerOptions,
-    RemoveImageOptions,
     RuntimeContainerSummary,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
@@ -43,7 +43,7 @@ export interface ContainerRuntime {
      * @param id Identifier of the container to remove
      * @param options Removal options
      */
-    removeContainer: (id: string, options?: RemoveContainerOptions) => Promise<void>;
+    removeContainer: (id: string, options?: RemoveContainerDto) => Promise<void>;
 
     /**
      * Lists the networks matching a selector.
@@ -76,7 +76,7 @@ export interface ContainerRuntime {
      * @param id Identifier of the image to remove
      * @param options Removal options
      */
-    removeImage: (id: string, options?: RemoveImageOptions) => Promise<void>;
+    removeImage: (id: string, options?: RemoveImageDto) => Promise<void>;
 
     /**
      * Removes the dangling images matching a selector.

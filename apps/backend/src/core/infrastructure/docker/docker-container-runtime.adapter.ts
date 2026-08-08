@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Docker from 'dockerode';
 
+import { RemoveContainerDto } from '../../domain/dtos/remove-container.dto';
+import { RemoveImageDto } from '../../domain/dtos/remove-image.dto';
 import type {
     ContainerRuntimeInfo,
-    RemoveContainerOptions,
-    RemoveImageOptions,
     RuntimeContainerSummary,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
@@ -59,7 +59,7 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         return containers.map((container) => toContainerSummary(container));
     }
 
-    public async removeContainer(id: string, options: RemoveContainerOptions = {}): Promise<void> {
+    public async removeContainer(id: string, options: RemoveContainerDto = {}): Promise<void> {
         await this.getClient().getContainer(id).remove({ force: options.force ?? false, v: options.removeVolumes ?? false });
     }
 
@@ -81,7 +81,7 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         return images.map((image) => toImageSummary(image));
     }
 
-    public async removeImage(id: string, options: RemoveImageOptions = {}): Promise<void> {
+    public async removeImage(id: string, options: RemoveImageDto = {}): Promise<void> {
         await this.getClient().getImage(id).remove({ force: options.force ?? false });
     }
 

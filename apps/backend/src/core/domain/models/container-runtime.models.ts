@@ -71,18 +71,3 @@ export interface RuntimePruneReport {
     deletedCount: number;
     spaceReclaimed: number;
 }
-
-/**
- * Options a container removal accepts.
- */
-export interface RemoveContainerOptions {
-    force?: boolean;
-    removeVolumes?: boolean;
-}
-
-/**
- * Options an image removal accepts.
- */
-export interface RemoveImageOptions {
-    force?: boolean;
-}
