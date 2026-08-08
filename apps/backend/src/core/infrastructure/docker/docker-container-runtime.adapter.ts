@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
 
 import { RemoveContainerDto } from '../../domain/dtos/remove-container.dto';
@@ -11,7 +11,9 @@ import type {
     RuntimePruneReport,
     RuntimeSelector,
 } from '../../domain/models/container-runtime.models';
+import type { AppLogger } from '../../domain/ports/app-logger.port';
 import type { ContainerRuntime } from '../../domain/ports/container-runtime.port';
+import { NestLoggerAdapter } from '../logging/nest-logger.adapter';
 
 import {
     toContainerRuntimeInfo,
@@ -32,9 +34,9 @@ const DOCKER_SOCKET_PATH = '/var/run/docker.sock';
  */
 @Injectable()
 export class DockerContainerRuntimeAdapter implements ContainerRuntime {
-    private readonly logger = new Logger(DockerContainerRuntimeAdapter.name);
-
     private client: Docker | undefined;
+
+    constructor(@Inject(NestLoggerAdapter) private readonly logger: AppLogger) {}
 
     public getClient(): Docker {
         this.client ??= this.createClient();
@@ -110,7 +112,7 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
      * Creates a new Dockerode client
      */
     private createClient(): Docker {
-        this.logger.log(`Connecting to the local Docker daemon at ${DOCKER_SOCKET_PATH}`);
+        this.logger.log(`Connecting to the local Docker daemon at ${DOCKER_SOCKET_PATH}`, DockerContainerRuntimeAdapter.name);
 
         return new Docker({ socketPath: DOCKER_SOCKET_PATH });
     }

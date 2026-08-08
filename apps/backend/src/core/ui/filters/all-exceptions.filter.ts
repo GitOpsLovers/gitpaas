@@ -4,11 +4,14 @@ import {
     ExceptionFilter,
     HttpException,
     HttpStatus,
-    Logger,
+    Inject,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { Request, Response } from 'express';
+
+import type { AppLogger } from '../../domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '../../infrastructure/logging/nest-logger.adapter';
 
 /**
  * Consistent JSON error envelope returned for every failed request.
@@ -32,9 +35,10 @@ interface ErrorEnvelope {
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-    private readonly logger = new Logger(AllExceptionsFilter.name);
-
-    constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+    constructor(
+        private readonly httpAdapterHost: HttpAdapterHost,
+        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
+    ) {}
 
     public catch(exception: unknown, host: ArgumentsHost): void {
         const { httpAdapter } = this.httpAdapterHost;
@@ -149,7 +153,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         if (envelope.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
             const stack = exception instanceof Error ? exception.stack : undefined;
 
-            this.logger.error(`Unhandled exception on ${context}`, stack);
+            this.logger.error(`Unhandled exception on ${context}`, stack, AllExceptionsFilter.name);
 
             return;
         }
@@ -158,6 +162,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
             ? envelope.message.join(', ')
             : envelope.message;
 
-        this.logger.warn(`${context} - ${detail}`);
+        this.logger.warn(`${context} - ${detail}`, AllExceptionsFilter.name);
     }
 }
