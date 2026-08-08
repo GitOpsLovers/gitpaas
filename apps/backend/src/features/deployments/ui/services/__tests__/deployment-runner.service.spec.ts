@@ -9,7 +9,8 @@ import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/
 import { DockerodeDockerExecutorAdapter } from '../../../infrastructure/docker/dockerode-docker-executor.adapter';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
@@ -70,7 +71,7 @@ describe('DeploymentRunnerService', () => {
     let mockLogStore: jest.Mocked<DatabaseLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
     let mockQueue: jest.Mocked<DeploymentQueue>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
+    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: DeploymentRunnerService;
 
     beforeEach(async () => {
@@ -89,7 +90,7 @@ describe('DeploymentRunnerService', () => {
             markFailed: jest.fn().mockResolvedValue(undefined),
             recoverPending: jest.fn().mockResolvedValue(undefined),
         };
-        mockDiagnostics = { error: jest.fn() };
+        mockLogger = { error: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -99,7 +100,7 @@ describe('DeploymentRunnerService', () => {
                 { provide: DockerodeDockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
-                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
+                { provide: NestLoggerAdapter, useValue: mockLogger },
             ],
         }).compile();
 
@@ -150,7 +151,7 @@ describe('DeploymentRunnerService', () => {
         dequeued.next(task);
         await flush();
 
-        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockLogger.error).toHaveBeenCalledTimes(1);
         expect(mockQueue.markFailed).toHaveBeenCalledTimes(1);
         expect(mockQueue.markFailed).toHaveBeenCalledWith(task.id, 'boom');
         expect(mockQueue.markCompleted).not.toHaveBeenCalled();
@@ -269,7 +270,7 @@ describe('DeploymentRunnerService', () => {
         first.reject(new Error('boom'));
         await flush();
 
-        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockLogger.error).toHaveBeenCalledTimes(1);
         expect(mockQueue.markFailed).toHaveBeenCalledWith(taskA.id, 'boom');
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
         expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
@@ -305,11 +306,11 @@ describe('DeploymentRunnerService', () => {
         await flush();
 
         // The other project's run is unaffected and still resolves cleanly.
-        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockLogger.error).toHaveBeenCalledTimes(1);
 
         healthy.resolve(undefined);
         await flush();
 
-        expect(mockDiagnostics.error).toHaveBeenCalledTimes(1);
+        expect(mockLogger.error).toHaveBeenCalledTimes(1);
     });
 });

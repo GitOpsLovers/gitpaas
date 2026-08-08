@@ -5,7 +5,8 @@ import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
 import { ContainersController } from '../containers.controller';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 const serviceId = '11111111-1111-1111-1111-111111111111';
 
@@ -23,7 +24,7 @@ const containers: Container[] = [
 
 describe('ContainersController', () => {
     let mockContainersService: jest.Mocked<Pick<ContainersService, 'getByService'>>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
+    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: ContainersController;
 
     beforeEach(async () => {
@@ -33,7 +34,7 @@ describe('ContainersController', () => {
             getByService: jest.fn(),
         };
 
-        mockDiagnostics = {
+        mockLogger = {
             error: jest.fn(),
         };
 
@@ -41,7 +42,7 @@ describe('ContainersController', () => {
             controllers: [ContainersController],
             providers: [
                 { provide: ContainersService, useValue: mockContainersService },
-                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
+                { provide: NestLoggerAdapter, useValue: mockLogger },
             ],
         }).compile();
 

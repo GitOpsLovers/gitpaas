@@ -7,7 +7,7 @@ import { LogEvent } from '../../../domain/models/log-event.models';
 import { LogsRepository } from '../../../domain/repositories/logs.repository';
 import { DatabaseLogStoreAdapter } from '../db-log-store.adapter';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 
 /** Resolves after pending microtasks, letting the replay continuation run. */
 const settle = (): Promise<void> =>
@@ -128,7 +128,7 @@ describe('DatabaseLogStoreAdapter', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
     let repository: FakeRepository;
-    let diagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
+    let logger: jest.Mocked<AppLogger>;
 
     /**
      * Builds a store over the shared fakes, overriding the retention settings
@@ -141,7 +141,7 @@ describe('DatabaseLogStoreAdapter', () => {
 
         return new DatabaseLogStoreAdapter(
             repository,
-            diagnostics as unknown as DiagnosticLoggerService,
+            logger,
             config,
         );
     };
@@ -152,7 +152,9 @@ describe('DatabaseLogStoreAdapter', () => {
         jest.clearAllMocks();
 
         repository = createRepository();
-        diagnostics = { error: jest.fn() };
+        logger = {
+            debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+        };
         store = createStore();
     });
 
@@ -463,7 +465,7 @@ describe('DatabaseLogStoreAdapter', () => {
             await store.append(id, 'line 1');
 
             await expect(store.complete(id, 'success')).resolves.toBeUndefined();
-            expect(diagnostics.error).toHaveBeenCalledWith(
+            expect(logger.error).toHaveBeenCalledWith(
                 expect.stringContaining('Failed to persist'),
                 expect.any(Error),
                 'DatabaseLogStoreAdapter',
@@ -474,7 +476,7 @@ describe('DatabaseLogStoreAdapter', () => {
             jest.spyOn(repository, 'getMaxSeq').mockRejectedValue(new Error('database down'));
 
             await expect(store.append(id, 'line 1')).resolves.toBeUndefined();
-            expect(diagnostics.error).toHaveBeenCalledWith(
+            expect(logger.error).toHaveBeenCalledWith(
                 expect.stringContaining('Failed to append a log line'),
                 expect.any(Error),
                 'DatabaseLogStoreAdapter',

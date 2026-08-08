@@ -12,8 +12,8 @@ import type {
     RuntimeNetworkSummary,
     RuntimeSelector,
 } from '@core/domain/models/container-runtime.models';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /** Compose project label the runtime maps a project scope onto, kept here to describe host resources. */
 const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
@@ -77,7 +77,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         DockerContainerRuntimeAdapter,
         'listContainers' | 'listNetworks' | 'listImages' | 'removeContainer' | 'removeNetwork' | 'removeImage'
     >>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn'>>;
+    let mockLogger: jest.Mocked<AppLogger>;
     let sut: DockerServiceRuntimeResourcesAdapter;
 
     beforeEach(() => {
@@ -99,11 +99,13 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             removeImage: mockRemoveImage,
         };
 
-        mockDiagnostics = { log: jest.fn(), warn: jest.fn() };
+        mockLogger = {
+            debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+        };
 
         sut = new DockerServiceRuntimeResourcesAdapter(
             mockContainerRuntime as unknown as DockerContainerRuntimeAdapter,
-            mockDiagnostics as unknown as DiagnosticLoggerService,
+            mockLogger,
         );
     });
 
@@ -139,7 +141,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             await expect(sut.removeContainers(service)).resolves.toBeUndefined();
 
             expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
-            expect(mockDiagnostics.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalled();
         });
 
         it('does not throw when the runtime is unreachable while listing', async () => {
@@ -147,7 +149,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             await expect(sut.removeContainers(service)).resolves.toBeUndefined();
 
-            expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+            expect(mockLogger.warn).toHaveBeenCalledTimes(1);
             expect(mockRemoveContainer).not.toHaveBeenCalled();
         });
 
@@ -156,8 +158,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             await sut.removeContainers(service);
 
-            expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
-            expect(mockDiagnostics.log).toHaveBeenCalledWith(
+            expect(mockLogger.log).toHaveBeenCalledTimes(1);
+            expect(mockLogger.log).toHaveBeenCalledWith(
                 expect.stringContaining('1 container(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,
             );
@@ -195,7 +197,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             await expect(sut.removeNetworks(service)).resolves.toBeUndefined();
 
             expect(mockRemoveNetwork).toHaveBeenCalledTimes(2);
-            expect(mockDiagnostics.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalled();
         });
 
         it('does not throw when the runtime is unreachable while listing', async () => {
@@ -203,7 +205,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             await expect(sut.removeNetworks(service)).resolves.toBeUndefined();
 
-            expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+            expect(mockLogger.warn).toHaveBeenCalledTimes(1);
             expect(mockRemoveNetwork).not.toHaveBeenCalled();
         });
 
@@ -212,8 +214,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             await sut.removeNetworks(service);
 
-            expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
-            expect(mockDiagnostics.log).toHaveBeenCalledWith(
+            expect(mockLogger.log).toHaveBeenCalledTimes(1);
+            expect(mockLogger.log).toHaveBeenCalledWith(
                 expect.stringContaining('1 network(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,
             );
@@ -253,7 +255,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             await expect(sut.removeImages(service)).resolves.toBeUndefined();
 
             expect(mockRemoveImage).toHaveBeenCalledTimes(2);
-            expect(mockDiagnostics.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalled();
         });
 
         it('does not throw when the runtime is unreachable while listing', async () => {
@@ -261,7 +263,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             await expect(sut.removeImages(service)).resolves.toBeUndefined();
 
-            expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+            expect(mockLogger.warn).toHaveBeenCalledTimes(1);
             expect(mockRemoveImage).not.toHaveBeenCalled();
         });
 
@@ -270,8 +272,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             await sut.removeImages(service);
 
-            expect(mockDiagnostics.log).toHaveBeenCalledTimes(1);
-            expect(mockDiagnostics.log).toHaveBeenCalledWith(
+            expect(mockLogger.log).toHaveBeenCalledTimes(1);
+            expect(mockLogger.log).toHaveBeenCalledWith(
                 expect.stringContaining('1 image(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,
             );
@@ -342,17 +344,17 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             await sut.removeNetworks(service);
             await sut.removeImages(service);
 
-            expect(mockDiagnostics.log).toHaveBeenNthCalledWith(
+            expect(mockLogger.log).toHaveBeenNthCalledWith(
                 1,
                 expect.stringContaining('1 container(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,
             );
-            expect(mockDiagnostics.log).toHaveBeenNthCalledWith(
+            expect(mockLogger.log).toHaveBeenNthCalledWith(
                 2,
                 expect.stringContaining('0 network(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,
             );
-            expect(mockDiagnostics.log).toHaveBeenNthCalledWith(
+            expect(mockLogger.log).toHaveBeenNthCalledWith(
                 3,
                 expect.stringContaining('1 image(s)'),
                 DockerServiceRuntimeResourcesAdapter.name,

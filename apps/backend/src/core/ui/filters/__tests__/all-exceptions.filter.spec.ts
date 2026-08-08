@@ -1,11 +1,11 @@
 import {
     ArgumentsHost,
     BadRequestException,
-    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
+import type { AppLogger } from '../../../domain/ports/app-logger.port';
 import { AllExceptionsFilter } from '../all-exceptions.filter';
 
 /**
@@ -48,8 +48,9 @@ describe('AllExceptionsFilter', () => {
     let mockReply: jest.Mock;
     let mockGetRequestUrl: jest.Mock;
     let mockHttpAdapterHost: HttpAdapterHost;
-    let mockWarn: jest.SpyInstance;
-    let mockError: jest.SpyInstance;
+    let mockLogger: jest.Mocked<AppLogger>;
+    let mockWarn: jest.Mock;
+    let mockError: jest.Mock;
     let sut: AllExceptionsFilter;
 
     beforeEach(() => {
@@ -68,10 +69,11 @@ describe('AllExceptionsFilter', () => {
 
         mockHttpAdapterHost = { httpAdapter } as unknown as HttpAdapterHost;
 
-        mockWarn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
-        mockError = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+        mockLogger = { debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+        mockWarn = mockLogger.warn as jest.Mock;
+        mockError = mockLogger.error as jest.Mock;
 
-        sut = new AllExceptionsFilter(mockHttpAdapterHost);
+        sut = new AllExceptionsFilter(mockHttpAdapterHost, mockLogger);
     });
 
     afterEach(() => {
@@ -98,6 +100,10 @@ describe('AllExceptionsFilter', () => {
             timestamp: expect.any(String),
         });
         expect(mockWarn).toHaveBeenCalledTimes(1);
+        expect(mockWarn).toHaveBeenCalledWith(
+            `404 ${REQUEST_PATH} - Item missing`,
+            'AllExceptionsFilter',
+        );
         expect(mockError).not.toHaveBeenCalled();
     });
 
@@ -124,6 +130,11 @@ describe('AllExceptionsFilter', () => {
         });
         expect(Array.isArray(envelope.message)).toBe(true);
         expect(mockWarn).toHaveBeenCalledTimes(1);
+        expect(mockWarn).toHaveBeenCalledWith(
+            `400 ${REQUEST_PATH} - ${validationMessages.join(', ')}`,
+            'AllExceptionsFilter',
+        );
+        expect(mockError).not.toHaveBeenCalled();
     });
 
     it('returns a generic 500 for an unexpected error without leaking internal details', () => {
@@ -157,6 +168,24 @@ describe('AllExceptionsFilter', () => {
 
         expect(mockError).toHaveBeenCalledTimes(1);
         expect(mockWarn).not.toHaveBeenCalled();
+        expect(mockError).toHaveBeenCalledWith(
+            `Unhandled exception on 500 ${REQUEST_PATH}`,
+            error.stack,
+            'AllExceptionsFilter',
+        );
         expect(mockError.mock.calls[0][1]).toBe(error.stack);
+        expect(mockError.mock.calls[0][2]).toBe('AllExceptionsFilter');
+    });
+
+    it('logs a non-Error thrown value at error level with an undefined stack', () => {
+        sut.catch('just a string', hostFor(request, response));
+
+        expect(mockError).toHaveBeenCalledTimes(1);
+        expect(mockWarn).not.toHaveBeenCalled();
+        expect(mockError).toHaveBeenCalledWith(
+            `Unhandled exception on 500 ${REQUEST_PATH}`,
+            undefined,
+            'AllExceptionsFilter',
+        );
     });
 });

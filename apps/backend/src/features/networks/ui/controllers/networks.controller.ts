@@ -1,9 +1,10 @@
-import { Controller, Get, NotFoundException, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, Get, Inject, NotFoundException, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
 import { Network } from '../../domain/models/network.models';
 import { NetworksService } from '../services/networks.service';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 /**
  * Networks controller
@@ -12,7 +13,7 @@ import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.ser
 export class NetworksController {
     constructor(
         private readonly service: NetworksService,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
     /**
@@ -31,7 +32,7 @@ export class NetworksController {
                 throw error;
             }
 
-            this.diagnostics.error(`Failed to list networks for service ${serviceId}`, error, NetworksController.name);
+            this.logger.error(`Failed to list networks for service ${serviceId}`, error, NetworksController.name);
 
             throw new ServiceUnavailableException(
                 'Could not reach the server Docker daemon. Verify the server is running and reachable; '

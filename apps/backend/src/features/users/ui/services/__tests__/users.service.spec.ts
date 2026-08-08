@@ -4,6 +4,8 @@ import { seedAdminUseCase } from '../../../application/seed-admin.use-case';
 import { DatabaseUsersRepository } from '../../../infrastructure/database/db-users.repository';
 import { UsersService } from '../users.service';
 
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 jest.mock('../../../application/seed-admin.use-case');
@@ -16,6 +18,7 @@ const DEV_ADMIN_PASSWORD = 'gitpaas';
 describe('UsersService', () => {
     let mockUsersRepository: jest.Mocked<Pick<DatabaseUsersRepository, 'findByEmail' | 'create'>>;
     let mockPasswordHasher: jest.Mocked<Pick<Argon2PasswordHasherAdapter, 'hash'>>;
+    let mockLogger: jest.Mocked<AppLogger>;
     let sut: UsersService;
 
     beforeEach(async () => {
@@ -23,15 +26,14 @@ describe('UsersService', () => {
 
         mockUsersRepository = { findByEmail: jest.fn(), create: jest.fn() };
         mockPasswordHasher = { hash: jest.fn() };
-
-        jest.spyOn(console, 'log').mockImplementation(() => undefined);
-        jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        mockLogger = { debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 UsersService,
                 { provide: DatabaseUsersRepository, useValue: mockUsersRepository },
                 { provide: Argon2PasswordHasherAdapter, useValue: mockPasswordHasher },
+                { provide: NestLoggerAdapter, useValue: mockLogger },
             ],
         }).compile();
 
@@ -60,7 +62,7 @@ describe('UsersService', () => {
 
             await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
 
-            expect(console.error).not.toHaveBeenCalled();
+            expect(mockLogger.error).not.toHaveBeenCalled();
         });
     });
 
@@ -70,8 +72,8 @@ describe('UsersService', () => {
 
             await sut.seedDevelopmentAdmin();
 
-            expect(console.log).toHaveBeenCalledTimes(1);
-            expect(console.log).toHaveBeenCalledWith(`Seeded admin user "${DEV_ADMIN_EMAIL}".`);
+            expect(mockLogger.log).toHaveBeenCalledTimes(1);
+            expect(mockLogger.log).toHaveBeenCalledWith(`Seeded admin user "${DEV_ADMIN_EMAIL}".`, 'UsersService');
         });
 
         it('logs the exact "already exists" line when an admin already exists', async () => {
@@ -79,9 +81,10 @@ describe('UsersService', () => {
 
             await sut.seedDevelopmentAdmin();
 
-            expect(console.log).toHaveBeenCalledTimes(1);
-            expect(console.log).toHaveBeenCalledWith(
+            expect(mockLogger.log).toHaveBeenCalledTimes(1);
+            expect(mockLogger.log).toHaveBeenCalledWith(
                 `Admin user "${DEV_ADMIN_EMAIL}" already exists — left unchanged.`,
+                'UsersService',
             );
         });
     });
@@ -92,12 +95,13 @@ describe('UsersService', () => {
 
             await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
 
-            expect(console.error).toHaveBeenCalledTimes(1);
-            expect(console.error).toHaveBeenCalledWith(
+            expect(mockLogger.error).toHaveBeenCalledTimes(1);
+            expect(mockLogger.error).toHaveBeenCalledWith(
                 'Development admin seed failed:',
                 'users table missing',
+                'UsersService',
             );
-            expect(console.log).not.toHaveBeenCalled();
+            expect(mockLogger.log).not.toHaveBeenCalled();
         });
 
         it('logs the raw thrown value for a non-Error rejection and still resolves', async () => {
@@ -105,8 +109,8 @@ describe('UsersService', () => {
 
             await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
 
-            expect(console.error).toHaveBeenCalledTimes(1);
-            expect(console.error).toHaveBeenCalledWith('Development admin seed failed:', 'boom');
+            expect(mockLogger.error).toHaveBeenCalledTimes(1);
+            expect(mockLogger.error).toHaveBeenCalledWith('Development admin seed failed:', 'boom', 'UsersService');
         });
     });
 });

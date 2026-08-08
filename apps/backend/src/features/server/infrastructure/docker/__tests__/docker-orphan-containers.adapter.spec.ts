@@ -7,8 +7,8 @@ import {
     GITPAAS_PROJECT_LABEL,
 } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary, RuntimeSelector } from '@core/domain/models/container-runtime.models';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 /** Compose project label the runtime maps a project scope onto, kept here to describe host containers. */
 const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
@@ -63,7 +63,7 @@ describe('DockerOrphanContainersAdapter', () => {
     let mockListContainers: jest.Mock;
     let mockRemoveContainer: jest.Mock;
     let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'listContainers' | 'removeContainer'>>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'log' | 'warn'>>;
+    let mockLogger: jest.Mocked<AppLogger>;
     let sut: DockerOrphanContainersAdapter;
 
     beforeEach(() => {
@@ -75,10 +75,12 @@ describe('DockerOrphanContainersAdapter', () => {
             listContainers: mockListContainers,
             removeContainer: mockRemoveContainer,
         };
-        mockDiagnostics = { log: jest.fn(), warn: jest.fn() };
+        mockLogger = {
+            debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+        };
         sut = new DockerOrphanContainersAdapter(
             mockContainerRuntime as unknown as DockerContainerRuntimeAdapter,
-            mockDiagnostics as unknown as DiagnosticLoggerService,
+            mockLogger,
         );
     });
 
@@ -171,7 +173,7 @@ describe('DockerOrphanContainersAdapter', () => {
         const result = await sut.removeOrphaned([]);
 
         expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
-        expect(mockDiagnostics.warn).toHaveBeenCalledTimes(1);
+        expect(mockLogger.warn).toHaveBeenCalledTimes(1);
         expect(result).toEqual({ removed: 1, names: ['orphan-b-app-1'] });
     });
 
@@ -275,7 +277,7 @@ describe('DockerOrphanContainersAdapter', () => {
 
         await sut.removeOrphaned([]);
 
-        expect(mockDiagnostics.log).toHaveBeenCalledWith(
+        expect(mockLogger.log).toHaveBeenCalledWith(
             'Removed 1 orphaned container(s) from the server',
             'DockerOrphanContainersAdapter',
         );

@@ -5,7 +5,8 @@ import { Network } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
 import { NetworksController } from '../networks.controller';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
@@ -23,7 +24,7 @@ const networks: Network[] = [
 
 describe('NetworksController', () => {
     let mockNetworksService: jest.Mocked<Pick<NetworksService, 'getByService'>>;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
+    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: NetworksController;
 
     beforeEach(async () => {
@@ -33,7 +34,7 @@ describe('NetworksController', () => {
             getByService: jest.fn(),
         };
 
-        mockDiagnostics = {
+        mockLogger = {
             error: jest.fn(),
         };
 
@@ -41,7 +42,7 @@ describe('NetworksController', () => {
             controllers: [NetworksController],
             providers: [
                 { provide: NetworksService, useValue: mockNetworksService },
-                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
+                { provide: NestLoggerAdapter, useValue: mockLogger },
             ],
         }).compile();
 

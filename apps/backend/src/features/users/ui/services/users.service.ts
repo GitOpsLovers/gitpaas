@@ -3,6 +3,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { seedAdminUseCase } from '../../application/seed-admin.use-case';
 import { DatabaseUsersRepository } from '../../infrastructure/database/db-users.repository';
 
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import type { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
@@ -23,6 +25,8 @@ export class UsersService {
         private readonly usersRepository: UsersRepository,
         @Inject(Argon2PasswordHasherAdapter)
         private readonly passwordHasher: PasswordHasher,
+        @Inject(NestLoggerAdapter)
+        private readonly logger: AppLogger,
     ) {}
 
     /**
@@ -35,14 +39,15 @@ export class UsersService {
             const result = await seedAdminUseCase(this.usersRepository, this.passwordHasher, { email, password: DEV_ADMIN_PASSWORD });
 
             if (result === 'seeded') {
-                console.log(`Seeded admin user "${email}".`);
+                this.logger.log(`Seeded admin user "${email}".`, UsersService.name);
             } else {
-                console.log(`Admin user "${email}" already exists — left unchanged.`);
+                this.logger.log(`Admin user "${email}" already exists — left unchanged.`, UsersService.name);
             }
         } catch (error: unknown) {
-            console.error(
+            this.logger.error(
                 'Development admin seed failed:',
                 error instanceof Error ? error.message : error,
+                UsersService.name,
             );
         }
     }
