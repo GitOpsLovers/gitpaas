@@ -12,16 +12,15 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
- * Use case that orchestrates triggering a new deployment for a service:
- * validates the service, resolves the head commit, persists the deployment
- * record and publishes a run request on the deployment queue. The deployment
- * feature's own background runner consumes that request and executes the run
- * (docker + status + log stream), so the request returns the record immediately.
+ * Use case that orchestrates triggering a new deployment for a service.
+ *
+ * Validates the service, resolves the head commit, persists the deployment
+ * record and publishes a run request on the deployment queue.
  *
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
- * @param providersRepository Providers repository
- * @param queue Deployment queue the run request is enqueued on
+ * @param providers Providers
+ * @param deploymentQueue Deployment queue
  * @param triggerDto Data for triggering the deployment
  *
  * @returns The created deployment record
@@ -29,8 +28,8 @@ import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 export async function createDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
-    providersRepository: Providers,
-    queue: DeploymentQueue,
+    providers: Providers,
+    deploymentQueue: DeploymentQueue,
     triggerDto: TriggerDeploymentDto,
 ): Promise<Deployment> {
     const service = await servicesRepository.findById(triggerDto.serviceId);
@@ -43,7 +42,7 @@ export async function createDeploymentUseCase(
         throw new ServiceNotDeployableError();
     }
 
-    const commit = await providersRepository.getCommit(Number(service.repositoryId), service.deploymentBranch);
+    const commit = await providers.getCommit(Number(service.repositoryId), service.deploymentBranch);
 
     const createDto: CreateDeploymentDto = {
         serviceId: service.id,
@@ -56,7 +55,7 @@ export async function createDeploymentUseCase(
 
     const deployment = await persistDeploymentUseCase(deploymentsRepository, createDto);
 
-    await queue.enqueue({
+    await deploymentQueue.enqueue({
         deploymentId: deployment.id,
         repositoryId: Number(service.repositoryId),
         commit: deployment.commit ?? deployment.branch,

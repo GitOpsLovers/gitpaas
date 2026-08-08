@@ -64,12 +64,6 @@ interface ResolvedBuild {
 
 /**
  * Dockerode Docker executor
- *
- * The Docker implementation of the deployments' own executor port, and the only
- * consumer allowed to reach for the runtime adapter's Dockerode client: Compose
- * orchestration and image building have no vendor-free equivalent, so the
- * adapter is injected as its concrete class rather than through the
- * `ContainerRuntime` port, purely to reuse its socket configuration.
  */
 @Injectable()
 export class DockerodeDockerExecutorAdapter implements DockerExecutor {
@@ -79,15 +73,6 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
         private readonly diagnostics: DiagnosticLoggerService,
     ) {}
 
-    /**
-     * Builds (from source) and runs a stack from a repository archive, streaming
-     * build/pull progress and container output to `onLog`.
-     *
-     * @param archive Gzipped tarball of the repository source
-     * @param composePath Path to the compose file within the repository
-     * @param projectName Compose project name used to group the stack's resources
-     * @param onLog Optional listener receiving real-time output
-     */
     public async up(archive: Buffer, composePath: string, projectName: string, onLog?: DockerLogListener): Promise<void> {
         const emit = (line: string): void => onLog?.(line);
         const directory = await mkdtemp(join(tmpdir(), 'gitpaas-deploy-'));

@@ -16,49 +16,41 @@ export interface RunDeploymentPayload {
 }
 
 /**
- * Use case that runs a deployment: it marks the deployment's terminal status,
- * downloads the source archive, drives the docker run and fans each captured
- * line out to the logs write port, then completes the log stream with the run's
- * terminal status. How the logs are stored is a logs-feature concern hidden
- * behind the write port.
+ * Use case that runs a deployment.
  *
- * Handles its own failures: any error is captured as a failed terminal status
- * (streamed and completed) rather than thrown.
+ * Marks the deployment's terminal status, downloads the source archive, drives the docker run
+ * and fans each captured line out to the logs store.
  *
- * @param deploymentsRepository Deployments repository (status transitions)
- * @param providersRepository Providers repository (source archive)
- * @param dockerExecutor Docker executor (produces log output)
- * @param logStore Logs write port used to stream and complete the output
+ * @param deploymentsRepository Deployments repository
+ * @param providers Providers
+ * @param dockerExecutor Docker executor
+ * @param logStore Logs store
  * @param payload Run payload
  */
 export async function runDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
-    providersRepository: Providers,
+    providers: Providers,
     dockerExecutor: DockerExecutor,
     logStore: LogStore,
     payload: RunDeploymentPayload,
 ): Promise<void> {
-    const {
-        deploymentId, repositoryId, commit, composerPath, projectName,
-    } = payload;
-
-    await deploymentsRepository.update(deploymentId, { status: 'running' });
+    await deploymentsRepository.update(payload.deploymentId, { status: 'running' });
 
     try {
-        const archive = await providersRepository.getRepositoryArchive(repositoryId, commit);
+        const archive = await providers.getRepositoryArchive(payload.repositoryId, payload.commit);
 
-        await dockerExecutor.up(archive, composerPath, projectName, (line) => {
-            logStore.append(deploymentId, line);
+        await dockerExecutor.up(archive, payload.composerPath, payload.projectName, (line) => {
+            logStore.append(payload.deploymentId, line);
         });
 
-        await deploymentsRepository.update(deploymentId, { status: 'success' });
-        await logStore.complete(deploymentId, 'success');
+        await deploymentsRepository.update(payload.deploymentId, { status: 'success' });
+        await logStore.complete(payload.deploymentId, 'success');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const failureLine = `✖ Deployment failed: ${message}`;
 
-        await deploymentsRepository.update(deploymentId, { status: 'failed', error: message });
-        await logStore.append(deploymentId, failureLine);
-        await logStore.complete(deploymentId, 'failed');
+        await deploymentsRepository.update(payload.deploymentId, { status: 'failed', error: message });
+        await logStore.append(payload.deploymentId, failureLine);
+        await logStore.complete(payload.deploymentId, 'failed');
     }
 }

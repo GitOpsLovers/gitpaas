@@ -4,9 +4,6 @@ import { Log } from '../models/log.models';
 
 /**
  * Logs repository
- *
- * Durable, per-deployment record of a finished log stream. Each entry is one
- * `line` row or the terminal `end` row, ordered by `seq`.
  */
 export interface LogsRepository {
     /**

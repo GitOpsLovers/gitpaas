@@ -4,10 +4,6 @@ import type { QueuedDeploymentTaskStatus } from '../../domain/models/queued-depl
 
 /**
  * Durable deployment queue task database entity.
- *
- * One row per enqueued deployment run. Rows outlive the process so tasks are
- * never lost on restart; the runner deletes a row once its deployment reaches a
- * terminal state.
  */
 @Entity('deployment_queue_tasks')
 export class DbDeploymentQueueTaskEntity {

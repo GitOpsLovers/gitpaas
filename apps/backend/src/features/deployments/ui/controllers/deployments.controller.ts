@@ -15,7 +15,7 @@ export class DeploymentsController {
     constructor(private readonly service: DeploymentsService) {}
 
     /**
-     * Get every deployment belonging to a service, most recent first
+     * Get every deployment belonging to a service
      *
      * @param serviceId Service identifier
      *
@@ -31,7 +31,7 @@ export class DeploymentsController {
      *
      * @param id Deployment identifier
      *
-     * @returns Deployment record, or `null` if not found
+     * @returns Deployment record
      */
     @Get(':id')
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Deployment> {

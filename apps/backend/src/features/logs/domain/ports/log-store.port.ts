@@ -4,9 +4,6 @@ import { LogEvent, LogStatus } from '../models/log-event.models';
 
 /**
  * Store for real-time log streams.
- *
- * Buffers captured output so it can be replayed to a viewer that connects late,
- * and fans out live output to viewers watching an in-progress stream.
  */
 export interface LogStore {
     /**

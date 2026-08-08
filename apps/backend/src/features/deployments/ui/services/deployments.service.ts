@@ -38,7 +38,7 @@ export class DeploymentsService {
     ) {}
 
     /**
-     * Get every deployment belonging to a service, most recent first
+     * Get every deployment belonging to a service
      *
      * @param serviceId Service identifier
      *
@@ -53,7 +53,7 @@ export class DeploymentsService {
      *
      * @param id Deployment identifier
      *
-     * @returns Deployment record, or `null` if not found
+     * @returns Deployment record
      */
     public findById(id: string): Promise<Deployment | null> {
         return findDeploymentByIdUseCase(this.repository, id);

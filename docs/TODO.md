@@ -1,2 +1,4 @@
 - [] Add root turborepo.json
 - [] Si gestionamos secretos a traves de Docker secret?
+- [] Donde deberiamos hacer el throw error de dominio? Crro que SOLO en servicios.
+- [] El naming de Providers es un poco pobre.

@@ -19,9 +19,7 @@ import { GithubProvidersAdapter } from '@features/providers/infrastructure/githu
 /**
  * Deployment runner.
  *
- * Subscribes to the deployment queue (which the deployments feature owns) and
- * on each requested run drives {@link runDeploymentUseCase}, which owns the
- * docker run and streams the output to the logs write port.
+ * Subscribes to the deployment queue and on each requested run triggers the use case
  */
 @Injectable()
 export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
@@ -43,18 +41,6 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
     /**
      * Subscribes to deployment-run requests when the module starts.
-     *
-     * Runs are serialized per compose project name so two overlapping
-     * deployments of the same service never race on the same project (their
-     * `down()`/`up()` cycles cannot interleave). Tasks are grouped by
-     * `task.projectName` and each group is drained with `concatMap`, which
-     * waits for the current run to complete before starting the next. Distinct
-     * projects live in separate groups and are merged concurrently, preserving
-     * cross-service parallelism. `run` swallows its own errors, so a failed run
-     * can never terminate its group's stream.
-     *
-     * Recovery runs only after the subscription is established, so any task the
-     * durable queue re-emits on restart is guaranteed to be picked up.
      */
     public async onModuleInit(): Promise<void> {
         this.subscription = this.queue.dequeued$
@@ -75,12 +61,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Runs a single deployment, guarding against unexpected throws.
-     *
-     * Marks the durable queue row `processing` before the run and deletes it on
-     * normal return (a deployment that failed inside {@link runDeploymentUseCase}
-     * still returns normally, so it counts as a completed task). Only a
-     * truly-unexpected throw reaches `markFailed`, which retries or dead-letters.
+     * Runs a single deployment.
      *
      * @param task Queued deployment task
      */
