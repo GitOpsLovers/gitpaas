@@ -4,7 +4,6 @@ import { DockerOrphanContainersAdapter } from './infrastructure/docker/docker-or
 import { DockerServerPrunerAdapter } from './infrastructure/docker/docker-server-pruner.adapter';
 import { DockerHealthProbeAdapter } from './infrastructure/health/docker-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from './infrastructure/health/postgres-health-probe.adapter';
-import { RedisHealthProbeAdapter } from './infrastructure/health/redis-health-probe.adapter';
 import { ServerController } from './ui/controllers/server.controller';
 import { ServerService } from './ui/services/server.service';
 
@@ -21,7 +20,6 @@ import { ServicesModule } from '@features/services/services.module';
         DockerServerPrunerAdapter,
         DockerOrphanContainersAdapter,
         PostgresHealthProbeAdapter,
-        RedisHealthProbeAdapter,
         DockerHealthProbeAdapter,
     ],
 })

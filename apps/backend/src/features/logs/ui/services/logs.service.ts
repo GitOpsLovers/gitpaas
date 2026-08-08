@@ -1,19 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
-import { createLogUseCase } from '../../application/create-log.use-case';
-import { deleteLogUseCase } from '../../application/delete-log.use-case';
-import { findLogByIdUseCase } from '../../application/find-log-by-id.use-case';
 import { getLogsByDeploymentUseCase } from '../../application/get-logs-by-deployment.use-case';
-import { updateLogUseCase } from '../../application/update-log.use-case';
-import { CreateLogDto } from '../../domain/dtos/create-log.dto';
-import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
+import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogEvent } from '../../domain/models/log-event.models';
-import { Log } from '../../domain/models/log.models';
 import type { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
+import { DatabaseLogStoreAdapter } from '../../infrastructure/database/db-log-store.adapter';
 import { DatabaseLogsRepository } from '../../infrastructure/database/db-logs.repository';
-import { RedisLogStoreAdapter } from '../../infrastructure/redis/redis-log-store.adapter';
 
 /**
  * Logs service
@@ -23,8 +17,8 @@ export class LogsService {
     constructor(
         @Inject(DatabaseLogsRepository)
         private readonly repository: LogsRepository,
-        @Inject(RedisLogStoreAdapter)
-        private readonly logStoreRepository: LogStore,
+        @Inject(DatabaseLogStoreAdapter)
+        private readonly logStore: LogStore,
     ) {}
 
     /**
@@ -34,53 +28,8 @@ export class LogsService {
      *
      * @returns Ordered log entries of the deployment
      */
-    public getAllByDeployment(deploymentId: string): Promise<Log[]> {
+    public getAllByDeployment(deploymentId: string): Promise<LogEntry[]> {
         return getLogsByDeploymentUseCase(this.repository, deploymentId);
-    }
-
-    /**
-     * Find a single log entry by its identifier
-     *
-     * @param id Log entry identifier
-     *
-     * @returns The log entry, or `null` when it does not exist
-     */
-    public findById(id: string): Promise<Log | null> {
-        return findLogByIdUseCase(this.repository, id);
-    }
-
-    /**
-     * Persist a new log entry
-     *
-     * @param createDto Log entry data
-     *
-     * @returns The created log entry
-     */
-    public create(createDto: CreateLogDto): Promise<Log> {
-        return createLogUseCase(this.repository, createDto);
-    }
-
-    /**
-     * Update a log entry's content
-     *
-     * @param id Log entry identifier
-     * @param updateDto New content
-     *
-     * @returns The updated log entry, or `null` when it does not exist
-     */
-    public update(id: string, updateDto: UpdateLogDto): Promise<Log | null> {
-        return updateLogUseCase(this.repository, id, updateDto);
-    }
-
-    /**
-     * Delete a log entry
-     *
-     * @param id Log entry identifier
-     *
-     * @returns `true` when a row was deleted, `false` otherwise
-     */
-    public delete(id: string): Promise<boolean> {
-        return deleteLogUseCase(this.repository, id);
     }
 
     /**
@@ -91,6 +40,6 @@ export class LogsService {
      * @returns Observable of log events for the deployment
      */
     public streamLogs(deploymentId: string): Observable<LogEvent> {
-        return this.logStoreRepository.stream(deploymentId);
+        return this.logStore.stream(deploymentId);
     }
 }

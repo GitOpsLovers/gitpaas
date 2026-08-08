@@ -6,7 +6,7 @@
  */
 export interface HealthProbe {
     /**
-     * Name of the dependency this probe checks (e.g. `postgres`, `redis`).
+     * Name of the dependency this probe checks (e.g. `postgres`, `docker`).
      */
     readonly name: string;
 

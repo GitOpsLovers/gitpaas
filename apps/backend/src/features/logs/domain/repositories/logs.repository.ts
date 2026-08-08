@@ -1,6 +1,5 @@
 import { CreateLogDto } from '../dtos/create-log.dto';
-import { UpdateLogDto } from '../dtos/update-log.dto';
-import { Log } from '../models/log.models';
+import { LogEntry } from '../models/log-entry.models';
 
 /**
  * Logs repository
@@ -13,51 +12,50 @@ export interface LogsRepository {
      *
      * @returns Ordered log entries of the deployment
      */
-    getAllByDeployment: (deploymentId: string) => Promise<Log[]>;
-
-    /**
-     * Find a single log entry by its identifier
-     *
-     * @param id Log entry identifier
-     *
-     * @returns The log entry, or `null` when it does not exist
-     */
-    findById: (id: string) => Promise<Log | null>;
-
-    /**
-     * Persist a single log entry
-     *
-     * @param createDto Data for the log entry
-     *
-     * @returns The created log entry
-     */
-    create: (createDto: CreateLogDto) => Promise<Log>;
+    getAllByDeployment: (deploymentId: string) => Promise<LogEntry[]>;
 
     /**
      * Persist several log entries in one write
      *
      * @param createDtos Data for the log entries
-     *
-     * @returns The created log entries
      */
-    createMany: (createDtos: CreateLogDto[]) => Promise<Log[]>;
+    createMany: (createDtos: CreateLogDto[]) => Promise<void>;
 
     /**
-     * Update a log entry's content
+     * Highest sequence already persisted for a deployment
      *
-     * @param id Log entry identifier
-     * @param updateDto New content
+     * Seeds the in-process sequence counter so a stream resumed after a restart
+     * keeps growing monotonically instead of colliding with existing rows.
      *
-     * @returns The updated log entry, or `null` when it does not exist
+     * @param deploymentId Deployment identifier
+     *
+     * @returns Highest stored sequence, or `0` when the deployment has no entries
      */
-    update: (id: string, updateDto: UpdateLogDto) => Promise<Log | null>;
+    getMaxSeq: (deploymentId: string) => Promise<number>;
 
     /**
-     * Delete a log entry
+     * Delete every log entry of a deployment
      *
-     * @param id Log entry identifier
-     *
-     * @returns `true` when a row was deleted, `false` otherwise
+     * @param deploymentId Deployment identifier
      */
-    delete: (id: string) => Promise<boolean>;
+    deleteByDeployment: (deploymentId: string) => Promise<void>;
+
+    /**
+     * Delete a deployment's log entries up to and including a sequence
+     *
+     * Enforces the per-deployment line cap by dropping the oldest entries.
+     *
+     * @param deploymentId Deployment identifier
+     * @param seq Highest sequence to delete
+     */
+    deleteUpToSeq: (deploymentId: string, seq: number) => Promise<void>;
+
+    /**
+     * Delete every log entry created before an instant
+     *
+     * Enforces the age-based retention window across all deployments.
+     *
+     * @param threshold Instant before which entries are dropped
+     */
+    deleteCreatedBefore: (threshold: Date) => Promise<void>;
 }

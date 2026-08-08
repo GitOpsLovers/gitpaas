@@ -10,7 +10,7 @@ import { DockerodeDockerExecutorAdapter } from '../../../infrastructure/docker/d
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
+import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
 jest.mock('../../../application/run-deployment.use-case');
@@ -67,7 +67,7 @@ describe('DeploymentRunnerService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockProviders: jest.Mocked<GithubProvidersAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerodeDockerExecutorAdapter>;
-    let mockLogStore: jest.Mocked<PersistentLogStoreRepository>;
+    let mockLogStore: jest.Mocked<DatabaseLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
     let mockQueue: jest.Mocked<DeploymentQueue>;
     let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
@@ -79,7 +79,7 @@ describe('DeploymentRunnerService', () => {
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockProviders = {} as jest.Mocked<GithubProvidersAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerodeDockerExecutorAdapter>;
-        mockLogStore = {} as jest.Mocked<PersistentLogStoreRepository>;
+        mockLogStore = {} as jest.Mocked<DatabaseLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
         mockQueue = {
             dequeued$: dequeued.asObservable(),
@@ -97,7 +97,7 @@ describe('DeploymentRunnerService', () => {
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: GithubProvidersAdapter, useValue: mockProviders },
                 { provide: DockerodeDockerExecutorAdapter, useValue: mockDockerExecutor },
-                { provide: PersistentLogStoreRepository, useValue: mockLogStore },
+                { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
             ],

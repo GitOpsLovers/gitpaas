@@ -1,4 +1,4 @@
-import { Log } from '../domain/models/log.models';
+import { LogEntry } from '../domain/models/log-entry.models';
 import { LogsRepository } from '../domain/repositories/logs.repository';
 
 /**
@@ -9,6 +9,6 @@ import { LogsRepository } from '../domain/repositories/logs.repository';
  *
  * @returns Ordered log entries of the deployment
  */
-export function getLogsByDeploymentUseCase(repository: LogsRepository, deploymentId: string): Promise<Log[]> {
+export function getLogsByDeploymentUseCase(repository: LogsRepository, deploymentId: string): Promise<LogEntry[]> {
     return repository.getAllByDeployment(deploymentId);
 }

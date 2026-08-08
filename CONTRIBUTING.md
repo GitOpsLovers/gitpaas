@@ -34,8 +34,8 @@ The variables cover:
 
 - Runtime: `NODE_ENV`, `PORT`
 - Security: `CORS_ORIGIN`, `THROTTLE_TTL`/`THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
+- Deployment logs: `LOGS_RETENTION_HOURS` (age window, e.g. `24`), `LOGS_MAX_LINES` (per-deployment cap, e.g. `5000`)
 - PostgreSQL: `DB_*`
-- Redis: `REDIS_*`, 
 - GitHub App: `GITHUB_APP_*`, 
 - Authentication: `JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`
 
@@ -43,10 +43,8 @@ The variables cover:
 
 GitPaaS deploys applications by driving the **local Docker daemon** through the `/var/run/docker.sock` unix socket (see [infrastructure-architecture.md](./docs/infrastructure-architecture.md)). Locally that is your own Docker, so everything you deploy lands on your machine. The stack in `iac/development/docker-compose.yml` provides the remaining services the project depends on:
 
-- **`postgres`**: the application database.
-- **`redis`**: buffers and fan-outs real-time deployment logs streamed to the browser over SSE.
+- **`postgres`**: the application database. It also stores deployment logs, which back both the live SSE stream and its replayable history.
 - **`pgadmin`**: web UI for the local Postgres at `http://127.0.0.1:5050`.
-- **`redisinsight`**: web UI for the local Redis at `http://127.0.0.1:5540`.
 
 You can set up the development environment using the following commands. You must run them from `iac/development/`:
 

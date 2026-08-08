@@ -49,15 +49,6 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNotEmpty()
     @IsString()
-    public REDIS_HOST!: string;
-
-    @IsDefined()
-    @IsNumber()
-    public REDIS_PORT!: number;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
     public GITHUB_APP_ID!: string;
 
     @IsDefined()
@@ -90,6 +81,14 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNumber()
     public THROTTLE_STREAM_LIMIT!: number;
+
+    @IsDefined()
+    @IsNumber()
+    public LOGS_RETENTION_HOURS!: number;
+
+    @IsDefined()
+    @IsNumber()
+    public LOGS_MAX_LINES!: number;
 
     @IsDefined()
     @IsNotEmpty()

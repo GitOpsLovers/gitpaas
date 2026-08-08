@@ -12,8 +12,6 @@ const validEnv = (): Record<string, unknown> => ({
     DB_USER: 'gitpaas',
     DB_PASSWORD: 'secret',
     DB_NAME: 'gitpaas_db',
-    REDIS_HOST: 'localhost',
-    REDIS_PORT: '6379',
     GITHUB_APP_ID: '123',
     GITHUB_APP_PRIVATE_KEY: 'key',
     GITHUB_APP_INSTALLATION_ID: '456',
@@ -22,6 +20,8 @@ const validEnv = (): Record<string, unknown> => ({
     THROTTLE_LIMIT: '100',
     THROTTLE_STREAM_TTL: '60000',
     THROTTLE_STREAM_LIMIT: '1000',
+    LOGS_RETENTION_HOURS: '24',
+    LOGS_MAX_LINES: '5000',
     JWT_ACCESS_SECRET: 'access-secret',
     JWT_ACCESS_EXPIRES_IN: '15m',
     JWT_REFRESH_SECRET: 'refresh-secret',
@@ -46,7 +46,7 @@ describe('validate', () => {
     it('aggregates several missing variables into a single error message', () => {
         const env = validEnv();
         delete env.DB_HOST;
-        delete env.REDIS_HOST;
+        delete env.DB_USER;
         delete env.CORS_ORIGIN;
 
         let message = '';
@@ -59,7 +59,7 @@ describe('validate', () => {
 
         expect(message).toContain('Invalid environment configuration');
         expect(message).toContain('DB_HOST');
-        expect(message).toContain('REDIS_HOST');
+        expect(message).toContain('DB_USER');
         expect(message).toContain('CORS_ORIGIN');
     });
 
@@ -79,7 +79,6 @@ describe('validate', () => {
 
         expect(result.PORT).toBe(4000);
         expect(result.DB_PORT).toBe(5432);
-        expect(result.REDIS_PORT).toBe(6379);
     });
 
     it('coerces the throttler settings to numbers', () => {
@@ -89,6 +88,20 @@ describe('validate', () => {
         expect(result.THROTTLE_LIMIT).toBe(100);
         expect(result.THROTTLE_STREAM_TTL).toBe(60000);
         expect(result.THROTTLE_STREAM_LIMIT).toBe(1000);
+    });
+
+    it('coerces the log retention settings to numbers', () => {
+        const result = validate(validEnv());
+
+        expect(result.LOGS_RETENTION_HOURS).toBe(24);
+        expect(result.LOGS_MAX_LINES).toBe(5000);
+    });
+
+    it('fails fast when a log retention variable is missing', () => {
+        const env = validEnv();
+        delete env.LOGS_MAX_LINES;
+
+        expect(() => validate(env)).toThrow(/LOGS_MAX_LINES/);
     });
 
     it('rejects a non-numeric throttle limit', () => {

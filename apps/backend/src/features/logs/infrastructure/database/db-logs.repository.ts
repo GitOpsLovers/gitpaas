@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
-import { UpdateLogDto } from '../../domain/dtos/update-log.dto';
-import { Log } from '../../domain/models/log.models';
+import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogsRepository } from '../../domain/repositories/logs.repository';
 
 import { DbLogEntity } from './db-log.entity';
-import { toLog } from './db-logs.transformer';
+import { toLogEntry } from './db-logs.transformer';
 
 /**
  * Logs database repository
@@ -27,88 +26,65 @@ export class DatabaseLogsRepository implements LogsRepository {
      *
      * @returns Ordered log entries of the deployment
      */
-    public async getAllByDeployment(deploymentId: string): Promise<Log[]> {
+    public async getAllByDeployment(deploymentId: string): Promise<LogEntry[]> {
         const logs = await this.repository.find({ where: { deploymentId }, order: { seq: 'ASC' } });
 
-        return logs.map(toLog);
-    }
-
-    /**
-     * Find a single log entry by its identifier
-     *
-     * @param id Log entry identifier
-     *
-     * @returns The log entry, or `null` when it does not exist
-     */
-    public async findById(id: string): Promise<Log | null> {
-        const log = await this.repository.findOneBy({ id });
-
-        if (!log) {
-            return null;
-        }
-
-        return toLog(log);
-    }
-
-    /**
-     * Persist a single log entry
-     *
-     * @param createDto Data for the log entry
-     *
-     * @returns The created log entry
-     */
-    public async create(createDto: CreateLogDto): Promise<Log> {
-        const entity = this.repository.create(createDto);
-        const saved = await this.repository.save(entity);
-
-        return toLog(saved);
+        return logs.map(toLogEntry);
     }
 
     /**
      * Persist several log entries in one write
      *
      * @param createDtos Data for the log entries
-     *
-     * @returns The created log entries
      */
-    public async createMany(createDtos: CreateLogDto[]): Promise<Log[]> {
+    public async createMany(createDtos: CreateLogDto[]): Promise<void> {
         const entities = this.repository.create(createDtos);
-        const saved = await this.repository.save(entities);
 
-        return saved.map(toLog);
+        await this.repository.save(entities);
     }
 
     /**
-     * Update a log entry's content
+     * Highest sequence already persisted for a deployment
      *
-     * @param id Log entry identifier
-     * @param updateDto New content
+     * @param deploymentId Deployment identifier
      *
-     * @returns The updated log entry, or `null` when it does not exist
+     * @returns Highest stored sequence, or `0` when the deployment has no entries
      */
-    public async update(id: string, updateDto: UpdateLogDto): Promise<Log | null> {
-        const log = await this.repository.findOneBy({ id });
+    public async getMaxSeq(deploymentId: string): Promise<number> {
+        const last = await this.repository.findOne({
+            where: { deploymentId },
+            order: { seq: 'DESC' },
+            select: { seq: true },
+        });
 
-        if (!log) {
-            return null;
-        }
-
-        this.repository.merge(log, updateDto);
-        const saved = await this.repository.save(log);
-
-        return toLog(saved);
+        return last?.seq ?? 0;
     }
 
     /**
-     * Delete a log entry
+     * Delete every log entry of a deployment
      *
-     * @param id Log entry identifier
-     *
-     * @returns `true` when a row was deleted, `false` otherwise
+     * @param deploymentId Deployment identifier
      */
-    public async delete(id: string): Promise<boolean> {
-        const result = await this.repository.delete(id);
+    public async deleteByDeployment(deploymentId: string): Promise<void> {
+        await this.repository.delete({ deploymentId });
+    }
 
-        return (result.affected ?? 0) > 0;
+    /**
+     * Delete a deployment's log entries up to and including a sequence
+     *
+     * @param deploymentId Deployment identifier
+     * @param seq Highest sequence to delete
+     */
+    public async deleteUpToSeq(deploymentId: string, seq: number): Promise<void> {
+        await this.repository.delete({ deploymentId, seq: LessThanOrEqual(seq) });
+    }
+
+    /**
+     * Delete every log entry created before an instant
+     *
+     * @param threshold Instant before which entries are dropped
+     */
+    public async deleteCreatedBefore(threshold: Date): Promise<void> {
+        await this.repository.delete({ createdAt: LessThan(threshold) });
     }
 }

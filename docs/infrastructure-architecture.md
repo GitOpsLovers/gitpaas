@@ -6,7 +6,7 @@ This document details the infrastructure on which the GitPaaS application runs.
 
 GitPaaS runs **entirely on one server**. Two responsibilities still live side by side there:
 
-- **Control plane**: GitPaaS itself: the backend and frontend applications, a PostgreSQL for durable state and Redis for live logs buffer and pub/sub events.
+- **Control plane**: GitPaaS itself: the backend and frontend applications, plus a PostgreSQL that holds all durable state — including deployment logs, which are both the live stream's buffer and its history.
 - **Workloads**: the user's deployed applications, run as compose stacks on that same server's Docker daemon.
 
 The backend drives the **local** Docker daemon through the `/var/run/docker.sock` unix socket — bind-mounted into the backend container in production, and the developer's own socket in development. There is no remote daemon, no TCP endpoint and no mTLS material anywhere in the topology.
@@ -17,7 +17,7 @@ The backend drives the **local** Docker daemon through the `/var/run/docker.sock
 |---------------------|--------------------------------------------------------|
 | Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
 | Images              | Multi-stage Dockerfiles                                |
-| Database / cache    | `postgres:17.6-alpine`, `redis:8.8.0-alpine`           |
+| Database            | `postgres:17.6-alpine`                                 |
 | Workload execution  | Local Docker daemon via `/var/run/docker.sock`         |
 | Static serving      | nginx-unprivileged                                     |
 | Release             | GitHub Actions + semantic-release, images on GHCR      |
@@ -31,17 +31,14 @@ The backend drives the **local** Docker daemon through the `/var/run/docker.sock
 | Service        | Role                                            | Host port |
 |----------------|-------------------------------------------------|-----------|
 | `postgres`     | Control-plane database                          | 5432      |
-| `redis`        | Live deployment-log buffer + pub/sub            | 6379      |
 | `pgadmin`      | Optional Postgres web UI, server pre-registered | 5050      |
-| `redisinsight` | Optional Redis web UI, server pre-connected     | 5540      |
 
 Workloads are **not** emulated: the host-run backend opens `/var/run/docker.sock` directly, so everything GitPaaS deploys locally runs on the developer's own Docker daemon — the same code path as production, with no certificates or extra container to start. The daemon must be running for the Docker-backed endpoints (and the readiness probe) to succeed.
 
 ```text
 host: backend (pnpm dev)  ──unix socket──►  /var/run/docker.sock
         │                                      └─ deployed compose stacks
-        ├─ 127.0.0.1:5432 ► postgres
-        └─ 127.0.0.1:6379 ► redis
+        └─ 127.0.0.1:5432 ► postgres
 ```
 
 #### Admin seeding
@@ -50,7 +47,7 @@ The dev Postgres container starts **empty**. On Backend application boot, TypeOR
 
 ### Production
 
-`iac/production/docker-compose.yml` (project `gitpaas`) brings up `postgres`, `redis`, `backend`, and `frontend`, with named volumes (`postgres-data`, `redis-data`). The `backend` service bind-mounts the host's `/var/run/docker.sock` so it can drive the server's own Docker daemon, and joins that socket's group via `group_add: ["${DOCKER_GID}"]` because the image runs non-root. Postgres and Redis declare compose healthchecks and the backend gates on them with `depends_on … condition: service_healthy`; the two application images declare their own `HEALTHCHECK`. Only `backend` (`BACKEND_PORT`) and `frontend` (`FRONTEND_PORT`) publish host ports.
+`iac/production/docker-compose.yml` (project `gitpaas`) brings up `postgres`, `backend`, and `frontend`, with a single named volume (`postgres-data`). The `backend` service bind-mounts the host's `/var/run/docker.sock` so it can drive the server's own Docker daemon, and joins that socket's group via `group_add: ["${DOCKER_GID}"]` because the image runs non-root. Postgres declares a compose healthcheck and the backend gates on it with `depends_on … condition: service_healthy`; the two application images declare their own `HEALTHCHECK`. Only `backend` (`BACKEND_PORT`) and `frontend` (`FRONTEND_PORT`) publish host ports.
 
 The stack **intentionally omits a reverse proxy and TLS termination** — fronting deployed apps with a proxy and automatic TLS is Phase 2 of the roadmap.
 
@@ -76,8 +73,8 @@ Both images build from multi-stage Dockerfiles whose **build context is the repo
 |-------------------|-----------------------------------------------------------------------------------------------|
 | Build / ports     | `NODE_VERSION`, `PNPM_VERSION`, `IMAGE_TAG`, `BACKEND_PORT`, `FRONTEND_PORT`                   |
 | Backend runtime   | `NODE_ENV`, `PORT`, `CORS_ORIGIN`, `THROTTLE_TTL`, `THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`, `THROTTLE_STREAM_LIMIT` |
+| Deployment logs   | `LOGS_RETENTION_HOURS` (age window, example value `24`), `LOGS_MAX_LINES` (per-deployment line cap, example value `5000`) |
 | PostgreSQL        | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` |
-| Redis             | `REDIS_HOST`, `REDIS_PORT`                                                                     |
 | GitHub App        | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64 PEM), `GITHUB_APP_INSTALLATION_ID`           |
 | Docker            | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                     |
 | JWT               | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`   |
@@ -127,7 +124,7 @@ The script runs seven ordered steps:
 1. **Ensure Docker.** If Docker or the compose plugin is missing, it installs both via the official `get.docker.com` convenience script and enables the daemon.
 2. **Resolve version and fetch source.** It resolves the ref (see above) and downloads the repo tarball from `codeload.github.com` into the install directory. An existing install (a directory that already holds `iac/production/docker-compose.yml`) is reused rather than re-fetched.
 3. **Write `.env`.** It copies `iac/production/.env.example` to `.env` and fills in secure random secrets — a shared `POSTGRES_PASSWORD`/`DB_PASSWORD`, and `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET` (32-byte hex) — sets `NODE_ENV=production`, and points `CORS_ORIGIN` at the host's own address on port `8080`. It also detects the host's docker group id (`getent group docker`, falling back to the socket's owning group) and writes it as `DOCKER_GID`, which compose feeds to the backend's `group_add` so the non-root container can use the socket; the installer aborts with a clear message if that GID cannot be resolved. GitHub App credentials are left as placeholders.
-4. **Start the data stores only.** It runs `docker compose … up -d postgres redis` — deliberately *not* a full `up -d` — and polls the `gitpaas-postgres` container's health until it reports `healthy` (up to ~5 minutes). The backend and frontend stay down at this point.
+4. **Start the database only.** It runs `docker compose … up -d postgres` — deliberately *not* a full `up -d` — and polls the `gitpaas-postgres` container's health until it reports `healthy` (up to ~5 minutes). The backend and frontend stay down at this point.
 5. **Apply the SQL migrations.** See [Schema bootstrap](#schema-bootstrap).
 6. **Bootstrap the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
 7. **Bring up the application stack.** Only once the schema is current and the admin row exists it runs `docker compose … up -d --build`, which starts the backend, then the frontend, and polls the `gitpaas-backend` container's health until it reports `healthy` (up to ~5 minutes).
@@ -176,20 +173,22 @@ POST /deployments ─► persist `pending` ─► enqueue (durable, DB-backed)
   build `build:` services / pull the rest ─► down old stack ─► up new stack
         │                                         │
         ▼                                         ▼
-  live logs ─► Redis buffer + pub/sub ─► SSE to browser;  history ─► PostgreSQL
+  captured output ─► batched into PostgreSQL `logs` (≤100 lines / ≤250 ms)
+                  └─► in-process fan-out ─► SSE to browser
 ```
 
 Infrastructure properties that matter:
 
 - **Durable queue** — tasks are persisted (at-least-once, bounded retries, dead-lettering, restart recovery), so in-flight deployments survive a control-plane restart. Runs serialize per compose-project name while distinct projects run concurrently.
 - **Local execution over the Docker socket** — the backend talks to the daemon on `/var/run/docker.sock`, so access is governed by the socket mount and its file permissions rather than by network credentials (and, as noted in [Conventions](#conventions), that access is root-equivalent on the host). The same path is used in development and production.
-- **Live plus durable logs** — output streams to the browser over SSE via Redis and is persisted to PostgreSQL for replayable history.
+- **One store for live and historical logs** — captured lines go to a single PostgreSQL table, batched at 100 lines or 250 ms (whichever comes first) and fanned out in-process to SSE subscribers at the same time. A subscriber is served the stored rows first, then the live feed, deduplicated by sequence number, so history is fully replayable after the run ends and a crash loses at most one unflushed batch.
+- **Bounded log growth** — retention is capped two ways: `LOGS_MAX_LINES` per deployment (enforced after every flush) and `LOGS_RETENTION_HOURS` across all deployments. The age sweep is *opportunistic*: it runs when a deployment completes, since the backend ships no scheduler, so an idle control plane never prunes by age.
 
-The same daemon backs the read-only operational features (container and network inspection, pruning, orphan cleanup) and the readiness probe, which checks PostgreSQL, Redis, and the Docker daemon in parallel.
+The same daemon backs the read-only operational features (container and network inspection, pruning, orphan cleanup) and the readiness probe, which checks PostgreSQL and the Docker daemon in parallel.
 
 ### Schema bootstrap
 
-The production schema is owned by **plain SQL files**, not by the application. `iac/production/migrations/*.sql` holds the whole schema, split into numbered files whose lexicographic order is execution order (`001_extensions.sql`, `002_users.sql`, `003_refresh_tokens.sql`, `004_projects_services.sql`, `005_deployments.sql`, `006_logs.sql`). Every file is idempotent (`CREATE … IF NOT EXISTS`, foreign keys added inside a `pg_constraint` guard), so applying one twice is a no-op.
+The production schema is owned by **plain SQL files**, not by the application. `iac/production/migrations/*.sql` holds the whole schema, split into numbered files whose lexicographic order is execution order (`001_extensions.sql`, `002_users.sql`, `003_refresh_tokens.sql`, `004_projects_services.sql`, `005_deployments.sql`, `006_logs.sql`, `007_logs_indexes.sql`). Every file is idempotent (`CREATE … IF NOT EXISTS`, foreign keys added inside a `pg_constraint` guard), so applying one twice is a no-op.
 
 `scripts/install.sh` applies them in step 5, right after Postgres reports healthy and before the admin seed and the application containers:
 

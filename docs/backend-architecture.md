@@ -16,7 +16,7 @@ In addition, **vertical slicing** is implemented, so each business domain is enc
 |----------------|------------------------------------------------------------------|
 | Framework      | NestJS 11 with Express platform                                  |
 | Persistence    | PostgreSQL via NestJS TypeORM                                    |
-| Live logs      | Redis                                                            |
+| Live logs      | PostgreSQL-backed store with in-process RxJS fan-out over SSE    |
 | Deploy engine  | `dockerode` and `dockerode-compose` over the local Docker socket |
 | Source access  | GitHub App via `@octokit/` library                               |
 | Auth           | Passport with local and JWT                                      |
@@ -38,7 +38,7 @@ src/
   shared/
 ```
 
-- **`core/`** holds only the **structural elements that make the application work**: configuration and environment validation, the database connection, the Redis client, the container-runtime, the global exception filter, and diagnostic logging.
+- **`core/`** holds only the **structural elements that make the application work**: configuration and environment validation, the database connection, the container-runtime, the global exception filter, and diagnostic logging.
 - **`features/`** is the default home. Anything that belongs to a single business domain lives in that domain's feature and nowhere else.
 - **`shared/`** holds **reusable functionality that is not structural and belongs to no single domain**:.
 
@@ -100,7 +100,7 @@ features/<feature>/
 
 In general, all features must follow this organizational structure for entities, although each layer may contain more or fewer elements.
 
-Infrastructure sub-folders are named after the technology or vendor they wrap (`database`, `docker`, `redis`, `github`).
+Infrastructure sub-folders are named after the technology or vendor they wrap (`database`, `docker`, `github`).
 
 ### Module wiring
 
@@ -246,6 +246,37 @@ Streaming a long-running result uses Server-Sent Events rather than the CRUD tab
 
 The log-stream endpoint is **not** `@Public()`, so it requires a Bearer token. Because the native `EventSource` API cannot set headers, the frontend streams it with a token-capable SSE client.
 
+### Deployment log store
+
+The `LogStore` port has **one** adapter, `DatabaseLogStoreAdapter`, and **one** backing store, the `logs` table. Live delivery and durable history are therefore two views of the same rows rather than two systems that can drift apart.
+
+```text
+docker output ──► append() ──┬─► in-memory batch ──(100 lines | 250 ms)──► logs table
+                             └─► per-deployment RxJS Subject ──► SSE subscribers
+
+stream() ──► stored rows (replay) ──► live Subject   (deduplicated by seq)
+```
+
+- **`append`** assigns the next sequence, pushes the event onto the deployment's in-memory batch, and publishes it on the deployment's `Subject`. The batch is written out at **100 lines or 250 ms**, whichever comes first. It never rejects: appends are driven fire-and-forget from the Docker stream callback, so a store failure is logged instead of escaping as an unhandled rejection.
+- **`stream`** subscribes to the `Subject` *first*, then reads the deployment's stored rows plus the not-yet-written batch, and only then drains what arrived meanwhile. Every event carries a sequence, so the replay/live overlap is deduplicated and the hand-off has neither a gap nor a duplicate.
+- **`complete`** flushes the terminal `end` entry to the table *before* publishing it, so a subscriber that joins in between still finds it during replay and can never hang on "running".
+- **`purge`** waits for in-flight writes to settle, then deletes the deployment's rows.
+
+Sequences are the single ordering authority: **one** monotonic counter per deployment, seeded from `MAX(seq)` in the table, shared by the persisted rows and the live events. Seeding from the table is what lets a stream resumed after a restart keep growing monotonically instead of colliding with existing rows.
+
+Two properties follow from this shape, both of which the previous design lacked: **history stays retrievable after a run ends** (nothing expires, so the UI can always replay a finished run), and **a crash loses at most one unflushed batch** — roughly 250 ms of output — instead of the whole run. `onModuleDestroy` flushes every batch, so a graceful stop loses nothing.
+
+Growth is bounded by two required environment variables, both validated at boot like every other setting:
+
+| Variable               | Meaning                                                | Enforced                                        |
+|------------------------|--------------------------------------------------------|-------------------------------------------------|
+| `LOGS_MAX_LINES`       | Per-deployment cap; oldest entries are trimmed by `seq` | After every flush                               |
+| `LOGS_RETENTION_HOURS` | Age window across all deployments                       | When a deployment completes (**opportunistic**) |
+
+> The age sweep is opportunistic on purpose — the backend ships no scheduler, so completion is the cheapest recurring hook available. The consequence is that an **idle control plane never prunes by age**; only the line cap keeps a single busy deployment bounded.
+
+Both read paths are indexed on the `logs` table: `(deploymentId, seq)` backs ordered replay and the line-cap trim, `createdAt` backs the age sweep.
+
 ### Authentication
 
 The `authentication` feature wires JWT and Passport together and registers the global guard, so every route requires a valid access token by default; `@Public()`, a reflector-driven metadata flag, opts a route out. It exposes `POST /auth/login` (public, rate-limited), `POST /auth/refresh` (public, rotates tokens), `POST /auth/logout` (public, an idempotent revoke), and `GET /auth/me` (protected, with the password hash stripped). A `@CurrentUser()` parameter decorator surfaces the request's user.
@@ -258,9 +289,9 @@ The `authentication` feature wires JWT and Passport together and registers the g
 ### Docker-facing capabilities
 
 - **Docker executor** (`deployments`): exposed as the `DockerExecutor` port with the `DockerExecutorDockerodeAdapter` adapter. Its `up(archive, composePath, projectName, onLog)` operation extracts the GitHub tarball, builds local `build:` services (streaming their output and rewriting them to image services), pulls registry images, brings the old stack `down()`, normalises healthcheck durations to nanoseconds (a dockerode-compose quirk), stamps the GitPaaS ownership labels on every resource the stack will create, runs `up()`, and captures bounded per-container startup logs. All resources are grouped under a `com.docker.compose.project` name derived from a project-name slug.
-- **Log store** (`logs`): exposed as the `LogStore` port (`append`, `complete`, `stream`, `purge`) with two adapters. `LogStoreRedisAdapter` is the live buffer: it keeps a per-deployment list key (capped at roughly 5000 lines), a sequence counter, an events channel, and a 24-hour TTL, and its `stream()` replays the buffer, then tails pub/sub, dedupes by sequence, and completes on the terminal `end` event. `PersistentLogStoreRepository` is the adapter consumers actually inject: it buffers in memory, delegates live fan-out to Redis, and on `complete` persists the finished stream to the `logs` table before completing Redis.
-- **Cleanup**: the database cascade removes `service → deployments → logs`, and Redis logs are purged when a deployment or a service is deleted. `deleteServiceUseCase` also tears down the Docker resources through the `ServiceRuntimeResources` port's `remove(service)`, a best-effort step that force-removes the project's GitPaaS-labelled containers, compose networks, and locally built images while keeping shared pulled images.
-- **Server**: the `ServerPruner` port prunes GitPaaS-labelled images, volumes, and stopped containers, while the `OrphanContainers` port force-removes GitPaaS-labelled containers whose project matches no service (never the control plane). A daemon-unreachable error maps to `503`. `GET /server/readiness` is **public** and checks PostgreSQL, Redis, and the Docker daemon in parallel, each through a `HealthProbe` port; a throw counts as `down` and never rejects the aggregate. It returns `200` with a per-dependency breakdown when all are up, or `503` with the same breakdown otherwise. `GET /server/status` is **not** public: it reports the daemon information read through Core's `ContainerRuntime` port, so it confirms the daemon is reachable and its credentials are valid. Core owns that port and its adapter because the runtime is structural; the feature owns the HTTP edge and the use case that reads it.
+- **Log store** (`logs`): exposed as the `LogStore` port (`append`, `complete`, `stream`, `purge`) with a single adapter, `DatabaseLogStoreAdapter`, backed by the `logs` table. See [Deployment log store](#deployment-log-store).
+- **Cleanup**: the database cascade removes `service → deployments → logs`, and `purge` drops a deployment's log rows when a deployment or a service is deleted. `deleteServiceUseCase` also tears down the Docker resources through the `ServiceRuntimeResources` port's `remove(service)`, a best-effort step that force-removes the project's GitPaaS-labelled containers, compose networks, and locally built images while keeping shared pulled images.
+- **Server**: the `ServerPruner` port prunes GitPaaS-labelled images, volumes, and stopped containers, while the `OrphanContainers` port force-removes GitPaaS-labelled containers whose project matches no service (never the control plane). A daemon-unreachable error maps to `503`. `GET /server/readiness` is **public** and checks PostgreSQL and the Docker daemon in parallel, each through a `HealthProbe` port; a throw counts as `down` and never rejects the aggregate. It returns `200` with a per-dependency breakdown when all are up, or `503` with the same breakdown otherwise. `GET /server/status` is **not** public: it reports the daemon information read through Core's `ContainerRuntime` port, so it confirms the daemon is reachable and its credentials are valid. Core owns that port and its adapter because the runtime is structural; the feature owns the HTTP edge and the use case that reads it.
 - **Read-only**: `containers` and `networks` list a service's containers and compose networks by label; `providers` (a GitHub App) lists repositories and branches, resolves head commits, and fetches source archives. None of these touch the database.
 
 #### Docker resource labelling

@@ -1,4 +1,4 @@
-import { Log } from '../../domain/models/log.models';
+import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogsRepository } from '../../domain/repositories/logs.repository';
 import { getLogsByDeploymentUseCase } from '../get-logs-by-deployment.use-case';
 
@@ -15,7 +15,7 @@ describe('getLogsByDeploymentUseCase', () => {
     });
 
     it('delegates to the repository with the deployment id and returns its result', async () => {
-        const logs: Log[] = [];
+        const logs: LogEntry[] = [];
         mockLogsRepository.getAllByDeployment.mockResolvedValue(logs);
 
         const result = await getLogsByDeploymentUseCase(
