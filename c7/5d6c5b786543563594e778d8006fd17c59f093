@@ -1,0 +1,43 @@
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_7e097053c253dd::t_a0c24a7c9a83a8 8,121,141,151,170-171
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_7e097053c253dd::t_6f12dbba122c53 13,63,75,81,101,104
+apps/backend/src/features/containers/infrastructure/docker/docker-containers.repository.ts
+  s_7e097053c253dd::t_30dca111f9f083 11,22
+apps/backend/src/features/deployments/infrastructure/docker/dockerode-docker-executor.adapter.ts
+  s_7e097053c253dd::t_5566eb939bb4ab 19,257,425
+apps/backend/src/features/networks/infrastructure/docker/docker-networks.repository.ts
+  s_7e097053c253dd::t_0e9feaf092ee08 11,22
+apps/backend/src/features/server/infrastructure/docker/docker-orphan-containers.adapter.ts
+  s_7e097053c253dd::t_e82e0c0e708ca6 11,39
+apps/backend/src/features/server/infrastructure/docker/docker-server-pruner.adapter.ts
+  s_7e097053c253dd::t_913c6aebffedfc 10,20,27,34
+apps/backend/src/features/services/infrastructure/docker/docker-service-runtime-resources.adapter.ts
+  s_7e097053c253dd::t_916c42a6aac901 11,27,60,98
+apps/backend/src/shared/application/__tests__/get-gitpaas-labels.use-case.spec.ts
+  s_c732b8856f8b98::t_48ffcc89111378 1,3-4,6,10,13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c75d6c5b786543563594e778d8006fd17c59f093",
+  "prompts": {},
+  "sessions": {
+    "s_7e097053c253dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cba3f065-44ac-462f-99ef-b5e75f2de647",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c732b8856f8b98": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac5b185e821cd3321",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
