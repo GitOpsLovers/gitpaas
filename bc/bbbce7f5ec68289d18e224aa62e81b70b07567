@@ -1,0 +1,19 @@
+apps/backend/src/features/server/application/get-server-status.use-case.ts
+  s_3322f00ca1d2e1::t_381a8acb0e92ce 1-2,5-9,11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "bcbbbce7f5ec68289d18e224aa62e81b70b07567",
+  "prompts": {},
+  "sessions": {
+    "s_3322f00ca1d2e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac812d49f872eda32",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
