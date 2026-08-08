@@ -1,0 +1,141 @@
+apps/backend/src/features/logs/infrastructure/database/db-logs.transformer.ts
+  s_b7d27bbda78106::t_6ce0e53ce6ba13 1-2,7-9,15-16,22-27
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_7e097053c253dd::t_a65b9bc60eab05 16,36
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_7e097053c253dd::t_2f48ebbcd50c11 35
+docs/TODO.md
+  s_62dc5f476c52f7::t_92b09ec199975c 4-5
+apps/backend/src/features/logs/infrastructure/database/db-log-store.transformer.ts
+  s_47d53afdc174fc::t_b65c373d44ac4b 1-2,5-11,14-15,17,21,28-64
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-logs.transformer.spec.ts
+  s_b7d27bbda78106::t_daaa921519ad31 2,4-5,17,22-23,27,39,43
+apps/backend/src/core/core.module.ts
+  s_7e097053c253dd::t_c17edd44bcce07 25-26
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_2d4e5f544b2684::t_967e3b4d30d2ee 85-92
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_7e097053c253dd::t_e768065ac4969f 273,298
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_7e097053c253dd::t_8d0fe01ad7a771 19,33
+iac/production/.env.example
+  s_2d4e5f544b2684::t_6d26df3bb185c3 23-24
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_7e097053c253dd::t_aecea4ab4bae51 13,70,82,100
+apps/backend/src/features/logs/logs.module.ts
+  s_47d53afdc174fc::t_bbc6c8aa5c187d 4,14-17,25,27
+apps/backend/src/features/logs/ui/controllers/__tests__/logs.controller.spec.ts
+  s_b7d27bbda78106::t_68ba2e3e903964 4,11,14
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_7e097053c253dd::t_a8033b179594d4 17,85
+apps/backend/src/features/logs/domain/models/log-entry.models.ts
+  s_b7d27bbda78106::t_7789b2e6597949 1,6-8,10,16
+apps/backend/src/features/logs/application/__tests__/get-logs-by-deployment.use-case.spec.ts
+  s_e4a28d1c03378b::t_248a8622805c76 1,18
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-logs.repository.spec.ts
+  s_47d53afdc174fc::t_33616e0d89d00c 1,31,40,53-54,63-70,84,104,111-114,116,118-123,126-127,129,133-135,137,139,141-143,145-148,150,152-154,156,158
+apps/backend/src/features/logs/domain/repositories/logs.repository.ts
+  s_47d53afdc174fc::t_fa3f31beb69a85 2,15,18,20,22,25,27-30,32,34,37,39,41,44,46,48-49,51,54,56,58,60
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_7e097053c253dd::t_74b7dc15d84b7e 16,56,65,73
+.claude/agents/implementer.md
+  s_7e097053c253dd::t_2ad4bf2e76c967 14
+apps/backend/src/features/logs/ui/controllers/logs.controller.ts
+  s_b7d27bbda78106::t_b6575f4c8a8050 3,8,26
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_7e097053c253dd::t_444b788e4225a4 15,35
+iac/production/migrations/007_logs_indexes.sql
+  s_47d53afdc174fc::t_6d9057ce647aff 1-16
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_47d53afdc174fc::t_f491d2627dcc28 46-47,91-106
+apps/backend/src/features/logs/domain/dtos/create-log.dto.ts
+  s_b7d27bbda78106::t_69a64b83b60002 3,8,27
+scripts/install.sh
+  s_7e097053c253dd::t_ffd5dce3c3ddea 17,281,284-285
+apps/backend/src/features/logs/infrastructure/database/db-log-store.adapter.ts
+  s_47d53afdc174fc::t_28ddd522b01b58 1-3,7,9-12,14,16-17,19-45,48-62,65-83,86-90,96-119,123-124,130-148,152-153,161,165,167,169,187-206,209-211,213-217,219-227,230-231,237,242-294,298,301,303-311,315-316,319,321,323-334,338,341-353,355,357-361,365-366,369-435,437-438,440-455
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-store.adapter.spec.ts
+  s_47d53afdc174fc::t_588ace96d951e7 1,4-5,7-8,10,12-13,20-24,26-27,29-34,36-43,45-48,50-51,54-81,83-86,88,90-100,102,104-109,111-117,120-121,124,127,130-149,152-156,159-197,199-201,203-204,207-211,213-215,217-220,222-392,395-400,402,404-405,407-410,412-413,416-428,430-438,440-441,443-445,447-457,459-482
+apps/backend/src/features/server/application/__tests__/check-readiness.use-case.spec.ts
+  s_7e097053c253dd::t_109c68c8185ed8 21,23,26,47,54,77,84,92,99
+apps/backend/src/features/logs/ui/services/logs.service.ts
+  s_7e097053c253dd::t_5678de4c8034a4 5,9,20-21,31,43
+apps/backend/src/features/server/domain/ports/health-probe.port.ts
+  s_7e097053c253dd::t_17c386b62c659b 9
+iac/production/docker-compose.yml
+  s_7e097053c253dd::t_31512387497393 5,50
+apps/backend/src/features/logs/ui/services/__tests__/logs.service.spec.ts
+  s_2d4e5f544b2684::t_d79a9e710f3fe7 5,7,17-24,28,41,76,87
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_47d53afdc174fc::t_b7dee71b1dd3e6 43-46
+apps/backend/.env.example
+  s_7e097053c253dd::t_7d4263cb00396e 8-9
+apps/backend/src/features/logs/application/get-logs-by-deployment.use-case.ts
+  s_b7d27bbda78106::t_ed383aff0b0a9a 1,12
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-store.transformer.spec.ts
+  s_47d53afdc174fc::t_68349f85307eae 1-2,4-7,10-12,14,16-21,23-26,28,31-34,36,38,40-48,51-57
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_7e097053c253dd::t_e4db04178ad7f0 23-24,49,62,93-106
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_7e097053c253dd::t_6a1895747aba6b 81,87
+apps/backend/src/features/logs/infrastructure/database/db-logs.repository.ts
+  s_47d53afdc174fc::t_193b7279101af0 3,6,10,29,32,36,38,40-41,43,47,49,51,53-60,64,66,68-69,73,75-76,78-79,83,85,87-88
+apps/backend/src/features/logs/infrastructure/database/db-log.entity.ts
+  s_47d53afdc174fc::t_3039cc0a8f8b83 1,3,9-11,14-15,27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "59629e54d229016bcfb00bcee4e48a46cda32dba",
+  "prompts": {},
+  "sessions": {
+    "s_2d4e5f544b2684": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab61865ae0a68b0ea",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_47d53afdc174fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5b57b211aa3f0825",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_62dc5f476c52f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad92ff7a281e113c4",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_7e097053c253dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cba3f065-44ac-462f-99ef-b5e75f2de647",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b7d27bbda78106": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a517e390eb15b4b5a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e4a28d1c03378b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab9d777f0285b1ba1",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
