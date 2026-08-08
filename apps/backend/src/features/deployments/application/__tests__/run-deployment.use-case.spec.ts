@@ -43,8 +43,8 @@ describe('runDeploymentUseCase', () => {
             up: jest.fn(),
         };
         mockLogStore = {
-            append: jest.fn(),
-            complete: jest.fn(),
+            append: jest.fn().mockResolvedValue(undefined),
+            complete: jest.fn().mockResolvedValue(undefined),
         };
     });
 
@@ -86,6 +86,22 @@ describe('runDeploymentUseCase', () => {
         await run();
 
         expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, 'building service');
+    });
+
+    it('absorbs a failing log append instead of leaving an unhandled rejection', async () => {
+        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockLogStore.append.mockRejectedValue(new Error('log store unavailable'));
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
+            onLog?.('building service');
+
+            return Promise.resolve();
+        });
+
+        await expect(run()).resolves.toBeUndefined();
+
+        // The run still succeeds: a dropped line must not fail the deployment.
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
+        expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'success');
     });
 
     it('marks the deployment successful and completes the log when the stack comes up', async () => {

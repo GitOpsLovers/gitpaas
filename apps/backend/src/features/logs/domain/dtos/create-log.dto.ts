@@ -1,12 +1,11 @@
 import { IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
-import type { LogStatus } from '../models/log-event.models';
-import type { LogType } from '../models/log.models';
+import type { LogEvent, LogStatus } from '../models/log-event.models';
 
 /**
  * Allowed log entry types, used to validate the create DTO.
  */
-const LOG_TYPES: LogType[] = ['line', 'end'];
+const LOG_TYPES: LogEvent['type'][] = ['line', 'end'];
 
 /**
  * Allowed terminal statuses, used to validate the create DTO.
@@ -25,7 +24,7 @@ export class CreateLogDto {
     public seq!: number;
 
     @IsIn(LOG_TYPES)
-    public type!: LogType;
+    public type!: LogEvent['type'];
 
     @IsOptional()
     @IsString()

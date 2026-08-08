@@ -18,18 +18,17 @@ const throwingProbe = (name: string, error: unknown): jest.Mocked<HealthProbe> =
 describe('checkReadinessUseCase', () => {
     it('runs every probe exactly once', async () => {
         const postgres = upProbe('postgres', true);
-        const redis = upProbe('redis', true);
+        const docker = upProbe('docker', true);
 
-        await checkReadinessUseCase([postgres, redis]);
+        await checkReadinessUseCase([postgres, docker]);
 
         expect(postgres.check).toHaveBeenCalledTimes(1);
-        expect(redis.check).toHaveBeenCalledTimes(1);
+        expect(docker.check).toHaveBeenCalledTimes(1);
     });
 
     it('reports ok with every dependency up when all probes resolve true', async () => {
         const result = await checkReadinessUseCase([
             upProbe('postgres', true),
-            upProbe('redis', true),
             upProbe('docker', true),
         ]);
 
@@ -37,7 +36,6 @@ describe('checkReadinessUseCase', () => {
             status: 'ok',
             dependencies: [
                 { name: 'postgres', status: 'up' },
-                { name: 'redis', status: 'up' },
                 { name: 'docker', status: 'up' },
             ],
         });
@@ -46,16 +44,14 @@ describe('checkReadinessUseCase', () => {
     it('reports error when a single probe resolves false, marking only it down', async () => {
         const result = await checkReadinessUseCase([
             upProbe('postgres', true),
-            upProbe('redis', false),
-            upProbe('docker', true),
+            upProbe('docker', false),
         ]);
 
         expect(result).toEqual({
             status: 'error',
             dependencies: [
                 { name: 'postgres', status: 'up' },
-                { name: 'redis', status: 'down' },
-                { name: 'docker', status: 'up' },
+                { name: 'docker', status: 'down' },
             ],
         });
     });
@@ -63,7 +59,6 @@ describe('checkReadinessUseCase', () => {
     it('reports error with every failing dependency marked down when several probes fail', async () => {
         const result = await checkReadinessUseCase([
             upProbe('postgres', false),
-            upProbe('redis', true),
             upProbe('docker', false),
         ]);
 
@@ -71,7 +66,6 @@ describe('checkReadinessUseCase', () => {
             status: 'error',
             dependencies: [
                 { name: 'postgres', status: 'down' },
-                { name: 'redis', status: 'up' },
                 { name: 'docker', status: 'down' },
             ],
         });
@@ -80,14 +74,14 @@ describe('checkReadinessUseCase', () => {
     it('reports a throwing probe as down without propagating the error', async () => {
         const result = await checkReadinessUseCase([
             upProbe('postgres', true),
-            throwingProbe('redis', new Error('connection refused')),
+            throwingProbe('docker', new Error('connection refused')),
         ]);
 
         expect(result).toEqual({
             status: 'error',
             dependencies: [
                 { name: 'postgres', status: 'up' },
-                { name: 'redis', status: 'down' },
+                { name: 'docker', status: 'down' },
             ],
         });
     });
@@ -95,14 +89,14 @@ describe('checkReadinessUseCase', () => {
     it('reports error when every probe throws, marking all down', async () => {
         const result = await checkReadinessUseCase([
             throwingProbe('postgres', new Error('down')),
-            throwingProbe('redis', 'boom'),
+            throwingProbe('docker', 'boom'),
         ]);
 
         expect(result).toEqual({
             status: 'error',
             dependencies: [
                 { name: 'postgres', status: 'down' },
-                { name: 'redis', status: 'down' },
+                { name: 'docker', status: 'down' },
             ],
         });
     });
@@ -111,13 +105,11 @@ describe('checkReadinessUseCase', () => {
         const result = await checkReadinessUseCase([
             upProbe('docker', true),
             upProbe('postgres', true),
-            upProbe('redis', true),
         ]);
 
         expect(result.dependencies.map((dependency) => dependency.name)).toEqual([
             'docker',
             'postgres',
-            'redis',
         ]);
     });
 

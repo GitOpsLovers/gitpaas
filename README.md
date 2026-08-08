@@ -12,7 +12,6 @@
 [![Angular](https://img.shields.io/badge/Angular-v22-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
 [![GHCR Images](https://img.shields.io/badge/images-ghcr.io-2088FF?logo=github&logoColor=white)](https://github.com/orgs/gitopslovers/packages)
@@ -45,7 +44,7 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 | 🏠 | **Own your infrastructure**  | Self-hosted by design. Your code, your data, your servers — no third-party platform in between.                                   |
 | 🐙 | **GitHub App integration**   | Browse repositories and branches, resolve commits, and pull archives through a GitHub App.                                        |
 | 🛡️ | **Built-in authentication**  | JWT with refresh-token rotation and argon2 password hashing.                                                                      |
-| 🩺 | **Operational tooling**      | Readiness probes for PostgreSQL, Redis, and Docker, plus image/volume/container pruning and read-only inspection.                 |
+| 🩺 | **Operational tooling**      | Readiness probes for PostgreSQL and Docker, plus image/volume/container pruning and read-only inspection.                        |
 
 ---
 
@@ -53,7 +52,7 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 
 GitPaaS runs **entirely on one server** — yours.
 
-- **🎛️ GitPaaS itself** — a NestJS API + deploy engine, an Angular web UI, plus its own **PostgreSQL** (durable state) and **Redis** (live log buffer + pub/sub). This is what you install and log into.
+- **🎛️ GitPaaS itself** — a NestJS API + deploy engine, an Angular web UI, plus its own **PostgreSQL**, which holds all durable state including deployment logs (the same rows serve the live stream and its replayable history). This is what you install and log into.
 - **📦 Your apps** — deployed as compose stacks on that same server's **Docker daemon**, which the deploy engine drives through the mounted `/var/run/docker.sock` socket.
 
 ```mermaid
@@ -63,8 +62,7 @@ flowchart TD
     subgraph SRV["🖥️ Your server"]
         subgraph CP["🎛️ GitPaaS"]
             FE["Angular UI"] --- BE["NestJS API + deploy engine"]
-            BE --- PG[("PostgreSQL")]
-            BE --- RD[("Redis")]
+            BE --- PG[("PostgreSQL<br/>state + deployment logs")]
         end
 
         BE -->|"Docker Engine API over /var/run/docker.sock"| DK["Local Docker daemon"]

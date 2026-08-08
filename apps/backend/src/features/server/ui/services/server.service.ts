@@ -15,7 +15,6 @@ import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docke
 import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
 import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
-import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
@@ -36,8 +35,6 @@ export class ServerService {
         private readonly services: ServicesRepository,
         @Inject(PostgresHealthProbeAdapter)
         private readonly postgresProbe: HealthProbe,
-        @Inject(RedisHealthProbeAdapter)
-        private readonly redisProbe: HealthProbe,
         @Inject(DockerHealthProbeAdapter)
         private readonly dockerProbe: HealthProbe,
         @Inject(DockerContainerRuntimeAdapter)
@@ -81,13 +78,13 @@ export class ServerService {
     }
 
     /**
-     * Probes the server's critical dependencies (PostgreSQL, Redis, Docker) and
+     * Probes the server's critical dependencies (PostgreSQL, Docker) and
      * reports each one's reachability alongside an aggregate status.
      *
      * @returns Overall readiness status and a per-dependency breakdown
      */
     public checkReadiness(): Promise<ReadinessResult> {
-        return checkReadinessUseCase([this.postgresProbe, this.redisProbe, this.dockerProbe]);
+        return checkReadinessUseCase([this.postgresProbe, this.dockerProbe]);
     }
 
     /**

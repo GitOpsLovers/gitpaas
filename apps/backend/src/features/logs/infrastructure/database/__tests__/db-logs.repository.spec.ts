@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { DbLogEntity } from '../db-log.entity';
@@ -28,7 +28,7 @@ describe('DatabaseLogsRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<DbLogEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
+        Pick<Repository<DbLogEntity>, 'find' | 'findOne' | 'create' | 'save' | 'delete'>
     >;
     let sut: DatabaseLogsRepository;
 
@@ -37,9 +37,8 @@ describe('DatabaseLogsRepository', () => {
 
         mockRepository = {
             find: jest.fn(),
-            findOneBy: jest.fn(),
+            findOne: jest.fn(),
             create: jest.fn(),
-            merge: jest.fn(),
             save: jest.fn(),
             delete: jest.fn(),
         };
@@ -51,8 +50,8 @@ describe('DatabaseLogsRepository', () => {
     describe('getAllByDeployment', () => {
         it('finds log entries for the deployment ordered by sequence and maps them to domain', async () => {
             const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
-            const logs = [logEntity()];
-            mockRepository.find.mockResolvedValue(logs);
+            const entity = logEntity();
+            mockRepository.find.mockResolvedValue([entity]);
 
             const result = await sut.getAllByDeployment(deploymentId);
 
@@ -61,7 +60,14 @@ describe('DatabaseLogsRepository', () => {
                 where: { deploymentId },
                 order: { seq: 'ASC' },
             });
-            expect(result).toEqual(logs);
+            expect(result).toEqual([{
+                id: entity.id,
+                deploymentId: entity.deploymentId,
+                seq: entity.seq,
+                createdAt: entity.createdAt,
+                type: 'line',
+                data: entity.content,
+            }]);
         });
 
         it('returns an empty list when the deployment has no log entries', async () => {
@@ -74,43 +80,8 @@ describe('DatabaseLogsRepository', () => {
         });
     });
 
-    describe('findById', () => {
-        it('finds a log entry by id and maps it into the domain model', async () => {
-            const found = logEntity();
-            mockRepository.findOneBy.mockResolvedValue(found);
-
-            const result = await sut.findById(found.id);
-
-            expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: found.id });
-            expect(result).toEqual(found);
-        });
-
-        it('returns null when no log entry matches the id', async () => {
-            mockRepository.findOneBy.mockResolvedValue(null);
-
-            const result = await sut.findById('missing-id');
-
-            expect(result).toBeNull();
-        });
-    });
-
-    describe('create', () => {
-        it('creates an entity from the DTO, saves it, and returns the mapped log entry', async () => {
-            const entity = logEntity();
-            const saved = logEntity();
-            mockRepository.create.mockReturnValue(entity);
-            mockRepository.save.mockResolvedValue(saved);
-
-            const result = await sut.create(createDto);
-
-            expect(mockRepository.create).toHaveBeenCalledWith(createDto);
-            expect(mockRepository.save).toHaveBeenCalledWith(entity);
-            expect(result).toEqual(saved);
-        });
-    });
-
     describe('createMany', () => {
-        it('creates entities from the DTOs, saves them, and returns the mapped log entries', async () => {
+        it('creates entities from the DTOs and saves them in one write', async () => {
             const entities = [
                 logEntity(),
                 logEntity({
@@ -130,62 +101,61 @@ describe('DatabaseLogsRepository', () => {
             (mockRepository.create as jest.Mock).mockReturnValue(entities);
             (mockRepository.save as jest.Mock).mockResolvedValue(entities);
 
-            const result = await sut.createMany(dtos);
+            await sut.createMany(dtos);
 
             expect(mockRepository.create).toHaveBeenCalledWith(dtos);
             expect(mockRepository.save).toHaveBeenCalledWith(entities);
-            expect(result).toEqual(entities);
         });
     });
 
-    describe('update', () => {
-        it('returns null and does not merge or save when the log entry is not found', async () => {
-            mockRepository.findOneBy.mockResolvedValue(null);
+    describe('getMaxSeq', () => {
+        it('returns the highest stored sequence of the deployment', async () => {
+            const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
+            mockRepository.findOne.mockResolvedValue(logEntity({ seq: 42 }));
 
-            const result = await sut.update('missing-id', { content: 'edited' });
+            const result = await sut.getMaxSeq(deploymentId);
 
-            expect(result).toBeNull();
-            expect(mockRepository.merge).not.toHaveBeenCalled();
-            expect(mockRepository.save).not.toHaveBeenCalled();
+            expect(mockRepository.findOne).toHaveBeenCalledWith({
+                where: { deploymentId },
+                order: { seq: 'DESC' },
+                select: { seq: true },
+            });
+            expect(result).toBe(42);
         });
 
-        it('merges the DTO into the existing entity, saves it, and returns the mapped log entry', async () => {
-            const existing = logEntity();
-            mockRepository.findOneBy.mockResolvedValue(existing);
-            mockRepository.save.mockResolvedValue(existing);
+        it('returns zero when the deployment has no entries yet', async () => {
+            mockRepository.findOne.mockResolvedValue(null);
 
-            const result = await sut.update(existing.id, { content: 'edited' });
-
-            expect(mockRepository.merge).toHaveBeenCalledWith(existing, { content: 'edited' });
-            expect(mockRepository.save).toHaveBeenCalledWith(existing);
-            expect(result).toEqual(existing);
+            await expect(sut.getMaxSeq('deployment-1')).resolves.toBe(0);
         });
     });
 
-    describe('delete', () => {
-        it('returns true when a row was affected', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: 1, raw: [] });
+    describe('deleteByDeployment', () => {
+        it('deletes every entry of the deployment', async () => {
+            await sut.deleteByDeployment('deployment-1');
 
-            const result = await sut.delete('some-id');
-
-            expect(mockRepository.delete).toHaveBeenCalledWith('some-id');
-            expect(result).toBe(true);
+            expect(mockRepository.delete).toHaveBeenCalledWith({ deploymentId: 'deployment-1' });
         });
+    });
 
-        it('returns false when no rows were affected', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: 0, raw: [] });
+    describe('deleteUpToSeq', () => {
+        it('deletes the deployment entries up to and including the sequence', async () => {
+            await sut.deleteUpToSeq('deployment-1', 10);
 
-            const result = await sut.delete('some-id');
-
-            expect(result).toBe(false);
+            expect(mockRepository.delete).toHaveBeenCalledWith({
+                deploymentId: 'deployment-1',
+                seq: LessThanOrEqual(10),
+            });
         });
+    });
 
-        it('returns false when affected is undefined', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: undefined, raw: [] });
+    describe('deleteCreatedBefore', () => {
+        it('deletes every entry older than the threshold', async () => {
+            const threshold = new Date('2026-07-10T00:00:00.000Z');
 
-            const result = await sut.delete('some-id');
+            await sut.deleteCreatedBefore(threshold);
 
-            expect(result).toBe(false);
+            expect(mockRepository.delete).toHaveBeenCalledWith({ createdAt: LessThan(threshold) });
         });
     });
 });

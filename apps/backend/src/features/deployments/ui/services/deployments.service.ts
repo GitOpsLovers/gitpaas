@@ -13,7 +13,7 @@ import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db
 import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
 
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
+import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
 import type { Providers } from '@features/providers/domain/ports/providers.port';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
@@ -33,7 +33,7 @@ export class DeploymentsService {
         private readonly providersRepository: Providers,
         @Inject(DatabaseDeploymentQueueAdapter)
         private readonly queue: DeploymentQueue,
-        @Inject(PersistentLogStoreRepository)
+        @Inject(DatabaseLogStoreAdapter)
         private readonly logStore: LogStore,
     ) {}
 

@@ -25,7 +25,6 @@ const readyResult: ReadinessResult = {
     status: 'ok',
     dependencies: [
         { name: 'postgres', status: 'up' },
-        { name: 'redis', status: 'up' },
         { name: 'docker', status: 'up' },
     ],
 };
@@ -33,8 +32,7 @@ const notReadyResult: ReadinessResult = {
     status: 'error',
     dependencies: [
         { name: 'postgres', status: 'up' },
-        { name: 'redis', status: 'down' },
-        { name: 'docker', status: 'up' },
+        { name: 'docker', status: 'down' },
     ],
 };
 

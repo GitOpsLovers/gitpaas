@@ -43,12 +43,14 @@ What works end to end today:
   dead-lettering after the attempt limit, and restart recovery (in-flight work is re-queued when
   the control plane restarts). Runs are serialized per compose project while distinct projects
   run concurrently.
-- **Log streaming.** Deployment output streams live to the browser over Server-Sent Events and is
-  also persisted, so history is replayable after the run ends (Redis for the live buffer and
-  pub/sub, PostgreSQL for durable history).
+- **Log streaming.** Deployment output streams live to the browser over Server-Sent Events out of a
+  single PostgreSQL-backed store: lines are batched into the `logs` table and fanned out in-process
+  at the same time, so a finished run's history is replayable in full and a crash loses at most the
+  last unflushed batch. Growth is bounded by a per-deployment line cap and an age window, though
+  the age sweep only runs when a deployment completes.
 - **GitHub App source integration.** Listing repositories and branches, resolving commits, reading
   file contents, and downloading archives all go through a GitHub App.
-- **Operational tooling.** Readiness probes for PostgreSQL, Redis, and Docker; image/volume/
+- **Operational tooling.** Readiness probes for PostgreSQL and Docker; image/volume/
   container pruning and orphan cleanup; read-only container and network inspection.
 - **Authentication.** JWT with Passport, refresh-token rotation, and argon2 password hashing.
 - **Hexagonal architecture.** Each feature is split into `domain` / `application` / `infrastructure`
@@ -98,6 +100,9 @@ grouped by priority.
   push, plus more providers (GitLab/Bitbucket/public git URL/deploy-from-image), broaden reach.
 - **Redeploy and rollback.** Deployment history exists, but there is no action to redeploy a
   previous commit or roll back a failed rollout.
+- **Scheduled log retention.** The age-based sweep is opportunistic — it runs when a deployment
+  completes — so an idle control plane never prunes old log rows. A scheduler would make retention
+  time-based rather than activity-based.
 
 ## Phased roadmap
 

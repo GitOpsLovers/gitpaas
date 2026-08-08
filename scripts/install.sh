@@ -14,7 +14,7 @@
 #      secrets) and the host's docker group id (DOCKER_GID, so the non-root
 #      backend container can use the mounted Docker socket), leaving
 #      operator-supplied values (GitHub App) as clearly-marked placeholders.
-#   4. Starts ONLY the data stores (postgres + redis) and waits for Postgres.
+#   4. Starts ONLY the data store (postgres) and waits for Postgres.
 #   5. Applies the SQL migrations in iac/production/migrations/ (in filename
 #      order) straight into Postgres, tracking what ran in a `schema_migrations`
 #      ledger table, so the schema is complete before anything else runs.
@@ -278,11 +278,11 @@ compose() { docker_cmd compose -f "$GITPAAS_DIR/iac/production/docker-compose.ym
 env_value() { $SUDO grep -m1 "^$1=" "$ENV_FILE" | cut -d= -f2- ; }
 
 start_data_stores() {
-    log "Starting the data stores (postgres, redis) ..."
+    log "Starting the data store (postgres) ..."
     # Deliberately NOT `up -d`: the backend and frontend must stay down until the
     # first admin exists, so the app never boots against an admin-less database.
-    # Both services use published images, so nothing needs building here.
-    compose up -d postgres redis
+    # It uses a published image, so nothing needs building here.
+    compose up -d postgres
 
     log "Waiting for Postgres to become healthy ..."
     i=0

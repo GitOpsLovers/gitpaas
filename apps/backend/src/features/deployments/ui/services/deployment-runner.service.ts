@@ -12,7 +12,7 @@ import { DockerodeDockerExecutorAdapter } from '../../infrastructure/docker/dock
 
 import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { PersistentLogStoreRepository } from '@features/logs/infrastructure/log-store/log-store-persistent.repository';
+import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
 import type { Providers } from '@features/providers/domain/ports/providers.port';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
@@ -32,7 +32,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly providersRepository: Providers,
         @Inject(DockerodeDockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
-        @Inject(PersistentLogStoreRepository)
+        @Inject(DatabaseLogStoreAdapter)
         private readonly logStore: LogStore,
         @Inject(DatabaseDeploymentQueueAdapter)
         private readonly queue: DeploymentQueue,
