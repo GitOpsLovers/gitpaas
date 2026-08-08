@@ -9,7 +9,7 @@ import {
     toPruneReport,
 } from '../docker-container-runtime.transformer';
 
-import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
+import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 
 /** A daemon container summary as the tests declare it: only the fields under test. */
@@ -60,7 +60,7 @@ describe('toContainerRuntimeInfo', () => {
 
 describe('toLabelFilter', () => {
     it('scopes a filter to GitPaaS-managed resources', () => {
-        expect(toLabelFilter({ labels: selectOwnedResourcesUseCase() })).toEqual({ label: ['io.gitpaas.managed=true'] });
+        expect(toLabelFilter({ labels: getGitpaasResourceLabels() })).toEqual({ label: ['io.gitpaas.managed=true'] });
     });
 
     it('adds the GitPaaS project label to the marker', () => {
@@ -72,13 +72,13 @@ describe('toLabelFilter', () => {
     });
 
     it('maps a project scope onto the compose project label, keeping the marker', () => {
-        expect(toLabelFilter({ labels: selectOwnedResourcesUseCase(), project: 'my-service' })).toEqual({
+        expect(toLabelFilter({ labels: getGitpaasResourceLabels(), project: 'my-service' })).toEqual({
             label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'],
         });
     });
 
     it('emits a bare compose project key for a null project, matching any project at all', () => {
-        expect(toLabelFilter({ labels: selectOwnedResourcesUseCase(), project: null })).toEqual({
+        expect(toLabelFilter({ labels: getGitpaasResourceLabels(), project: null })).toEqual({
             label: ['io.gitpaas.managed=true', 'com.docker.compose.project'],
         });
     });
@@ -98,10 +98,10 @@ describe('toLabelFilter', () => {
     });
 
     it('hands out a fresh filter per call, so a caller mutating one cannot widen another', () => {
-        const first = toLabelFilter({ labels: selectOwnedResourcesUseCase() });
+        const first = toLabelFilter({ labels: getGitpaasResourceLabels() });
         first.label.push('io.gitpaas.project=anything');
 
-        expect(toLabelFilter({ labels: selectOwnedResourcesUseCase() })).toEqual({ label: ['io.gitpaas.managed=true'] });
+        expect(toLabelFilter({ labels: getGitpaasResourceLabels() })).toEqual({ label: ['io.gitpaas.managed=true'] });
     });
 });
 

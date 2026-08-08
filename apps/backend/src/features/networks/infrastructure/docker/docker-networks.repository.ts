@@ -5,7 +5,7 @@ import { NetworksRepository } from '../../domain/repositories/networks.repositor
 
 import { toNetwork } from './docker-networks.transformer';
 
-import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
+import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
 import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
@@ -19,7 +19,7 @@ export class DockerNetworksRepository implements NetworksRepository {
     constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
     public async listByService(service: Service): Promise<Network[]> {
-        const selector = { labels: selectOwnedResourcesUseCase(), project: serviceProjectNameUseCase(service) };
+        const selector = { labels: getGitpaasResourceLabels(), project: serviceProjectNameUseCase(service) };
         const networks = await this.client.listNetworks(selector);
 
         return networks.map(toNetwork);

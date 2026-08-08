@@ -27,6 +27,21 @@ In addition, **vertical slicing** is implemented, so each business domain is enc
 
 ## Structure
 
+### Top-level source folders
+
+`src/` holds three sibling folders, and the one a file belongs to is decided by **who needs it**, not by what it does:
+
+```text
+src/
+  core/
+  features/
+  shared/
+```
+
+- **`core/`** holds what the application needs *as a whole*: the root module wiring (database connection, global filters), configuration and validation, and the technology-neutral contracts that several features must agree on.
+- **`features/`** is the default home. Anything that belongs to a single business domain lives in that domain's feature and nowhere else.
+- **`shared/`** holds reusable functionality that needs no wiring at all.
+
 ### The four layers
 
 Each feature consists of four distinct layers, subject to a strict rule: **outer layers depend on inner, never the reverse.**
@@ -84,6 +99,8 @@ features/<feature>/
 ```
 
 In general, all features must follow this organizational structure for entities, although each layer may contain more or fewer elements.
+
+Infrastructure sub-folders are named after the technology or vendor they wrap (`database`, `docker`, `redis`, `github`).
 
 ### Module wiring
 
@@ -179,7 +196,7 @@ All files that make up the backend must follow a naming convention. They are as 
 
 ### Imports
 
-- **Path aliases**: defined in `tsconfig.json`, `@core/*` maps to `./src/core/*` and `@features/*` to `./src/features/*`. Use them for cross-feature and core imports, and relative paths within a feature.
+- **Path aliases**: defined in `tsconfig.json`, `@core/*` maps to `./src/core/*`, `@features/*` to `./src/features/*` and `@shared/*` to `./src/shared/*`. Use them for cross-feature, core and shared imports, and relative paths within a feature.
 
 ### Inline comments
 
@@ -248,9 +265,9 @@ The `authentication` feature wires JWT and Passport together and registers the g
 
 #### Docker resource labelling
 
-GitPaaS runs on the same daemon as the control plane itself and as any unrelated third-party stack on the host, so ownership is expressed with labels. The GitPaaS-owned vocabulary **and the ownership policy itself** are domain concerns, so they live in the domain layer in vendor-free terms: `core/domain/constants/gitpaas-labels.constants.ts` declares the `io.gitpaas.*` label keys, the managed marker value and the control-plane project list; `core/domain/models/container-runtime.models.ts` declares `LabelSelector`, a `Readonly<Record<string, string | null>>` describing which labels a resource must carry (a `string` value must match, `null` means the key need only be present); `core/application/select-owned-resources.use-case.ts` holds `selectOwnedResourcesUseCase()` (marker only), the selector that encodes the policy; and `core/domain/utils/gitpaas-labels.util.ts` holds `gitpaasLabels()` (the labels to stamp) plus `gitpaasProjectSelector(projectName)`, which builds on that use case to add the GitPaaS project label on top of the marker. The project name those labels carry is derived by `serviceProjectNameUseCase(service)`, a pure function in `core/application/service-project-name.use-case.ts` — named without any "compose" wording because a project name is a vendor-neutral concept and only the Docker adapter maps it onto Compose's label; it sits in the core application layer because both feature use cases and the runtime adapters that query the daemon by label must derive the same slug, and no feature may depend on another's layers to get it.
+GitPaaS runs on the same daemon as the control plane itself and as any unrelated third-party stack on the host, so ownership is expressed with labels. The GitPaaS-owned vocabulary **and the ownership policy itself** are domain concerns, so they live in the domain layer in vendor-free terms: `core/domain/constants/gitpaas-labels.constants.ts` declares the `io.gitpaas.*` label keys, the managed marker value and the control-plane project list; `core/domain/models/container-runtime.models.ts` declares `LabelSelector`, a `Readonly<Record<string, string | null>>` describing which labels a resource must carry (a `string` value must match, `null` means the key need only be present); and `shared/application/get-gitpaas-resource-labels.use-case.ts` holds `getGitpaasResourceLabels()` (marker only), the pure function that encodes the policy — its name states the intent, the selector it returns, rather than carrying the usual `UseCase` suffix — and it lives in `shared/` precisely because every feature that talks to the daemon imports the same selector and none of them injects it. Narrowing to a single stack is not a second helper: callers add the `project` scope of the runtime selector on top of that marker. Stamping the labels is the writing side, and it belongs to the executor that creates the resources. The project name those labels carry is derived by `serviceProjectNameUseCase(service)`, a pure function in `core/application/service-project-name.use-case.ts` — named without any "compose" wording because a project name is a vendor-neutral concept and only the Docker adapter maps it onto Compose's label; it sits in the core application layer because both feature use cases and the runtime adapters that query the daemon by label must derive the same slug, and no feature may depend on another's layers to get it.
 
-Talking to a daemon is an infrastructure concern behind a port, and that port is vendor-free: `core/domain/ports/container-runtime.port.ts` declares `ContainerRuntime` as a set of neutral operations — `ping` and `info`, the `listContainers` / `listNetworks` / `listImages` read paths, the `removeContainer` / `removeNetwork` / `removeImage` removals, and the `pruneImages` / `pruneVolumes` / `pruneContainers` sweeps. It imports no runtime client and no filter format; arguments and results are domain models declared in `core/domain/models/container-runtime.models.ts` (`RuntimeContainerSummary`, `RuntimeNetworkSummary`, `RuntimeImageSummary`, `RuntimePruneReport`, `RuntimePortMapping`, plus the `RemoveContainerOptions` and `RemoveImageOptions` option bags). Which resources an operation targets is expressed with a `RuntimeSelector`: a `labels` `LabelSelector` the resource must carry, and an optional `project` scope — a name selects that project's resources, `null` selects the resources of *any* project, and omitting the key leaves the query unscoped by project. That is enough to say "GitPaaS-managed, optionally narrowed to one project" without ever naming an orchestrator label; a service teardown, for example, passes `{ labels: selectOwnedResourcesUseCase(), project: projectName }`.
+Talking to a daemon is an infrastructure concern behind a port, and that port is vendor-free: `core/domain/ports/container-runtime.port.ts` declares `ContainerRuntime` as a set of neutral operations — `ping` and `info`, the `listContainers` / `listNetworks` / `listImages` read paths, the `removeContainer` / `removeNetwork` / `removeImage` removals, and the `pruneImages` / `pruneVolumes` / `pruneContainers` sweeps. It imports no runtime client and no filter format; arguments and results are domain models declared in `core/domain/models/container-runtime.models.ts` (`RuntimeContainerSummary`, `RuntimeNetworkSummary`, `RuntimeImageSummary`, `RuntimePruneReport`, `RuntimePortMapping`, plus the `RemoveContainerOptions` and `RemoveImageOptions` option bags). Which resources an operation targets is expressed with a `RuntimeSelector`: a `labels` `LabelSelector` the resource must carry, and an optional `project` scope — a name selects that project's resources, `null` selects the resources of *any* project, and omitting the key leaves the query unscoped by project. That is enough to say "GitPaaS-managed, optionally narrowed to one project" without ever naming an orchestrator label; a service teardown, for example, passes `{ labels: getGitpaasResourceLabels(), project: projectName }`.
 
 `core/infrastructure/docker/container-runtime-docker.adapter.ts` implements the port and is the single infrastructure home for daemon knowledge: `DockerContainerRuntimeAdapter` owns the socket configuration, and Dockerode is imported here and nowhere else (save the one exception below). Everything Docker-shaped is a private detail of this class. Serialising a selector into the daemon's `filters` query lives here — a label entry becomes `KEY=value`, or a bare `KEY` when the value is `null`, emitted in the selector's insertion order so the filter is deterministic — and a `project` scope is materialised as Compose's own project label, which is why no caller has to know that Compose is involved at all. Daemon payloads are narrowed into the domain models before they leave; a container summary carries a `projects` array resolved from the GitPaaS and Compose project labels, most specific first, so a caller reads a container's project without knowing which label holds it. The Compose label keys (`COMPOSE_PROJECT_LABEL`, `COMPOSE_SERVICE_LABEL`) are still exported from this file, but only the Compose executor consumes them; there is no separate `docker-labels.ts` module. Consumers keep the usual DI convention — inject the concrete `DockerContainerRuntimeAdapter` as the token, type the field as `ContainerRuntime` — and none of them import `dockerode`.
 

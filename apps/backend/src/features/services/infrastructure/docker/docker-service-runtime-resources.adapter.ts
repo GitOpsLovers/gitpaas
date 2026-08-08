@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Service } from '../../domain/models/service.models';
 import { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 
-import { selectOwnedResourcesUseCase } from '@core/application/select-owned-resources.use-case';
+import { getGitpaasResourceLabels } from '@shared/application/get-gitpaas-resource-labels.use-case';
 import { serviceProjectNameUseCase } from '@core/application/service-project-name.use-case';
 import { GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
@@ -24,7 +24,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
 
     public async removeContainers(service: Service): Promise<void> {
         const projectName = serviceProjectNameUseCase(service);
-        const selector: RuntimeSelector = { labels: selectOwnedResourcesUseCase(), project: projectName };
+        const selector: RuntimeSelector = { labels: getGitpaasResourceLabels(), project: projectName };
 
         let containersRemoved = 0;
 
@@ -57,7 +57,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
 
     public async removeNetworks(service: Service): Promise<void> {
         const projectName = serviceProjectNameUseCase(service);
-        const selector: RuntimeSelector = { labels: selectOwnedResourcesUseCase(), project: projectName };
+        const selector: RuntimeSelector = { labels: getGitpaasResourceLabels(), project: projectName };
 
         let networksRemoved = 0;
 
@@ -95,7 +95,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
 
         try {
             const labels = {
-                ...selectOwnedResourcesUseCase(),
+                ...getGitpaasResourceLabels(),
                 [GITPAAS_PROJECT_LABEL]: projectName,
             };
             const builtImages = await this.client.listImages({ labels });
