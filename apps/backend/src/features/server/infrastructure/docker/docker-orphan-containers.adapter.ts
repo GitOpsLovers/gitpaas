@@ -5,9 +5,10 @@ import { OrphanContainers } from '../../domain/ports/orphan-containers.port';
 
 import { GITPAAS_CONTROL_PLANE_PROJECTS } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary } from '@core/domain/models/container-runtime.models';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
@@ -18,7 +19,7 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly client: ContainerRuntime,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
     /**
@@ -53,14 +54,14 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
                 await this.client.removeContainer(container.id, { force: true, removeVolumes: true });
                 names.push(name);
             } catch {
-                this.diagnostics.warn(
+                this.logger.warn(
                     `Failed to remove orphaned container "${name}" (${container.id})`,
                     DockerOrphanContainersAdapter.name,
                 );
             }
         }
 
-        this.diagnostics.log(
+        this.logger.log(
             `Removed ${names.length} orphaned container(s) from the server`,
             DockerOrphanContainersAdapter.name,
         );

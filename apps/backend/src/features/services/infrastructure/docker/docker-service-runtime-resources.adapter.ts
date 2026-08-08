@@ -5,9 +5,10 @@ import { ServiceRuntimeResources } from '../../domain/ports/service-runtime-reso
 
 import { GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
@@ -19,7 +20,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly client: ContainerRuntime,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
     public async removeContainers(service: Service): Promise<void> {
@@ -36,20 +37,20 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
                     await this.client.removeContainer(container.id, { force: true, removeVolumes: true });
                     containersRemoved += 1;
                 } catch (error) {
-                    this.diagnostics.warn(
+                    this.logger.warn(
                         `Failed to remove container ${container.id} for service "${projectName}": ${String(error)}`,
                         DockerServiceRuntimeResourcesAdapter.name,
                     );
                 }
             }
         } catch (error) {
-            this.diagnostics.warn(
+            this.logger.warn(
                 `Failed to list containers for service "${projectName}": ${String(error)}`,
                 DockerServiceRuntimeResourcesAdapter.name,
             );
         }
 
-        this.diagnostics.log(
+        this.logger.log(
             `Removed Docker containers for service "${projectName}": ${containersRemoved} container(s)`,
             DockerServiceRuntimeResourcesAdapter.name,
         );
@@ -69,20 +70,20 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
                     await this.client.removeNetwork(network.id);
                     networksRemoved += 1;
                 } catch (error) {
-                    this.diagnostics.warn(
+                    this.logger.warn(
                         `Failed to remove network ${network.id} for service "${projectName}": ${String(error)}`,
                         DockerServiceRuntimeResourcesAdapter.name,
                     );
                 }
             }
         } catch (error) {
-            this.diagnostics.warn(
+            this.logger.warn(
                 `Failed to list networks for service "${projectName}": ${String(error)}`,
                 DockerServiceRuntimeResourcesAdapter.name,
             );
         }
 
-        this.diagnostics.log(
+        this.logger.log(
             `Removed Docker networks for service "${projectName}": ${networksRemoved} network(s)`,
             DockerServiceRuntimeResourcesAdapter.name,
         );
@@ -105,20 +106,20 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
                     await this.client.removeImage(image.id, { force: true });
                     imagesRemoved += 1;
                 } catch (error) {
-                    this.diagnostics.warn(
+                    this.logger.warn(
                         `Failed to remove image ${image.id} for service "${projectName}": ${String(error)}`,
                         DockerServiceRuntimeResourcesAdapter.name,
                     );
                 }
             }
         } catch (error) {
-            this.diagnostics.warn(
+            this.logger.warn(
                 `Failed to list images for service "${projectName}": ${String(error)}`,
                 DockerServiceRuntimeResourcesAdapter.name,
             );
         }
 
-        this.diagnostics.log(
+        this.logger.log(
             `Removed Docker images for service "${projectName}": ${imagesRemoved} image(s)`,
             DockerServiceRuntimeResourcesAdapter.name,
         );

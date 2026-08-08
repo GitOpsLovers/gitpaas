@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
@@ -10,7 +10,8 @@ import { Providers } from '../../domain/ports/providers.port';
 
 import { toGitBranch, toGitCommit, toGitRepository } from './github-app.transformer';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 /**
  * GitHub App provider.
@@ -21,7 +22,7 @@ export class GithubProvidersAdapter implements Providers {
 
     constructor(
         private readonly config: ConfigService,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
     /**
@@ -167,7 +168,7 @@ export class GithubProvidersAdapter implements Providers {
             );
         }
 
-        this.diagnostics.log('Creating GitHub App installation client', GithubProvidersAdapter.name);
+        this.logger.log('Creating GitHub App installation client', GithubProvidersAdapter.name);
 
         return new Octokit({
             authStrategy: createAppAuth,

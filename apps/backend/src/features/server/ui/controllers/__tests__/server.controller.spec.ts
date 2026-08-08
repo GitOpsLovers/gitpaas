@@ -8,7 +8,8 @@ import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -48,7 +49,7 @@ describe('ServerController', () => {
             | 'getStatus'
         >
     >;
-    let mockDiagnostics: jest.Mocked<Pick<DiagnosticLoggerService, 'error'>>;
+    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: ServerController;
 
     beforeEach(async () => {
@@ -63,7 +64,7 @@ describe('ServerController', () => {
             getStatus: jest.fn(),
         };
 
-        mockDiagnostics = {
+        mockLogger = {
             error: jest.fn(),
         };
 
@@ -71,7 +72,7 @@ describe('ServerController', () => {
             controllers: [ServerController],
             providers: [
                 { provide: ServerService, useValue: mockServerService },
-                { provide: DiagnosticLoggerService, useValue: mockDiagnostics },
+                { provide: NestLoggerAdapter, useValue: mockLogger },
             ],
         }).compile();
 

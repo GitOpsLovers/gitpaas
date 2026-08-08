@@ -5,7 +5,7 @@ import { Octokit } from '@octokit/rest';
 
 import { GithubProvidersAdapter } from '../github-providers.adapter';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 
 const OctokitMock = Octokit as unknown as jest.Mock;
 
@@ -23,9 +23,10 @@ interface FakeClient {
 const createConfig = (values: Record<string, string | undefined> = {}): ConfigService =>
     ({ get: jest.fn((key: string) => values[key]) }) as unknown as ConfigService;
 
-/** Build a no-op diagnostic logger stub. */
-const createDiagnostics = (): DiagnosticLoggerService =>
-    ({ log: jest.fn(), warn: jest.fn(), error: jest.fn() }) as unknown as DiagnosticLoggerService;
+/** Build a no-op application logger stub. */
+const createLogger = (): jest.Mocked<AppLogger> => ({
+    debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+});
 
 describe('ProvidersGithubAdapter', () => {
     beforeEach(() => {
@@ -42,7 +43,7 @@ describe('ProvidersGithubAdapter', () => {
         let mockClient: FakeClient;
 
         beforeEach(() => {
-            sut = new GithubProvidersAdapter(createConfig(), createDiagnostics());
+            sut = new GithubProvidersAdapter(createConfig(), createLogger());
             mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             // `getClient()` is private, so cast through `unknown` to spy on it and hand
@@ -160,7 +161,7 @@ describe('ProvidersGithubAdapter', () => {
                     GITHUB_APP_PRIVATE_KEY: undefined,
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
-                createDiagnostics(),
+                createLogger(),
             );
 
             await expect(sut.listRepositories()).rejects.toThrow(ServiceUnavailableException);
@@ -174,7 +175,7 @@ describe('ProvidersGithubAdapter', () => {
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
-                createDiagnostics(),
+                createLogger(),
             );
 
             await sut.listRepositories();
@@ -197,7 +198,7 @@ describe('ProvidersGithubAdapter', () => {
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
-                createDiagnostics(),
+                createLogger(),
             );
 
             await sut.listRepositories();

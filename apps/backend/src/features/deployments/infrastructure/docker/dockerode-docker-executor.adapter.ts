@@ -13,9 +13,10 @@ import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-exe
 
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /** Number of trailing startup log lines captured per container after it starts. */
@@ -70,7 +71,8 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly docker: DockerContainerRuntimeAdapter,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter)
+        private readonly logger: AppLogger,
     ) {}
 
     public async up(archive: Buffer, composePath: string, projectName: string, onLog?: DockerLogListener): Promise<void> {
@@ -88,7 +90,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             // rewrites them into plain image services in the recipe.
             const builtImages = await this.buildServices(compose, composeFile, projectName, emit);
 
-            this.diagnostics.log(`Pulling images for project "${projectName}"`, DockerodeDockerExecutorAdapter.name);
+            this.logger.log(`Pulling images for project "${projectName}"`, DockerodeDockerExecutorAdapter.name);
             emit('▶ Pulling images…');
 
             await this.pullWithProgress(compose, emit, builtImages);
@@ -105,7 +107,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             // so later maintenance operations can be scoped to what GitPaaS owns.
             this.stampLabels(compose, projectName);
 
-            this.diagnostics.log(`Bringing project "${projectName}" up`, DockerodeDockerExecutorAdapter.name);
+            this.logger.log(`Bringing project "${projectName}" up`, DockerodeDockerExecutorAdapter.name);
             emit('▶ Creating and starting containers…');
 
             const result = (await compose.up()) as { services?: Docker.Container[] };
@@ -162,7 +164,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             const tag = `${projectName}_${name}`;
             const build = this.resolveBuild(service.build, baseDir);
 
-            this.diagnostics.log(`Building service "${name}" as "${tag}"`, DockerodeDockerExecutorAdapter.name);
+            this.logger.log(`Building service "${name}" as "${tag}"`, DockerodeDockerExecutorAdapter.name);
             emit(`▶ Building ${name} (${tag})…`);
 
             await this.buildImage(build, tag, projectName, emit);
@@ -363,7 +365,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             lines.forEach(emit);
         } catch (error) {
             // Startup logs are best-effort; a failure here must not fail the deploy.
-            this.diagnostics.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerodeDockerExecutorAdapter.name);
+            this.logger.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerodeDockerExecutorAdapter.name);
         }
     }
 

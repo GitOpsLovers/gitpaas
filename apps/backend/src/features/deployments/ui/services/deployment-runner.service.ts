@@ -10,7 +10,8 @@ import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db
 import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
 import { DockerodeDockerExecutorAdapter } from '../../infrastructure/docker/dockerode-docker-executor.adapter';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
 import type { Providers } from '@features/providers/domain/ports/providers.port';
@@ -36,7 +37,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly logStore: LogStore,
         @Inject(DatabaseDeploymentQueueAdapter)
         private readonly queue: DeploymentQueue,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter)
+        private readonly logger: AppLogger,
     ) {}
 
     /**
@@ -83,7 +85,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
             // so this only guards a truly unexpected throw.
             const message = error instanceof Error ? error.message : String(error);
 
-            this.diagnostics.error(
+            this.logger.error(
                 `Deployment runner crashed for ${task.deploymentId}: ${message}`,
                 error,
                 DeploymentRunnerService.name,

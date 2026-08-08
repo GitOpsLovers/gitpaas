@@ -11,7 +11,8 @@ import {
 } from './db-log-store.transformer';
 import { DatabaseLogsRepository } from './db-logs.repository';
 
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 /** Lines buffered before the batch is written out, whatever the timer says. */
 const BATCH_SIZE = 100;
@@ -75,7 +76,8 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
     constructor(
         @Inject(DatabaseLogsRepository)
         private readonly repository: LogsRepository,
-        private readonly diagnostics: DiagnosticLoggerService,
+        @Inject(NestLoggerAdapter)
+        private readonly logger: AppLogger,
         config: ConfigService,
     ) {
         this.retentionHours = config.getOrThrow<number>('LOGS_RETENTION_HOURS');
@@ -111,7 +113,7 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
 
-            this.diagnostics.error(
+            this.logger.error(
                 `Failed to append a log line for deployment ${streamId}: ${message}`,
                 error,
                 DatabaseLogStoreAdapter.name,
@@ -409,7 +411,7 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
 
-            this.diagnostics.error(
+            this.logger.error(
                 `Failed to persist ${batch.length} log entrie(s) for deployment ${streamId}: ${message}`,
                 error,
                 DatabaseLogStoreAdapter.name,
@@ -447,7 +449,7 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
 
-            this.diagnostics.error(
+            this.logger.error(
                 `Failed to enforce log retention: ${message}`,
                 error,
                 DatabaseLogStoreAdapter.name,

@@ -7,8 +7,8 @@ import * as tar from 'tar';
 
 import { DockerodeDockerExecutorAdapter } from '../dockerode-docker-executor.adapter';
 
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
-import { DiagnosticLoggerService } from '@core/ui/services/diagnostic-logger.service';
 
 jest.mock('node:fs/promises');
 jest.mock('tar');
@@ -53,16 +53,16 @@ const internals = (sut: DockerodeDockerExecutorAdapter): ExecutorInternals => su
 /**
  * Builds an executor backed by a fake daemon exposing only the members a given
  * test needs (`buildImage`, `pull`, `modem.followProgress`, container
- * `inspect`/`logs`). The injected `DockerContainerRuntimeAdapter` / `DiagnosticLoggerService`
+ * `inspect`/`logs`). The injected `DockerContainerRuntimeAdapter` / `AppLogger`
  * collaborators are stored under `mock*` names.
  */
 const executorWithDaemon = (fakeDaemon: unknown): DockerodeDockerExecutorAdapter => {
     const mockContainerRuntime = { getClient: (): unknown => fakeDaemon } as unknown as DockerContainerRuntimeAdapter;
-    const mockDiagnostics = {
-        log: jest.fn(), warn: jest.fn(), error: jest.fn(),
-    } as unknown as DiagnosticLoggerService;
+    const mockLogger: jest.Mocked<AppLogger> = {
+        debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+    };
 
-    return new DockerodeDockerExecutorAdapter(mockContainerRuntime, mockDiagnostics);
+    return new DockerodeDockerExecutorAdapter(mockContainerRuntime, mockLogger);
 };
 
 describe('DockerodeDockerExecutorAdapter', () => {
