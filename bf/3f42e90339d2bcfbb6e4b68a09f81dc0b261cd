@@ -1,0 +1,21 @@
+apps/backend/src/core/domain/dtos/remove-container.dto.ts
+  s_e04b4fd374229d::t_e5f87c232df515 1-14
+apps/backend/src/core/domain/dtos/remove-image.dto.ts
+  s_e04b4fd374229d::t_b729a55148241e 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "bf3f42e90339d2bcfbb6e4b68a09f81dc0b261cd",
+  "prompts": {},
+  "sessions": {
+    "s_e04b4fd374229d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa5d767db6dcc8537",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
