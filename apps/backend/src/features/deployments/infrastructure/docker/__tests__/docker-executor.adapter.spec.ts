@@ -2,21 +2,19 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Writable } from 'node:stream';
 
-import DockerodeCompose from 'dockerode-compose';
 import * as tar from 'tar';
 
 import { DockerExecutorAdapter } from '../docker-executor.adapter';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 
 jest.mock('node:fs/promises');
 jest.mock('tar');
-jest.mock('dockerode-compose');
 
 /**
- * Holds the instance the mocked `dockerode-compose` constructor returns, so a
- * test can shape the recipe / stub `down`/`up` before driving `up()`.
+ * Holds the compose project the fake runtime hands back, so a test can shape the
+ * recipe / stub `down`/`up` before driving `up()`.
  */
 const mockCompose: { instance: unknown } = { instance: null };
 
@@ -51,13 +49,13 @@ interface ExecutorInternals {
 const internals = (sut: DockerExecutorAdapter): ExecutorInternals => sut as unknown as ExecutorInternals;
 
 /**
- * Builds an executor backed by a fake daemon exposing only the members a given
- * test needs (`buildImage`, `pull`, `modem.followProgress`, container
- * `inspect`/`logs`). The injected `DockerContainerRuntimeAdapter` / `AppLogger`
+ * Builds an executor backed by a fake container runtime exposing only the port
+ * members a given test needs (`buildImage`, `pullImage`, `followProgress`,
+ * `createComposeProject`). The injected `ContainerRuntime` / `AppLogger`
  * collaborators are stored under `mock*` names.
  */
-const executorWithDaemon = (fakeDaemon: unknown): DockerExecutorAdapter => {
-    const mockContainerRuntime = { getClient: (): unknown => fakeDaemon } as unknown as DockerContainerRuntimeAdapter;
+const executorWithRuntime = (fakeRuntime: unknown): DockerExecutorAdapter => {
+    const mockContainerRuntime = fakeRuntime as ContainerRuntime;
     const mockLogger: jest.Mocked<AppLogger> = {
         debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
     };
@@ -72,33 +70,33 @@ describe('DockerExecutorAdapter', () => {
 
     describe('toNanoseconds', () => {
         it('passes a raw number through unchanged (assumed nanoseconds)', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).toNanoseconds(42)).toBe(42);
         });
 
         it('returns 0 for a non-string/non-number value', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).toNanoseconds(undefined)).toBe(0);
         });
 
         it('parses second and millisecond durations', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).toNanoseconds('5s')).toBe(5e9);
             expect(internals(sut).toNanoseconds('500ms')).toBe(5e8);
         });
 
         it('sums compound durations and parses hours', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).toNanoseconds('1m30s')).toBe(90e9);
             expect(internals(sut).toNanoseconds('2h')).toBe(7200e9);
         });
 
         it('returns 0 for an unparseable string', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).toNanoseconds('abc')).toBe(0);
         });
@@ -106,13 +104,13 @@ describe('DockerExecutorAdapter', () => {
 
     describe('normalizeBuildArgs', () => {
         it('returns undefined when no args are given', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).normalizeBuildArgs(undefined)).toBeUndefined();
         });
 
         it('parses the list form, splitting on the first "=" and treating a bare key as empty', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             const result = internals(sut).normalizeBuildArgs(['KEY=value', 'BARE', 'K=a=b']);
 
@@ -120,7 +118,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('coerces map-form values to strings', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             const result = internals(sut).normalizeBuildArgs({ A: 1, B: true });
 
@@ -130,7 +128,7 @@ describe('DockerExecutorAdapter', () => {
 
     describe('resolveBuild', () => {
         it('resolves the string shorthand against the base dir with a default Dockerfile', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             const result = internals(sut).resolveBuild('app', '/repo');
 
@@ -138,7 +136,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('resolves the object form with context, dockerfile, args and target', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             const result = internals(sut).resolveBuild(
                 {
@@ -156,7 +154,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('defaults the context to the base dir when none is given', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             const result = internals(sut).resolveBuild({}, '/repo') as { contextPath: string };
 
@@ -166,14 +164,14 @@ describe('DockerExecutorAdapter', () => {
 
     describe('recipeServices', () => {
         it('returns the recipe services when present', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const services = { web: { image: 'nginx' } };
 
             expect(internals(sut).recipeServices({ recipe: { services } })).toBe(services);
         });
 
         it('returns an empty object when the recipe or its services are missing', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(internals(sut).recipeServices({})).toEqual({});
             expect(internals(sut).recipeServices({ recipe: {} })).toEqual({});
@@ -182,7 +180,7 @@ describe('DockerExecutorAdapter', () => {
 
     describe('normalizeHealthchecks', () => {
         it('rewrites healthcheck durations to nanoseconds and leaves other services untouched', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const withCheck = { healthcheck: { interval: '5s', timeout: '2s' } as Record<string, unknown> };
             const withoutCheck = { image: 'nginx' } as { image: string; healthcheck?: unknown };
             const compose = { recipe: { services: { a: withCheck, b: withoutCheck } } };
@@ -196,7 +194,7 @@ describe('DockerExecutorAdapter', () => {
 
     describe('stampLabels', () => {
         it('stamps the GitPaaS and compose labels on a service with no labels of its own', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const web = {} as { labels?: unknown };
             const compose = { recipe: { services: { web } } };
 
@@ -211,7 +209,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('merges into user-declared list-form labels instead of clobbering them', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const web = { labels: ['traefik.enable=true', 'bare'] } as { labels?: unknown };
             const compose = { recipe: { services: { web } } };
 
@@ -228,7 +226,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('normalises user-declared map-form labels into the list form the library parses', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const web = { labels: { 'app.tier': 'edge', 'app.replicas': 2 } } as { labels?: unknown };
             const compose = { recipe: { services: { web } } };
 
@@ -245,7 +243,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('merges the GitPaaS labels as a map into top-level volumes and networks', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const compose = {
                 recipe: {
                     services: {},
@@ -263,7 +261,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('does nothing when the recipe declares no services, volumes or networks', () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
 
             expect(() => { internals(sut).stampLabels({ recipe: {} }, 'my-project'); }).not.toThrow();
             expect(() => { internals(sut).stampLabels({}, 'my-project'); }).not.toThrow();
@@ -274,7 +272,7 @@ describe('DockerExecutorAdapter', () => {
         it('stamps the GitPaaS labels on every locally built image and rewrites the service to an image service', async () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
             const buildImage = jest.fn().mockResolvedValue({});
-            const sut = executorWithDaemon({ buildImage, modem: { followProgress } });
+            const sut = executorWithRuntime({ buildImage, followProgress });
             const web = { build: 'app' } as { build?: unknown; image?: string };
             const cache = { image: 'redis:7' };
             const compose = { recipe: { services: { web, cache } } };
@@ -286,9 +284,9 @@ describe('DockerExecutorAdapter', () => {
             const [, options] = buildImage.mock.calls[0] as [unknown, Record<string, unknown>];
 
             expect(options).toEqual({
-                t: 'my-project_web',
+                tag: 'my-project_web',
                 dockerfile: 'Dockerfile',
-                buildargs: undefined,
+                buildArgs: undefined,
                 target: undefined,
                 labels: { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' },
             });
@@ -298,7 +296,7 @@ describe('DockerExecutorAdapter', () => {
 
         it('builds nothing when no service declares a build context', async () => {
             const buildImage = jest.fn();
-            const sut = executorWithDaemon({ buildImage, modem: { followProgress: jest.fn() } });
+            const sut = executorWithRuntime({ buildImage, followProgress: jest.fn() });
             const compose = { recipe: { services: { cache: { image: 'redis:7' } } } };
 
             const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', jest.fn());
@@ -311,8 +309,8 @@ describe('DockerExecutorAdapter', () => {
     describe('pullWithProgress', () => {
         it('de-duplicates images, skips built and image-less services, and emits a pulling line each', async () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const pull = jest.fn().mockResolvedValue({});
-            const sut = executorWithDaemon({ pull, modem: { followProgress } });
+            const pullImage = jest.fn().mockResolvedValue({});
+            const sut = executorWithRuntime({ pullImage, followProgress });
             const emit = jest.fn();
             const compose = {
                 recipe: {
@@ -328,38 +326,38 @@ describe('DockerExecutorAdapter', () => {
 
             await internals(sut).pullWithProgress(compose, emit, new Set(['built_web']));
 
-            expect(pull).toHaveBeenCalledTimes(2);
-            expect(pull).toHaveBeenNthCalledWith(1, 'redis:7');
-            expect(pull).toHaveBeenNthCalledWith(2, 'nginx');
+            expect(pullImage).toHaveBeenCalledTimes(2);
+            expect(pullImage).toHaveBeenNthCalledWith(1, 'redis:7');
+            expect(pullImage).toHaveBeenNthCalledWith(2, 'nginx');
             expect(emit).toHaveBeenCalledWith('▶ Pulling redis:7…');
             expect(emit).toHaveBeenCalledWith('▶ Pulling nginx…');
             expect(emit).not.toHaveBeenCalledWith('▶ Pulling built_web…');
         });
 
         it('emits a no-images line and never pulls when there is nothing to pull', async () => {
-            const pull = jest.fn();
-            const sut = executorWithDaemon({ pull, modem: { followProgress: jest.fn() } });
+            const pullImage = jest.fn();
+            const sut = executorWithRuntime({ pullImage, followProgress: jest.fn() });
             const emit = jest.fn();
             const compose = { recipe: { services: { a: {}, b: { image: 'built_web' } } } };
 
             await internals(sut).pullWithProgress(compose, emit, new Set(['built_web']));
 
             expect(emit).toHaveBeenCalledWith('▹ No registry images to pull.');
-            expect(pull).not.toHaveBeenCalled();
+            expect(pullImage).not.toHaveBeenCalled();
         });
     });
 
     describe('followPull', () => {
         it('rejects when the completion callback reports an error', async () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(new Error('boom')); });
-            const sut = executorWithDaemon({ modem: { followProgress } });
+            const sut = executorWithRuntime({ followProgress });
 
             await expect(internals(sut).followPull({}, jest.fn())).rejects.toThrow('boom');
         });
 
         it('resolves when the completion callback reports no error', async () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const sut = executorWithDaemon({ modem: { followProgress } });
+            const sut = executorWithRuntime({ followProgress });
 
             await expect(internals(sut).followPull({}, jest.fn())).resolves.toBeUndefined();
         });
@@ -376,7 +374,7 @@ describe('DockerExecutorAdapter', () => {
                 onProgress({ id: 'abc123' });
                 onFinished();
             });
-            const sut = executorWithDaemon({ modem: { followProgress } });
+            const sut = executorWithRuntime({ followProgress });
             const emit = jest.fn();
 
             await internals(sut).followPull({}, emit);
@@ -390,14 +388,14 @@ describe('DockerExecutorAdapter', () => {
     describe('followBuild', () => {
         it('rejects when the completion callback reports an error', async () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(new Error('build failed')); });
-            const sut = executorWithDaemon({ modem: { followProgress } });
+            const sut = executorWithRuntime({ followProgress });
 
             await expect(internals(sut).followBuild({}, jest.fn())).rejects.toThrow('build failed');
         });
 
         it('resolves when the completion callback reports no error', async () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const sut = executorWithDaemon({ modem: { followProgress } });
+            const sut = executorWithRuntime({ followProgress });
 
             await expect(internals(sut).followBuild({}, jest.fn())).resolves.toBeUndefined();
         });
@@ -405,7 +403,7 @@ describe('DockerExecutorAdapter', () => {
 
     describe('captureStartupLogs', () => {
         it('emits a name header (leading slash stripped) followed by the log lines', async () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const emit = jest.fn();
             const container = {
                 id: 'abcdef123456',
@@ -420,7 +418,7 @@ describe('DockerExecutorAdapter', () => {
         });
 
         it('swallows errors (best-effort) without emitting or throwing', async () => {
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({});
             const emit = jest.fn();
             const container = {
                 id: 'abcdef123456',
@@ -437,15 +435,15 @@ describe('DockerExecutorAdapter', () => {
         const mkdtempMock = mkdtemp as jest.Mock;
         const rmMock = rm as jest.Mock;
         const tarXMock = tar.x as unknown as jest.Mock;
-        const composeCtor = DockerodeCompose as unknown as jest.Mock;
         const tempDir = '/tmp/gitpaas-deploy-test';
+        // The runtime hands the executor the compose project a test has shaped.
+        const createComposeProject = jest.fn(() => mockCompose.instance);
 
         beforeEach(() => {
             mkdtempMock.mockResolvedValue(tempDir);
             rmMock.mockResolvedValue(undefined);
             // A drain-only writable so `pipeline(source, tar.x())` completes.
             tarXMock.mockReturnValue(new Writable({ objectMode: true, write: (_c, _e, cb): void => { cb(); } }));
-            composeCtor.mockImplementation(() => mockCompose.instance);
         });
 
         it('runs the lifecycle in order for an empty recipe and cleans up the temp dir', async () => {
@@ -453,7 +451,7 @@ describe('DockerExecutorAdapter', () => {
             const composeUp = jest.fn().mockResolvedValue({ services: [] });
             mockCompose.instance = { recipe: { services: {} }, down, up: composeUp };
 
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({ createComposeProject });
             const onLog = jest.fn();
 
             await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', onLog);
@@ -494,7 +492,7 @@ describe('DockerExecutorAdapter', () => {
             mockCompose.instance = { recipe, down: jest.fn().mockResolvedValue(undefined), up: composeUp };
 
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const sut = executorWithDaemon({ pull: jest.fn().mockResolvedValue({}), modem: { followProgress } });
+            const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
 
             await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', jest.fn());
 
@@ -518,12 +516,12 @@ describe('DockerExecutorAdapter', () => {
                 down: jest.fn().mockResolvedValue(undefined),
                 up: jest.fn().mockResolvedValue({ services: [] }),
             };
-            // Make archive extraction fail before the daemon is touched.
+            // Make archive extraction fail before the runtime is touched.
             tarXMock.mockImplementation(() => {
                 throw new Error('extract failed');
             });
 
-            const sut = executorWithDaemon({});
+            const sut = executorWithRuntime({ createComposeProject });
 
             await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project')).rejects.toThrow('extract failed');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });

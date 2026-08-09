@@ -1,10 +1,13 @@
 import fs from 'node:fs';
+import { Readable } from 'node:stream';
 
 import Docker from 'dockerode';
+import DockerodeCompose from 'dockerode-compose';
 
 import { DockerContainerRuntimeAdapter } from '../docker-container-runtime.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
+import type { RuntimeBuildImageOptions, RuntimeProgressStream } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
@@ -20,7 +23,12 @@ const buildLogger = (): jest.Mocked<AppLogger> => ({
 // opens a real connection; we assert the exact options passed to it.
 jest.mock('dockerode', () => jest.fn());
 
+// `dockerode-compose` is replaced by a `jest.fn()` constructor so no compose file is
+// ever read from disk; we assert the exact arguments the adapter binds it to.
+jest.mock('dockerode-compose', () => jest.fn());
+
 const DockerMock = Docker as unknown as jest.Mock;
+const DockerodeComposeMock = DockerodeCompose as unknown as jest.Mock;
 
 /** Daemon methods the adapter drives, stubbed on the memoized Dockerode instance. */
 interface FakeDaemon {
@@ -35,17 +43,28 @@ interface FakeDaemon {
     pruneImages: jest.Mock;
     pruneVolumes: jest.Mock;
     pruneContainers: jest.Mock;
+    buildImage: jest.Mock;
+    pull: jest.Mock;
+    modem: { followProgress: jest.Mock };
 }
+
+/**
+ * `getClient()` is private, so cast through `unknown` to reach the memoized
+ * Dockerode client the adapter drives.
+ */
+const clientOf = (adapter: DockerContainerRuntimeAdapter): Docker => (
+    adapter as unknown as { getClient: () => Docker }
+).getClient();
 
 /**
  * Builds an adapter whose memoized Dockerode client is the mocked constructor's
  * own instance, with every daemon method the adapter calls stubbed on it. The
- * daemon is therefore driven exactly as in production — through `getClient()` —
- * while never touching a socket.
+ * daemon is therefore driven exactly as in production — through the memoized
+ * client — while never touching a socket.
  */
 const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } => {
     const sut = new DockerContainerRuntimeAdapter(buildLogger());
-    const daemon = sut.getClient() as unknown as FakeDaemon;
+    const daemon = clientOf(sut) as unknown as FakeDaemon;
 
     daemon.ping = jest.fn().mockResolvedValue(Buffer.from('OK'));
     daemon.info = jest.fn().mockResolvedValue({});
@@ -58,9 +77,19 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
     daemon.pruneImages = jest.fn().mockResolvedValue({});
     daemon.pruneVolumes = jest.fn().mockResolvedValue({});
     daemon.pruneContainers = jest.fn().mockResolvedValue({});
+    daemon.buildImage = jest.fn().mockResolvedValue(Readable.from([]));
+    daemon.pull = jest.fn().mockResolvedValue(Readable.from([]));
+    daemon.modem = { followProgress: jest.fn() };
 
     return { sut, daemon };
 };
+
+/** Builds a build-image option set, overriding only the fields under test. */
+const buildOptions = (overrides: Partial<RuntimeBuildImageOptions> = {}): RuntimeBuildImageOptions => ({
+    tag: 'gitpaas/my-service:abc1234',
+    dockerfile: 'Dockerfile',
+    ...overrides,
+});
 
 describe('DockerContainerRuntimeAdapter', () => {
     beforeEach(() => {
@@ -71,7 +100,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('constructs a Docker client bound to the local unix socket', () => {
             const client = new DockerContainerRuntimeAdapter(buildLogger());
 
-            const result = client.getClient();
+            const result = clientOf(client);
 
             expect(DockerMock).toHaveBeenCalledTimes(1);
             expect(DockerMock).toHaveBeenCalledWith({ socketPath: '/var/run/docker.sock' });
@@ -79,7 +108,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         });
 
         it('passes the socket path as the only connection option', () => {
-            new DockerContainerRuntimeAdapter(buildLogger()).getClient();
+            clientOf(new DockerContainerRuntimeAdapter(buildLogger()));
 
             const [options] = DockerMock.mock.calls[0] as [Record<string, unknown>];
 
@@ -90,7 +119,7 @@ describe('DockerContainerRuntimeAdapter', () => {
             const readFileSync = jest.spyOn(fs, 'readFileSync');
             const existsSync = jest.spyOn(fs, 'existsSync');
 
-            new DockerContainerRuntimeAdapter(buildLogger()).getClient();
+            clientOf(new DockerContainerRuntimeAdapter(buildLogger()));
 
             expect(readFileSync).not.toHaveBeenCalled();
             expect(existsSync).not.toHaveBeenCalled();
@@ -101,13 +130,13 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('needs only the application logger to be constructed', () => {
             expect(DockerContainerRuntimeAdapter).toHaveLength(1);
-            expect(() => new DockerContainerRuntimeAdapter(buildLogger()).getClient()).not.toThrow();
+            expect(() => clientOf(new DockerContainerRuntimeAdapter(buildLogger()))).not.toThrow();
         });
 
         it('logs the socket it connects to through the injected logger', () => {
             const logger = buildLogger();
 
-            new DockerContainerRuntimeAdapter(logger).getClient();
+            clientOf(new DockerContainerRuntimeAdapter(logger));
 
             expect(logger.log).toHaveBeenCalledWith(
                 'Connecting to the local Docker daemon at /var/run/docker.sock',
@@ -121,8 +150,8 @@ describe('DockerContainerRuntimeAdapter', () => {
             const logger = buildLogger();
             const client = new DockerContainerRuntimeAdapter(logger);
 
-            client.getClient();
-            client.getClient();
+            clientOf(client);
+            clientOf(client);
 
             expect(logger.log).toHaveBeenCalledTimes(1);
         });
@@ -130,16 +159,16 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('memoizes the client, building Docker only once across calls', () => {
             const client = new DockerContainerRuntimeAdapter(buildLogger());
 
-            const first = client.getClient();
-            const second = client.getClient();
+            const first = clientOf(client);
+            const second = clientOf(client);
 
             expect(first).toBe(second);
             expect(DockerMock).toHaveBeenCalledTimes(1);
         });
 
         it('keeps one client per DockerContainerRuntimeAdapter instance', () => {
-            const first = new DockerContainerRuntimeAdapter(buildLogger()).getClient();
-            const second = new DockerContainerRuntimeAdapter(buildLogger()).getClient();
+            const first = clientOf(new DockerContainerRuntimeAdapter(buildLogger()));
+            const second = clientOf(new DockerContainerRuntimeAdapter(buildLogger()));
 
             expect(DockerMock).toHaveBeenCalledTimes(2);
             expect(first).not.toBe(second);
@@ -455,6 +484,189 @@ describe('DockerContainerRuntimeAdapter', () => {
             daemon.pruneImages.mockResolvedValue(response);
 
             await expect(sut.pruneImages({})).resolves.toEqual({ deletedCount: 0, spaceReclaimed: 0 });
+        });
+    });
+
+    describe('buildImage', () => {
+        it('hands the build context straight to the daemon', async () => {
+            const { sut, daemon } = buildSut();
+            const context = Readable.from(['tarball']);
+
+            await sut.buildImage(context, buildOptions());
+
+            expect(daemon.buildImage).toHaveBeenCalledTimes(1);
+            expect(daemon.buildImage.mock.calls[0][0]).toBe(context);
+        });
+
+        it('maps the domain build options onto the Docker API keys', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.buildImage(Readable.from([]), buildOptions({
+                tag: 'gitpaas/my-service:abc1234',
+                dockerfile: 'docker/Dockerfile',
+                buildArgs: { NODE_ENV: 'production' },
+                target: 'runtime',
+                labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE },
+            }));
+
+            expect(daemon.buildImage).toHaveBeenCalledWith(expect.anything(), {
+                t: 'gitpaas/my-service:abc1234',
+                dockerfile: 'docker/Dockerfile',
+                buildargs: { NODE_ENV: 'production' },
+                target: 'runtime',
+                labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE },
+            });
+        });
+
+        it('never leaks the domain option names to the daemon', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.buildImage(Readable.from([]), buildOptions({ buildArgs: { NODE_ENV: 'production' } }));
+
+            const [, options] = daemon.buildImage.mock.calls[0] as [unknown, Record<string, unknown>];
+
+            expect(Object.keys(options).sort()).toEqual(['buildargs', 'dockerfile', 'labels', 't', 'target']);
+            expect(options).not.toHaveProperty('tag');
+            expect(options).not.toHaveProperty('buildArgs');
+        });
+
+        it('leaves the optional build options undefined when they are not provided', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.buildImage(Readable.from([]), buildOptions());
+
+            expect(daemon.buildImage).toHaveBeenCalledWith(expect.anything(), {
+                t: 'gitpaas/my-service:abc1234',
+                dockerfile: 'Dockerfile',
+                buildargs: undefined,
+                target: undefined,
+                labels: undefined,
+            });
+        });
+
+        it('returns the progress stream the daemon reports', async () => {
+            const { sut, daemon } = buildSut();
+            const stream = Readable.from(['{"stream":"Step 1/2"}']);
+            daemon.buildImage.mockResolvedValue(stream);
+
+            await expect(sut.buildImage(Readable.from([]), buildOptions())).resolves.toBe(stream);
+        });
+
+        it('propagates a build failure to the caller', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('no such file or directory: Dockerfile');
+            daemon.buildImage.mockRejectedValue(error);
+
+            await expect(sut.buildImage(Readable.from([]), buildOptions())).rejects.toThrow(error);
+        });
+    });
+
+    describe('pullImage', () => {
+        it('delegates the pull to the daemon with the image reference', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.pullImage('node:26.1.0-alpine');
+
+            expect(daemon.pull).toHaveBeenCalledTimes(1);
+            expect(daemon.pull).toHaveBeenCalledWith('node:26.1.0-alpine');
+        });
+
+        it('returns the progress stream the daemon reports', async () => {
+            const { sut, daemon } = buildSut();
+            const stream = Readable.from(['{"status":"Pulling from library/node"}']);
+            daemon.pull.mockResolvedValue(stream);
+
+            await expect(sut.pullImage('node:26.1.0-alpine')).resolves.toBe(stream);
+        });
+
+        it('propagates a pull failure to the caller', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('manifest unknown');
+            daemon.pull.mockRejectedValue(error);
+
+            await expect(sut.pullImage('node:does-not-exist')).rejects.toThrow(error);
+        });
+    });
+
+    describe('followProgress', () => {
+        it('forwards the stream and both callbacks to the daemon modem', () => {
+            const { sut, daemon } = buildSut();
+            const stream: RuntimeProgressStream = Readable.from([]);
+            const onFinished = jest.fn();
+            const onProgress = jest.fn();
+
+            sut.followProgress(stream, onFinished, onProgress);
+
+            expect(daemon.modem.followProgress).toHaveBeenCalledTimes(1);
+            expect(daemon.modem.followProgress).toHaveBeenCalledWith(stream, onFinished, onProgress);
+        });
+
+        it('hands the callbacks over by reference, invoking neither of them itself', () => {
+            const { sut, daemon } = buildSut();
+            const onFinished = jest.fn();
+            const onProgress = jest.fn();
+
+            sut.followProgress(Readable.from([]), onFinished, onProgress);
+
+            const [, finished, progress] = daemon.modem.followProgress.mock.calls[0] as [unknown, unknown, unknown];
+
+            expect(finished).toBe(onFinished);
+            expect(progress).toBe(onProgress);
+            expect(onFinished).not.toHaveBeenCalled();
+            expect(onProgress).not.toHaveBeenCalled();
+        });
+
+        it('returns nothing, since the modem drives the stream', () => {
+            const { sut } = buildSut();
+
+            const result = sut.followProgress(Readable.from([]), jest.fn(), jest.fn());
+
+            expect(result).toBeUndefined();
+        });
+
+        it('propagates an error thrown by the modem', () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('stream already consumed');
+            daemon.modem.followProgress.mockImplementation(() => {
+                throw error;
+            });
+
+            expect(() => sut.followProgress(Readable.from([]), jest.fn(), jest.fn())).toThrow(error);
+        });
+    });
+
+    describe('createComposeProject', () => {
+        it('binds the compose project to the memoized client, the compose file and the project name', () => {
+            const { sut } = buildSut();
+
+            sut.createComposeProject('/tmp/gitpaas/compose.yml', 'my-service');
+
+            expect(DockerodeComposeMock).toHaveBeenCalledTimes(1);
+            expect(DockerodeComposeMock).toHaveBeenCalledWith(
+                DockerMock.mock.instances[0],
+                '/tmp/gitpaas/compose.yml',
+                'my-service',
+            );
+        });
+
+        it('returns the compose project it built', () => {
+            const { sut } = buildSut();
+
+            const result = sut.createComposeProject('/tmp/gitpaas/compose.yml', 'my-service');
+
+            expect(result).toBe(DockerodeComposeMock.mock.instances[0]);
+        });
+
+        it('builds one compose project per call, reusing the same client', () => {
+            const { sut } = buildSut();
+
+            const first = sut.createComposeProject('/tmp/gitpaas/a.yml', 'a');
+            const second = sut.createComposeProject('/tmp/gitpaas/b.yml', 'b');
+
+            expect(DockerodeComposeMock).toHaveBeenCalledTimes(2);
+            expect(first).not.toBe(second);
+            expect(DockerMock).toHaveBeenCalledTimes(1);
+            expect(DockerodeComposeMock.mock.calls[0][0]).toBe(DockerodeComposeMock.mock.calls[1][0]);
         });
     });
 });

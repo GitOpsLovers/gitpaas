@@ -1,13 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
+import DockerodeCompose from 'dockerode-compose';
 
 import { RemoveContainerDto } from '../../domain/dtos/remove-container.dto';
 import { RemoveImageDto } from '../../domain/dtos/remove-image.dto';
 import type {
     ContainerRuntimeInfo,
+    RuntimeBuildImageOptions,
+    RuntimeComposeProject,
     RuntimeContainerSummary,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
+    RuntimeProgressCompletion,
+    RuntimeProgressListener,
+    RuntimeProgressStream,
     RuntimePruneReport,
     RuntimeSelector,
 } from '../../domain/models/container-runtime.models';
@@ -37,12 +43,6 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
     private client: Docker | undefined;
 
     constructor(@Inject(NestLoggerAdapter) private readonly logger: AppLogger) {}
-
-    public getClient(): Docker {
-        this.client ??= this.createClient();
-
-        return this.client;
-    }
 
     public async ping(): Promise<boolean> {
         const response = await this.getClient().ping();
@@ -106,6 +106,39 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         const { ContainersDeleted, SpaceReclaimed } = await this.getClient().pruneContainers({ filters });
 
         return toPruneReport(ContainersDeleted, SpaceReclaimed);
+    }
+
+    public async buildImage(context: NodeJS.ReadableStream, options: RuntimeBuildImageOptions): Promise<RuntimeProgressStream> {
+        return this.getClient().buildImage(context, {
+            t: options.tag,
+            dockerfile: options.dockerfile,
+            buildargs: options.buildArgs,
+            target: options.target,
+            labels: options.labels,
+        });
+    }
+
+    public async pullImage(reference: string): Promise<RuntimeProgressStream> {
+        return this.getClient().pull(reference);
+    }
+
+    public followProgress(stream: RuntimeProgressStream, onFinished: RuntimeProgressCompletion, onProgress: RuntimeProgressListener): void {
+        this.getClient().modem.followProgress(stream, onFinished, onProgress);
+    }
+
+    public createComposeProject(composeFilePath: string, projectName: string): RuntimeComposeProject {
+        return new DockerodeCompose(this.getClient(), composeFilePath, projectName);
+    }
+
+    /**
+     * Lazily-created, reused Dockerode client bound to the local daemon socket.
+     *
+     * @returns Dockerode client connected to the local Docker daemon
+     */
+    private getClient(): Docker {
+        this.client ??= this.createClient();
+
+        return this.client;
     }
 
     /**

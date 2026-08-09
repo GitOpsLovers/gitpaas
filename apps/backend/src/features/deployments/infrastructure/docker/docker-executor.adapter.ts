@@ -5,15 +5,15 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 import { Inject, Injectable } from '@nestjs/common';
-import Docker from 'dockerode';
-import DockerodeCompose from 'dockerode-compose';
 import * as tar from 'tar';
 
 import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
+import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
@@ -55,12 +55,19 @@ interface ComposeRecipe {
     networks?: Record<string, ComposeResource | null>;
 }
 
-/** A resolved build definition ready to hand to `docker.buildImage`. */
+/** A resolved build definition ready to hand to the runtime's image build. */
 interface ResolvedBuild {
     contextPath: string;
     dockerfile: string;
     buildargs?: Record<string, string>;
     target?: string;
+}
+
+/** The subset of a started container the executor reads its startup output from. */
+interface StartedContainer {
+    id: string;
+    inspect: () => Promise<{ Name: string; Config: { Tty: boolean } }>;
+    logs: (options: { follow: false; stdout: boolean; stderr: boolean; tail: number; timestamps: boolean }) => Promise<Buffer>;
 }
 
 /**
@@ -70,7 +77,7 @@ interface ResolvedBuild {
 export class DockerExecutorAdapter implements DockerExecutor {
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
-        private readonly docker: DockerContainerRuntimeAdapter,
+        private readonly docker: ContainerRuntime,
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
     ) {}
@@ -84,7 +91,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
             await this.extractArchive(archive, directory);
 
             const composeFile = join(directory, composePath);
-            const compose = new DockerodeCompose(this.docker.getClient(), composeFile, projectName);
+            const compose = this.docker.createComposeProject(composeFile, projectName);
 
             // Build local `build:` services first (streaming their output), which
             // rewrites them into plain image services in the recipe.
@@ -110,7 +117,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
             this.logger.log(`Bringing project "${projectName}" up`, DockerExecutorAdapter.name);
             emit('▶ Creating and starting containers…');
 
-            const result = (await compose.up()) as { services?: Docker.Container[] };
+            const result = (await compose.up()) as { services?: StartedContainer[] };
             const containers = result.services ?? [];
 
             for (const container of containers) {
@@ -139,7 +146,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * Docker build output, and rewrites each into a plain image service so
      * `compose.up()` runs (rather than rebuilds) it.
      *
-     * @param compose Dockerode-compose instance
+     * @param compose Compose project driven by the container runtime
      * @param composeFile Absolute path to the compose file (build contexts are relative to its dir)
      * @param projectName Compose project name, used to tag built images
      * @param emit Line emitter
@@ -147,7 +154,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * @returns The set of image tags that were built locally (never pulled from a registry)
      */
     private async buildServices(
-        compose: DockerodeCompose,
+        compose: RuntimeComposeProject,
         composeFile: string,
         projectName: string,
         emit: DockerLogListener,
@@ -236,10 +243,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
         // structurally typed as, a Node readable, so cast for dockerode's signature.
         const context = tar.c({ cwd: build.contextPath, gzip: false }, ['.']) as unknown as NodeJS.ReadableStream;
 
-        const stream = await this.docker.getClient().buildImage(context, {
-            t: tag,
+        const stream = await this.docker.buildImage(context, {
+            tag,
             dockerfile: build.dockerfile,
-            buildargs: build.buildargs,
+            buildArgs: build.buildargs,
             target: build.target,
             labels: getGitpaasLabels(projectName),
         });
@@ -256,7 +263,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
      */
     private followBuild(stream: NodeJS.ReadableStream, emit: DockerLogListener): Promise<void> {
         return new Promise((resolvePromise, reject) => {
-            this.docker.getClient().modem.followProgress(
+            this.docker.followProgress(
                 stream,
                 (error) => {
                     if (error) {
@@ -265,7 +272,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
                         resolvePromise();
                     }
                 },
-                (event: { stream?: string; status?: string }) => {
+                (event) => {
                     const text = event.stream ?? event.status;
 
                     if (text) {
@@ -282,11 +289,11 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * Skips locally-built images (they exist on the daemon, not in a registry) and
      * services without an `image`.
      *
-     * @param compose Dockerode-compose instance
+     * @param compose Compose project driven by the container runtime
      * @param emit Line emitter
      * @param builtImages Image tags built locally, which must not be pulled
      */
-    private async pullWithProgress(compose: DockerodeCompose, emit: DockerLogListener, builtImages: Set<string>): Promise<void> {
+    private async pullWithProgress(compose: RuntimeComposeProject, emit: DockerLogListener, builtImages: Set<string>): Promise<void> {
         const services = this.recipeServices(compose);
 
         const images = [...new Set(
@@ -304,7 +311,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
         await Promise.all(images.map(async (image) => {
             emit(`▶ Pulling ${image}…`);
 
-            const stream = await this.docker.getClient().pull(image);
+            const stream = await this.docker.pullImage(image);
 
             await this.followPull(stream, emit);
         }));
@@ -318,7 +325,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
      */
     private followPull(stream: NodeJS.ReadableStream, emit: DockerLogListener): Promise<void> {
         return new Promise((resolvePromise, reject) => {
-            this.docker.getClient().modem.followProgress(
+            this.docker.followProgress(
                 stream,
                 (error) => {
                     if (error) {
@@ -327,7 +334,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
                         resolvePromise();
                     }
                 },
-                (event: { status?: string; id?: string; progress?: string }) => {
+                (event) => {
                     // Skip byte-level progress frames; keep discrete lifecycle lines.
                     if (!event.status || event.progress) {
                         return;
@@ -345,7 +352,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * @param container Started container
      * @param emit Line emitter
      */
-    private async captureStartupLogs(container: Docker.Container, emit: DockerLogListener): Promise<void> {
+    private async captureStartupLogs(container: StartedContainer, emit: DockerLogListener): Promise<void> {
         try {
             const info = await container.inspect();
             const name = info.Name.replace(/^\//, '') || container.id.slice(0, 12);
@@ -377,9 +384,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * mis-parses second-based strings like `5s` into `NaN`. Numeric values are
      * passed straight through to the daemon, so converting here fixes both.
      *
-     * @param compose Dockerode-compose instance
+     * @param compose Compose project driven by the container runtime
      */
-    private normalizeHealthchecks(compose: DockerodeCompose): void {
+    private normalizeHealthchecks(compose: RuntimeComposeProject): void {
         for (const service of Object.values(this.recipeServices(compose))) {
             const healthcheck = service.healthcheck;
 
@@ -405,10 +412,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * Volumes and networks are safe to merge as a map, since the library spreads
      * their `labels` object.
      *
-     * @param compose Dockerode-compose instance
+     * @param compose Compose project driven by the container runtime
      * @param projectName Compose project name the stack is grouped under
      */
-    private stampLabels(compose: DockerodeCompose, projectName: string): void {
+    private stampLabels(compose: RuntimeComposeProject, projectName: string): void {
         const gitpaas = getGitpaasLabels(projectName);
 
         for (const [name, service] of Object.entries(this.recipeServices(compose))) {
@@ -465,11 +472,11 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * Returns every top-level volume and network declared by a compose recipe,
      * materialising the `null` shorthand (`volumes: { data: }`) into an object.
      *
-     * @param compose Dockerode-compose instance
+     * @param compose Compose project driven by the container runtime
      *
      * @returns Declared volume and network definitions
      */
-    private recipeResources(compose: DockerodeCompose): ComposeResource[] {
+    private recipeResources(compose: RuntimeComposeProject): ComposeResource[] {
         const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
         const resources: ComposeResource[] = [];
 
@@ -525,9 +532,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
     /**
      * Returns the parsed services of a compose recipe.
      *
-     * @param compose Dockerode-compose instance
+     * @param compose Compose project driven by the container runtime
      */
-    private recipeServices(compose: DockerodeCompose): Record<string, ComposeService> {
+    private recipeServices(compose: RuntimeComposeProject): Record<string, ComposeService> {
         const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
 
         return recipe?.services ?? {};

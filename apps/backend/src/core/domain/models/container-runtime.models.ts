@@ -71,3 +71,47 @@ export interface RuntimePruneReport {
     deletedCount: number;
     spaceReclaimed: number;
 }
+
+/**
+ * Stream of progress frames reported by a long-running runtime operation.
+ */
+export type RuntimeProgressStream = NodeJS.ReadableStream;
+
+/**
+ * A single progress frame of a long-running runtime operation.
+ */
+export interface RuntimeProgressEvent {
+    stream?: string;
+    status?: string;
+    id?: string;
+    progress?: string;
+}
+
+/**
+ * Listener notified for every progress frame of a long-running runtime operation.
+ */
+export type RuntimeProgressListener = (event: RuntimeProgressEvent) => void;
+
+/**
+ * Callback invoked once a followed progress stream ends, with the failure cause when it failed.
+ */
+export type RuntimeProgressCompletion = (error: unknown) => void;
+
+/**
+ * Definition of an image build handed to the runtime.
+ */
+export interface RuntimeBuildImageOptions {
+    tag: string;
+    dockerfile: string;
+    buildArgs?: Record<string, string>;
+    target?: string;
+    labels?: Record<string, string>;
+}
+
+/**
+ * A compose project bound to the runtime, restricted to the lifecycle operations a deployment drives.
+ */
+export interface RuntimeComposeProject {
+    up: () => Promise<unknown>;
+    down: () => Promise<unknown>;
+}
