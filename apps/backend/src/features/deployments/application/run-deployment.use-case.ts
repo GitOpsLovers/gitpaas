@@ -1,19 +1,9 @@
+import { DeploymentRunTask } from '../domain/models/deployment-run-task.models';
 import { DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { Providers } from '@features/providers/domain/ports/providers.port';
-
-/**
- * Run deployment payload
- */
-export interface RunDeploymentPayload {
-    deploymentId: string;
-    repositoryId: number;
-    commit: string;
-    composerPath: string;
-    projectName: string;
-}
 
 /**
  * Use case that runs a deployment.
@@ -32,7 +22,7 @@ export async function runDeploymentUseCase(
     providers: Providers,
     dockerExecutor: DockerExecutor,
     logStore: LogStore,
-    payload: RunDeploymentPayload,
+    payload: DeploymentRunTask,
 ): Promise<void> {
     await deploymentsRepository.update(payload.deploymentId, { status: 'running' });
 

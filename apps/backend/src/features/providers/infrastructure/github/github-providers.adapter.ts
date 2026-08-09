@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
@@ -80,38 +80,6 @@ export class GithubProvidersAdapter implements Providers {
         });
 
         return toGitCommit(commit);
-    }
-
-    /**
-     * Read the UTF-8 content of a file in a repository at a given ref
-     *
-     * @param repositoryId Repository identifier
-     * @param path Path to the file within the repository
-     * @param ref Branch, tag or commit to read the file from
-     *
-     * @returns The file content
-     */
-    public async getFileContent(repositoryId: number, path: string, ref: string): Promise<string> {
-        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
-            id: repositoryId,
-        });
-
-        const [owner, repo] = repository.full_name.split('/');
-
-        // `{+path}` (reserved expansion) keeps the slashes in nested paths; a plain `{path}`
-        // would percent-encode `/` to `%2F` and GitHub would 404 on the literal name.
-        const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/contents/{+path}', {
-            owner,
-            repo,
-            path,
-            ref,
-        });
-
-        if (Array.isArray(data) || data.type !== 'file' || typeof data.content !== 'string') {
-            throw new NotFoundException(`"${path}" is not a file in ${repository.full_name}@${ref}`);
-        }
-
-        return Buffer.from(data.content, 'base64').toString('utf8');
     }
 
     /**
