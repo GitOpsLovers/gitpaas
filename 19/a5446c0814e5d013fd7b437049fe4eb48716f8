@@ -1,0 +1,59 @@
+.claude/skills/backend-unit-testing/SKILL.md
+  s_58c61374eeeb8b::t_b4bc44723c82a6 90-166
+apps/backend/src/core/domain/dtos/__tests__/remove-container.dto.spec.ts
+  s_2569d3af7f327b::t_c9b46ee3fa269a 1-63
+apps/backend/src/core/domain/dtos/__tests__/remove-image.dto.spec.ts
+  s_2569d3af7f327b::t_2b8d1a94663d56 1-51
+apps/backend/src/features/authentication/domain/dtos/__tests__/create-refresh-token.dto.spec.ts
+  s_2569d3af7f327b::t_21446ee37807a0 1-104
+apps/backend/src/features/authentication/domain/dtos/__tests__/login.dto.spec.ts
+  s_2569d3af7f327b::t_0656cc2e0d81bd 1-77
+apps/backend/src/features/authentication/domain/dtos/__tests__/refresh.dto.spec.ts
+  s_2569d3af7f327b::t_d7f7a5862eed0e 1-67
+apps/backend/src/features/deployments/domain/dtos/__tests__/create-deployment.dto.spec.ts
+  s_2569d3af7f327b::t_239436a8daf9d6 1-89
+apps/backend/src/features/deployments/domain/dtos/__tests__/trigger-deployment.dto.spec.ts
+  s_2569d3af7f327b::t_383beabfd62c8d 1-58
+apps/backend/src/features/deployments/domain/dtos/__tests__/update-deployment.dto.spec.ts
+  s_2569d3af7f327b::t_ff44a5e524ec31 1-78
+apps/backend/src/features/logs/domain/dtos/__tests__/create-log.dto.spec.ts
+  s_2569d3af7f327b::t_fb3755aacafd5d 1-129
+apps/backend/src/features/projects/domain/dtos/__tests__/create-project.dto.spec.ts
+  s_2569d3af7f327b::t_d6e1238e4bc69b 1-59
+apps/backend/src/features/projects/domain/dtos/__tests__/update-project.dto.spec.ts
+  s_2569d3af7f327b::t_a42d22e8d99c82 1-63
+apps/backend/src/features/services/domain/dtos/__tests__/create-service.dto.spec.ts
+  s_2569d3af7f327b::t_676b302cc523aa 1-74
+apps/backend/src/features/services/domain/dtos/__tests__/update-service.dto.spec.ts
+  s_2569d3af7f327b::t_d781cfa1cc5df0 1-82
+apps/backend/src/features/users/domain/dtos/__tests__/create-user.dto.spec.ts
+  s_2569d3af7f327b::t_a734576bfe3ab9 1-113
+apps/backend/src/features/users/domain/dtos/__tests__/seed-admin.dto.spec.ts
+  s_2569d3af7f327b::t_c7a36f719ce4d9 1-72
+docs/TODO.md
+  s_58c61374eeeb8b::t_9336f527775f9a 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "19a5446c0814e5d013fd7b437049fe4eb48716f8",
+  "prompts": {},
+  "sessions": {
+    "s_2569d3af7f327b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aacb5bf82db0c093c",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_58c61374eeeb8b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a42474cd600fa47a3",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
