@@ -38,7 +38,7 @@ src/
   shared/
 ```
 
-- **`core/`** holds only the **structural elements that make the application operate**: the configuration and the environment validation, the database connection, the container runtime, the global exception filter and the diagnostic logging.
+- **`core/`** holds only the **structural elements that make the application operate**: the configuration and the environment validation, the database connection, the container runtime, the global exception filter and the application logging.
 - **`features/`** is the default location. If an element is part of one business domain, it stays in the feature of that domain and in no other place.
 - **`shared/`** holds **the reusable functions that are not structural and that are not part of one domain**:.
 
@@ -48,7 +48,7 @@ Each feature has four different layers. There is one strict rule: **an outer lay
 
 **Domain Layer**
 
-This layer holds the models, the repository interfaces and the port interfaces, the DTOs, the errors and all the other elements that give the business model. These elements do not depend on the other layers and do not use a specified technology. The DTOs are the only exception, because they use `class-validator`.
+This layer holds the models, the repository and port interfaces, the DTOs, the errors and all the other elements that give the business model. These elements do not depend on the other layers and do not use a specified technology. The DTOs are the only exception, because they use `class-validator`.
 
 **Application Layer**
 
@@ -118,19 +118,21 @@ Some behaviours apply to all the application. Thus they are configured one time 
 - **Environment validation**: a `class-validator` schema validates each variable when the application starts. If a variable is missing or incorrect, the application stops immediately.
 - **Error envelope**: a global exception filter returns the same shape for all the errors. It keeps the message arrays that the `ValidationPipe` makes, and it changes an unexpected error into a generic 500.
 
+---
+
 ## Conventions
 
 ### Ports and dependency injection
 
 The repositories and the other collaborators obey the **port and adapter** pattern:
 
-- **Port**: a plain `interface` (for example, `DockerExecutor`). Its methods are arrow-function properties written in domain terms: they accept and return domain models and DTOs, and never ORM types or vendor types. A use case depends only on this interface.
-- **Adapter**: an `@Injectable()` class that has `implements` for the port (for example, `DockerExecutorDockerodeAdapter`) of a `ports/` interface
-- **Wiring**: the module puts the **concrete class** in its `providers`. The consumer injects the dependency **by class** (`@Inject(ProjectsDatabaseRepository)`, with `import type` for the port) and gives it the type of the **port**. Thus the `{ provide: TOKEN, useClass }` indirection is not necessary.
+- **Port**: a plain `interface` (for example, `ProjectsRepository`). Its methods are arrow-function properties written in domain terms: they accept and return domain models and DTOs, and never ORM types or vendor types. A use case depends only on this interface.
+- **Adapter**: an `@Injectable()` class that has `implements` for the port (for example, `DatabaseProjectsRepository`) of a `repositories/` interface
+- **Wiring**: the module puts the **concrete class** in its `providers`. The consumer injects the dependency **by class** (`@Inject(ProjectsDatabaseRepository)`, with `import type` for the port) and gives it the type of the **port**.
 
 ### Transformers
 
-An infrastructure repository must not return a raw ORM entity or a vendor shape. The mapping stays in an adjacent `*.transformer.ts` file. The name of this file is the file stem of the repository. The file exports plain functions that change a persistence shape or a vendor shape into a domain model, for example `to<Model>(...)`. A different function in the same file does the opposite operation. The repositories call these functions where necessary (`rows.map(toProject)`). This rule applies to all the types of infrastructure.
+An infrastructure repository must not return a raw ORM entity or a vendor shape. The mapping stays in an adjacent `*.transformer.ts` file. The file exports plain functions that change a persistence shape or a vendor shape into a domain model, for example `to<Model>(...)`. A different function in the same file does the opposite operation. The repositories call these functions where necessary (`rows.map(toProject)`). This rule applies to all the types of infrastructure.
 
 ### Persistence
 
@@ -141,7 +143,7 @@ An infrastructure repository must not return a raw ORM entity or a vendor shape.
 
 ### Validation
 
-A write endpoint validates its input with DTO classes. The global `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`, `transform`, configured in `main.ts`) applies this validation. The DTOs stay in `domain/dtos/`. They are the only domain files that can import a framework and can use the `!` assertion, and they connect to the requests with `@Body()`. The pipe rejects unknown properties. Thus the DTO is the authoritative input contract. Nested payloads are validated with `@ValidateNested({ each: true })` and `@Type(() => Dto)`. Optional fields have the `@IsOptional()` decorator.
+A write endpoint validates its input with DTO classes. The global `ValidationPipe` applies this validation. The DTOs stay in `domain/dtos/`. They are the only domain files that can import a framework and can use the `!` assertion, and they connect to the requests with `@Body()`. The pipe rejects unknown properties. Thus the DTO is the authoritative input contract. Nested payloads are validated with `@ValidateNested({ each: true })` and `@Type(() => Dto)`. Optional fields have the `@IsOptional()` decorator.
 
 ### HTTP and REST
 
@@ -206,6 +208,8 @@ All the classes, the functions and the interfaces must have a JSDoc comment bloc
 - **Ports**: one line that gives the purpose of the port in a short form. Each method of the port must have its own JSDoc block with one line that gives the purpose of the method. If the method accepts parameters, write them with `@param parameterName Purpose`. If the method returns data, write the data with `@returns Returned data`.
 - **Repositories**: one line that gives the purpose of the repository in a short form. Each method of the repository must have its own JSDoc block with one line that gives the purpose of the method. If the method accepts parameters, write them with `@param parameterName Purpose`. If the method returns data, write the data with `@returns Returned data`.
 
+---
+
 ## Key flows
 
 ### Request
@@ -218,7 +222,7 @@ HTTP → ValidationPipe → Controller → Service → Use Case → Repository p
 
 ### Durable queue (background work)
 
-The caller must be able to start work without knowledge of the time when the work runs. Thus the producer puts a task in the queue, and a consumer takes the task from the queue later. The queue is **durable and at-least-once**. The tasks stay after a restart, they are tried again after a failure, and they go to the dead-letter state when there are no more attempts. The `deployments` feature is the reference. Its adapter keeps each task as a `deployment_queue_tasks` row and uses an internal RxJS `Subject` only as the in-process dispatch channel.
+The caller must be able to start work without knowledge of the time when the work runs. Thus a producer queues a task and a consumer takes it later. The queue is **durable and at-least-once**: each task is a database row, so the tasks stay after a restart, and an in-process channel only tells the consumer that there is new work. The `deployments` feature is the reference.
 
 ```text
 queued ──(picked up)──► processing ──(ok)──► [row deleted]
@@ -228,71 +232,70 @@ queued ──(picked up)──► processing ──(ok)──► [row deleted]
                                                         deployment marked failed)
 ```
 
-Each operation is a part of that lifecycle. `enqueue` writes the task as `queued` with `attempts=0` and then emits it. `markProcessing` sets the task to `processing` and increases its attempt count. `markCompleted` deletes the row, because the deployment itself holds the durable result. `markFailed` records the error and puts the task in the queue again while `attempts < 3`. If there are no more attempts, `markFailed` sends the task to the dead-letter state **and** sets the deployment to `failed`. Thus the deployment does not stay in `pending`. On a restart, `recoverPending` sets each `queued` row and each `processing` row back to `queued` and emits it again.
+A successful run deletes the row, because the deployment record holds the durable result. A failure records the error and queues the task again, up to three attempts. After the last attempt, the task goes to the dead-letter state **and** the deployment becomes `failed`, so no deployment stays `pending` for ever. At start-up, each unfinished task returns to `queued`, so work that a crash interrupted runs again.
 
-`POST /deployments` validates the request, writes a `pending` record, puts a run task in the queue, and returns the record **with its id** immediately. `DeploymentRunnerService` subscribes to the stream, and only then calls `recoverPending()`. It runs the tasks in sequence **for each compose-project name**, but it runs different projects at the same time:
+The caller sees only the fast part: the request validates its input, writes a `pending` record, queues a run task, and returns the record **with its id** immediately. The consumer runs the tasks in sequence **for each compose project**, but different projects run at the same time. Thus a slow build does not delay the other stacks, and two runs of one stack cannot mix.
 
 ```text
-markProcessing → fetch repo archive (providers) → docker executor up()
-  (fans each output line to the logs write port `append`)
-  → mark success/failed → logStore.complete(status) → markCompleted
+mark processing → fetch repo archive → docker deploy
+  (fans each output line to the log store)
+  → mark success/failed → close the log stream → mark completed
 ```
 
-The use case handles the expected failures itself: a failed run becomes a `failed` status in the database. An unexpected throw goes to `markFailed`, which is the last safety net. `markFailed` then starts a new attempt or sends the task to the dead-letter state.
+An expected failure becomes a `failed` status, and the task ends correctly; the retry path is the last safety net, for an unexpected error only. Because delivery is at-least-once, a run can occur two times. The deploy operation tolerates this, because it always stops the old stack first.
 
 ### Server-Sent Events (live streams)
 
-To stream a long-running result, the application uses Server-Sent Events and not the CRUD table. The handler has the `@Sse(...)` annotation and returns an `Observable` of messages. It sends one JSON-encoded event for each value on one long-lived response. It operates together with the REST endpoints, which continue to give the durable history. The `logs` feature is the reference. It owns the durable `logs` table, the write port that the runner appends to, `GET /logs/:deploymentId/stream` (a stream of SSE `LogEvent`s), and `GET /logs?deploymentId=` (the history).
+To send a long-running result to the client, the application uses Server-Sent Events: one long-lived response that carries one JSON-encoded event for each value. An SSE endpoint always has a REST companion that gives the durable history — in the `logs` feature, one endpoint for the live events of a deployment and one for its history.
 
-The log-stream endpoint is **not** `@Public()`. Thus it needs a Bearer token. The native `EventSource` API cannot set headers. Thus the frontend reads this stream with an SSE client that can send a token.
+A stream endpoint is not public, so it needs a Bearer token. The native `EventSource` API cannot set headers. Thus the frontend reads the stream with an SSE client that can send a token.
 
 ### Deployment log store
 
-The `LogStore` port has **one** adapter, `DatabaseLogStoreAdapter`, and **one** store, the `logs` table. Thus the live delivery and the durable history are two views of the same rows, and not two systems that can become different.
+The live delivery and the durable history are two views of **the same rows** in one table, and not two systems that can become different.
 
 ```text
-docker output ──► append() ──┬─► in-memory batch ──(100 lines | 250 ms)──► logs table
-                             └─► per-deployment RxJS Subject ──► SSE subscribers
+docker output ──► write ──┬─► in-memory batch ──(100 lines | 250 ms)──► logs table
+                          └─► per-deployment live channel ──► SSE subscribers
 
-stream() ──► stored rows (replay) ──► live Subject   (deduplicated by seq)
+read stream ──► stored rows (replay) ──► live channel   (deduplicated by seq)
 ```
 
-- **`append`** gives the next sequence, puts the event in the in-memory batch of the deployment, and sends it on the `Subject` of the deployment. The batch is written after **100 lines or 250 ms**, whichever occurs first. `append` never rejects: the Docker stream callback calls it and does not wait for the result. Thus a failure of the store is recorded in the log and does not become an unhandled rejection.
-- **`stream`** subscribes to the `Subject` *first*. Then it reads the stored rows of the deployment plus the batch that is not yet written. Only then does it deliver the events that came in the interval. Each event has a sequence. Thus the overlap between the replay and the live feed is deduplicated, and the change-over has no gap and no duplicate.
-- **`complete`** writes the terminal `end` entry to the table *before* it sends the entry. Thus a subscriber that connects in that interval finds the entry during the replay and cannot stay in the "running" state.
-- **`purge`** waits for the writes in progress to end, and then deletes the rows of the deployment.
+A new line goes to the live channel immediately and to an in-memory batch. The batch goes to the table after **100 lines or 250 ms**, whichever occurs first. Thus the store does not write to the database for each line, but the subscribers see no delay. A write never rejects: a store failure goes to the application log only.
 
-The sequences are the only authority for the order. There is **one** monotonic counter for each deployment, which starts from `MAX(seq)` in the table. The persisted rows and the live events use the same counter. Because the counter starts from the value in the table, a stream that continues after a restart increases monotonically and does not hit the existing rows.
+A new subscriber attaches to the live channel **before** it reads the recorded rows, and then delivers the events of that interval. Thus the change-over has no gap. The terminal event goes to the table before it goes to the channel, so a client that connects at that moment cannot stay in the "running" condition.
 
-The shape gives two properties that the previous design did not have. First, **the history stays available after a run ends**: nothing expires, so the UI can always replay a completed run. Second, **a crash loses one unflushed batch as a maximum** — approximately 250 ms of output — and not the full run. `onModuleDestroy` writes each batch. Thus a controlled stop loses nothing.
+One sequence counter for each deployment gives the order to the rows and to the live events. It starts from the highest sequence in the table, so the numbers always increase, also after a restart, and the overlap of the replay and the live feed is easy to deduplicate.
 
-Two necessary environment variables limit the growth. The application validates the two variables at boot, as it does for all the other settings:
+Two guarantees result: **the history stays available after a run ends**, because nothing expires, and **a crash loses one batch as a maximum** (approximately 250 ms of output). A controlled stop loses nothing. Two necessary environment variables limit the growth:
 
 | Variable               | Meaning                                                | Enforced                                        |
 |------------------------|--------------------------------------------------------|-------------------------------------------------|
 | `LOGS_MAX_LINES`       | Per-deployment cap; oldest entries are trimmed by `seq` | After every flush                               |
 | `LOGS_RETENTION_HOURS` | Age window across all deployments                       | When a deployment completes (**opportunistic**) |
 
-> The age sweep is opportunistic on purpose. The backend has no scheduler, and the completion of a deployment is the least expensive recurring hook. As a result, **an idle control plane never removes rows by age**. Only the line cap keeps one busy deployment in limits.
+> The age sweep is opportunistic on purpose: the backend has no scheduler, and the completion of a deployment is the least expensive recurring hook. As a result, **an idle control plane never removes rows by age**. Only the line cap keeps a busy deployment in limits.
 
-The `logs` table has an index for the two read paths: `(deploymentId, seq)` supports the ordered replay and the line-cap trim, and `createdAt` supports the age sweep.
+The table has an index for each of the two read paths: the ordered replay and the age sweep.
 
 ### Authentication
 
-The `authentication` feature connects JWT and Passport and registers the global guard. Thus all the routes need a valid access token by default. `@Public()`, a metadata flag that the reflector reads, removes a route from this rule. The feature gives `POST /auth/login` (public, rate-limited), `POST /auth/refresh` (public, rotates the tokens), `POST /auth/logout` (public, an idempotent revoke), and `GET /auth/me` (protected, without the password hash). A `@CurrentUser()` parameter decorator gives the user of the request.
+A global guard protects all the routes by default. A metadata flag makes a route public — the login and the refresh operations, because the caller has no access token at that moment. The login endpoint is rate-limited.
 
-- **Tokens**: at login, a local strategy validates the email and the password. On each protected request, a JWT strategy validates the Bearer token, finds the user again, and **rejects the accounts that are not active** (`isActive`). Thus a disabled user has no access immediately. The access token and the refresh token use different secrets and different lifetimes (`JWT_ACCESS_*` and `JWT_REFRESH_*`). The passwords have an argon2 hash.
-- **Rotation**: the refresh tokens stay in the `refresh_tokens` table (with a cascade from their user). They are stored only as a SHA-256 hash, with a random `jti` from the token as the key. A refresh operation verifies the signature and the expiry, finds the row by `jti`, and rejects the token if the row is missing, revoked or expired. Then it compares the hash, verifies again that the user is active, and **revokes the old row and gives a new pair of tokens**. The rows are revoked and never deleted. Thus a token that is sent again is always rejected.
+- **Tokens**: at login, the application validates the email and the password (the passwords have an argon2 hash). On each protected request, it validates the Bearer token, finds the user again, and **rejects the accounts that are not active**. Thus a disabled account loses access immediately, and not at the expiry of its token. The two token types use different secrets and lifetimes.
+- **Rotation**: the refresh tokens stay in the database only as a hash, so a person who reads the table cannot make a token. A refresh operation verifies the signature, the expiry, the row and the hash, verifies again that the user is active, and then revokes the old row and gives a new pair. A row is revoked and never deleted, so a token that is sent two times is always rejected.
 
-> RBAC is not implemented yet. Each user has a `role` (`admin` or `user`) in the database, but no authorization guard uses it.
+> RBAC is not implemented yet. Each user has a role (`admin` or `user`) in the database, but no authorization guard uses it.
 
 ### Docker-facing capabilities
 
-- **Docker executor** (`deployments`): the `DockerExecutor` port gives this capability, and `DockerExecutorDockerodeAdapter` is the adapter. Its `up(archive, composePath, projectName, onLog)` operation extracts the GitHub tarball, builds the local `build:` services (it streams their output and changes them into image services), pulls the registry images, stops the old stack with `down()`, changes the healthcheck durations into nanoseconds (a `dockerode-compose` quirk), puts the GitPaaS ownership labels on each resource of the new stack, runs `up()`, and captures the startup logs of each container in limits. All the resources are in a group with a `com.docker.compose.project` name that comes from a slug of the project name.
-- **Log store** (`logs`): the `LogStore` port (`append`, `complete`, `stream`, `purge`) gives this capability, with one adapter, `DatabaseLogStoreAdapter`, and the `logs` table behind it. See [Deployment log store](#deployment-log-store).
-- **Cleanup**: the database cascade removes `service → deployments → logs`. `purge` deletes the log rows of a deployment when a deployment or a service is deleted. `deleteServiceUseCase` also removes the Docker resources with the `remove(service)` method of the `ServiceRuntimeResources` port. This step is a best-effort step. It force-removes the containers, the compose networks and the locally built images of the project that have the GitPaaS label, but it keeps the shared images that were pulled.
-- **Server**: the `ServerPruner` port removes the unused images, volumes and stopped containers that have the GitPaaS label. The `OrphanContainers` port force-removes the containers that have the GitPaaS label and whose project agrees with no service (but never the control plane). If the daemon is not available, the error becomes a `503`. `GET /server/readiness` is **public**. It examines PostgreSQL and the Docker daemon at the same time, each one through a `HealthProbe` port. A throw counts as `down` and the aggregate never rejects. The endpoint returns `200` with the condition of each dependency when all of them are up, or `503` with the same data in the other cases. `GET /server/status` is **not** public. It gives the daemon information that it reads through the `ContainerRuntime` port of Core. Thus it shows that the daemon is available and that its credentials are valid. Core owns that port and its adapter, because the runtime is structural. The feature owns the HTTP edge and the use case that reads the data.
-- **Read-only**: `containers` and `networks` list the containers and the compose networks of a service by label. `providers` (a GitHub App) lists the repositories and the branches, finds the head commits, and gets the source archives. None of these features uses the database.
+The features that touch Docker use the same arrangement: a domain port gives the capability in business terms, and one infrastructure adapter speaks to the daemon. Thus the use cases stay independent of the container technology. The container runtime is structural, so `core/` owns that port.
+
+- **Deploy**: the operation extracts the source archive, builds the services that need a build, pulls the other images, stops the old stack, labels each new resource, starts the stack, and captures a limited quantity of start-up output. It reports each line while it operates, so the run is visible in the live log.
+- **Logs**: one port gives the write, the read, the end and the removal of the output of a deployment. See [Deployment log store](#deployment-log-store).
+- **Cleanup**: the database cascade removes the deployments and the logs of a service, and the delete operation also removes the containers, the networks and the images that GitPaaS built. It keeps the images that it pulled, because other stacks can use them, and it is best-effort: a daemon failure does not stop the delete operation in the database.
+- **Server**: the maintenance operations remove the unused resources and the containers that belong to no service. They select only the resources that have the GitPaaS labels, so they never touch the control plane. The readiness endpoint is public: it examines the database and the daemon at the same time, counts an error as "down", and returns `200` or `503` with the condition of each one.
+- **Read-only**: some features only read from Docker or from GitHub, and use no database table.
 
 #### Docker resource labelling
 
@@ -304,6 +307,8 @@ GitPaaS uses the same daemon as the control plane and as the third-party stacks.
 | `io.gitpaas.project`         | service slug       | Which service's stack it belongs to        |
 | `com.docker.compose.project` | service slug       | Compose grouping (also set by the library) |
 | `com.docker.compose.service` | compose service    | Compose service (also set by the library)  |
+
+---
 
 ## Operations
 

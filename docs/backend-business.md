@@ -6,6 +6,8 @@ This document gives the primary domain workflows of `apps/backend` in simple wor
 
 A **project** is a group of **services**. A service is a unit that you can deploy. It points to a Git repository, to a compose file path and to a deployment branch. A **deployment** is one attempt to start the Docker Compose stack of a service on the server. A **user** is an operator who authenticates to use the API.
 
+---
+
 ## Access & authentication
 
 All the API is **private by default**. Each endpoint needs a valid access token. There are only a small number of public endpoints: the login, the token refresh, the logout and the readiness probe. There is **no public sign-up**. An administrator makes the users with a different tool, because the application has no flow to create a user.
@@ -19,6 +21,8 @@ All the API is **private by default**. Each endpoint needs a valid access token.
 **Logout.** `POST /api/v1/auth/logout` revokes a refresh token. This operation is idempotent. `GET /api/v1/auth/me` returns the public profile of the current user.
 
 > Each user has a role (`admin` or `user`), but the role restrictions are **not enforced yet**. Currently, each authenticated user can do each action.
+
+---
 
 ## Deployment workflow
 
@@ -60,10 +64,14 @@ Two necessary settings limit the stored output: a line cap for each deployment (
 
 These two endpoints are all the HTTP surface of the feature. `logs` has no CRUD endpoints, because only the runner writes log entries, and it writes them through the port.
 
+---
+
 ## Deletion & cleanup
 
 - **If you delete a deployment**, the log rows of that deployment are removed, and the DB cascade removes the remaining data.
 - **If you delete a service**, the system removes its Docker resources (it force-removes the containers with the label, the compose networks and the images that were built for it, but it keeps the shared images that were pulled), removes the log rows of each deployment, and lets the DB cascade remove the deployment rows and the log rows.
+
+---
 
 ## Server maintenance
 

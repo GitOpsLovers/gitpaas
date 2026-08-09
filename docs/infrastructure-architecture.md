@@ -11,6 +11,8 @@ GitPaaS runs **fully on one server**. Two responsibilities stay together on that
 
 The backend controls the **local** Docker daemon through the `/var/run/docker.sock` unix socket. In production, this socket is bind-mounted into the backend container. In development, the backend uses the socket of the developer. There is no remote daemon, no TCP endpoint and no mTLS material in the topology.
 
+---
+
 ## Stack
 
 | Concern             | Tool                                                   |
@@ -21,6 +23,8 @@ The backend controls the **local** Docker daemon through the `/var/run/docker.so
 | Workload execution  | Local Docker daemon via `/var/run/docker.sock`         |
 | Static serving      | nginx-unprivileged                                     |
 | Release             | GitHub Actions + semantic-release, images on GHCR      |
+
+---
 
 ## Structure
 
@@ -60,6 +64,8 @@ The two images are built from multi-stage Dockerfiles whose **build context is t
 
 `.dockerignore` decreases the root context to the workspace manifests, the source trees of the two applications, and `nginx.conf`. It always removes `node_modules`, the build output and the secrets, which the build stages make again.
 
+---
+
 ## Conventions
 
 - **The environment gives the configuration.** `iac/production/.env.example` gives the full contract. The operator copies it to `.env`. Compose loads `.env` automatically for the `${…}` interpolation and, with `env_file`, as the runtime configuration of the backend. The backend validates each variable at boot and stops immediately if a variable is not correct. There are no silent default values. Do not commit a real `.env` file.
@@ -80,6 +86,8 @@ The two images are built from multi-stage Dockerfiles whose **build context is t
 | JWT               | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`   |
 
 Only compose uses `DOCKER_GID`. This variable is necessary, and the stack does not start without it. The backend validates each other variable, but not the `POSTGRES_*` pair.
+
+---
 
 ## Installation
 
@@ -157,6 +165,8 @@ After the change of `.env`, apply the change with `docker compose -f <dir>/iac/p
 
 > **Known limitation.** The production frontend image contains `apiBaseUrl: http://localhost:3000/api/v1` from the build. Thus, if you open the UI from a machine that is **not** the server, the UI currently calls the incorrect API host. A future build argument for the frontend will make the API base configurable at the installation.
 
+---
+
 ## Key flows
 
 ### Deployment
@@ -214,6 +224,8 @@ ghcr.io/gitopslovers/gitpaas-frontend:{version|latest}
 
 The commits control all the versioning: `fix:` gives a patch, `feat:` gives a minor version, and a breaking change gives a major version.
 
+---
+
 ## Operations
 
 | Task                | How                                                                                          |
@@ -228,6 +240,8 @@ The commits control all the versioning: `fix:` gives a patch, `feat:` gives a mi
 ### Not covered yet
 
 - **Reverse proxy, automatic TLS, and domain routing** for the deployed applications — Phase 2.
+
+---
 
 ## Related docs
 

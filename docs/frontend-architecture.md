@@ -6,6 +6,8 @@ This document gives the architecture of the frontend application (`apps/frontend
 
 The application uses **feature folders** with layers: `domain` (the types), `infrastructure` (the data access and the browser persistence) and `ui` (the components plus the guards, the interceptors and the services of the feature). Around these features there is a shared application shell (`layout`), the route-level `pages`, and the `shared` code for all the features. A client-side JWT authentication with refresh-token rotation controls the access: there is one public sign-in route and one protected application shell.
 
+---
+
 ## Stack
 
 | Concern      | Tool                                                        |
@@ -16,6 +18,8 @@ The application uses **feature folders** with layers: `domain` (the types), `inf
 | Styling      | Tailwind CSS 4 (TailAdmin theme)                            |
 | UI libraries | `@lucide/angular`, `@ng-select/ng-select` (wrapped, never used directly by callers) |
 | Testing      | Vitest (`*.spec.ts`)                                        |
+
+---
 
 ## Structure
 
@@ -72,6 +76,8 @@ shared/
 
 The toast system is the reference cross-cutting service. `ToastService` (`providedIn: 'root'`) owns a stack that signals control, with typed `success`/`error`/`warning`/`info` helpers and an automatic dismissal. The presentational `ToastComponent` shows the stack. It is mounted one time, globally, in `App`.
 
+---
+
 ## Conventions
 
 ### Layering
@@ -123,6 +129,8 @@ New state uses signals. The one recorded exception is `SidebarService` of the sh
 | `@shared/*`       | `./src/app/shared/*`       |
 | `@environments/*` | `./src/environments/*`     |
 
+---
+
 ## Key flows
 
 ### Reads
@@ -169,6 +177,8 @@ sequenceDiagram
     Note over I,T: refresh fails → clear() + redirect /signin
 ```
 
+---
+
 ## Operations
 
 | Script  | Command                                        |
@@ -180,6 +190,8 @@ sequenceDiagram
 | `test`  | `ng test --watch=false`                        |
 
 The API base URL comes **from the build** and is read from `src/environments/environment.ts`. For a development build, `angular.json` puts `environment.development.ts` in its place with `fileReplacements`. Thus each self-hosted deployment must set `apiBaseUrl` (with the `/api/v1` prefix) before the build.
+
+---
 
 ## Related docs
 

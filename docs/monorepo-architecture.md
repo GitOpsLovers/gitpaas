@@ -8,6 +8,8 @@ The workspace declares `apps/*` and `packages/*`. Today only `apps/backend` (the
 
 > The repository root has no `turbo.json` file. Thus `turbo run <task>` runs with no declared pipeline: no task dependencies, no inputs and no cache. To add a pipeline, use the `turborepo` skill (`.claude/skills/turborepo/`).
 
+---
+
 ## Stack
 
 | Concern         | Tool                                                          |
@@ -18,6 +20,8 @@ The workspace declares `apps/*` and `packages/*`. Today only `apps/backend` (the
 | Language        | TypeScript 6.0.3                                              |
 | Linting         | ESLint 10 + `@gitopslovers/eslint-config-multistack`          |
 | Release         | semantic-release (`.releaserc.json`, branch `main`)           |
+
+---
 
 ## Structure
 
@@ -41,6 +45,8 @@ The workspace declares `apps/*` and `packages/*`. Today only `apps/backend` (the
 └── skills-lock.json      # AI skills lockfile
 ```
 
+---
+
 ## Conventions
 
 - The name of each workspace package is `@gitopslovers/gitpaas/<app>`.
@@ -48,6 +54,8 @@ The workspace declares `apps/*` and `packages/*`. Today only `apps/backend` (the
 - The Node and pnpm versions are set in one place (`.tool-versions`). The same values are copied into `engines`, `packageManager` and the Docker build arguments in `iac/production/`.
 - Commits obey the Conventional Commits rules. The commits control the semantic version and the release notes.
 - Each application declares its own runtime dependencies. The root declares only `turbo` and `typescript`.
+
+---
 
 ## Operations
 
@@ -65,6 +73,8 @@ Today, no application has an implementation of `check-types`.
 |-----------------|----------------------|----------------------------------------------------------------------------|
 | `pr-verify.yml` | PR to `main`         | `pnpm install --frozen-lockfile`, then `pnpm run lint` and `pnpm run test` |
 | `release.yml`   | `workflow_dispatch`  | semantic-release, then multi-arch image publish (see infrastructure doc)   |
+
+---
 
 ## Related docs
 
