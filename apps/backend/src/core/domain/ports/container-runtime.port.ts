@@ -2,9 +2,14 @@ import { RemoveContainerDto } from '../dtos/remove-container.dto';
 import { RemoveImageDto } from '../dtos/remove-image.dto';
 import type {
     ContainerRuntimeInfo,
+    RuntimeBuildImageOptions,
+    RuntimeComposeProject,
     RuntimeContainerSummary,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
+    RuntimeProgressCompletion,
+    RuntimeProgressListener,
+    RuntimeProgressStream,
     RuntimePruneReport,
     RuntimeSelector,
 } from '../models/container-runtime.models';
@@ -104,4 +109,42 @@ export interface ContainerRuntime {
      * @returns Number of containers removed and disk space reclaimed
      */
     pruneContainers: (selector: RuntimeSelector) => Promise<RuntimePruneReport>;
+
+    /**
+     * Builds an image from a local build context.
+     *
+     * @param context Tarball stream of the build context
+     * @param options Definition of the build
+     *
+     * @returns Stream reporting the build progress
+     */
+    buildImage: (context: NodeJS.ReadableStream, options: RuntimeBuildImageOptions) => Promise<RuntimeProgressStream>;
+
+    /**
+     * Pulls an image from its registry.
+     *
+     * @param reference Image reference to pull
+     *
+     * @returns Stream reporting the pull progress
+     */
+    pullImage: (reference: string) => Promise<RuntimeProgressStream>;
+
+    /**
+     * Follows a progress stream until it ends.
+     *
+     * @param stream Progress stream to follow
+     * @param onFinished Called once the stream ends, with the failure cause when it failed
+     * @param onProgress Called for every progress frame
+     */
+    followProgress: (stream: RuntimeProgressStream, onFinished: RuntimeProgressCompletion, onProgress: RuntimeProgressListener) => void;
+
+    /**
+     * Creates a compose project bound to the runtime.
+     *
+     * @param composeFilePath Absolute path to the compose file
+     * @param projectName Name the compose project is grouped under
+     *
+     * @returns Compose project ready to be driven
+     */
+    createComposeProject: (composeFilePath: string, projectName: string) => RuntimeComposeProject;
 }
