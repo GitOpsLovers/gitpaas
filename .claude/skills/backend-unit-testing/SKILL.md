@@ -87,6 +87,83 @@ Two consequences for specs:
 
 ---
 
+## DTO testing
+
+DTOs in `features/*/domain/dtos/` are the **authoritative input contract**: a class of `class-validator` decorators that the global `ValidationPipe` applies to every request body. Their spec lives in a `__tests__/` folder next to the DTO and is named `<dto-name>.dto.spec.ts` — so `create-deployment.dto.ts` is covered by `__tests__/create-deployment.dto.spec.ts`. Canonical references: `features/deployments/domain/dtos/__tests__/create-deployment.dto.spec.ts`, `features/authentication/domain/dtos/__tests__/login.dto.spec.ts` and `features/projects/domain/dtos/__tests__/update-project.dto.spec.ts`.
+
+**Validate through the same path as production.** Do not instantiate the class with `new`, and do not call a controller. Build the instance with `plainToInstance` from `class-transformer`, then validate it with `validateSync` from `class-validator`, **with the same options as the global pipe in `src/bootstrap.ts`** (`whitelist: true`, `forbidNonWhitelisted: true`). The spec must reproduce the real runtime contract: a different set of options tests a validator that the application never runs — for example, an unknown property is only rejected because `forbidNonWhitelisted` is on, and a stringified number is only rejected because implicit conversion is off. `import 'reflect-metadata'` first, or the decorator metadata is not available.
+
+**Three spec-local helpers, always the same three.** Copy them verbatim into each DTO spec:
+
+```ts
+// eslint-disable-next-line import/no-unassigned-import
+import 'reflect-metadata';
+
+import { plainToInstance } from 'class-transformer';
+import { validateSync } from 'class-validator';
+import type { ValidationError } from 'class-validator';
+
+import { LoginDto } from '../login.dto';
+
+/** Validates a raw payload exactly as the global ValidationPipe does. */
+const validatePayload = (payload: Record<string, unknown>): ValidationError[] =>
+    validateSync(plainToInstance(LoginDto, payload), {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+    });
+
+/** Collects the constraint keys reported for a single property. */
+const constraintsFor = (errors: ValidationError[], property: string): string[] =>
+    Object.keys(errors.find((error) => error.property === property)?.constraints ?? {});
+
+/** A payload satisfying every rule of the DTO. */
+const validPayload = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+    email: 'admin@gitpaas.dev',
+    password: 'sup3r-s3cret',
+    ...overrides,
+});
+```
+
+The payload type is `Record<string, unknown>`, not the DTO type, because a spec must be able to send a wrong type, an extra key or a missing key — exactly what an HTTP client can send. Remove a property with `delete payload.<name>` on a fresh `validPayload()`; add a bad one through the overrides argument. There are no mocks and no `beforeEach`.
+
+**Checklist — every DTO spec covers all of these:**
+
+1. **A valid payload gives zero errors**: `expect(validatePayload(validPayload())).toEqual([])`.
+2. **Each required field, when absent, gives the expected constraint keys.** Assert the keys, not the messages: `isString`, `isNotEmpty`, `isUuid`, `isEmail`, `isInt`, `min`, `isIn`, `isEnum`, `isDate`, `isJwt`. Use `expect.arrayContaining([...])` when a field declares more than one rule, and `toContain` for a single key.
+3. **Each format rule fails with a realistic bad value** — a non-UUID id (`'service-1'`), a malformed email (`'admin@'`), a non-integer or below-minimum number, a value outside an `@IsIn` set, a wrong primitive type.
+4. **Each optional field passes when absent**: delete it from a valid payload and expect `[]`.
+5. **An unknown property fails with `whitelistValidation`**: `expect(constraintsFor(errors, 'status')).toContain('whitelistValidation')`.
+6. **If the DTO declares more than one rule, one payload that gives several errors together** — an empty payload, asserted on the reported property names, which proves the pipe reports the whole contract in one response instead of the first failure only:
+
+   ```ts
+   it('reports every invalid property at once', () => {
+       const errors = validatePayload({});
+
+       expect(errors.map((error) => error.property).sort()).toEqual(
+           ['branch', 'commit', 'commitMessage', 'composerPath', 'serviceId', 'triggeredBy'].sort(),
+       );
+   });
+   ```
+
+Use `it.each` for a family of fields that share the same rules (`it.each(STRING_PROPERTIES)('requires %s', …)`) instead of repeating one `it` per field.
+
+**Two traps to record explicitly:**
+
+- **`@IsOptional()` does not reject `null`.** It skips every validator on the property for both `undefined` **and** `null`, so a `null` passes even against `@IsString()` or `@IsIn(...)`. Pin that behaviour with a named test — `it('accepts a null error, since IsOptional skips null values', …)` — so the spec states the real contract rather than the intended one.
+- **`@IsDate()` without `@Type(() => Date)` rejects an ISO string.** The pipe runs with `transform: true` but **not** `enableImplicitConversion`, so `plainToInstance` leaves the string as a string and `isDate` fails. The same applies to a stringified number against `@IsInt()`. Cover both the rejected string and the accepted `Date`/`number`:
+
+  ```ts
+  it('rejects an ISO string expiresAt, since no @Type(() => Date) conversion is declared', () => {
+      const errors = validatePayload(validPayload({ expiresAt: '2026-01-01T00:00:00.000Z' }));
+
+      expect(constraintsFor(errors, 'expiresAt')).toContain('isDate');
+  });
+  ```
+
+**A defect in a DTO is pinned, not fixed.** If a DTO accepts something it should refuse — a whitespace-only name with no trimming rule, a `null` where the domain needs a value, a missing `@Type()` that makes an ISO date unusable — write the test that records the **current** behaviour, give the `it` a name that says why (`'accepts a whitespace-only name, as no trimming rule is declared'`), and report the defect to the caller. Never change the DTO from a test task: the DTO is product code, and a silent tightening breaks every client that sends the old shape.
+
+---
+
 ## Use case testing
 
 Use cases in `application/` are **framework-agnostic functions taking ports as arguments**. Spec them in isolation: import the function, call it with fake ports, assert observable behavior. No testing module, no value providers, no HTTP concerns. Canonical reference: `features/projects/application/__tests__/create-project.use-case.spec.ts`.
