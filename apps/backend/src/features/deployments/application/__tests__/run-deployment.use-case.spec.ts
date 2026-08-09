@@ -1,12 +1,13 @@
+import { DeploymentRunTask } from '../../domain/models/deployment-run-task.models';
 import { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
-import { RunDeploymentPayload, runDeploymentUseCase } from '../run-deployment.use-case';
+import { runDeploymentUseCase } from '../run-deployment.use-case';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { Providers } from '@features/providers/domain/ports/providers.port';
 
 describe('runDeploymentUseCase', () => {
-    const payload: RunDeploymentPayload = {
+    const payload: DeploymentRunTask = {
         deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
         repositoryId: 42,
         commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',

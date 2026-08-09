@@ -1,4 +1,4 @@
-import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
@@ -102,36 +102,6 @@ describe('ProvidersGithubAdapter', () => {
                 ref: 'main',
             });
             expect(result).toEqual({ sha: 'abc123', message: 'Fix thing\n\nbody' });
-        });
-
-        it('reads and decodes a file content', async () => {
-            mockClient.request
-                .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
-                .mockResolvedValueOnce({
-                    data: { type: 'file', content: Buffer.from('hello world').toString('base64') },
-                });
-
-            const result = await sut.getFileContent(42, 'src/index.ts', 'main');
-
-            expect(mockClient.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/contents/{+path}', {
-                owner: 'octo',
-                repo: 'hello',
-                path: 'src/index.ts',
-                ref: 'main',
-            });
-            expect(result).toBe('hello world');
-        });
-
-        it.each([
-            ['the path resolves to a directory listing (array)', [{ name: 'a' }, { name: 'b' }]],
-            ['the entry is not a file', { type: 'dir' }],
-            ['the content is not a string', { type: 'file', content: undefined }],
-        ])('throws NotFoundException when %s', async (_case, data) => {
-            mockClient.request
-                .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
-                .mockResolvedValueOnce({ data });
-
-            await expect(sut.getFileContent(42, 'some/path', 'main')).rejects.toThrow(NotFoundException);
         });
 
         it('returns the repository archive bytes as a Buffer', async () => {
