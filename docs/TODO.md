@@ -3,10 +3,6 @@
 - [] Decide where we must throw the domain errors. I think that we must throw them ONLY in the services.
 - [] The names of the Providers are not sufficiently clear.
 
-## Quick wins
-
-- [] Add unit specs for the DTOs. This is the only backend layer with no test coverage, but the documents say that the DTO is the authoritative input contract.
-
 ## Structural
 
 - [] Close the `ContainerRuntime` port. `apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts:39` gives `public getClient(): Docker`, which is not a part of the port, and `features/deployments/infrastructure/docker/docker-executor.adapter.ts` uses it at 5 locations to get the raw dockerode client. Make the method private, as in `github-providers.adapter.ts:146`.
