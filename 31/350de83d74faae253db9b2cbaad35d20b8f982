@@ -1,0 +1,75 @@
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_560a5808644c73::t_70f31126073a86 1-184
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_560a5808644c73::t_8e29f83a105ac2 21-25
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_560a5808644c73::t_3611354629b5a3 1-260
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_560a5808644c73::t_c787c5a448bdea 3,12-14,17,73,77,124,134,215
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-batcher.spec.ts
+  s_3c290300300e75::t_56ba9eb88fb3e2 1-317
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-replay-merger.spec.ts
+  s_3c290300300e75::t_cfd5cb3ec27e5e 1-333
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-retention-sweeper.spec.ts
+  s_3c290300300e75::t_4df24c32490c2f 1-106
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-sequencer.spec.ts
+  s_3c290300300e75::t_323787312cb2da 1-124
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-store.adapter.spec.ts
+  s_560a5808644c73::t_7841218a0571b5 8-11,13-14,140-141,148-149,153-157
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-stream-registry.spec.ts
+  s_3c290300300e75::t_a12a1f2a606600 1-210
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-log-trimmer.spec.ts
+  s_3c290300300e75::t_478e7d35e92101 1-80
+apps/backend/src/features/logs/infrastructure/database/db-log-batcher.ts
+  s_560a5808644c73::t_1305e6f2722c4a 1-130
+apps/backend/src/features/logs/infrastructure/database/db-log-replay-merger.ts
+  s_560a5808644c73::t_dcec2b74aaa98e 1-104
+apps/backend/src/features/logs/infrastructure/database/db-log-retention-sweeper.ts
+  s_560a5808644c73::t_c17c9e8764f56b 1-53
+apps/backend/src/features/logs/infrastructure/database/db-log-sequencer.ts
+  s_560a5808644c73::t_722316b149b90c 1-43
+apps/backend/src/features/logs/infrastructure/database/db-log-store.adapter.ts
+  s_560a5808644c73::t_f310c6df0a6cff 2,8-14,27-32,50-55,69-70,76,83,96-97,104,110,112,125-126,129-130,144,148,163
+apps/backend/src/features/logs/infrastructure/database/db-log-store.constants.ts
+  s_560a5808644c73::t_8be8af4eb4a40e 1-14
+apps/backend/src/features/logs/infrastructure/database/db-log-stream-registry.ts
+  s_560a5808644c73::t_07b9fc563b6f59 1-115
+apps/backend/src/features/logs/infrastructure/database/db-log-trimmer.ts
+  s_560a5808644c73::t_dad4e2daea8b20 1-40
+apps/backend/src/features/logs/logs.module.ts
+  s_560a5808644c73::t_0a66b65b9e2d91 4-7,9-10,31-36
+docs/TODO.md
+  s_cc0a79cfe12d9d::t_4cc040db4be5d0 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "31350de83d74faae253db9b2cbaad35d20b8f982",
+  "prompts": {},
+  "sessions": {
+    "s_3c290300300e75": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab6c83a17093277cb",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_560a5808644c73": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad38a3a26034ed10d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cc0a79cfe12d9d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa815867-ba74-492a-b018-b651b2b86bda",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
