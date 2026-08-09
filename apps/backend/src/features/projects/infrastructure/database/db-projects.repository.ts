@@ -42,10 +42,11 @@ export class DatabaseProjectsRepository implements ProjectsRepository {
         return toProject(project);
     }
 
-    public create(createDto: CreateProjectDto): Promise<Project> {
+    public async create(createDto: CreateProjectDto): Promise<Project> {
         const project = this.repository.create(createDto);
+        const saved = await this.repository.save(project);
 
-        return this.repository.save(project);
+        return toProject({ ...saved, services: [] });
     }
 
     public async update(id: string, updateDto: UpdateProjectDto): Promise<Project | null> {
@@ -56,8 +57,9 @@ export class DatabaseProjectsRepository implements ProjectsRepository {
         }
 
         this.repository.merge(project, updateDto);
+        const saved = await this.repository.save(project);
 
-        return this.repository.save(project);
+        return toProject({ ...saved, services: [] });
     }
 
     public async delete(id: string): Promise<boolean> {

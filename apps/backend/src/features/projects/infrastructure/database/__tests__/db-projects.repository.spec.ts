@@ -113,9 +113,7 @@ describe('DatabaseProjectsRepository', () => {
     });
 
     describe('create', () => {
-        // NOTE: the SUT returns `repository.save(...)` directly WITHOUT running the
-        // `toProject` transformer, so the raw saved entity is handed back by identity.
-        it('creates an entity from the DTO, saves it, and returns the saved value', async () => {
+        it('creates an entity from the DTO, saves it, and maps it without reloading', async () => {
             const entity = projectEntity({ name: createDto.name });
             const saved = projectEntity({ name: createDto.name });
             mockRepository.create.mockReturnValue(entity);
@@ -125,7 +123,51 @@ describe('DatabaseProjectsRepository', () => {
 
             expect(mockRepository.create).toHaveBeenCalledWith(createDto);
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
-            expect(result).toBe(saved);
+            expect(mockRepository.findOne).not.toHaveBeenCalled();
+            expect(result).toEqual<Project>({
+                id: saved.id,
+                name: createDto.name,
+                servicesCount: 0,
+            });
+            expect(result).not.toBe(saved);
+            expect(result).not.toHaveProperty('services');
+        });
+
+        it('reports no services for a newly created project even when the saved entity has no relation loaded', async () => {
+            const entity = projectEntity({ name: createDto.name });
+            const saved = projectEntity({ name: createDto.name, services: undefined });
+            mockRepository.create.mockReturnValue(entity);
+            mockRepository.save.mockResolvedValue(saved);
+
+            const result = await sut.create(createDto);
+
+            expect(mockRepository.findOne).not.toHaveBeenCalled();
+            expect(result).toEqual<Project>({
+                id: saved.id,
+                name: createDto.name,
+                servicesCount: 0,
+            });
+        });
+
+        it('ignores any services echoed back by the save without mutating the saved entity', async () => {
+            const entity = projectEntity({ name: createDto.name });
+            const saved = projectEntity({
+                name: createDto.name,
+                services: [{}, {}] as DbProjectEntity['services'],
+            });
+            mockRepository.create.mockReturnValue(entity);
+            mockRepository.save.mockResolvedValue(saved);
+
+            const result = await sut.create(createDto);
+
+            expect(mockRepository.findOne).not.toHaveBeenCalled();
+            expect(mockRepository.findOneBy).not.toHaveBeenCalled();
+            expect(result).toEqual<Project>({
+                id: saved.id,
+                name: createDto.name,
+                servicesCount: 0,
+            });
+            expect(saved.services).toHaveLength(2);
         });
     });
 
@@ -140,11 +182,12 @@ describe('DatabaseProjectsRepository', () => {
             expect(mockRepository.save).not.toHaveBeenCalled();
         });
 
-        // NOTE: like `create`, `update` returns `repository.save(...)` directly WITHOUT
-        // running the `toProject` transformer, so the saved entity is returned by identity.
-        it('merges the DTO into the found project, saves it, and returns the saved entity', async () => {
+        it('merges the DTO into the found project, saves it, and maps it without reloading', async () => {
             const existing = projectEntity();
-            const saved = projectEntity({ name: 'renamed' });
+            const saved = projectEntity({
+                name: 'renamed',
+                services: [{}, {}, {}] as DbProjectEntity['services'],
+            });
             mockRepository.findOneBy.mockResolvedValue(existing);
             mockRepository.save.mockResolvedValue(saved);
 
@@ -153,7 +196,41 @@ describe('DatabaseProjectsRepository', () => {
 
             expect(mockRepository.merge).toHaveBeenCalledWith(existing, updateDto);
             expect(mockRepository.save).toHaveBeenCalledWith(existing);
-            expect(result).toBe(saved);
+            expect(mockRepository.findOne).not.toHaveBeenCalled();
+            expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: existing.id });
+            expect(result).toEqual<Project>({
+                id: saved.id,
+                name: 'renamed',
+                servicesCount: 0,
+            });
+            expect(result).not.toBe(saved);
+            expect(result).not.toHaveProperty('services');
+            expect(saved.services).toHaveLength(3);
+        });
+
+        it('reports no services when the saved entity has no relation loaded', async () => {
+            const existing = projectEntity();
+            const saved = projectEntity({ name: 'renamed', services: undefined });
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockResolvedValue(saved);
+
+            const result = await sut.update(existing.id, { name: 'renamed' });
+
+            expect(mockRepository.findOne).not.toHaveBeenCalled();
+            expect(result).toEqual<Project>({
+                id: saved.id,
+                name: 'renamed',
+                servicesCount: 0,
+            });
+            expect(result).not.toBe(saved);
+        });
+
+        it('does not reload the project when it is not found', async () => {
+            mockRepository.findOneBy.mockResolvedValue(null);
+
+            await sut.update('missing-id', { name: 'renamed' });
+
+            expect(mockRepository.findOne).not.toHaveBeenCalled();
         });
     });
 
