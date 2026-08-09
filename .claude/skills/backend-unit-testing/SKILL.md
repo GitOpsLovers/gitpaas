@@ -1,19 +1,19 @@
 ---
 name: backend-unit-testing
-description: Enable this skill when the user requests to work with the testing layer of the backend application.
+description: Use this skill when the user asks you to write or to change the unit tests of the backend application.
 ---
 
 # Backend unit testing skill
 
-Conventions for `apps/backend` unit specs, derived from the suite as it exists today. Runner: **Jest + ts-jest**, configured in `apps/backend/jest.config.js`.
+This skill gives the conventions for the unit specs of `apps/backend`. The conventions come from the suite that exists today. The test runner is **Jest with ts-jest**. Its configuration is in `apps/backend/jest.config.js`.
 
-The backend is layered — `domain/` → `infrastructure/` → `ui/`, with thin `application/` use-case functions. Those layers appear inside each feature (`src/features/<feature>/`) and inside the two sibling folders `src/core/` and `src/shared/`, each of which creates only the layers it uses. Every SUT type has its own construction rules. **Read "Common conventions" first — they apply everywhere — then jump to your SUT type's section.**
+The backend has layers: `domain/` → `infrastructure/` → `ui/`, plus thin use-case functions in `application/`. These layers occur in each feature (`src/features/<feature>/`) and also in the two adjacent folders `src/core/` and `src/shared/`. Each of those folders makes only the layers that it uses. Each type of SUT has its own rules of construction. **Read "Common conventions" first, because those rules apply to all the specs.** Then read the section for your type of SUT.
 
 ---
 
 ## Running the suite
 
-`apps/backend/package.json` defines exactly two test scripts: `test` (`jest`) and `test:e2e` (`jest --config ./test/jest-e2e.json`).
+`apps/backend/package.json` declares two test scripts only: `test` (`jest`) and `test:e2e` (`jest --config ./test/jest-e2e.json`).
 
 ```bash
 # Full backend suite (run from apps/backend)
@@ -27,26 +27,26 @@ rtk pnpm test -- src/features/services/infrastructure/database
 rtk pnpm test
 ```
 
-Project-wide constraints a test writer must respect:
+Obey these constraints of the project:
 
-- **Prefix every shell command with `rtk`.** No exceptions, including `git`/`gh`.
-- **Never run ESLint** — that is the user's responsibility.
-- **Never run `test:e2e` or anything Playwright-based.**
-- **Never install dependencies.** Surface the missing package instead.
+- **Put `rtk` before each shell command.** This rule applies also to `git` and to `gh`.
+- **Do not run ESLint.** This is the responsibility of the user.
+- **Do not run `test:e2e` or a test that uses Playwright.**
+- **Do not install a dependency.** If a package is absent, give the name of the package to the caller.
 
 ---
 
 ## Common conventions
 
-- **One spec per source file, mirrored under `__tests__/`.** The spec lives in a `__tests__/` directory next to the file it covers and is named `<source-file-name>.spec.ts` — so `db-projects.repository.ts` is covered by `__tests__/db-projects.repository.spec.ts`. Two exceptions exist: `src/app.controller.spec.ts` and `src/app.service.spec.ts` sit directly beside their sources; `src/bootstrap.ts` is covered by `src/__tests__/bootstrap.spec.ts`.
-- **File names follow `docs/backend-architecture.md`.** Infrastructure names are `<technology>-<name>`, not `<name>-<technology>`: `db-projects.repository.ts`, `db-projects.transformer.ts`, `db-project.entity.ts`, `docker-containers.repository.ts`, `docker-container-runtime.adapter.ts`, `dockerode-docker-executor.adapter.ts`. Specs inherit those names verbatim.
-- **`jest.clearAllMocks()` is the first statement of `beforeEach`** in almost every spec with a `beforeEach`. A spec with no shared mutable state and no `beforeEach` need not add one just to hold the reset.
-- **Specs that call `jest.spyOn` also restore.** `clearAllMocks()` does not detach a spy, so pair it with `jest.restoreAllMocks()` in `afterEach` (see `core/ui/services/__tests__/diagnostic-logger.service.spec.ts` and `features/users/ui/services/__tests__/users.service.spec.ts`).
-- **Class-instance SUTs are named `sut`.** Function SUTs (use cases, extracted decorator factories) are invoked by their imported name — no alias.
-- **Mocked collaborators carry a `mock` prefix**: `mockProjectsRepository`, `mockServicesService`, `mockContainerRuntime`, `mockDiagnostics`. Mocked use-case functions are `mock<UseCaseName>` (e.g. `mockCreateProjectUseCase`).
-- **Type mocks as narrowly as the SUT needs**: `jest.Mocked<Pick<T, 'onlyTheMethodsCalled'>>` is the dominant form, so the compiler flags drift when the SUT starts calling something new. `{} as jest.Mocked<T>` is used only for a collaborator the SUT merely forwards (see the "UI services" section).
-- **`it` names read as a behavior contract**: `delegates…`, `returns…`, `maps…`, `propagates…`, `throws…`, `never…`.
-- **Spec-local fixtures and helpers are `const` arrow expressions with a TSDoc line**, taking a `Partial<T>` overrides argument where useful:
+- **Write one spec for each source file, in a `__tests__/` folder.** The spec stays in a `__tests__/` directory adjacent to the file that it covers, with the name `<source-file-name>.spec.ts`. Thus `__tests__/db-projects.repository.spec.ts` covers `db-projects.repository.ts`. There are two exceptions: `src/app.controller.spec.ts` and `src/app.service.spec.ts` stay adjacent to their sources, and `src/__tests__/bootstrap.spec.ts` covers `src/bootstrap.ts`.
+- **The file names obey `docs/backend-architecture.md`.** An infrastructure name is `<technology>-<name>`, and not `<name>-<technology>`: `db-projects.repository.ts`, `db-projects.transformer.ts`, `db-project.entity.ts`, `docker-containers.repository.ts`, `docker-container-runtime.adapter.ts`, `dockerode-docker-executor.adapter.ts`. The specs use the same names.
+- **`jest.clearAllMocks()` is the first statement of `beforeEach`** in almost each spec that has a `beforeEach`. If a spec has no shared mutable state and no `beforeEach`, do not add a `beforeEach` only for the reset.
+- **If a spec calls `jest.spyOn`, the spec must also restore the spy.** `clearAllMocks()` does not remove a spy. Thus add `jest.restoreAllMocks()` in `afterEach` (see `core/ui/services/__tests__/diagnostic-logger.service.spec.ts` and `features/users/ui/services/__tests__/users.service.spec.ts`).
+- **Give the name `sut` to a SUT that is an instance of a class.** Call a SUT that is a function (a use case or an extracted decorator factory) by its imported name, with no alias.
+- **Give the prefix `mock` to each collaborator that a mock replaces**: `mockProjectsRepository`, `mockServicesService`, `mockContainerRuntime`, `mockDiagnostics`. The name of a mocked use case is `mock<UseCaseName>` (e.g. `mockCreateProjectUseCase`).
+- **Give each mock the most narrow type that the SUT needs**: `jest.Mocked<Pick<T, 'onlyTheMethodsCalled'>>` is the usual form. Thus the compiler shows an error when the SUT starts to call a new method. Use `{} as jest.Mocked<T>` only for a collaborator that the SUT sends to a different function without a call (see the section "UI service testing").
+- **Write the name of each `it` as a contract of behavior**: `delegates…`, `returns…`, `maps…`, `propagates…`, `throws…`, `never…`.
+- **Write each spec-local fixture and helper as a `const` arrow expression with one TSDoc line.** Where it is of use, give the arrow a `Partial<T>` argument for the overrides:
 
   ```ts
   /** Builds a project database-entity fixture, overriding only the fields under test. */
@@ -58,13 +58,13 @@ Project-wide constraints a test writer must respect:
   });
   ```
 
-  Arrows do not hoist, so declare them before first use.
-- **Path aliases work in specs.** `@core/*`, `@features/*` and `@shared/*` are mapped in `jest.config.js`, mirroring `tsconfig.json`. Use a relative path inside the feature under test and an alias for anything in `core`, `shared` or another feature — exactly as the product code does.
-- **ESM-only Octokit packages are stubbed centrally.** `@octokit/rest` and `@octokit/auth-app` are ESM-only and would throw `SyntaxError: Cannot use import statement outside a module` under ts-jest. `moduleNameMapper` redirects both to hand-written stubs in `apps/backend/test/stubs/` (`octokit-rest.stub.ts`, `octokit-auth-app.stub.ts`) that export the used symbols as `jest.fn()`s. Specs therefore need **no** `jest.mock('@octokit/...')`; they may import `Octokit` and assert on it directly, and `clearAllMocks()` resets it. If a new ESM-only package breaks the suite, add one `moduleNameMapper` entry plus a stub file — never per-spec `jest.mock`.
+  An arrow expression does not hoist. Thus declare it before its first use.
+- **The path aliases operate in the specs.** `jest.config.js` maps `@core/*`, `@features/*` and `@shared/*`, as `tsconfig.json` does. Use a relative path in the feature under test. Use an alias for an element in `core`, in `shared` or in a different feature. The product code obeys the same rule.
+- **Central stubs replace the ESM-only Octokit packages.** `@octokit/rest` and `@octokit/auth-app` are ESM-only, and under ts-jest they throw `SyntaxError: Cannot use import statement outside a module`. `moduleNameMapper` sends both packages to the manual stubs in `apps/backend/test/stubs/` (`octokit-rest.stub.ts`, `octokit-auth-app.stub.ts`). Those stubs export the used symbols as `jest.fn()`s. Thus a spec needs **no** `jest.mock('@octokit/...')`, it can import `Octokit` and assert on it directly, and `clearAllMocks()` resets it. If a new ESM-only package breaks the suite, add one entry to `moduleNameMapper` and one stub file, and do not add a `jest.mock` to each spec.
 
 ### No injection tokens — and what it means for mocking
 
-The codebase never declares a DI symbol/string token. A Nest class injects the **concrete infrastructure class** as the token while typing the field as the **port interface**:
+The code never declares a symbol token or a string token for the dependency injection. A Nest class injects the **concrete infrastructure class** as the token. The type of the field stays the **port interface**:
 
 ```ts
 @Injectable()
@@ -73,27 +73,29 @@ export class DockerServerPrunerAdapter implements ServerPruner {
 }
 ```
 
-Two consequences for specs:
+That rule has two effects on the specs:
 
-1. **In a testing module, provide the concrete class as the token**: `{ provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime }`. Never redeclare a local empty class to stand in for the token, and never invent a string token.
-2. **Under plain instantiation, type the mock against the concrete class and cast once at the constructor call.** The declared `Pick` keeps the mock typed while the cast satisfies the constructor parameter:
+1. **In a testing module, give the concrete class as the token**: `{ provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime }`. Do not declare a local empty class for the token, and do not invent a string token.
+2. **If the spec makes the instance directly, give the mock the type of the concrete class and add one cast at the constructor call.** The declared `Pick` keeps the type of the mock, and the cast satisfies the parameter of the constructor:
 
    ```ts
    let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'pruneImages'>>;
    sut = new DockerServerPrunerAdapter(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
    ```
 
-   Use-case ports arrive as plain function arguments (no DI at all), so the same single `as unknown as Port` cast applies there.
+   A use-case port arrives as a plain function argument, with no dependency injection. Thus the same single `as unknown as Port` cast applies there.
 
 ---
 
 ## DTO testing
 
-DTOs in `features/*/domain/dtos/` are the **authoritative input contract**: a class of `class-validator` decorators that the global `ValidationPipe` applies to every request body. Their spec lives in a `__tests__/` folder next to the DTO and is named `<dto-name>.dto.spec.ts` — so `create-deployment.dto.ts` is covered by `__tests__/create-deployment.dto.spec.ts`. Canonical references: `features/deployments/domain/dtos/__tests__/create-deployment.dto.spec.ts`, `features/authentication/domain/dtos/__tests__/login.dto.spec.ts` and `features/projects/domain/dtos/__tests__/update-project.dto.spec.ts`.
+The DTOs in `features/*/domain/dtos/` are the **authoritative contract of the input**. Each DTO is a class of `class-validator` decorators that the global `ValidationPipe` applies to each body of a request. The spec stays in a `__tests__/` folder adjacent to the DTO, with the name `<dto-name>.dto.spec.ts`. Thus `__tests__/create-deployment.dto.spec.ts` covers `create-deployment.dto.ts`. The canonical references are `features/deployments/domain/dtos/__tests__/create-deployment.dto.spec.ts`, `features/authentication/domain/dtos/__tests__/login.dto.spec.ts` and `features/projects/domain/dtos/__tests__/update-project.dto.spec.ts`.
 
-**Validate through the same path as production.** Do not instantiate the class with `new`, and do not call a controller. Build the instance with `plainToInstance` from `class-transformer`, then validate it with `validateSync` from `class-validator`, **with the same options as the global pipe in `src/bootstrap.ts`** (`whitelist: true`, `forbidNonWhitelisted: true`). The spec must reproduce the real runtime contract: a different set of options tests a validator that the application never runs — for example, an unknown property is only rejected because `forbidNonWhitelisted` is on, and a stringified number is only rejected because implicit conversion is off. `import 'reflect-metadata'` first, or the decorator metadata is not available.
+**Validate through the same path as the production code.** Do not make the instance with `new`, and do not call a controller. Make the instance with `plainToInstance` from `class-transformer`. Then validate the instance with `validateSync` from `class-validator`, **with the same options as the global pipe in `src/bootstrap.ts`** (`whitelist: true`, `forbidNonWhitelisted: true`).
 
-**Three spec-local helpers, always the same three.** Copy them verbatim into each DTO spec:
+The spec must show the real contract of the runtime, because a different set of options tests a validator that the application does not run. For example, the pipe refuses an unknown property only because `forbidNonWhitelisted` is on. It refuses a number in a string only because the implicit conversion is off. Import `'reflect-metadata'` first, or the metadata of the decorators is not available.
+
+**Each DTO spec has the same three spec-local helpers.** Copy the three helpers into each DTO spec with no change:
 
 ```ts
 // eslint-disable-next-line import/no-unassigned-import
@@ -124,16 +126,16 @@ const validPayload = (overrides: Record<string, unknown> = {}): Record<string, u
 });
 ```
 
-The payload type is `Record<string, unknown>`, not the DTO type, because a spec must be able to send a wrong type, an extra key or a missing key — exactly what an HTTP client can send. Remove a property with `delete payload.<name>` on a fresh `validPayload()`; add a bad one through the overrides argument. There are no mocks and no `beforeEach`.
+The type of the payload is `Record<string, unknown>`, and not the type of the DTO. A spec must be able to send an incorrect type, an additional key or an absent key. An HTTP client can send the same data. To remove a property, call `delete payload.<name>` on a new `validPayload()`. To add an incorrect property, use the overrides argument. A DTO spec has no mocks and no `beforeEach`.
 
 **Checklist — every DTO spec covers all of these:**
 
 1. **A valid payload gives zero errors**: `expect(validatePayload(validPayload())).toEqual([])`.
-2. **Each required field, when absent, gives the expected constraint keys.** Assert the keys, not the messages: `isString`, `isNotEmpty`, `isUuid`, `isEmail`, `isInt`, `min`, `isIn`, `isEnum`, `isDate`, `isJwt`. Use `expect.arrayContaining([...])` when a field declares more than one rule, and `toContain` for a single key.
-3. **Each format rule fails with a realistic bad value** — a non-UUID id (`'service-1'`), a malformed email (`'admin@'`), a non-integer or below-minimum number, a value outside an `@IsIn` set, a wrong primitive type.
-4. **Each optional field passes when absent**: delete it from a valid payload and expect `[]`.
+2. **If a required field is absent, the DTO gives the expected constraint keys.** Assert the keys, and not the messages: `isString`, `isNotEmpty`, `isUuid`, `isEmail`, `isInt`, `min`, `isIn`, `isEnum`, `isDate`, `isJwt`. If a field declares more than one rule, use `expect.arrayContaining([...])`. For one key, use `toContain`.
+3. **Each rule of format fails with a realistic incorrect value**: an id that is not a UUID (`'service-1'`), an incorrect email (`'admin@'`), a number that is not an integer or that is below the minimum, a value outside an `@IsIn` set, or an incorrect primitive type.
+4. **If an optional field is absent, the payload stays valid**: remove the field from a valid payload and expect `[]`.
 5. **An unknown property fails with `whitelistValidation`**: `expect(constraintsFor(errors, 'status')).toContain('whitelistValidation')`.
-6. **If the DTO declares more than one rule, one payload that gives several errors together** — an empty payload, asserted on the reported property names, which proves the pipe reports the whole contract in one response instead of the first failure only:
+6. **If the DTO declares more than one rule, write one payload that gives several errors together.** Use an empty payload and assert the names of the reported properties. This test shows that the pipe reports the full contract in one response, and not the first failure only:
 
    ```ts
    it('reports every invalid property at once', () => {
@@ -145,12 +147,12 @@ The payload type is `Record<string, unknown>`, not the DTO type, because a spec 
    });
    ```
 
-Use `it.each` for a family of fields that share the same rules (`it.each(STRING_PROPERTIES)('requires %s', …)`) instead of repeating one `it` per field.
+If a group of fields share the same rules, use `it.each` (`it.each(STRING_PROPERTIES)('requires %s', …)`), and do not repeat one `it` for each field.
 
-**Two traps to record explicitly:**
+**Record these two known behaviours in a test:**
 
-- **`@IsOptional()` does not reject `null`.** It skips every validator on the property for both `undefined` **and** `null`, so a `null` passes even against `@IsString()` or `@IsIn(...)`. Pin that behaviour with a named test — `it('accepts a null error, since IsOptional skips null values', …)` — so the spec states the real contract rather than the intended one.
-- **`@IsDate()` without `@Type(() => Date)` rejects an ISO string.** The pipe runs with `transform: true` but **not** `enableImplicitConversion`, so `plainToInstance` leaves the string as a string and `isDate` fails. The same applies to a stringified number against `@IsInt()`. Cover both the rejected string and the accepted `Date`/`number`:
+- **`@IsOptional()` does not refuse `null`.** It stops each validator on the property for `undefined` **and** for `null`. Thus a `null` value passes even against `@IsString()` or `@IsIn(...)`. Record that behaviour with a test that has a name — `it('accepts a null error, since IsOptional skips null values', …)` — so that the spec gives the real contract, and not the intended contract.
+- **`@IsDate()` without `@Type(() => Date)` refuses an ISO string.** The pipe operates with `transform: true`, but **not** with `enableImplicitConversion`. Thus `plainToInstance` keeps the string as a string, and `isDate` fails. The same applies to a number in a string against `@IsInt()`. Test the refused string and also the accepted `Date` or `number`:
 
   ```ts
   it('rejects an ISO string expiresAt, since no @Type(() => Date) conversion is declared', () => {
@@ -160,15 +162,15 @@ Use `it.each` for a family of fields that share the same rules (`it.each(STRING_
   });
   ```
 
-**A defect in a DTO is pinned, not fixed.** If a DTO accepts something it should refuse — a whitespace-only name with no trimming rule, a `null` where the domain needs a value, a missing `@Type()` that makes an ISO date unusable — write the test that records the **current** behaviour, give the `it` a name that says why (`'accepts a whitespace-only name, as no trimming rule is declared'`), and report the defect to the caller. Never change the DTO from a test task: the DTO is product code, and a silent tightening breaks every client that sends the old shape.
+**If a DTO has a defect, record the defect and do not correct it.** A DTO can accept data that it must refuse: a name of spaces only with no rule that trims it, a `null` value where the domain needs a value, or an absent `@Type()` that makes an ISO date unusable. Write the test that records the **current** behaviour. Give the `it` a name that gives the cause (`'accepts a whitespace-only name, as no trimming rule is declared'`). Report the defect to the caller. Do not change the DTO in a test task, because the DTO is product code, and a silent change of the rules breaks each client that sends the old shape.
 
 ---
 
 ## Use case testing
 
-Use cases in `application/` are **framework-agnostic functions taking ports as arguments**. Spec them in isolation: import the function, call it with fake ports, assert observable behavior. No testing module, no value providers, no HTTP concerns. Canonical reference: `features/projects/application/__tests__/create-project.use-case.spec.ts`.
+A use case in `application/` is a **function that receives its ports as arguments and that is independent of the framework**. Test it in isolation: import the function, call it with the mocked ports, and assert the observable behavior. Do not use a testing module, a value provider or an HTTP element. The canonical reference is `features/projects/application/__tests__/create-project.use-case.spec.ts`.
 
-**Building the SUT.** Declare each port as `jest.Mocked<Pick<Port, 'onlyCalledMethods'>>` in `beforeEach`, then pass it at the call site with a single `as unknown as Port` cast:
+**Build the SUT.** Declare each port as `jest.Mocked<Pick<Port, 'onlyCalledMethods'>>` in `beforeEach`. Then give the port to the function with one `as unknown as Port` cast:
 
 ```ts
 describe('createProjectUseCase', () => {
@@ -192,30 +194,30 @@ describe('createProjectUseCase', () => {
 });
 ```
 
-When a use case takes several ports and the call is repeated across tests, wrap it in a spec-local `run()` arrow that applies the casts once (see `features/authentication/application/__tests__/refresh.use-case.spec.ts`).
+If a use case receives several ports and the tests repeat the call, put the call in a spec-local `run()` arrow. That arrow applies the casts one time (see `features/authentication/application/__tests__/refresh.use-case.spec.ts`).
 
-Ports whose implementations are trivial value objects may be built by a small factory instead of a `Pick`; `features/server/application/__tests__/check-readiness.use-case.spec.ts` builds `jest.Mocked<HealthProbe>` stubs from `upProbe(name, up)` / `throwingProbe(name, error)` arrows because the port has one method and a `name` field.
+If the implementation of a port is a simple value object, a small factory can replace the `Pick`. For example, `features/server/application/__tests__/check-readiness.use-case.spec.ts` makes the `jest.Mocked<HealthProbe>` stubs with the `upProbe(name, up)` and `throwingProbe(name, error)` arrows, because that port has one method and a `name` field.
 
-**What to assert** — only what a caller observes:
+**Assert only the behavior that a caller sees:**
 
-- **Delegation**: each port method called once with exact args — `toHaveBeenCalledTimes(1)` + `toHaveBeenCalledWith(...)`.
-- **Return / mapping**: `toBe(result)` for a pass-through, `toEqual({...})` for a composed shape.
+- **Delegation**: the SUT calls each method of the port one time with the exact arguments — `toHaveBeenCalledTimes(1)` and `toHaveBeenCalledWith(...)`.
+- **Return and mapping**: use `toBe(result)` for a value that passes through, and `toEqual({...})` for a composed shape.
 - **Edge cases**: absent → `toBeNull()`, empty list → `toEqual([])`, empty input → the port receives `[]`.
-- **Error propagation is expected for CRUD-style use cases**: `mockRejectedValue(error)` → `rejects.toThrow(error)`, or `rejects.toBeInstanceOf(DomainError)` where the use case translates (e.g. `InvalidRefreshTokenError`, `UserInactiveError` from `features/authentication/domain/errors/authentication.errors`).
-- **Guards / short-circuits**: assert the downstream port is not reached — `expect(mockRefreshTokensRepository.revoke).not.toHaveBeenCalled()`.
-- **Ordering**, when the use case's contract depends on it: push markers from `mockImplementation` into an `order: string[]` and assert `toEqual(['revoke', 'issue'])`.
+- **Error propagation is usual for a use case of the CRUD type**: `mockRejectedValue(error)` with `rejects.toThrow(error)`. If the use case translates the error, use `rejects.toBeInstanceOf(DomainError)` (e.g. `InvalidRefreshTokenError`, `UserInactiveError` from `features/authentication/domain/errors/authentication.errors`).
+- **Guards and short circuits**: assert that the SUT does not reach the port that follows — `expect(mockRefreshTokensRepository.revoke).not.toHaveBeenCalled()`.
+- **Order**: if the contract of the use case depends on the order, push markers from `mockImplementation` into an `order: string[]` array, then assert `toEqual(['revoke', 'issue'])`.
 
-**Composing use cases — mock the delegated sibling.** When a use case orchestrates another one, `jest.mock('../<sibling>.use-case')`, type it as `jest.MockedFunction<typeof siblingUseCase>`, name it `mock<UseCaseName>`, and assert the exact ports forwarded plus that the result comes back unchanged. Do not run the real sibling against a mocked repository — that tests the sibling. A trivial one-line pass-through wrapper may run the real sibling, since mocking would be tautological.
+**If a use case calls a different use case, replace the second use case with a mock.** Call `jest.mock('../<sibling>.use-case')`, give the mock the type `jest.MockedFunction<typeof siblingUseCase>` and the name `mock<UseCaseName>`. Assert the exact ports that the SUT sends, and that the result comes back with no change. Do not run the real second use case against a mocked repository, because that action tests the second use case. If the SUT is a wrapper of one line that only passes the call through, the spec can run the real second use case, because a mock gives no information there.
 
-**Shared pure functions** in `src/shared/application/` (`getGitpaasLabels`, `getServiceSlug`) are use cases with no ports at all: no mocks, no `beforeEach`, just input → output assertions, including a "hands out a fresh object per call" test for anything returning a mutable structure.
+**A shared pure function** in `src/shared/application/` (`getGitpaasLabels`, `getServiceSlug`) is a use case with no ports. Its spec has no mocks and no `beforeEach`, and it asserts the output for a given input. If the function returns a mutable structure, add a test that shows that each call gives a new object.
 
 ---
 
 ## UI service testing
 
-UI services in `features/*/ui/services/` orchestrate: they hold the injected repositories/adapters and hand them to `application/` use cases. Canonical reference: `features/projects/ui/services/__tests__/projects.service.spec.ts`.
+A UI service in `features/*/ui/services/` does the orchestration. It holds the injected repositories and adapters, and it sends them to the use cases in `application/`. The canonical reference is `features/projects/ui/services/__tests__/projects.service.spec.ts`.
 
-**Building the SUT.** Use `Test.createTestingModule` with an `async beforeEach`, register the service plus every injected collaborator as a value provider under its concrete class, and resolve with `moduleRef.get(...)`:
+**Build the SUT.** Use `Test.createTestingModule` with an `async beforeEach`. Register the service and each injected collaborator as a value provider under its concrete class. Then get the SUT with `moduleRef.get(...)`:
 
 ```ts
 jest.mock('../../../application/create-project.use-case');
@@ -243,7 +245,7 @@ describe('ProjectsService', () => {
 });
 ```
 
-**Always mock the delegated use case.** Because the use case is mocked, the injected collaborators are never called by the spec — they are pure identity placeholders, which is why `{} as jest.Mocked<DatabaseProjectsRepository>` is the right shape here. The assertion is that the service forwards *those exact instances*:
+**Always replace the called use case with a mock.** The use case is a mock. Thus the spec never calls the injected collaborators, and they are only placeholders with an identity. For that cause, `{} as jest.Mocked<DatabaseProjectsRepository>` is the correct shape here. The spec asserts that the service sends *those exact instances*:
 
 ```ts
 expect(mockDeleteServiceUseCase).toHaveBeenCalledWith(
@@ -255,11 +257,11 @@ expect(mockDeleteServiceUseCase).toHaveBeenCalledWith(
 );
 ```
 
-When the service calls a collaborator **directly** (rather than only forwarding it), switch that one to a `jest.Mocked<Pick<...>>` with real `jest.fn()`s — see `features/users/ui/services/__tests__/users.service.spec.ts`, which stubs `Argon2PasswordHasherAdapter`'s `hash` while still forwarding it to `seedAdminUseCase`.
+If the service calls a collaborator **directly**, and does not only send it to a use case, change that collaborator to a `jest.Mocked<Pick<...>>` with real `jest.fn()`s. See `features/users/ui/services/__tests__/users.service.spec.ts`, which stubs the `hash` method of `Argon2PasswordHasherAdapter` and also sends the adapter to `seedAdminUseCase`.
 
-**What to assert per public method:** delegation (once, with the exact collaborators and args), pass-through (`toBe`) or composed shape (`toEqual`), the empty-list and `null` edge cases, error propagation (`rejects.toThrow(error)`), and any error translation or short-circuit the service itself performs (`expect(mockUseCase).not.toHaveBeenCalled()`). Do not assert DI resolution, pipes or validation.
+**For each public method, assert these items:** the delegation (one call, with the exact collaborators and arguments); the value that passes through (`toBe`) or the composed shape (`toEqual`); the edge cases of an empty list and of `null`; the error propagation (`rejects.toThrow(error)`); and each error translation or short circuit that the service itself does (`expect(mockUseCase).not.toHaveBeenCalled()`). Do not assert the resolution of the dependency injection, the pipes or the validation.
 
-**Stateful, RxJS-driven services** (e.g. `DeploymentRunnerService`) need pending work drained before asserting. Use a `flush` helper with a **block-bodied** executor — an expression body would implicitly return the `setImmediate` handle and trip `no-promise-executor-return`:
+**A service with a state that RxJS drives** (e.g. `DeploymentRunnerService`) has work in progress. Complete that work before you assert. Use a `flush` helper whose executor has a **block body**. An executor with an expression body returns the handle of `setImmediate` and causes the `no-promise-executor-return` error:
 
 ```ts
 /** Resolves after pending microtasks, letting the fire-and-forget run settle. */
@@ -269,15 +271,15 @@ const flush = (): Promise<void> =>
     });
 ```
 
-Drive the stream by pushing through a real `Subject` exposed on the mocked queue (`dequeued$: dequeued.asObservable()`), then `await flush()` before asserting.
+To drive the stream, push the values through a real `Subject` on the mocked queue (`dequeued$: dequeued.asObservable()`). Then call `await flush()` before you assert.
 
 ---
 
 ## Controller testing
 
-Controllers in `features/*/ui/controllers/` are a **thin HTTP boundary**: delegate to the sibling service and translate the result into an HTTP outcome. Canonical reference: `features/services/ui/controllers/__tests__/services.controller.spec.ts`.
+A controller in `features/*/ui/controllers/` is a **thin HTTP boundary**. It sends the call to the adjacent service and changes the result into an HTTP result. The canonical reference is `features/services/ui/controllers/__tests__/services.controller.spec.ts`.
 
-**Building the SUT.** Testing module, controller under `controllers`, each injected service as a value provider under its class; `async beforeEach`; the service mock is a `jest.Mocked<Pick<Service, …>>` of real `jest.fn()`s recreated per test:
+**Build the SUT.** Use a testing module with an `async beforeEach`. Put the controller in `controllers`, and each injected service as a value provider under its class. Make the mock of the service as a `jest.Mocked<Pick<Service, …>>` of real `jest.fn()`s, and make that mock again for each test:
 
 ```ts
 mockServicesService = {
@@ -292,17 +294,17 @@ const moduleRef = await Test.createTestingModule({
 sut = moduleRef.get(ServicesController);
 ```
 
-Provide exactly the dependencies the controller injects — no more, no fewer.
+Give the module the exact dependencies that the controller injects, and no other dependency.
 
 **What to assert:**
 
-- **Delegation**: the handler calls the service method once with the exact args received.
-- **Return shape**: `toBe(service)` for a pass-through, `toEqual([service])` / `toEqual([])` for lists.
-- **HTTP translation the controller performs**: absent result → `rejects.toBeInstanceOf(NotFoundException)` plus a separate test pinning the message (`rejects.toThrow(\`Service ${serviceId} not found\`)`); a `@HttpCode(204)` handler → `resolves.toBeUndefined()`; daemon/adapter failures mapped to `ServiceUnavailableException` (see the containers, networks and server controllers).
-- **Error propagation**: an untranslated rejection bubbles up unchanged — `rejects.toBe(error)`.
-- **Do not** exercise real service logic or framework mechanics (`ParseUUIDPipe`, routing, `class-validator`). Pass already-valid arguments straight to the handler.
+- **Delegation**: the handler calls the method of the service one time, with the exact arguments that it received.
+- **Shape of the return value**: `toBe(service)` for a value that passes through, and `toEqual([service])` or `toEqual([])` for a list.
+- **The HTTP translation that the controller does**: an absent result gives `rejects.toBeInstanceOf(NotFoundException)`, with a separate test for the message (`rejects.toThrow(\`Service ${serviceId} not found\`)`); a handler with `@HttpCode(204)` gives `resolves.toBeUndefined()`; a failure of the daemon or of an adapter gives `ServiceUnavailableException` (see the controllers of the containers, of the networks and of the server).
+- **Error propagation**: an error with no translation comes back with no change — `rejects.toBe(error)`.
+- **Do not** run the real logic of the service or the mechanics of the framework (`ParseUUIDPipe`, the routes, `class-validator`). Give valid arguments directly to the handler.
 
-**`@Sse` / `Observable`-returning handlers** (`LogsController.streamLogs`): mock the service with `mockReturnValue(of(...events))` or `mockReturnValue(EMPTY)` — never `mockResolvedValue`. Assert delegation **synchronously** (the handler returns an `Observable`, so do not `await` it), then verify the SSE mapping by collecting the stream:
+**For a handler with `@Sse` that returns an `Observable`** (`LogsController.streamLogs`), stub the service with `mockReturnValue(of(...events))` or with `mockReturnValue(EMPTY)`, and never with `mockResolvedValue`. Assert the delegation **synchronously**, because the handler returns an `Observable`. Thus do not use `await` on the handler. Then collect the stream and assert the SSE mapping:
 
 ```ts
 const received = await firstValueFrom(sut.streamLogs(deploymentId).pipe(toArray()));
@@ -310,15 +312,15 @@ const received = await firstValueFrom(sut.streamLogs(deploymentId).pipe(toArray(
 expect(received).toEqual([{ data: JSON.stringify(events[0]) }, { data: JSON.stringify(events[1]) }]);
 ```
 
-Use `EMPTY` for an empty stream (the zero-arg `of<T>()` overload is deprecated) and never Jest's `done` callback.
+For an empty stream, use `EMPTY`, because the `of<T>()` overload with no argument is deprecated. Do not use the `done` callback of Jest.
 
 ---
 
 ## Database repository testing
 
-Repositories in `features/*/infrastructure/database/db-<name>.repository.ts` are TypeORM adapters over a single injected `Repository<Db…Entity>`, mapping persistence rows into domain models through a `to<Name>` transformer. Canonical reference: `features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts`.
+A repository in `features/*/infrastructure/database/db-<name>.repository.ts` is a TypeORM adapter over one injected `Repository<Db…Entity>`. It maps the rows of the database into the domain models with a `to<Name>` transformer. The canonical reference is `features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts`.
 
-**Building the SUT.** Plain instantiation in `beforeEach`; no testing module, and — because every DB repository injects exactly one `Repository` — `getRepositoryToken` is not used anywhere in the suite today:
+**Build the SUT.** Make the instance directly in `beforeEach`, with no testing module. Each database repository injects one `Repository` only. Thus no spec in the suite uses `getRepositoryToken` today:
 
 ```ts
 let mockRepository: jest.Mocked<
@@ -337,13 +339,13 @@ beforeEach(() => {
 });
 ```
 
-**What to assert per method:**
+**For each method, assert these items:**
 
-- **Reads** (`find` / `findOne` / `findOneBy`): the TypeORM method called once with the **exact** options object (`{ id }`, `{ where: { projectId }, order: { id: 'DESC' } }`, or a bare `find()` asserted as `toHaveBeenCalledWith()`); the mapped domain result; absent → `toBeNull()`; empty list → `toEqual([])`.
-- **Create**: `create` called with the DTO (including any mutation the SUT applies), `save` called with the created entity, mapped result asserted.
-- **Update** (find → `merge` → `save`, or find → field mutation → `save`): assert the merge/mutation and the save argument, plus the not-found branch returning `null` with `merge`/`save` never called.
-- **`delete` / `update` returning `{ affected }`**: cover all three cases — `affected: 1` → `true`, `0` → `false`, `undefined` → `false`. Stub with the full result shape the type demands (`{ affected: 1, raw: [] }`).
-- **Bulk writes**: TypeORM's `create`/`save` overloads collapse to the single-entity signature under `jest.Mocked<Pick<…>>`, so array stubs need a localized cast, and only there:
+- **Reads** (`find` / `findOne` / `findOneBy`): the SUT calls the TypeORM method one time with the **exact** object of options (`{ id }`, `{ where: { projectId }, order: { id: 'DESC' } }`, or a `find()` with no argument, asserted as `toHaveBeenCalledWith()`). Assert also the mapped domain result, an absent row → `toBeNull()`, and an empty list → `toEqual([])`.
+- **Create**: the SUT calls `create` with the DTO (and with each change that the SUT applies), calls `save` with the made entity, and gives the mapped result.
+- **Update** (find → `merge` → `save`, or find → change of a field → `save`): assert the merge or the change and the argument of `save`. Assert also the branch that finds nothing, which returns `null` and calls neither `merge` nor `save`.
+- **`delete` or `update` that returns `{ affected }`**: test the three cases — `affected: 1` → `true`, `0` → `false`, and `undefined` → `false`. Stub the full shape of the result that the type demands (`{ affected: 1, raw: [] }`).
+- **Bulk writes**: under `jest.Mocked<Pick<…>>`, the `create` and `save` overloads of TypeORM become the signature for one entity. Thus a stub with an array needs a local cast, and only there:
 
   ```ts
   (mockRepository.create as jest.Mock).mockReturnValue(entities);
@@ -352,13 +354,13 @@ beforeEach(() => {
 
   See `features/logs/infrastructure/database/__tests__/db-logs.repository.spec.ts`.
 
-**Not currently present:** QueryBuilder chains, `manager.transaction`, and `upsert` do not occur in any DB repository. Do not invent a convention for them; add one here only when a repository adopts one.
+**These elements are not present today:** no database repository uses a QueryBuilder chain, `manager.transaction` or `upsert`. Do not invent a convention for them. If a repository starts to use one of them, add the convention here.
 
 ---
 
 ## Transformer testing
 
-Every `*.transformer.ts` has its own spec (`db-projects.transformer.spec.ts`, `docker-container-runtime.transformer.spec.ts`, …). Transformers are pure functions, so the spec has no mocks, no `beforeEach` and no SUT alias: `describe('<functionName>')`, build a fully-typed input literal, assert `toEqual` on the mapped output.
+Each `*.transformer.ts` file has its own spec (`db-projects.transformer.spec.ts`, `docker-container-runtime.transformer.spec.ts`, …). A transformer is a pure function. Thus its spec has no mocks, no `beforeEach` and no alias for the SUT. Use `describe('<functionName>')`, make an input literal with a full type, and assert `toEqual` on the mapped output.
 
 ```ts
 describe('toService', () => {
@@ -370,19 +372,19 @@ describe('toService', () => {
 });
 ```
 
-Cover the defaults and fallbacks the transformer encodes (empty-string columns, `null` handling, epoch/date conversion, absent optional fields) — one `it` per behavior.
+Test each default value and each alternative value that the transformer holds: an empty string in a column, a `null` value, a conversion between an epoch and a date, and an absent optional field. Write one `it` for each behavior.
 
 ---
 
 ## Container runtime & Docker adapter testing
 
-There is **no `DockerClient` class**. The Docker boundary is a single port in Core, `ContainerRuntime` (`@core/domain/ports/container-runtime.port`), implemented once by `DockerContainerRuntimeAdapter` (`@core/infrastructure/docker/docker-container-runtime.adapter`). That adapter owns `dockerode`: it memoizes a `Docker` handle from `getClient()`, serialises a `RuntimeSelector` into the daemon's `filters` via `toLabelFilter`, and maps daemon payloads into the runtime models (`RuntimeContainerSummary`, `RuntimeNetworkSummary`, `RuntimeImageSummary`, `RuntimePruneReport`, `ContainerRuntimeInfo`). Everything Docker-facing in the features talks to that port — never to `dockerode`.
+There is **no `DockerClient` class**. The boundary of Docker is one port in Core: `ContainerRuntime` (`@core/domain/ports/container-runtime.port`). `DockerContainerRuntimeAdapter` (`@core/infrastructure/docker/docker-container-runtime.adapter`) is its only implementation. That adapter owns `dockerode`. It keeps a `Docker` handle from `getClient()` in memory, changes a `RuntimeSelector` into the `filters` of the daemon with `toLabelFilter`, and maps the data of the daemon into the runtime models (`RuntimeContainerSummary`, `RuntimeNetworkSummary`, `RuntimeImageSummary`, `RuntimePruneReport`, `ContainerRuntimeInfo`). In the features, each element that uses Docker calls that port, and never `dockerode`.
 
 ### Feature adapters over the runtime port
 
-Feature-level Docker adapters and repositories (`features/*/infrastructure/docker/docker-*.adapter.ts` / `docker-*.repository.ts`) inject `DockerContainerRuntimeAdapter` and consume it as `ContainerRuntime`. Their specs never touch `dockerode`. References: `features/server/infrastructure/docker/__tests__/docker-server-pruner.adapter.spec.ts` (prune → `PruneResult`), `features/containers/infrastructure/docker/__tests__/docker-containers.repository.spec.ts` (list + map), `features/server/infrastructure/docker/__tests__/docker-orphan-containers.adapter.spec.ts` and `features/services/infrastructure/docker/__tests__/docker-service-runtime-resources.adapter.spec.ts` (teardown).
+A Docker adapter or repository of a feature (`features/*/infrastructure/docker/docker-*.adapter.ts` or `docker-*.repository.ts`) injects `DockerContainerRuntimeAdapter` and uses it as a `ContainerRuntime`. Their specs never use `dockerode`. The references are `features/server/infrastructure/docker/__tests__/docker-server-pruner.adapter.spec.ts` (prune → `PruneResult`), `features/containers/infrastructure/docker/__tests__/docker-containers.repository.spec.ts` (list and map), `features/server/infrastructure/docker/__tests__/docker-orphan-containers.adapter.spec.ts` and `features/services/infrastructure/docker/__tests__/docker-service-runtime-resources.adapter.spec.ts` (teardown).
 
-**Building the SUT.** Hold each runtime method as its own `jest.Mock`, assemble them into a `jest.Mocked<Pick<DockerContainerRuntimeAdapter, …>>`, and cast once at the constructor:
+**Build the SUT.** Keep each method of the runtime in its own `jest.Mock`. Put the methods together in a `jest.Mocked<Pick<DockerContainerRuntimeAdapter, …>>`. Then add one cast at the constructor:
 
 ```ts
 let mockListContainers: jest.Mock;
@@ -405,9 +407,11 @@ beforeEach(() => {
 });
 ```
 
-Fixtures are `const` arrow builders returning the **runtime** models (`RuntimeContainerSummary`, `RuntimePruneReport`, …), imported with `import type` from `@core/domain/models/container-runtime.models`.
+Write the fixtures as `const` arrows that return the **runtime** models (`RuntimeContainerSummary`, `RuntimePruneReport`, …). Import those models with `import type` from `@core/domain/models/container-runtime.models`.
 
-**Always assert the ownership marker in the selector.** Every list, prune and teardown must be scoped by `io.gitpaas.managed=true` — the marker produced by `getGitpaasLabels()` in `@shared/application/get-gitpaas-labels.use-case`. Narrowing to one stack adds `project` **on top of** the marker; it never replaces it. A spec that green-lights a marker-less selector would allow a query that reaches the control plane and unrelated third-party stacks on the host. Import the real constants from `@core/domain/constants/gitpaas-labels.constants` (`GITPAAS_MANAGED_LABEL`, `GITPAAS_MANAGED_VALUE`, `GITPAAS_PROJECT_LABEL`, `GITPAAS_CONTROL_PLANE_PROJECTS`) rather than re-declaring them, so a renamed key fails the spec:
+**Warning: a selector with no marker of ownership permits a query that reaches the control plane and the unrelated stacks of other suppliers on the host.**
+
+**Always assert the marker of ownership in the selector.** Each list, prune and teardown must use the limit `io.gitpaas.managed=true`. `getGitpaasLabels()` in `@shared/application/get-gitpaas-labels.use-case` makes that marker. A selector for one stack adds `project` **in addition to** the marker, and never in place of it. Import the real constants from `@core/domain/constants/gitpaas-labels.constants` (`GITPAAS_MANAGED_LABEL`, `GITPAAS_MANAGED_VALUE`, `GITPAAS_PROJECT_LABEL`, `GITPAAS_CONTROL_PLANE_PROJECTS`), and do not declare them again. Thus a new name for a key makes the spec fail:
 
 ```ts
 expect(mockListContainers).toHaveBeenCalledWith(
@@ -418,15 +422,15 @@ expect(mockListContainers).toHaveBeenCalledWith(
 
 **What to assert:**
 
-- **List + map**: the runtime method called once with the exact selector (and `all: true` where the SUT asks for stopped resources); the mapped domain result; empty list → `toEqual([])`; the name/port/short-id fallbacks; and the `service-<id>` project fallback when the service name slugifies to empty.
-- **Prune**: each prune called once with the managed selector; the `RuntimePruneReport` mapped into `PruneResult`; the zeroed case too.
-- **Teardown**: the selector used for each listing; `removeContainer` / `removeNetwork` / `removeImage` called with the right id and options (`{ force: true, removeVolumes: true }`); the protected/skip branches asserting `not.toHaveBeenCalled()`; the returned counts/names; and the summary `mockDiagnostics.log(...)` line.
-- **Error resilience**: a single removal failure is caught, `mockDiagnostics.warn` is called, and iteration continues — assert the survivor.
-- **Selector honouring, for anything with data-loss risk.** The strongest teardown specs do not hand the SUT a pre-filtered list. They describe a realistic unfiltered host (third-party compose stacks, unlabelled `docker run` containers, the control plane, GitPaaS-managed containers) and make `mockListContainers` apply the requested `RuntimeSelector` itself through a spec-local `matchesSelector` helper, so a widened selector actually surfaces protected containers and fails the test. Copy this shape whenever the SUT removes things.
+- **List and map**: the SUT calls the method of the runtime one time with the exact selector, and with `all: true` if the SUT asks for the stopped resources. Assert the mapped domain result, an empty list → `toEqual([])`, the alternative values for the name, the port and the short id, and the `service-<id>` alternative for the project when the name of the service gives an empty slug.
+- **Prune**: the SUT calls each prune one time with the managed selector, and maps the `RuntimePruneReport` into a `PruneResult`. Test also the case with the counters at zero.
+- **Teardown**: assert the selector for each list operation. Assert that the SUT calls `removeContainer`, `removeNetwork` or `removeImage` with the correct id and options (`{ force: true, removeVolumes: true }`). Assert the branches that protect or that skip a resource with `not.toHaveBeenCalled()`, the counts and names that the SUT returns, and the summary line `mockDiagnostics.log(...)`.
+- **Resilience to an error**: the SUT catches one failure of a removal, calls `mockDiagnostics.warn`, and continues the loop — assert the resource that stays.
+- **Obedience to the selector, for each operation with a risk of data loss.** The best teardown specs do not give a list with a filter to the SUT. They describe a real host with no filter: the compose stacks of other suppliers, the containers from `docker run` with no label, the control plane, and the containers that GitPaaS manages. `mockListContainers` applies the requested `RuntimeSelector` itself with a spec-local `matchesSelector` helper. Thus a selector that is too wide shows the protected containers and makes the test fail. Copy this shape each time that the SUT removes a resource.
 
 ### The runtime adapter itself
 
-`core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts` is the only spec that knows `dockerode` exists. It module-mocks the constructor, then drives the daemon exactly as production does — through the adapter's own memoized `getClient()`:
+`core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts` is the only spec that knows that `dockerode` exists. It replaces the constructor with a mock of the module. Then it drives the daemon as the production code does, through the `getClient()` method of the adapter, which keeps the client in memory:
 
 ```ts
 jest.mock('dockerode', () => jest.fn());
@@ -444,56 +448,87 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
 };
 ```
 
-`FakeDaemon` is a hand-written interface of `jest.Mock`s (dockerode's types are too overloaded for a useful `Pick`). Cover: client construction options (`{ socketPath: '/var/run/docker.sock' }`) and that nothing else is passed; memoization (one construction per adapter instance); the serialised label filters for each selector shape; per-method mapping into the runtime models; removals delegating through `getContainer(id).remove(...)`; prune fallbacks to zeroed counters.
+`FakeDaemon` is a manual interface of `jest.Mock`s, because the types of `dockerode` have too many overloads for a `Pick` of use. Test these items:
+
+- the options of the client (`{ socketPath: '/var/run/docker.sock' }`), and that the adapter gives no other option;
+- the client in memory: the adapter makes one client for each of its instances;
+- the label filters for each shape of the selector;
+- the mapping into the runtime models, for each method;
+- the removals, which the adapter sends through `getContainer(id).remove(...)`;
+- the prune operations, which give counters at zero as the alternative result.
 
 ### The Compose executor
 
-`features/deployments/infrastructure/docker/__tests__/dockerode-docker-executor.adapter.spec.ts` covers `DockerodeDockerExecutorAdapter`, which injects `DockerContainerRuntimeAdapter` + `DiagnosticLoggerService` and drives `dockerode-compose`, `tar` and `node:fs/promises`. Those three libs get per-spec `jest.mock(...)` (they are not the centrally stubbed Octokit packages). Build the SUT via an `executorWithDaemon(fakeDaemon)` arrow that hands a fake daemon back from `getClient()`.
+`features/deployments/infrastructure/docker/__tests__/dockerode-docker-executor.adapter.spec.ts` covers `DockerodeDockerExecutorAdapter`. That adapter injects `DockerContainerRuntimeAdapter` and `DiagnosticLoggerService`, and it drives `dockerode-compose`, `tar` and `node:fs/promises`. The spec replaces those three libraries with its own `jest.mock(...)` calls, because they are not the Octokit packages with the central stubs. Build the SUT with an `executorWithDaemon(fakeDaemon)` arrow, which returns a fake daemon from `getClient()`.
 
-The class keeps its logic in private helpers behind a single public `up()`, so the spec uses a **documented, deliberate exception** to public-boundary testing: a typed `ExecutorInternals` interface plus `const internals = (sut) => sut as unknown as ExecutorInternals`, with a comment at the cast explaining why. Tier 1 covers the deterministic helpers (duration parsing, build-arg normalization, path resolution, progress-stream following); tier 2 drives `up()` and asserts the emitted lifecycle-line order, `down`-before-`up` ordering via `mock.invocationCallOrder`, and temp-dir cleanup in the `finally` even when an early step throws.
+The class keeps its logic in private helpers behind one public `up()` method. Thus the spec uses an **intended and documented exception** to the test of the public boundary only: an `ExecutorInternals` interface with types, and `const internals = (sut) => sut as unknown as ExecutorInternals`. A comment at the cast gives the cause.
+
+The first level tests the helpers that give a fixed result:
+
+- the helper that reads a duration;
+- the helper that normalizes a build argument;
+- the helper that resolves a path;
+- the helper that follows a stream of progress.
+
+The second level calls `up()` and asserts:
+
+- the order of the emitted lifecycle lines;
+- the order of `down` before `up`, with `mock.invocationCallOrder`;
+- the cleanup of the temporary directory in the `finally` block, also when an early step throws an error.
 
 ---
 
 ## External-API provider testing
 
-`features/providers/infrastructure/github/github-providers.adapter.ts` wraps Octokit behind the providers port: it lazily builds and memoizes an authenticated client, then maps SDK responses into domain models. Reference: `github-providers.adapter.spec.ts`.
+`features/providers/infrastructure/github/github-providers.adapter.ts` puts Octokit behind the port of the providers. It makes an authenticated client at the first call, keeps that client in memory, and maps the responses of the SDK into the domain models. The reference is `github-providers.adapter.spec.ts`.
 
-**Building the SUT.** Plain instantiation — `new GithubProvidersAdapter(createConfig(), createDiagnostics())` — where `createConfig(values)` and `createDiagnostics()` are `const` arrow builders returning `ConfigService` / `DiagnosticLoggerService` stubs. The fake client is a narrow hand-written `FakeClient { paginate: jest.Mock; request: jest.Mock }`; Octokit's overloads make `jest.Mocked<Pick<Octokit, …>>` impractical, and the spec says so in a comment.
+**Build the SUT.** Make the instance directly: `new GithubProvidersAdapter(createConfig(), createDiagnostics())`. `createConfig(values)` and `createDiagnostics()` are `const` arrows that return the stubs of `ConfigService` and of `DiagnosticLoggerService`. The fake client is a small manual `FakeClient { paginate: jest.Mock; request: jest.Mock }`. The overloads of Octokit make `jest.Mocked<Pick<Octokit, …>>` too difficult, and a comment in the spec gives that cause.
 
 **Split the spec into two layers:**
 
-- **Layer A — mapping, Octokit isolated.** Spy the private client getter to return the fake client:
+- **Layer A — the mapping, with Octokit in isolation.** Put a spy on the private getter of the client, and make it return the fake client:
 
   ```ts
   jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
   ```
 
-  Then assert exact endpoints and params (`paginate('GET /installation/repositories')`, `request('GET /repositories/{id}', { id: 42 })`), multi-step ordering via `toHaveBeenNthCalledWith`, the domain-mapped result, decoding steps (base64 file content, archive `Buffer`), and error translation (`NotFoundException` for non-file content). Spying means the spec pairs `clearAllMocks()` with `jest.restoreAllMocks()` in `afterEach`.
-- **Layer B — client creation and auth, against the stubbed `Octokit` constructor.** Drive a real domain call and assert: missing config → `ServiceUnavailableException` with the constructor never called; the exact construction args (auth strategy, decoded private key, numeric installation id); and memoization (constructed once across several calls).
+  Then assert the exact endpoints and parameters (`paginate('GET /installation/repositories')`, `request('GET /repositories/{id}', { id: 42 })`), the order of the steps with `toHaveBeenNthCalledWith`, the result in the domain model, the decode steps (the content of a file in base64, the `Buffer` of an archive), and the error translation (`NotFoundException` for content that is not a file). The spec uses a spy. Thus it adds `jest.restoreAllMocks()` in `afterEach`, with `clearAllMocks()`.
+- **Layer B — the creation of the client and the authentication, against the stub of the `Octokit` constructor.** Make a real call to the domain and assert: an absent configuration gives a `ServiceUnavailableException`, and the spec never calls the constructor; the exact arguments of the constructor (the strategy of the authentication, the decoded private key, and the numeric id of the installation); and the client in memory, which the adapter makes one time for several calls.
 
 ---
 
 ## Stateful adapter testing (batching, timers, streams)
 
-`features/logs/infrastructure/database/__tests__/db-log-store.adapter.spec.ts` is the most sophisticated spec in the repo and the model for any adapter that buffers, flushes on a timer, and multiplexes an RxJS stream. `DatabaseLogStoreAdapter` injects `LogsRepository`, `DiagnosticLoggerService` and `ConfigService`.
+`features/logs/infrastructure/database/__tests__/db-log-store.adapter.spec.ts` is the most complex spec in the repository. Use it as the model for each adapter that keeps a batch, that writes the batch on a timer, and that sends one RxJS stream to several subscribers. `DatabaseLogStoreAdapter` injects `LogsRepository`, `DiagnosticLoggerService` and `ConfigService`.
 
-Techniques worth copying:
+Copy these methods:
 
-- **A hand-written in-memory fake instead of `jest.fn()` stubs.** The spec implements the full `LogsRepository` over an array, because the behavior under test (sequences, replay, retention trimming) depends on real stored state. Extend the fake with a test-only lever where a race must be driven deterministically — here `holdReads()` returns a release callback that stalls every read, so a test can prove no entry is duplicated when it becomes durable mid-replay.
-- **A `createStore(retentionHours, maxLines)` arrow** that rebuilds the SUT over the shared fakes with overridden config, so retention tests change one number rather than rewiring DI. A brand-new store also stands in for a process restart.
-- **Two waiting helpers, both block-bodied**: `settle()` (`setImmediate`) to drain microtasks between stream assertions, and `wait(ms)` (`setTimeout`) to let a real time-based flush fire. No fake timers are used.
-- **Stream assertions two ways**: `await firstValueFrom(store.stream(id).pipe(toArray()))` for a finite, already-terminated stream; a manual `subscribe` pushing into a `received: LogEvent[]` array (always `unsubscribe()`ing at the end) when the test interleaves emissions with `append`/`complete` calls.
-- **Cover the lifecycle contract, not the implementation**: batch held below the size limit, flush at the limit, flush on the interval, flush on `onModuleDestroy()`, monotonic per-deployment sequences resuming from the stored maximum, replay → live hand-off with no gap or duplicate, terminal event completing the stream, unsubscribe stopping delivery, purge dropping both durable rows and the in-flight batch, retention trimming by line cap and by age (including the disabled case), and failures logged through `diagnostics.error` instead of rejecting.
+- **Use a manual fake in memory, and not `jest.fn()` stubs.** The spec implements the full `LogsRepository` over an array, because the behavior under test needs a real state: the sequences, the replay and the limit of the retention. If you must control a race condition, add a lever for the tests only. Here `holdReads()` returns a callback that releases the reads, and it stops each read. Thus a test can show that the store does not duplicate an entry that becomes durable during the replay.
+- **Use a `createStore(retentionHours, maxLines)` arrow.** It makes the SUT again over the shared fakes, with a different configuration. Thus a test of the retention changes one number and does not change the dependency injection. A new store also replaces a restart of the process.
+- **Use two helpers that wait, both with a block body**: `settle()` (`setImmediate`) completes the microtasks between two assertions on the stream, and `wait(ms)` (`setTimeout`) gives the time for a real write on the timer. The spec uses no fake timers.
+- **Assert a stream in two ways.** For a stream that is already complete, use `await firstValueFrom(store.stream(id).pipe(toArray()))`. If the test mixes the emissions with calls to `append` or to `complete`, use a manual `subscribe` that pushes the values into a `received: LogEvent[]` array, and always call `unsubscribe()` at the end.
+- **Test the contract of the lifecycle, and not the implementation:**
+  - the store keeps the batch below the limit of the size;
+  - the store writes the batch at the limit;
+  - the store writes the batch at the end of the interval;
+  - the store writes the batch on `onModuleDestroy()`;
+  - the sequence of each deployment increases, and continues from the maximum value in the database;
+  - the change from the replay to the live stream has no gap and no duplicate;
+  - a terminal event completes the stream;
+  - `unsubscribe()` stops the delivery;
+  - a purge removes the durable rows and also the batch in memory;
+  - the retention removes the data by the limit of the lines and by the age, and the disabled case removes nothing;
+  - the store sends a failure to `diagnostics.error` and does not reject.
 
 ---
 
 ## Passport strategies, guards, filters and decorators
 
-These are thin framework primitives. All of them use **plain instantiation** — no testing module — and a fake context built from `jest.fn()`s.
+These elements are thin primitives of the framework. Each spec makes the instance **directly**, with no testing module, and makes a fake context from `jest.fn()`s.
 
-**Passport strategies** (`features/authentication/infrastructure/passport/`): construct with mocked ports, mock the delegated use case with `jest.mock`, and assert delegation plus the error translation the strategy owns — each domain error mapped to `UnauthorizedException`, and unexpected errors rethrown unchanged (`rejects.toBe(boom)`).
+**Passport strategies** (`features/authentication/infrastructure/passport/`): make the instance with the mocked ports, and replace the called use case with `jest.mock`. Assert the delegation and the error translation of the strategy: each domain error becomes an `UnauthorizedException`, and the strategy throws an unexpected error again with no change (`rejects.toBe(boom)`).
 
-**Guards** (`features/authentication/ui/guards/`): `new JwtAuthGuard(mockReflector as unknown as Reflector)`. Stub the Passport base so no real strategy runs:
+**Guards** (`features/authentication/ui/guards/`): use `new JwtAuthGuard(mockReflector as unknown as Reflector)`. Stub the base class of Passport, so that no real strategy operates:
 
 ```ts
 superCanActivate = jest
@@ -501,36 +536,44 @@ superCanActivate = jest
     .mockReturnValue(true);
 ```
 
-Build the `ExecutionContext` from a `contextFor()` arrow whose `getHandler`/`getClass` are `jest.fn()`s returning a stable handler and a throwaway class. Assert: the `@Public()` branch returns `true`, reads `IS_PUBLIC_KEY` with `[handler, class]`, and never invokes the base; the `false` and `undefined` branches both delegate to the base with the context. Always bind the return value (`const result = sut.canActivate(context)`) rather than discarding the call. Spying means an `afterEach` with `restoreAllMocks()`.
+Make the `ExecutionContext` with a `contextFor()` arrow. Its `getHandler` and `getClass` are `jest.fn()`s that return a stable handler and a class for the test only. Assert that the `@Public()` branch returns `true`, that it reads `IS_PUBLIC_KEY` with `[handler, class]`, and that it never calls the base class. Assert that the `false` branch and the `undefined` branch both send the call to the base class with the context. Always keep the returned value in a variable (`const result = sut.canActivate(context)`), and do not discard the call. The spec uses a spy, and thus it needs an `afterEach` with `restoreAllMocks()`.
 
-A behavior-free `AuthGuard` subclass (`LocalAuthGuard extends AuthGuard('local') {}`) gets a **minimal smoke spec** only: instantiable, and exposes the Passport contract (`typeof sut.canActivate`, `handleRequest`, `logIn`). Do not assert private strategy names or fabricate behavior.
+A subclass of `AuthGuard` with no behavior (`LocalAuthGuard extends AuthGuard('local') {}`) gets a **minimum spec** only. That spec shows that the class makes an instance and that it gives the contract of Passport (`typeof sut.canActivate`, `handleRequest`, `logIn`). Do not assert the private names of the strategies, and do not invent a behavior.
 
-**Exception filters** (`core/ui/filters/`): `new AllExceptionsFilter(mockHttpAdapterHost)`, called directly as `sut.catch(exception, host)`. Build `ArgumentsHost` from a `hostFor(request, response)` arrow whose `switchToHttp` returns `{ getRequest, getResponse }`. Assert only the observable boundary: `reply` called once with `(response, envelope, statusCode)` — identity `toBe` on the response, `toEqual` with `timestamp: expect.any(String)` on the envelope; `HttpException` status and message preserved; a `BadRequestException` message array kept as an array; a plain `Error` mapped to a generic 500 with no stack leakage (assert `JSON.stringify(envelope)` does not contain it); and the logging split — 4xx warns once, 5xx errors once with the stack as second argument. The filter spies `Logger.prototype`, so restore in `afterEach`.
+**Exception filters** (`core/ui/filters/`): use `new AllExceptionsFilter(mockHttpAdapterHost)`, and call `sut.catch(exception, host)` directly. Make the `ArgumentsHost` with a `hostFor(request, response)` arrow whose `switchToHttp` returns `{ getRequest, getResponse }`. Assert the observable boundary only:
+
+- the filter calls `reply` one time with `(response, envelope, statusCode)`: use `toBe` for the identity of the response, and `toEqual` with `timestamp: expect.any(String)` for the envelope;
+- the filter keeps the status and the message of an `HttpException`;
+- the filter keeps the message array of a `BadRequestException` as an array;
+- the filter changes a simple `Error` into a generic 500 with no stack: assert that `JSON.stringify(envelope)` does not contain the stack;
+- the filter writes one warning for a 4xx error, and one error for a 5xx error with the stack as the second argument.
+
+The filter puts a spy on `Logger.prototype`. Thus restore the spy in `afterEach`.
 
 **Decorators** (`features/authentication/ui/decorators/`):
 
-- *Param decorators.* NestJS keeps the `createParamDecorator` callback internal, so the factory is **extracted and exported** — `currentUserFactory` is passed by reference to `createParamDecorator`. The spec calls `currentUserFactory(undefined, context)` directly with a fake `ExecutionContext` and asserts the exact attached value (`toBe` on a `User` fixture), that both context mocks were called once, and the unauthenticated case (`toBeUndefined()`).
-- *Metadata decorators.* Pin the key to its literal (`expect(IS_PUBLIC_KEY).toBe('isPublic')`), apply `Public()` to a throwaway class and a method, read the metadata back with a real `Reflector`, and cover the undecorated case. Read a method target off its descriptor — `Object.getOwnPropertyDescriptor(Class.prototype, 'handler')?.value as () => void` — never `Class.prototype.method`, which trips `@typescript-eslint/unbound-method`.
+- *Parameter decorators.* NestJS keeps the callback of `createParamDecorator` internal. Thus the code **extracts and exports** the factory, and gives `currentUserFactory` to `createParamDecorator` by reference. The spec calls `currentUserFactory(undefined, context)` directly, with a fake `ExecutionContext`. It asserts the exact value that the code attaches (`toBe` on a `User` fixture), that it calls both mocks of the context one time, and the case with no authentication (`toBeUndefined()`).
+- *Metadata decorators.* Assert the literal value of the key (`expect(IS_PUBLIC_KEY).toBe('isPublic')`). Apply `Public()` to a class and to a method that you use for the test only, then read the metadata with a real `Reflector`. Test also the case with no decorator. To get a method, use its descriptor — `Object.getOwnPropertyDescriptor(Class.prototype, 'handler')?.value as () => void`. Do not use `Class.prototype.method`, because it causes the `@typescript-eslint/unbound-method` error.
 
 ---
 
 ## Config, constants and bootstrap
 
-Plain-function modules under `core/infrastructure/config/` and `core/infrastructure/database/` are tested as pure functions. `env-validation.config.spec.ts` is the model: import `'reflect-metadata'` first, build a `validEnv()` arrow returning a complete environment, then assert the happy path, one test per missing/invalid variable, the aggregated multi-error message, and the numeric coercions. It also pins **absences** — that no `DOCKER` variable is required and that leftover removed variables are tolerated as unvalidated extras — which is how a removed feature stays removed.
+The modules of simple functions in `core/infrastructure/config/` and in `core/infrastructure/database/` are tested as pure functions. `env-validation.config.spec.ts` is the model. Import `'reflect-metadata'` first, then make a `validEnv()` arrow that returns a complete environment. Assert the correct case, one test for each absent or incorrect variable, the message that groups several errors, and the changes of a string into a number. The spec also asserts the **absences**: the application needs no `DOCKER` variable, and it accepts a removed variable as an additional value with no validation. Thus a removed feature stays removed.
 
-Constants files get a spec only when the value itself is a contract (e.g. `GITPAAS_CONTROL_PLANE_PROJECTS` must equal `['gitpaas', 'gitpaas-dev']`).
+A file of constants gets a spec only if the value itself is a contract (e.g. `GITPAAS_CONTROL_PLANE_PROJECTS` must be equal to `['gitpaas', 'gitpaas-dev']`).
 
 ---
 
 ## Known inconsistencies — follow the dominant pattern
 
-A handful of older specs diverge. When touching them, prefer the dominant convention; do not propagate the minority one into new specs.
+Some older specs are different. If you change one of these specs, use the dominant convention. Do not copy the minority convention into a new spec.
 
 | Topic | Dominant pattern (use this) | Minority exceptions |
 | --- | --- | --- |
 | SUT variable name | `sut` | `probe` (health probes), `hasher` (`argon2-password-hasher.adapter.spec.ts`), `strategy` (`local.strategy.spec.ts`), `store` (`db-log-store.adapter.spec.ts`) |
-| Mocked collaborator name | `mock`-prefixed | unprefixed `query`, `dataSource`, `client`, `usersRepository`, `deploymentsRepository` in the health-probe, strategy and queue-adapter specs |
+| Mocked collaborator name | with the `mock` prefix | no prefix: `query`, `dataSource`, `client`, `usersRepository`, `deploymentsRepository`, in the health-probe, strategy and queue-adapter specs |
 | Mocked use-case name | `mock<UseCaseName>` | `validateUserUseCaseMock` in `local.strategy.spec.ts` |
-| Spec-local fixture builders | `const` arrow | `function entity(...)` / `function createRepository()` in `db-deployment-queue.adapter.spec.ts` and `db-log-store.adapter.spec.ts` |
-| `jest.clearAllMocks()` first in `beforeEach` | yes | omitted in the health-probe, argon2 and queue-adapter specs |
-| `restoreAllMocks()` when spying | `afterEach` restore | `db-log-store.adapter.spec.ts` spies without an explicit restore |
+| Spec-local fixture builders | `const` arrow | `function entity(...)` and `function createRepository()` in `db-deployment-queue.adapter.spec.ts` and `db-log-store.adapter.spec.ts` |
+| `jest.clearAllMocks()` first in `beforeEach` | yes | absent in the health-probe, argon2 and queue-adapter specs |
+| `restoreAllMocks()` when spying | restore in `afterEach` | `db-log-store.adapter.spec.ts` uses a spy with no explicit restore |
