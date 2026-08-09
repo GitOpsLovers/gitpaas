@@ -1,15 +1,15 @@
 # Infrastructure architecture
 
-This document details the infrastructure on which the GitPaaS application runs.
+This document gives the infrastructure on which the GitPaaS application runs.
 
 ## Overview
 
-GitPaaS runs **entirely on one server**. Two responsibilities still live side by side there:
+GitPaaS runs **fully on one server**. Two responsibilities stay together on that server:
 
-- **Control plane**: GitPaaS itself: the backend and frontend applications, plus a PostgreSQL that holds all durable state — including deployment logs, which are both the live stream's buffer and its history.
-- **Workloads**: the user's deployed applications, run as compose stacks on that same server's Docker daemon.
+- **Control plane**: GitPaaS itself, that is, the backend application and the frontend application, plus a PostgreSQL database that holds all the durable data. This data includes the deployment logs, which are the buffer of the live stream and the history at the same time.
+- **Workloads**: the applications that the user deploys, which run as compose stacks on the Docker daemon of the same server.
 
-The backend drives the **local** Docker daemon through the `/var/run/docker.sock` unix socket — bind-mounted into the backend container in production, and the developer's own socket in development. There is no remote daemon, no TCP endpoint and no mTLS material anywhere in the topology.
+The backend controls the **local** Docker daemon through the `/var/run/docker.sock` unix socket. In production, this socket is bind-mounted into the backend container. In development, the backend uses the socket of the developer. There is no remote daemon, no TCP endpoint and no mTLS material in the topology.
 
 ## Stack
 
@@ -26,14 +26,14 @@ The backend drives the **local** Docker daemon through the `/var/run/docker.sock
 
 ### Development
 
-`iac/development/docker-compose.yml` (project `gitpaas-dev`) stands up the control plane's dependencies. The backend and frontend themselves run **on the host** via `pnpm dev`, pointing at these services on `127.0.0.1`. Every published port binds to loopback only.
+`iac/development/docker-compose.yml` (project `gitpaas-dev`) starts the dependencies of the control plane. The backend and the frontend run **on the host** with `pnpm dev` and point to these services on `127.0.0.1`. Each published port is available only on the loopback interface.
 
 | Service        | Role                                            | Host port |
 |----------------|-------------------------------------------------|-----------|
 | `postgres`     | Control-plane database                          | 5432      |
 | `pgadmin`      | Optional Postgres web UI, server pre-registered | 5050      |
 
-Workloads are **not** emulated: the host-run backend opens `/var/run/docker.sock` directly, so everything GitPaaS deploys locally runs on the developer's own Docker daemon — the same code path as production, with no certificates or extra container to start. The daemon must be running for the Docker-backed endpoints (and the readiness probe) to succeed.
+The workloads are **not** simulated. The backend on the host opens `/var/run/docker.sock` directly. Thus all the applications that GitPaaS deploys locally run on the Docker daemon of the developer. This is the same code path as in production, and it needs no certificates and no additional container. The daemon must run, or the Docker endpoints and the readiness probe cannot operate.
 
 ```text
 host: backend (pnpm dev)  ──unix socket──►  /var/run/docker.sock
@@ -43,29 +43,29 @@ host: backend (pnpm dev)  ──unix socket──►  /var/run/docker.sock
 
 #### Admin seeding
 
-The dev Postgres container starts **empty**. On Backend application boot, TypeORM `synchronize` provisions the full schema and triggers the seeding with the credentials `admin@gitpaas.dev` / `gitpaas`.
+The development Postgres container starts **empty**. When the backend application starts, TypeORM `synchronize` makes the full schema and starts the seeding with the credentials `admin@gitpaas.dev` / `gitpaas`.
 
 ### Production
 
-`iac/production/docker-compose.yml` (project `gitpaas`) brings up `postgres`, `backend`, and `frontend`, with a single named volume (`postgres-data`). The `backend` service bind-mounts the host's `/var/run/docker.sock` so it can drive the server's own Docker daemon, and joins that socket's group via `group_add: ["${DOCKER_GID}"]` because the image runs non-root. Postgres declares a compose healthcheck and the backend gates on it with `depends_on … condition: service_healthy`; the two application images declare their own `HEALTHCHECK`. Only `backend` (`BACKEND_PORT`) and `frontend` (`FRONTEND_PORT`) publish host ports.
+`iac/production/docker-compose.yml` (project `gitpaas`) starts `postgres`, `backend` and `frontend`, with one named volume (`postgres-data`). The `backend` service bind-mounts the `/var/run/docker.sock` socket of the host. Thus it can control the Docker daemon of the server. The image runs as a non-root user. Thus the service becomes a member of the group of that socket with `group_add: ["${DOCKER_GID}"]`. Postgres declares a compose healthcheck, and the backend waits for it with `depends_on … condition: service_healthy`. The two application images declare their own `HEALTHCHECK`. Only `backend` (`BACKEND_PORT`) and `frontend` (`FRONTEND_PORT`) publish host ports.
 
-The stack **intentionally omits a reverse proxy and TLS termination** — fronting deployed apps with a proxy and automatic TLS is Phase 2 of the roadmap.
+The stack has **no reverse proxy and no TLS termination on purpose**. A proxy in front of the deployed applications, with automatic TLS, is Phase 2 of the roadmap.
 
-Both images build from multi-stage Dockerfiles whose **build context is the repo root**, so the workspace lockfile and manifests are available to a pnpm-in-Turborepo install. Node and pnpm are pinned as build args matching `.tool-versions`. Both final images run non-root.
+The two images are built from multi-stage Dockerfiles whose **build context is the repository root**. Thus the workspace lockfile and the manifests are available for an installation with pnpm in Turborepo. The Node version and the pnpm version are build arguments with the values of `.tool-versions`. The two final images run as a non-root user.
 
 | Image                        | Stages                                                                                                  |
 |------------------------------|----------------------------------------------------------------------------------------------------------|
 | `backend.Dockerfile`         | `base` (Node + pnpm) → `build` (install with dev deps, compile, then `pnpm deploy` a prod-only bundle with de-symlinked `node_modules`) → `runtime` (slim, `dist/` + prod deps, `node` user). Healthcheck hits the public `GET /api/v1` via global `fetch`. |
 | `frontend.Dockerfile`        | `base` → `build` (static Angular bundle) → `runtime` (nginx-unprivileged on `8080`). `nginx.conf` adds `/healthz`, an SPA history fallback to `index.html`, one-year immutable caching for content-hashed assets, and gzip. |
 
-`.dockerignore` trims the root context to the workspace manifests, the two app source trees, and `nginx.conf`; `node_modules`, build output, and secrets are always excluded and regenerated inside the build stages.
+`.dockerignore` decreases the root context to the workspace manifests, the source trees of the two applications, and `nginx.conf`. It always removes `node_modules`, the build output and the secrets, which the build stages make again.
 
 ## Conventions
 
-- **Configuration is environment-driven.** `iac/production/.env.example` documents the full contract; the operator copies it to `.env`, which compose auto-loads both for `${…}` interpolation and, via `env_file`, as the backend's runtime configuration. The backend validates every variable at boot and fails fast — no silent fallbacks. A real `.env` is never committed.
-- **Secrets stay out of images.** Every credential arrives at runtime through `.env`; nothing sensitive is baked into a layer.
-- **Docker access is a mount plus a group.** The daemon is reached through the bind-mounted `/var/run/docker.sock`. Because the backend image runs as the non-root `node` user, the service declares `group_add: ["${DOCKER_GID}"]` — the host's docker group id, detected and written to `.env` by the installer — so the container may use the socket. **Mounting the socket grants the backend effective root on the host** — anything that can talk to the daemon can start a privileged container and take over the machine, so compromising the backend (or any account able to deploy through it) is equivalent to compromising the server. Running the container as a non-root user does not change that. It is the accepted trade-off of the single-server model; the mitigation is to dedicate the host to GitPaaS and treat every GitPaaS user as an operator of it.
-- **Version pins live in one place** (`.tool-versions`) and flow into the compose build args and CI.
+- **The environment gives the configuration.** `iac/production/.env.example` gives the full contract. The operator copies it to `.env`. Compose loads `.env` automatically for the `${…}` interpolation and, with `env_file`, as the runtime configuration of the backend. The backend validates each variable at boot and stops immediately if a variable is not correct. There are no silent default values. Do not commit a real `.env` file.
+- **The secrets stay out of the images.** Each credential comes at runtime through `.env`. No sensitive data is put in a layer.
+- **The access to Docker is a mount plus a group.** The daemon is available through the bind-mounted `/var/run/docker.sock` socket. The backend image runs as the non-root `node` user. Thus the service declares `group_add: ["${DOCKER_GID}"]` with the docker group id of the host, which the installer finds and writes to `.env`. Then the container can use the socket. **The mount of the socket gives the backend the equivalent of root access on the host.** Any process that can speak to the daemon can start a privileged container and get control of the machine. Thus an attack on the backend, or on an account that can deploy through the backend, is equal to an attack on the server. A container that runs as a non-root user does not change this. This is the accepted trade-off of the single-server model. To decrease the risk, use the host only for GitPaaS and give the GitPaaS users the trust level of an operator of that host.
+- **The version pins stay in one place** (`.tool-versions`) and go into the compose build arguments and into CI.
 
 ### Environment contract
 
@@ -79,23 +79,23 @@ Both images build from multi-stage Dockerfiles whose **build context is the repo
 | Docker            | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                     |
 | JWT               | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`   |
 
-`DOCKER_GID` is consumed only by compose (and is declared required, so the stack refuses to start without it); every other variable except the `POSTGRES_*` pair is validated by the backend.
+Only compose uses `DOCKER_GID`. This variable is necessary, and the stack does not start without it. The backend validates each other variable, but not the `POSTGRES_*` pair.
 
 ## Installation
 
 ### One-line installer
 
-A fresh server becomes a running GitPaaS control plane with a single command:
+One command changes a new server into a GitPaaS control plane that operates:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
 ```
 
-The installer (`scripts/install.sh`) is a dependency-free POSIX `/bin/sh` script. It fails fast (`set -e`), escalates with `sudo` when not run as root, and is safe to re-run: an existing `.env` is preserved, already-applied migrations are skipped, and the admin seed is idempotent. It requires `curl`, `openssl` (for secret generation), and `tar` on the host.
+The installer (`scripts/install.sh`) is a POSIX `/bin/sh` script with no dependencies. It stops at the first error (`set -e`), it uses `sudo` if the user is not root, and you can run it again safely: it keeps an available `.env`, it does not apply a migration two times, and the admin seeding is idempotent. The host must have `curl`, `openssl` (for the generation of the secrets) and `tar`.
 
 #### Version selection
 
-By default the installer installs `latest`, resolved from the GitHub **latest release** tag, falling back to the newest tag, then to `main` if no releases or tags are reachable (or the API is rate-limited). Pin a specific ref with either a flag or an environment variable:
+By default, the installer installs `latest`. It finds this version from the **latest release** tag on GitHub. If there is no release, it uses the newest tag. If there is no tag or the API has a rate limit, it uses `main`. To select a specified ref, use a flag or an environment variable:
 
 ```sh
 # Flag form
@@ -105,11 +105,11 @@ curl -fsSL …/install.sh | sh -s -- --version v1.0.0
 GITPAAS_VERSION=v1.0.0 sh -c "$(curl -fsSL …/install.sh)"
 ```
 
-Because the source is fetched from GitHub's `codeload` tarball endpoint, `--version` accepts any tag **or** branch name.
+The source comes from the `codeload` tarball endpoint of GitHub. Thus `--version` accepts a tag name **or** a branch name.
 
 #### Options
 
-Every option is a flag with an environment-variable equivalent:
+Each option is a flag and has an equivalent environment variable:
 
 | Flag | Environment variable | Default | Purpose |
 |---|---|---|---|
@@ -119,49 +119,49 @@ Every option is a flag with an environment-variable equivalent:
 
 #### What the installer does
 
-The script runs seven ordered steps:
+The script does seven steps in sequence:
 
-1. **Ensure Docker.** If Docker or the compose plugin is missing, it installs both via the official `get.docker.com` convenience script and enables the daemon.
-2. **Resolve version and fetch source.** It resolves the ref (see above) and downloads the repo tarball from `codeload.github.com` into the install directory. An existing install (a directory that already holds `iac/production/docker-compose.yml`) is reused rather than re-fetched.
-3. **Write `.env`.** It copies `iac/production/.env.example` to `.env` and fills in secure random secrets — a shared `POSTGRES_PASSWORD`/`DB_PASSWORD`, and `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET` (32-byte hex) — sets `NODE_ENV=production`, and points `CORS_ORIGIN` at the host's own address on port `8080`. It also detects the host's docker group id (`getent group docker`, falling back to the socket's owning group) and writes it as `DOCKER_GID`, which compose feeds to the backend's `group_add` so the non-root container can use the socket; the installer aborts with a clear message if that GID cannot be resolved. GitHub App credentials are left as placeholders.
-4. **Start the database only.** It runs `docker compose … up -d postgres` — deliberately *not* a full `up -d` — and polls the `gitpaas-postgres` container's health until it reports `healthy` (up to ~5 minutes). The backend and frontend stay down at this point.
+1. **Make sure that Docker is available.** If Docker or the compose plugin is missing, the script installs the two parts with the official `get.docker.com` convenience script and enables the daemon.
+2. **Find the version and get the source.** The script finds the ref (see above) and downloads the tarball of the repository from `codeload.github.com` into the install directory. If there is an installation already (a directory that has `iac/production/docker-compose.yml`), the script uses it and does not download the source again.
+3. **Write `.env`.** The script copies `iac/production/.env.example` to `.env` and puts secure random secrets in it: one value for `POSTGRES_PASSWORD` and `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`. It sets `NODE_ENV=production` and points `CORS_ORIGIN` to the address of the host on port `8080`. It also finds the docker group id of the host (with `getent group docker`, or from the owning group of the socket) and writes it as `DOCKER_GID`. Compose gives this value to the `group_add` of the backend, and then the non-root container can use the socket. If the script cannot find that GID, it stops with a clear message. The GitHub App credentials stay as placeholders.
+4. **Start only the database.** The script runs `docker compose … up -d postgres` and not a full `up -d`. Then it examines the health of the `gitpaas-postgres` container until the container is `healthy` (for a maximum of approximately 5 minutes). At this step, the backend and the frontend do not run.
 5. **Apply the SQL migrations.** See [Schema bootstrap](#schema-bootstrap).
-6. **Bootstrap the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
-7. **Bring up the application stack.** Only once the schema is current and the admin row exists it runs `docker compose … up -d --build`, which starts the backend, then the frontend, and polls the `gitpaas-backend` container's health until it reports `healthy` (up to ~5 minutes).
+6. **Make the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
+7. **Start the application stack.** Only when the schema is current and the admin row is available, the script runs `docker compose … up -d --build`. This starts the backend and then the frontend, and the script examines the health of the `gitpaas-backend` container until the container is `healthy` (for a maximum of approximately 5 minutes).
 
-On success it prints a summary with the frontend/API URLs, the admin credentials, and the remaining manual follow-ups.
+At the end, the script shows a summary with the frontend URL and the API URL, the admin credentials, and the manual steps that stay.
 
 #### Interactive admin seeding
 
-Once the schema is in place — and **before any application container has ever started** — the installer provisions the **first** administrator directly in the database. If no email was passed via `--email`/`GITPAAS_ADMIN_EMAIL`, it prompts for one on the controlling terminal (`/dev/tty`, because stdin is the piped script itself). It then:
+When the schema is available — and **before the first start of an application container** — the installer makes the **first** administrator directly in the database. If `--email` or `GITPAAS_ADMIN_EMAIL` did not give an email, the script asks for an email on the controlling terminal (`/dev/tty`, because stdin is the piped script). Then it does these steps:
 
-1. **Hashes a generated random alphanumeric password** in a throwaway `alpine` container running the `argon2` CLI, with the parameters that mirror node-argon2's defaults, so the backend's argon2id verifier accepts the encoded string as-is:
+1. **It makes a hash of a random alphanumeric password** in a temporary `alpine` container that runs the `argon2` CLI. The parameters are the same as the defaults of node-argon2. Thus the argon2id verifier of the backend accepts the encoded string without a change:
 
    ```sh
    docker run --rm -e GITPAAS_PW=… -e GITPAAS_SALT=… alpine:3.22 \
      sh -c 'apk add --no-cache argon2 >/dev/null 2>&1 || exit 1; printf %s "$GITPAAS_PW" | argon2 "$GITPAAS_SALT" -id -t 3 -m 16 -p 4 -l 32 -e'
    ```
 
-   The password and a random 16-byte hex salt travel as environment variables (never as arguments, so they stay out of `ps`), and the installer aborts unless the result starts with `$argon2id$v=19$m=65536,t=3,p=4$`.
-2. **Inserts the row** with `INSERT INTO "users" … VALUES (:'email', :'hash', 'admin', true) ON CONFLICT ("email") DO NOTHING`. Email and hash are passed as psql variables (`-v`), so psql — not the shell — quotes them and no value can break out of the statement. `ON CONFLICT` keeps the install re-runnable: an existing admin is left untouched and its password is **not** rotated.
+   The password and a random 16-byte hex salt go as environment variables and never as arguments. Thus they do not show in `ps`. The installer stops if the result does not start with `$argon2id$v=19$m=65536,t=3,p=4$`.
+2. **It adds the row** with `INSERT INTO "users" … VALUES (:'email', :'hash', 'admin', true) ON CONFLICT ("email") DO NOTHING`. The email and the hash go as psql variables (`-v`). Thus psql, and not the shell, puts the quotes, and no value can get out of the statement. `ON CONFLICT` lets you run the installation again: an admin that is already there does not change, and the script does not change its password.
 
-Because the whole bootstrap only talks to Postgres, the backend image is not needed and the application never boots against an admin-less database. The generated password is printed once in the final summary — it is never stored in readable form, so the operator must copy it immediately.
+The full bootstrap speaks only to Postgres. Thus the backend image is not necessary, and the application never starts against a database without an admin. The generated password is shown one time in the final summary. It is never stored in a readable form, and the operator must copy it immediately.
 
 #### Manual follow-ups
 
-The installer stands up a running control plane, but source integration still needs operator input. The summary reminds the operator to, in `iac/production/.env`:
+The installer starts a control plane that operates, but the source integration still needs input from the operator. The summary tells the operator to do this in `iac/production/.env`:
 
-- Fill in the GitHub App credentials: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64-encoded PEM), and `GITHUB_APP_INSTALLATION_ID`.
+- Put in the GitHub App credentials: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (a base64-encoded PEM) and `GITHUB_APP_INSTALLATION_ID`.
 
-After editing `.env`, apply the changes with `docker compose -f <dir>/iac/production/docker-compose.yml up -d`.
+After the change of `.env`, apply the change with `docker compose -f <dir>/iac/production/docker-compose.yml up -d`.
 
-> **Known limitation.** The production frontend image bakes `apiBaseUrl: http://localhost:3000/api/v1` at build time, so opening the UI from a machine **other than** the server currently calls the wrong API host. A future frontend build-arg fix will make the API base configurable at install time.
+> **Known limitation.** The production frontend image contains `apiBaseUrl: http://localhost:3000/api/v1` from the build. Thus, if you open the UI from a machine that is **not** the server, the UI currently calls the incorrect API host. A future build argument for the frontend will make the API base configurable at the installation.
 
 ## Key flows
 
 ### Deployment
 
-A deployment is "bring a service's compose stack up on the server's Docker daemon". The control plane orchestrates it end to end (application-level detail in [backend architecture](./backend-architecture.md)):
+A deployment is "start the compose stack of a service on the Docker daemon of the server". The control plane controls all the steps (for the application-level data, see [backend architecture](./backend-architecture.md)):
 
 ```text
 POST /deployments ─► persist `pending` ─► enqueue (durable, DB-backed)
@@ -177,57 +177,57 @@ POST /deployments ─► persist `pending` ─► enqueue (durable, DB-backed)
                   └─► in-process fan-out ─► SSE to browser
 ```
 
-Infrastructure properties that matter:
+These infrastructure properties are important:
 
-- **Durable queue** — tasks are persisted (at-least-once, bounded retries, dead-lettering, restart recovery), so in-flight deployments survive a control-plane restart. Runs serialize per compose-project name while distinct projects run concurrently.
-- **Local execution over the Docker socket** — the backend talks to the daemon on `/var/run/docker.sock`, so access is governed by the socket mount and its file permissions rather than by network credentials (and, as noted in [Conventions](#conventions), that access is root-equivalent on the host). The same path is used in development and production.
-- **One store for live and historical logs** — captured lines go to a single PostgreSQL table, batched at 100 lines or 250 ms (whichever comes first) and fanned out in-process to SSE subscribers at the same time. A subscriber is served the stored rows first, then the live feed, deduplicated by sequence number, so history is fully replayable after the run ends and a crash loses at most one unflushed batch.
-- **Bounded log growth** — retention is capped two ways: `LOGS_MAX_LINES` per deployment (enforced after every flush) and `LOGS_RETENTION_HOURS` across all deployments. The age sweep is *opportunistic*: it runs when a deployment completes, since the backend ships no scheduler, so an idle control plane never prunes by age.
+- **Durable queue** — the tasks are stored (at-least-once, with a limited number of new attempts, a dead-letter state and a recovery at restart). Thus the deployments in progress stay after a restart of the control plane. The runs of one compose-project name occur one after the other, but different projects run at the same time.
+- **Local execution over the Docker socket** — the backend speaks to the daemon on `/var/run/docker.sock`. Thus the socket mount and its file permissions control the access, and not network credentials. As [Conventions](#conventions) says, this access is equal to root access on the host. Development and production use the same path.
+- **One store for the live logs and the historical logs** — the captured lines go to one PostgreSQL table, in batches of 100 lines or 250 ms (whichever occurs first), and go to the SSE subscribers in the process at the same time. A subscriber first gets the stored rows and then the live feed, with a deduplication by sequence number. Thus the full history is available for a replay after the end of the run, and a crash loses one batch that is not yet written as a maximum.
+- **Limited log growth** — two settings limit the retention: `LOGS_MAX_LINES` for each deployment (applied after each write of a batch) and `LOGS_RETENTION_HOURS` for all the deployments. The age sweep is *opportunistic*: it runs when a deployment completes, because the backend has no scheduler. Thus an idle control plane never removes rows by age.
 
-The same daemon backs the read-only operational features (container and network inspection, pruning, orphan cleanup) and the readiness probe, which checks PostgreSQL and the Docker daemon in parallel.
+The same daemon supports the read-only operational features (the view of the containers and the networks, the removal of unused resources, and the orphan cleanup) and the readiness probe, which examines PostgreSQL and the Docker daemon at the same time.
 
 ### Schema bootstrap
 
-The production schema is owned by **plain SQL files**, not by the application. `iac/production/migrations/*.sql` holds the whole schema, split into numbered files whose lexicographic order is execution order (`001_extensions.sql`, `002_users.sql`, `003_refresh_tokens.sql`, `004_projects_services.sql`, `005_deployments.sql`, `006_logs.sql`, `007_logs_indexes.sql`). Every file is idempotent (`CREATE … IF NOT EXISTS`, foreign keys added inside a `pg_constraint` guard), so applying one twice is a no-op.
+**Plain SQL files** own the production schema, and not the application. `iac/production/migrations/*.sql` holds the full schema in numbered files. The lexicographic order of the names is the order of execution (`001_extensions.sql`, `002_users.sql`, `003_refresh_tokens.sql`, `004_projects_services.sql`, `005_deployments.sql`, `006_logs.sql`, `007_logs_indexes.sql`). Each file is idempotent (`CREATE … IF NOT EXISTS`, and the foreign keys are added in a `pg_constraint` guard). Thus, if you apply a file two times, the second time has no effect.
 
-`scripts/install.sh` applies them in step 5, right after Postgres reports healthy and before the admin seed and the application containers:
+`scripts/install.sh` applies the files in step 5, immediately after Postgres is healthy and before the admin seeding and the application containers:
 
-1. It ensures the ledger table `schema_migrations ("filename" text PRIMARY KEY, "applied_at" timestamptz NOT NULL DEFAULT now())` exists.
-2. It walks the directory in sorted order, skipping every filename already in the ledger.
-3. Each pending file is piped into `docker compose exec -T postgres psql -v ON_ERROR_STOP=1 …` wrapped in a single transaction together with its `INSERT INTO schema_migrations` row, so a failed migration can never be recorded as applied; the installer then aborts naming the offending file.
+1. It makes sure that the ledger table `schema_migrations ("filename" text PRIMARY KEY, "applied_at" timestamptz NOT NULL DEFAULT now())` is available.
+2. It reads the directory in sorted order and does not use the files that are already in the ledger.
+3. It sends each remaining file to `docker compose exec -T postgres psql -v ON_ERROR_STOP=1 …` in one transaction together with its `INSERT INTO schema_migrations` row. Thus a migration that fails cannot be recorded as applied, and the installer stops and gives the name of the file with the error.
 
-The backend therefore ships **no migration machinery at all** — no TypeORM migrations, no CLI DataSource, no `migration:*` scripts, and the compose stack has no `migrate` service. In development and test, TypeORM `synchronize` still builds the schema from the entities. The consequence: because `migration:generate` no longer exists, **every entity change must be mirrored by a hand-written `.sql` file** in `iac/production/migrations/` (same types, defaults and constraint names TypeORM expects) — see that directory's `README.md`.
+Thus the backend has **no migration machinery**: no TypeORM migrations, no CLI DataSource, no `migration:*` scripts, and no `migrate` service in the compose stack. In development and in test, TypeORM `synchronize` continues to make the schema from the entities. As a result, and because `migration:generate` is no longer available, **you must write the same change manually in a `.sql` file** in `iac/production/migrations/`, with the types, the defaults and the constraint names that TypeORM needs. See the `README.md` in that directory.
 
 ### Release and image publishing
 
-`.github/workflows/release.yml` is manually triggered (`workflow_dispatch`) and runs two gated jobs:
+`.github/workflows/release.yml` starts manually (`workflow_dispatch`) and runs two jobs in sequence:
 
-1. **release** — semantic-release (v24, config in `.releaserc.json`, branch `main`) reads the Conventional Commits since the last tag, computes the next version, and creates the git tag plus GitHub Release. It exposes whether a release happened and the resolved version.
-2. **publish** — runs only if a release was cut. With Buildx + QEMU it builds and pushes multi-arch (`linux/amd64,linux/arm64`) backend and frontend images to GHCR, tagged with the exact version and `latest`, with provenance and SBOM attestations.
+1. **release** — semantic-release (v24, with the configuration in `.releaserc.json`, branch `main`) reads the Conventional Commits after the last tag, calculates the next version, and makes the git tag and the GitHub Release. It gives the data if a release occurred and which version it made.
+2. **publish** — this job runs only if the first job made a release. With Buildx and QEMU it builds the backend image and the frontend image for more than one architecture (`linux/amd64,linux/arm64`) and pushes them to GHCR. The tags are the exact version and `latest`, with provenance attestations and SBOM attestations.
 
-Token scopes are least-privilege (`contents`, `packages`, plus issues/PRs for release comments). The resulting images are public:
+The token scopes are the minimum necessary (`contents`, `packages`, plus issues and PRs for the release comments). The images are public:
 
 ```text
 ghcr.io/gitopslovers/gitpaas-backend:{version|latest}
 ghcr.io/gitopslovers/gitpaas-frontend:{version|latest}
 ```
 
-Versioning is entirely commit-driven: `fix:` → patch, `feat:` → minor, breaking change → major.
+The commits control all the versioning: `fix:` gives a patch, `feat:` gives a minor version, and a breaking change gives a major version.
 
 ## Operations
 
 | Task                | How                                                                                          |
 |---------------------|-----------------------------------------------------------------------------------------------|
 | Start dev stack     | `docker compose up -d` from `iac/development/`, then `pnpm dev` at the repo root               |
-| Dev credentials     | The backend seeds `admin@gitpaas.dev` / `gitpaas` on boot (`NODE_ENV=development`) via the shared `seedAdminUseCase`; idempotent, so re-seed by deleting the admin row and restarting — no volume recreation needed. See [Development admin seeding](#development-admin-seeding) |
+| Dev credentials     | The backend makes `admin@gitpaas.dev` / `gitpaas` at boot (`NODE_ENV=development`) with the shared `seedAdminUseCase`. The operation is idempotent, so to make the admin again, delete the admin row and restart. It is not necessary to make the volume again. See [Development admin seeding](#development-admin-seeding) |
 | Dev schema          | Created by TypeORM `synchronize` on backend boot (dev only)                                    |
 | Start prod stack    | `cp .env.example .env`, fill it in, then `docker compose -f iac/production/docker-compose.yml up -d --build` |
 | Install on a server    | `curl -fsSL …/scripts/install.sh | sh` — see [Installation](#installation) |
-| Prod admin seeding  | The installer inserts the first admin straight into Postgres (argon2id hash from a throwaway container) before the backend ever starts; idempotent — see [Interactive admin seeding](#interactive-admin-seeding) |
+| Prod admin seeding  | The installer puts the first admin directly into Postgres (with an argon2id hash from a temporary container) before the first start of the backend. The operation is idempotent — see [Interactive admin seeding](#interactive-admin-seeding) |
 
 ### Not covered yet
 
-- **Reverse proxy, automatic TLS, and domain routing** for deployed apps — Phase 2.
+- **Reverse proxy, automatic TLS, and domain routing** for the deployed applications — Phase 2.
 
 ## Related docs
 

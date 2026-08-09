@@ -1,70 +1,70 @@
 # Backend business logic
 
-The core domain workflows of `apps/backend`, in plain terms. For the architecture behind these patterns, see [backend-architecture.md](./backend-architecture.md).
+This document gives the primary domain workflows of `apps/backend` in simple words. For the architecture behind these patterns, see [backend-architecture.md](./backend-architecture.md).
 
 ## Domain model
 
-A **project** groups **services**. A service is a deployable unit that references a Git repository, a compose file path, and a deployment branch. A **deployment** is a single attempt to bring a service's Docker Compose stack up on the server. A **user** is an operator who authenticates to use the API.
+A **project** is a group of **services**. A service is a unit that you can deploy. It points to a Git repository, to a compose file path and to a deployment branch. A **deployment** is one attempt to start the Docker Compose stack of a service on the server. A **user** is an operator who authenticates to use the API.
 
 ## Access & authentication
 
-The whole API is **private by default**: every endpoint requires a valid access token, except a small set of public ones (login, token refresh, logout, and the readiness probe). There is **no public sign-up** — users are provisioned by an administrator out of band; the app has no create-user flow.
+All the API is **private by default**. Each endpoint needs a valid access token. There are only a small number of public endpoints: the login, the token refresh, the logout and the readiness probe. There is **no public sign-up**. An administrator makes the users with a different tool, because the application has no flow to create a user.
 
-**Login.** A user posts email + password to `POST /api/v1/auth/login`. Passwords are verified against an argon2 hash. On success the API returns a short-lived **access token** and a longer-lived **refresh token**. Login is rate-limited to slow brute-force attempts.
+**Login.** A user sends the email and the password to `POST /api/v1/auth/login`. The API compares the password with an argon2 hash. If the data is correct, the API returns an **access token** with a short life and a **refresh token** with a longer life. The login has a rate limit, which makes a brute-force attack slower.
 
-**Using the API.** Callers send the access token as a Bearer token. Each request re-checks that the user still exists and is **active**, so deactivating a user locks them out immediately rather than at token expiry.
+**Use of the API.** A caller sends the access token as a Bearer token. Each request examines again if the user is available and **active**. Thus, if you deactivate a user, that user has no more access immediately and not at the expiry of the token.
 
-**Refresh with rotation.** When the access token expires, the client exchanges its refresh token at `POST /api/v1/auth/refresh` for a fresh pair. Refresh tokens are stored only as hashes and are **rotated**: each refresh revokes the old token and issues a new one. A token that is reused after rotation (or after logout) is rejected — a replay of a stolen token fails.
+**Refresh with rotation.** When the access token expires, the client sends its refresh token to `POST /api/v1/auth/refresh` and gets a new pair of tokens. The refresh tokens are stored only as hashes, and they are **rotated**: each refresh revokes the old token and gives a new token. If a token is used again after a rotation or after a logout, the API rejects it. Thus a stolen token that is sent again does not operate.
 
-**Logout.** `POST /api/v1/auth/logout` revokes a refresh token; it is idempotent. `GET /api/v1/auth/me` returns the current user's public profile.
+**Logout.** `POST /api/v1/auth/logout` revokes a refresh token. This operation is idempotent. `GET /api/v1/auth/me` returns the public profile of the current user.
 
-> Users carry a role (`admin` / `user`), but role-based restrictions are **not enforced yet** — any authenticated user can currently perform any action.
+> Each user has a role (`admin` or `user`), but the role restrictions are **not enforced yet**. Currently, each authenticated user can do each action.
 
 ## Deployment workflow
 
-The work is long-running, so it splits into a **fast synchronous request** that records intent and a **background run** that does the work. Three features collaborate: `deployments` (trigger, record, lifecycle, execution), `providers` (GitHub: resolve commits, download source), `logs` (persist and stream output).
+The work takes a long time. Thus it is divided into a **quick synchronous request** that records the intention, and a **background run** that does the work. Three features operate together: `deployments` (the trigger, the record, the lifecycle and the execution), `providers` (GitHub: it finds the commits and downloads the source), and `logs` (it keeps and streams the output).
 
-**1. Trigger.** `POST /api/v1/deployments` with only a `serviceId`. Everything else is derived server-side. It means "deploy the current head of this service's branch, now".
+**1. Trigger.** Send `POST /api/v1/deployments` with only a `serviceId`. The server calculates all the other data. The request means "deploy the current head of the branch of this service, now".
 
-**2. Validate + prepare** (create-deployment use case, before persisting):
+**2. Validate and prepare** (the create-deployment use case, before the record is written):
 
-- Service must exist → else `ServiceNotFoundError`.
-- Service must be deployable (has a repository and a deployment branch) → else `ServiceNotDeployableError`.
-- Resolve the branch head commit via `providers`, pinning the deployment to an exact SHA (+ first line of the message).
+- The service must be available. If not, the use case gives a `ServiceNotFoundError`.
+- The service must be deployable (it must have a repository and a deployment branch). If not, the use case gives a `ServiceNotDeployableError`.
+- Find the head commit of the branch with `providers`. Thus the deployment points to an exact SHA (and to the first line of the message).
 
-Then persist a deployment record with status `pending`, capturing the pinned commit, branch, compose path, and trigger.
+Then write a deployment record with the status `pending`, which holds the selected commit, the branch, the compose path and the trigger.
 
-**3. Immediate response.** The record — crucially its **`id`** — returns right away, before any Docker work. Blocking for minutes would risk client/proxy timeouts and give no way to observe progress; instead the client subscribes to the live log stream by that id.
+**3. Immediate response.** The record comes back immediately, before any Docker work. The **`id`** is the most important part of the record. A wait of some minutes can cause a timeout in the client or in a proxy, and it gives no data about the progress. Thus the client uses that id to subscribe to the live log stream.
 
-**4. Background run.** The use case enqueues a run task on the `DeploymentQueue`. The queue is **durable**: each task is persisted as a row in a queue table, not just held in memory, so pending work survives a process restart. A runner in the same feature picks tasks up and runs each one:
+**4. Background run.** The use case puts a run task in the `DeploymentQueue`. The queue is **durable**: each task is a row in a queue table and is not only in the memory. Thus the work that is not complete stays after a restart of the process. A runner in the same feature takes the tasks and runs each one:
 
-1. Mark `running`.
-2. Fetch the repository archive at the pinned commit (gzipped tarball) from `providers`.
-3. Run the Docker executor: extract archive, build local `build:` services, pull registry images, tear down the previous stack, bring the new one up — emitting a line of output per step.
-4. Mark `success` or `failed`.
+1. Set the status to `running`.
+2. Get the repository archive at the selected commit (a gzipped tarball) from `providers`.
+3. Run the Docker executor: extract the archive, build the local `build:` services, pull the registry images, stop the previous stack, and start the new stack. The executor emits one line of output for each step.
+4. Set the status to `success` or to `failed`.
 
-The four-state lifecycle is `pending → running → success | failed`.
+The lifecycle has four states: `pending → running → success | failed`.
 
-**Ordering, retries, and recovery.** Runs for the **same compose project** are serialized so a new deploy never races the previous stack's teardown, while different projects still deploy in parallel. If a run fails unexpectedly, the queue **retries** it up to three attempts; once attempts are exhausted the task is **dead-lettered** and its deployment is marked `failed`, so nothing is left stranded in `pending`. On startup the runner **recovers** any unfinished tasks (interrupted mid-run by a restart) and re-runs them. Business-level failures — a build error, an unreachable daemon — are recorded as a `failed` deployment with its logs, not retried.
+**Order, new attempts and recovery.** The runs for the **same compose project** occur one after the other. Thus a new deployment never occurs at the same time as the removal of the previous stack. But different projects deploy at the same time. If a run has an unexpected failure, the queue **tries it again** to a maximum of three attempts. When there are no more attempts, the task goes to the **dead-letter** state and its deployment gets the status `failed`. Thus nothing stays in the `pending` state. At startup, the runner **recovers** the tasks that are not complete, which a restart stopped during the run, and runs them again. A business failure, such as a build error or a daemon that is not available, becomes a `failed` deployment with its logs and is not tried again.
 
-**5. Logs.** The runner never stores output itself. It fans each executor line to the logs **write port** (`append`) and calls `complete(status)` at the end. Behind the port, `logs` keeps **one** store — the `logs` table — that is both the live buffer and the history:
-- Each line gets the next sequence number for that deployment, is published immediately to in-process subscribers, and is batched into the table (written out at 100 lines or 250 ms, whichever comes first). A crash therefore loses at most the last unflushed batch, not the run.
-- On `complete`, the terminal `end` entry is written **before** it is published, so a subscriber that joins at that moment still finds it and its stream closes instead of hanging on "running".
+**5. Logs.** The runner does not keep the output itself. It sends each executor line to the **write port** of the logs (`append`) and calls `complete(status)` at the end. Behind the port, `logs` keeps **one** store, the `logs` table, which is the live buffer and the history at the same time:
+- Each line gets the next sequence number of that deployment. The store sends the line immediately to the in-process subscribers, and it puts the line in a batch for the table. The store writes the batch after 100 lines or 250 ms, whichever occurs first. Thus a crash loses the last batch that is not yet written as a maximum, and not the full run.
+- At `complete`, the store writes the terminal `end` entry **before** it sends the entry. Thus a subscriber that connects at that moment finds the entry, and its stream closes and does not stay in the "running" state.
 
-Stored output is bounded by two required settings: a per-deployment line cap (`LOGS_MAX_LINES`) trimmed after every flush, and an age window (`LOGS_RETENTION_HOURS`) swept when a deployment completes. The age sweep is opportunistic — there is no scheduler — so a control plane that runs no deployments never prunes by age.
+Two necessary settings limit the stored output: a line cap for each deployment (`LOGS_MAX_LINES`), which is applied after each write of a batch, and an age window (`LOGS_RETENTION_HOURS`), which is applied when a deployment completes. The age sweep is opportunistic, because there is no scheduler. Thus a control plane that runs no deployments never removes rows by age.
 
-**6. Consume.** With the id from step 3:
+**6. Read the output.** Use the id from step 3:
 
-- Live: `GET /api/v1/logs/:deploymentId/stream` (SSE) — replays the deployment's stored lines, then tails live ones (deduplicated by sequence), then delivers the terminal `end` event and closes. Connecting mid-run still shows output from the start, and connecting **after** the run finished replays the whole thing and closes cleanly. Like the rest of the API, the stream requires an access token, so the client must use a token-capable SSE reader (plain `EventSource` cannot send an auth header).
-- Durable: `GET /api/v1/logs?deploymentId=…` — reads the same persisted rows as a flat, ordered list.
+- Live: `GET /api/v1/logs/:deploymentId/stream` (SSE). It replays the stored lines of the deployment, then it gives the live lines (with a deduplication by sequence), then it sends the terminal `end` event and closes. Thus a client that connects during the run also sees the output from the start, and a client that connects **after** the end of the run sees the full replay and a correct close. As for the other parts of the API, the stream needs an access token. Thus the client must use an SSE reader that can send a token, because a plain `EventSource` cannot send an authentication header.
+- Durable: `GET /api/v1/logs?deploymentId=…`. It reads the same stored rows as a flat list in the correct order.
 
-Those two are the feature's whole HTTP surface: `logs` has no CRUD endpoints, because nothing writes log entries except the runner, through the port.
+These two endpoints are all the HTTP surface of the feature. `logs` has no CRUD endpoints, because only the runner writes log entries, and it writes them through the port.
 
 ## Deletion & cleanup
 
-- **Delete a deployment** → its log rows are purged, and the DB cascade removes any remainder.
-- **Delete a service** → tear down its Docker resources (force-remove labeled containers, compose networks, and images built for it, keeping shared pulled images), purge each deployment's log rows, and let the DB cascade remove deployment + log rows.
+- **If you delete a deployment**, the log rows of that deployment are removed, and the DB cascade removes the remaining data.
+- **If you delete a service**, the system removes its Docker resources (it force-removes the containers with the label, the compose networks and the images that were built for it, but it keeps the shared images that were pulled), removes the log rows of each deployment, and lets the DB cascade remove the deployment rows and the log rows.
 
 ## Server maintenance
 
-The `server` feature prunes unused images/volumes/stopped containers on the server and removes orphaned GitPaaS containers whose compose project matches no existing service. It also exposes a public **readiness probe** (`GET /api/v1/server/readiness`) that checks the critical dependencies — PostgreSQL and the Docker daemon.
+The `server` feature removes the unused images, volumes and stopped containers from the server. It also removes the orphan GitPaaS containers whose compose project agrees with no available service. It gives a public **readiness probe** (`GET /api/v1/server/readiness`), which examines the critical dependencies: PostgreSQL and the Docker daemon.

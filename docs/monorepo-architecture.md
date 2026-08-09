@@ -1,12 +1,12 @@
 # Monorepo architecture
 
-Layout and tooling of the GitPaaS repository: a pnpm workspace of two applications orchestrated by Turborepo.
+This document shows the layout and the tools of the GitPaaS repository. The repository is a pnpm workspace with two applications. Turborepo controls the tasks.
 
 ## Overview
 
-The workspace declares `apps/*` and `packages/*`; only `apps/backend` (NestJS API) and `apps/frontend` (Angular SPA) exist today — there are no shared packages. Root scripts fan a task out to every app through Turborepo; each app owns its own toolchain and script implementations.
+The workspace declares `apps/*` and `packages/*`. Today only `apps/backend` (the NestJS API) and `apps/frontend` (the Angular SPA) exist. There are no shared packages. The root scripts send each task to all the applications through Turborepo. Each application keeps its own tools and its own script code.
 
-> `turbo.json` is not committed at the repo root, so `turbo run <task>` runs with no declared pipeline (no task dependencies, inputs, or caching). Use the `turborepo` skill (`.claude/skills/turborepo/`) when adding one.
+> The repository root has no `turbo.json` file. Thus `turbo run <task>` runs with no declared pipeline: no task dependencies, no inputs and no cache. To add a pipeline, use the `turborepo` skill (`.claude/skills/turborepo/`).
 
 ## Stack
 
@@ -43,11 +43,11 @@ The workspace declares `apps/*` and `packages/*`; only `apps/backend` (NestJS AP
 
 ## Conventions
 
-- Workspace packages are named `@gitopslovers/gitpaas/<app>`.
-- Every app exposes the same script names (`dev`, `build`, `lint`, `test`) so root `turbo run <task>` works uniformly.
-- Node and pnpm versions are pinned in one place (`.tool-versions`) and mirrored into `engines`, `packageManager`, and the Docker build args in `iac/production/`.
-- Commits follow Conventional Commits; they drive semantic versioning and the release notes.
-- Runtime dependencies are declared per app, never at the root; the root holds only `turbo` and `typescript`.
+- The name of each workspace package is `@gitopslovers/gitpaas/<app>`.
+- All the applications give the same script names (`dev`, `build`, `lint`, `test`). Thus the root command `turbo run <task>` operates in the same manner for each application.
+- The Node and pnpm versions are set in one place (`.tool-versions`). The same values are copied into `engines`, `packageManager` and the Docker build arguments in `iac/production/`.
+- Commits obey the Conventional Commits rules. The commits control the semantic version and the release notes.
+- Each application declares its own runtime dependencies. The root declares only `turbo` and `typescript`.
 
 ## Operations
 
@@ -59,7 +59,7 @@ The workspace declares `apps/*` and `packages/*`; only `apps/backend` (NestJS AP
 | `test`         | `turbo run test`        |
 | `check-types`  | `turbo run check-types` |
 
-`check-types` has no implementation in either app today.
+Today, no application has an implementation of `check-types`.
 
 | Workflow        | Trigger              | Does                                                                       |
 |-----------------|----------------------|----------------------------------------------------------------------------|

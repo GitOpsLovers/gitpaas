@@ -1,66 +1,68 @@
 # Deployment Roadmap — toward a self-hostable PaaS
 
-This document tracks where GitPaaS's deployment system stands today and the path to
-turning it into a self-hostable Platform-as-a-Service (PaaS). It is a planning document,
-not a specification of current behavior; for how the shipped system works, see
-[backend-architecture.md](./backend-architecture.md), [backend-business.md](./backend-business.md),
+This document gives the current condition of the GitPaaS deployment system and the steps
+to make it a self-hostable Platform-as-a-Service (PaaS). This is a plan and
+not a specification of the current behavior. For the operation of the released system, see
+[backend-architecture.md](./backend-architecture.md), [backend-business.md](./backend-business.md)
 and [frontend-architecture.md](./frontend-architecture.md).
 
 ## Vision
 
-GitPaaS aims to be a **self-hosted PaaS** in the spirit of Vercel, Dokploy, and Coolify:
-a user installs it on their own server and deploys their applications through it. The product
-promise is simple — point GitPaaS at a git repository, and it builds, runs, and exposes
-the app over HTTPS on a domain, all on infrastructure the user owns and controls. There is no
-managed cloud in the middle: GitPaaS and the workloads it runs both live on the user's own
-server.
+The goal of GitPaaS is to be a **self-hosted PaaS**, as Vercel, Dokploy and Coolify are.
+A user installs it on their own server and deploys their applications with it. The promise of
+the product is simple: point GitPaaS at a git repository, and GitPaaS builds the application, runs it
+and makes it available over HTTPS on a domain. All of this occurs on infrastructure that the user
+owns and controls. There is no managed cloud in the middle. GitPaaS and the workloads that it runs
+stay on the user's own server.
 
 ## Current state
 
-GitPaaS is already a **working single-tenant deploy engine**, not merely a data store with
-a job queue. The control plane runs one deployment as a self-contained unit of work — "bring a
-service's compose stack up on the server" — by cloning a GitHub repository at a resolved commit,
-building the repo's `build:` services and pulling the rest, and running the resulting
-`docker-compose` stack on the **local Docker daemon, reached through the `/var/run/docker.sock`
-unix socket**. GitPaaS and the apps it deploys therefore share one machine; this single-server
-model is the same shape Coolify and Dokploy start from.
+GitPaaS is already a **functional single-tenant deploy engine**, and not only a data store with
+a job queue. The control plane runs one deployment as an independent unit of work: "start the compose
+stack of a service on the server". To do this, it clones a GitHub repository at a known commit,
+builds the `build:` services of the repository, pulls the other images, and runs the
+`docker-compose` stack on the **local Docker daemon, which it reaches through the `/var/run/docker.sock`
+unix socket**. Thus GitPaaS and the applications that it deploys use the same machine. Coolify and
+Dokploy start from the same single-server model.
 
-An earlier iteration split the two apart — GitPaaS on one host driving a *remote* Docker daemon
-over TCP with mTLS. That split was removed: the daemon is now always local, the socket is
-bind-mounted into the backend container in production, and no certificate material exists
-anywhere in the topology. Mounting that socket gives the backend effective root on the host,
-which is the security cost of the model (see
-[infrastructure-architecture.md](./infrastructure-architecture.md)). Reaching more than one
-server is not on this roadmap; it would return as a second executor adapter behind the existing
-`DockerExecutor` port.
+An earlier version divided the two parts: GitPaaS on one host controlled a *remote* Docker daemon
+over TCP with mTLS. This division was removed. The daemon is now always local, the socket is
+bind-mounted into the backend container in production, and there is no certificate material in the
+topology. The mount of that socket gives the backend the equivalent of root access on the host,
+and this is the security cost of the model (see
+[infrastructure-architecture.md](./infrastructure-architecture.md)). Access to more than one
+server is not in this roadmap. Such access would come back as a second executor adapter behind the
+current `DockerExecutor` port.
 
-What works end to end today:
+These functions operate fully today:
 
-- **Deploy engine.** A manual trigger resolves the branch's head commit, persists a `pending`
-  deployment, and hands it to the queue. The executor extracts the repository archive, builds
-  and pulls images, tears down the previous stack, and brings the new one up.
-- **Durable deployment queue.** The queue is DB-backed and at-least-once, with bounded retries,
-  dead-lettering after the attempt limit, and restart recovery (in-flight work is re-queued when
-  the control plane restarts). Runs are serialized per compose project while distinct projects
-  run concurrently.
-- **Log streaming.** Deployment output streams live to the browser over Server-Sent Events out of a
-  single PostgreSQL-backed store: lines are batched into the `logs` table and fanned out in-process
-  at the same time, so a finished run's history is replayable in full and a crash loses at most the
-  last unflushed batch. Growth is bounded by a per-deployment line cap and an age window, though
-  the age sweep only runs when a deployment completes.
-- **GitHub App source integration.** Listing repositories and branches, resolving commits, reading
-  file contents, and downloading archives all go through a GitHub App.
-- **Operational tooling.** Readiness probes for PostgreSQL and Docker; image/volume/
-  container pruning and orphan cleanup; read-only container and network inspection.
+- **Deploy engine.** A manual trigger finds the head commit of the branch, writes a `pending`
+  deployment, and sends it to the queue. The executor extracts the repository archive, builds the
+  images and pulls the other images, stops the previous stack, and starts the new stack.
+- **Durable deployment queue.** The queue uses the database and is at-least-once. It has a limited
+  number of new attempts, a dead-letter state after the attempt limit, and a recovery at restart
+  (the work in progress goes into the queue again when the control plane restarts). The runs of one
+  compose project occur one after the other, but different projects run at the same time.
+- **Log streaming.** The deployment output goes live to the browser over Server-Sent Events from
+  one PostgreSQL store. The lines go into the `logs` table in batches and go to the in-process
+  subscribers at the same time. Thus the full history of a completed run is available for a replay,
+  and a crash loses the last batch that is not yet written as a maximum. A line cap for each
+  deployment and an age window limit the growth, but the age sweep runs only when a deployment
+  completes.
+- **GitHub App source integration.** A GitHub App gives the list of the repositories and the
+  branches, finds the commits, reads the file contents, and downloads the archives.
+- **Operational tooling.** There are readiness probes for PostgreSQL and Docker, a function that
+  removes unused images, volumes and containers, a cleanup of the orphan resources, and a read-only
+  view of the containers and the networks.
 - **Authentication.** JWT with Passport, refresh-token rotation, and argon2 password hashing.
-- **Hexagonal architecture.** Each feature is split into `domain` / `application` / `infrastructure`
-  / `ui`, so most missing capabilities can be added as new adapters or new features rather than
-  rewrites.
+- **Hexagonal architecture.** Each feature is divided into `domain` / `application` / `infrastructure`
+  / `ui`. Thus you can add almost all the missing capabilities as new adapters or new features, and
+  a rewrite is not necessary.
 
 ### Reusable building blocks
 
-These existing pieces are the foundation the roadmap builds on. Each is production-shaped and
-intended to be extended, not replaced:
+These available parts are the base of the roadmap. Each part has a production shape and is
+made to be extended and not replaced:
 
 | Building block | What it gives us |
 |---|---|
@@ -74,106 +76,114 @@ intended to be extended, not replaced:
 
 ## Gaps
 
-The capabilities below are what separate today's single-tenant engine from the PaaS goal,
-grouped by priority.
+The capabilities that follow are the difference between the single-tenant engine of today and the
+PaaS goal. They are in groups by priority.
 
 ### Critical
 
-- **Reverse proxy, automatic TLS, and domain routing for deployed apps.** This is the defining
-  PaaS feature and it does not exist. Neither stack runs a proxy: nothing routes traffic to
-  deployed services or issues certificates, and the server's `80`/`443` are unclaimed. This needs
-  a proxy adapter, a domain/route model, and Let's Encrypt automation.
+- **Reverse proxy, automatic TLS and domain routing for the deployed applications.** This is the
+  most important PaaS function, and it is not available. No stack runs a proxy: nothing sends the
+  traffic to the deployed services or gives the certificates, and the ports `80` and `443` of the
+  server are free. This function needs a proxy adapter, a model for the domains and the routes, and
+  automation for Let's Encrypt.
 
 ### High
 
-- **Environment variables and secrets management.** There is no model, UI, or injection path for
-  per-service configuration or secrets. This is table stakes for running real apps.
-- **Multi-tenant ownership and RBAC enforcement.** There is no ownership model: projects,
-  services, and deployments have no owner, `triggeredBy` is hard-coded to `'system'`, and the
-  persisted `role` is never enforced by a guard.
-- **Build-packs / auto-build.** The repository must currently supply a Dockerfile or compose file.
-  Auto-detecting the stack (Nixpacks/buildpacks-style) is a major convenience differentiator.
+- **Environment variables and secrets management.** There is no model, no UI and no injection path
+  for the configuration or the secrets of a service. Real applications need this function.
+- **Multi-tenant ownership and RBAC enforcement.** There is no ownership model: the projects,
+  the services and the deployments have no owner, `triggeredBy` always has the value `'system'`, and
+  no guard enforces the stored `role`.
+- **Build-packs / auto-build.** Currently the repository must give a Dockerfile or a compose file.
+  The automatic detection of the stack (as Nixpacks or buildpacks do) is an important convenience
+  difference.
 
 ### Medium
 
-- **Git webhooks and additional sources.** Deploys are manual and GitHub-App-only. Auto-deploy on
-  push, plus more providers (GitLab/Bitbucket/public git URL/deploy-from-image), broaden reach.
-- **Redeploy and rollback.** Deployment history exists, but there is no action to redeploy a
-  previous commit or roll back a failed rollout.
-- **Scheduled log retention.** The age-based sweep is opportunistic — it runs when a deployment
-  completes — so an idle control plane never prunes old log rows. A scheduler would make retention
-  time-based rather than activity-based.
+- **Git webhooks and more sources.** The deployments are manual and use only the GitHub App. An
+  automatic deployment after a push, plus more providers (GitLab, Bitbucket, a public git URL, or a
+  deployment from an image), make the product available to more users.
+- **Redeploy and rollback.** The deployment history is available, but there is no action to deploy a
+  previous commit again or to go back after a failed rollout.
+- **Scheduled log retention.** The age sweep is opportunistic, because it runs when a deployment
+  completes. Thus an idle control plane never removes the old log rows. A scheduler would make the
+  retention dependent on the time and not on the activity.
 
 ## Phased roadmap
 
-The phases are ordered so each one unlocks the next. Phase 1 makes GitPaaS installable;
-Phase 2 makes the apps it deploys reachable; Phases 3–5 make it a real multi-user product.
+The phases are in the correct sequence, because each phase makes the next phase possible. Phase 1
+makes GitPaaS installable. Phase 2 makes the deployed applications available. Phases 3 to 5 make
+GitPaaS a full multi-user product.
 
 ### Phase 1 — Self-host foundation
 
-**Goal:** a fresh server can be turned into a running GitPaaS control plane with one command.
+**Goal:** one command changes a new server into a GitPaaS control plane that operates.
 
-**Definition of done:** running the install script on a fresh server produces a reachable GitPaaS
-control plane, with the database created via the installer's SQL migrations (no `synchronize`) and an admin account
-seeded — no manual database setup required, and no wiring beyond the host's own Docker socket.
+**Definition of done:** when you run the install script on a new server, you get a GitPaaS control
+plane that you can reach. The installer makes the database with its SQL migrations (there is no
+`synchronize`) and makes an admin account. No manual database setup is necessary, and no
+configuration is necessary but the host's own Docker socket.
 
 ### Phase 2 — Public URLs for deployed apps
 
-**Goal:** an app deployed through GitPaaS is reachable over HTTPS at a domain.
+**Goal:** an application that GitPaaS deploys is available over HTTPS at a domain.
 
 **Work items:**
 
-- Introduce a **reverse proxy** (Traefik or Caddy) as part of the runtime, publishing the server's
-  `80`/`443` ports and fronting both GitPaaS itself and the apps it deploys.
-- Add **automatic TLS** via Let's Encrypt (certificate issuance and renewal handled by the proxy).
-- Add a **domain/route model** so a service can be assigned a domain or subdomain, and generate the
-  proxy routing configuration from it as part of bringing the stack up.
+- Add a **reverse proxy** (Traefik or Caddy) as a part of the runtime. The proxy publishes the ports
+  `80` and `443` of the server and is in front of GitPaaS and of the applications that GitPaaS
+  deploys.
+- Add **automatic TLS** with Let's Encrypt (the proxy gets and renews the certificates).
+- Add a **model for the domains and the routes**. Thus you can give a domain or a subdomain to a
+  service, and the system can make the proxy routing configuration from it when it starts the stack.
 
-**Definition of done:** a user assigns a domain to a deployed service and reaches it over HTTPS,
-with a valid, auto-renewing certificate, at that domain.
+**Definition of done:** a user gives a domain to a deployed service and reaches the service over
+HTTPS at that domain, with a valid certificate that is renewed automatically.
 
 ### Phase 3 — Environment and secrets management
 
-**Goal:** services can be configured with environment variables and secrets, injected at deploy time.
+**Goal:** you can configure a service with environment variables and secrets, which are injected at the deployment.
 
 **Work items:**
 
-- Add a **per-service env-var and secrets model**, with secrets encrypted at rest.
-- **Inject** the resolved values into the compose stack when the executor brings it up.
-- Add **UI** to manage env vars and secrets on the service detail surface.
+- Add a **model for the environment variables and the secrets of each service**, with encrypted
+  secrets in the store.
+- **Inject** the values into the compose stack when the executor starts the stack.
+- Add a **UI** to control the environment variables and the secrets on the service detail screen.
 
-**Definition of done:** a service's configured env vars and secrets are present in its running
-containers on the next deployment, and secret values are stored encrypted and never returned in
-plaintext to the client.
+**Definition of done:** the configured environment variables and secrets of a service are in its
+containers at the next deployment. The secret values are stored with encryption and are never sent
+in plain text to the client.
 
 ### Phase 4 — Multi-tenancy
 
-**Goal:** multiple users can safely share one GitPaaS instance, each owning their own apps.
+**Goal:** more than one user can safely use one GitPaaS installation, and each user owns their own applications.
 
 **Work items:**
 
-- Introduce an **ownership model**: users own projects, and ownership flows down to services and
-  deployments. Scope every query by owner.
-- Replace the hard-coded `triggeredBy: 'system'` with the **authenticated user** who triggered the
+- Add an **ownership model**: a user owns projects, and the ownership goes down to the services and
+  the deployments. Each query must be limited to the owner.
+- Replace the fixed value `triggeredBy: 'system'` with the **authenticated user** who started the
   deployment.
-- **Enforce the already-persisted RBAC** `role` with a guard, and add user provisioning (and,
-  optionally, sign-up).
+- **Enforce the `role` that is already stored** with a guard, and add a function to make users (and,
+  as an option, a sign-up).
 
-**Definition of done:** a non-admin user sees and acts on only their own projects, services, and
-deployments; deployments are attributed to the real user who triggered them; and role restrictions
-are enforced by a guard rather than merely stored.
+**Definition of done:** a user who is not an admin sees and controls only their own projects,
+services and deployments. Each deployment shows the real user who started it. A guard enforces the
+role restrictions, and the roles are not only stored.
 
 ### Phase 5 — Developer experience
 
-**Goal:** deploying feels effortless — push to deploy, no Dockerfile required, easy recovery.
+**Goal:** a deployment is very easy: push to deploy, no Dockerfile is necessary, and the recovery is simple.
 
 **Work items:**
 
-- **Git webhooks** for auto-deploy on push (starting with the existing GitHub App source).
-- **Build-packs** that detect a project's stack and build it without a Dockerfile.
-- **Redeploy and rollback**: redeploy a previous commit and roll back a failed rollout, reusing the
-  existing deployment history.
+- **Git webhooks** for an automatic deployment after a push (first with the available GitHub App
+  source).
+- **Build-packs** that find the stack of a project and build it without a Dockerfile.
+- **Redeploy and rollback**: deploy a previous commit again and go back after a failed rollout, with
+  the available deployment history.
 
-**Definition of done:** pushing to a connected branch triggers a deployment automatically; a repo
-without a Dockerfile can still be deployed via a build-pack; and a user can redeploy or roll back to
-a previous successful deployment from the UI.
+**Definition of done:** a push to a connected branch starts a deployment automatically. A repository
+without a Dockerfile can be deployed with a build-pack. A user can deploy a previous successful
+deployment again or go back to it from the UI.

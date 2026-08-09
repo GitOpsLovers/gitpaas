@@ -1,20 +1,20 @@
-- [] Add root turborepo.json
-- [] Si gestionamos secretos a traves de Docker secret?
-- [] Donde deberiamos hacer el throw error de dominio? Crro que SOLO en servicios.
-- [] El naming de Providers es un poco pobre.
+- [] Add a root `turborepo.json` file.
+- [] Decide if we control the secrets with Docker secrets.
+- [] Decide where we must throw the domain errors. I think that we must throw them ONLY in the services.
+- [] The names of the Providers are not sufficiently clear.
 
 ## Quick wins
 
-- [] Fix `apps/backend/src/features/projects/infrastructure/database/db-projects.repository.ts`: `create()`/`update()` return the raw TypeORM entity typed as `Project` instead of mapping through `toProject`, and they don't load the `services` relation like the read path does — follow `DatabaseServicesRepository`.
-- [] Add unit specs for the DTOs, the only backend layer with zero test coverage even though the docs treat DTOs as the authoritative input contract.
-- [] Remove dead code: `Providers.getFileContent` (no production caller), the `RunDeploymentPayload` type (duplicates the domain `DeploymentRunTask`), and the unused `@nestjs/schedule` dependency.
-- [] Fix adapter naming drift: `dockerode-` vs `docker-` file prefixes, the `providers` feature exposing `@Controller('github')`, and `shared/application/*.use-case.ts` files that are really plain utils.
+- [] Correct `apps/backend/src/features/projects/infrastructure/database/db-projects.repository.ts`. The `create()` and `update()` methods return the raw TypeORM entity with the type `Project` and do not use `toProject` for the mapping. They also do not load the `services` relation, but the read path loads it. Obey `DatabaseServicesRepository`.
+- [] Add unit specs for the DTOs. This is the only backend layer with no test coverage, but the documents say that the DTO is the authoritative input contract.
+- [] Remove the dead code: `Providers.getFileContent` (no caller in production), the `RunDeploymentPayload` type (a duplicate of the domain `DeploymentRunTask`), and the `@nestjs/schedule` dependency, which is not used.
+- [] Correct the incorrect names in the adapters: the `dockerode-` and `docker-` file prefixes are not the same, the `providers` feature gives `@Controller('github')`, and the `shared/application/*.use-case.ts` files are only plain utils.
 
 ## Structural
 
-- [] Seal the `ContainerRuntime` port: `apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts:39` exposes `public getClient(): Docker`, which is not on the port, and `features/deployments/infrastructure/docker/dockerode-docker-executor.adapter.ts` uses it at 5 sites to reach raw dockerode — make it private, as in `github-providers.adapter.ts:146`.
-- [] Give HTTP error translation a single home in the controller, per `docs/backend-architecture.md:158`; it also happens in `containers.service.ts:33`, `networks.service.ts:33` and `deployments.service.ts:83-97`, and only 2 of 10 features have a `domain/errors/` folder.
-- [] De-duplicate the `containers` and `networks` features (line-for-line twins across 5 files each) and the Docker-unavailable→503 block repeated at `containers.controller.ts:29`, `networks.controller.ts:28`, `server.controller.ts:39` and `server.controller.ts:110`.
-- [] Break the `services` ⇄ `deployments` circular module dependency, currently papered over with `forwardRef` in `services.module.ts:20` and `deployments.module.ts:23`.
-- [] Split the two god adapters: `dockerode-docker-executor.adapter.ts` (533 lines; ~7 methods are pure compose-recipe transformation with no I/O) and `db-log-store.adapter.ts` (457 lines; state machine, sequencer, batcher, replay merger, trimmer and retention sweeper in one class).
-- [] Enable TypeScript `strict` in `apps/backend/tsconfig.json` (`noImplicitAny` and `strictBindCallApply` are currently false) — do this last, after the other refactors land.
+- [] Close the `ContainerRuntime` port. `apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts:39` gives `public getClient(): Docker`, which is not a part of the port, and `features/deployments/infrastructure/docker/dockerode-docker-executor.adapter.ts` uses it at 5 locations to get the raw dockerode client. Make the method private, as in `github-providers.adapter.ts:146`.
+- [] Put the translation of the HTTP errors in one location in the controller, as `docs/backend-architecture.md:158` says. The translation also occurs in `containers.service.ts:33`, `networks.service.ts:33` and `deployments.service.ts:83-97`, and only 2 features of 10 have a `domain/errors/` folder.
+- [] Remove the duplication between the `containers` feature and the `networks` feature (5 files each, which are almost identical), and the duplication of the Docker-unavailable→503 block at `containers.controller.ts:29`, `networks.controller.ts:28`, `server.controller.ts:39` and `server.controller.ts:110`.
+- [] Remove the circular module dependency between `services` and `deployments`. Currently, `forwardRef` in `services.module.ts:20` and `deployments.module.ts:23` hides this dependency.
+- [] Divide the two large adapters: `dockerode-docker-executor.adapter.ts` (533 lines, of which approximately 7 methods only do a transformation of the compose recipe and have no I/O) and `db-log-store.adapter.ts` (457 lines, with the state machine, the sequencer, the batcher, the replay merger, the trimmer and the retention sweeper in one class).
+- [] Enable the TypeScript `strict` mode in `apps/backend/tsconfig.json` (`noImplicitAny` and `strictBindCallApply` are `false` now). Do this last, after the other refactors.
