@@ -5,7 +5,13 @@ import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import { LogEvent } from '../../../domain/models/log-event.models';
 import { LogsRepository } from '../../../domain/repositories/logs.repository';
+import { LogBatcher } from '../db-log-batcher';
+import { LogReplayMerger } from '../db-log-replay-merger';
+import { LogRetentionSweeper } from '../db-log-retention-sweeper';
+import { LogSequencer } from '../db-log-sequencer';
 import { DatabaseLogStoreAdapter } from '../db-log-store.adapter';
+import { LogStreamRegistry } from '../db-log-stream-registry';
+import { LogTrimmer } from '../db-log-trimmer';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 
@@ -131,18 +137,24 @@ describe('DatabaseLogStoreAdapter', () => {
     let logger: jest.Mocked<AppLogger>;
 
     /**
-     * Builds a store over the shared fakes, overriding the retention settings
-     * only where a test needs them.
+     * Builds a store over the shared fakes, wiring the collaborators the adapter
+     * composes and overriding the retention settings only where a test needs them.
      */
     const createStore = (retentionHours = 24, maxLines = 5000): DatabaseLogStoreAdapter => {
         const config = {
             getOrThrow: (key: string): number => (key === 'LOGS_RETENTION_HOURS' ? retentionHours : maxLines),
         } as unknown as ConfigService;
 
+        const trimmer = new LogTrimmer(repository, config);
+
         return new DatabaseLogStoreAdapter(
             repository,
             logger,
-            config,
+            new LogStreamRegistry(),
+            new LogSequencer(repository),
+            new LogBatcher(repository, logger, trimmer),
+            new LogReplayMerger(repository),
+            new LogRetentionSweeper(repository, logger, config),
         );
     };
 
