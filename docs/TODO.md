@@ -5,7 +5,6 @@
 
 ## Quick wins
 
-- [] Correct `apps/backend/src/features/projects/infrastructure/database/db-projects.repository.ts`. The `create()` and `update()` methods return the raw TypeORM entity with the type `Project` and do not use `toProject` for the mapping. They also do not load the `services` relation, but the read path loads it. Obey `DatabaseServicesRepository`.
 - [] Add unit specs for the DTOs. This is the only backend layer with no test coverage, but the documents say that the DTO is the authoritative input contract.
 - [] Remove the dead code: `Providers.getFileContent` (no caller in production), the `RunDeploymentPayload` type (a duplicate of the domain `DeploymentRunTask`), and the `@nestjs/schedule` dependency, which is not used.
 - [] Correct the incorrect names in the adapters: the `dockerode-` and `docker-` file prefixes are not the same, the `providers` feature gives `@Controller('github')`, and the `shared/application/*.use-case.ts` files are only plain utils.
