@@ -64,10 +64,10 @@ interface ResolvedBuild {
 }
 
 /**
- * Dockerode Docker executor
+ * Docker executor adapter
  */
 @Injectable()
-export class DockerodeDockerExecutorAdapter implements DockerExecutor {
+export class DockerExecutorAdapter implements DockerExecutor {
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly docker: DockerContainerRuntimeAdapter,
@@ -90,7 +90,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             // rewrites them into plain image services in the recipe.
             const builtImages = await this.buildServices(compose, composeFile, projectName, emit);
 
-            this.logger.log(`Pulling images for project "${projectName}"`, DockerodeDockerExecutorAdapter.name);
+            this.logger.log(`Pulling images for project "${projectName}"`, DockerExecutorAdapter.name);
             emit('▶ Pulling images…');
 
             await this.pullWithProgress(compose, emit, builtImages);
@@ -107,7 +107,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             // so later maintenance operations can be scoped to what GitPaaS owns.
             this.stampLabels(compose, projectName);
 
-            this.logger.log(`Bringing project "${projectName}" up`, DockerodeDockerExecutorAdapter.name);
+            this.logger.log(`Bringing project "${projectName}" up`, DockerExecutorAdapter.name);
             emit('▶ Creating and starting containers…');
 
             const result = (await compose.up()) as { services?: Docker.Container[] };
@@ -164,7 +164,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             const tag = `${projectName}_${name}`;
             const build = this.resolveBuild(service.build, baseDir);
 
-            this.logger.log(`Building service "${name}" as "${tag}"`, DockerodeDockerExecutorAdapter.name);
+            this.logger.log(`Building service "${name}" as "${tag}"`, DockerExecutorAdapter.name);
             emit(`▶ Building ${name} (${tag})…`);
 
             await this.buildImage(build, tag, projectName, emit);
@@ -365,7 +365,7 @@ export class DockerodeDockerExecutorAdapter implements DockerExecutor {
             lines.forEach(emit);
         } catch (error) {
             // Startup logs are best-effort; a failure here must not fail the deploy.
-            this.logger.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerodeDockerExecutorAdapter.name);
+            this.logger.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerExecutorAdapter.name);
         }
     }
 

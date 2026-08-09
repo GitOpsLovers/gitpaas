@@ -5,7 +5,7 @@ import { DbDeploymentQueueTaskEntity } from './infrastructure/database/db-deploy
 import { DatabaseDeploymentQueueAdapter } from './infrastructure/database/db-deployment-queue.adapter';
 import { DbDeploymentEntity } from './infrastructure/database/db-deployment.entity';
 import { DatabaseDeploymentsRepository } from './infrastructure/database/db-deployments.repository';
-import { DockerodeDockerExecutorAdapter } from './infrastructure/docker/dockerode-docker-executor.adapter';
+import { DockerExecutorAdapter } from './infrastructure/docker/docker-executor.adapter';
 import { DeploymentsController } from './ui/controllers/deployments.controller';
 import { DeploymentRunnerService } from './ui/services/deployment-runner.service';
 import { DeploymentsService } from './ui/services/deployments.service';
@@ -29,7 +29,7 @@ import { ServicesModule } from '@features/services/services.module';
         DeploymentsService,
         DatabaseDeploymentsRepository,
         DatabaseDeploymentQueueAdapter,
-        DockerodeDockerExecutorAdapter,
+        DockerExecutorAdapter,
         DeploymentRunnerService,
     ],
     exports: [DatabaseDeploymentsRepository, DatabaseDeploymentQueueAdapter],

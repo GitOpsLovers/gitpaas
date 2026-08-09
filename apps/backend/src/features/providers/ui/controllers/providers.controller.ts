@@ -5,9 +5,9 @@ import { GitRepository } from '../../domain/models/git-repository.models';
 import { ProvidersService } from '../services/providers.service';
 
 /**
- * REST controller for the GitHub integration (`/api/v1/github`).
+ * Providers controller
  */
-@Controller('github')
+@Controller('providers')
 export class ProvidersController {
     constructor(private readonly service: ProvidersService) {}
 

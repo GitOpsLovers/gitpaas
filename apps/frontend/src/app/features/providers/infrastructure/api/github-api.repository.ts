@@ -12,7 +12,7 @@ import { environment } from '@environments/environment';
  * GitHub provider API repository
  */
 export class GithubApiRepository {
-    private readonly url = `${environment.apiBaseUrl}/github`;
+    private readonly url = `${environment.apiBaseUrl}/providers`;
 
     /**
      * Resource with the repositories accessible to the installation
