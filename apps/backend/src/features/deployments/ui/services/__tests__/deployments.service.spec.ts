@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { createDeploymentUseCase } from '../../../application/create-deployment.use-case';
@@ -224,20 +223,18 @@ describe('DeploymentsService', () => {
             await expect(sut.create(triggerDto)).rejects.toThrow(error);
         });
 
-        it('translates a ServiceNotFoundError into a NotFoundException', async () => {
-            mockCreateDeploymentUseCase.mockRejectedValue(new ServiceNotFoundError(serviceId));
+        it('propagates a ServiceNotFoundError raised by the use case unchanged', async () => {
+            const error = new ServiceNotFoundError(serviceId);
+            mockCreateDeploymentUseCase.mockRejectedValue(error);
 
-            await expect(sut.create(triggerDto)).rejects.toThrow(NotFoundException);
-            await expect(sut.create(triggerDto)).rejects.toThrow(`Service ${serviceId} not found`);
+            await expect(sut.create(triggerDto)).rejects.toBe(error);
         });
 
-        it('translates a ServiceNotDeployableError into a BadRequestException', async () => {
-            mockCreateDeploymentUseCase.mockRejectedValue(new ServiceNotDeployableError());
+        it('propagates a ServiceNotDeployableError raised by the use case unchanged', async () => {
+            const error = new ServiceNotDeployableError();
+            mockCreateDeploymentUseCase.mockRejectedValue(error);
 
-            await expect(sut.create(triggerDto)).rejects.toThrow(BadRequestException);
-            await expect(sut.create(triggerDto)).rejects.toThrow(
-                'Service has no repository or deployment branch configured',
-            );
+            await expect(sut.create(triggerDto)).rejects.toBe(error);
         });
     });
 });

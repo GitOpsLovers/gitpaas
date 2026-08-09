@@ -1,7 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
+import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
@@ -144,6 +145,22 @@ describe('DeploymentsController', () => {
             mockDeploymentsService.create.mockRejectedValue(error);
 
             await expect(sut.create(triggerDto)).rejects.toBe(error);
+        });
+
+        it('translates a ServiceNotFoundError into a NotFoundException', async () => {
+            mockDeploymentsService.create.mockRejectedValue(new ServiceNotFoundError(serviceId));
+
+            await expect(sut.create(triggerDto)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.create(triggerDto)).rejects.toThrow(`Service ${serviceId} not found`);
+        });
+
+        it('translates a ServiceNotDeployableError into a BadRequestException', async () => {
+            mockDeploymentsService.create.mockRejectedValue(new ServiceNotDeployableError());
+
+            await expect(sut.create(triggerDto)).rejects.toBeInstanceOf(BadRequestException);
+            await expect(sut.create(triggerDto)).rejects.toThrow(
+                'Service has no repository or deployment branch configured',
+            );
         });
     });
 

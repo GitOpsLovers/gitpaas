@@ -1,9 +1,8 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { loginUseCase } from '../../application/login.use-case';
 import { logoutUseCase } from '../../application/logout.use-case';
 import { refreshUseCase } from '../../application/refresh.use-case';
-import { InvalidRefreshTokenError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../domain/models/auth-tokens.models';
 import type { TokenService } from '../../domain/ports/token-service.port';
 import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
@@ -51,22 +50,17 @@ export class AuthenticationService {
      * @param refreshToken The refresh token presented by the client
      *
      * @returns A freshly issued access + refresh token pair
+     *
+     * @throws {InvalidRefreshTokenError} When the token is invalid, revoked, expired or unknown
+     * @throws {UserInactiveError} When the owning account is deactivated
      */
-    public async refresh(refreshToken: string): Promise<AuthTokens> {
-        try {
-            return await refreshUseCase(
-                this.usersRepository,
-                this.refreshTokensRepository,
-                this.tokenService,
-                refreshToken,
-            );
-        } catch (error) {
-            if (error instanceof InvalidRefreshTokenError || error instanceof UserInactiveError) {
-                throw new UnauthorizedException(error.message);
-            }
-
-            throw error;
-        }
+    public refresh(refreshToken: string): Promise<AuthTokens> {
+        return refreshUseCase(
+            this.usersRepository,
+            this.refreshTokensRepository,
+            this.tokenService,
+            refreshToken,
+        );
     }
 
     /**

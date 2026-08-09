@@ -1,6 +1,7 @@
 import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { ServiceNotFoundError } from '../../../domain/errors/container.errors';
 import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
 import { ContainersController } from '../containers.controller';
@@ -75,11 +76,11 @@ describe('ContainersController', () => {
             expect(result).toEqual([]);
         });
 
-        it('rethrows a NotFoundException raised by the service unchanged', async () => {
-            const original = new NotFoundException(`Service ${serviceId} not found`);
-            mockContainersService.getByService.mockRejectedValue(original);
+        it('translates a ServiceNotFoundError raised by the service into a NotFoundException', async () => {
+            mockContainersService.getByService.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
-            await expect(sut.getByService(serviceId)).rejects.toBe(original);
+            await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.getByService(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
 
         it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {

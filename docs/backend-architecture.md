@@ -159,6 +159,13 @@ The global route prefix is `api/v1`. The listen port comes from `getOrThrow('POR
 
 The `:id` segment connects with `@Param('id', ParseUUIDPipe)`. **The not-found condition is an HTTP concern**: a repository returns `null` and `delete()` returns a `boolean`, and the controller raises `NotFoundException`. The domain never throws an HTTP exception. The domain raises a domain error, and the UI edge changes it.
 
+Each feature declares its domain error classes in `domain/errors/`, in a file with the name pattern `<entity>.errors.ts` (for example, `container.errors.ts`). These classes extend `Error` and contain no HTTP data. Only the controller changes them into a Nest HTTP exception.
+
+Two deviations from this rule are known and intentional:
+
+- The Passport strategies (`features/authentication/infrastructure/passport/jwt.strategy.ts` and `local.strategy.ts`) throw `UnauthorizedException` because the guard runs before any controller method. Thus no controller can do the translation.
+- `features/providers/infrastructure/github/github-providers.adapter.ts` throws `ServiceUnavailableException` because a non-HTTP background worker also uses this adapter, and the error must stay the same for the two consumers.
+
 ### File naming
 
 All the backend files must obey a naming convention. The conventions are as follows:

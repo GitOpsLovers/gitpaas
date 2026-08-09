@@ -1,7 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { getContainersByServiceUseCase } from '../../../application/get-containers-by-service.use-case';
+import { ServiceNotFoundError } from '../../../domain/errors/container.errors';
 import { Container } from '../../../domain/models/container.models';
 import { DockerContainersRepository } from '../../../infrastructure/docker/docker-containers.repository';
 import { ContainersService } from '../containers.service';
@@ -99,17 +100,23 @@ describe('ContainersService', () => {
             expect(result).toEqual([]);
         });
 
-        it('throws NotFoundException when the service does not exist', async () => {
+        it('throws ServiceNotFoundError when the service does not exist', async () => {
             mockServicesRepository.findById.mockResolvedValue(null);
 
-            await expect(sut.getByService(serviceId)).rejects.toThrow(NotFoundException);
+            await expect(sut.getByService(serviceId)).rejects.toThrow(ServiceNotFoundError);
             await expect(sut.getByService(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
+        });
+
+        it('never raises an HTTP exception when the service is missing, leaving that to the controller', async () => {
+            mockServicesRepository.findById.mockResolvedValue(null);
+
+            await expect(sut.getByService(serviceId)).rejects.not.toBeInstanceOf(HttpException);
         });
 
         it('never invokes the use case when the service is missing', async () => {
             mockServicesRepository.findById.mockResolvedValue(null);
 
-            await expect(sut.getByService(serviceId)).rejects.toThrow(NotFoundException);
+            await expect(sut.getByService(serviceId)).rejects.toThrow(ServiceNotFoundError);
             expect(mockGetContainersByServiceUseCase).not.toHaveBeenCalled();
         });
 

@@ -1,5 +1,6 @@
 import { Controller, Get, Inject, NotFoundException, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
+import { ServiceNotFoundError } from '../../domain/errors/container.errors';
 import { Container } from '../../domain/models/container.models';
 import { ContainersService } from '../services/containers.service';
 
@@ -28,7 +29,11 @@ export class ContainersController {
         try {
             return await this.service.getByService(serviceId);
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof ServiceUnavailableException) {
+            if (error instanceof ServiceNotFoundError) {
+                throw new NotFoundException(error.message);
+            }
+
+            if (error instanceof ServiceUnavailableException) {
                 throw error;
             }
 

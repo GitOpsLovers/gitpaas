@@ -1,6 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { getContainersByServiceUseCase } from '../../application/get-containers-by-service.use-case';
+import { ServiceNotFoundError } from '../../domain/errors/container.errors';
 import { Container } from '../../domain/models/container.models';
 import type { ContainersRepository } from '../../domain/repositories/containers.repository';
 import { DockerContainersRepository } from '../../infrastructure/docker/docker-containers.repository';
@@ -26,12 +27,14 @@ export class ContainersService {
      * @param serviceId Service identifier
      *
      * @returns Containers of the service
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
      */
     public async getByService(serviceId: string): Promise<Container[]> {
         const service = await this.servicesRepository.findById(serviceId);
 
         if (!service) {
-            throw new NotFoundException(`Service ${serviceId} not found`);
+            throw new ServiceNotFoundError(serviceId);
         }
 
         return getContainersByServiceUseCase(this.containersRepository, service);
