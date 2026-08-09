@@ -1,0 +1,37 @@
+apps/backend/src/core/domain/ports/container-runtime.port.ts
+  s_b6ef9ae18bdfaf::t_70228ea2405b51 5-6,10-12,112-149
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_b6ef9ae18bdfaf::t_37ea504809769f 10,16-17,52-54,57-58,73,79,85,92,99,107,113,121,131,139,157,167,174,183,197,212,229,246,264,275,287,289,299,312-313,329-331,338-339,346,353,360,377,391,398,406,421,439-440,454,495,519,524
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_b6ef9ae18bdfaf::t_f39898cce31c64 14,16,58,66-72,80,94,120,149,157,246-247,249,266,275,292,296,314,328,337,355,387,389,415,418,475,479,535,537
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_ad94c174a063b2::t_f7cb1ae0e96dc9 2,5,10,26-29,31,46-48,51-58,62-63,67,80-82,87-93,103,111,122,133,139,153-154,162-163,170-171,489-671
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts
+  s_b6ef9ae18bdfaf::t_e392f1c6bb88c0 3,9-10,14-16,111-143
+apps/backend/src/core/domain/models/container-runtime.models.ts
+  s_b6ef9ae18bdfaf::t_89bbc592e835b7 74-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "27c776fb4bb6aa9e13757c92f74770d7ae9edd4e",
+  "prompts": {},
+  "sessions": {
+    "s_ad94c174a063b2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa33dc50f471d7df6",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b6ef9ae18bdfaf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1425fc5b-a6be-48ab-8b49-6d28fd252911",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
