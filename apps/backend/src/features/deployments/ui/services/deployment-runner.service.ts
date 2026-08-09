@@ -8,7 +8,7 @@ import type { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
-import { DockerodeDockerExecutorAdapter } from '../../infrastructure/docker/dockerode-docker-executor.adapter';
+import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-executor.adapter';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
@@ -31,7 +31,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly deploymentsRepository: DeploymentsRepository,
         @Inject(GithubProvidersAdapter)
         private readonly providersRepository: Providers,
-        @Inject(DockerodeDockerExecutorAdapter)
+        @Inject(DockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
         @Inject(DatabaseLogStoreAdapter)
         private readonly logStore: LogStore,

@@ -6,7 +6,7 @@ import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-t
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
 import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/db-deployments.repository';
-import { DockerodeDockerExecutorAdapter } from '../../../infrastructure/docker/dockerode-docker-executor.adapter';
+import { DockerExecutorAdapter } from '../../../infrastructure/docker/docker-executor.adapter';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
@@ -67,7 +67,7 @@ const taskFor = (projectName: string, id: string, deploymentId: string): QueuedD
 describe('DeploymentRunnerService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockProviders: jest.Mocked<GithubProvidersAdapter>;
-    let mockDockerExecutor: jest.Mocked<DockerodeDockerExecutorAdapter>;
+    let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockLogStore: jest.Mocked<DatabaseLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
     let mockQueue: jest.Mocked<DeploymentQueue>;
@@ -79,7 +79,7 @@ describe('DeploymentRunnerService', () => {
 
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockProviders = {} as jest.Mocked<GithubProvidersAdapter>;
-        mockDockerExecutor = {} as jest.Mocked<DockerodeDockerExecutorAdapter>;
+        mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockLogStore = {} as jest.Mocked<DatabaseLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
         mockQueue = {
@@ -97,7 +97,7 @@ describe('DeploymentRunnerService', () => {
                 DeploymentRunnerService,
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: GithubProvidersAdapter, useValue: mockProviders },
-                { provide: DockerodeDockerExecutorAdapter, useValue: mockDockerExecutor },
+                { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: NestLoggerAdapter, useValue: mockLogger },
