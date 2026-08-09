@@ -1,0 +1,31 @@
+apps/backend/src/features/containers/domain/errors/container.errors.ts
+  s_90e8c9110c73db::t_bc0c5e7158ef27 1-13
+apps/backend/src/features/containers/ui/controllers/containers.controller.ts
+  s_90e8c9110c73db::t_e85337fa1113fd 3,32-36
+apps/backend/src/features/containers/ui/services/containers.service.ts
+  s_90e8c9110c73db::t_23012b8a4af113 1,4,30-31,37
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_90e8c9110c73db::t_32be3ee93b34e4 1,78-80,82-89
+apps/backend/src/features/networks/domain/errors/network.errors.ts
+  s_90e8c9110c73db::t_f870b87d39740e 1-13
+apps/backend/src/features/networks/ui/controllers/networks.controller.ts
+  s_90e8c9110c73db::t_3ab83ebd902018 3,32-36
+apps/backend/src/features/networks/ui/services/networks.service.ts
+  s_90e8c9110c73db::t_8b05b3fdc986dc 1,4,30-31,37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "e4353af3e97c77a023bafda9d86b52a3c1b55160",
+  "prompts": {},
+  "sessions": {
+    "s_90e8c9110c73db": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1da2f8d18e39100b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
