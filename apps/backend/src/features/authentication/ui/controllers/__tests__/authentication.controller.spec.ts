@@ -1,7 +1,9 @@
+import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { LoginDto } from '../../../domain/dtos/login.dto';
 import { RefreshDto } from '../../../domain/dtos/refresh.dto';
+import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../../domain/models/auth-tokens.models';
 import { AuthenticatedUser, AuthenticationService } from '../../services/authentication.service';
 import { AuthenticationController } from '../authentication.controller';
@@ -63,6 +65,37 @@ describe('AuthenticationController', () => {
         expect(mockAuthenticationService.refresh).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.refresh).toHaveBeenCalledWith('refresh.jwt.token');
         expect(result).toBe(tokens);
+    });
+
+    it('refresh maps InvalidRefreshTokenError to a 401 UnauthorizedException', async () => {
+        mockAuthenticationService.refresh.mockRejectedValue(new InvalidRefreshTokenError());
+
+        await expect(sut.refresh({ refreshToken: 'bad' } as RefreshDto)).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('refresh keeps the InvalidRefreshTokenError message on the UnauthorizedException', async () => {
+        mockAuthenticationService.refresh.mockRejectedValue(new InvalidRefreshTokenError());
+
+        await expect(sut.refresh({ refreshToken: 'bad' } as RefreshDto)).rejects.toThrow('Invalid refresh token');
+    });
+
+    it('refresh maps UserInactiveError to a 401 UnauthorizedException', async () => {
+        mockAuthenticationService.refresh.mockRejectedValue(new UserInactiveError());
+
+        await expect(sut.refresh({ refreshToken: 'token' } as RefreshDto)).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('refresh keeps the UserInactiveError message on the UnauthorizedException', async () => {
+        mockAuthenticationService.refresh.mockRejectedValue(new UserInactiveError());
+
+        await expect(sut.refresh({ refreshToken: 'token' } as RefreshDto)).rejects.toThrow('User account is inactive');
+    });
+
+    it('refresh rethrows unexpected errors unchanged', async () => {
+        const boom = new Error('database is down');
+        mockAuthenticationService.refresh.mockRejectedValue(boom);
+
+        await expect(sut.refresh({ refreshToken: 'token' } as RefreshDto)).rejects.toBe(boom);
     });
 
     it('logout delegates the raw refresh token to the service', async () => {

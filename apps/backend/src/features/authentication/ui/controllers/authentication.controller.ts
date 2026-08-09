@@ -1,9 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 
 import { LoginDto } from '../../domain/dtos/login.dto';
 import { RefreshDto } from '../../domain/dtos/refresh.dto';
+import { InvalidRefreshTokenError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../domain/models/auth-tokens.models';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
@@ -50,8 +51,16 @@ export class AuthenticationController {
     @Public()
     @Post('refresh')
     @HttpCode(200)
-    public refresh(@Body() refreshDto: RefreshDto): Promise<AuthTokens> {
-        return this.service.refresh(refreshDto.refreshToken);
+    public async refresh(@Body() refreshDto: RefreshDto): Promise<AuthTokens> {
+        try {
+            return await this.service.refresh(refreshDto.refreshToken);
+        } catch (error) {
+            if (error instanceof InvalidRefreshTokenError || error instanceof UserInactiveError) {
+                throw new UnauthorizedException(error.message);
+            }
+
+            throw error;
+        }
     }
 
     /**

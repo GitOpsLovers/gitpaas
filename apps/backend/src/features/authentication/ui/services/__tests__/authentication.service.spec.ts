@@ -1,4 +1,3 @@
-import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { loginUseCase } from '../../../application/login.use-case';
@@ -85,16 +84,18 @@ describe('AuthenticationService', () => {
             expect(result).toBe(tokens);
         });
 
-        it('maps InvalidRefreshTokenError to a 401 UnauthorizedException', async () => {
-            mockRefreshUseCase.mockRejectedValue(new InvalidRefreshTokenError());
+        it('propagates an InvalidRefreshTokenError raised by the use case unchanged', async () => {
+            const error = new InvalidRefreshTokenError();
+            mockRefreshUseCase.mockRejectedValue(error);
 
-            await expect(sut.refresh('bad')).rejects.toBeInstanceOf(UnauthorizedException);
+            await expect(sut.refresh('bad')).rejects.toBe(error);
         });
 
-        it('maps UserInactiveError to a 401 UnauthorizedException', async () => {
-            mockRefreshUseCase.mockRejectedValue(new UserInactiveError());
+        it('propagates a UserInactiveError raised by the use case unchanged', async () => {
+            const error = new UserInactiveError();
+            mockRefreshUseCase.mockRejectedValue(error);
 
-            await expect(sut.refresh('token')).rejects.toBeInstanceOf(UnauthorizedException);
+            await expect(sut.refresh('token')).rejects.toBe(error);
         });
 
         it('rethrows unexpected errors unchanged', async () => {

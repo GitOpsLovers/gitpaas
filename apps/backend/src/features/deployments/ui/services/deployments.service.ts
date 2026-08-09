@@ -1,11 +1,10 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { createDeploymentUseCase } from '../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../application/get-deployments-by-service.use-case';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.models';
 import type { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
@@ -76,26 +75,17 @@ export class DeploymentsService {
      * @param triggerDto Data for triggering the deployment
      *
      * @returns The created deployment record
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
+     * @throws {ServiceNotDeployableError} When the service cannot be deployed
      */
-    public async create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
-        try {
-            return await createDeploymentUseCase(
-                this.repository,
-                this.servicesRepository,
-                this.providersRepository,
-                this.queue,
-                triggerDto,
-            );
-        } catch (error) {
-            if (error instanceof ServiceNotFoundError) {
-                throw new NotFoundException(error.message);
-            }
-
-            if (error instanceof ServiceNotDeployableError) {
-                throw new BadRequestException(error.message);
-            }
-
-            throw error;
-        }
+    public create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+        return createDeploymentUseCase(
+            this.repository,
+            this.servicesRepository,
+            this.providersRepository,
+            this.queue,
+            triggerDto,
+        );
     }
 }
