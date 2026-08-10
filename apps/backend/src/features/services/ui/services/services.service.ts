@@ -16,7 +16,7 @@ import { DockerServiceRuntimeResourcesAdapter } from '../../infrastructure/docke
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 
 /**
  * Services service
@@ -30,7 +30,7 @@ export class ServicesService {
         private readonly deploymentsRepository: DeploymentsRepository,
         @Inject(DockerServiceRuntimeResourcesAdapter)
         private readonly serviceRuntimeResources: ServiceRuntimeResources,
-        @Inject(DatabaseLogStoreAdapter)
+        @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
     ) {}
 

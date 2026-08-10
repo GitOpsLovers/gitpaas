@@ -11,35 +11,20 @@ import { LogEvent } from '../../domain/models/log-event.models';
 export type SequencedLogEvent = { seq: number } & LogEvent;
 
 /**
- * Drops the transport sequence, yielding the domain log event the SSE contract
- * exposes.
- *
- * @param event Sequenced log event
- *
- * @returns Domain log event
- */
-export function toLogEvent(event: SequencedLogEvent): LogEvent {
-    if (event.type === 'end') {
-        return { type: 'end', status: event.status };
-    }
-
-    return { type: 'line', data: event.data };
-}
-
-/**
- * Maps a persisted log entry back into a sequenced log event so replayed rows
- * and live events share one shape.
+ * Maps a persisted log entry into the domain log event the SSE contract
+ * exposes, dropping the stored sequence, which only ordered the rows on the way
+ * out of the database.
  *
  * @param entry Persisted log entry
  *
- * @returns Sequenced log event
+ * @returns Domain log event
  */
-export function toSequencedLogEvent(entry: LogEntry): SequencedLogEvent {
+export function toLogEventFromEntry(entry: LogEntry): LogEvent {
     if (entry.type === 'end') {
-        return { seq: entry.seq, type: 'end', status: entry.status };
+        return { type: 'end', status: entry.status };
     }
 
-    return { seq: entry.seq, type: 'line', data: entry.data };
+    return { type: 'line', data: entry.data };
 }
 
 /**

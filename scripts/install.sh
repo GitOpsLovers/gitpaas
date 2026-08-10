@@ -211,6 +211,16 @@ upsert_env() {
     fi
 }
 
+# Appends the key with a default ONLY when .env does not carry it yet. Unlike
+# upsert_env it never rewrites an existing line, so a value the operator tuned by
+# hand survives a re-run — it exists to backfill keys the backend started
+# requiring after an older installer wrote the file.
+default_env() {
+    if ! $SUDO grep -q "^$1=" "$ENV_FILE" 2>/dev/null; then
+        printf '%s=%s\n' "$1" "$2" | $SUDO tee -a "$ENV_FILE" >/dev/null
+    fi
+}
+
 # The backend container runs as the non-root `node` user, so it can only use the
 # bind-mounted /var/run/docker.sock if it joins the group that owns that socket.
 # Compose does that through `group_add: ["${DOCKER_GID}"]`, so resolve the GID
@@ -242,8 +252,10 @@ generate_env() {
 
     if [ -f "$ENV_FILE" ]; then
         log "$ENV_FILE already exists — keeping it (edit it by hand to change secrets)."
-        # DOCKER_GID is host-specific and must always match this machine.
         upsert_env "DOCKER_GID" "$DOCKER_GID"
+        default_env "REDIS_HOST"     "redis"
+        default_env "REDIS_PORT"     "6379"
+        default_env "REDIS_PASSWORD" ""
         return
     fi
 
@@ -253,6 +265,13 @@ generate_env() {
     db_password="$(rand_password)"
     set_env "POSTGRES_PASSWORD" "$db_password"
     set_env "DB_PASSWORD"       "$db_password"
+    # Redis is the hot store for the live deployment logs. It only listens on the
+    # compose-internal network and runs without `requirepass`, so the password
+    # stays empty — but the key must exist, the backend reads it as optional.
+    upsert_env "REDIS_HOST"     "redis"
+    upsert_env "REDIS_PORT"     "6379"
+    upsert_env "REDIS_PASSWORD" ""
+
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
 

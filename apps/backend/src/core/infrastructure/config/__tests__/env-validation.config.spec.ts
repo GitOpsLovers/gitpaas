@@ -12,6 +12,8 @@ const validEnv = (): Record<string, unknown> => ({
     DB_USER: 'gitpaas',
     DB_PASSWORD: 'secret',
     DB_NAME: 'gitpaas_db',
+    REDIS_HOST: 'localhost',
+    REDIS_PORT: '6379',
     GITHUB_APP_ID: '123',
     GITHUB_APP_PRIVATE_KEY: 'key',
     GITHUB_APP_INSTALLATION_ID: '456',
@@ -20,7 +22,6 @@ const validEnv = (): Record<string, unknown> => ({
     THROTTLE_LIMIT: '100',
     THROTTLE_STREAM_TTL: '60000',
     THROTTLE_STREAM_LIMIT: '1000',
-    LOGS_RETENTION_HOURS: '24',
     LOGS_MAX_LINES: '5000',
     JWT_ACCESS_SECRET: 'access-secret',
     JWT_ACCESS_EXPIRES_IN: '15m',
@@ -90,18 +91,37 @@ describe('validate', () => {
         expect(result.THROTTLE_STREAM_LIMIT).toBe(1000);
     });
 
-    it('coerces the log retention settings to numbers', () => {
+    it('coerces the log settings to numbers', () => {
         const result = validate(validEnv());
 
-        expect(result.LOGS_RETENTION_HOURS).toBe(24);
         expect(result.LOGS_MAX_LINES).toBe(5000);
     });
 
-    it('fails fast when a log retention variable is missing', () => {
+    it('fails fast when a log variable is missing', () => {
         const env = validEnv();
         delete env.LOGS_MAX_LINES;
 
         expect(() => validate(env)).toThrow(/LOGS_MAX_LINES/);
+    });
+
+    it('coerces the Redis port to a number', () => {
+        expect(validate(validEnv()).REDIS_PORT).toBe(6379);
+    });
+
+    it('fails fast when a Redis connection variable is missing', () => {
+        const env = validEnv();
+        delete env.REDIS_HOST;
+
+        expect(() => validate(env)).toThrow(/REDIS_HOST/);
+    });
+
+    it('accepts an absent Redis password, since the server may need none', () => {
+        expect(() => validate(validEnv())).not.toThrow();
+        expect(validate(validEnv()).REDIS_PASSWORD).toBeUndefined();
+    });
+
+    it('keeps a configured Redis password', () => {
+        expect(validate({ ...validEnv(), REDIS_PASSWORD: 'secret' }).REDIS_PASSWORD).toBe('secret');
     });
 
     it('rejects a non-numeric throttle limit', () => {

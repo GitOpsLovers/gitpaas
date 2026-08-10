@@ -13,7 +13,7 @@ import { DockerServiceRuntimeResourcesAdapter } from '../../../infrastructure/do
 import { ServicesService } from '../services.service';
 
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
-import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 
 jest.mock('../../../application/create-service.use-case');
 jest.mock('../../../application/delete-service.use-case');
@@ -53,7 +53,7 @@ describe('ServicesService', () => {
     let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServiceRuntimeResources: jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
-    let mockLogStore: jest.Mocked<DatabaseLogStoreAdapter>;
+    let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let sut: ServicesService;
 
     beforeEach(async () => {
@@ -62,7 +62,7 @@ describe('ServicesService', () => {
         mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServiceRuntimeResources = {} as jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
-        mockLogStore = {} as jest.Mocked<DatabaseLogStoreAdapter>;
+        mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -70,7 +70,7 @@ describe('ServicesService', () => {
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DockerServiceRuntimeResourcesAdapter, useValue: mockServiceRuntimeResources },
-                { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
+                { provide: RedisLogStoreAdapter, useValue: mockLogStore },
             ],
         }).compile();
 

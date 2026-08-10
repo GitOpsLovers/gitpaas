@@ -13,7 +13,7 @@ import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-execut
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import type { Providers } from '@features/providers/domain/ports/providers.port';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
@@ -33,10 +33,10 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly providersRepository: Providers,
         @Inject(DockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
-        @Inject(DatabaseLogStoreAdapter)
+        @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
         @Inject(DatabaseDeploymentQueueAdapter)
-        private readonly queue: DeploymentQueue,
+        private readonly deploymentQueue: DeploymentQueue,
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
     ) {}
@@ -45,14 +45,14 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
      * Subscribes to deployment-run requests when the module starts.
      */
     public async onModuleInit(): Promise<void> {
-        this.subscription = this.queue.dequeued$
+        this.subscription = this.deploymentQueue.dequeued$
             .pipe(
                 groupBy((task) => task.projectName),
                 mergeMap((group) => group.pipe(concatMap((task) => from(this.run(task))))),
             )
             .subscribe();
 
-        await this.queue.recoverPending();
+        await this.deploymentQueue.recoverPending();
     }
 
     /**
@@ -69,7 +69,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
      */
     private async run(task: QueuedDeploymentTask): Promise<void> {
         try {
-            await this.queue.markProcessing(task.id);
+            await this.deploymentQueue.markProcessing(task.id);
 
             await runDeploymentUseCase(
                 this.deploymentsRepository,
@@ -79,10 +79,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                 task,
             );
 
-            await this.queue.markCompleted(task.id);
+            await this.deploymentQueue.markCompleted(task.id);
         } catch (error) {
-            // Last-resort safety net: runDeploymentUseCase handles its own failures,
-            // so this only guards a truly unexpected throw.
             const message = error instanceof Error ? error.message : String(error);
 
             this.logger.error(
@@ -91,7 +89,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                 DeploymentRunnerService.name,
             );
 
-            await this.queue.markFailed(task.id, message);
+            await this.deploymentQueue.markFailed(task.id, message);
         }
     }
 }

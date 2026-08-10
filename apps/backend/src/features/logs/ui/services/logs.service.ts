@@ -6,7 +6,7 @@ import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogEvent } from '../../domain/models/log-event.models';
 import type { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
-import { DatabaseLogStoreAdapter } from '../../infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '../../infrastructure/redis/redis-log-store.adapter';
 import { DatabaseLogsRepository } from '../../infrastructure/database/db-logs.repository';
 
 /**
@@ -17,7 +17,7 @@ export class LogsService {
     constructor(
         @Inject(DatabaseLogsRepository)
         private readonly repository: LogsRepository,
-        @Inject(DatabaseLogStoreAdapter)
+        @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
     ) {}
 

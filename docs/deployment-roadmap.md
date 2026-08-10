@@ -43,12 +43,13 @@ These functions operate fully today:
   number of new attempts, a dead-letter state after the attempt limit, and a recovery at restart
   (the work in progress goes into the queue again when the control plane restarts). The runs of one
   compose project occur one after the other, but different projects run at the same time.
-- **Log streaming.** The deployment output goes live to the browser over Server-Sent Events from
-  one PostgreSQL store. The lines go into the `logs` table in batches and go to the in-process
-  subscribers at the same time. Thus the full history of a completed run is available for a replay,
-  and a crash loses the last batch that is not yet written as a maximum. A line cap for each
-  deployment and an age window limit the growth, but the age sweep runs only when a deployment
-  completes.
+- **Log streaming.** The deployment output goes live to the browser over Server-Sent Events from a
+  store with two tiers: Redis holds the output of a run that is in progress, and PostgreSQL is the
+  archive, which receives the full output one time, when the run ends. A subscriber reads the
+  recorded output and then the live output on one cursor. Thus there is no merge and no
+  deduplication, and the full history of a completed run is available for a replay. A line cap for
+  each deployment limits the size of one log, and the archived rows stay until the deployment is
+  deleted.
 - **GitHub App source integration.** A GitHub App gives the list of the repositories and the
   branches, finds the commits, reads the file contents, and downloads the archives.
 - **Operational tooling.** There are readiness probes for PostgreSQL and Docker, a function that
@@ -105,9 +106,10 @@ PaaS goal. They are in groups by priority.
   deployment from an image), make the product available to more users.
 - **Redeploy and rollback.** The deployment history is available, but there is no action to deploy a
   previous commit again or to go back after a failed rollout.
-- **Scheduled log retention.** The age sweep is opportunistic, because it runs when a deployment
-  completes. Thus an idle control plane never removes the old log rows. A scheduler would make the
-  retention dependent on the time and not on the activity.
+- **Log retention.** There is no age-based deletion: the archived rows of a deployment stay until
+  the deployment is deleted, because the foreign key removes them in a cascade. Only
+  `LOGS_MAX_LINES` limits the size of one log. Thus the table grows with the number of deployments,
+  and a scheduled policy that removes old rows is still necessary.
 
 ## Phased roadmap
 

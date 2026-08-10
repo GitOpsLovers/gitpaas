@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsDefined, IsEnum, IsNotEmpty, IsNumber, IsString, validateSync } from 'class-validator';
+import { IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
 
 /**
  * Runtime environment the application boots into
@@ -49,6 +49,19 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNotEmpty()
     @IsString()
+    public REDIS_HOST!: string;
+
+    @IsDefined()
+    @IsNumber()
+    public REDIS_PORT!: number;
+
+    @IsOptional()
+    @IsString()
+    public REDIS_PASSWORD?: string;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsString()
     public GITHUB_APP_ID!: string;
 
     @IsDefined()
@@ -81,10 +94,6 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNumber()
     public THROTTLE_STREAM_LIMIT!: number;
-
-    @IsDefined()
-    @IsNumber()
-    public LOGS_RETENTION_HOURS!: number;
 
     @IsDefined()
     @IsNumber()

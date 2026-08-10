@@ -13,7 +13,7 @@ import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/
 import { DeploymentsService } from '../deployments.service';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
@@ -81,7 +81,7 @@ describe('DeploymentsService', () => {
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: GithubProvidersAdapter, useValue: mockProviders },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
-                { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
+                { provide: RedisLogStoreAdapter, useValue: mockLogStore },
             ],
         }).compile();
 

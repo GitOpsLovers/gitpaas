@@ -7,9 +7,14 @@
 #
 # - postgres: the application's own database, where GitPaaS persists its
 #             operations (projects, deployments, ...).
+# - redis:    the hot store for the live deployment logs. A run's output lives
+#             in a Redis stream while it lasts; postgres keeps the archive.
 # - pgadmin:  a web UI to inspect and query the local postgres. Reachable at
 #             http://127.0.0.1:5050 (login admin@gitpaas.dev / gitpaas);
 #             the local database server is pre-registered via pgadmin/servers.json.
+# - redisinsight: a web UI to inspect and query the local redis. Reachable at
+#             http://127.0.0.1:5540; the local redis is pre-registered via
+#             redisinsight/databases.json.
 #
 # Paths are relative to this file (iac/development/).
 name: gitpaas-dev
@@ -24,7 +29,7 @@ services:
       POSTGRES_PASSWORD: gitpaas
       POSTGRES_DB: gitpaas_db
     ports:
-      - "127.0.0.1:5432:5432" # backend (on host) connects here
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -33,6 +38,22 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  redis:
+    image: redis:8.2-alpine
+    container_name: gitpaas-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   pgadmin:
     image: elestio/pgadmin:REL-9_16
@@ -48,13 +69,30 @@ services:
     ports:
       - "127.0.0.1:5050:80" # web UI — open http://127.0.0.1:5050
     volumes:
-      # Pre-register the local postgres server (connects to the `postgres` service).
       - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
       postgres:
         condition: service_healthy
 
+  redisinsight:
+    image: redis/redisinsight:3.8.0
+    container_name: gitpaas-redisinsight
+    restart: unless-stopped
+    environment:
+      RI_ACCEPT_TERMS_AND_CONDITIONS: "true"
+      RI_PRE_SETUP_DATABASES_PATH: /pre-setup/databases.json
+    ports:
+      - "127.0.0.1:5540:5540"
+    volumes:
+      - ./redisinsight/databases.json:/pre-setup/databases.json:ro
+      - redisinsight-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres-data:
   pgadmin-data:
+  redis-data:
+  redisinsight-data:

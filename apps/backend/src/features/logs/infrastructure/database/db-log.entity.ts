@@ -6,9 +6,6 @@ import { DbDeploymentEntity } from '@features/deployments/infrastructure/databas
 
 /**
  * Logs database entity
- *
- * The `(deploymentId, seq)` index backs the ordered replay query and the
- * line-cap trim; the `createdAt` index backs the age-based retention sweep.
  */
 @Entity('logs')
 @Index(['deploymentId', 'seq'])
