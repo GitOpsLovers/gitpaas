@@ -1,5 +1,4 @@
 import { mkdtemp, rm } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import { Writable } from 'node:stream';
 
 import * as tar from 'tar';
@@ -19,18 +18,13 @@ jest.mock('tar');
 const mockCompose: { instance: unknown } = { instance: null };
 
 /**
- * The executor keeps every logic-bearing helper private (the class is otherwise
- * pure I/O), so these tests reach the deterministic helpers directly via bracket
- * access rather than driving the full `up()` flow to reach each branch — the
- * class shape (all-private + I/O-bound) justifies the trade-off.
+ * The executor keeps every I/O step private, so these tests reach each step
+ * directly via bracket access rather than driving the full `up()` flow to cover
+ * every branch — the class shape (all-private + I/O-bound) justifies the
+ * trade-off. The recipe transformations it delegates to are covered by
+ * `compose-recipe.transformer.spec.ts`.
  */
 interface ExecutorInternals {
-    toNanoseconds: (value: unknown) => number;
-    normalizeBuildArgs: (args: unknown) => Record<string, string> | undefined;
-    resolveBuild: (build: unknown, baseDir: string) => unknown;
-    recipeServices: (compose: unknown) => Record<string, unknown>;
-    normalizeHealthchecks: (compose: unknown) => void;
-    stampLabels: (compose: unknown, projectName: string) => void;
     buildServices: (
         compose: unknown,
         composeFile: string,
@@ -66,206 +60,6 @@ const executorWithRuntime = (fakeRuntime: unknown): DockerExecutorAdapter => {
 describe('DockerExecutorAdapter', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    describe('toNanoseconds', () => {
-        it('passes a raw number through unchanged (assumed nanoseconds)', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).toNanoseconds(42)).toBe(42);
-        });
-
-        it('returns 0 for a non-string/non-number value', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).toNanoseconds(undefined)).toBe(0);
-        });
-
-        it('parses second and millisecond durations', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).toNanoseconds('5s')).toBe(5e9);
-            expect(internals(sut).toNanoseconds('500ms')).toBe(5e8);
-        });
-
-        it('sums compound durations and parses hours', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).toNanoseconds('1m30s')).toBe(90e9);
-            expect(internals(sut).toNanoseconds('2h')).toBe(7200e9);
-        });
-
-        it('returns 0 for an unparseable string', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).toNanoseconds('abc')).toBe(0);
-        });
-    });
-
-    describe('normalizeBuildArgs', () => {
-        it('returns undefined when no args are given', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).normalizeBuildArgs(undefined)).toBeUndefined();
-        });
-
-        it('parses the list form, splitting on the first "=" and treating a bare key as empty', () => {
-            const sut = executorWithRuntime({});
-
-            const result = internals(sut).normalizeBuildArgs(['KEY=value', 'BARE', 'K=a=b']);
-
-            expect(result).toEqual({ KEY: 'value', BARE: '', K: 'a=b' });
-        });
-
-        it('coerces map-form values to strings', () => {
-            const sut = executorWithRuntime({});
-
-            const result = internals(sut).normalizeBuildArgs({ A: 1, B: true });
-
-            expect(result).toEqual({ A: '1', B: 'true' });
-        });
-    });
-
-    describe('resolveBuild', () => {
-        it('resolves the string shorthand against the base dir with a default Dockerfile', () => {
-            const sut = executorWithRuntime({});
-
-            const result = internals(sut).resolveBuild('app', '/repo');
-
-            expect(result).toEqual({ contextPath: resolve('/repo', 'app'), dockerfile: 'Dockerfile' });
-        });
-
-        it('resolves the object form with context, dockerfile, args and target', () => {
-            const sut = executorWithRuntime({});
-
-            const result = internals(sut).resolveBuild(
-                {
-                    context: 'svc', dockerfile: 'Dockerfile.prod', args: ['X=1'], target: 'prod',
-                },
-                '/repo',
-            );
-
-            expect(result).toEqual({
-                contextPath: resolve('/repo', 'svc'),
-                dockerfile: 'Dockerfile.prod',
-                buildargs: { X: '1' },
-                target: 'prod',
-            });
-        });
-
-        it('defaults the context to the base dir when none is given', () => {
-            const sut = executorWithRuntime({});
-
-            const result = internals(sut).resolveBuild({}, '/repo') as { contextPath: string };
-
-            expect(result.contextPath).toBe(resolve('/repo', '.'));
-        });
-    });
-
-    describe('recipeServices', () => {
-        it('returns the recipe services when present', () => {
-            const sut = executorWithRuntime({});
-            const services = { web: { image: 'nginx' } };
-
-            expect(internals(sut).recipeServices({ recipe: { services } })).toBe(services);
-        });
-
-        it('returns an empty object when the recipe or its services are missing', () => {
-            const sut = executorWithRuntime({});
-
-            expect(internals(sut).recipeServices({})).toEqual({});
-            expect(internals(sut).recipeServices({ recipe: {} })).toEqual({});
-        });
-    });
-
-    describe('normalizeHealthchecks', () => {
-        it('rewrites healthcheck durations to nanoseconds and leaves other services untouched', () => {
-            const sut = executorWithRuntime({});
-            const withCheck = { healthcheck: { interval: '5s', timeout: '2s' } as Record<string, unknown> };
-            const withoutCheck = { image: 'nginx' } as { image: string; healthcheck?: unknown };
-            const compose = { recipe: { services: { a: withCheck, b: withoutCheck } } };
-
-            internals(sut).normalizeHealthchecks(compose);
-
-            expect(withCheck.healthcheck).toEqual({ interval: 5e9, timeout: 2e9, start_period: 0 });
-            expect(withoutCheck.healthcheck).toBeUndefined();
-        });
-    });
-
-    describe('stampLabels', () => {
-        it('stamps the GitPaaS and compose labels on a service with no labels of its own', () => {
-            const sut = executorWithRuntime({});
-            const web = {} as { labels?: unknown };
-            const compose = { recipe: { services: { web } } };
-
-            internals(sut).stampLabels(compose, 'my-project');
-
-            expect(web.labels).toEqual([
-                'io.gitpaas.managed=true',
-                'io.gitpaas.project=my-project',
-                'com.docker.compose.project=my-project',
-                'com.docker.compose.service=web',
-            ]);
-        });
-
-        it('merges into user-declared list-form labels instead of clobbering them', () => {
-            const sut = executorWithRuntime({});
-            const web = { labels: ['traefik.enable=true', 'bare'] } as { labels?: unknown };
-            const compose = { recipe: { services: { web } } };
-
-            internals(sut).stampLabels(compose, 'my-project');
-
-            expect(web.labels).toEqual([
-                'traefik.enable=true',
-                'bare=',
-                'io.gitpaas.managed=true',
-                'io.gitpaas.project=my-project',
-                'com.docker.compose.project=my-project',
-                'com.docker.compose.service=web',
-            ]);
-        });
-
-        it('normalises user-declared map-form labels into the list form the library parses', () => {
-            const sut = executorWithRuntime({});
-            const web = { labels: { 'app.tier': 'edge', 'app.replicas': 2 } } as { labels?: unknown };
-            const compose = { recipe: { services: { web } } };
-
-            internals(sut).stampLabels(compose, 'my-project');
-
-            expect(web.labels).toEqual([
-                'app.tier=edge',
-                'app.replicas=2',
-                'io.gitpaas.managed=true',
-                'io.gitpaas.project=my-project',
-                'com.docker.compose.project=my-project',
-                'com.docker.compose.service=web',
-            ]);
-        });
-
-        it('merges the GitPaaS labels as a map into top-level volumes and networks', () => {
-            const sut = executorWithRuntime({});
-            const compose = {
-                recipe: {
-                    services: {},
-                    volumes: { data: null, cache: { labels: { keep: 'me' } } },
-                    networks: { edge: null },
-                },
-            };
-
-            internals(sut).stampLabels(compose, 'my-project');
-
-            const gitpaas = { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' };
-            expect(compose.recipe.volumes.data).toEqual({ labels: gitpaas });
-            expect(compose.recipe.volumes.cache).toEqual({ labels: { keep: 'me', ...gitpaas } });
-            expect(compose.recipe.networks.edge).toEqual({ labels: gitpaas });
-        });
-
-        it('does nothing when the recipe declares no services, volumes or networks', () => {
-            const sut = executorWithRuntime({});
-
-            expect(() => { internals(sut).stampLabels({ recipe: {} }, 'my-project'); }).not.toThrow();
-            expect(() => { internals(sut).stampLabels({}, 'my-project'); }).not.toThrow();
-        });
     });
 
     describe('buildServices', () => {

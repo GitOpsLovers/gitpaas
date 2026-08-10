@@ -129,21 +129,18 @@ describe('DatabaseLogStoreAdapter', () => {
 
     let repository: FakeRepository;
     let logger: jest.Mocked<AppLogger>;
+    let config: jest.Mocked<Pick<ConfigService, 'getOrThrow'>>;
 
     /**
      * Builds a store over the shared fakes, overriding the retention settings
      * only where a test needs them.
      */
     const createStore = (retentionHours = 24, maxLines = 5000): DatabaseLogStoreAdapter => {
-        const config = {
-            getOrThrow: (key: string): number => (key === 'LOGS_RETENTION_HOURS' ? retentionHours : maxLines),
-        } as unknown as ConfigService;
+        config = {
+            getOrThrow: jest.fn((key: string): number => (key === 'LOGS_RETENTION_HOURS' ? retentionHours : maxLines)),
+        } as unknown as jest.Mocked<Pick<ConfigService, 'getOrThrow'>>;
 
-        return new DatabaseLogStoreAdapter(
-            repository,
-            logger,
-            config,
-        );
+        return new DatabaseLogStoreAdapter(repository, logger, config as unknown as ConfigService);
     };
 
     let store: DatabaseLogStoreAdapter;
@@ -156,6 +153,20 @@ describe('DatabaseLogStoreAdapter', () => {
             debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
         };
         store = createStore();
+    });
+
+    describe('configuration', () => {
+        it('reads the line cap from LOGS_MAX_LINES once, at construction', () => {
+            const reads = config.getOrThrow.mock.calls.filter(([key]) => key === 'LOGS_MAX_LINES');
+
+            expect(reads).toHaveLength(1);
+        });
+
+        it('reads the retention window from LOGS_RETENTION_HOURS once, at construction', () => {
+            const reads = config.getOrThrow.mock.calls.filter(([key]) => key === 'LOGS_RETENTION_HOURS');
+
+            expect(reads).toHaveLength(1);
+        });
     });
 
     describe('batching', () => {
