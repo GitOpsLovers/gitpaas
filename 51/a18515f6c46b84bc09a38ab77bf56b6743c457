@@ -1,0 +1,31 @@
+apps/backend/src/features/logs/infrastructure/database/db-log-batcher.ts
+  s_9f51750477d5bc::t_3369d9db6207a7 6,11-14,16-20,22-35,37-46,48-56,58,60-86,88,90,92-94,96-97,99-116,119-124,126-146,149
+apps/backend/src/features/logs/infrastructure/database/db-log-replay-merger.ts
+  s_9f51750477d5bc::t_ef2f906ddcf2b0 10-11,16-22,24-60,64-78,80-84,86-88,90,93-96
+apps/backend/src/features/logs/infrastructure/database/db-log-retention-sweeper.ts
+  s_9f51750477d5bc::t_0baa5a1b2872ac 8-16,18-24,27-30,32-36
+apps/backend/src/features/logs/infrastructure/database/db-log-sequencer.ts
+  s_9f51750477d5bc::t_c9fd874e39d5b9 6-10,12-16,18-23,25,27,29,31,33
+apps/backend/src/features/logs/infrastructure/database/db-log-store.adapter.ts
+  s_9f51750477d5bc::t_6384d468b12c80 2,9-12,15-17,31-34,48-56,62-66,80-81,87,107-108,115,121,123,136-137,141,152,155,159,174-176
+apps/backend/src/features/logs/infrastructure/database/db-log-stream-registry.ts
+  s_9f51750477d5bc::t_b56cdc9e70d3af 28,30-32,34,36-46,48-55,57-58,60,62-63,65-75,77-86,88-97,99,101-112,114-115
+apps/backend/src/features/logs/infrastructure/database/db-log-trimmer.ts
+  s_9f51750477d5bc::t_8c5fdd252cd047 4,8-12,14-21,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "51a18515f6c46b84bc09a38ab77bf56b6743c457",
+  "prompts": {},
+  "sessions": {
+    "s_9f51750477d5bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aee93915b7ab11264",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
