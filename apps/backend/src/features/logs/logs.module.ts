@@ -1,13 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { LogBatcher } from './infrastructure/database/db-log-batcher';
-import { LogReplayMerger } from './infrastructure/database/db-log-replay-merger';
-import { LogRetentionSweeper } from './infrastructure/database/db-log-retention-sweeper';
-import { LogSequencer } from './infrastructure/database/db-log-sequencer';
 import { DatabaseLogStoreAdapter } from './infrastructure/database/db-log-store.adapter';
-import { LogStreamRegistry } from './infrastructure/database/db-log-stream-registry';
-import { LogTrimmer } from './infrastructure/database/db-log-trimmer';
 import { DbLogEntity } from './infrastructure/database/db-log.entity';
 import { DatabaseLogsRepository } from './infrastructure/database/db-logs.repository';
 import { LogsController } from './ui/controllers/logs.controller';
@@ -28,12 +22,6 @@ import { LogsService } from './ui/services/logs.service';
     providers: [
         LogsService,
         DatabaseLogsRepository,
-        LogStreamRegistry,
-        LogSequencer,
-        LogTrimmer,
-        LogBatcher,
-        LogReplayMerger,
-        LogRetentionSweeper,
         DatabaseLogStoreAdapter,
     ],
     exports: [DatabaseLogStoreAdapter],

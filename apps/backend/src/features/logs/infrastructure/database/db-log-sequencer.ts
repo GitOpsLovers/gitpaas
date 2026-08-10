@@ -1,43 +1,34 @@
-import { Inject, Injectable } from '@nestjs/common';
-
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 
 import { StreamState } from './db-log-stream-registry';
-import { DatabaseLogsRepository } from './db-logs.repository';
 
 /**
- * Sequence authority of a deployment's log stream.
+ * Hands out the next sequence of a deployment's single sequence space, seeding
+ * the counter from the highest stored sequence on first use.
  *
- * Hands out one monotonic counter per deployment, seeded from the highest stored
- * sequence, so persisted rows and live events share a single ordering.
+ * The sequence is the store's only ordering authority: one monotonic counter per
+ * deployment, shared by the persisted rows and the live events.
+ *
+ * @param repository Logs repository
+ * @param streamId Stream identifier
+ * @param state Live state of the stream
+ *
+ * @returns Sequence assigned to the caller's event
  */
-@Injectable()
-export class LogSequencer {
-    constructor(
-        @Inject(DatabaseLogsRepository)
-        private readonly repository: LogsRepository,
-    ) {}
+export async function nextSequence(
+    repository: LogsRepository,
+    streamId: string,
+    state: StreamState,
+): Promise<number> {
+    state.seeded ??= repository.getMaxSeq(streamId);
 
-    /**
-     * Hands out the next sequence of a deployment's single sequence space,
-     * seeding the counter from the highest stored sequence on first use.
-     *
-     * @param streamId Stream identifier
-     * @param state Live state of the stream
-     *
-     * @returns Sequence assigned to the caller's event
-     */
-    public async next(streamId: string, state: StreamState): Promise<number> {
-        state.seeded ??= this.repository.getMaxSeq(streamId);
+    const highest = await state.seeded;
 
-        const highest = await state.seeded;
+    state.nextSeq ??= highest + 1;
 
-        state.nextSeq ??= highest + 1;
+    const seq = state.nextSeq;
 
-        const seq = state.nextSeq;
+    state.nextSeq = seq + 1;
 
-        state.nextSeq = seq + 1;
-
-        return seq;
-    }
+    return seq;
 }

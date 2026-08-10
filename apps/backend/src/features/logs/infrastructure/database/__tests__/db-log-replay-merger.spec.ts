@@ -3,7 +3,7 @@ import { Observable, Subject, Subscription } from 'rxjs';
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import { LogEvent, LogStatus } from '../../../domain/models/log-event.models';
 import { LogsRepository } from '../../../domain/repositories/logs.repository';
-import { LogReplayMerger } from '../db-log-replay-merger';
+import { mergeReplayWithLive } from '../db-log-replay-merger';
 import { SequencedLogEvent } from '../db-log-store.transformer';
 import { StreamState } from '../db-log-stream-registry';
 
@@ -15,7 +15,7 @@ const settle = (): Promise<void> =>
         setImmediate(resolve);
     });
 
-describe('LogReplayMerger', () => {
+describe('mergeReplayWithLive', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
 
     /** Builds a persisted line entry. */
@@ -63,7 +63,6 @@ describe('LogReplayMerger', () => {
     };
 
     let mockLogsRepository: jest.Mocked<Pick<LogsRepository, 'getAllByDeployment'>>;
-    let sut: LogReplayMerger;
 
     /** Subscribes to the merge exactly as the store's cold observable does. */
     const subscribeTo = (state: StreamState): {
@@ -77,7 +76,12 @@ describe('LogReplayMerger', () => {
         let error: unknown;
 
         const subscription = new Observable<LogEvent>(
-            (subscriber) => sut.merge(id, state, subscriber),
+            (subscriber) => mergeReplayWithLive(
+                mockLogsRepository as unknown as LogsRepository,
+                id,
+                state,
+                subscriber,
+            ),
         ).subscribe({
             next: (event) => received.push(event),
             error: (caught: unknown) => { error = caught; },
@@ -93,7 +97,6 @@ describe('LogReplayMerger', () => {
         jest.clearAllMocks();
 
         mockLogsRepository = { getAllByDeployment: jest.fn().mockResolvedValue([]) };
-        sut = new LogReplayMerger(mockLogsRepository as unknown as LogsRepository);
     });
 
     it('reads the stored entries of the requested stream once', async () => {

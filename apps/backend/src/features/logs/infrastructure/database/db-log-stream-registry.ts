@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Subject } from 'rxjs';
 
 import { SequencedLogEvent } from './db-log-store.transformer';
@@ -26,90 +25,93 @@ export interface StreamState {
 }
 
 /**
- * Registry of the per-deployment live state.
+ * Per-deployment live state, present only while a stream is produced or watched.
  *
- * Owns the lifecycle of a stream's in-memory state: it exists from the first
- * producer or subscriber until nothing produces into it and nobody watches it.
+ * Holds the lifecycle of a stream's in-memory state: an entry exists from the
+ * first producer or subscriber until nothing produces into it and nobody
+ * watches it.
  */
-@Injectable()
-export class LogStreamRegistry {
-    /** Per-deployment live state, present only while a stream is produced or watched. */
-    private readonly streams = new Map<string, StreamState>();
+export type StreamRegistry = Map<string, StreamState>;
 
-    /**
-     * Returns the live state for a stream, creating it on first use.
-     *
-     * @param streamId Stream identifier
-     * @param producing Whether the caller is a producer, which pins the state in memory
-     *
-     * @returns Live state of the stream
-     */
-    public acquire(streamId: string, producing = true): StreamState {
-        let state = this.streams.get(streamId);
+/**
+ * Returns the live state for a stream, creating it on first use.
+ *
+ * @param streams Per-deployment live state
+ * @param streamId Stream identifier
+ * @param producing Whether the caller is a producer, which pins the state in memory
+ *
+ * @returns Live state of the stream
+ */
+export function acquireStream(streams: StreamRegistry, streamId: string, producing = true): StreamState {
+    let state = streams.get(streamId);
 
-        if (!state) {
-            state = {
-                events$: new Subject<SequencedLogEvent>(),
-                pending: [],
-                writing: [],
-                writes: Promise.resolve(),
-                producing: false,
-            };
+    if (!state) {
+        state = {
+            events$: new Subject<SequencedLogEvent>(),
+            pending: [],
+            writing: [],
+            writes: Promise.resolve(),
+            producing: false,
+        };
 
-            this.streams.set(streamId, state);
-        }
-
-        state.producing ||= producing;
-
-        return state;
+        streams.set(streamId, state);
     }
 
-    /**
-     * Returns the live state of a stream, if one is held.
-     *
-     * @param streamId Stream identifier
-     *
-     * @returns Live state of the stream, or undefined when none is held
-     */
-    public get(streamId: string): StreamState | undefined {
-        return this.streams.get(streamId);
+    state.producing ||= producing;
+
+    return state;
+}
+
+/**
+ * Returns the live state of a stream, if one is held.
+ *
+ * @param streams Per-deployment live state
+ * @param streamId Stream identifier
+ *
+ * @returns Live state of the stream, or undefined when none is held
+ */
+export function getStream(streams: StreamRegistry, streamId: string): StreamState | undefined {
+    return streams.get(streamId);
+}
+
+/**
+ * Returns every stream currently held, paired with its identifier.
+ *
+ * @param streams Per-deployment live state
+ *
+ * @returns Held streams as `[streamId, state]` pairs
+ */
+export function streamEntries(streams: StreamRegistry): [string, StreamState][] {
+    return [...streams.entries()];
+}
+
+/**
+ * Drops a stream's state, unless another state already replaced it.
+ *
+ * @param streams Per-deployment live state
+ * @param streamId Stream identifier
+ * @param state Live state of the stream
+ */
+export function discardStream(streams: StreamRegistry, streamId: string, state: StreamState): void {
+    if (streams.get(streamId) === state) {
+        streams.delete(streamId);
     }
+}
 
-    /**
-     * Returns every stream currently held, paired with its identifier.
-     *
-     * @returns Held streams as `[streamId, state]` pairs
-     */
-    public entries(): [string, StreamState][] {
-        return [...this.streams.entries()];
-    }
+/**
+ * Drops a stream's state once nothing produces into it and nobody watches it.
+ *
+ * @param streams Per-deployment live state
+ * @param streamId Stream identifier
+ * @param state Live state of the stream
+ */
+export function releaseStream(streams: StreamRegistry, streamId: string, state: StreamState): void {
+    const idle = !state.producing
+        && !state.events$.observed
+        && state.pending.length === 0
+        && state.writing.length === 0;
 
-    /**
-     * Drops a stream's state, unless another state already replaced it.
-     *
-     * @param streamId Stream identifier
-     * @param state Live state of the stream
-     */
-    public discard(streamId: string, state: StreamState): void {
-        if (this.streams.get(streamId) === state) {
-            this.streams.delete(streamId);
-        }
-    }
-
-    /**
-     * Drops a stream's state once nothing produces into it and nobody watches it.
-     *
-     * @param streamId Stream identifier
-     * @param state Live state of the stream
-     */
-    public release(streamId: string, state: StreamState): void {
-        const idle = !state.producing
-            && !state.events$.observed
-            && state.pending.length === 0
-            && state.writing.length === 0;
-
-        if (idle) {
-            this.discard(streamId, state);
-        }
+    if (idle) {
+        discardStream(streams, streamId, state);
     }
 }

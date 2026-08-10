@@ -12,9 +12,9 @@ import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-exe
 import {
     normalizeHealthchecks, recipeServices, resolveBuild, stampLabels,
 } from './compose-recipe.transformer';
+import type { ResolvedBuild } from './compose-recipe.transformer';
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
-import type { ResolvedBuild } from './compose-recipe.transformer';
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
@@ -93,8 +93,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
     }
 
     /**
-     * Extracts a gzipped repository tarball into a directory, stripping the single
-     * top-level `owner-repo-<sha>/` folder GitHub wraps everything in.
+     * Extracts a gzipped repository tarball into a directory
      *
      * @param archive Gzipped tarball bytes
      * @param directory Destination directory

@@ -1,17 +1,20 @@
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 
 import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
 import { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 
-import { LogBatcher } from './db-log-batcher';
-import { LogReplayMerger } from './db-log-replay-merger';
-import { LogRetentionSweeper } from './db-log-retention-sweeper';
-import { LogSequencer } from './db-log-sequencer';
+import { cancelFlush, commitBatch, flushBatch } from './db-log-batcher';
+import { mergeReplayWithLive } from './db-log-replay-merger';
+import { sweepRetention } from './db-log-retention-sweeper';
+import { nextSequence } from './db-log-sequencer';
 import { LOG_STORE_CONTEXT } from './db-log-store.constants';
 import { SequencedLogEvent } from './db-log-store.transformer';
-import { LogStreamRegistry } from './db-log-stream-registry';
+import {
+    acquireStream, discardStream, getStream, releaseStream, StreamRegistry, streamEntries,
+} from './db-log-stream-registry';
 import { DatabaseLogsRepository } from './db-logs.repository';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
@@ -25,10 +28,10 @@ import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adap
  * and has no expiry, while subscribers still see output as it happens.
  *
  * The adapter is the composition point only. Each concern lives in its own
- * collaborator: {@link LogStreamRegistry} owns the per-deployment state,
- * {@link LogSequencer} the ordering, {@link LogBatcher} the durable writes,
- * {@link LogReplayMerger} the replay/live hand-off, and the trimmer plus
- * {@link LogRetentionSweeper} the two retention limits.
+ * module of plain functions: the stream registry keeps the per-deployment state
+ * the adapter owns, the sequencer the ordering, the batcher the durable writes,
+ * the replay merger the replay/live hand-off, and the trimmer plus the retention
+ * sweeper the two retention limits.
  *
  * A subscriber is served *replay then live*: it attaches to the subject first,
  * then reads the deployment's stored rows plus the still-unwritten batch, and
@@ -42,17 +45,25 @@ import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adap
  */
 @Injectable()
 export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
+    /** Per-deployment live state, present only while a stream is produced or watched. */
+    private readonly streams: StreamRegistry = new Map();
+
+    /** Upper bound on stored entries per deployment; older ones are dropped. */
+    private readonly maxLines: number;
+
+    /** Age after which stored log entries are dropped. */
+    private readonly retentionHours: number;
+
     constructor(
         @Inject(DatabaseLogsRepository)
         private readonly repository: LogsRepository,
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
-        private readonly streams: LogStreamRegistry,
-        private readonly sequencer: LogSequencer,
-        private readonly batcher: LogBatcher,
-        private readonly merger: LogReplayMerger,
-        private readonly sweeper: LogRetentionSweeper,
-    ) {}
+        config: ConfigService,
+    ) {
+        this.maxLines = config.getOrThrow<number>('LOGS_MAX_LINES');
+        this.retentionHours = config.getOrThrow<number>('LOGS_RETENTION_HOURS');
+    }
 
     /**
      * Append a captured log line: batch it for the database and publish it live.
@@ -66,14 +77,14 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
      */
     public async append(streamId: string, line: string): Promise<void> {
         try {
-            const state = this.streams.acquire(streamId);
-            const seq = await this.sequencer.next(streamId, state);
+            const state = acquireStream(this.streams, streamId);
+            const seq = await nextSequence(this.repository, streamId, state);
             const event: SequencedLogEvent = { seq, type: 'line', data: line };
 
             state.pending.push(event);
             state.events$.next(event);
 
-            await this.batcher.commit(streamId, state);
+            await commitBatch(this.repository, this.logger, this.maxLines, streamId, state);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
 
@@ -93,23 +104,23 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
      * @param status Terminal status of the stream
      */
     public async complete(streamId: string, status: LogStatus): Promise<void> {
-        const state = this.streams.acquire(streamId);
-        const seq = await this.sequencer.next(streamId, state);
+        const state = acquireStream(this.streams, streamId);
+        const seq = await nextSequence(this.repository, streamId, state);
         const event: SequencedLogEvent = { seq, type: 'end', status };
 
         state.pending.push(event);
 
         // Persist before publishing: a subscriber that joins in between still
         // finds the terminal entry in its replay, so it can never hang.
-        await this.batcher.flush(streamId, state);
+        await flushBatch(this.repository, this.logger, this.maxLines, streamId, state);
 
         state.producing = false;
         state.events$.next(event);
         state.events$.complete();
 
-        this.streams.discard(streamId, state);
+        discardStream(this.streams, streamId, state);
 
-        await this.sweeper.sweep();
+        await sweepRetention(this.repository, this.logger, this.retentionHours);
     }
 
     /**
@@ -122,12 +133,12 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
      */
     public stream(streamId: string): Observable<LogEvent> {
         return new Observable<LogEvent>((subscriber) => {
-            const state = this.streams.acquire(streamId, false);
-            const detach = this.merger.merge(streamId, state, subscriber);
+            const state = acquireStream(this.streams, streamId, false);
+            const detach = mergeReplayWithLive(this.repository, streamId, state, subscriber);
 
             return () => {
                 detach();
-                this.streams.release(streamId, state);
+                releaseStream(this.streams, streamId, state);
             };
         });
     }
@@ -138,14 +149,14 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
      * @param streamId Stream identifier
      */
     public async purge(streamId: string): Promise<void> {
-        const state = this.streams.get(streamId);
+        const state = getStream(this.streams, streamId);
 
         if (state) {
-            this.batcher.cancel(state);
+            cancelFlush(state);
             state.pending.length = 0;
             state.producing = false;
             state.events$.complete();
-            this.streams.discard(streamId, state);
+            discardStream(this.streams, streamId, state);
 
             // Let any write already handed to the database settle, so it cannot
             // re-insert rows behind the delete.
@@ -160,7 +171,9 @@ export class DatabaseLogStoreAdapter implements LogStore, OnModuleDestroy {
      * stop loses nothing.
      */
     public async onModuleDestroy(): Promise<void> {
-        const flushes = this.streams.entries().map(([streamId, state]) => this.batcher.flush(streamId, state));
+        const flushes = streamEntries(this.streams).map(
+            ([streamId, state]) => flushBatch(this.repository, this.logger, this.maxLines, streamId, state),
+        );
 
         await Promise.all(flushes);
     }

@@ -2,13 +2,15 @@ import { Subject } from 'rxjs';
 
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { LogsRepository } from '../../../domain/repositories/logs.repository';
-import { LogBatcher } from '../db-log-batcher';
+import { cancelFlush, commitBatch, flushBatch } from '../db-log-batcher';
 import { BATCH_SIZE, LOG_STORE_CONTEXT } from '../db-log-store.constants';
 import { SequencedLogEvent } from '../db-log-store.transformer';
 import { StreamState } from '../db-log-stream-registry';
-import { LogTrimmer } from '../db-log-trimmer';
+import { trimStream } from '../db-log-trimmer';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
+
+jest.mock('../db-log-trimmer', () => ({ trimStream: jest.fn() }));
 
 /** Resolves after pending microtasks, letting the queued write settle. */
 const settle = (): Promise<void> =>
@@ -26,6 +28,9 @@ const wait = (ms: number): Promise<void> =>
 
 describe('LogBatcher', () => {
     const id = '9c858901-8a57-4791-81fe-4c455b099bc9';
+
+    /** Per-deployment line cap handed to the batcher under test. */
+    const maxLines = 5000;
 
     /** Builds a sequenced line event. */
     const lineEvent = (seq: number): SequencedLogEvent => ({ seq, type: 'line', data: `line ${seq}` });
@@ -45,10 +50,19 @@ describe('LogBatcher', () => {
         pending: Array.from({ length: count }, (_value, index) => lineEvent(index + 1)),
     });
 
+    const mockTrimStream = trimStream as jest.MockedFunction<typeof trimStream>;
+
     let mockLogsRepository: jest.Mocked<Pick<LogsRepository, 'createMany'>>;
     let mockLogger: jest.Mocked<AppLogger>;
-    let mockTrimmer: jest.Mocked<Pick<LogTrimmer, 'trim'>>;
-    let sut: LogBatcher;
+    let repository: LogsRepository;
+
+    /** Applies the batching policy over the shared fakes. */
+    const commit = (streamId: string, state: StreamState): Promise<void> =>
+        commitBatch(repository, mockLogger, maxLines, streamId, state);
+
+    /** Writes the buffered batch out over the shared fakes. */
+    const flush = (streamId: string, state: StreamState): Promise<void> =>
+        flushBatch(repository, mockLogger, maxLines, streamId, state);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -57,19 +71,15 @@ describe('LogBatcher', () => {
         mockLogger = {
             debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
         };
-        mockTrimmer = { trim: jest.fn().mockResolvedValue(undefined) };
-        sut = new LogBatcher(
-            mockLogsRepository as unknown as LogsRepository,
-            mockLogger,
-            mockTrimmer as unknown as LogTrimmer,
-        );
+        mockTrimStream.mockResolvedValue(undefined);
+        repository = mockLogsRepository as unknown as LogsRepository;
     });
 
     describe('commit', () => {
         it('buffers a partial batch instead of writing a row per line', async () => {
             const state = bufferedState(2);
 
-            await sut.commit(id, state);
+            await commit(id, state);
 
             expect(mockLogsRepository.createMany).not.toHaveBeenCalled();
             expect(state.pending).toHaveLength(2);
@@ -78,32 +88,32 @@ describe('LogBatcher', () => {
         it('arms the time-based flush for a partial batch', async () => {
             const state = bufferedState(1);
 
-            await sut.commit(id, state);
+            await commit(id, state);
 
             expect(state.timer).toBeDefined();
 
-            sut.cancel(state);
+            cancelFlush(state);
         });
 
         it('never re-arms the timer while one is already pending', async () => {
             const state = bufferedState(1);
 
-            await sut.commit(id, state);
+            await commit(id, state);
 
             const armed = state.timer;
 
             state.pending.push(lineEvent(2));
-            await sut.commit(id, state);
+            await commit(id, state);
 
             expect(state.timer).toBe(armed);
 
-            sut.cancel(state);
+            cancelFlush(state);
         });
 
         it('writes the batch out as soon as it reaches the size limit', async () => {
             const state = bufferedState(BATCH_SIZE);
 
-            await sut.commit(id, state);
+            await commit(id, state);
             await settle();
 
             expect(mockLogsRepository.createMany).toHaveBeenCalledTimes(1);
@@ -114,7 +124,7 @@ describe('LogBatcher', () => {
         it('never arms a timer when it writes the full batch', async () => {
             const state = bufferedState(BATCH_SIZE);
 
-            await sut.commit(id, state);
+            await commit(id, state);
 
             expect(state.timer).toBeUndefined();
         });
@@ -122,7 +132,7 @@ describe('LogBatcher', () => {
         it('writes the batch out once the flush interval elapses', async () => {
             const state = bufferedState(1);
 
-            await sut.commit(id, state);
+            await commit(id, state);
 
             expect(mockLogsRepository.createMany).not.toHaveBeenCalled();
 
@@ -139,7 +149,7 @@ describe('LogBatcher', () => {
                 pending: [{ seq: 1, type: 'line', data: 'line 1' }, { seq: 2, type: 'end', status: 'failed' }],
             });
 
-            await sut.flush(id, state);
+            await flush(id, state);
 
             expect(mockLogsRepository.createMany).toHaveBeenCalledWith<[CreateLogDto[]]>([
                 {
@@ -154,7 +164,7 @@ describe('LogBatcher', () => {
         it('empties the buffer and keeps the batch visible while the write is in flight', () => {
             const state = bufferedState(2);
 
-            const settled = sut.flush(id, state);
+            const settled = flush(id, state);
 
             expect(state.pending).toEqual([]);
             expect(state.writing).toHaveLength(2);
@@ -165,7 +175,7 @@ describe('LogBatcher', () => {
         it('drops the batch from the in-flight list once the write is durable', async () => {
             const state = bufferedState(2);
 
-            await sut.flush(id, state);
+            await flush(id, state);
 
             expect(state.writing).toEqual([]);
         });
@@ -173,32 +183,32 @@ describe('LogBatcher', () => {
         it('trims the stream up to the highest sequence of the written batch', async () => {
             const state = bufferedState(3);
 
-            await sut.flush(id, state);
+            await flush(id, state);
 
-            expect(mockTrimmer.trim).toHaveBeenCalledTimes(1);
-            expect(mockTrimmer.trim).toHaveBeenCalledWith(id, 3);
+            expect(mockTrimStream).toHaveBeenCalledTimes(1);
+            expect(mockTrimStream).toHaveBeenCalledWith(repository, id, 3, maxLines);
         });
 
         it('never writes when nothing is buffered', async () => {
             const state = streamState();
 
-            await sut.flush(id, state);
+            await flush(id, state);
 
             expect(mockLogsRepository.createMany).not.toHaveBeenCalled();
-            expect(mockTrimmer.trim).not.toHaveBeenCalled();
+            expect(mockTrimStream).not.toHaveBeenCalled();
         });
 
         it('returns the pending write chain when nothing is buffered', () => {
             const state = streamState();
 
-            expect(sut.flush(id, state)).toBe(state.writes);
+            expect(flush(id, state)).toBe(state.writes);
         });
 
         it('disarms the pending time-based flush', async () => {
             const state = bufferedState(1);
 
-            await sut.commit(id, state);
-            await sut.flush(id, state);
+            await commit(id, state);
+            await flush(id, state);
 
             expect(state.timer).toBeUndefined();
         });
@@ -213,11 +223,11 @@ describe('LogBatcher', () => {
 
             const state = streamState({ pending: [lineEvent(1)] });
 
-            const first = sut.flush(id, state);
+            const first = flush(id, state);
 
             state.pending.push(lineEvent(2));
 
-            const second = sut.flush(id, state);
+            const second = flush(id, state);
 
             await Promise.all([first, second]);
 
@@ -229,7 +239,7 @@ describe('LogBatcher', () => {
 
             mockLogsRepository.createMany.mockRejectedValue(error);
 
-            await expect(sut.flush(id, bufferedState(2))).resolves.toBeUndefined();
+            await expect(flush(id, bufferedState(2))).resolves.toBeUndefined();
             expect(mockLogger.error).toHaveBeenCalledTimes(1);
             expect(mockLogger.error).toHaveBeenCalledWith(
                 `Failed to persist 2 log entrie(s) for deployment ${id}: write failed`,
@@ -241,7 +251,7 @@ describe('LogBatcher', () => {
         it('stringifies a thrown non-error value in the failure message', async () => {
             mockLogsRepository.createMany.mockRejectedValue('connection reset');
 
-            await sut.flush(id, bufferedState(1));
+            await flush(id, bufferedState(1));
 
             expect(mockLogger.error).toHaveBeenCalledWith(
                 `Failed to persist 1 log entrie(s) for deployment ${id}: connection reset`,
@@ -253,9 +263,9 @@ describe('LogBatcher', () => {
         it('never trims when the write failed', async () => {
             mockLogsRepository.createMany.mockRejectedValue(new Error('write failed'));
 
-            await sut.flush(id, bufferedState(2));
+            await flush(id, bufferedState(2));
 
-            expect(mockTrimmer.trim).not.toHaveBeenCalled();
+            expect(mockTrimStream).not.toHaveBeenCalled();
         });
 
         it('clears the in-flight list even when the write failed', async () => {
@@ -263,7 +273,7 @@ describe('LogBatcher', () => {
 
             const state = bufferedState(2);
 
-            await sut.flush(id, state);
+            await flush(id, state);
 
             expect(state.writing).toEqual([]);
         });
@@ -273,13 +283,13 @@ describe('LogBatcher', () => {
 
             const state = streamState({ pending: [lineEvent(1)] });
 
-            await sut.flush(id, state);
+            await flush(id, state);
 
             state.pending.push(lineEvent(2));
-            await sut.flush(id, state);
+            await flush(id, state);
 
             expect(mockLogsRepository.createMany).toHaveBeenCalledTimes(2);
-            expect(mockTrimmer.trim).toHaveBeenCalledWith(id, 2);
+            expect(mockTrimStream).toHaveBeenCalledWith(repository, id, 2, maxLines);
         });
     });
 
@@ -287,8 +297,8 @@ describe('LogBatcher', () => {
         it('disarms a pending time-based flush', async () => {
             const state = bufferedState(1);
 
-            await sut.commit(id, state);
-            sut.cancel(state);
+            await commit(id, state);
+            cancelFlush(state);
 
             expect(state.timer).toBeUndefined();
         });
@@ -296,8 +306,8 @@ describe('LogBatcher', () => {
         it('never writes the batch after the timer was disarmed', async () => {
             const state = bufferedState(1);
 
-            await sut.commit(id, state);
-            sut.cancel(state);
+            await commit(id, state);
+            cancelFlush(state);
 
             await wait(400);
 
@@ -308,7 +318,7 @@ describe('LogBatcher', () => {
         it('leaves the state untouched when no flush is armed', () => {
             const state = bufferedState(1);
 
-            sut.cancel(state);
+            cancelFlush(state);
 
             expect(state.timer).toBeUndefined();
             expect(state.pending).toHaveLength(1);
