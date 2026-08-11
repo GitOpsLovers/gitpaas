@@ -1,0 +1,196 @@
+apps/backend/src/features/logs/infrastructure/redis/__tests__/redis-log-reader.spec.ts
+  s_c290ddffbab5db::t_daf835ff8bb720 1-6,10-31,33-37,39-52,57-61,65,68-74,76-77,80-88,90-111,114-117,119,122-127,129-137,140-142,144,146-155,158-160,162-175,178-183,185-205
+apps/backend/src/core/infrastructure/redis/__tests__/redis-connection-options.spec.ts
+  s_facf48609696cf::t_17c0b34cf5cb80 1,3-4,8,11-12,15-17,19,22-25,27,30-33,35
+docs/TODO.md
+  s_89ba8ceaefbe78::t_e80b41744e8c4b 5,9
+apps/backend/src/core/core.module.ts
+  s_facf48609696cf::t_b1e5478680f3bc 9,26-27
+.claude/skills/backend-unit-testing/SKILL.md
+  s_89ba8ceaefbe78::t_625a6234c1a6d1 500,502,506-512
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_cc0a79cfe12d9d::t_09bdaca6bbad1c 19,33
+docs/deployment-roadmap.md
+  s_00b345ad5d8251::t_7fc3bf97390b89 52,109-112
+  s_00b345ad5d8251::t_1f480e6269e4b5 46-48
+  s_00b345ad5d8251::t_492a9baaa38674 49-51
+apps/backend/src/features/logs/infrastructure/database/db-log.entity.ts
+  s_1dc23201771d06::t_6270c442aeedb8 11-12
+docs/infrastructure-architecture.md
+  s_a265429d90c1d3::t_9493d489690e23 9,23,39,47-48,57,70-82,98-99,203-205,212-213
+iac/development/docker-compose.yml
+  s_facf48609696cf::t_bd9e945a8d96b2 10-11,39-56,81
+scripts/install.sh
+  s_902d5bc6c8af74::t_e6f727562d68ca 214-223,257-262,272-278
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_cc0a79cfe12d9d::t_1479964edfc194 16,36
+apps/backend/src/core/infrastructure/redis/redis.connection.ts
+  s_facf48609696cf::t_d43b4e62dfbdda 1-2,4,7-10,12-13,15-16,18-34,37-55,57-63
+apps/backend/test/fakes/fake-redis.ts
+  s_c290ddffbab5db::t_3b2065f2917240 1-325
+iac/production/migrations/007_logs_indexes.sql
+  s_066d0814742b83::t_3fb16c2e432492 1,3-6
+apps/backend/.env.example
+  s_1dc23201771d06::t_6f32927adc89ee 16-19
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_cc0a79cfe12d9d::t_f27e32ee80afd0 14,71,83,101
+iac/production/docker-compose.yml
+  s_facf48609696cf::t_b896c886457a8c 5-6,39-56,88-89,108
+iac/production/.env.example
+  s_1dc23201771d06::t_fea8911a31136f 35-41
+apps/backend/src/features/logs/infrastructure/redis/__tests__/redis-log-store.transformer.spec.ts
+  s_facf48609696cf::t_977b542b0d7ae1 1
+  s_facf48609696cf::t_aad643a0bb0dbc 2-3,5-7,9,11-13,15,17-19,22-23,26-27,29,31-33,36-37,40-41,44-45,47,49-61,64-68,70-72,75-76
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_cc0a79cfe12d9d::t_ae32f58011a0c7 15,34-35
+apps/backend/src/features/logs/ui/services/logs.service.ts
+  s_cc0a79cfe12d9d::t_dd2947adaea0a4 9,20
+apps/backend/src/features/logs/infrastructure/redis/redis-log-reader.ts
+  s_facf48609696cf::t_ee9fd2dcc0f7dd 5,7-12,15-29,32,34-35,39,41,44,46,48-49,52,56,58-60,62-63,65-68,70-71,73-74,76-78,80-83,85-87,89,91-97,99-102,104-110,112-131,135-136,138,140-141,143-144,146-147,149-150,152-156,158-169
+  s_facf48609696cf::t_b34f7d1ed91365 1-3
+apps/backend/src/features/logs/infrastructure/redis/__tests__/redis-log-store.adapter.spec.ts
+  s_bee55dd41cd62d::t_9d5e2f5d1e595d 1-36,41-46,48-49,52-54,56-58,60-62,65-66,68,70,73-74,76-77,80-81,83,85-90,94-97,99-102,104,107-108,110-112,114-115,117-118,120-124,127-129,131,134-135,137-138,140-141,144-145,147-148,150,153-154,156,158,160,163,165,169-170,172,174,176-178,183-186,188,190-193,196-206,208,210,212,214-216,218,220-223
+apps/backend/src/features/logs/ui/services/__tests__/logs.service.spec.ts
+  s_cc0a79cfe12d9d::t_ba285efcfa4d16 7,28,41
+docs/backend-business.md
+  s_a265429d90c1d3::t_ea33927959f768 54-56,58,62-65
+apps/backend/src/core/infrastructure/redis/redis-connection-options.ts
+  s_facf48609696cf::t_16dfd1318612de 1,4,6,8-9,11-15
+CONTRIBUTING.md
+  s_a265429d90c1d3::t_2d37d385f1ebec 37
+docs/backend-architecture.md
+  s_89ba8ceaefbe78::t_25b1ef51eaaad3 19,262,265-269,272-284,286,288-290
+  s_c3a57ba3748d39::t_41cb579c4824b2 292,294,296-297,299
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-logs.repository.spec.ts
+  s_1dc23201771d06::t_5c336610fa3786 1,31
+apps/backend/src/core/infrastructure/redis/__tests__/redis.connection.spec.ts
+  s_c290ddffbab5db::t_f9d46fd2d1b8ed 1,3,5-10,12-19,23,26-28,30-31,34-36,38-39,42-44,46-47,50-52,54,56-57,60-63,65-66,69-72,74,76
+apps/backend/src/features/logs/infrastructure/redis/redis-log-store.transformer.ts
+  s_facf48609696cf::t_45075a6a8cd3e5 1-3,5,8,10,13,17,19-20,24,28,30-31,35,37,39,41-46,50,52-54,56-70,72-73,77-81,84-86,88-96,98-99
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_cc0a79cfe12d9d::t_d734f15dc59342 16,56,65,73
+apps/backend/src/features/logs/logs.module.ts
+  s_facf48609696cf::t_61b79e463b454c 6,19,21
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_1dc23201771d06::t_ae3434c27fa0ea 15-16,94,100,107-126
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_1dc23201771d06::t_b87d75c5afe5f7 2,49-61
+apps/backend/src/features/logs/infrastructure/redis/redis-log-store.constants.ts
+  s_facf48609696cf::t_f7554d8c2c9558 1,4,7-8,10-14,17-35
+  s_facf48609696cf::t_ad598bf348d17a 38
+  s_facf48609696cf::t_59f08eda4eb8a7 36
+  s_facf48609696cf::t_c0334af37effb2 2-3
+  s_facf48609696cf::t_349c7c32025b79 5
+apps/backend/src/features/logs/infrastructure/database/db-logs.repository.ts
+  s_1dc23201771d06::t_d5051917fa4955 3
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_cc0a79cfe12d9d::t_b796998f13fe62 16,84
+pnpm-lock.yaml
+  s_cc0a79cfe12d9d::t_634ccefb5cd300 99
+apps/backend/src/features/logs/infrastructure/redis/redis-log-store.adapter.ts
+  s_5d6c0e1af85ffa::t_133fa8df943d85 1,8,10,12-16,20,23,26-27,31-32,43,50,63-65,71-72,74-75,77,79-83,85-90,94,102,104-107,109-112,117,122-143,146,150-154,156-160,162-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "54e0d560276171fe09a48ee58fcc99e7b68ca145",
+  "prompts": {},
+  "sessions": {
+    "s_00b345ad5d8251": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0c49256c610b66e9",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_066d0814742b83": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a89c90ef6e2c9bdcd",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_1dc23201771d06": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a224b2e37599fe306",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5d6c0e1af85ffa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6bb3098e5a72f69c",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_89ba8ceaefbe78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad9007803b026cd61",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_902d5bc6c8af74": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9d03800bfc7b8bdc",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_a265429d90c1d3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a43e2ffd3a5b88bb7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_bee55dd41cd62d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aafc3615405a0f01a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c290ddffbab5db": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af7be29f35eeda86e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c3a57ba3748d39": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a08d47d60098b41f9",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cc0a79cfe12d9d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa815867-ba74-492a-b018-b651b2b86bda",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_facf48609696cf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2883c59062f244fa",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
