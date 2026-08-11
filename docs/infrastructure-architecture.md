@@ -6,7 +6,7 @@ This document gives the infrastructure on which the GitPaaS application runs.
 
 GitPaaS runs **fully on one server**. Two responsibilities stay together on that server:
 
-- **Control plane**: GitPaaS itself, that is, the backend application and the frontend application, plus a PostgreSQL database that holds all the durable data. This data includes the deployment logs, which are the buffer of the live stream and the history at the same time.
+- **Control plane**: GitPaaS itself, that is, the backend application and the frontend application, plus a PostgreSQL database that holds all the durable data, and a Redis server that holds the output of the deployments that run. The log of a run lives in Redis while the run lasts, and goes to PostgreSQL as the archive when it ends.
 - **Workloads**: the applications that the user deploys, which run as compose stacks on the Docker daemon of the same server.
 
 The backend controls the **local** Docker daemon through the `/var/run/docker.sock` unix socket. In production, this socket is bind-mounted into the backend container. In development, the backend uses the socket of the developer. There is no remote daemon, no TCP endpoint and no mTLS material in the topology.
@@ -20,6 +20,7 @@ The backend controls the **local** Docker daemon through the `/var/run/docker.so
 | Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
 | Images              | Multi-stage Dockerfiles                                |
 | Database            | `postgres:17.6-alpine`                                 |
+| Live log store      | `redis:8.2-alpine` with AOF persistence                |
 | Workload execution  | Local Docker daemon via `/var/run/docker.sock`         |
 | Static serving      | nginx-unprivileged                                     |
 | Release             | GitHub Actions + semantic-release, images on GHCR      |
@@ -35,6 +36,7 @@ The backend controls the **local** Docker daemon through the `/var/run/docker.so
 | Service        | Role                                            | Host port |
 |----------------|-------------------------------------------------|-----------|
 | `postgres`     | Control-plane database                          | 5432      |
+| `redis`        | Hot store of the live deployment logs           | 6379      |
 | `pgadmin`      | Optional Postgres web UI, server pre-registered | 5050      |
 
 The workloads are **not** simulated. The backend on the host opens `/var/run/docker.sock` directly. Thus all the applications that GitPaaS deploys locally run on the Docker daemon of the developer. This is the same code path as in production, and it needs no certificates and no additional container. The daemon must run, or the Docker endpoints and the readiness probe cannot operate.
@@ -42,7 +44,8 @@ The workloads are **not** simulated. The backend on the host opens `/var/run/doc
 ```text
 host: backend (pnpm dev)  ──unix socket──►  /var/run/docker.sock
         │                                      └─ deployed compose stacks
-        └─ 127.0.0.1:5432 ► postgres
+        ├─ 127.0.0.1:5432 ► postgres
+        └─ 127.0.0.1:6379 ► redis
 ```
 
 #### Admin seeding
@@ -51,7 +54,7 @@ The development Postgres container starts **empty**. When the backend applicatio
 
 ### Production
 
-`iac/production/docker-compose.yml` (project `gitpaas`) starts `postgres`, `backend` and `frontend`, with one named volume (`postgres-data`). The `backend` service bind-mounts the `/var/run/docker.sock` socket of the host. Thus it can control the Docker daemon of the server. The image runs as a non-root user. Thus the service becomes a member of the group of that socket with `group_add: ["${DOCKER_GID}"]`. Postgres declares a compose healthcheck, and the backend waits for it with `depends_on … condition: service_healthy`. The two application images declare their own `HEALTHCHECK`. Only `backend` (`BACKEND_PORT`) and `frontend` (`FRONTEND_PORT`) publish host ports.
+`iac/production/docker-compose.yml` (project `gitpaas`) starts `postgres`, `redis`, `backend` and `frontend`, with two named volumes (`postgres-data` and `redis-data`). The `backend` service bind-mounts the `/var/run/docker.sock` socket of the host. Thus it can control the Docker daemon of the server. The image runs as a non-root user. Thus the service becomes a member of the group of that socket with `group_add: ["${DOCKER_GID}"]`. Postgres and Redis declare a compose healthcheck, and the backend waits for the two with `depends_on … condition: service_healthy`. The two application images declare their own `HEALTHCHECK`. Only `backend` (`BACKEND_PORT`) and `frontend` (`FRONTEND_PORT`) publish host ports.
 
 The stack has **no reverse proxy and no TLS termination on purpose**. A proxy in front of the deployed applications, with automatic TLS, is Phase 2 of the roadmap.
 
@@ -63,6 +66,19 @@ The two images are built from multi-stage Dockerfiles whose **build context is t
 | `frontend.Dockerfile`        | `base` → `build` (static Angular bundle) → `runtime` (nginx-unprivileged on `8080`). `nginx.conf` adds `/healthz`, an SPA history fallback to `index.html`, one-year immutable caching for content-hashed assets, and gzip. |
 
 `.dockerignore` decreases the root context to the workspace manifests, the source trees of the two applications, and `nginx.conf`. It always removes `node_modules`, the build output and the secrets, which the build stages make again.
+
+### Live log store
+
+The two environments give the same `redis` service to the backend, with the image `redis:8.2-alpine`. It is the hot store of the deployment logs: the output of a run stays in a Redis stream while the run lasts, and PostgreSQL keeps the archive (see [backend architecture](./backend-architecture.md#deployment-log-store)).
+
+The service starts with `redis-server --appendonly yes --appendfsync everysec`. Thus the append-only file goes to the disk one time each second, and a crash costs approximately one second of the output of a run at a maximum. The file stays in the named volume `redis-data`, which is mounted at `/data`, so a restart of the container keeps the streams that are open. The healthcheck is a `redis-cli ping` with the same intervals as the database.
+
+The two environments are different only in the publication of the port:
+
+- **Development** publishes `127.0.0.1:6379`, because the backend runs on the host and connects through the loopback interface.
+- **Production** publishes **no** host port. The backend is in the same compose network and reaches the server by its service name, so Redis is not available from outside the stack.
+
+The backend gets its connection from the environment: `REDIS_HOST`, `REDIS_PORT` and the optional `REDIS_PASSWORD`. The first two are necessary, and the application stops at boot if one of them is not there. Leave the password empty when the server needs no authentication.
 
 ---
 
@@ -79,7 +95,8 @@ The two images are built from multi-stage Dockerfiles whose **build context is t
 |-------------------|-----------------------------------------------------------------------------------------------|
 | Build / ports     | `NODE_VERSION`, `PNPM_VERSION`, `IMAGE_TAG`, `BACKEND_PORT`, `FRONTEND_PORT`                   |
 | Backend runtime   | `NODE_ENV`, `PORT`, `CORS_ORIGIN`, `THROTTLE_TTL`, `THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`, `THROTTLE_STREAM_LIMIT` |
-| Deployment logs   | `LOGS_RETENTION_HOURS` (age window, example value `24`), `LOGS_MAX_LINES` (per-deployment line cap, example value `5000`) |
+| Deployment logs   | `LOGS_MAX_LINES` (per-deployment line cap, example value `5000`)                                |
+| Redis             | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (optional; empty when the server needs no authentication) |
 | PostgreSQL        | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` |
 | GitHub App        | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64 PEM), `GITHUB_APP_INSTALLATION_ID`           |
 | Docker            | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                     |
@@ -183,16 +200,17 @@ POST /deployments ─► persist `pending` ─► enqueue (durable, DB-backed)
   build `build:` services / pull the rest ─► down old stack ─► up new stack
         │                                         │
         ▼                                         ▼
-  captured output ─► batched into PostgreSQL `logs` (≤100 lines / ≤250 ms)
-                  └─► in-process fan-out ─► SSE to browser
+  captured output ─► XADD ─► redis stream `logs:{deploymentId}` ─► SSE to browser
+                                      │
+                            run ends ─┴─► one bulk insert into PostgreSQL `logs`
 ```
 
 These infrastructure properties are important:
 
 - **Durable queue** — the tasks are stored (at-least-once, with a limited number of new attempts, a dead-letter state and a recovery at restart). Thus the deployments in progress stay after a restart of the control plane. The runs of one compose-project name occur one after the other, but different projects run at the same time.
 - **Local execution over the Docker socket** — the backend speaks to the daemon on `/var/run/docker.sock`. Thus the socket mount and its file permissions control the access, and not network credentials. As [Conventions](#conventions) says, this access is equal to root access on the host. Development and production use the same path.
-- **One store for the live logs and the historical logs** — the captured lines go to one PostgreSQL table, in batches of 100 lines or 250 ms (whichever occurs first), and go to the SSE subscribers in the process at the same time. A subscriber first gets the stored rows and then the live feed, with a deduplication by sequence number. Thus the full history is available for a replay after the end of the run, and a crash loses one batch that is not yet written as a maximum.
-- **Limited log growth** — two settings limit the retention: `LOGS_MAX_LINES` for each deployment (applied after each write of a batch) and `LOGS_RETENTION_HOURS` for all the deployments. The age sweep is *opportunistic*: it runs when a deployment completes, because the backend has no scheduler. Thus an idle control plane never removes rows by age.
+- **A hot store and a cold archive for the logs** — the captured lines go to one Redis stream for each deployment, and the SSE subscribers read that same stream from its first entry. When the run ends, the full stream goes to the PostgreSQL `logs` table in one write, and the key in Redis expires 60 seconds later. Thus the full history is available for a replay after the end of the run, but **`GET /logs` gives no history while the run is in progress**. A crash of Redis loses the log of a run that is in progress, and the append-only file with `everysec` limits that loss to approximately one second.
+- **Limited log growth** — one setting limits the size of a log: `LOGS_MAX_LINES` for each deployment, which Redis applies on each append with `XADD MAXLEN ~`. The archive has no age limit and no scheduled sweep. The archived rows of a deployment stay until the deployment is deleted, because the foreign key of the `logs` table uses `ON DELETE CASCADE`.
 
 The same daemon supports the read-only operational features (the view of the containers and the networks, the removal of unused resources, and the orphan cleanup) and the readiness probe, which examines PostgreSQL and the Docker daemon at the same time.
 

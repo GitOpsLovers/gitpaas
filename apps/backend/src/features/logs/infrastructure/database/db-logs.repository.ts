@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { LogEntry } from '../../domain/models/log-entry.models';
@@ -14,10 +14,7 @@ import { toLogEntry } from './db-logs.transformer';
  */
 @Injectable()
 export class DatabaseLogsRepository implements LogsRepository {
-    constructor(
-        @InjectRepository(DbLogEntity)
-        private readonly repository: Repository<DbLogEntity>,
-    ) {}
+    constructor(@InjectRepository(DbLogEntity) private readonly repository: Repository<DbLogEntity>) {}
 
     /**
      * Get every log entry of a deployment, oldest first
@@ -44,47 +41,11 @@ export class DatabaseLogsRepository implements LogsRepository {
     }
 
     /**
-     * Highest sequence already persisted for a deployment
-     *
-     * @param deploymentId Deployment identifier
-     *
-     * @returns Highest stored sequence, or `0` when the deployment has no entries
-     */
-    public async getMaxSeq(deploymentId: string): Promise<number> {
-        const last = await this.repository.findOne({
-            where: { deploymentId },
-            order: { seq: 'DESC' },
-            select: { seq: true },
-        });
-
-        return last?.seq ?? 0;
-    }
-
-    /**
      * Delete every log entry of a deployment
      *
      * @param deploymentId Deployment identifier
      */
     public async deleteByDeployment(deploymentId: string): Promise<void> {
         await this.repository.delete({ deploymentId });
-    }
-
-    /**
-     * Delete a deployment's log entries up to and including a sequence
-     *
-     * @param deploymentId Deployment identifier
-     * @param seq Highest sequence to delete
-     */
-    public async deleteUpToSeq(deploymentId: string, seq: number): Promise<void> {
-        await this.repository.delete({ deploymentId, seq: LessThanOrEqual(seq) });
-    }
-
-    /**
-     * Delete every log entry created before an instant
-     *
-     * @param threshold Instant before which entries are dropped
-     */
-    public async deleteCreatedBefore(threshold: Date): Promise<void> {
-        await this.repository.delete({ createdAt: LessThan(threshold) });
     }
 }

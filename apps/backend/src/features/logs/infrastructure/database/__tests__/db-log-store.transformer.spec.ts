@@ -1,39 +1,27 @@
 import { LogEntry } from '../../../domain/models/log-entry.models';
-import { toCreateLogDto, toLogEvent, toSequencedLogEvent } from '../db-log-store.transformer';
+import { toCreateLogDto, toLogEventFromEntry } from '../db-log-store.transformer';
 
-describe('toLogEvent', () => {
-    it('drops the sequence from a line event', () => {
-        expect(toLogEvent({ seq: 3, type: 'line', data: 'Pulling image...' }))
-            .toEqual({ type: 'line', data: 'Pulling image...' });
-    });
-
-    it('drops the sequence from a terminal event', () => {
-        expect(toLogEvent({ seq: 9, type: 'end', status: 'failed' }))
-            .toEqual({ type: 'end', status: 'failed' });
-    });
-});
-
-describe('toSequencedLogEvent', () => {
+describe('toLogEventFromEntry', () => {
     const metadata = {
         id: 'l-1',
         deploymentId: 'd-1',
         createdAt: new Date('2026-07-11T00:00:01.000Z'),
     };
 
-    it('maps a stored line entry onto its sequenced event', () => {
+    it('maps a stored line entry onto its domain event, dropping the sequence', () => {
         const entry: LogEntry = {
             ...metadata, seq: 1, type: 'line', data: 'building',
         };
 
-        expect(toSequencedLogEvent(entry)).toEqual({ seq: 1, type: 'line', data: 'building' });
+        expect(toLogEventFromEntry(entry)).toEqual({ type: 'line', data: 'building' });
     });
 
-    it('maps a stored terminal entry onto its sequenced event', () => {
+    it('maps a stored terminal entry onto its domain event, dropping the sequence', () => {
         const entry: LogEntry = {
             ...metadata, seq: 2, type: 'end', status: 'success',
         };
 
-        expect(toSequencedLogEvent(entry)).toEqual({ seq: 2, type: 'end', status: 'success' });
+        expect(toLogEventFromEntry(entry)).toEqual({ type: 'end', status: 'success' });
     });
 });
 

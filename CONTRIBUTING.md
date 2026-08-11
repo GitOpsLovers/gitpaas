@@ -34,7 +34,7 @@ The variables cover:
 
 - Runtime: `NODE_ENV`, `PORT`
 - Security: `CORS_ORIGIN`, `THROTTLE_TTL`/`THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
-- Deployment logs: `LOGS_RETENTION_HOURS` (age window, e.g. `24`), `LOGS_MAX_LINES` (per-deployment cap, e.g. `5000`)
+- Deployment logs: `LOGS_MAX_LINES` (per-deployment cap, e.g. `5000`)
 - PostgreSQL: `DB_*`
 - GitHub App: `GITHUB_APP_*`, 
 - Authentication: `JWT_ACCESS_SECRET`/`JWT_ACCESS_EXPIRES_IN` and `JWT_REFRESH_SECRET`/`JWT_REFRESH_EXPIRES_IN`

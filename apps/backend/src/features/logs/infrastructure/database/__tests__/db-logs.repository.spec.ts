@@ -1,4 +1,4 @@
-import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { DbLogEntity } from '../db-log.entity';
@@ -28,7 +28,7 @@ describe('DatabaseLogsRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<DbLogEntity>, 'find' | 'findOne' | 'create' | 'save' | 'delete'>
+        Pick<Repository<DbLogEntity>, 'find' | 'create' | 'save' | 'delete'>
     >;
     let sut: DatabaseLogsRepository;
 
@@ -37,7 +37,6 @@ describe('DatabaseLogsRepository', () => {
 
         mockRepository = {
             find: jest.fn(),
-            findOne: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
             delete: jest.fn(),
@@ -108,54 +107,11 @@ describe('DatabaseLogsRepository', () => {
         });
     });
 
-    describe('getMaxSeq', () => {
-        it('returns the highest stored sequence of the deployment', async () => {
-            const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
-            mockRepository.findOne.mockResolvedValue(logEntity({ seq: 42 }));
-
-            const result = await sut.getMaxSeq(deploymentId);
-
-            expect(mockRepository.findOne).toHaveBeenCalledWith({
-                where: { deploymentId },
-                order: { seq: 'DESC' },
-                select: { seq: true },
-            });
-            expect(result).toBe(42);
-        });
-
-        it('returns zero when the deployment has no entries yet', async () => {
-            mockRepository.findOne.mockResolvedValue(null);
-
-            await expect(sut.getMaxSeq('deployment-1')).resolves.toBe(0);
-        });
-    });
-
     describe('deleteByDeployment', () => {
         it('deletes every entry of the deployment', async () => {
             await sut.deleteByDeployment('deployment-1');
 
             expect(mockRepository.delete).toHaveBeenCalledWith({ deploymentId: 'deployment-1' });
-        });
-    });
-
-    describe('deleteUpToSeq', () => {
-        it('deletes the deployment entries up to and including the sequence', async () => {
-            await sut.deleteUpToSeq('deployment-1', 10);
-
-            expect(mockRepository.delete).toHaveBeenCalledWith({
-                deploymentId: 'deployment-1',
-                seq: LessThanOrEqual(10),
-            });
-        });
-    });
-
-    describe('deleteCreatedBefore', () => {
-        it('deletes every entry older than the threshold', async () => {
-            const threshold = new Date('2026-07-10T00:00:00.000Z');
-
-            await sut.deleteCreatedBefore(threshold);
-
-            expect(mockRepository.delete).toHaveBeenCalledWith({ createdAt: LessThan(threshold) });
         });
     });
 });

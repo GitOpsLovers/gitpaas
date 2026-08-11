@@ -497,28 +497,19 @@ The second level calls `up()` and asserts:
 
 ---
 
-## Stateful adapter testing (batching, timers, streams)
+## Stateful adapter testing (external servers, polling streams, ordered effects)
 
-`features/logs/infrastructure/database/__tests__/db-log-store.adapter.spec.ts` is the most complex spec in the repository. Use it as the model for each adapter that keeps a batch, that writes the batch on a timer, and that sends one RxJS stream to several subscribers. `DatabaseLogStoreAdapter` injects `LogsRepository`, `DiagnosticLoggerService` and `ConfigService`.
+The specs in `features/logs/infrastructure/redis/__tests__/` are the most complex in the repository. Use them as the model for each adapter that speaks to an external server, that gives an RxJS stream to a subscriber, and that must do several side effects in one order. `RedisLogStoreAdapter` injects `RedisConnection`, `DatabaseLogsRepository`, `DatabaseDeploymentActivityAdapter`, `NestLoggerAdapter` and `ConfigService`.
 
 Copy these methods:
 
-- **Use a manual fake in memory, and not `jest.fn()` stubs.** The spec implements the full `LogsRepository` over an array, because the behavior under test needs a real state: the sequences, the replay and the limit of the retention. If you must control a race condition, add a lever for the tests only. Here `holdReads()` returns a callback that releases the reads, and it stops each read. Thus a test can show that the store does not duplicate an entry that becomes durable during the replay.
-- **Use a `createStore(retentionHours, maxLines)` arrow.** It makes the SUT again over the shared fakes, with a different configuration. Thus a test of the retention changes one number and does not change the dependency injection. A new store also replaces a restart of the process.
-- **Use two helpers that wait, both with a block body**: `settle()` (`setImmediate`) completes the microtasks between two assertions on the stream, and `wait(ms)` (`setTimeout`) gives the time for a real write on the timer. The spec uses no fake timers.
-- **Assert a stream in two ways.** For a stream that is already complete, use `await firstValueFrom(store.stream(id).pipe(toArray()))`. If the test mixes the emissions with calls to `append` or to `complete`, use a manual `subscribe` that pushes the values into a `received: LogEvent[]` array, and always call `unsubscribe()` at the end.
-- **Test the contract of the lifecycle, and not the implementation:**
-  - the store keeps the batch below the limit of the size;
-  - the store writes the batch at the limit;
-  - the store writes the batch at the end of the interval;
-  - the store writes the batch on `onModuleDestroy()`;
-  - the sequence of each deployment increases, and continues from the maximum value in the database;
-  - the change from the replay to the live stream has no gap and no duplicate;
-  - a terminal event completes the stream;
-  - `unsubscribe()` stops the delivery;
-  - a purge removes the durable rows and also the batch in memory;
-  - the retention removes the data by the limit of the lines and by the age, and the disabled case removes nothing;
-  - the store sends a failure to `diagnostics.error` and does not reject.
+- **Replace the server with one fake in memory, and not with a mock of each call.** `test/fakes/fake-redis.ts` gives `FakeRedis`, which does the stream commands over plain maps, and `FakeRedisConnection`, which gives that one client as the command connection and as the blocking pool. The specs need no Redis server. A fake with a real state lets a test seed the stream with `xadd` and then assert what the adapter reads. The fake also keeps the levers that the tests need: `xaddCalls` for the exact arguments, `expirations` and `deleted` for the effects, `reads` and `borrowed`/`released` for the counts, and `failure` to make the next command throw one time.
+- **Use a `createStore(maxLines = 500)` arrow.** It makes the SUT again over the shared fakes, with a different configuration, and the default value serves the common `beforeEach`. Thus a test of the line cap changes one number and does not change the dependency injection.
+- **Use a `wait(ms)` helper with a block body** (`setTimeout`) to give the time for some rounds of the poll loop. The specs use no fake timers, because the fake blocks with a real macrotask.
+- **Assert a stream in two ways.** For a stream that completes by itself, use `await firstValueFrom(sut.stream(id).pipe(toArray()))`. If the test appends entries while the subscriber gets them, use a manual `subscribe` that pushes the values into a `received: LogEvent[]` array, keep the `Subscription` in a variable, and always call `unsubscribe()` in `afterEach`.
+- **Test a cold observable that polls in two directions.** Assert that it completes: on the terminal entry, or when the deployment is no longer active. Then assert that it stops: after `unsubscribe()`, the count of the reads does not increase again, and the pooled connection goes back (`expect(connection.released).toBe(connection.borrowed)`).
+- **Assert the order of the side effects, and also the negative case.** Push a name into an `order: string[]` array from each double, then assert `expect(order).toEqual(['archive', 'expire'])`. Add the opposite test: if the archive fails, the adapter must not set the expiry, so the hot copy stays in Redis with its data.
+- **Make each fixture prove the path that it says it exercises.** A test asserted `expect(connection.borrowed).toBe(client.reads)` while both values were zero, because the fixture put no entry into the stream. The test passed, but it tested nothing. Add an assertion that the path did operate — here `expect(reads).toBeGreaterThan(0)` before the comparison — or seed the state that the path needs.
 
 ---
 

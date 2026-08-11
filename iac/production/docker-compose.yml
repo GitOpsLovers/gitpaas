@@ -2,7 +2,8 @@
 #
 # Brings up GitPaaS itself (the control plane) on a server: the NestJS backend,
 # the Angular frontend (static SPA served by nginx), and the backend's own data
-# store (PostgreSQL). This is the app that RUNS deployments; the apps it
+# stores (PostgreSQL for everything durable, Redis for the live deployment logs
+# while a run lasts). This is the app that RUNS deployments; the apps it
 # deploys run on the SAME server, on the local Docker daemon the backend reaches
 # through the bind-mounted /var/run/docker.sock.
 #
@@ -35,11 +36,23 @@ services:
       retries: 10
       start_period: 10s
 
+  redis:
+    image: redis:8.2-alpine
+    container_name: gitpaas-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
   backend:
     image: gitpaas-backend:${IMAGE_TAG:-latest}
     build:
-      # Build context is the repo root so the workspace lockfile/manifests are
-      # visible to the multi-stage build.
       context: ../..
       dockerfile: iac/production/backend.Dockerfile
       args:
@@ -47,24 +60,18 @@ services:
         PNPM_VERSION: ${PNPM_VERSION:-11.1.3}
     container_name: gitpaas-backend
     restart: unless-stopped
-    # The backend reads its full configuration (DB/JWT/GitHub App) from the
-    # environment. env_file loads .env verbatim; unknown keys (e.g. POSTGRES_*)
-    # are ignored by the app's env validation.
     env_file:
       - .env
     ports:
       - "${BACKEND_PORT:-3000}:${PORT:-3000}"
     volumes:
-      # The local Docker daemon socket: GitPaaS runs deployed apps on THIS server,
-      # so the backend drives the host daemon directly through this socket.
       - /var/run/docker.sock:/var/run/docker.sock
-    # The image runs as the non-root `node` user, which can only use that socket
-    # if it belongs to the group owning it. DOCKER_GID is the host's docker group
-    # id (the installer detects and writes it; see .env.example).
     group_add:
       - "${DOCKER_GID:?set DOCKER_GID in .env to the host docker group id (getent group docker | cut -d: -f3)}"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   frontend:
@@ -84,3 +91,4 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:

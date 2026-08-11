@@ -11,7 +11,7 @@ import { DeploymentRunnerService } from '../deployment-runner.service';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
-import { DatabaseLogStoreAdapter } from '@features/logs/infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 
 jest.mock('../../../application/run-deployment.use-case');
@@ -68,7 +68,7 @@ describe('DeploymentRunnerService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockProviders: jest.Mocked<GithubProvidersAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
-    let mockLogStore: jest.Mocked<DatabaseLogStoreAdapter>;
+    let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
     let mockQueue: jest.Mocked<DeploymentQueue>;
     let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
@@ -80,7 +80,7 @@ describe('DeploymentRunnerService', () => {
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockProviders = {} as jest.Mocked<GithubProvidersAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
-        mockLogStore = {} as jest.Mocked<DatabaseLogStoreAdapter>;
+        mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
         mockQueue = {
             dequeued$: dequeued.asObservable(),
@@ -98,7 +98,7 @@ describe('DeploymentRunnerService', () => {
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: GithubProvidersAdapter, useValue: mockProviders },
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
-                { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
+                { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: NestLoggerAdapter, useValue: mockLogger },
             ],

@@ -1,8 +1,9 @@
--- `logs` indexes — the read paths of the database-backed log store.
+-- `logs` indexes — the read paths of the archive tier of the log store.
 --
--- The log store now streams a deployment straight out of this table (replay)
--- before switching to the live in-process feed, and prunes it to keep the old
--- Redis buffer's effective retention. Both need an index:
+-- Redis is the hot store of a deployment that runs; PostgreSQL is the cold
+-- archive, which receives the whole log once, when the run ends. This table
+-- serves the replay of a finished deployment and the age sweep that limits its
+-- growth. Both need an index:
 --
 --   * ("deploymentId", "seq") — ordered replay of one deployment's stream and
 --     the per-deployment line-cap trim.

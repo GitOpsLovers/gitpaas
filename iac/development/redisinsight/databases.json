@@ -1,0 +1,12 @@
+[
+  {
+    "id": "gitpaas-local-redis",
+    "name": "GitPaaS (local)",
+    "host": "redis",
+    "port": 6379,
+    "db": 0,
+    "username": null,
+    "password": null,
+    "tls": false
+  }
+]

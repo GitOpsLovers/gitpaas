@@ -16,7 +16,7 @@ The application also uses **vertical slicing**. Each business domain stays in it
 |----------------|------------------------------------------------------------------|
 | Framework      | NestJS 11 with Express platform                                  |
 | Persistence    | PostgreSQL via NestJS TypeORM                                    |
-| Live logs      | PostgreSQL-backed store with in-process RxJS fan-out over SSE    |
+| Live logs      | Redis Streams hot store over SSE, with a PostgreSQL archive      |
 | Deploy engine  | `dockerode` and `dockerode-compose` over the local Docker socket |
 | Source access  | GitHub App via `@octokit/` library                               |
 | Auth           | Passport with local and JWT                                      |
@@ -259,31 +259,21 @@ A stream endpoint is not public, so it needs a Bearer token. The native `EventSo
 
 ### Deployment log store
 
-The live delivery and the durable history are two views of **the same rows** in one table, and not two systems that can become different.
+The output of a deployment has two lives: a **hot** one, where the lines must arrive at the browser immediately, and a **cold** one, where the finished log must stay after the run. One domain port (`LogStore`) gives the four operations of that life cycle — append a line, complete the log with its terminal status, stream it, and purge it. The identifier of the stream is the identifier of the deployment. A Redis Streams adapter implements the port and uses the PostgreSQL logs repository as its archive.
 
 ```text
-docker output ──► write ──┬─► in-memory batch ──(100 lines | 250 ms)──► logs table
-                          └─► per-deployment live channel ──► SSE subscribers
-
-read stream ──► stored rows (replay) ──► live channel   (deduplicated by seq)
+docker output ──append──► Redis stream  logs:<deploymentId>
+                              │  └── live tail (XREAD BLOCK) ──► SSE subscriber
+                complete ─────┴──► archive to PostgreSQL ──► key expires
 ```
 
-A new line goes to the live channel immediately and to an in-memory batch. The batch goes to the table after **100 lines or 250 ms**, whichever occurs first. Thus the store does not write to the database for each line, but the subscribers see no delay. A write never rejects: a store failure goes to the application log only.
-
-A new subscriber attaches to the live channel **before** it reads the recorded rows, and then delivers the events of that interval. Thus the change-over has no gap. The terminal event goes to the table before it goes to the channel, so a client that connects at that moment cannot stay in the "running" condition.
-
-One sequence counter for each deployment gives the order to the rows and to the live events. It starts from the highest sequence in the table, so the numbers always increase, also after a restart, and the overlap of the replay and the live feed is easy to deduplicate.
-
-Two guarantees result: **the history stays available after a run ends**, because nothing expires, and **a crash loses one batch as a maximum** (approximately 250 ms of output). A controlled stop loses nothing. Two necessary environment variables limit the growth:
-
-| Variable               | Meaning                                                | Enforced                                        |
-|------------------------|--------------------------------------------------------|-------------------------------------------------|
-| `LOGS_MAX_LINES`       | Per-deployment cap; oldest entries are trimmed by `seq` | After every flush                               |
-| `LOGS_RETENTION_HOURS` | Age window across all deployments                       | When a deployment completes (**opportunistic**) |
-
-> The age sweep is opportunistic on purpose: the backend has no scheduler, and the completion of a deployment is the least expensive recurring hook. As a result, **an idle control plane never removes rows by age**. Only the line cap keeps a busy deployment in limits.
-
-The table has an index for each of the two read paths: the ordered replay and the age sweep.
+- **Keys**: one stream key for each deployment (`logs:<deploymentId>`) and one companion lease key (`logs:<deploymentId>:producer`). Each entry is a flat field list: a line entry carries `type=line` and `content`, and the terminal entry carries `type=end` and `status`. A transformer makes and reads these fields, so no other file knows the shape.
+- **Retention**: each append writes the entry with an approximate `MAXLEN` trim, from the necessary `LOGS_MAX_LINES` variable. Thus Redis holds a bounded quantity of lines for each deployment. A value of zero disables the trim.
+- **Read semantics**: one subscription uses one cursor. It starts at `0`, so the history arrives before the live tail on the same cursor, and there is no hand-off to bridge and nothing to remove twice. The reads block on a **dedicated blocking connection**, so a long read does not stall the other commands.
+- **End of the log**: the terminal entry closes the subscription. Because a run can die without one, the producer also holds a short-lived lease that each append refreshes. If a blocking read finds no new entry and the lease is gone for two rounds, the reader closes the subscription. Thus no client waits for ever.
+- **Archive and grace**: `complete()` writes the terminal entry, drops the lease, copies the full stream into PostgreSQL (the position in the stream gives the `seq` column), and then sets a short expiry on the key. The delay only lets a slow subscriber finish the tail that it reads. If the stream key is already gone, a new subscription replays the archived rows from the database and completes.
+- **Removal**: `purge()` deletes the stream key, the lease key and the archived rows. The delete operations of a deployment and of a service call it.
+- **Consumers**: the deploy use case sends each captured line to `append()` and calls `complete()` with `success` or `failed`; a failure also appends the error line first. The API gives the live view with an SSE endpoint that JSON-encodes each event, and the durable history with a `GET /logs?deploymentId=` endpoint that reads the archive. An append failure is logged and does not stop the run.
 
 ### Authentication
 

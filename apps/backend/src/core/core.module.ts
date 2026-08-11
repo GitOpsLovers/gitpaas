@@ -6,6 +6,7 @@ import { validate } from './infrastructure/config/env-validation.config';
 import { buildDataSourceOptions } from './infrastructure/database/data-source-options';
 import { DockerContainerRuntimeAdapter } from './infrastructure/docker/docker-container-runtime.adapter';
 import { NestLoggerAdapter } from './infrastructure/logging/nest-logger.adapter';
+import { RedisConnection } from './infrastructure/redis/redis.connection';
 
 /**
  * Core module
@@ -22,8 +23,8 @@ import { NestLoggerAdapter } from './infrastructure/logging/nest-logger.adapter'
             }),
         }),
     ],
-    providers: [DockerContainerRuntimeAdapter, NestLoggerAdapter],
-    exports: [DockerContainerRuntimeAdapter, NestLoggerAdapter],
+    providers: [DockerContainerRuntimeAdapter, NestLoggerAdapter, RedisConnection],
+    exports: [DockerContainerRuntimeAdapter, NestLoggerAdapter, RedisConnection],
 })
 
 export class CoreModule {}

@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { getLogsByDeploymentUseCase } from '../../../application/get-logs-by-deployment.use-case';
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import { LogEvent } from '../../../domain/models/log-event.models';
-import { DatabaseLogStoreAdapter } from '../../../infrastructure/database/db-log-store.adapter';
+import { RedisLogStoreAdapter } from '../../../infrastructure/redis/redis-log-store.adapter';
 import { DatabaseLogsRepository } from '../../../infrastructure/database/db-logs.repository';
 import { LogsService } from '../logs.service';
 
@@ -25,7 +25,7 @@ const entry: LogEntry = {
 
 describe('LogsService', () => {
     let mockLogsRepository: jest.Mocked<DatabaseLogsRepository>;
-    let mockLogStore: jest.Mocked<Pick<DatabaseLogStoreAdapter, 'stream'>>;
+    let mockLogStore: jest.Mocked<Pick<RedisLogStoreAdapter, 'stream'>>;
     let sut: LogsService;
 
     beforeEach(async () => {
@@ -38,7 +38,7 @@ describe('LogsService', () => {
             providers: [
                 LogsService,
                 { provide: DatabaseLogsRepository, useValue: mockLogsRepository },
-                { provide: DatabaseLogStoreAdapter, useValue: mockLogStore },
+                { provide: RedisLogStoreAdapter, useValue: mockLogStore },
             ],
         }).compile();
 

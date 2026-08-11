@@ -30,10 +30,7 @@ export async function runDeploymentUseCase(
         const archive = await providers.getRepositoryArchive(payload.repositoryId, payload.commit);
 
         await dockerExecutor.up(archive, payload.composerPath, payload.projectName, (line) => {
-            // Deliberately not awaited: the Docker stream must keep draining while the
-            // line is stored. The rejection is absorbed here (the store reports its own
-            // failures) so a store hiccup can never surface as an unhandled rejection.
-            void logStore.append(payload.deploymentId, line).catch(() => undefined);
+            logStore.append(payload.deploymentId, line).catch(() => undefined);
         });
 
         await deploymentsRepository.update(payload.deploymentId, { status: 'success' });
