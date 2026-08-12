@@ -1,5 +1,6 @@
 import { firstValueFrom, Observable, Subscription, toArray } from 'rxjs';
 
+import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import { LogEvent } from '../../../domain/models/log-event.models';
 import type { LogsRepository } from '../../../domain/repositories/logs.repository';
@@ -7,8 +8,6 @@ import { readLogStream } from '../redis-log-reader';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { RedisConnection } from '@core/infrastructure/redis/redis.connection';
-
-import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
 
 /** Builds an archived log entry fixture, overriding only the fields under test. */
 const logEntry = (overrides: Partial<LogEntry> = {}): LogEntry => ({
@@ -70,7 +69,9 @@ describe('readLogStream', () => {
     it('replays the archived log and completes when Redis no longer holds the stream', async () => {
         mockRepository.getAllByDeployment.mockResolvedValue([
             logEntry(),
-            logEntry({ id: 'entry-2', seq: 2, type: 'end', status: 'success' }),
+            logEntry({
+                id: 'entry-2', seq: 2, type: 'end', status: 'success',
+            }),
         ]);
 
         const received = await firstValueFrom(streamOf().pipe(toArray()));

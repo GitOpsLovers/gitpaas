@@ -164,7 +164,7 @@ Each feature declares its domain error classes in `domain/errors/`, in a file wi
 Two deviations from this rule are known and intentional:
 
 - The Passport strategies (`features/authentication/infrastructure/passport/jwt.strategy.ts` and `local.strategy.ts`) throw `UnauthorizedException` because the guard runs before any controller method. Thus no controller can do the translation.
-- `features/providers/infrastructure/github/github-providers.adapter.ts` throws `ServiceUnavailableException` because a non-HTTP background worker also uses this adapter, and the error must stay the same for the two consumers.
+- `features/source-control/infrastructure/github/github-source-control.adapter.ts` throws `ServiceUnavailableException` because a non-HTTP background worker also uses this adapter, and the error must stay the same for the two consumers.
 
 ### File naming
 

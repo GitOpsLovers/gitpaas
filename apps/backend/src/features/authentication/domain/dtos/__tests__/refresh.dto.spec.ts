@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 // eslint-disable-next-line import/no-unassigned-import
 import 'reflect-metadata';
 
@@ -8,8 +9,7 @@ import type { ValidationError } from 'class-validator';
 import { RefreshDto } from '../refresh.dto';
 
 /** A structurally valid, signed-looking JWT (header.payload.signature). */
-const JWT =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 
 /** Validates a raw payload exactly as the global ValidationPipe does. */
 const validatePayload = (payload: Record<string, unknown>): ValidationError[] =>

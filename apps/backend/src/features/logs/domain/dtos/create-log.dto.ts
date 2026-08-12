@@ -5,7 +5,7 @@ import type { LogEvent, LogStatus } from '../models/log-event.models';
 /**
  * Allowed log entry types, used to validate the create DTO.
  */
-const LOG_TYPES: LogEvent['type'][] = ['line', 'end'];
+const LOG_TYPES: Array<LogEvent['type']> = ['line', 'end'];
 
 /**
  * Allowed terminal statuses, used to validate the create DTO.

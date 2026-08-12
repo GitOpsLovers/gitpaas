@@ -1,0 +1,123 @@
+import { Test } from '@nestjs/testing';
+
+import { listBranchesUseCase } from '../../../application/list-branches.use-case';
+import { listRepositoriesUseCase } from '../../../application/list-repositories.use-case';
+import { GitBranch } from '../../../domain/models/git-branch.models';
+import { GitRepository } from '../../../domain/models/git-repository.models';
+import { GithubSourceControlAdapter } from '../../../infrastructure/github/github-source-control.adapter';
+import { SourceControlService } from '../source-control.service';
+
+jest.mock('../../../application/list-repositories.use-case');
+jest.mock('../../../application/list-branches.use-case');
+
+const mockListRepositoriesUseCase = listRepositoriesUseCase as jest.MockedFunction<
+    typeof listRepositoriesUseCase
+>;
+const mockListBranchesUseCase = listBranchesUseCase as jest.MockedFunction<typeof listBranchesUseCase>;
+
+const repositoryId = 42;
+
+const repositories: GitRepository[] = [
+    {
+        id: repositoryId,
+        fullName: 'gitopslovers/gitpaas',
+        defaultBranch: 'main',
+        private: true,
+    },
+    {
+        id: 7,
+        fullName: 'gitopslovers/website',
+        defaultBranch: 'develop',
+        private: false,
+    },
+];
+
+const branches: GitBranch[] = [{ name: 'main' }, { name: 'develop' }];
+
+describe('SourceControlService', () => {
+    let mockProvider: jest.Mocked<GithubSourceControlAdapter>;
+    let sut: SourceControlService;
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+
+        mockProvider = {} as jest.Mocked<GithubSourceControlAdapter>;
+
+        const moduleRef = await Test.createTestingModule({
+            providers: [
+                SourceControlService,
+                { provide: GithubSourceControlAdapter, useValue: mockProvider },
+            ],
+        }).compile();
+
+        sut = moduleRef.get(SourceControlService);
+    });
+
+    describe('listRepositories', () => {
+        it('delegates to the use case with the source control port', async () => {
+            mockListRepositoriesUseCase.mockResolvedValue(repositories);
+
+            await sut.listRepositories();
+
+            expect(mockListRepositoriesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockListRepositoriesUseCase).toHaveBeenCalledWith(mockProvider);
+        });
+
+        it('returns the repositories produced by the use case', async () => {
+            mockListRepositoriesUseCase.mockResolvedValue(repositories);
+
+            const result = await sut.listRepositories();
+
+            expect(result).toBe(repositories);
+        });
+
+        it('returns an empty list when no repositories are accessible', async () => {
+            mockListRepositoriesUseCase.mockResolvedValue([]);
+
+            const result = await sut.listRepositories();
+
+            expect(result).toEqual([]);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('github unreachable');
+            mockListRepositoriesUseCase.mockRejectedValue(error);
+
+            await expect(sut.listRepositories()).rejects.toThrow(error);
+        });
+    });
+
+    describe('listBranches', () => {
+        it('delegates to the use case with the source control port and repository id', async () => {
+            mockListBranchesUseCase.mockResolvedValue(branches);
+
+            await sut.listBranches(repositoryId);
+
+            expect(mockListBranchesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockListBranchesUseCase).toHaveBeenCalledWith(mockProvider, repositoryId);
+        });
+
+        it('returns the branches produced by the use case', async () => {
+            mockListBranchesUseCase.mockResolvedValue(branches);
+
+            const result = await sut.listBranches(repositoryId);
+
+            expect(result).toBe(branches);
+        });
+
+        it('returns an empty list when the repository has no branches', async () => {
+            mockListBranchesUseCase.mockResolvedValue([]);
+
+            const result = await sut.listBranches(repositoryId);
+
+            expect(result).toEqual([]);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('repository not found');
+            mockListBranchesUseCase.mockRejectedValue(error);
+
+            await expect(sut.listBranches(repositoryId)).rejects.toThrow(error);
+        });
+    });
+});

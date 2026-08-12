@@ -5,8 +5,8 @@ import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import type { ValidationError } from 'class-validator';
 
-import { CreateUserDto } from '../create-user.dto';
 import { UserRole } from '../../models/user.models';
+import { CreateUserDto } from '../create-user.dto';
 
 /** Validates a raw payload exactly as the global ValidationPipe does. */
 const validatePayload = (payload: Record<string, unknown>): ValidationError[] =>

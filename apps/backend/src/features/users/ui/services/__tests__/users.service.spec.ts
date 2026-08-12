@@ -26,7 +26,9 @@ describe('UsersService', () => {
 
         mockUsersRepository = { findByEmail: jest.fn(), create: jest.fn() };
         mockPasswordHasher = { hash: jest.fn() };
-        mockLogger = { debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+        mockLogger = {
+            debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+        };
 
         const moduleRef = await Test.createTestingModule({
             providers: [

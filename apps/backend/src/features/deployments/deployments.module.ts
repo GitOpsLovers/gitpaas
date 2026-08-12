@@ -11,8 +11,8 @@ import { DeploymentRunnerService } from './ui/services/deployment-runner.service
 import { DeploymentsService } from './ui/services/deployments.service';
 
 import { LogsModule } from '@features/logs/logs.module';
-import { ProvidersModule } from '@features/providers/providers.module';
 import { ServicesModule } from '@features/services/services.module';
+import { SourceControlModule } from '@features/source-control/source-control.module';
 
 /**
  * Deployments feature module.
@@ -21,7 +21,7 @@ import { ServicesModule } from '@features/services/services.module';
     imports: [
         TypeOrmModule.forFeature([DbDeploymentEntity, DbDeploymentQueueTaskEntity]),
         forwardRef(() => ServicesModule),
-        ProvidersModule,
+        SourceControlModule,
         LogsModule,
     ],
     controllers: [DeploymentsController],

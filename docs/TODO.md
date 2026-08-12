@@ -1,7 +1,6 @@
 - [] Add a root `turborepo.json` file.
 - [] Decide if we control the secrets with Docker secrets.
 - [] Decide where we must throw the domain errors. I think that we must throw them ONLY in the services.
-- [] The names of the Providers are not sufficiently clear.
 
 ## Structural
 

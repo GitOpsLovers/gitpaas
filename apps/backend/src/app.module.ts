@@ -14,9 +14,9 @@ import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { LogsModule } from '@features/logs/logs.module';
 import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
-import { ProvidersModule } from '@features/providers/providers.module';
 import { ServerModule } from '@features/server/server.module';
 import { ServicesModule } from '@features/services/services.module';
+import { SourceControlModule } from '@features/source-control/source-control.module';
 import { UsersModule } from '@features/users/users.module';
 
 /**
@@ -45,7 +45,7 @@ import { UsersModule } from '@features/users/users.module';
         UsersModule,
         AuthenticationModule,
         ProjectsModule,
-        ProvidersModule,
+        SourceControlModule,
         ServicesModule,
         DeploymentsModule,
         LogsModule,

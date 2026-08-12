@@ -7,8 +7,8 @@ import { DeploymentsRepository } from '../domain/repositories/deployments.reposi
 
 import { persistDeploymentUseCase } from './persist-deployment.use-case';
 
-import { Providers } from '@features/providers/domain/ports/providers.port';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
@@ -19,7 +19,7 @@ import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
  *
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
- * @param providers Providers
+ * @param sourceControl Source control port
  * @param deploymentQueue Deployment queue
  * @param triggerDto Data for triggering the deployment
  *
@@ -28,7 +28,7 @@ import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 export async function createDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
-    providers: Providers,
+    sourceControl: SourceControl,
     deploymentQueue: DeploymentQueue,
     triggerDto: TriggerDeploymentDto,
 ): Promise<Deployment> {
@@ -42,7 +42,7 @@ export async function createDeploymentUseCase(
         throw new ServiceNotDeployableError();
     }
 
-    const commit = await providers.getCommit(Number(service.repositoryId), service.deploymentBranch);
+    const commit = await sourceControl.getCommit(Number(service.repositoryId), service.deploymentBranch);
 
     const createDto: CreateDeploymentDto = {
         serviceId: service.id,

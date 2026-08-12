@@ -14,8 +14,8 @@ import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import type { Providers } from '@features/providers/domain/ports/providers.port';
-import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
+import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
+import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 /**
  * Deployment runner.
@@ -29,8 +29,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     constructor(
         @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
-        @Inject(GithubProvidersAdapter)
-        private readonly providersRepository: Providers,
+        @Inject(GithubSourceControlAdapter)
+        private readonly sourceControl: SourceControl,
         @Inject(DockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
         @Inject(RedisLogStoreAdapter)
@@ -73,7 +73,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
             await runDeploymentUseCase(
                 this.deploymentsRepository,
-                this.providersRepository,
+                this.sourceControl,
                 this.dockerExecutor,
                 this.logStore,
                 task,

@@ -7,10 +7,10 @@ import { DeploymentsRepository } from '../../domain/repositories/deployments.rep
 import { createDeploymentUseCase } from '../create-deployment.use-case';
 import { persistDeploymentUseCase } from '../persist-deployment.use-case';
 
-import { GitCommit } from '@features/providers/domain/models/git-commit.models';
-import { Providers } from '@features/providers/domain/ports/providers.port';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { GitCommit } from '@features/source-control/domain/models/git-commit.models';
+import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
 
 jest.mock('../persist-deployment.use-case');
 
@@ -60,14 +60,14 @@ describe('createDeploymentUseCase', () => {
 
     const mockDeploymentsRepository = {} as unknown as DeploymentsRepository;
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
-    let mockProviders: jest.Mocked<Pick<Providers, 'getCommit'>>;
+    let mockSourceControl: jest.Mocked<Pick<SourceControl, 'getCommit'>>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
 
     const run = (): Promise<Deployment> => {
         return createDeploymentUseCase(
             mockDeploymentsRepository,
             mockServicesRepository as unknown as ServicesRepository,
-            mockProviders as unknown as Providers,
+            mockSourceControl as unknown as SourceControl,
             mockQueue as unknown as DeploymentQueue,
             triggerDto,
         );
@@ -78,7 +78,7 @@ describe('createDeploymentUseCase', () => {
         mockServicesRepository = {
             findById: jest.fn(),
         };
-        mockProviders = {
+        mockSourceControl = {
             getCommit: jest.fn(),
         };
         mockQueue = {
@@ -105,16 +105,16 @@ describe('createDeploymentUseCase', () => {
 
     it('resolves the head commit for the service repository and branch', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
-        mockProviders.getCommit.mockResolvedValue(commit);
+        mockSourceControl.getCommit.mockResolvedValue(commit);
 
         await run();
 
-        expect(mockProviders.getCommit).toHaveBeenCalledWith(42, 'main');
+        expect(mockSourceControl.getCommit).toHaveBeenCalledWith(42, 'main');
     });
 
     it('delegates persistence to persistDeploymentUseCase with the correctly-built DTO and returns its result', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
-        mockProviders.getCommit.mockResolvedValue(commit);
+        mockSourceControl.getCommit.mockResolvedValue(commit);
 
         const result = await run();
 
@@ -125,7 +125,7 @@ describe('createDeploymentUseCase', () => {
 
     it('publishes a run request on the queue after persisting the deployment', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
-        mockProviders.getCommit.mockResolvedValue(commit);
+        mockSourceControl.getCommit.mockResolvedValue(commit);
 
         await run();
 
