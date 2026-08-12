@@ -7,6 +7,8 @@ import { Service } from '../../../domain/models/service.models';
 import { ServicesService } from '../../services/services.service';
 import { ServicesController } from '../services.controller';
 
+import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
+
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 
@@ -143,6 +145,29 @@ describe('ServicesController', () => {
             mockServicesService.create.mockRejectedValue(error);
 
             await expect(sut.create(createDto)).rejects.toBe(error);
+        });
+
+        it('translates a ProjectNotFoundError into a NotFoundException', async () => {
+            mockServicesService.create.mockRejectedValue(new ProjectNotFoundError(projectId));
+
+            await expect(sut.create(createDto)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.create(createDto)).rejects.toThrow(`Project ${projectId} not found`);
+        });
+
+        it('chains the domain error as the cause, so the envelope publishes its code', async () => {
+            const domainError = new ProjectNotFoundError(projectId);
+            mockServicesService.create.mockRejectedValue(domainError);
+
+            const error = await sut.create(createDto).catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBe(domainError);
+        });
+
+        it('rethrows an HttpException raised by the service unchanged', async () => {
+            const original = new NotFoundException('gone');
+            mockServicesService.create.mockRejectedValue(original);
+
+            await expect(sut.create(createDto)).rejects.toBe(original);
         });
     });
 

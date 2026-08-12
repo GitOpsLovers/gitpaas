@@ -92,15 +92,17 @@ describe('UsersService', () => {
     });
 
     describe('seedDevelopmentAdmin — failure is swallowed', () => {
-        it('logs an Error message and resolves without rethrowing', async () => {
-            mockSeedAdminUseCase.mockRejectedValue(new Error('users table missing'));
+        it('logs the thrown Error itself, so its stack survives, and resolves without rethrowing', async () => {
+            const error = new Error('users table missing');
+
+            mockSeedAdminUseCase.mockRejectedValue(error);
 
             await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
 
             expect(mockLogger.error).toHaveBeenCalledTimes(1);
             expect(mockLogger.error).toHaveBeenCalledWith(
                 'Development admin seed failed:',
-                'users table missing',
+                error,
                 'UsersService',
             );
             expect(mockLogger.log).not.toHaveBeenCalled();

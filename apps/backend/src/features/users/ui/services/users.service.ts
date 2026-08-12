@@ -46,7 +46,7 @@ export class UsersService {
         } catch (error: unknown) {
             this.logger.error(
                 'Development admin seed failed:',
-                error instanceof Error ? error.message : error,
+                error,
                 UsersService.name,
             );
         }

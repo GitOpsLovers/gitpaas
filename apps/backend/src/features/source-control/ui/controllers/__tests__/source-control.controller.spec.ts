@@ -1,5 +1,12 @@
+import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import {
+    SourceControlNotConfiguredError,
+    SourceControlRateLimitedError,
+    SourceControlResourceNotFoundError,
+    SourceControlUnavailableError,
+} from '../../../domain/errors/source-control.errors';
 import { GitBranch } from '../../../domain/models/git-branch.models';
 import { GitRepository } from '../../../domain/models/git-repository.models';
 import { SourceControlService } from '../../services/source-control.service';
@@ -70,11 +77,36 @@ describe('SourceControlController', () => {
             expect(result).toEqual([]);
         });
 
-        it('propagates errors raised by the service unchanged', async () => {
+        it('propagates an unclassifiable error unchanged, so the filter answers 500', async () => {
             const error = new Error('github unreachable');
             mockSourceControlService.listRepositories.mockRejectedValue(error);
 
             await expect(sut.listRepositories()).rejects.toBe(error);
+        });
+
+        it('translates a GitHub outage into a 503', async () => {
+            mockSourceControlService.listRepositories.mockRejectedValue(new SourceControlUnavailableError());
+
+            await expect(sut.listRepositories()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('translates an exhausted rate limit into a 503', async () => {
+            mockSourceControlService.listRepositories.mockRejectedValue(new SourceControlRateLimitedError());
+
+            await expect(sut.listRepositories()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('translates a missing GitHub App configuration into a 503', async () => {
+            mockSourceControlService.listRepositories.mockRejectedValue(new SourceControlNotConfiguredError());
+
+            await expect(sut.listRepositories()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('chains the domain error as the cause of the translated exception', async () => {
+            const error = new SourceControlUnavailableError();
+            mockSourceControlService.listRepositories.mockRejectedValue(error);
+
+            await expect(sut.listRepositories()).rejects.toMatchObject({ cause: error });
         });
     });
 
@@ -104,11 +136,23 @@ describe('SourceControlController', () => {
             expect(result).toEqual([]);
         });
 
-        it('propagates errors raised by the service unchanged', async () => {
+        it('propagates an unclassifiable error unchanged, so the filter answers 500', async () => {
             const error = new Error('repository not found');
             mockSourceControlService.listBranches.mockRejectedValue(error);
 
             await expect(sut.listBranches(repositoryId)).rejects.toBe(error);
+        });
+
+        it('translates a missing repository into a 404', async () => {
+            mockSourceControlService.listBranches.mockRejectedValue(new SourceControlResourceNotFoundError());
+
+            await expect(sut.listBranches(repositoryId)).rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('translates a GitHub outage into a 503', async () => {
+            mockSourceControlService.listBranches.mockRejectedValue(new SourceControlUnavailableError());
+
+            await expect(sut.listBranches(repositoryId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
     });
 });

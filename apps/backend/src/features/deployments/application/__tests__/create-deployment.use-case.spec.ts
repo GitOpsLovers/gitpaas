@@ -1,12 +1,13 @@
 import { CreateDeploymentDto } from '../../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
+import { ServiceNotDeployableError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { createDeploymentUseCase } from '../create-deployment.use-case';
 import { persistDeploymentUseCase } from '../persist-deployment.use-case';
 
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { GitCommit } from '@features/source-control/domain/models/git-commit.models';

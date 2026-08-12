@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { getNetworksByServiceUseCase } from '../../application/get-networks-by-service.use-case';
-import { ServiceNotFoundError } from '../../domain/errors/network.errors';
 import { Network } from '../../domain/models/network.models';
 import type { NetworksRepository } from '../../domain/repositories/networks.repository';
 import { DockerNetworksRepository } from '../../infrastructure/docker/docker-networks.repository';
@@ -28,15 +27,9 @@ export class NetworksService {
      *
      * @returns Networks of the service
      *
-     * @throws {ServiceNotFoundError} When the service does not exist
+     * @throws {ServiceNotFoundError} Raised by the use case when the service does not exist
      */
-    public async getByService(serviceId: string): Promise<Network[]> {
-        const service = await this.servicesRepository.findById(serviceId);
-
-        if (!service) {
-            throw new ServiceNotFoundError(serviceId);
-        }
-
-        return getNetworksByServiceUseCase(this.networksRepository, service);
+    public getByService(serviceId: string): Promise<Network[]> {
+        return getNetworksByServiceUseCase(this.servicesRepository, this.networksRepository, serviceId);
     }
 }

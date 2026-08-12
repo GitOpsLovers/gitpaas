@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Inject, Post, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
 import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
 import { PruneResult } from '../../domain/models/prune-result.models';
@@ -6,19 +6,19 @@ import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import { ServerService } from '../services/server.service';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
-import type { AppLogger } from '@core/domain/ports/app-logger.port';
-import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { translateError } from '@core/ui/translators/http-error.translator';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
 
 /**
  * Server controller
+ *
+ * A failure is never logged here: the exception thrown carries the original
+ * error as its `cause`, and the global exception filter writes the single log
+ * line for it — the only one that also carries the request id.
  */
 @Controller('server')
 export class ServerController {
-    constructor(
-        private readonly service: ServerService,
-        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
-    ) {}
+    constructor(private readonly service: ServerService) {}
 
     /**
      * Check the availability of the GitPaaS infrastructure.
@@ -48,16 +48,11 @@ export class ServerController {
                 ...info,
             };
         } catch (error) {
-            if (error instanceof ServiceUnavailableException) {
-                throw error;
-            }
-
-            this.logger.error('Failed to reach the server Docker daemon', error, ServerController.name);
-
-            throw new ServiceUnavailableException(
+            throw translateError(error, () => new ServiceUnavailableException(
                 'Could not reach the server Docker daemon. Verify the server is running and '
                     + 'reachable; in local development, start the emulated server (see CONTRIBUTING.md).',
-            );
+                { cause: error },
+            ));
         }
     }
 
@@ -118,16 +113,11 @@ export class ServerController {
         try {
             return await action();
         } catch (error) {
-            if (error instanceof ServiceUnavailableException) {
-                throw error;
-            }
-
-            this.logger.error(`Failed to prune ${resource} on the server Docker daemon`, error, ServerController.name);
-
-            throw new ServiceUnavailableException(
+            throw translateError(error, () => new ServiceUnavailableException(
                 `Could not prune ${resource}. Verify the server is running and reachable; `
                     + 'in local development, start the emulated server (see CONTRIBUTING.md).',
-            );
+                { cause: error },
+            ));
         }
     }
 }

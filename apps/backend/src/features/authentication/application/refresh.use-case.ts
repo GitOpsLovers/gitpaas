@@ -33,8 +33,10 @@ export async function refreshUseCase(
 
     try {
         payload = tokenService.verifyRefreshToken(rawToken);
-    } catch {
-        throw new InvalidRefreshTokenError();
+    } catch (error: unknown) {
+        // The verification failure is kept as the cause: the client still sees the
+        // generic message, while the log keeps why the token was rejected.
+        throw new InvalidRefreshTokenError({ cause: error });
     }
 
     const stored = await refreshTokensRepository.findByJti(payload.jti);
