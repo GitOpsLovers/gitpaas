@@ -1,0 +1,21 @@
+apps/backend/src/core/infrastructure/database/__tests__/data-source-options.spec.ts
+  s_4b5aa6263a4f58::t_5031cc9721cba4 1-2,5-21,58,83,86-90,92
+apps/backend/tsconfig.json
+  s_4b5aa6263a4f58::t_b113b5f38cdb32 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c152dcc3cc24ecf4665de9011777559a372d01bb",
+  "prompts": {},
+  "sessions": {
+    "s_4b5aa6263a4f58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a606b24d6ab16ce24",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
