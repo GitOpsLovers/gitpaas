@@ -1,0 +1,47 @@
+apps/backend/src/core/domain/ports/app-logger.port.ts
+  s_8d5a461a51f20c::t_39df0c23f6759b 33
+apps/backend/src/core/infrastructure/logging/__tests__/nest-logger.adapter.spec.ts
+  s_8d5a461a51f20c::t_1f9ee610fda108 43,48-70,98
+apps/backend/src/core/infrastructure/logging/nest-logger.adapter.ts
+  s_8d5a461a51f20c::t_29b02173e5da50 5-29,50
+apps/backend/src/core/ui/filters/__tests__/all-exceptions.filter.spec.ts
+  s_11258a178323e4::t_afb606ecd921e2 4-5,7,11,13-17,24,27,30-40,44-47,70,124,129,133,155,160,165,171-185,202,207,220,234,239-501
+apps/backend/src/core/ui/filters/all-exceptions.filter.ts
+  s_5f8577acc8635d::t_a955929b377190 13,16-28,35,38,41,50-51,54-58,74-75,85,91,95,98,101,109,114,118-168,228-258,265,268-272,281
+apps/backend/src/core/ui/middlewares/__tests__/request-id.middleware.spec.ts
+  s_8d5a461a51f20c::t_415bb42a985569 1-90
+apps/backend/src/core/ui/middlewares/request-id.middleware.ts
+  s_8d5a461a51f20c::t_a4f7e43f9571c1 1-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "fb3a328d22aa1f21a61e6f5c9ba5b78327a1c2d8",
+  "prompts": {},
+  "sessions": {
+    "s_11258a178323e4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af1bd3bea2a861550",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5f8577acc8635d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a467f1fd63542118d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8d5a461a51f20c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9a183a4d85a09f6f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
