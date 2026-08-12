@@ -1,0 +1,53 @@
+apps/backend/src/features/server/infrastructure/docker/__tests__/docker-orphan-containers.adapter.spec.ts
+  s_8d5a461a51f20c::t_38255552327744 180-190
+apps/backend/src/features/server/infrastructure/docker/docker-orphan-containers.adapter.ts
+  s_8d5a461a51f20c::t_c2dd7e2ed2efa5 56,58
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_5f8577acc8635d::t_3843188fdc3d43 8-15,135-157
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.transformer.spec.ts
+  s_5f8577acc8635d::t_7cde70c03808df 2-4,47-103
+apps/backend/src/features/services/infrastructure/database/db-services.repository.ts
+  s_5f8577acc8635d::t_7628bf97ced627 11,67-70,74-75,78-80,82-85
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_5f8577acc8635d::t_3f1af5be821e21 5-52
+apps/backend/src/features/source-control/infrastructure/github/__tests__/github-source-control.adapter.spec.ts
+  s_231f40649e6a2b::t_d359e3bc9dbb95 5-10,130-200,203,213
+apps/backend/src/features/source-control/infrastructure/github/__tests__/github-source-control.transformer.spec.ts
+  s_231f40649e6a2b::t_0eaaeb1d96ac2b 1-20,72-153
+apps/backend/src/features/source-control/infrastructure/github/github-source-control.adapter.ts
+  s_231f40649e6a2b::t_1b14d0b3ffeb54 1,6,12-14,21-26,37-39,41-42,45-49,51,53-56,58-59,62-66,68,70-74,76-77,80-84,86,88-95,97,99-115,141
+apps/backend/src/features/source-control/infrastructure/github/github-source-control.transformer.ts
+  s_231f40649e6a2b::t_cb1b5ab8770551 1-6,11-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f6811f64abd5ff68dd95a05779f738d80a81cb11",
+  "prompts": {},
+  "sessions": {
+    "s_231f40649e6a2b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6fe98a7d0a418722",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5f8577acc8635d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a467f1fd63542118d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8d5a461a51f20c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9a183a4d85a09f6f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
