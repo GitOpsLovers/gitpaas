@@ -34,7 +34,7 @@ export class FakeRedis {
     public readonly expirations = new Map<string, number>();
 
     /** Raw arguments of every `XADD`, in call order. */
-    public readonly xaddCalls: (string | number)[][] = [];
+    public readonly xaddCalls: Array<Array<string | number>> = [];
 
     /** Keys handed to `DEL`, in call order. */
     public readonly deleted: string[] = [];
@@ -56,7 +56,7 @@ export class FakeRedis {
      *
      * @returns Identifier of the appended entry
      */
-    public async xadd(key: string, ...args: (string | number)[]): Promise<string> {
+    public async xadd(key: string, ...args: Array<string | number>): Promise<string> {
         this.reject();
         this.xaddCalls.push([key, ...args]);
 
@@ -100,7 +100,7 @@ export class FakeRedis {
      *
      * @returns Stream reply, or null when nothing new arrived
      */
-    public async xread(...args: (string | number)[]): Promise<[string, FakeStreamEntry[]][] | null> {
+    public async xread(...args: Array<string | number>): Promise<Array<[string, FakeStreamEntry[]]> | null> {
         this.reject();
         this.reads += 1;
 
@@ -132,7 +132,7 @@ export class FakeRedis {
      *
      * @returns The `OK` reply
      */
-    public async set(key: string, value: string, ...args: (string | number)[]): Promise<'OK'> {
+    public async set(key: string, value: string, ...args: Array<string | number>): Promise<'OK'> {
         this.reject();
         this.values.set(key, value);
 
@@ -218,7 +218,7 @@ export class FakeRedis {
         _cursor: string | number,
         _matchToken: 'MATCH',
         pattern: string,
-        ..._rest: (string | number)[]
+        ..._rest: Array<string | number>
     ): Promise<[string, string[]]> {
         this.reject();
 
@@ -245,7 +245,7 @@ export class FakeRedis {
  */
 export class FakeRedisPipeline {
     /** Commands queued so far, in call order. */
-    private readonly commands: (() => Promise<unknown>)[] = [];
+    private readonly commands: Array<() => Promise<unknown>> = [];
 
     constructor(private readonly client: FakeRedis) {}
 
@@ -257,7 +257,7 @@ export class FakeRedisPipeline {
      *
      * @returns The pipeline, so calls chain
      */
-    public xadd(key: string, ...args: (string | number)[]): this {
+    public xadd(key: string, ...args: Array<string | number>): this {
         this.commands.push(() => this.client.xadd(key, ...args));
 
         return this;
@@ -272,7 +272,7 @@ export class FakeRedisPipeline {
      *
      * @returns The pipeline, so calls chain
      */
-    public set(key: string, value: string, ...args: (string | number)[]): this {
+    public set(key: string, value: string, ...args: Array<string | number>): this {
         this.commands.push(() => this.client.set(key, value, ...args));
 
         return this;
@@ -283,8 +283,8 @@ export class FakeRedisPipeline {
      *
      * @returns One `[error, reply]` pair per queued command
      */
-    public async exec(): Promise<[Error | null, unknown][]> {
-        const replies: [Error | null, unknown][] = [];
+    public async exec(): Promise<Array<[Error | null, unknown]>> {
+        const replies: Array<[Error | null, unknown]> = [];
 
         for (const command of this.commands) {
             replies.push([null, await command()]);

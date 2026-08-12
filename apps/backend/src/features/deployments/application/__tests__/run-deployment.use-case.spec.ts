@@ -4,7 +4,7 @@ import { DeploymentsRepository } from '../../domain/repositories/deployments.rep
 import { runDeploymentUseCase } from '../run-deployment.use-case';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { Providers } from '@features/providers/domain/ports/providers.port';
+import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
 
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {
@@ -18,14 +18,14 @@ describe('runDeploymentUseCase', () => {
     const archive = Buffer.from('gzipped-repo-tarball');
 
     let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'update'>>;
-    let mockProviders: jest.Mocked<Pick<Providers, 'getRepositoryArchive'>>;
+    let mockSourceControl: jest.Mocked<Pick<SourceControl, 'getRepositoryArchive'>>;
     let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
     let mockLogStore: jest.Mocked<Pick<LogStore, 'append' | 'complete'>>;
 
     const run = (): Promise<void> => {
         return runDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockProviders as unknown as Providers,
+            mockSourceControl as unknown as SourceControl,
             mockDockerExecutor,
             mockLogStore as unknown as LogStore,
             payload,
@@ -37,7 +37,7 @@ describe('runDeploymentUseCase', () => {
         mockDeploymentsRepository = {
             update: jest.fn(),
         };
-        mockProviders = {
+        mockSourceControl = {
             getRepositoryArchive: jest.fn(),
         };
         mockDockerExecutor = {
@@ -50,7 +50,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('marks the deployment as running before doing any work', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);
 
         await run();
@@ -59,16 +59,16 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('downloads the repository archive for the payload repository and commit', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);
 
         await run();
 
-        expect(mockProviders.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.commit);
+        expect(mockSourceControl.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.commit);
     });
 
     it('brings the stack up with the archive, compose path, project name and a log listener', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);
 
         await run();
@@ -77,7 +77,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('fans executor output out live through the log store', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
 
@@ -90,7 +90,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('absorbs a failing log append instead of leaving an unhandled rejection', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockLogStore.append.mockRejectedValue(new Error('log store unavailable'));
         mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
@@ -106,7 +106,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('marks the deployment successful and completes the log when the stack comes up', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
             onLog?.('building service');
             onLog?.('stack up');
@@ -121,7 +121,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('marks the deployment failed, streams the failure line and completes when the executor throws', async () => {
-        mockProviders.getRepositoryArchive.mockResolvedValue(archive);
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockRejectedValue(new Error('build failed'));
 
         await run();
@@ -132,7 +132,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('marks the deployment as failed when downloading the archive throws', async () => {
-        mockProviders.getRepositoryArchive.mockRejectedValue(new Error('archive not found'));
+        mockSourceControl.getRepositoryArchive.mockRejectedValue(new Error('archive not found'));
 
         await run();
 
@@ -141,7 +141,7 @@ describe('runDeploymentUseCase', () => {
     });
 
     it('stringifies non-Error failures', async () => {
-        mockProviders.getRepositoryArchive.mockRejectedValue('boom');
+        mockSourceControl.getRepositoryArchive.mockRejectedValue('boom');
 
         await run();
 

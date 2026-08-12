@@ -56,9 +56,15 @@ describe('toCreateLogDtos', () => {
         ];
 
         expect(toCreateLogDtos('deployment-1', entries)).toEqual([
-            { deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'first', status: null },
-            { deploymentId: 'deployment-1', seq: 2, type: 'line', content: 'second', status: null },
-            { deploymentId: 'deployment-1', seq: 3, type: 'end', content: null, status: 'success' },
+            {
+                deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'first', status: null,
+            },
+            {
+                deploymentId: 'deployment-1', seq: 2, type: 'line', content: 'second', status: null,
+            },
+            {
+                deploymentId: 'deployment-1', seq: 3, type: 'end', content: null, status: 'success',
+            },
         ]);
     });
 
@@ -69,7 +75,9 @@ describe('toCreateLogDtos', () => {
         ];
 
         expect(toCreateLogDtos('deployment-1', entries)).toEqual([
-            { deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'first', status: null },
+            {
+                deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'first', status: null,
+            },
         ]);
     });
 

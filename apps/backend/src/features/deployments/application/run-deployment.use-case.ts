@@ -3,7 +3,7 @@ import { DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { Providers } from '@features/providers/domain/ports/providers.port';
+import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
 
 /**
  * Use case that runs a deployment.
@@ -12,14 +12,14 @@ import { Providers } from '@features/providers/domain/ports/providers.port';
  * and fans each captured line out to the logs store.
  *
  * @param deploymentsRepository Deployments repository
- * @param providers Providers
+ * @param sourceControl Source control port
  * @param dockerExecutor Docker executor
  * @param logStore Logs store
  * @param payload Run payload
  */
 export async function runDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
-    providers: Providers,
+    sourceControl: SourceControl,
     dockerExecutor: DockerExecutor,
     logStore: LogStore,
     payload: DeploymentRunTask,
@@ -27,7 +27,7 @@ export async function runDeploymentUseCase(
     await deploymentsRepository.update(payload.deploymentId, { status: 'running' });
 
     try {
-        const archive = await providers.getRepositoryArchive(payload.repositoryId, payload.commit);
+        const archive = await sourceControl.getRepositoryArchive(payload.repositoryId, payload.commit);
 
         await dockerExecutor.up(archive, payload.composerPath, payload.projectName, (line) => {
             logStore.append(payload.deploymentId, line).catch(() => undefined);

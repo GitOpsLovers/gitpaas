@@ -631,7 +631,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                 throw error;
             });
 
-            expect(() => sut.followProgress(Readable.from([]), jest.fn(), jest.fn())).toThrow(error);
+            expect(() => { sut.followProgress(Readable.from([]), jest.fn(), jest.fn()); }).toThrow(error);
         });
     });
 

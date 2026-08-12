@@ -13,10 +13,10 @@ import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-
 
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import type { Providers } from '@features/providers/domain/ports/providers.port';
-import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
+import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
+import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 /**
  * Deployments service
@@ -28,8 +28,8 @@ export class DeploymentsService {
         private readonly repository: DeploymentsRepository,
         @Inject(DatabaseServicesRepository)
         private readonly servicesRepository: ServicesRepository,
-        @Inject(GithubProvidersAdapter)
-        private readonly providersRepository: Providers,
+        @Inject(GithubSourceControlAdapter)
+        private readonly sourceControl: SourceControl,
         @Inject(DatabaseDeploymentQueueAdapter)
         private readonly deploymentQueue: DeploymentQueue,
         @Inject(RedisLogStoreAdapter)
@@ -83,7 +83,7 @@ export class DeploymentsService {
         return createDeploymentUseCase(
             this.repository,
             this.servicesRepository,
-            this.providersRepository,
+            this.sourceControl,
             this.deploymentQueue,
             triggerDto,
         );

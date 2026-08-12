@@ -6,8 +6,8 @@ import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogEvent } from '../../domain/models/log-event.models';
 import type { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
-import { RedisLogStoreAdapter } from '../../infrastructure/redis/redis-log-store.adapter';
 import { DatabaseLogsRepository } from '../../infrastructure/database/db-logs.repository';
+import { RedisLogStoreAdapter } from '../../infrastructure/redis/redis-log-store.adapter';
 
 /**
  * Logs service

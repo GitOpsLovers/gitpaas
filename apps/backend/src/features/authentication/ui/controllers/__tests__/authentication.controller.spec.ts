@@ -70,32 +70,32 @@ describe('AuthenticationController', () => {
     it('refresh maps InvalidRefreshTokenError to a 401 UnauthorizedException', async () => {
         mockAuthenticationService.refresh.mockRejectedValue(new InvalidRefreshTokenError());
 
-        await expect(sut.refresh({ refreshToken: 'bad' } as RefreshDto)).rejects.toBeInstanceOf(UnauthorizedException);
+        await expect(sut.refresh({ refreshToken: 'bad' })).rejects.toBeInstanceOf(UnauthorizedException);
     });
 
     it('refresh keeps the InvalidRefreshTokenError message on the UnauthorizedException', async () => {
         mockAuthenticationService.refresh.mockRejectedValue(new InvalidRefreshTokenError());
 
-        await expect(sut.refresh({ refreshToken: 'bad' } as RefreshDto)).rejects.toThrow('Invalid refresh token');
+        await expect(sut.refresh({ refreshToken: 'bad' })).rejects.toThrow('Invalid refresh token');
     });
 
     it('refresh maps UserInactiveError to a 401 UnauthorizedException', async () => {
         mockAuthenticationService.refresh.mockRejectedValue(new UserInactiveError());
 
-        await expect(sut.refresh({ refreshToken: 'token' } as RefreshDto)).rejects.toBeInstanceOf(UnauthorizedException);
+        await expect(sut.refresh({ refreshToken: 'token' })).rejects.toBeInstanceOf(UnauthorizedException);
     });
 
     it('refresh keeps the UserInactiveError message on the UnauthorizedException', async () => {
         mockAuthenticationService.refresh.mockRejectedValue(new UserInactiveError());
 
-        await expect(sut.refresh({ refreshToken: 'token' } as RefreshDto)).rejects.toThrow('User account is inactive');
+        await expect(sut.refresh({ refreshToken: 'token' })).rejects.toThrow('User account is inactive');
     });
 
     it('refresh rethrows unexpected errors unchanged', async () => {
         const boom = new Error('database is down');
         mockAuthenticationService.refresh.mockRejectedValue(boom);
 
-        await expect(sut.refresh({ refreshToken: 'token' } as RefreshDto)).rejects.toBe(boom);
+        await expect(sut.refresh({ refreshToken: 'token' })).rejects.toBe(boom);
     });
 
     it('logout delegates the raw refresh token to the service', async () => {

@@ -1,5 +1,4 @@
 import { LogEntry } from '../../domain/models/log-entry.models';
-import { LogStatus } from '../../domain/models/log-event.models';
 
 import { DbLogEntity } from './db-log.entity';
 
@@ -21,7 +20,7 @@ export function toLogEntry(entity: DbLogEntity): LogEntry {
     };
 
     if (entity.type === 'end') {
-        return { ...metadata, type: 'end', status: entity.status as LogStatus };
+        return { ...metadata, type: 'end', status: entity.status! };
     }
 
     return { ...metadata, type: 'line', data: entity.content ?? '' };

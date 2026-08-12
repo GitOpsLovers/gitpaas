@@ -12,7 +12,7 @@ import { DeploymentRunnerService } from '../deployment-runner.service';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import { GithubProvidersAdapter } from '@features/providers/infrastructure/github/github-providers.adapter';
+import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 jest.mock('../../../application/run-deployment.use-case');
 
@@ -66,7 +66,7 @@ const taskFor = (projectName: string, id: string, deploymentId: string): QueuedD
 
 describe('DeploymentRunnerService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
-    let mockProviders: jest.Mocked<GithubProvidersAdapter>;
+    let mockSourceControl: jest.Mocked<GithubSourceControlAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
@@ -78,7 +78,7 @@ describe('DeploymentRunnerService', () => {
         jest.clearAllMocks();
 
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
-        mockProviders = {} as jest.Mocked<GithubProvidersAdapter>;
+        mockSourceControl = {} as jest.Mocked<GithubSourceControlAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
@@ -96,7 +96,7 @@ describe('DeploymentRunnerService', () => {
             providers: [
                 DeploymentRunnerService,
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
-                { provide: GithubProvidersAdapter, useValue: mockProviders },
+                { provide: GithubSourceControlAdapter, useValue: mockSourceControl },
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
@@ -123,7 +123,7 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(1);
         expect(mockRunDeploymentUseCase).toHaveBeenCalledWith(
             mockDeploymentsRepository,
-            mockProviders,
+            mockSourceControl,
             mockDockerExecutor,
             mockLogStore,
             task,
@@ -187,7 +187,7 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(1);
         expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
             mockDeploymentsRepository,
-            mockProviders,
+            mockSourceControl,
             mockDockerExecutor,
             mockLogStore,
             taskA,
@@ -200,7 +200,7 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
         expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
             mockDeploymentsRepository,
-            mockProviders,
+            mockSourceControl,
             mockDockerExecutor,
             mockLogStore,
             taskB,
@@ -230,7 +230,7 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).toHaveBeenNthCalledWith(
             1,
             mockDeploymentsRepository,
-            mockProviders,
+            mockSourceControl,
             mockDockerExecutor,
             mockLogStore,
             taskA,
@@ -238,7 +238,7 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).toHaveBeenNthCalledWith(
             2,
             mockDeploymentsRepository,
-            mockProviders,
+            mockSourceControl,
             mockDockerExecutor,
             mockLogStore,
             taskB,
@@ -275,7 +275,7 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
         expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
             mockDeploymentsRepository,
-            mockProviders,
+            mockSourceControl,
             mockDockerExecutor,
             mockLogStore,
             taskB,

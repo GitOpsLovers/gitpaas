@@ -5,9 +5,8 @@ import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import type { ValidationError } from 'class-validator';
 
-import { UpdateDeploymentDto } from '../update-deployment.dto';
-
 import type { DeploymentStatus } from '../../models/deployment.models';
+import { UpdateDeploymentDto } from '../update-deployment.dto';
 
 /** Validates a raw payload exactly as the global ValidationPipe does. */
 const validatePayload = (payload: Record<string, unknown>): ValidationError[] =>

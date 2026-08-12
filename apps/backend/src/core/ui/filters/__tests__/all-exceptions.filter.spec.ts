@@ -69,7 +69,9 @@ describe('AllExceptionsFilter', () => {
 
         mockHttpAdapterHost = { httpAdapter } as unknown as HttpAdapterHost;
 
-        mockLogger = { debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+        mockLogger = {
+            debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+        };
         mockWarn = mockLogger.warn as jest.Mock;
         mockError = mockLogger.error as jest.Mock;
 

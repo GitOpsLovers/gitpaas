@@ -1,15 +1,13 @@
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, toArray } from 'rxjs';
 
+import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
 import { LogEvent } from '../../../domain/models/log-event.models';
 import type { LogsRepository } from '../../../domain/repositories/logs.repository';
-import { DatabaseLogsRepository } from '../../database/db-logs.repository';
 import { RedisLogStoreAdapter } from '../redis-log-store.adapter';
 
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { RedisConnection } from '@core/infrastructure/redis/redis.connection';
-
-import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
 
 describe('RedisLogStoreAdapter', () => {
     const key = 'logs:deployment-1';
@@ -29,7 +27,7 @@ describe('RedisLogStoreAdapter', () => {
 
         return new RedisLogStoreAdapter(
             connection as unknown as RedisConnection,
-            mockRepository as unknown as DatabaseLogsRepository,
+            mockRepository,
             mockLogger as unknown as NestLoggerAdapter,
             config as unknown as ConfigService,
         );
@@ -98,8 +96,12 @@ describe('RedisLogStoreAdapter', () => {
 
             expect(mockRepository.createMany).toHaveBeenCalledTimes(1);
             expect(mockRepository.createMany).toHaveBeenCalledWith([
-                { deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'building', status: null },
-                { deploymentId: 'deployment-1', seq: 2, type: 'end', content: null, status: 'success' },
+                {
+                    deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'building', status: null,
+                },
+                {
+                    deploymentId: 'deployment-1', seq: 2, type: 'end', content: null, status: 'success',
+                },
             ]);
             expect(client.expirations.get(key)).toBe(60);
         });
@@ -119,8 +121,12 @@ describe('RedisLogStoreAdapter', () => {
 
             expect(order).toEqual(['archive', 'expire']);
             expect(mockRepository.createMany).toHaveBeenCalledWith([
-                { deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'building', status: null },
-                { deploymentId: 'deployment-1', seq: 2, type: 'end', content: null, status: 'success' },
+                {
+                    deploymentId: 'deployment-1', seq: 1, type: 'line', content: 'building', status: null,
+                },
+                {
+                    deploymentId: 'deployment-1', seq: 2, type: 'end', content: null, status: 'success',
+                },
             ]);
         });
 

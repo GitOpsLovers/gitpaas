@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 
-import { GithubApiRepository } from '@features/providers/infrastructure/api/github-api.repository';
+import { SourceControlApiRepository } from '@features/source-control/infrastructure/api/source-control-api.repository';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -19,7 +19,7 @@ export interface ServiceProviderSettings {
 @Component({
     selector: 'app-service-provider',
     templateUrl: './service-provider.component.html',
-    providers: [GithubApiRepository],
+    providers: [SourceControlApiRepository],
     imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent, Select2Component],
 })
 
@@ -27,7 +27,7 @@ export interface ServiceProviderSettings {
  * Provider configuration form: source repository, branch and compose file path.
  */
 export class ServiceProviderComponent {
-    private readonly github = inject(GithubApiRepository);
+    private readonly github = inject(SourceControlApiRepository);
 
     public readonly initial = input.required<ServiceProviderSettings>();
 

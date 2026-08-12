@@ -4,8 +4,8 @@ import { of } from 'rxjs';
 import { getLogsByDeploymentUseCase } from '../../../application/get-logs-by-deployment.use-case';
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import { LogEvent } from '../../../domain/models/log-event.models';
-import { RedisLogStoreAdapter } from '../../../infrastructure/redis/redis-log-store.adapter';
 import { DatabaseLogsRepository } from '../../../infrastructure/database/db-logs.repository';
+import { RedisLogStoreAdapter } from '../../../infrastructure/redis/redis-log-store.adapter';
 import { LogsService } from '../logs.service';
 
 jest.mock('../../../application/get-logs-by-deployment.use-case');

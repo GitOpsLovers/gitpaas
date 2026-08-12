@@ -13,7 +13,7 @@ jest.mock('ioredis', () => ({
 const RedisMock = Redis as unknown as jest.Mock;
 
 /** A connection opened by the connection under test. */
-type FakeClient = { quit: jest.Mock; disconnect: jest.Mock };
+interface FakeClient { quit: jest.Mock; disconnect: jest.Mock }
 
 describe('RedisConnection', () => {
     let sut: RedisConnection;

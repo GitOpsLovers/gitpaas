@@ -1,6 +1,6 @@
-import { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
-
 import { getServerStatusUseCase } from '../get-server-status.use-case';
+
+import { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 
 describe('getServerStatusUseCase', () => {
     let mockRuntime: jest.Mocked<Pick<ContainerRuntime, 'info'>>;

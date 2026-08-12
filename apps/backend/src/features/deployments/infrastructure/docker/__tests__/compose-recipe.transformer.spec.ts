@@ -4,7 +4,6 @@ import {
     normalizeBuildArgs, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, toNanoseconds,
 } from '../compose-recipe.transformer';
 
-import type { ComposeBuild } from '../compose-recipe.transformer';
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 
 /**
@@ -80,7 +79,7 @@ describe('compose-recipe.transformer', () => {
         });
 
         it('defaults the context to the base dir when none is given', () => {
-            const result = resolveBuild({} as ComposeBuild, '/repo');
+            const result = resolveBuild({}, '/repo');
 
             expect(result.contextPath).toBe(resolve('/repo', '.'));
         });
