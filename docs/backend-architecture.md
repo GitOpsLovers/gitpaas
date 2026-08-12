@@ -116,6 +116,7 @@ Some behaviours apply to all the application. Thus they are configured one time 
 - **Rate limiting**: two named throttlers are read from the environment. The `default` throttler applies globally, and the `stream` throttler applies to the long-lived SSE connections. An endpoint can change these values locally. For example, the login endpoint limits itself with `@Throttle` (5 requests in 60 seconds). The log stream removes the `default` throttler with `@SkipThrottle` and applies `@Throttle` on `stream` in its place.
 - **Security headers**: `helmet()` sets the secure HTTP headers at bootstrap.
 - **Environment validation**: a `class-validator` schema validates each variable when the application starts. If a variable is missing or incorrect, the application stops immediately.
+- **Request correlation id**: a global middleware gives an id to each request. It uses the inbound `X-Request-Id` header or makes a new id, and it returns the id in the `X-Request-Id` response header..
 - **Error envelope**: a global exception filter returns the same shape for all the errors. It keeps the message arrays that the `ValidationPipe` makes, and it changes an unexpected error into a generic 500.
 
 ---
@@ -158,13 +159,6 @@ The global route prefix is `api/v1`. The listen port comes from `getOrThrow('POR
 | `DELETE /:id` | `@HttpCode(204)`; 404 when missing                  |
 
 The `:id` segment connects with `@Param('id', ParseUUIDPipe)`. **The not-found condition is an HTTP concern**: a repository returns `null` and `delete()` returns a `boolean`, and the controller raises `NotFoundException`. The domain never throws an HTTP exception. The domain raises a domain error, and the UI edge changes it.
-
-Each feature declares its domain error classes in `domain/errors/`, in a file with the name pattern `<entity>.errors.ts` (for example, `container.errors.ts`). These classes extend `Error` and contain no HTTP data. Only the controller changes them into a Nest HTTP exception.
-
-Two deviations from this rule are known and intentional:
-
-- The Passport strategies (`features/authentication/infrastructure/passport/jwt.strategy.ts` and `local.strategy.ts`) throw `UnauthorizedException` because the guard runs before any controller method. Thus no controller can do the translation.
-- `features/source-control/infrastructure/github/github-source-control.adapter.ts` throws `ServiceUnavailableException` because a non-HTTP background worker also uses this adapter, and the error must stay the same for the two consumers.
 
 ### File naming
 
@@ -257,6 +251,16 @@ To send a long-running result to the client, the application uses Server-Sent Ev
 
 A stream endpoint is not public, so it needs a Bearer token. The native `EventSource` API cannot set headers. Thus the frontend reads the stream with an SSE client that can send a token.
 
+**Failure on a stream.** When the connection starts, the response headers are already sent. Thus the error envelope cannot be used, and a client that reads a dropped connection cannot know the cause. For this reason a stream **never** ends with a failure. It sends a typed `error` event and then completes. The event has the same `code` vocabulary as the HTTP envelope, and its `message` gives no internal data; the initial failure stays in the server log. The log stream sends one of these three events, and each one is JSON-encoded in the `data` field of the SSE message:
+
+```jsonc
+{ "type": "line", "data": "<one output line>" }              // one line of output
+{ "type": "end", "status": "success" | "failed" }            // the run ended
+{ "type": "error", "code": "<code>", "message": "<text>" }   // the log could not be read
+```
+
+The `end` event and the `error` event are both terminal. Only the `line` event and the `end` event are written to the store and archived; the `error` event goes to the subscriber only. Today the stream uses one code, `LOG_STREAM_UNAVAILABLE`.
+
 ### Deployment log store
 
 The output of a deployment has two lives: a **hot** one, where the lines must arrive at the browser immediately, and a **cold** one, where the finished log must stay after the run. One domain port (`LogStore`) gives the four operations of that life cycle — append a line, complete the log with its terminal status, stream it, and purge it. The identifier of the stream is the identifier of the deployment. A Redis Streams adapter implements the port and uses the PostgreSQL logs repository as its archive.
@@ -291,7 +295,7 @@ The features that touch Docker use the same arrangement: a domain port gives the
 - **Deploy**: the operation extracts the source archive, builds the services that need a build, pulls the other images, stops the old stack, labels each new resource, starts the stack, and captures a limited quantity of start-up output. It reports each line while it operates, so the run is visible in the live log.
 - **Logs**: one port gives the write, the read, the end and the removal of the output of a deployment. See [Deployment log store](#deployment-log-store).
 - **Cleanup**: the database cascade removes the deployments and the logs of a service, and the delete operation also removes the containers, the networks and the images that GitPaaS built. It keeps the images that it pulled, because other stacks can use them, and it is best-effort: a daemon failure does not stop the delete operation in the database.
-- **Server**: the maintenance operations remove the unused resources and the containers that belong to no service. They select only the resources that have the GitPaaS labels, so they never touch the control plane. The readiness endpoint is public: it examines the database and the daemon at the same time, counts an error as "down", and returns `200` or `503` with the condition of each one.
+- **Server**: the maintenance operations remove the unused resources and the containers that belong to no service. They select only the resources that have the GitPaaS labels, so they never touch the control plane. The readiness endpoint is public: it examines the database and the daemon at the same time, counts an error as "down", and returns `200` with the condition of each one, or `503` with that same breakdown in the `details` key of the [error envelope](#the-error-envelope).
 - **Read-only**: some features only read from Docker or from GitHub, and use no database table.
 
 #### Docker resource labelling
@@ -304,6 +308,70 @@ GitPaaS uses the same daemon as the control plane and as the third-party stacks.
 | `io.gitpaas.project`         | service slug       | Which service's stack it belongs to        |
 | `com.docker.compose.project` | service slug       | Compose grouping (also set by the library) |
 | `com.docker.compose.service` | compose service    | Compose service (also set by the library)  |
+
+### Error handling
+
+All the failures use one path, from the layer that finds the failure to the JSON that the client reads.
+
+#### The layering rule
+
+A failure moves through the layers, and each layer does only its own part:
+
+- **`application/`**: a use case finds the business condition and throws a **domain error**. This is the usual source of a domain error.
+- **`infrastructure/`**: an adapter or a repository can also throw a domain error, but only to change a vendor failure into a business condition. The related transformer does this change, and it puts the initial error in `{ cause }`.
+- **`ui/services/`: the services do no error work. They call the use case and let the error go up.
+- **`ui/controllers/`: the controller is the only location that knows HTTP. Its catch block is `throw translateError(error)`.
+
+#### Domain errors
+
+`core/domain/errors/domain.error.ts` holds the abstract `DomainError` base class, and each feature error class extends it. The base class extends the standard `Error`, accepts the standard `ErrorOptions`, and thus keeps the initial failure in `{ cause }`. It must never import `@nestjs/common`, because a domain error carries no HTTP data.
+
+Each subclass gives a **`code`**: a stable, machine-readable identifier of the type of the error (for example, `SERVICE_NOT_FOUND`). The client uses this code and does not read the message text.
+
+Each feature declares its error classes in `domain/errors/`, in a file with the name pattern `<entity>.errors.ts` (for example, `service.errors.ts`).
+
+#### The HTTP translator
+
+`core/ui/translators/http-error.translator.ts` has one `translateError` function and one `DOMAIN_ERROR_TRANSLATIONS` map. The controllers do not repeat a catch block. The function applies these rules, in this sequence:
+
+1. An `HttpException` comes back with no change, so a status that a guard or a deeper layer decided is not put in a new wrapper.
+2. A `DomainError` with a mapped `code` becomes the mapped exception, and the initial error goes into `{ cause }`.
+3. Each other error goes to the optional `unexpected` policy of the caller. The Docker-facing controllers use this policy to give a 503 with a hint.
+4. If there is no such policy — and **for a `DomainError` with no mapping** — the error comes back with no change. Thus it goes to the global filter and becomes a 500.
+
+#### The error envelope
+
+`core/ui/filters/all-exceptions.filter.ts` is a global filter (`APP_FILTER`) and gives the same JSON shape to each failed request.
+
+An unexpected error never gives internal data: the message becomes `Internal server error`, and the stack stays in the log.
+
+This is the readiness probe: the controller throws `ServiceUnavailableException(result)`, and thus the breakdown of each dependency stays in `details` and is not lost. The `code` is the generic server code, because a readiness failure has no domain error and its status is a 5xx.
+
+#### Correlation id
+
+`core/ui/middlewares/request-id.middleware.ts` operates before all the other middleware. It takes the inbound `X-Request-Id` header if the value is one clean, not empty string of 128 characters or less; if not, it makes a UUID. Then it writes the id back on the request headers, so each later consumer reads one value that is already resolved, and it sets the `X-Request-Id` response header. The filter puts the same id in the envelope and at the start of the log line. Thus a user can quote the id, and you can find the failure in the server log.
+
+#### Logging a failure
+
+The filter writes the only log line of a failed request:
+
+- A 5xx goes to the `error` level with the stack. The filter follows the `{ cause }` chain and adds each cause with a `Caused by:` prefix. Thus the log shows the initial failure and not only the exception that the translator made. A cycle in the chain cannot make a loop.
+- A 4xx goes to the `warn` level with the message and with no stack.
+
+Thus a controller must not log the failure that it translates. If it did, the log would have the same failure two times, and the second time with no request id.
+
+#### Deviations
+
+The Passport strategies (`features/authentication/infrastructure/passport/jwt.strategy.ts` and `local.strategy.ts`) throw `UnauthorizedException` and do not use the translator. The guard operates before each controller method, so no controller can do the translation there.
+
+#### Process-level failures
+
+`src/main.ts` puts a handler on the process for the failures that no request can catch:
+
+- `unhandledRejection` writes an `error` log and lets the process continue, because the background deployment runner must continue to empty its queue.
+- `uncaughtException` writes an `error` log and stops the process with the code 1, because the state of the process is not known after such an error.
+
+`src/bootstrap.ts` calls `app.enableShutdownHooks()`, and thus `SIGTERM` and `SIGINT` in a container go to the `onModuleDestroy` hooks of the modules and the connections close in a clean way.
 
 ---
 

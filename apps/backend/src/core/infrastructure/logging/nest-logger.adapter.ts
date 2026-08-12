@@ -3,6 +3,29 @@ import { Injectable, Logger as NestLogger } from '@nestjs/common';
 import type { AppLogger } from '../../domain/ports/app-logger.port';
 
 /**
+ * Turns whatever a caller passed as a trace into the string NestJS expects.
+ *
+ * @param trace Value supplied as the trace
+ *
+ * @returns The stack trace, or the textual form of the value
+ */
+function resolveTrace(trace: unknown): string | undefined {
+    if (trace === undefined) {
+        return undefined;
+    }
+
+    if (trace instanceof Error) {
+        return trace.stack ?? `${trace.name}: ${trace.message}`;
+    }
+
+    if (typeof trace === 'string') {
+        return trace;
+    }
+
+    return JSON.stringify(trace);
+}
+
+/**
  * NestJS application logger adapter.
  */
 @Injectable()
@@ -22,6 +45,6 @@ export class NestLoggerAdapter implements AppLogger {
     }
 
     public error(message: string, trace?: unknown, context?: string): void {
-        this.logger.error(message, trace as string | undefined, context);
+        this.logger.error(message, resolveTrace(trace), context);
     }
 }

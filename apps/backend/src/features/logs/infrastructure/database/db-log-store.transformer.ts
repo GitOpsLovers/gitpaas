@@ -1,6 +1,6 @@
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { LogEntry } from '../../domain/models/log-entry.models';
-import { LogEvent } from '../../domain/models/log-event.models';
+import { StoredLogEvent } from '../../domain/models/log-event.models';
 
 /**
  * A log event carrying the monotonic sequence it was assigned on the write path.
@@ -8,7 +8,7 @@ import { LogEvent } from '../../domain/models/log-event.models';
  * The sequence is what lets a subscriber stitch the historical replay and the
  * live feed together without a gap or a duplicate at the hand-off.
  */
-export type SequencedLogEvent = { seq: number } & LogEvent;
+export type SequencedLogEvent = { seq: number } & StoredLogEvent;
 
 /**
  * Maps a persisted log entry into the domain log event the SSE contract
@@ -19,7 +19,7 @@ export type SequencedLogEvent = { seq: number } & LogEvent;
  *
  * @returns Domain log event
  */
-export function toLogEventFromEntry(entry: LogEntry): LogEvent {
+export function toLogEventFromEntry(entry: LogEntry): StoredLogEvent {
     if (entry.type === 'end') {
         return { type: 'end', status: entry.status };
     }

@@ -117,6 +117,20 @@ describe('refreshUseCase', () => {
         expect(mockIssueTokensUseCase).not.toHaveBeenCalled();
     });
 
+    it('keeps the verification failure as the cause of InvalidRefreshTokenError', async () => {
+        const verificationError = new Error('bad signature');
+
+        mockTokenService.verifyRefreshToken.mockImplementation(() => {
+            throw verificationError;
+        });
+
+        await expect(run()).rejects.toMatchObject({
+            name: 'InvalidRefreshTokenError',
+            message: 'Invalid refresh token',
+            cause: verificationError,
+        });
+    });
+
     it('throws InvalidRefreshTokenError when no record matches the jti', async () => {
         mockRefreshTokensRepository.findByJti.mockResolvedValue(null);
 

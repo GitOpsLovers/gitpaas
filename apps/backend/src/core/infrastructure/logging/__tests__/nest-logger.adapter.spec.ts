@@ -40,12 +40,34 @@ describe('NestLoggerAdapter', () => {
         expect(warnSpy).toHaveBeenCalledWith('careful', 'Ctx');
     });
 
-    it('forwards error messages with their trace and context', () => {
+    it('forwards error messages with the stack of an Error and their context', () => {
         const error = new Error('boom');
 
         sut.error('failed', error, 'Ctx');
 
-        expect(errorSpy).toHaveBeenCalledWith('failed', error, 'Ctx');
+        expect(errorSpy).toHaveBeenCalledWith('failed', error.stack, 'Ctx');
+    });
+
+    it('falls back to name and message when an Error carries no stack', () => {
+        const error = new Error('boom');
+
+        error.stack = undefined;
+
+        sut.error('failed', error, 'Ctx');
+
+        expect(errorSpy).toHaveBeenCalledWith('failed', 'Error: boom', 'Ctx');
+    });
+
+    it('forwards a string trace unchanged', () => {
+        sut.error('failed', 'at somewhere.ts:1', 'Ctx');
+
+        expect(errorSpy).toHaveBeenCalledWith('failed', 'at somewhere.ts:1', 'Ctx');
+    });
+
+    it('stringifies a non-Error, non-string trace', () => {
+        sut.error('failed', { code: 42 }, 'Ctx');
+
+        expect(errorSpy).toHaveBeenCalledWith('failed', '[object Object]', 'Ctx');
     });
 
     it('omits the context when none is provided', () => {
@@ -73,7 +95,7 @@ describe('NestLoggerAdapter', () => {
 
         sut.error('failed', error);
 
-        expect(errorSpy).toHaveBeenCalledWith('failed', error, undefined);
+        expect(errorSpy).toHaveBeenCalledWith('failed', error.stack, undefined);
     });
 
     it('forwards each message exactly once and never to another level', () => {

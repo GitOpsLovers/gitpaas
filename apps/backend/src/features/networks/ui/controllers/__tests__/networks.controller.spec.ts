@@ -1,13 +1,11 @@
-import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { ServiceNotFoundError } from '../../../domain/errors/network.errors';
 import { Network } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
 import { NetworksController } from '../networks.controller';
 
-import type { AppLogger } from '@core/domain/ports/app-logger.port';
-import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
@@ -25,7 +23,6 @@ const networks: Network[] = [
 
 describe('NetworksController', () => {
     let mockNetworksService: jest.Mocked<Pick<NetworksService, 'getByService'>>;
-    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: NetworksController;
 
     beforeEach(async () => {
@@ -35,16 +32,9 @@ describe('NetworksController', () => {
             getByService: jest.fn(),
         };
 
-        mockLogger = {
-            error: jest.fn(),
-        };
-
         const moduleRef = await Test.createTestingModule({
             controllers: [NetworksController],
-            providers: [
-                { provide: NetworksService, useValue: mockNetworksService },
-                { provide: NestLoggerAdapter, useValue: mockLogger },
-            ],
+            providers: [{ provide: NetworksService, useValue: mockNetworksService }],
         }).compile();
 
         sut = moduleRef.get(NetworksController);
@@ -90,6 +80,13 @@ describe('NetworksController', () => {
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
+        it('rethrows any other HttpException raised by the service unchanged', async () => {
+            const original = new ForbiddenException('nope');
+            mockNetworksService.getByService.mockRejectedValue(original);
+
+            await expect(sut.getByService(serviceId)).rejects.toBe(original);
+        });
+
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
             mockNetworksService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
@@ -106,6 +103,15 @@ describe('NetworksController', () => {
             mockNetworksService.getByService.mockRejectedValue('boom');
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('chains the original failure as the cause, which the global filter logs', async () => {
+            const original = new Error('ECONNREFUSED');
+            mockNetworksService.getByService.mockRejectedValue(original);
+
+            const error = await sut.getByService(serviceId).catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBe(original);
         });
     });
 });

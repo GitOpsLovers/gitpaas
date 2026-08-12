@@ -9,10 +9,7 @@ import { issueTokensUseCase } from './issue-tokens.use-case';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 /**
- * Use case that rotates a refresh token: it verifies the token's signature and
- * expiry, matches it against its stored (hashed, non-revoked, unexpired)
- * record, revokes that record and issues a brand-new token pair. A replayed or
- * already-rotated token is rejected.
+ * Use case that rotates a refresh token.
  *
  * @param usersRepository Users repository
  * @param refreshTokensRepository Refresh tokens repository
@@ -20,8 +17,6 @@ import { UsersRepository } from '@features/users/domain/repositories/users.repos
  * @param rawToken The refresh token presented by the client
  *
  * @returns A freshly issued access + refresh token pair
- *
- * @throws {InvalidRefreshTokenError} When the token is invalid, revoked, expired or unknown
  */
 export async function refreshUseCase(
     usersRepository: UsersRepository,
@@ -33,8 +28,8 @@ export async function refreshUseCase(
 
     try {
         payload = tokenService.verifyRefreshToken(rawToken);
-    } catch {
-        throw new InvalidRefreshTokenError();
+    } catch (error: unknown) {
+        throw new InvalidRefreshTokenError({ cause: error });
     }
 
     const stored = await refreshTokensRepository.findByJti(payload.jti);

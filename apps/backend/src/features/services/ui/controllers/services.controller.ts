@@ -18,6 +18,8 @@ import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import { ServicesService } from '../services/services.service';
 
+import { translateError } from '@core/ui/translators/http-error.translator';
+
 /**
  * REST controller for the services resource (`/api/v1/services`).
  */
@@ -41,9 +43,20 @@ export class ServicesController {
         return service;
     }
 
+    /**
+     * Create a service inside a project.
+     *
+     * @param createDto Data for creating the service
+     *
+     * @returns Created service
+     */
     @Post()
-    public create(@Body() createDto: CreateServiceDto): Promise<Service> {
-        return this.service.create(createDto);
+    public async create(@Body() createDto: CreateServiceDto): Promise<Service> {
+        try {
+            return await this.service.create(createDto);
+        } catch (error) {
+            throw translateError(error);
+        }
     }
 
     @Put(':id')

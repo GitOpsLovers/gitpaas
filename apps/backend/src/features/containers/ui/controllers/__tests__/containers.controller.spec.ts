@@ -1,13 +1,11 @@
-import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { ServiceNotFoundError } from '../../../domain/errors/container.errors';
 import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
 import { ContainersController } from '../containers.controller';
 
-import type { AppLogger } from '@core/domain/ports/app-logger.port';
-import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
 const serviceId = '11111111-1111-1111-1111-111111111111';
 
@@ -25,7 +23,6 @@ const containers: Container[] = [
 
 describe('ContainersController', () => {
     let mockContainersService: jest.Mocked<Pick<ContainersService, 'getByService'>>;
-    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: ContainersController;
 
     beforeEach(async () => {
@@ -35,16 +32,9 @@ describe('ContainersController', () => {
             getByService: jest.fn(),
         };
 
-        mockLogger = {
-            error: jest.fn(),
-        };
-
         const moduleRef = await Test.createTestingModule({
             controllers: [ContainersController],
-            providers: [
-                { provide: ContainersService, useValue: mockContainersService },
-                { provide: NestLoggerAdapter, useValue: mockLogger },
-            ],
+            providers: [{ provide: ContainersService, useValue: mockContainersService }],
         }).compile();
 
         sut = moduleRef.get(ContainersController);
@@ -90,6 +80,13 @@ describe('ContainersController', () => {
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
+        it('rethrows any other HttpException raised by the service unchanged', async () => {
+            const original = new ForbiddenException('nope');
+            mockContainersService.getByService.mockRejectedValue(original);
+
+            await expect(sut.getByService(serviceId)).rejects.toBe(original);
+        });
+
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
             mockContainersService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
 
@@ -106,6 +103,15 @@ describe('ContainersController', () => {
             mockContainersService.getByService.mockRejectedValue('boom');
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('chains the original failure as the cause, which the global filter logs', async () => {
+            const original = new Error('ECONNREFUSED');
+            mockContainersService.getByService.mockRejectedValue(original);
+
+            const error = await sut.getByService(serviceId).catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBe(original);
         });
     });
 });

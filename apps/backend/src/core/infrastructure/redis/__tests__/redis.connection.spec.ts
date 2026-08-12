@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis';
 
+import type { AppLogger } from '../../../domain/ports/app-logger.port';
 import { RedisConnection } from '../redis.connection';
 
 jest.mock('ioredis', () => ({
@@ -17,10 +18,14 @@ interface FakeClient { quit: jest.Mock; disconnect: jest.Mock }
 
 describe('RedisConnection', () => {
     let sut: RedisConnection;
+    let mockLogger: jest.Mocked<AppLogger>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        sut = new RedisConnection();
+        mockLogger = {
+            debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
+        };
+        sut = new RedisConnection(mockLogger);
     });
 
     it('opens the command connection once and keeps it in memory', () => {
@@ -64,6 +69,30 @@ describe('RedisConnection', () => {
 
         await expect(sut.onModuleDestroy()).resolves.toBeUndefined();
         expect(command.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports why a connection refused to quit cleanly', async () => {
+        sut.getClient();
+
+        const command = sut.getClient() as unknown as FakeClient;
+
+        command.quit.mockRejectedValue(new Error('connection lost'));
+
+        await sut.onModuleDestroy();
+
+        expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            'Redis connection refused to quit cleanly, disconnecting it: Error: connection lost',
+            'RedisConnection',
+        );
+    });
+
+    it('logs nothing when every connection quits cleanly', async () => {
+        sut.getClient();
+
+        await sut.onModuleDestroy();
+
+        expect(mockLogger.warn).not.toHaveBeenCalled();
     });
 
     it('opens a new command connection after a shutdown', async () => {

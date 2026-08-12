@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 
-import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
+import { LogEvent, LogStatus, StoredLogEvent } from '../../domain/models/log-event.models';
 import { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { DatabaseLogsRepository } from '../database/db-logs.repository';
@@ -113,9 +113,19 @@ export class RedisLogStoreAdapter implements LogStore {
      * @param streamId Stream identifier
      */
     public async purge(streamId: string): Promise<void> {
-        await this.connection.getClient().del(toLogStreamKey(streamId));
-        await this.connection.getClient().del(toProducerLeaseKey(streamId));
-        await this.repository.deleteByDeployment(streamId);
+        try {
+            await this.connection.getClient().del(toLogStreamKey(streamId));
+            await this.connection.getClient().del(toProducerLeaseKey(streamId));
+            await this.repository.deleteByDeployment(streamId);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+
+            this.logger.error(
+                `Failed to purge the log of deployment ${streamId}: ${message}`,
+                error,
+                LOG_STORE_CONTEXT,
+            );
+        }
     }
 
     /**
@@ -124,7 +134,7 @@ export class RedisLogStoreAdapter implements LogStore {
      * @param streamId Stream identifier
      * @param event Log event to append
      */
-    private async appendEntry(streamId: string, event: LogEvent): Promise<void> {
+    private async appendEntry(streamId: string, event: StoredLogEvent): Promise<void> {
         const client = this.connection.getClient();
         const key = toLogStreamKey(streamId);
         const leaseKey = toProducerLeaseKey(streamId);

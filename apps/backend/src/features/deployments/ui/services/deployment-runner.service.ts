@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Subscription, concatMap, from, groupBy, mergeMap } from 'rxjs';
+import { EMPTY, Subscription, catchError, concatMap, from, groupBy, mergeMap } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
 import type { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
@@ -48,7 +48,20 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         this.subscription = this.deploymentQueue.dequeued$
             .pipe(
                 groupBy((task) => task.projectName),
-                mergeMap((group) => group.pipe(concatMap((task) => from(this.run(task))))),
+                mergeMap((group) =>
+                    group.pipe(
+                        concatMap((task) =>
+                            from(this.run(task)).pipe(
+                                catchError((error: unknown) => {
+                                    this.logFailure(
+                                        `Deployment runner failed unrecoverably for ${task.deploymentId}`,
+                                        error,
+                                    );
+
+                                    return EMPTY;
+                                }),
+                            )),
+                    )),
             )
             .subscribe();
 
@@ -83,13 +96,28 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
 
-            this.logger.error(
-                `Deployment runner crashed for ${task.deploymentId}: ${message}`,
-                error,
-                DeploymentRunnerService.name,
-            );
+            this.logFailure(`Deployment runner crashed for ${task.deploymentId}`, error);
 
-            await this.deploymentQueue.markFailed(task.id, message);
+            try {
+                await this.deploymentQueue.markFailed(task.id, message);
+            } catch (markFailedError) {
+                this.logFailure(
+                    `Could not mark the deployment ${task.deploymentId} as failed`,
+                    markFailedError,
+                );
+            }
         }
+    }
+
+    /**
+     * Logs a runner failure without ever throwing.
+     *
+     * @param summary Human readable description of what failed
+     * @param error Original error
+     */
+    private logFailure(summary: string, error: unknown): void {
+        const message = error instanceof Error ? error.message : String(error);
+
+        this.logger.error(`${summary}: ${message}`, error, DeploymentRunnerService.name);
     }
 }

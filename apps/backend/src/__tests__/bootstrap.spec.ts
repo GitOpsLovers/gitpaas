@@ -4,6 +4,7 @@ import helmet from 'helmet';
 
 import { bootstrap } from '../bootstrap';
 
+import { requestIdMiddleware } from '@core/ui/middlewares/request-id.middleware';
 import { UsersService } from '@features/users/ui/services/users.service';
 
 jest.mock('@nestjs/core', () => ({
@@ -56,6 +57,7 @@ function buildApp(env: Record<string, string | undefined>) {
         enableCors: jest.fn(),
         use: jest.fn(),
         useGlobalPipes: jest.fn(),
+        enableShutdownHooks: jest.fn(),
         listen: jest.fn().mockResolvedValue(undefined),
     };
 
@@ -113,8 +115,18 @@ describe('bootstrap (bootstrap.ts)', () => {
             await bootstrap();
 
             expect(mockHelmet).toHaveBeenCalledTimes(1);
-            expect(app.use).toHaveBeenCalledTimes(1);
             expect(app.use).toHaveBeenCalledWith(HELMET_MIDDLEWARE);
+        });
+
+        it('stamps every request with a correlation id before any other middleware', async () => {
+            const { app } = buildApp(env);
+            mockNestFactoryCreate.mockResolvedValue(app);
+
+            await bootstrap();
+
+            expect(app.use).toHaveBeenCalledTimes(2);
+            expect(app.use).toHaveBeenNthCalledWith(1, requestIdMiddleware);
+            expect(app.use).toHaveBeenNthCalledWith(2, HELMET_MIDDLEWARE);
         });
 
         it('registers a global ValidationPipe', async () => {
@@ -128,6 +140,20 @@ describe('bootstrap (bootstrap.ts)', () => {
             const pipe = app.useGlobalPipes.mock.calls[0][0];
 
             expect(pipe).toBeInstanceOf(ValidationPipe);
+        });
+
+        it('enables the shutdown hooks before listening', async () => {
+            const { app } = buildApp(env);
+            mockNestFactoryCreate.mockResolvedValue(app);
+
+            await bootstrap();
+
+            expect(app.enableShutdownHooks).toHaveBeenCalledTimes(1);
+
+            const hooksOrder = app.enableShutdownHooks.mock.invocationCallOrder[0];
+            const listenOrder = app.listen.mock.invocationCallOrder[0];
+
+            expect(hooksOrder).toBeLessThan(listenOrder);
         });
 
         it('listens on the configured PORT', async () => {

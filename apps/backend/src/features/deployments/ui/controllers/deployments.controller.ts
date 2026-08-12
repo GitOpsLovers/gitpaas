@@ -1,12 +1,13 @@
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
-    BadRequestException, Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
+    Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
 } from '@nestjs/common';
 
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { ServiceNotDeployableError, ServiceNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsService } from '../services/deployments.service';
+
+import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
  * Deployments controller
@@ -57,15 +58,7 @@ export class DeploymentsController {
         try {
             return await this.service.create(triggerDto);
         } catch (error) {
-            if (error instanceof ServiceNotFoundError) {
-                throw new NotFoundException(error.message);
-            }
-
-            if (error instanceof ServiceNotDeployableError) {
-                throw new BadRequestException(error.message);
-            }
-
-            throw error;
+            throw translateError(error);
         }
     }
 

@@ -6,7 +6,7 @@ export interface AppLogger {
      * Writes a debug message.
      *
      * @param message Message to log
-     * @param context Originating context (usually the caller's class name)
+     * @param context Originating context
      */
     debug: (message: string, context?: string) => void;
 
@@ -14,7 +14,7 @@ export interface AppLogger {
      * Writes an informational message.
      *
      * @param message Message to log
-     * @param context Originating context (usually the caller's class name)
+     * @param context Originating context
      */
     log: (message: string, context?: string) => void;
 
@@ -22,7 +22,7 @@ export interface AppLogger {
      * Writes a warning message.
      *
      * @param message Message to log
-     * @param context Originating context (usually the caller's class name)
+     * @param context Originating context
      */
     warn: (message: string, context?: string) => void;
 
@@ -30,8 +30,8 @@ export interface AppLogger {
      * Writes an error message.
      *
      * @param message Message to log
-     * @param trace Optional error/stack trace
-     * @param context Originating context (usually the caller's class name)
+     * @param trace Optional caught value or stack trace
+     * @param context Originating context
      */
     error: (message: string, trace?: unknown, context?: string) => void;
 }

@@ -30,8 +30,6 @@ export class LogsController {
     /**
      * Stream a deployment's real-time log over Server-Sent Events.
      *
-     * Replays buffered output first, then live lines, and closes when the run ends.
-     *
      * @param deploymentId Deployment identifier
      *
      * @returns Observable of SSE messages, each carrying one JSON-encoded log event

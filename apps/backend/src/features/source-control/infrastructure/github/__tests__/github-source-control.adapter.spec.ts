@@ -1,8 +1,13 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
+import {
+    SourceControlNotConfiguredError,
+    SourceControlRateLimitedError,
+    SourceControlResourceNotFoundError,
+    SourceControlUnavailableError,
+} from '../../../domain/errors/source-control.errors';
 import { GithubSourceControlAdapter } from '../github-source-control.adapter';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
@@ -122,9 +127,80 @@ describe('GithubSourceControlAdapter', () => {
         });
     });
 
+    // --- Layer A': failure translation (Octokit isolated via a spied `getClient`) ---
+    describe('failure translation', () => {
+        let sut: GithubSourceControlAdapter;
+        let mockClient: FakeClient;
+
+        /** Stand-in for an Octokit `RequestError` carrying an HTTP status. */
+        const requestError = (status: number): Error =>
+            Object.assign(new Error('secret octokit detail'), { status, response: { headers: {} } });
+
+        beforeEach(() => {
+            sut = new GithubSourceControlAdapter(createConfig(), createLogger());
+            mockClient = { paginate: jest.fn(), request: jest.fn() };
+
+            jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
+        });
+
+        it('translates a GitHub outage raised by listRepositories', async () => {
+            mockClient.paginate.mockRejectedValue(requestError(503));
+
+            await expect(sut.listRepositories()).rejects.toBeInstanceOf(SourceControlUnavailableError);
+        });
+
+        it('translates an exhausted rate limit raised by listRepositories', async () => {
+            mockClient.paginate.mockRejectedValue(requestError(429));
+
+            await expect(sut.listRepositories()).rejects.toBeInstanceOf(SourceControlRateLimitedError);
+        });
+
+        it('translates a missing repository raised by listBranches', async () => {
+            mockClient.request.mockRejectedValue(requestError(404));
+
+            await expect(sut.listBranches(42)).rejects.toBeInstanceOf(SourceControlResourceNotFoundError);
+        });
+
+        it('translates a missing ref raised by getCommit', async () => {
+            mockClient.request
+                .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
+                .mockRejectedValueOnce(requestError(404));
+
+            await expect(sut.getCommit(42, 'nope')).rejects.toBeInstanceOf(SourceControlResourceNotFoundError);
+        });
+
+        it('translates a failure raised by getRepositoryArchive', async () => {
+            mockClient.request
+                .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
+                .mockRejectedValueOnce(requestError(500));
+
+            await expect(sut.getRepositoryArchive(42, 'main')).rejects.toBeInstanceOf(SourceControlUnavailableError);
+        });
+
+        it('never lets the Octokit message escape', async () => {
+            mockClient.paginate.mockRejectedValue(requestError(503));
+
+            await expect(sut.listRepositories()).rejects.not.toThrow('secret octokit detail');
+        });
+
+        it('chains the original Octokit failure as the cause', async () => {
+            const original = requestError(404);
+            mockClient.request.mockRejectedValue(original);
+
+            await expect(sut.listBranches(42)).rejects.toMatchObject({ cause: original });
+        });
+
+        it('leaves an unclassifiable failure untouched, so the filter answers 500', async () => {
+            const original = requestError(422);
+            mockClient.paginate.mockRejectedValue(original);
+
+            await expect(sut.listRepositories()).rejects.toBe(original);
+        });
+    });
+
     // --- Layer B: createClient / config wiring (real createClient, mocked Octokit) ---
     describe('client creation', () => {
-        it('throws ServiceUnavailableException and never builds a client when config is missing', async () => {
+        it('throws SourceControlNotConfiguredError and never builds a client when config is missing', async () => {
             const sut = new GithubSourceControlAdapter(
                 createConfig({
                     GITHUB_APP_ID: '123',
@@ -134,7 +210,7 @@ describe('GithubSourceControlAdapter', () => {
                 createLogger(),
             );
 
-            await expect(sut.listRepositories()).rejects.toThrow(ServiceUnavailableException);
+            await expect(sut.listRepositories()).rejects.toThrow(SourceControlNotConfiguredError);
             expect(OctokitMock).not.toHaveBeenCalled();
         });
 

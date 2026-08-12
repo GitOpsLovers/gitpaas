@@ -177,6 +177,17 @@ describe('DockerOrphanContainersAdapter', () => {
         expect(result).toEqual({ removed: 1, names: ['orphan-b-app-1'] });
     });
 
+    it('keeps the removal failure in the warning instead of discarding it', async () => {
+        mockListContainers.mockResolvedValue([containerSummary('orphan-a')]);
+        mockRemoveContainer.mockRejectedValueOnce(new Error('container is restarting'));
+
+        await sut.removeOrphaned([]);
+
+        expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+        expect(mockLogger.warn.mock.calls[0][0]).toContain('Error: container is restarting');
+        expect(mockLogger.warn.mock.calls[0][1]).toBe('DockerOrphanContainersAdapter');
+    });
+
     it('falls back to the short id when the container has no names', async () => {
         mockListContainers.mockResolvedValue([
             containerSummary('orphan', { id: 'abcdef0123456789', names: [] }),

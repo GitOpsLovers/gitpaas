@@ -53,9 +53,9 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
             try {
                 await this.client.removeContainer(container.id, { force: true, removeVolumes: true });
                 names.push(name);
-            } catch {
+            } catch (error: unknown) {
                 this.logger.warn(
-                    `Failed to remove orphaned container "${name}" (${container.id})`,
+                    `Failed to remove orphaned container "${name}" (${container.id}): ${String(error)}`,
                     DockerOrphanContainersAdapter.name,
                 );
             }

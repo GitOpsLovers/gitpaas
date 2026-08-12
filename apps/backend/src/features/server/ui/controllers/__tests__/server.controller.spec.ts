@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { ForbiddenException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.models';
@@ -8,8 +8,6 @@ import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
-import type { AppLogger } from '@core/domain/ports/app-logger.port';
-import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -49,7 +47,6 @@ describe('ServerController', () => {
             | 'getStatus'
         >
     >;
-    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
     let sut: ServerController;
 
     beforeEach(async () => {
@@ -64,16 +61,9 @@ describe('ServerController', () => {
             getStatus: jest.fn(),
         };
 
-        mockLogger = {
-            error: jest.fn(),
-        };
-
         const moduleRef = await Test.createTestingModule({
             controllers: [ServerController],
-            providers: [
-                { provide: ServerService, useValue: mockServerService },
-                { provide: NestLoggerAdapter, useValue: mockLogger },
-            ],
+            providers: [{ provide: ServerService, useValue: mockServerService }],
         }).compile();
 
         sut = moduleRef.get(ServerController);
@@ -169,6 +159,13 @@ describe('ServerController', () => {
             await expect(sut.getStatus()).rejects.toBe(original);
         });
 
+        it('rethrows any other HttpException raised by the service unchanged', async () => {
+            const original = new ForbiddenException('nope');
+            mockServerService.getStatus.mockRejectedValue(original);
+
+            await expect(sut.getStatus()).rejects.toBe(original);
+        });
+
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
             mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
 
@@ -185,6 +182,15 @@ describe('ServerController', () => {
             mockServerService.getStatus.mockRejectedValue('boom');
 
             await expect(sut.getStatus()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('chains the original failure as the cause, which the global filter logs', async () => {
+            const original = new Error('ECONNREFUSED');
+            mockServerService.getStatus.mockRejectedValue(original);
+
+            const error = await sut.getStatus().catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBe(original);
         });
     });
 
@@ -224,6 +230,13 @@ describe('ServerController', () => {
 
         it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
             const original = new ServiceUnavailableException('daemon down');
+            mockServerService.pruneImages.mockRejectedValue(original);
+
+            await expect(sut.pruneImages()).rejects.toBe(original);
+        });
+
+        it('rethrows any other HttpException raised by the service unchanged', async () => {
+            const original = new ForbiddenException('nope');
             mockServerService.pruneImages.mockRejectedValue(original);
 
             await expect(sut.pruneImages()).rejects.toBe(original);

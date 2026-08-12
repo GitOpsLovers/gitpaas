@@ -2,10 +2,12 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
-import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
+import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
+
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';

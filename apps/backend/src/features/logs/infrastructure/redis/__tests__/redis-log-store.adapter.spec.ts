@@ -228,5 +228,31 @@ describe('RedisLogStoreAdapter', () => {
             expect(client.values.has(leaseKey)).toBe(false);
             expect(mockRepository.deleteByDeployment).toHaveBeenCalledWith('deployment-1');
         });
+
+        it('never rejects, reporting a Redis failure to the logger instead', async () => {
+            const error = new Error('redis down');
+
+            client.failure = error;
+
+            await expect(sut.purge('deployment-1')).resolves.toBeUndefined();
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'Failed to purge the log of deployment deployment-1: redis down',
+                error,
+                'RedisLogStoreAdapter',
+            );
+        });
+
+        it('never rejects, reporting an archive failure to the logger instead', async () => {
+            const error = new Error('database down');
+
+            mockRepository.deleteByDeployment.mockRejectedValue(error);
+
+            await expect(sut.purge('deployment-1')).resolves.toBeUndefined();
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'Failed to purge the log of deployment deployment-1: database down',
+                error,
+                'RedisLogStoreAdapter',
+            );
+        });
     });
 });

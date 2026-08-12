@@ -1,0 +1,65 @@
+import {
+    BadRequestException,
+    HttpException,
+    NotFoundException,
+    ServiceUnavailableException,
+    UnauthorizedException,
+} from '@nestjs/common';
+
+import { DomainError } from '../../domain/errors/domain.error';
+
+/**
+ * Builds the HTTP exception a given domain error must become.
+ */
+type DomainErrorTranslation = (error: DomainError) => HttpException;
+
+/**
+ * Builds the HTTP exception an unexpected non-domain failure must become.
+ */
+type UnexpectedErrorTranslation = (error: unknown) => HttpException;
+
+/**
+ * The single mapping from a domain error `code` to the HTTP exception the client receives.
+ */
+const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
+    ['PROJECT_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['SERVICE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['SERVICE_NOT_DEPLOYABLE', (error) => new BadRequestException(error.message, { cause: error })],
+    ['INVALID_CREDENTIALS', (error) => new UnauthorizedException(error.message, { cause: error })],
+    ['USER_INACTIVE', (error) => new UnauthorizedException(error.message, { cause: error })],
+    ['INVALID_REFRESH_TOKEN', (error) => new UnauthorizedException(error.message, { cause: error })],
+    ['SOURCE_CONTROL_RESOURCE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['SOURCE_CONTROL_NOT_CONFIGURED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    [
+        'SOURCE_CONTROL_AUTHENTICATION_FAILED',
+        (error) => new ServiceUnavailableException(error.message, { cause: error }),
+    ],
+    ['SOURCE_CONTROL_RATE_LIMITED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['SOURCE_CONTROL_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+]);
+
+/**
+ * Translates a caught error into the value the UI edge must throw.
+ *
+ * @param error The caught error
+ * @param unexpected Optional policy for failures that are not domain errors
+ *
+ * @returns The value the caller must throw
+ */
+export function translateError(error: unknown, unexpected?: UnexpectedErrorTranslation): unknown {
+    if (error instanceof HttpException) {
+        return error;
+    }
+
+    if (error instanceof DomainError) {
+        const translation = DOMAIN_ERROR_TRANSLATIONS.get(error.code);
+
+        return translation ? translation(error) : error;
+    }
+
+    if (unexpected) {
+        return unexpected(error);
+    }
+
+    return error;
+}

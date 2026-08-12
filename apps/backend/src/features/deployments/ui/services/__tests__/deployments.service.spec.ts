@@ -5,7 +5,7 @@ import { deleteDeploymentUseCase } from '../../../application/delete-deployment.
 import { findDeploymentByIdUseCase } from '../../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../../application/get-deployments-by-service.use-case';
 import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
-import { ServiceNotDeployableError, ServiceNotFoundError } from '../../../domain/errors/deployment.errors';
+import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
 import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
@@ -14,6 +14,7 @@ import { DeploymentsService } from '../deployments.service';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
