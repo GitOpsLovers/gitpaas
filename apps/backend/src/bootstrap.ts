@@ -5,6 +5,7 @@ import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 
+import { requestIdMiddleware } from '@core/ui/middlewares/request-id.middleware';
 import { UsersService } from '@features/users/ui/services/users.service';
 
 /**
@@ -33,6 +34,8 @@ export async function bootstrap() {
         origin: resolveCorsOrigins(config.getOrThrow<string>('CORS_ORIGIN')),
         credentials: true,
     });
+    // Stamped first, so every later middleware, handler and error log shares the id.
+    app.use(requestIdMiddleware);
     app.use(helmet());
     app.useGlobalPipes(
         new ValidationPipe({
@@ -41,6 +44,9 @@ export async function bootstrap() {
             transform: true,
         }),
     );
+
+    // Let SIGTERM/SIGINT reach the modules' onModuleDestroy hooks in a container.
+    app.enableShutdownHooks();
 
     await app.listen(config.getOrThrow<number>('PORT'));
 

@@ -157,6 +157,66 @@ describe('DeploymentRunnerService', () => {
         expect(mockQueue.markCompleted).not.toHaveBeenCalled();
     });
 
+    it('contains a markFailed rejection and keeps draining the queue', async () => {
+        const taskA = taskFor('gitpaas', 'task-a', 'deploy-a');
+        const taskB = taskFor('gitpaas', 'task-b', 'deploy-b');
+        const markFailedError = new Error('database down');
+
+        mockRunDeploymentUseCase.mockRejectedValueOnce(new Error('boom'));
+        mockQueue.markFailed.mockRejectedValueOnce(markFailedError);
+
+        await sut.onModuleInit();
+
+        dequeued.next(taskA);
+        await flush();
+
+        expect(mockLogger.error).toHaveBeenCalledTimes(2);
+        expect(mockLogger.error).toHaveBeenNthCalledWith(
+            1,
+            'Deployment runner crashed for deploy-a: boom',
+            expect.any(Error),
+            'DeploymentRunnerService',
+        );
+        expect(mockLogger.error).toHaveBeenNthCalledWith(
+            2,
+            'Could not mark the deployment deploy-a as failed: database down',
+            markFailedError,
+            'DeploymentRunnerService',
+        );
+
+        // The consumer survived: the next task is still processed.
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
+        dequeued.next(taskB);
+        await flush();
+
+        expect(mockQueue.markCompleted).toHaveBeenCalledTimes(1);
+        expect(mockQueue.markCompleted).toHaveBeenCalledWith(taskB.id);
+    });
+
+    it('keeps the subscription alive when a run rejects outside its own error handling', async () => {
+        const runSpy = jest
+            .spyOn(sut as unknown as { run: (task: QueuedDeploymentTask) => Promise<void> }, 'run')
+            .mockRejectedValueOnce(new Error('catastrophic'))
+            .mockResolvedValue(undefined);
+
+        await sut.onModuleInit();
+
+        dequeued.next(taskFor('gitpaas', 'task-a', 'deploy-a'));
+        await flush();
+
+        expect(mockLogger.error).toHaveBeenCalledTimes(1);
+        expect(mockLogger.error).toHaveBeenCalledWith(
+            'Deployment runner failed unrecoverably for deploy-a: catastrophic',
+            expect.any(Error),
+            'DeploymentRunnerService',
+        );
+
+        dequeued.next(taskFor('gitpaas', 'task-b', 'deploy-b'));
+        await flush();
+
+        expect(runSpy).toHaveBeenCalledTimes(2);
+    });
+
     it('stops handling requests once destroyed', async () => {
         mockRunDeploymentUseCase.mockResolvedValue(undefined);
         await sut.onModuleInit();

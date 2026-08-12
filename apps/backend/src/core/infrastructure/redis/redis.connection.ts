@@ -1,5 +1,8 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
+
+import type { AppLogger } from '../../domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '../logging/nest-logger.adapter';
 
 import { buildRedisConnectionOptions } from './redis-connection-options';
 
@@ -17,6 +20,10 @@ import { buildRedisConnectionOptions } from './redis-connection-options';
  */
 @Injectable()
 export class RedisConnection implements OnModuleDestroy {
+    constructor(
+        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
+    ) {}
+
     /** Shared connection for every command that does not block its socket. */
     private client?: Redis;
 
@@ -57,7 +64,12 @@ export class RedisConnection implements OnModuleDestroy {
         await Promise.all(clients.map(async (client) => {
             try {
                 await client.quit();
-            } catch {
+            } catch (error: unknown) {
+                this.logger.warn(
+                    `Redis connection refused to quit cleanly, disconnecting it: ${String(error)}`,
+                    RedisConnection.name,
+                );
+
                 client.disconnect();
             }
         }));
