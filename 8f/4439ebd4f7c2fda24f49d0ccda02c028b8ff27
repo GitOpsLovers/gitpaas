@@ -1,0 +1,21 @@
+docs/logging-plan-todo.md
+  s_9a17fc07cc0c88::t_d35220595d38bd 1-81
+docs/logging-plan.md
+  s_9a17fc07cc0c88::t_be6c31ae8fa49f 1-570
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "8f4439ebd4f7c2fda24f49d0ccda02c028b8ff27",
+  "prompts": {},
+  "sessions": {
+    "s_9a17fc07cc0c88": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a432fe464f488c8b8",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
