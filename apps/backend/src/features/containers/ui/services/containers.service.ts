@@ -26,8 +26,6 @@ export class ContainersService {
      * @param serviceId Service identifier
      *
      * @returns Containers of the service
-     *
-     * @throws {ServiceNotFoundError} Raised by the use case when the service does not exist
      */
     public getByService(serviceId: string): Promise<Container[]> {
         return getContainersByServiceUseCase(this.servicesRepository, this.containersRepository, serviceId);

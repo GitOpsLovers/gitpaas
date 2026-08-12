@@ -9,21 +9,13 @@ import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
 import { SourceControl } from '../../domain/ports/source-control.port';
 
-import {
-    toGitBranch, toGitCommit, toGitRepository, toSourceControlError,
-} from './github-source-control.transformer';
+import { toGitBranch, toGitCommit, toGitRepository, toSourceControlError } from './github-source-control.transformer';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 /**
  * GitHub source control adapter.
- *
- * Every GitHub call goes through `run`, which translates an Octokit failure into
- * the domain error that describes it (see
- * `github-source-control.transformer.ts`). The raw Octokit error never escapes
- * this class, so the UI edge can answer 404/503 instead of a blanket 500 and no
- * GitHub payload reaches the client.
  */
 @Injectable()
 export class GithubSourceControlAdapter implements SourceControl {
@@ -97,15 +89,11 @@ export class GithubSourceControlAdapter implements SourceControl {
     }
 
     /**
-     * Runs a GitHub operation, translating any failure it raises into the domain
-     * error that describes it.
+     * Runs a GitHub operation, translating any failure it raises into the domain error that describes it.
      *
      * @param operation GitHub call to run
      *
      * @returns Whatever the operation resolves to
-     *
-     * @throws A `SourceControl*Error` describing the failure, or the original
-     * error when it cannot be classified
      */
     private async run<T>(operation: () => Promise<T>): Promise<T> {
         try {
@@ -127,8 +115,7 @@ export class GithubSourceControlAdapter implements SourceControl {
     }
 
     /**
-     * Builds an Octokit client authenticated as the GitHub App installation from
-     * the configured credentials.
+     * Builds an Octokit client authenticated as the GitHub App installation from the configured credentials.
      *
      * @returns Freshly created Octokit client
      */

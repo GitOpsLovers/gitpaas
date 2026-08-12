@@ -3,18 +3,20 @@ import { randomUUID } from 'node:crypto';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { NextFunction, Request, Response } from 'express';
 
-/** Header carrying the correlation id, both inbound and outbound. */
-export const REQUEST_ID_HEADER = 'x-request-id';
-
-/** Longest inbound value accepted before a fresh id is generated instead. */
+/**
+ * Longest inbound value accepted before a fresh id is generated instead.
+ */
 const MAX_REQUEST_ID_LENGTH = 128;
 
 /**
- * Resolves the correlation id of a request: an inbound `X-Request-Id` is
- * honoured when it is a sane, non-empty single value, otherwise a fresh UUID is
- * generated. A repeated header (array) keeps its first value.
+ * Header carrying the correlation id, both inbound and outbound.
+ */
+export const REQUEST_ID_HEADER = 'x-request-id';
+
+/**
+ * Resolves the correlation id of a request.
  *
- * @param inbound Raw `X-Request-Id` header value, if any
+ * @param inbound Raw `X-Request-Id` header value
  *
  * @returns The correlation id to use for the request
  */
@@ -35,22 +37,17 @@ export function resolveRequestId(inbound: unknown): string {
 }
 
 /**
- * Global middleware that stamps every request with a correlation id. The id is
- * written back onto the request headers so the exception filter (and any other
- * downstream consumer) reads a single, already-resolved value, and onto the
- * response headers so the client can quote it when reporting a failure.
+ * Global middleware that stamps every request with a correlation id.
  *
  * @param request Incoming request
  * @param response Outgoing response
  * @param next Next middleware in the chain
  */
-export function requestIdMiddleware(
-    request: Request,
-    response: Response,
-    next: NextFunction,
-): void {
+export function requestIdMiddleware(request: Request, response: Response, next: NextFunction): void {
+    // eslint-disable-next-line security/detect-object-injection
     const requestId = resolveRequestId(request.headers[REQUEST_ID_HEADER]);
 
+    // eslint-disable-next-line security/detect-object-injection
     request.headers[REQUEST_ID_HEADER] = requestId;
     response.setHeader('X-Request-Id', requestId);
 

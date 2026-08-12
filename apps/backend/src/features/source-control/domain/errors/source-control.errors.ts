@@ -1,33 +1,22 @@
 import { DomainError } from '@core/domain/errors/domain.error';
 
 /**
- * Raised when the GitHub App credentials are missing from the environment, so
- * no client can be built at all. It is our own misconfiguration, never the
- * client's fault, hence a "temporarily unavailable" answer.
+ * Raised when source control is not configured in the backend.
  */
 export class SourceControlNotConfiguredError extends DomainError {
-    /**
-     * @param options Standard error options, so `{ cause }` chains the original error
-     */
     constructor(options?: ErrorOptions) {
         super(
             'SOURCE_CONTROL_NOT_CONFIGURED',
-            'GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY and '
-                + 'GITHUB_APP_INSTALLATION_ID in the backend environment.',
+            'GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY and GITHUB_APP_INSTALLATION_ID in the backend environment.',
             options,
         );
     }
 }
 
 /**
- * Raised when GitHub rejects our credentials (an expired private key, a revoked
- * or under-privileged installation). Again our misconfiguration, so the caller
- * is told the integration is unavailable rather than being blamed for it.
+ * Raised when source control rejects our credentials.
  */
 export class SourceControlAuthenticationError extends DomainError {
-    /**
-     * @param options Standard error options, so `{ cause }` chains the original error
-     */
     constructor(options?: ErrorOptions) {
         super(
             'SOURCE_CONTROL_AUTHENTICATION_FAILED',
@@ -38,13 +27,9 @@ export class SourceControlAuthenticationError extends DomainError {
 }
 
 /**
- * Raised when GitHub refuses the request because the installation's API quota is
- * exhausted. The request may succeed once the quota resets.
+ * Raised when source control refuses the request because the installation's API quota is exhausted.
  */
 export class SourceControlRateLimitedError extends DomainError {
-    /**
-     * @param options Standard error options, so `{ cause }` chains the original error
-     */
     constructor(options?: ErrorOptions) {
         super(
             'SOURCE_CONTROL_RATE_LIMITED',
@@ -55,32 +40,22 @@ export class SourceControlRateLimitedError extends DomainError {
 }
 
 /**
- * Raised when the repository, branch or commit asked for does not exist on
- * GitHub, or is not visible to the installation. This one *is* about what the
- * client asked for, so it becomes a 404.
+ * Raised when the repository, branch or commit asked for does not exist on source control, or is not visible to the installation.
  */
 export class SourceControlResourceNotFoundError extends DomainError {
-    /**
-     * @param options Standard error options, so `{ cause }` chains the original error
-     */
     constructor(options?: ErrorOptions) {
         super(
             'SOURCE_CONTROL_RESOURCE_NOT_FOUND',
-            'The requested repository or reference does not exist on GitHub, '
-                + 'or is not accessible to the GitHub App installation.',
+            'The requested repository or reference does not exist on GitHub, or is not accessible to the GitHub App installation.',
             options,
         );
     }
 }
 
 /**
- * Raised when GitHub is unreachable or answers with a failure of its own (an
- * outage, a network error, a 5xx).
+ * Raised when source control is unreachable or answers with a failure of its own.
  */
 export class SourceControlUnavailableError extends DomainError {
-    /**
-     * @param options Standard error options, so `{ cause }` chains the original error
-     */
     constructor(options?: ErrorOptions) {
         super(
             'SOURCE_CONTROL_UNAVAILABLE',

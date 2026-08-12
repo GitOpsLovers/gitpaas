@@ -11,10 +11,6 @@ import { Public } from '@features/authentication/ui/decorators/public.decorator'
 
 /**
  * Server controller
- *
- * A failure is never logged here: the exception thrown carries the original
- * error as its `cause`, and the global exception filter writes the single log
- * line for it — the only one that also carries the request id.
  */
 @Controller('server')
 export class ServerController {
@@ -49,8 +45,7 @@ export class ServerController {
             };
         } catch (error) {
             throw translateError(error, () => new ServiceUnavailableException(
-                'Could not reach the server Docker daemon. Verify the server is running and '
-                    + 'reachable; in local development, start the emulated server (see CONTRIBUTING.md).',
+                'Could not reach the server Docker daemon. Verify the server is running and reachable.',
                 { cause: error },
             ));
         }
@@ -114,8 +109,7 @@ export class ServerController {
             return await action();
         } catch (error) {
             throw translateError(error, () => new ServiceUnavailableException(
-                `Could not prune ${resource}. Verify the server is running and reachable; `
-                    + 'in local development, start the emulated server (see CONTRIBUTING.md).',
+                `Could not prune ${resource}. Verify the server is running and reachable.`,
                 { cause: error },
             ));
         }

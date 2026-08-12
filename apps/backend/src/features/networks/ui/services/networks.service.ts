@@ -26,8 +26,6 @@ export class NetworksService {
      * @param serviceId Service identifier
      *
      * @returns Networks of the service
-     *
-     * @throws {ServiceNotFoundError} Raised by the use case when the service does not exist
      */
     public getByService(serviceId: string): Promise<Network[]> {
         return getNetworksByServiceUseCase(this.servicesRepository, this.networksRepository, serviceId);

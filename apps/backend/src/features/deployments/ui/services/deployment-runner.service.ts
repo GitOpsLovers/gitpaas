@@ -43,9 +43,6 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
     /**
      * Subscribes to deployment-run requests when the module starts.
-     *
-     * Every task is isolated with `catchError`, so a rejection can never terminate
-     * the subscription and leave the queue unattended.
      */
     public async onModuleInit(): Promise<void> {
         this.subscription = this.deploymentQueue.dequeued$
@@ -63,10 +60,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
                                     return EMPTY;
                                 }),
-                            ),
-                        ),
-                    ),
-                ),
+                            )),
+                    )),
             )
             .subscribe();
 

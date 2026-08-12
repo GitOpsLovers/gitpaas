@@ -8,15 +8,6 @@ import { buildRedisConnectionOptions } from './redis-connection-options';
 
 /**
  * Redis connection.
- *
- * Owns every socket the application opens to Redis and is the only place that
- * knows `ioredis` exists at the infrastructure edge.
- *
- * Two connections are kept apart, because a blocking command occupies its socket
- * for the whole block and would stall every other command queued behind it:
- *
- * - one **command connection**, shared by every non-blocking command;
- * - one **blocking connection**, reserved for the commands that block.
  */
 @Injectable()
 export class RedisConnection implements OnModuleDestroy {
@@ -24,10 +15,14 @@ export class RedisConnection implements OnModuleDestroy {
         @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
-    /** Shared connection for every command that does not block its socket. */
+    /**
+     * Shared connection for every command that does not block its socket.
+     */
     private client?: Redis;
 
-    /** Connection reserved for the commands that block their socket. */
+    /**
+     * Connection reserved for the commands that block their socket.
+     */
     private blockingClient?: Redis;
 
     /**
@@ -65,10 +60,7 @@ export class RedisConnection implements OnModuleDestroy {
             try {
                 await client.quit();
             } catch (error: unknown) {
-                this.logger.warn(
-                    `Redis connection refused to quit cleanly, disconnecting it: ${String(error)}`,
-                    RedisConnection.name,
-                );
+                this.logger.warn(`Redis connection refused to quit cleanly, disconnecting it: ${String(error)}`, RedisConnection.name);
 
                 client.disconnect();
             }

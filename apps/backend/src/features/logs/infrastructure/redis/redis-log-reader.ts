@@ -1,8 +1,6 @@
 import { Subscriber } from 'rxjs';
 
-import {
-    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
-} from '../../domain/models/log-event.models';
+import { LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent } from '../../domain/models/log-event.models';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { toLogEventFromEntry } from '../database/db-log-store.transformer';
 
@@ -10,9 +8,7 @@ import {
     LOG_STORE_CONTEXT, LOG_STREAM_BLOCK_MS, LOG_STREAM_IDLE_ROUNDS_BEFORE_CLOSE,
     LOG_STREAM_READ_COUNT, LOG_STREAM_START_ID,
 } from './redis-log-store.constants';
-import {
-    RedisStreamEntry, toLogEventFromFields, toLogStreamKey, toProducerLeaseKey,
-} from './redis-log-store.transformer';
+import { RedisStreamEntry, toLogEventFromFields, toLogStreamKey, toProducerLeaseKey } from './redis-log-store.transformer';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { RedisConnection } from '@core/infrastructure/redis/redis.connection';
@@ -198,13 +194,6 @@ async function followLogStream(
 /**
  * Feeds one subscriber a deployment's log, live from Redis or replayed from the
  * archive when Redis no longer holds it.
- *
- * A failure never terminates the observable with an error: by then the SSE
- * response headers are already flushed, so an `EventSource` client would only
- * see the connection drop with no body to read. Instead the subscriber receives
- * a terminal `error` event carrying a stable `code` and a client-safe `message`,
- * and the stream completes cleanly. The underlying failure stays in the server
- * log.
  *
  * @param connection Redis connection
  * @param repository Logs repository

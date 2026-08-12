@@ -34,9 +34,6 @@ export function toProducerLeaseKey(streamId: string): string {
 /**
  * Turns a log event into the flat field/value list one stream entry carries.
  *
- * Only the events that belong to the run are storable: the failure event the
- * reader may emit describes the *reading* of the stream, never its content.
- *
  * @param event Stored log event
  *
  * @returns Field/value pairs ready for `XADD`

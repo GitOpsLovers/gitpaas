@@ -3,9 +3,7 @@ import { Injectable, Logger as NestLogger } from '@nestjs/common';
 import type { AppLogger } from '../../domain/ports/app-logger.port';
 
 /**
- * Turns whatever a caller passed as a trace into the string NestJS expects. An
- * `Error` yields its stack — callers hand over the caught value, so stringifying
- * it here would drop every frame — and anything else keeps its textual form.
+ * Turns whatever a caller passed as a trace into the string NestJS expects.
  *
  * @param trace Value supplied as the trace
  *
@@ -24,7 +22,7 @@ function resolveTrace(trace: unknown): string | undefined {
         return trace;
     }
 
-    return String(trace);
+    return JSON.stringify(trace);
 }
 
 /**

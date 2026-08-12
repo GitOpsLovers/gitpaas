@@ -10,7 +10,9 @@ import { GitRepository } from '../../domain/models/git-repository.models';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
-/** Node/undici error codes that mean GitHub could not be reached at all. */
+/**
+ * Node/undici error codes that mean GitHub could not be reached at all.
+ */
 const NETWORK_ERROR_CODES = new Set([
     'ECONNREFUSED',
     'ECONNRESET',
@@ -22,7 +24,9 @@ const NETWORK_ERROR_CODES = new Set([
     'UND_ERR_SOCKET',
 ]);
 
-/** HTTP status GitHub answers when the installation's quota is exhausted. */
+/**
+ * HTTP status GitHub answers when the installation's quota is exhausted.
+ */
 const TOO_MANY_REQUESTS = 429;
 
 /**
@@ -39,8 +43,7 @@ function readStatus(error: unknown): number | undefined {
 }
 
 /**
- * Tells whether GitHub refused the request because the rate limit is exhausted,
- * which it signals with a 403 and a spent `x-ratelimit-remaining` header.
+ * Tells whether GitHub refused the request because the rate limit is exhausted.
  *
  * @param error Caught error
  *
@@ -67,27 +70,7 @@ function isNetworkFailure(error: unknown): boolean {
 }
 
 /**
- * Maps a failure raised by Octokit into the domain error that describes it, so
- * the UI edge can answer honestly instead of turning every GitHub hiccup into a
- * generic 500.
- *
- * The mapping, in order:
- *
- * 1. A `DomainError` is already ours (the missing-configuration case) and is
- *    returned untouched.
- * 2. A network failure, or any GitHub 5xx, is an outage → unavailable.
- * 3. A 429, or a 403 with a spent rate-limit header, is a rate limit.
- * 4. A 401, or any other 403, is an authentication/permission failure of *our*
- *    GitHub App.
- * 5. A 404 is a repository or reference the caller asked for and that is not
- *    there (or not visible to the installation).
- * 6. Anything else — a 422 on a request we built wrong, for instance — is a bug
- *    on our side and is returned unchanged, so the global filter answers 500
- *    rather than dressing a defect up as a friendlier status.
- *
- * The returned error never carries the Octokit message: the original is chained
- * through `{ cause }` for the logs, and the client only ever reads the domain
- * message.
+ * Maps a failure raised by Octokit into the domain error that describes it.
  *
  * @param error Caught error
  *

@@ -38,7 +38,7 @@ describe('getContainersByServiceUseCase', () => {
     /** Runs the use case with the mocked repositories. */
     const run = (id = serviceId): Promise<Container[]> => getContainersByServiceUseCase(
         mockServicesRepository as unknown as ServicesRepository,
-        mockContainersRepository as unknown as ContainersRepository,
+        mockContainersRepository,
         id,
     );
 

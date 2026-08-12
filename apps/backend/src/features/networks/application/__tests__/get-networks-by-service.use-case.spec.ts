@@ -38,7 +38,7 @@ describe('getNetworksByServiceUseCase', () => {
     /** Runs the use case with the mocked repositories. */
     const run = (id = serviceId): Promise<Network[]> => getNetworksByServiceUseCase(
         mockServicesRepository as unknown as ServicesRepository,
-        mockNetworksRepository as unknown as NetworksRepository,
+        mockNetworksRepository,
         id,
     );
 

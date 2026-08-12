@@ -16,16 +16,14 @@ import { NestLoggerAdapter } from '../../infrastructure/logging/nest-logger.adap
 import { REQUEST_ID_HEADER, resolveRequestId } from '../middlewares/request-id.middleware';
 
 /**
- * Code published when a failure the client caused carries no domain code (a
- * validation rejection or a guard, for instance).
+ * Code published when a failure the client caused carries no domain code
  */
-export const GENERIC_CLIENT_ERROR_CODE = 'CLIENT_ERROR';
+const GENERIC_CLIENT_ERROR_CODE = 'CLIENT_ERROR';
 
 /**
- * Code published when a failure the server caused carries no domain code — the
- * unexpected errors reduced to a generic 500 included.
+ * Code published when a failure the server caused carries no domain code
  */
-export const GENERIC_SERVER_ERROR_CODE = 'SERVER_ERROR';
+const GENERIC_SERVER_ERROR_CODE = 'SERVER_ERROR';
 
 /**
  * Consistent JSON error envelope returned for every failed request.
@@ -42,20 +40,7 @@ interface ErrorEnvelope {
 }
 
 /**
- * Global exception filter that shapes every error into a consistent JSON
- * envelope and centralises logging.
- *
- * - `HttpException` subclasses keep their original status code and message(s),
- *   including the `message` array produced by `ValidationPipe`.
- * - A structured `HttpException` body (an object carrying no `message`, such as
- *   the readiness breakdown) is preserved under `details` instead of being lost.
- * - Any other (unexpected) error becomes an HTTP 500 with a generic message so
- *   internal details/stack traces are never leaked to the client.
- * - Every envelope carries a `code`: the stable identifier of the domain error
- *   chained as the exception's `cause`, or a generic client/server code, so a
- *   client branches on `code` alone instead of matching prose.
- * - Every envelope carries the request's correlation id, which is also written to
- *   the log line, so a user-reported failure can be traced back to the server.
+ * Global exception filter that shapes every error into a consistent JSON.
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -64,6 +49,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
+    /**
+     * Catches any thrown value and shapes it into a consistent JSON envelope.
+     *
+     * @param exception Caught exception
+     * @param host Arguments host, from which the request and response are extracted
+     */
     public catch(exception: unknown, host: ArgumentsHost): void {
         const { httpAdapter } = this.httpAdapterHost;
         const ctx = host.switchToHttp();
@@ -71,6 +62,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const response = ctx.getResponse<Response>();
 
         const path = httpAdapter.getRequestUrl(request) as string;
+        // eslint-disable-next-line security/detect-object-injection
         const requestId = resolveRequestId(request.headers?.[REQUEST_ID_HEADER]);
         const envelope = this.buildEnvelope(exception, path, requestId);
 
@@ -81,6 +73,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     /**
      * Maps any thrown value to the consistent error envelope.
+     *
+     * @param exception Caught exception
+     * @param path Request path
+     * @param requestId Request ID
+     *
+     * @returns Error envelope to send to the client
      */
     private buildEnvelope(exception: unknown, path: string, requestId: string): ErrorEnvelope {
         const timestamp = new Date().toISOString();
@@ -118,13 +116,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     /**
      * Resolves the machine-readable code published for an `HttpException`.
      *
-     * The HTTP translator chains the domain error it translated through
-     * `{ cause }`, so the stable `code` decided by the feature survives all the
-     * way to the wire. An exception with no domain cause — a validation
-     * rejection, a guard, a framework error — falls back to a generic code
-     * chosen from the status class, so the field is always present and a client
-     * can branch on it alone.
-     *
      * @param exception Caught HTTP exception
      * @param statusCode Status code the exception carries
      *
@@ -143,10 +134,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     /**
-     * Keeps the structured payload of an `HttpException` whose body is an object
-     * carrying no usable `message` — the readiness breakdown thrown by the server
-     * controller, for instance — which would otherwise be reduced to the
-     * exception's generic message and lost.
+     * Keeps the structured payload of an `HttpException` whose body is an object.
      *
      * @param body `HttpException` response body
      *
@@ -167,13 +155,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     /**
-     * Extracts the message(s) from an `HttpException` response body while
-     * preserving validation error arrays as-is.
+     * Extracts the message(s) from an `HttpException` response body while preserving validation error arrays as-is.
+     *
+     * @param body `HttpException` response body
+     * @param fallback Fallback message to use when the body has no message
+     *
+     * @returns The extracted message(s), or the fallback when there is none to extract
      */
-    private extractMessage(
-        body: string | object,
-        fallback: string,
-    ): string | string[] {
+    private extractMessage(body: string | object, fallback: string): string | string[] {
         if (typeof body === 'string') {
             return body;
         }
@@ -192,8 +181,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     /**
-     * Extracts the `error` label from an `HttpException` response body, falling
-     * back to the canonical HTTP status name.
+     * Extracts the `error` label from an `HttpException` response body.
+     *
+     * @param body `HttpException` response body
+     * @param statusCode Status code the exception carries
+     *
+     * @returns The extracted `error` label, or a human-readable status name when there is none to extract
      */
     private extractError(body: string | object, statusCode: number): string {
         if (typeof body === 'object') {
@@ -209,6 +202,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     /**
      * Human-readable HTTP status name (e.g. 404 → "Not Found").
+     *
+     * @param statusCode HTTP status code
+     *
+     * @returns Human-readable status name, or "Error" when the code is unknown
      */
     private statusName(statusCode: number): string {
         // eslint-disable-next-line security/detect-object-injection
@@ -228,15 +225,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     /**
      * Builds the stack written to the log, following the `cause` chain.
      *
-     * This filter writes the only log line a failed request produces, so it must
-     * carry the failure the caller actually hit: a translated exception (a Docker
-     * outage answered with a 503, for instance) says nothing on its own, while
-     * the error chained through `{ cause }` does.
-     *
      * @param exception Caught exception
      *
-     * @returns Stack of the exception followed by the stack of every chained
-     * cause, or `undefined` when the thrown value is not an error
+     * @returns Stack of the exception followed by the stack of every chained cause
      */
     private resolveStack(exception: unknown): string | undefined {
         if (!(exception instanceof Error)) {
@@ -257,8 +248,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     /**
-     * Logs 5xx errors at `error` level with the stack trace (server-side only)
+     * Logs 5xx errors at `error` level with the stack trace
      * and ordinary 4xx client errors at `warn` without any stack trace.
+     *
+     * @param exception Caught exception
+     * @param envelope Error envelope to log
      */
     private logException(exception: unknown, envelope: ErrorEnvelope): void {
         const context = `${envelope.statusCode} ${envelope.path}`;

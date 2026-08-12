@@ -4,14 +4,13 @@ import { DbServiceEntity } from './db-service.entity';
 
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
 
-/** PostgreSQL `SQLSTATE` of a foreign-key violation. */
+/**
+ * PostgreSQL `SQLSTATE` of a foreign-key violation.
+ */
 const FOREIGN_KEY_VIOLATION = '23503';
 
 /**
  * Reads the `SQLSTATE` a driver failure carries.
- *
- * TypeORM wraps the driver error in a `QueryFailedError` and copies the driver's
- * own properties onto it, so the code can sit on either object.
  *
  * @param error Caught error
  *
@@ -25,17 +24,7 @@ function readSqlState(error: unknown): string | undefined {
 }
 
 /**
- * Maps a failure raised while writing a service into the domain error that
- * describes it.
- *
- * The only foreign key the `services` table carries is its project, so a
- * foreign-key violation means the project the caller asked for does not exist:
- * an honest 404 rather than the raw 500 the driver error would become. The
- * driver message never travels with it — the original error is chained through
- * `{ cause }` for the logs only.
- *
- * Any other failure is returned unchanged, so a genuine defect still surfaces as
- * a 500 instead of being dressed up as a friendlier status.
+ * Maps a failure raised while writing a service into the domain error that describes it.
  *
  * @param error Caught error
  * @param projectId Identifier of the project the service was attached to

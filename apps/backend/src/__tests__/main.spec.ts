@@ -40,7 +40,6 @@ function loadMain(): Map<string, ProcessHandler> {
     }) as never);
 
     jest.isolateModules(() => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('../main');
     });
 
