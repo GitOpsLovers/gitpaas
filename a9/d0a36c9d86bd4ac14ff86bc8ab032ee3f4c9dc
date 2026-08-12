@@ -1,0 +1,95 @@
+apps/backend/src/features/source-control/domain/ports/source-control.port.ts
+  s_75527540937cfd::t_0e4ebdebe89873 6,8
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_75527540937cfd::t_73de1189c1f9a4 15,69,81,99,126,190,203,233,241,278
+docs/backend-architecture.md
+  s_011a6752a857a9::t_b82df6aa58fef4 167
+apps/backend/src/features/source-control/ui/services/source-control.service.ts
+  s_75527540937cfd::t_e9d047102bd39f 7-8,11,14,16-17,26,37
+apps/backend/src/features/source-control/source-control.module.ts
+  s_d51d766892dc63::t_b809f3a6aea5bd 3-5,8,11,13-14,16,18
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_75527540937cfd::t_ea30ed7f653f88 17-18,32-33,76
+apps/backend/src/features/source-control/application/__tests__/list-repositories.use-case.spec.ts
+  s_75527540937cfd::t_ddbb28d7384329 2,12,16,22,24,26,30,32,39,42
+apps/backend/src/features/source-control/infrastructure/github/__tests__/github-source-control.adapter.spec.ts
+  s_75527540937cfd::t_5bfdd7b09fc4a7 6,31,42,46,128,142,165
+apps/backend/src/app.module.ts
+  s_d51d766892dc63::t_5c25815ebc71cc 19,48
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts
+  s_75527540937cfd::t_d2f9e847fed572 3,22,30
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_75527540937cfd::t_751ad256433262 18,58,68,82,205
+apps/backend/src/features/source-control/application/list-repositories.use-case.ts
+  s_75527540937cfd::t_455cb2380d388a 2,7,11-12
+docs/backend-business.md
+  s_011a6752a857a9::t_348d37d9a86317 29,37,46
+apps/frontend/src/app/features/source-control/infrastructure/api/source-control-api.repository.ts
+  s_f8947f4ec6eff9::t_ec7a596967984c 12,14-15
+apps/backend/src/features/source-control/ui/controllers/source-control.controller.ts
+  s_75527540937cfd::t_4078f013d0bcce 5,8,10-12
+apps/backend/src/features/source-control/ui/controllers/__tests__/source-control.controller.spec.ts
+  s_75527540937cfd::t_575ed265d0f31f 5-6,27-29,34,40-41,44,49,53-54,58,66,75,83,87-88,92,100,109
+apps/backend/src/features/source-control/application/list-branches.use-case.ts
+  s_75527540937cfd::t_e84c3c07763e88 2,7,12-13
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_d51d766892dc63::t_e8d2c62f5021af 18-19,31-32,86
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_75527540937cfd::t_cd923b1bd3a3c6 7,21,28,40,53,62,67,71,80,93,109,124,135,144
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_75527540937cfd::t_0a9b66a8e74b6e 6,15,22,30
+docs/TODO.md
+  s_011a6752a857a9::t_78b782a3e6de86 4
+apps/backend/src/features/deployments/application/create-deployment.use-case.ts
+  s_d51d766892dc63::t_74564cecaf3164 11,22,31,45
+apps/backend/src/features/deployments/deployments.module.ts
+  s_d51d766892dc63::t_4d43645dd02d5c 15,24
+apps/backend/src/features/source-control/application/__tests__/list-branches.use-case.spec.ts
+  s_75527540937cfd::t_ace0ff0eeda483 2,10,14,20,22,24-25,29,31,38,41
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_d51d766892dc63::t_b4383035fc87ed 12-13,63,70,81,108,112,117,128
+apps/backend/src/features/source-control/infrastructure/github/github-source-control.adapter.ts
+  s_75527540937cfd::t_90d748cbdbb1d3 9,11,17,20,111
+apps/backend/src/features/source-control/ui/services/__tests__/source-control.service.spec.ts
+  s_75527540937cfd::t_eebcb6d587dcb3 7-8,37-39,44,48-49,53,57,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a9d0a36c9d86bd4ac14ff86bc8ab032ee3f4c9dc",
+  "prompts": {},
+  "sessions": {
+    "s_011a6752a857a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac0275e792cc4cf2f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_75527540937cfd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38d39e76-bd2e-4910-936f-1f09cbcfb958",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d51d766892dc63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa5532ed450515879",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f8947f4ec6eff9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0bc0c8d1bd3259e3",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
