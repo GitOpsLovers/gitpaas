@@ -30,7 +30,7 @@ export interface AppLogger {
      * Writes an error message.
      *
      * @param message Message to log
-     * @param trace Optional error/stack trace
+     * @param trace Optional caught value or stack trace; an `Error` keeps its stack
      * @param context Originating context (usually the caller's class name)
      */
     error: (message: string, trace?: unknown, context?: string) => void;
