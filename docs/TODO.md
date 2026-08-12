@@ -1,6 +1,5 @@
 - [] Add a root `turborepo.json` file.
 - [] Decide if we control the secrets with Docker secrets.
-- [] https://loggingsucks.com/
 - [] https://shiptypes.com/
 
 ## Structural
