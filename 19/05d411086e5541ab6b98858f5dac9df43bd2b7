@@ -1,0 +1,31 @@
+docs/backend-architecture.md
+  s_75527540937cfd::t_f234ca3d74a00a 119-120,161,214-354,395-404,439
+docs/backend-business.md
+  s_75527540937cfd::t_2f2b2d452db14a 60
+docs/TODO.md
+  s_5f8577acc8635d::t_d609ab7a39094a 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "1905d411086e5541ab6b98858f5dac9df43bd2b7",
+  "prompts": {},
+  "sessions": {
+    "s_5f8577acc8635d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a467f1fd63542118d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_75527540937cfd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38d39e76-bd2e-4910-936f-1f09cbcfb958",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
