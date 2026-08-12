@@ -1,0 +1,96 @@
+docs/backend-architecture.md
+  s_75527540937cfd::t_f234ca3d74a00a 119-120,161,214-354,395-404,439
+apps/backend/src/features/logs/domain/models/log-event.models.ts
+  s_5f8577acc8635d::t_153518132d63cc 19-22,27-30,35-39,42
+apps/backend/src/core/domain/ports/app-logger.port.ts
+  s_8d5a461a51f20c::t_39df0c23f6759b 33
+  s_8d5a461a51f20c::t_b338b5c73786dd 9,17,25,34
+apps/backend/src/features/logs/infrastructure/redis/redis-log-reader.ts
+  s_5f8577acc8635d::t_af02d31ba2fa75 3
+apps/backend/src/features/source-control/domain/errors/source-control.errors.ts
+  s_231f40649e6a2b::t_c1fbcde4556943 4,10,17,30,43,49,56
+docs/backend-business.md
+  s_75527540937cfd::t_2f2b2d452db14a 60
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_4770e80961930e::t_67a97ba18d09b6 63-64
+apps/backend/src/features/projects/domain/errors/project.errors.ts
+  s_5f8577acc8635d::t_078123f7bb2d95 4
+apps/backend/src/core/domain/errors/domain.error.ts
+  s_2c9bf443feb55a::t_a233f4c7adc99e 11
+apps/backend/src/core/infrastructure/logging/nest-logger.adapter.ts
+  s_8d5a461a51f20c::t_29b02173e5da50 6,25
+apps/backend/src/core/ui/middlewares/request-id.middleware.ts
+  s_8d5a461a51f20c::t_37934e79b909f9 47,50
+  s_8d5a461a51f20c::t_a4f7e43f9571c1 6-8,12-17,19,40,46
+docs/TODO.md
+  s_5f8577acc8635d::t_d609ab7a39094a 3-4
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_5f8577acc8635d::t_bf2b704cef8642 17,19,22,42
+apps/backend/src/features/source-control/infrastructure/github/github-source-control.adapter.ts
+  s_231f40649e6a2b::t_1b14d0b3ffeb54 12,92
+apps/backend/src/core/infrastructure/redis/redis.connection.ts
+  s_8d5a461a51f20c::t_2cee023c17de2d 63
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_5f8577acc8635d::t_3f1af5be821e21 7-9,27
+apps/backend/src/core/ui/filters/all-exceptions.filter.ts
+  s_5f8577acc8635d::t_a955929b377190 19,21,24,26,43,52-57,65,76-81,137,158-163,165,184-189,205-208,230,251,253-254
+  s_5f8577acc8635d::t_b328caf108ae3c 255
+apps/backend/src/features/services/domain/errors/service.errors.ts
+  s_2c9bf443feb55a::t_7664c078c20dc5 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d4c559adfc7d09bff60cc7b6a9b911fc21727cde",
+  "prompts": {},
+  "sessions": {
+    "s_231f40649e6a2b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6fe98a7d0a418722",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_2c9bf443feb55a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a778e39fad8f55af5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_4770e80961930e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-afd326d8ee7cf9681",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5f8577acc8635d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a467f1fd63542118d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_75527540937cfd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38d39e76-bd2e-4910-936f-1f09cbcfb958",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8d5a461a51f20c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9a183a4d85a09f6f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
