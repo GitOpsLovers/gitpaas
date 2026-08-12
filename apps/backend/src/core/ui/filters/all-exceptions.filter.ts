@@ -10,10 +10,11 @@ import { HttpAdapterHost } from '@nestjs/core';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { Request, Response } from 'express';
 
+import { resolveRequestIdUseCase } from '../../application/resolve-request-id.use-case';
 import { DomainError } from '../../domain/errors/domain.error';
 import type { AppLogger } from '../../domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '../../infrastructure/logging/nest-logger.adapter';
-import { REQUEST_ID_HEADER, resolveRequestId } from '../middlewares/request-id.middleware';
+import { REQUEST_ID_HEADER } from '../middlewares/request-id.middleware';
 
 /**
  * Code published when a failure the client caused carries no domain code
@@ -63,7 +64,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
         const path = httpAdapter.getRequestUrl(request) as string;
         // eslint-disable-next-line security/detect-object-injection
-        const requestId = resolveRequestId(request.headers?.[REQUEST_ID_HEADER]);
+        const requestId = resolveRequestIdUseCase(request.headers?.[REQUEST_ID_HEADER]);
         const envelope = this.buildEnvelope(exception, path, requestId);
 
         this.logException(exception, envelope);
