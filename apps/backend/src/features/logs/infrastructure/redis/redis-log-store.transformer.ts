@@ -1,5 +1,5 @@
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
-import { LogEvent, LogStatus } from '../../domain/models/log-event.models';
+import { LogStatus, StoredLogEvent } from '../../domain/models/log-event.models';
 import { toCreateLogDto } from '../database/db-log-store.transformer';
 
 import { LOG_STREAM_KEY_PREFIX, LOG_STREAM_PRODUCER_KEY_SUFFIX } from './redis-log-store.constants';
@@ -34,11 +34,14 @@ export function toProducerLeaseKey(streamId: string): string {
 /**
  * Turns a log event into the flat field/value list one stream entry carries.
  *
- * @param event Log event
+ * Only the events that belong to the run are storable: the failure event the
+ * reader may emit describes the *reading* of the stream, never its content.
+ *
+ * @param event Stored log event
  *
  * @returns Field/value pairs ready for `XADD`
  */
-export function toStreamFields(event: LogEvent): string[] {
+export function toStreamFields(event: StoredLogEvent): string[] {
     if (event.type === 'end') {
         return ['type', 'end', 'status', event.status];
     }
@@ -51,9 +54,9 @@ export function toStreamFields(event: LogEvent): string[] {
  *
  * @param fields Field/value pairs of the entry
  *
- * @returns Log event, or null when the entry carries no known type
+ * @returns Stored log event, or null when the entry carries no known type
  */
-export function toLogEventFromFields(fields: string[]): LogEvent | null {
+export function toLogEventFromFields(fields: string[]): StoredLogEvent | null {
     const values = new Map<string, string>();
 
     for (let index = 0; index + 1 < fields.length; index += 2) {

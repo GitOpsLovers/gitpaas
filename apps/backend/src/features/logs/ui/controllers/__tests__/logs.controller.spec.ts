@@ -2,7 +2,9 @@ import { Test } from '@nestjs/testing';
 import { EMPTY, firstValueFrom, of, toArray } from 'rxjs';
 
 import { LogEntry } from '../../../domain/models/log-entry.models';
-import { LogEvent } from '../../../domain/models/log-event.models';
+import {
+    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
+} from '../../../domain/models/log-event.models';
 import { LogsService } from '../../services/logs.service';
 import { LogsController } from '../logs.controller';
 
@@ -65,6 +67,25 @@ describe('LogsController', () => {
                 { data: JSON.stringify(events[0]) },
                 { data: JSON.stringify(events[1]) },
             ]);
+        });
+
+        it('publishes the failure event with its code and message, and completes without erroring', async () => {
+            const failure: LogEvent = {
+                type: 'error',
+                code: LOG_STREAM_UNAVAILABLE_CODE,
+                message: LOG_STREAM_UNAVAILABLE_MESSAGE,
+            };
+            mockLogsService.streamLogs.mockReturnValue(of(failure));
+
+            const received = await firstValueFrom(sut.streamLogs(deploymentId).pipe(toArray()));
+
+            expect(received).toEqual([{
+                data: JSON.stringify({
+                    type: 'error',
+                    code: LOG_STREAM_UNAVAILABLE_CODE,
+                    message: LOG_STREAM_UNAVAILABLE_MESSAGE,
+                }),
+            }]);
         });
     });
 });

@@ -2,7 +2,9 @@ import { firstValueFrom, Observable, Subscription, toArray } from 'rxjs';
 
 import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
 import { LogEntry } from '../../../domain/models/log-entry.models';
-import { LogEvent } from '../../../domain/models/log-event.models';
+import {
+    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
+} from '../../../domain/models/log-event.models';
 import type { LogsRepository } from '../../../domain/repositories/logs.repository';
 import { readLogStream } from '../redis-log-reader';
 
@@ -195,16 +197,52 @@ describe('readLogStream', () => {
         expect(client.reads).toBe(reads);
     });
 
-    it('reports a Redis failure to the subscriber and to the logger', async () => {
+    it('reports a Redis failure to the logger', async () => {
         const error = new Error('redis down');
 
         client.failure = error;
 
-        await expect(firstValueFrom(streamOf().pipe(toArray()))).rejects.toBe(error);
+        await firstValueFrom(streamOf().pipe(toArray()));
+
         expect(mockLogger.error).toHaveBeenCalledWith(
             'Failed to stream the log of deployment deployment-1: redis down',
             error,
             'RedisLogStoreAdapter',
         );
+    });
+
+    it('emits a terminal error event carrying a code and a message when the stream cannot be read', async () => {
+        client.failure = new Error('redis down');
+
+        const received = await firstValueFrom(streamOf().pipe(toArray()));
+
+        expect(received).toEqual([
+            {
+                type: 'error',
+                code: LOG_STREAM_UNAVAILABLE_CODE,
+                message: LOG_STREAM_UNAVAILABLE_MESSAGE,
+            },
+        ]);
+    });
+
+    it('completes the stream instead of failing it, so the SSE client can read the reason', async () => {
+        client.failure = new Error('redis down');
+
+        const failed = jest.fn();
+        const completed = new Promise<void>((resolve) => {
+            subscription = streamOf().subscribe({ error: failed, complete: () => { resolve(); } });
+        });
+
+        await completed;
+
+        expect(failed).not.toHaveBeenCalled();
+    });
+
+    it('never leaks the underlying failure to the subscriber', async () => {
+        client.failure = new Error('redis down at 10.0.0.3:6379');
+
+        const received = await firstValueFrom(streamOf().pipe(toArray()));
+
+        expect(JSON.stringify(received)).not.toContain('10.0.0.3');
     });
 });

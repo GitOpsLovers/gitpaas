@@ -1,6 +1,8 @@
 import { Subscriber } from 'rxjs';
 
-import { LogEvent } from '../../domain/models/log-event.models';
+import {
+    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
+} from '../../domain/models/log-event.models';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { toLogEventFromEntry } from '../database/db-log-store.transformer';
 
@@ -197,6 +199,13 @@ async function followLogStream(
  * Feeds one subscriber a deployment's log, live from Redis or replayed from the
  * archive when Redis no longer holds it.
  *
+ * A failure never terminates the observable with an error: by then the SSE
+ * response headers are already flushed, so an `EventSource` client would only
+ * see the connection drop with no body to read. Instead the subscriber receives
+ * a terminal `error` event carrying a stable `code` and a client-safe `message`,
+ * and the stream completes cleanly. The underlying failure stays in the server
+ * log.
+ *
  * @param connection Redis connection
  * @param repository Logs repository
  * @param logger Application logger
@@ -231,6 +240,12 @@ export async function readLogStream(
             LOG_STORE_CONTEXT,
         );
 
-        subscriber.error(error);
+        subscriber.next({
+            type: 'error',
+            code: LOG_STREAM_UNAVAILABLE_CODE,
+            message: LOG_STREAM_UNAVAILABLE_MESSAGE,
+        });
+
+        subscriber.complete();
     }
 }

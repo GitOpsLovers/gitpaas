@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import type { LogEvent, LogStatus } from '../../domain/models/log-event.models';
+import type { LogStatus, StoredLogEvent } from '../../domain/models/log-event.models';
 
 import { DbDeploymentEntity } from '@features/deployments/infrastructure/database/db-deployment.entity';
 
@@ -21,7 +21,7 @@ export class DbLogEntity {
     public seq!: number;
 
     @Column({ type: 'text' })
-    public type!: LogEvent['type'];
+    public type!: StoredLogEvent['type'];
 
     @Column({ type: 'text', nullable: true })
     public content!: string | null;
