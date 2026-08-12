@@ -5,6 +5,14 @@ import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { DbServiceEntity } from '../db-service.entity';
 import { DatabaseServicesRepository } from '../db-services.repository';
 
+import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
+
+/** The failure PostgreSQL raises when the project a service points at does not exist. */
+const foreignKeyViolation = Object.assign(
+    new Error('insert or update on table "services" violates foreign key constraint'),
+    { code: '23503', driverError: { code: '23503' } },
+);
+
 /**
  * Builds a service database-entity fixture, overriding only the fields under test.
  */
@@ -123,6 +131,29 @@ describe('DatabaseServicesRepository', () => {
             expect(mockRepository.create).toHaveBeenCalledWith(createDto);
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
             expect(result).toEqual(saved);
+        });
+
+        it('raises ProjectNotFoundError when the write violates the project foreign key', async () => {
+            mockRepository.create.mockReturnValue(serviceEntity());
+            mockRepository.save.mockRejectedValue(foreignKeyViolation);
+
+            await expect(sut.create(createDto)).rejects.toBeInstanceOf(ProjectNotFoundError);
+            await expect(sut.create(createDto)).rejects.toThrow(`Project ${projectId} not found`);
+        });
+
+        it('never leaks the driver message of a foreign-key violation', async () => {
+            mockRepository.create.mockReturnValue(serviceEntity());
+            mockRepository.save.mockRejectedValue(foreignKeyViolation);
+
+            await expect(sut.create(createDto)).rejects.not.toThrow(/foreign key constraint/);
+        });
+
+        it('propagates any other write failure unchanged', async () => {
+            const original = new Error('connection terminated');
+            mockRepository.create.mockReturnValue(serviceEntity());
+            mockRepository.save.mockRejectedValue(original);
+
+            await expect(sut.create(createDto)).rejects.toBe(original);
         });
     });
 

@@ -1,20 +1,29 @@
-import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
+import { SourceControlNotConfiguredError } from '../../domain/errors/source-control.errors';
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
 import { SourceControl } from '../../domain/ports/source-control.port';
 
-import { toGitBranch, toGitCommit, toGitRepository } from './github-source-control.transformer';
+import {
+    toGitBranch, toGitCommit, toGitRepository, toSourceControlError,
+} from './github-source-control.transformer';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
 /**
  * GitHub source control adapter.
+ *
+ * Every GitHub call goes through `run`, which translates an Octokit failure into
+ * the domain error that describes it (see
+ * `github-source-control.transformer.ts`). The raw Octokit error never escapes
+ * this class, so the UI edge can answer 404/503 instead of a blanket 500 and no
+ * GitHub payload reaches the client.
  */
 @Injectable()
 export class GithubSourceControlAdapter implements SourceControl {
@@ -25,58 +34,85 @@ export class GithubSourceControlAdapter implements SourceControl {
         @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
     ) {}
 
-    public async listRepositories(): Promise<GitRepository[]> {
-        const repositories = await this.getClient().paginate('GET /installation/repositories');
+    public listRepositories(): Promise<GitRepository[]> {
+        return this.run(async () => {
+            const repositories = await this.getClient().paginate('GET /installation/repositories');
 
-        return repositories.map(toGitRepository);
+            return repositories.map(toGitRepository);
+        });
     }
 
-    public async listBranches(repositoryId: number): Promise<GitBranch[]> {
-        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
-            id: repositoryId,
+    public listBranches(repositoryId: number): Promise<GitBranch[]> {
+        return this.run(async () => {
+            const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+                id: repositoryId,
+            });
+
+            const [owner, repo] = repository.full_name.split('/');
+
+            const branches = await this.getClient().paginate('GET /repos/{owner}/{repo}/branches', {
+                owner,
+                repo,
+            });
+
+            return branches.map(toGitBranch);
         });
-
-        const [owner, repo] = repository.full_name.split('/');
-
-        const branches = await this.getClient().paginate('GET /repos/{owner}/{repo}/branches', {
-            owner,
-            repo,
-        });
-
-        return branches.map(toGitBranch);
     }
 
-    public async getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
-        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
-            id: repositoryId,
+    public getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
+        return this.run(async () => {
+            const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+                id: repositoryId,
+            });
+
+            const [owner, repo] = repository.full_name.split('/');
+
+            const { data: commit } = await this.getClient().request('GET /repos/{owner}/{repo}/commits/{ref}', {
+                owner,
+                repo,
+                ref,
+            });
+
+            return toGitCommit(commit);
         });
-
-        const [owner, repo] = repository.full_name.split('/');
-
-        const { data: commit } = await this.getClient().request('GET /repos/{owner}/{repo}/commits/{ref}', {
-            owner,
-            repo,
-            ref,
-        });
-
-        return toGitCommit(commit);
     }
 
-    public async getRepositoryArchive(repositoryId: number, ref: string): Promise<Buffer> {
-        const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
-            id: repositoryId,
+    public getRepositoryArchive(repositoryId: number, ref: string): Promise<Buffer> {
+        return this.run(async () => {
+            const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+                id: repositoryId,
+            });
+
+            const [owner, repo] = repository.full_name.split('/');
+
+            // Octokit follows GitHub's 302 to codeload and returns the tarball bytes as an ArrayBuffer.
+            const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/tarball/{ref}', {
+                owner,
+                repo,
+                ref,
+            });
+
+            return Buffer.from(data as ArrayBuffer);
         });
+    }
 
-        const [owner, repo] = repository.full_name.split('/');
-
-        // Octokit follows GitHub's 302 to codeload and returns the tarball bytes as an ArrayBuffer.
-        const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/tarball/{ref}', {
-            owner,
-            repo,
-            ref,
-        });
-
-        return Buffer.from(data as ArrayBuffer);
+    /**
+     * Runs a GitHub operation, translating any failure it raises into the domain
+     * error that describes it.
+     *
+     * @param operation GitHub call to run
+     *
+     * @returns Whatever the operation resolves to
+     *
+     * @throws A `SourceControl*Error` describing the failure, or the original
+     * error when it cannot be classified
+     */
+    private async run<T>(operation: () => Promise<T>): Promise<T> {
+        try {
+            return await operation();
+        } catch (error) {
+            throw toSourceControlError(error);
+        }
     }
 
     /**
@@ -102,10 +138,7 @@ export class GithubSourceControlAdapter implements SourceControl {
         const installationId = this.config.get<string>('GITHUB_APP_INSTALLATION_ID');
 
         if (!appId || !privateKey || !installationId) {
-            throw new ServiceUnavailableException(
-                'GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY and '
-                    + 'GITHUB_APP_INSTALLATION_ID in the backend environment.',
-            );
+            throw new SourceControlNotConfiguredError();
         }
 
         this.logger.log('Creating GitHub App installation client', GithubSourceControlAdapter.name);

@@ -8,7 +8,7 @@ import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
 import { DbServiceEntity } from './db-service.entity';
-import { toService } from './db-services.transformer';
+import { toService, toServicePersistenceError } from './db-services.transformer';
 
 /**
  * Services database repository
@@ -64,15 +64,25 @@ export class DatabaseServicesRepository implements ServicesRepository {
     /**
      * Create a new service
      *
+     * A write that violates the project foreign key is translated into the
+     * domain error describing it, so the caller answers 404 for a project that
+     * does not exist instead of leaking a driver failure as a 500.
+     *
      * @param createDto Data for creating the service
      *
      * @returns Created service
+     *
+     * @throws {ProjectNotFoundError} When the project the service is attached to does not exist
      */
     public async create(createDto: CreateServiceDto): Promise<Service> {
-        const service = this.repository.create(createDto);
-        const saved = await this.repository.save(service);
+        try {
+            const service = this.repository.create(createDto);
+            const saved = await this.repository.save(service);
 
-        return toService(saved);
+            return toService(saved);
+        } catch (error) {
+            throw toServicePersistenceError(error, createDto.projectId);
+        }
     }
 
     /**
