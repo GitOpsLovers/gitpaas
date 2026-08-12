@@ -1,0 +1,41 @@
+apps/backend/src/__tests__/bootstrap.spec.ts
+  s_8d5a461a51f20c::t_225b06d8cbe648 7,60,121-131,145-158
+apps/backend/src/__tests__/main.spec.ts
+  s_4770e80961930e::t_0ae9f1b8e20b0e 1-125
+apps/backend/src/bootstrap.ts
+  s_8d5a461a51f20c::t_591fe42c73b65d 8,37-38,48-50
+apps/backend/src/core/infrastructure/redis/__tests__/redis.connection.spec.ts
+  s_8d5a461a51f20c::t_e52680f240abf3 3,21,25-28,74-97
+apps/backend/src/core/infrastructure/redis/redis.connection.ts
+  s_8d5a461a51f20c::t_2cee023c17de2d 1,4-6,23-26,67-72
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_4770e80961930e::t_f332a8b0b221ce 160-219
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_4770e80961930e::t_67a97ba18d09b6 2,46-48,54-69,104,106-113,116-127
+apps/backend/src/main.ts
+  s_4770e80961930e::t_386086e4fc9477 3-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "e8a71263d1528456b763ed06ef0c5d3ce1b7df1b",
+  "prompts": {},
+  "sessions": {
+    "s_4770e80961930e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-afd326d8ee7cf9681",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8d5a461a51f20c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9a183a4d85a09f6f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
