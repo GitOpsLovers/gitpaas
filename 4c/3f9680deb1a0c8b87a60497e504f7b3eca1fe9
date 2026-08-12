@@ -1,0 +1,77 @@
+apps/backend/src/core/domain/constants/wide-event.constants.ts
+  s_29673fcc80e445::t_02ebce4eb5e243 1-34
+apps/backend/src/core/ui/middlewares/__tests__/wide-event.middleware.spec.ts
+  s_29673fcc80e445::t_f72fac4d8bff1e 4-524
+  s_29673fcc80e445::t_b8764d589b2840 1-3
+apps/backend/src/core/__tests__/core.module.spec.ts
+  s_d4f31232dba335::t_47056092a7e687 1-44
+apps/backend/src/core/ui/middlewares/wide-event.middleware.ts
+  s_29673fcc80e445::t_904a48b71a3523 1-173
+apps/backend/src/core/domain/ports/wide-event-sink.port.ts
+  s_29673fcc80e445::t_ca7079d3d5a0a2 1-13
+apps/backend/src/core/domain/utils/__tests__/should-keep-wide-event.util.spec.ts
+  s_29673fcc80e445::t_f57cdb391cab7d 1-51
+docs/logging-plan-todo.md
+  s_0ac59a7a22dab7::t_4a6f09bf6df366 11-21
+  s_9a17fc07cc0c88::t_d35220595d38bd 67-68
+apps/backend/src/core/domain/models/wide-event.models.ts
+  s_29673fcc80e445::t_361ca1f9c2ad62 1-118
+apps/backend/src/core/core.module.ts
+  s_29673fcc80e445::t_037bfb7196cf4f 9,11,28-35
+  s_29673fcc80e445::t_fa81d4525d1c4d 1,38-47
+apps/backend/src/__tests__/bootstrap.spec.ts
+  s_29673fcc80e445::t_24736da427c6b3 8,133-140
+  s_29673fcc80e445::t_7090c796a658a8 141-142
+apps/backend/src/core/infrastructure/observability/wide-event.context.ts
+  s_29673fcc80e445::t_70da166a1fbe44 1-38
+apps/backend/src/core/infrastructure/observability/__tests__/stdout-wide-event-sink.adapter.spec.ts
+  s_29673fcc80e445::t_595e2f09cd9862 1-88
+apps/backend/src/core/infrastructure/observability/__tests__/wide-event.context.spec.ts
+  s_29673fcc80e445::t_a54d1aa651941c 1-139
+apps/backend/src/core/domain/utils/should-keep-wide-event.util.ts
+  s_29673fcc80e445::t_c2a0ba02d728fe 1-15
+apps/backend/src/core/infrastructure/observability/stdout-wide-event-sink.adapter.ts
+  s_29673fcc80e445::t_a41b3c576812a5 1-18
+docs/logging-plan.md
+  s_9a17fc07cc0c88::t_be6c31ae8fa49f 337,444,490
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4c3f9680deb1a0c8b87a60497e504f7b3eca1fe9",
+  "prompts": {},
+  "sessions": {
+    "s_0ac59a7a22dab7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a05fb00f27f43be54",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_29673fcc80e445": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "57dec9d2-289f-4228-93d5-e6a20655fd06",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_9a17fc07cc0c88": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a432fe464f488c8b8",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d4f31232dba335": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af7dda672b5e2ba4a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
