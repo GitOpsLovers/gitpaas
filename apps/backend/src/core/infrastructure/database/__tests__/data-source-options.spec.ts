@@ -1,4 +1,23 @@
+import type { DataSourceOptions } from 'typeorm';
+
 import { buildDataSourceOptions } from '../data-source-options';
+
+type PostgresOptions = Extract<DataSourceOptions, { type: 'postgres' }>;
+
+/**
+ * Narrows the built options to the postgres member of the `DataSourceOptions` union
+ *
+ * @returns The postgres connection options
+ */
+function buildPostgresOptions(): PostgresOptions {
+    const options = buildDataSourceOptions();
+
+    if (options.type !== 'postgres') {
+        throw new Error(`Expected postgres options, received "${options.type}"`);
+    }
+
+    return options;
+}
 
 // eslint-disable-next-line no-secrets/no-secrets
 describe('buildDataSourceOptions', () => {
@@ -36,7 +55,7 @@ describe('buildDataSourceOptions', () => {
     });
 
     it('coerces DB_PORT to a number', () => {
-        const { port } = buildDataSourceOptions();
+        const { port } = buildPostgresOptions();
 
         expect(port).toBe(5433);
         expect(typeof port).toBe('number');
@@ -61,11 +80,16 @@ describe('buildDataSourceOptions', () => {
     });
 
     it('registers a non-empty entity glob', () => {
-        const { entities } = buildDataSourceOptions();
+        const { entities } = buildPostgresOptions();
 
         expect(Array.isArray(entities)).toBe(true);
+
+        if (!Array.isArray(entities)) {
+            throw new Error('Expected the entities option to be an array');
+        }
+
         expect(entities).toHaveLength(1);
-        expect(entities?.[0]).toMatch(/\*\.entity\.(ts|js)$/);
+        expect(entities[0]).toMatch(/\*\.entity\.(ts|js)$/);
     });
 
     // The backend owns no migration machinery: production schema lives in the

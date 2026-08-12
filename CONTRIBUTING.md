@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to **GitPaaS**, a self-hostable PaaS for deploying personal projects. This repository is a monorepo managed with [Turborepo](https://turborepo.dev) and [pnpm](https://pnpm.io/) workspaces.
+Thanks for contributing to **GitPaaS**, a self-hostable PaaS platform for deploying personal projects. 
 
 For architecture and design context, start with the documentation and come back here for the day-to-day workflow:
 
@@ -10,6 +10,8 @@ For architecture and design context, start with the documentation and come back 
 - [Infrastructure architecture](./docs/infrastructure-architecture.md)
 
 ## Prerequisites
+
+This repository is a monorepo managed with [Turborepo](https://turborepo.dev) and [pnpm](https://pnpm.io/) workspaces.
 
 - **Node** `26.1.0` and **pnpm** `11.1.3` — both pinned in `.tool-versions`. Using a version manager (asdf, mise, `corepack`) that reads `.tool-versions` is the easiest way to match them.
 - **Docker** running on your host.
