@@ -1,0 +1,52 @@
+docs/backend-architecture.md
+  s_75527540937cfd::t_f234ca3d74a00a 119-120,161,214-354,395-404,439
+apps/backend/src/core/domain/errors/domain.error.ts
+  s_2c9bf443feb55a::t_a233f4c7adc99e 11
+docs/backend-business.md
+  s_75527540937cfd::t_2f2b2d452db14a 60
+docs/TODO.md
+  s_5f8577acc8635d::t_d609ab7a39094a 3
+apps/backend/src/core/domain/ports/app-logger.port.ts
+  s_8d5a461a51f20c::t_39df0c23f6759b 33
+  s_8d5a461a51f20c::t_b338b5c73786dd 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "bf4ae0ad2ee3c8c0be5f9f1368c81f4bef85d06a",
+  "prompts": {},
+  "sessions": {
+    "s_2c9bf443feb55a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a778e39fad8f55af5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5f8577acc8635d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a467f1fd63542118d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_75527540937cfd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38d39e76-bd2e-4910-936f-1f09cbcfb958",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8d5a461a51f20c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9a183a4d85a09f6f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
