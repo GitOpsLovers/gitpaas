@@ -1,0 +1,29 @@
+docs/request-model-plan-todo.md
+  s_72da795604ece2::t_ff8bf178f3f274 1-116
+docs/request-model-plan.md
+  s_d9e1f59aece2c2::t_c12104a2fa6a5e 1-607
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "0e240b8a2dfe8a04e484d6cb8d6549c68013041c",
+  "prompts": {},
+  "sessions": {
+    "s_72da795604ece2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad784c4163a2e7fb9",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d9e1f59aece2c2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0861f0a7a744b336",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
