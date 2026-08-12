@@ -8,17 +8,17 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 0 — The rails
 
-- [ ] Create `core/domain/models/wide-event.models.ts` (new) with the flat `WideEvent` type.
-- [ ] Create `core/domain/ports/wide-event-sink.port.ts` (new) with the `WideEventSink` port and its `emit` method.
-- [ ] Create `core/domain/constants/wide-event.constants.ts` (new) with the event names and the sampling constants.
-- [ ] Create `core/domain/utils/should-keep-wide-event.util.ts` (new) as a stub that keeps every event.
-- [ ] Create `core/infrastructure/observability/wide-event.context.ts` (new) with the `AsyncLocalStorage` store and the `runWithWideEvent` and `enrichWideEvent` functions.
-- [ ] Create `core/infrastructure/observability/stdout-wide-event.sink.ts` (new) that writes one JSON line to `process.stdout`.
-- [ ] Register the sink in the `providers` and the `exports` of `core/core.module.ts`.
-- [ ] Create `core/ui/middlewares/wide-event.middleware.ts` (new) that seeds the event and emits it on the response `finish` and `close` events.
-- [ ] Add a guard flag in `core/ui/middlewares/wide-event.middleware.ts` so one request emits one event only.
-- [ ] Register the middleware in `bootstrap.ts`, after `requestIdMiddleware` and before `helmet()`.
-- [ ] Add the service context, the correlation and the request fields to the emitted event.
+- [x] Create `core/domain/models/wide-event.models.ts` (new) with the flat `WideEvent` type.
+- [x] Create `core/domain/ports/wide-event-sink.port.ts` (new) with the `WideEventSink` port and its `emit` method.
+- [x] Create `core/domain/constants/wide-event.constants.ts` (new) with the event names and the sampling constants.
+- [x] Create `core/application/should-keep-wide-event.use-case.ts` (new) as a stub that keeps every event.
+- [x] Create `core/infrastructure/observability/wide-event.context.ts` (new) with the `AsyncLocalStorage` store and the `runWithWideEvent` and `enrichWideEvent` functions.
+- [x] Create `core/infrastructure/observability/stdout-wide-event-sink.adapter.ts` (new) that writes one JSON line to `process.stdout`.
+- [x] Register the sink in the `providers` and the `exports` of `core/core.module.ts`.
+- [x] Create `core/ui/middlewares/wide-event.middleware.ts` (new) that seeds the event and emits it on the response `finish` and `close` events.
+- [x] Add a guard flag in `core/ui/middlewares/wide-event.middleware.ts` so one request emits one event only.
+- [x] Register the middleware in `bootstrap.ts`, after `requestIdMiddleware` and before `helmet()`.
+- [x] Add the service context, the correlation and the request fields to the emitted event.
 
 ## Phase 1 — Converge the errors
 
@@ -56,7 +56,7 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 ## Phase 5 — Tail sampling
 
 - [ ] Add the `WIDE_EVENT_SLOW_MS` and `WIDE_EVENT_SAMPLE_RATE` variables to `core/infrastructure/config/env-validation.config.ts`.
-- [ ] Implement the keep rules in `core/domain/utils/should-keep-wide-event.util.ts`.
+- [ ] Implement the keep rules in `core/application/should-keep-wide-event.use-case.ts`.
 - [ ] Add the random 5 % rule for the remaining fast successful `GET` requests.
 - [ ] Add the `sampling.kept_reason` and `sampling.rate` fields to the emitted event.
 - [ ] Remove the SSE route from the slow-threshold rule, because the `http.sse` rule keeps it already.
@@ -64,8 +64,8 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 ## Phase 6 — The transport and the store
 
 - [ ] Create the adapter of the selected store in `core/infrastructure/observability/` (new).
-- [ ] Register the new adapter in `core/core.module.ts` in place of `stdout-wide-event.sink.ts`.
-- [ ] Remove `core/infrastructure/observability/stdout-wide-event.sink.ts` when the new adapter operates.
+- [ ] Register the new adapter in `core/core.module.ts` in place of `stdout-wide-event-sink.adapter.ts`.
+- [ ] Remove `core/infrastructure/observability/stdout-wide-event-sink.adapter.ts` when the new adapter operates.
 
 ---
 

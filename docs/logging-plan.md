@@ -247,7 +247,7 @@ opposite. All the new files are **new**.
   └──────────────────────────────────────────────────────────────────────┘
                                         │  response 'finish' / 'close'
                                         ▼
-                      shouldKeepWideEvent(event)  ── no ──► dropped
+                shouldKeepWideEventUseCase(event)  ── no ──► dropped
                                         │ yes
                                         ▼
                           WideEventSink.emit(event)  ──► one JSON line
@@ -274,7 +274,7 @@ opposite. All the new files are **new**.
   ```
 
   The method returns `void` and never throws. An observability failure must never fail a request.
-- **`core/domain/utils/should-keep-wide-event.util.ts`** *(new)* — the pure sampling function of section 5.
+- **`core/application/should-keep-wide-event.use-case.ts`** *(new)* — the pure sampling function of section 5.
 - **`core/domain/constants/wide-event.constants.ts`** *(new)* — the event names and the sampling constants.
 
 ### 4.2 Where the event lives during the request
@@ -334,7 +334,7 @@ or a 429, which are exactly the events that you want. A middleware runs before a
   registers the emission on the `finish` and the `close` events of the response. A guard flag makes sure that
   one request emits one event only, because a client abort can raise the two events.
 
-- **`core/infrastructure/observability/stdout-wide-event.sink.ts`** *(new)* — the first adapter. It writes one
+- **`core/infrastructure/observability/stdout-wide-event-sink.adapter.ts`** *(new)* — the first adapter. It writes one
   JSON line to `process.stdout`. It does **not** go through `NestLoggerAdapter`, because the Nest logger adds
   a text prefix and a colour, which breaks the machine reading. `CoreModule` declares it in its `providers`
   and its `exports`, like the other global adapters, and the consumers inject the concrete class with the type
@@ -399,7 +399,7 @@ a build can contain the secrets of the user.
 ## 5. Sampling
 
 The decision is a **tail** decision. It runs in the emission path, after the outcome is known, in the pure
-function `shouldKeepWideEvent` of `core/domain/utils/should-keep-wide-event.util.ts`.
+function `shouldKeepWideEventUseCase` of `core/application/should-keep-wide-event.use-case.ts`.
 
 The generic policy speaks of VIP customers. **GitPaaS has no customers.** It is a single-tenant control plane,
 and the quantity of its human requests is small. The equivalent of the "important request" is the request that
@@ -441,7 +441,7 @@ its replacement operates.
 
 - Add the model, the port, the sampling stub (which keeps everything), the constants and the
   `wide-event.context.ts` store.
-- Add `stdout-wide-event.sink.ts` and declare it in `CoreModule`.
+- Add `stdout-wide-event-sink.adapter.ts` and declare it in `CoreModule`.
 - Add `wide-event.middleware.ts` and register it after `requestIdMiddleware` in `src/bootstrap.ts`.
 - Emit an event that has only the groups 3.1, 3.2 and 3.3.
 - **Remove nothing.** The old text lines continue. The two systems run together.
@@ -480,14 +480,14 @@ its replacement operates.
 
 ### Phase 5 — Tail sampling
 
-- Implement `shouldKeepWideEvent` with the policy of section 5, and add the `WIDE_EVENT_SLOW_MS` and
+- Implement `shouldKeepWideEventUseCase` with the policy of section 5, and add the `WIDE_EVENT_SLOW_MS` and
   `WIDE_EVENT_SAMPLE_RATE` variables to `EnvironmentVariables`.
 - Ship it only when the true volume is known, because a sampler that operates too early hides the events that
   you need to size it.
 
 ### Phase 6 — The transport and the store
 
-- Replace `StdoutWideEventSink` with the adapter of the store that section 7 selects. Because the consumers
+- Replace `StdoutWideEventSinkAdapter` with the adapter of the store that section 7 selects. Because the consumers
   depend on `WideEventSink`, this is one new file and one line in `CoreModule`.
 
 ### What stays with `AppLogger`

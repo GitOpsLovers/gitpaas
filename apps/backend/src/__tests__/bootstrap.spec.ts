@@ -4,7 +4,8 @@ import helmet from 'helmet';
 
 import { bootstrap } from '../bootstrap';
 
-import { requestIdMiddleware } from '@core/ui/middlewares/request-id.middleware';
+import { RequestIdMiddleware } from '@core/ui/middlewares/request-id.middleware';
+import { WideEventMiddleware } from '@core/ui/middlewares/wide-event.middleware';
 import { UsersService } from '@features/users/ui/services/users.service';
 
 jest.mock('@nestjs/core', () => ({
@@ -118,15 +119,25 @@ describe('bootstrap (bootstrap.ts)', () => {
             expect(app.use).toHaveBeenCalledWith(HELMET_MIDDLEWARE);
         });
 
-        it('stamps every request with a correlation id before any other middleware', async () => {
+        it('registers helmet as the only app.use middleware', async () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
             await bootstrap();
 
-            expect(app.use).toHaveBeenCalledTimes(2);
-            expect(app.use).toHaveBeenNthCalledWith(1, requestIdMiddleware);
-            expect(app.use).toHaveBeenNthCalledWith(2, HELMET_MIDDLEWARE);
+            expect(app.use).toHaveBeenCalledTimes(1);
+            expect(app.use).toHaveBeenNthCalledWith(1, HELMET_MIDDLEWARE);
+        });
+
+        it('never registers the request-id or wide-event middlewares itself, since CoreModule applies them', async () => {
+            const { app } = buildApp(env);
+            mockNestFactoryCreate.mockResolvedValue(app);
+
+            await bootstrap();
+
+            expect(app.use).not.toHaveBeenCalledWith(RequestIdMiddleware);
+            expect(app.use).not.toHaveBeenCalledWith(WideEventMiddleware);
+            expect(app.use.mock.calls.flat()).toEqual([HELMET_MIDDLEWARE]);
         });
 
         it('registers a global ValidationPipe', async () => {
