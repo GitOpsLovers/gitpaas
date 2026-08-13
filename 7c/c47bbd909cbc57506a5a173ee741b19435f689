@@ -1,0 +1,23 @@
+apps/backend/src/core/ui/filters/__tests__/all-exceptions.filter.spec.ts
+  s_072306127b0dc9::t_bbb1ab2b5f5565 12-14,43-48,81-93,110,207-208,210-211,214-216,218-227,229-230,232-235,237-238,240-244,247-249,251,253-254,256-260,262,264-267,269-277,279-298,300-310,312-317,319-323,326-329,331-346,348-363
+apps/backend/src/core/ui/filters/all-exceptions.filter.ts
+  s_072306127b0dc9::t_e45d1db4cd4435 1,8,40,53,210,235-260,263-264,266-268,271-272,274-306
+docs/logging-plan-todo.md
+  s_072306127b0dc9::t_a3e5e9f3cf6665 25,27-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7cc47bbd909cbc57506a5a173ee741b19435f689",
+  "prompts": {},
+  "sessions": {
+    "s_072306127b0dc9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a9e6447e-c151-4539-861e-553e0310edd7",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
