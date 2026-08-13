@@ -107,7 +107,7 @@ Present on every event.
 | `timestamp`          | ISO 8601 instant of the emission                                     |
 | `event.name`         | `http.request` or `deployment.run`                                   |
 | `service.name`       | Constant, `gitpaas-backend`                                          |
-| `service.version`    | New `APP_VERSION` environment variable (see section 7)               |
+| `service.version`    | `resolveServiceVersion()` of `core/infrastructure/telemetry/resolve-service-version.ts` |
 | `service.env`        | `NODE_ENV`, already validated in `core/infrastructure/config/env-validation.config.ts` |
 | `host.name`          | `os.hostname()`, which is the container id on the server             |
 | `process.pid`        | `process.pid`                                                        |
@@ -115,6 +115,10 @@ Present on every event.
 
 GitPaaS has no region and no deployment identifier: the [infrastructure architecture](./infrastructure-architecture.md)
 gives one host and one Docker Compose stack. Thus these two fields of the generic model do not apply.
+
+**Decided: `service.version` is the `version` of the root `package.json`, stamped as `APP_VERSION` by the
+production image.** `resolveServiceVersion()` gives the value: it prefers the `APP_VERSION` variable, then reads
+the version of the root manifest, and falls back to the unknown version.
 
 ### 3.2 Correlation
 
@@ -487,8 +491,10 @@ its replacement operates.
 
 ### Phase 6 — The transport and the store
 
-- Replace `StdoutTelemetryWriterAdapter` with the adapter of the store that section 7 selects. Because the consumers
-  depend on `TelemetryWriter`, this is one new file and one line in `CoreModule`.
+- **Deferred.** The project selected the console (stdout) as the transport for now, and `StdoutTelemetryWriterAdapter`
+  covers it. This phase restarts when the project selects a persistent store.
+- Then, replace `StdoutTelemetryWriterAdapter` with the adapter of the store that section 7 selects. Because the
+  consumers depend on `TelemetryWriter`, this is one new file and one line in `CoreModule`.
 
 ### What stays with `AppLogger`
 
@@ -507,10 +513,11 @@ outside a unit of work, use `AppLogger`.**
 
 ### The store and the query tool
 
-This is the largest open decision, and the plan does not need it before phase 6.
+**Decided: `stdout` only for now; a persistent store is deferred.** The project keeps the console as the transport,
+and phase 6 restarts when a persistent store becomes necessary. The other options stay on the table for that moment.
 
-- **`stdout` and `docker logs` only** — the phase 0 position. No new component, but there is no query language.
-  It is not sufficient as an end state.
+- **`stdout` and `docker logs` only** — the phase 0 position, and **the selected option today**. No new component,
+  but there is no query language. It is not sufficient as an end state.
 - **A `telemetry_events` table in the existing PostgreSQL, with a `JSONB` column** — attractive, because PostgreSQL
   is already in the topology and the volume of a single-operator control plane is small. The risks are that the
   observability writes share the database of the application, and that a `JSONB` scan is not a columnar scan.
@@ -554,8 +561,6 @@ becomes the attribute set of one span, and the `TelemetryWriter` port is the onl
 
 ### Open items
 
-- Does `service.version` come from the `package.json` at build time, or from a Git SHA that the image build
-  gives as an `APP_VERSION` build argument? The second gives more, and it needs a change in the image build.
 - What is the retention of the events? A control plane can be satisfied with 30 days.
 - Must the readiness probe (`GET /api/v1/server/readiness`) emit an event? It runs frequently and it succeeds
   almost always. The proposal is to keep it in the random 5 %, and to keep 100 % of its failures through the

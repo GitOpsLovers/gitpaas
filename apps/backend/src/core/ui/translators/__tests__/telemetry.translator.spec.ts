@@ -1,10 +1,16 @@
+import { readFileSync } from 'node:fs';
 import { hostname } from 'node:os';
+import { join } from 'node:path';
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { Request } from 'express';
 
+import { resetServiceVersionCache } from '../../../infrastructure/telemetry/resolve-service-version';
 import { REQUEST_ID_HEADER } from '../../middlewares/request-id.middleware';
 import { buildTelemetrySeed, resolveRoute } from '../telemetry.translator';
+
+/** Version declared by the root manifest of the monorepo, the fallback of `service.version`. */
+const rootPackageVersion = (JSON.parse(readFileSync(join(__dirname, '../../../../../../..', 'package.json'), 'utf8')) as { version: string }).version;
 
 /**
  * Builds the request the translator maps into the telemetry event of a request.
@@ -48,10 +54,12 @@ describe('buildTelemetrySeed', () => {
 
     beforeEach(() => {
         envBackup = { ...process.env };
+        resetServiceVersionCache();
     });
 
     afterEach(() => {
         process.env = envBackup;
+        resetServiceVersionCache();
     });
 
     it('stamps the event name and the service every telemetry event is attributed to', () => {
@@ -67,10 +75,10 @@ describe('buildTelemetrySeed', () => {
         expect(buildTelemetrySeed(buildRequest())['service.version']).toBe('1.4.2');
     });
 
-    it('falls back to the unknown version when no build stamped one', () => {
+    it('falls back to the version of the root manifest when no build stamped one', () => {
         delete process.env.APP_VERSION;
 
-        expect(buildTelemetrySeed(buildRequest())['service.version']).toBe('unknown');
+        expect(buildTelemetrySeed(buildRequest())['service.version']).toBe(rootPackageVersion);
     });
 
     it('reports the environment the process runs in', () => {

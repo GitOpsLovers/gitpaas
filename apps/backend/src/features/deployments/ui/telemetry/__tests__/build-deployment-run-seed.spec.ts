@@ -1,7 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { hostname } from 'node:os';
+import { join } from 'node:path';
 
 import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
 import { buildDeploymentRunSeed } from '../build-deployment-run-seed';
+
+import { resetServiceVersionCache } from '@core/infrastructure/telemetry/resolve-service-version';
+
+/** Version declared by the root manifest of the monorepo, the fallback of `service.version`. */
+const rootPackageVersion = (JSON.parse(readFileSync(join(__dirname, '../../../../../../../..', 'package.json'), 'utf8')) as { version: string }).version;
 
 /** Builds a queued deployment task fixture, overriding only the fields under test. */
 const queuedTask = (overrides: Partial<QueuedDeploymentTask> = {}): QueuedDeploymentTask => ({
@@ -22,10 +29,12 @@ describe('buildDeploymentRunSeed', () => {
 
     beforeEach(() => {
         envBackup = { ...process.env };
+        resetServiceVersionCache();
     });
 
     afterEach(() => {
         process.env = envBackup;
+        resetServiceVersionCache();
     });
 
     it('stamps the background run event name and the service every telemetry event is attributed to', () => {
@@ -41,10 +50,10 @@ describe('buildDeploymentRunSeed', () => {
         expect(buildDeploymentRunSeed(queuedTask())['service.version']).toBe('1.4.2');
     });
 
-    it('falls back to the unknown version when no build stamped one', () => {
+    it('falls back to the version of the root manifest when no build stamped one', () => {
         delete process.env.APP_VERSION;
 
-        expect(buildDeploymentRunSeed(queuedTask())['service.version']).toBe('unknown');
+        expect(buildDeploymentRunSeed(queuedTask())['service.version']).toBe(rootPackageVersion);
     });
 
     it('reports the environment the process runs in', () => {

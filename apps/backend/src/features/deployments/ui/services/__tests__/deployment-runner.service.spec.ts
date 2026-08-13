@@ -15,6 +15,7 @@ import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { TelemetryWriter } from '@core/domain/ports/telemetry-writer.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { resetServiceVersionCache } from '@core/infrastructure/telemetry/resolve-service-version';
 import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
@@ -96,6 +97,7 @@ describe('DeploymentRunnerService', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        resetServiceVersionCache();
 
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockSourceControl = {} as jest.Mocked<GithubSourceControlAdapter>;
@@ -131,6 +133,10 @@ describe('DeploymentRunnerService', () => {
         }).compile();
 
         sut = moduleRef.get(DeploymentRunnerService);
+    });
+
+    afterEach(() => {
+        resetServiceVersionCache();
     });
 
     it('recovers pending work once, after the subscription is established', async () => {

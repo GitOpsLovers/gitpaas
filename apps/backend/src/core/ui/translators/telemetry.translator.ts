@@ -4,8 +4,9 @@ import { hostname } from 'node:os';
 import type { Request } from 'express';
 
 import { resolveRequestIdUseCase } from '../../application/resolve-request-id.use-case';
-import { HTTP_REQUEST_EVENT_NAME, TELEMETRY_SERVICE_NAME, TELEMETRY_UNKNOWN_VERSION } from '../../domain/constants/telemetry.constants';
+import { HTTP_REQUEST_EVENT_NAME, TELEMETRY_SERVICE_NAME } from '../../domain/constants/telemetry.constants';
 import type { TelemetryEvent } from '../../domain/models/telemetry.models';
+import { resolveServiceVersion } from '../../infrastructure/telemetry/resolve-service-version';
 import { REQUEST_ID_HEADER } from '../middlewares/request-id.middleware';
 
 /**
@@ -74,7 +75,7 @@ export function buildTelemetrySeed(request: Request): TelemetryEvent {
         timestamp: new Date().toISOString(),
         'event.name': HTTP_REQUEST_EVENT_NAME,
         'service.name': TELEMETRY_SERVICE_NAME,
-        'service.version': process.env.APP_VERSION ?? TELEMETRY_UNKNOWN_VERSION,
+        'service.version': resolveServiceVersion(),
         'service.env': process.env.NODE_ENV ?? 'development',
         'host.name': hostname(),
         'process.pid': process.pid,
