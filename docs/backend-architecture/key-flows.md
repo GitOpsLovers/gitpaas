@@ -130,22 +130,25 @@ Each feature declares its error classes in `domain/errors/`, in a file with the 
 
 `core/ui/filters/all-exceptions.filter.ts` is a global filter (`APP_FILTER`) and gives the same JSON shape to each failed request.
 
-An unexpected error never gives internal data: the message becomes `Internal server error`, and the stack stays in the log.
+An unexpected error never gives internal data: the message becomes `Internal server error`, and the stack stays in the telemetry event.
 
 This is the readiness probe: the controller throws `ServiceUnavailableException(result)`, and thus the breakdown of each dependency stays in `details` and is not lost. The `code` is the generic server code, because a readiness failure has no domain error and its status is a 5xx.
 
 ### Correlation id
 
-`core/ui/middlewares/request-id.middleware.ts` operates before all the other middleware. It takes the inbound `X-Request-Id` header if the value is one clean, not empty string of 128 characters or less; if not, it makes a UUID. Then it writes the id back on the request headers, so each later consumer reads one value that is already resolved, and it sets the `X-Request-Id` response header. The filter puts the same id in the envelope and at the start of the log line. Thus a user can quote the id, and you can find the failure in the server log.
+`core/ui/middlewares/request-id.middleware.ts` operates before all the other middleware. It takes the inbound `X-Request-Id` header if the value is one clean, not empty string of 128 characters or less; if not, it makes a UUID. Then it writes the id back on the request headers, so each later consumer reads one value that is already resolved, and it sets the `X-Request-Id` response header. The filter puts the same id in the envelope, and the telemetry middleware puts it in the `request.id` and the `trace.id` fields of the event. Thus a user can quote the id, and you can find the failure in the server output.
 
-### Logging a failure
+### Recording a failure
 
-The filter writes the only log line of a failed request:
+The filter writes no log line. It adds the `error.*` fields to the telemetry event of the request:
 
-- A 5xx goes to the `error` level with the stack. The filter follows the `{ cause }` chain and adds each cause with a `Caused by:` prefix. Thus the log shows the initial failure and not only the exception that the translator made. A cycle in the chain cannot make a loop.
-- A 4xx goes to the `warn` level with the message and with no stack.
+- `error.type`, `error.code` and the internal `error.message`, which is not the message that the client receives.
+- `error.cause_chain`, the names of the chained causes. The filter follows the `{ cause }` chain, and a cycle in the chain cannot make a loop.
+- `error.stack` on a 5xx only. The filter joins the stack of each cause with a `Caused by:` prefix, thus the record shows the initial failure and not only the exception that the translator made, and caps the result at 4096 characters.
 
-Thus a controller must not log the failure that it translates. If it did, the log would have the same failure two times, and the second time with no request id.
+The telemetry middleware emits the complete event when the response finishes. Thus a failed request gives one record that has the error **and** the duration, the route, the actor and the business identifiers. See [Telemetry and logging](#telemetry-and-logging).
+
+Thus a controller must not log the failure that it translates. If it did, the same failure would appear two times, and the second time with no request id.
 
 ### Deviations
 
@@ -159,3 +162,49 @@ The Passport strategies (`features/authentication/infrastructure/passport/jwt.st
 - `uncaughtException` writes an `error` log and stops the process with the code 1, because the state of the process is not known after such an error.
 
 `src/bootstrap.ts` calls `app.enableShutdownHooks()`, and thus `SIGTERM` and `SIGINT` in a container go to the `onModuleDestroy` hooks of the modules and the connections close in a clean way.
+
+## Telemetry and logging
+
+The backend writes no text line for each step of its work. It writes **one telemetry event for each unit of work**: one flat record (`TelemetryEvent` in `core/domain/models/telemetry.models.ts`), seeded at the start, enriched through the layers, emitted one time at the end as one JSON line on stdout. The two units of work are one HTTP request (`http.request`) and one background deployment run (`deployment.run`).
+
+```text
+TelemetryMiddleware ─ seeds the event, opens the scope (runWithTelemetry)
+   │  Guard → Controller → Service → Use case → Adapter   each calls enrichTelemetry({ … })
+   │  AllExceptionsFilter                                  adds the error.* fields
+   └─ response 'finish'/'close' → shouldKeepTelemetryUseCase → writer → one JSON line
+```
+
+`runWithTelemetry(seed, work)` runs a unit of work in a fresh `AsyncLocalStorage` scope, and `enrichTelemetry(fields)` adds fields to the event of the current scope. Both are plain functions of `core/infrastructure/telemetry/telemetry.context.ts`. `DeploymentRunnerService` opens its own scope for each task; its seed carries `parent.request_id`, thus one `trace.id` connects the request that queued the task to the background run.
+
+### The event schema
+
+The keys are dotted and `snake_case`, and a field is present only when the work touches it: service identity (`service.name`, `service.version`, `service.env`, `host.name`, `process.pid`), correlation (`trace.id`, `request.id`, `task.id`, `parent.request_id`), `http.*` (the low-cardinality `route`, the `path`, the `query_keys` **names** only, `status_code`, `duration_ms`, `sse`, `client_aborted`), the actor (`user.*`, `auth.*`), the business identifiers (`project.*`, `service.id`, `deployment.*`, `docker.project`), `deps.*`, `error.*` and `sampling.*`.
+
+```json
+{ "timestamp": "2026-02-11T09:14:22.481Z", "event.name": "http.request",
+  "service.name": "gitpaas-backend", "service.version": "1.4.0", "service.env": "production",
+  "trace.id": "9d1f…", "request.id": "9d1f…",
+  "http.method": "POST", "http.route": "/api/v1/deployments", "http.status_code": 202,
+  "http.duration_ms": 143.7, "auth.outcome": "authenticated", "user.id": "5c0e…",
+  "project.id": "a71c…", "deployment.id": "3ee8…", "deployment.branch": "main",
+  "deps.postgres.calls": 6, "deps.postgres.duration_ms": 21.4,
+  "sampling.kept_reason": "mutation", "sampling.rate": 1 }
+```
+
+### Dependency counters
+
+An outbound call gets no event of its own. `recordDependencyCall(name, durationMs, failed)` adds the call to the counters of the current event — `calls`, `duration_ms`, `errors` and `max_ms` — for `github`, `docker`, `redis` and `postgres`. The clean shape is one private helper that wraps every call of an adapter. `postgres` is instrumented centrally: `createInstrumentedDataSource` wraps the `query` method of each query runner and `CoreModule` wires it as the `dataSourceFactory` of `TypeOrmModule.forRootAsync`, thus every repository is covered with no work of its own.
+
+### Tail sampling
+
+`shouldKeepTelemetryUseCase` decides **after** the outcome is known. The first rule that matches wins, and the event is kept with `sampling.rate: 1` and that `sampling.kept_reason`: `server_error` (status 500 or more), `error` (the event carries an `error.code`), `mutation` (the method is not `GET`), `auth` (the route starts with `/api/v1/auth`), `deployment` (a `deployment.run` event), `stream` (`http.sse` is true) and `slow` (the duration is above the threshold). The `stream` rule comes before the `slow` rule, so a long SSE connection never counts as slow. Every other event — a fast, successful `GET` — is kept with the probability of the rate, with the reason `random` and the effective rate in `sampling.rate`, so a later count can give the true totals again. `TELEMETRY_SLOW_MS` (default `1000`) and `TELEMETRY_SAMPLE_RATE` (default `0.05`) tune the policy and are validated at boot.
+
+### Transport and retention
+
+The writer sends one JSON line for each kept event to `process.stdout`, and not through `AppLogger`, whose prefix and colour break the machine reading. There is **no persistent store and no query tool**: the retention is the rotation of the Docker log driver, and `docker logs` with a text filter is the tool. Because the `json-file` driver splits a line above 16 KB, `error.stack` is capped at 4096 characters for the whole joined cause chain, on the two paths that publish a stack: the exception filter and the deployment runner.
+
+### The rule for contributors
+
+> **Inside a unit of work, enrich the event. Outside a unit of work, use `AppLogger`.**
+
+Add a field, and not a text line; if the value has no field, add it to `TelemetryEvent` first. `AppLogger` stays in the three places that have no event to enrich: the process handlers and the bootstrap failure of `src/main.ts`, the lifecycle messages (for example the shutdown warning of `RedisConnection`), and the seed of the development administrator in the `users` service.

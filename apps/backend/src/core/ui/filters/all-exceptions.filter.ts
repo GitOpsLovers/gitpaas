@@ -4,7 +4,7 @@ import { HttpAdapterHost } from '@nestjs/core';
 import type { Request, Response } from 'express';
 
 import { resolveRequestIdUseCase } from '../../application/resolve-request-id.use-case';
-import { TELEMETRY_MAX_STACK_LENGTH } from '../../domain/constants/telemetry.constants';
+import { truncateStackUseCase } from '../../application/truncate-stack.use-case';
 import { DomainError } from '../../domain/errors/domain.error';
 import { enrichTelemetry } from '../../infrastructure/telemetry/telemetry.context';
 import { REQUEST_ID_HEADER } from '../middlewares/request-id.middleware';
@@ -229,41 +229,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
             current = current.cause;
         }
 
-        return this.truncateStack(stacks.join('\n'));
-    }
-
-    /**
-     * Caps the joined stack at `TELEMETRY_MAX_STACK_LENGTH`, keeping its first characters.
-     *
-     * @param stack Joined stack of the exception and its chained causes
-     *
-     * @returns The stack unchanged, or its first characters followed by the truncation marker
-     */
-    private truncateStack(stack: string): string {
-        if (stack.length <= TELEMETRY_MAX_STACK_LENGTH) {
-            return stack;
-        }
-
-        let marker = this.stackTruncationMarker(stack.length - TELEMETRY_MAX_STACK_LENGTH);
-        let removed = stack.length - (TELEMETRY_MAX_STACK_LENGTH - marker.length);
-
-        while (marker !== this.stackTruncationMarker(removed)) {
-            marker = this.stackTruncationMarker(removed);
-            removed = stack.length - (TELEMETRY_MAX_STACK_LENGTH - marker.length);
-        }
-
-        return `${stack.slice(0, TELEMETRY_MAX_STACK_LENGTH - marker.length)}${marker}`;
-    }
-
-    /**
-     * Marker appended to a stack that did not fit in the telemetry event.
-     *
-     * @param removed Number of characters dropped from the end of the stack
-     *
-     * @returns Human-readable truncation marker
-     */
-    private stackTruncationMarker(removed: number): string {
-        return `\n… [truncated ${removed} characters]`;
+        return truncateStackUseCase(stacks.join('\n'));
     }
 
     /**

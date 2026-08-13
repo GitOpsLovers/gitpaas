@@ -8,6 +8,8 @@ import { DatabaseLogsRepository } from '../../../infrastructure/database/db-logs
 import { RedisLogStoreAdapter } from '../../../infrastructure/redis/redis-log-store.adapter';
 import { LogsService } from '../logs.service';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 jest.mock('../../../application/get-logs-by-deployment.use-case');
 
 const mockGetLogsByDeploymentUseCase = getLogsByDeploymentUseCase as jest.MockedFunction<typeof getLogsByDeploymentUseCase>;
@@ -90,6 +92,63 @@ describe('LogsService', () => {
             });
 
             expect(() => sut.streamLogs(deploymentId)).toThrow(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('reports how many log lines the listing served', async () => {
+            mockGetLogsByDeploymentUseCase.mockResolvedValue([entry, { ...entry, seq: 2 }]);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getAllByDeployment(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({ 'deployment.log_lines': 2 });
+        });
+
+        it('reports zero lines for a deployment that logged nothing', async () => {
+            mockGetLogsByDeploymentUseCase.mockResolvedValue([]);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getAllByDeployment(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({ 'deployment.log_lines': 0 });
+        });
+
+        it('reports no line count when the listing failed', async () => {
+            mockGetLogsByDeploymentUseCase.mockRejectedValue(new Error('db unreachable'));
+
+            const event = await runWithTelemetry({}, async () => {
+                await expect(sut.getAllByDeployment(deploymentId)).rejects.toThrow('db unreachable');
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
+        });
+
+        it('adds nothing for a stream, whose line count is only known once it ends', () => {
+            mockLogStore.stream.mockReturnValue(of<LogEvent>({ type: 'end', status: 'success' }));
+
+            const event = runWithTelemetry({}, () => {
+                sut.streamLogs(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
+        });
+
+        it('does nothing outside a unit of work', async () => {
+            mockGetLogsByDeploymentUseCase.mockResolvedValue([entry]);
+
+            await expect(sut.getAllByDeployment(deploymentId)).resolves.toEqual([entry]);
+            expect(getTelemetry()).toBeUndefined();
         });
     });
 });

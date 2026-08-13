@@ -11,6 +11,7 @@ import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/
 import { DockerExecutorAdapter } from '../../../infrastructure/docker/docker-executor.adapter';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
+import { TELEMETRY_MAX_STACK_LENGTH } from '@core/domain/constants/telemetry.constants';
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { TelemetryWriter } from '@core/domain/ports/telemetry-writer.port';
@@ -293,6 +294,37 @@ describe('DeploymentRunnerService', () => {
         );
         // The failure now travels on the event, so no separate text line is written.
         expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('caps the stack of a failure at the telemetry limit, keeping its first frames', async () => {
+        const error = new Error('boom');
+        const head = 'Error: boom\n    at the frame that carries the failure\n';
+
+        error.stack = head + 'x'.repeat(TELEMETRY_MAX_STACK_LENGTH * 2);
+        mockRunDeploymentUseCase.mockRejectedValue(error);
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        const stack = emittedEvent()['error.stack']!;
+
+        expect(stack).toHaveLength(TELEMETRY_MAX_STACK_LENGTH);
+        expect(stack.startsWith(head)).toBe(true);
+        expect(stack).toMatch(/\n… \[truncated \d+ characters]$/);
+    });
+
+    it('publishes a stack shorter than the limit unchanged', async () => {
+        const error = new Error('boom');
+
+        error.stack = `Error: boom\n${'    at frame\n'.repeat(5)}`;
+        mockRunDeploymentUseCase.mockRejectedValue(error);
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(emittedEvent()['error.stack']).toBe(error.stack);
     });
 
     it('reports the stable code of a domain failure and its own error type', async () => {

@@ -9,6 +9,8 @@ import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { DatabaseLogsRepository } from '../../infrastructure/database/db-logs.repository';
 import { RedisLogStoreAdapter } from '../../infrastructure/redis/redis-log-store.adapter';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 /**
  * Logs service
  */
@@ -28,8 +30,12 @@ export class LogsService {
      *
      * @returns Ordered log entries of the deployment
      */
-    public getAllByDeployment(deploymentId: string): Promise<LogEntry[]> {
-        return getLogsByDeploymentUseCase(this.repository, deploymentId);
+    public async getAllByDeployment(deploymentId: string): Promise<LogEntry[]> {
+        const entries = await getLogsByDeploymentUseCase(this.repository, deploymentId);
+
+        enrichTelemetry({ 'deployment.log_lines': entries.length });
+
+        return entries;
     }
 
     /**
