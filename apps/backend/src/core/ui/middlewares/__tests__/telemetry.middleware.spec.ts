@@ -12,6 +12,7 @@ import { shouldKeepTelemetryUseCase } from '../../../application/should-keep-tel
 import type { TelemetryEvent } from '../../../domain/models/telemetry.models';
 import type { TelemetryWriter } from '../../../domain/ports/telemetry-writer.port';
 import { StdoutTelemetryWriterAdapter } from '../../../infrastructure/telemetry/stdout-telemetry-writer.adapter';
+import { resetServiceVersionCache } from '../../../infrastructure/telemetry/resolve-service-version';
 import { enrichTelemetry } from '../../../infrastructure/telemetry/telemetry.context';
 import { REQUEST_ID_HEADER } from '../request-id.middleware';
 import { TelemetryMiddleware } from '../telemetry.middleware';
@@ -101,11 +102,13 @@ function buildWriter() {
 describe('TelemetryMiddleware', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        resetServiceVersionCache();
         mockShouldKeepTelemetry.mockReturnValue({ kept: true, reason: 'mutation', rate: 1 });
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
+        resetServiceVersionCache();
     });
 
     it('continues the chain without emitting anything yet', () => {

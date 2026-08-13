@@ -2,8 +2,9 @@ import { hostname } from 'node:os';
 
 import { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
 
-import { DEPLOYMENT_RUN_EVENT_NAME, TELEMETRY_SERVICE_NAME, TELEMETRY_UNKNOWN_VERSION } from '@core/domain/constants/telemetry.constants';
+import { DEPLOYMENT_RUN_EVENT_NAME, TELEMETRY_SERVICE_NAME } from '@core/domain/constants/telemetry.constants';
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
+import { resolveServiceVersion } from '@core/infrastructure/telemetry/resolve-service-version';
 
 /**
  * Builds the fields known the moment the runner picks a queued task up.
@@ -17,7 +18,7 @@ export function buildDeploymentRunSeed(task: QueuedDeploymentTask): TelemetryEve
         timestamp: new Date().toISOString(),
         'event.name': DEPLOYMENT_RUN_EVENT_NAME,
         'service.name': TELEMETRY_SERVICE_NAME,
-        'service.version': process.env.APP_VERSION ?? TELEMETRY_UNKNOWN_VERSION,
+        'service.version': resolveServiceVersion(),
         'service.env': process.env.NODE_ENV ?? 'development',
         'host.name': hostname(),
         'process.pid': process.pid,

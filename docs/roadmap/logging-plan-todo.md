@@ -63,6 +63,9 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 6 — The transport and the store
 
+> **Deferred.** The console (stdout) stays as the transport for now, and `StdoutTelemetryWriterAdapter` covers it.
+> This phase restarts when the project selects a persistent store.
+
 - [ ] Create the adapter of the selected store in `core/infrastructure/telemetry/` (new).
 - [ ] Register the new adapter in `core/core.module.ts` in place of `stdout-telemetry-writer.adapter.ts`.
 - [ ] Remove `core/infrastructure/telemetry/stdout-telemetry-writer.adapter.ts` when the new adapter operates.
@@ -71,8 +74,8 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Blocked / decisions needed
 
-- [ ] Decide the store and the query tool: stdout only, a `telemetry_events` `JSONB` table in the existing PostgreSQL, a columnar store, or a hosted vendor.
-- [ ] Decide the source of `service.version`, because no `APP_VERSION` variable exists today in `core/infrastructure/config/env-validation.config.ts` or in the image build.
+- [x] Decide the store and the query tool: stdout only, a `telemetry_events` `JSONB` table in the existing PostgreSQL, a columnar store, or a hosted vendor. **Decided: stdout only for now; a persistent store is deferred.**
+- [x] Decide the source of `service.version`, because no `APP_VERSION` variable exists today in `core/infrastructure/config/env-validation.config.ts` or in the image build. **Decided: the `version` of the root `package.json`, stamped as `APP_VERSION` by the production image.**
 - [ ] Decide the retention period of the events.
 - [x] Decide if the commit message of a deployment can be a field, or only the SHA and the branch. **Decided: only the SHA and the branch.**
 - [x] Decide if `GET /api/v1/server/readiness` stays in the random 5 % sample. **Decided: it stays in the random 5 % sample.**

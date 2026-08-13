@@ -58,6 +58,10 @@ RUN pnpm --filter @gitopslovers/gitpaas/backend build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm --filter @gitopslovers/gitpaas/backend --prod --legacy deploy /prod/backend
 
+# Stamp the version of the ROOT manifest so the runtime stage publishes it as
+# `service.version` without carrying the workspace manifest along.
+RUN node -p "require('/repo/package.json').version" > /prod/version
+
 # ---------------------------------------------------------------------------
 # runtime: minimal, non-root
 # ---------------------------------------------------------------------------
@@ -69,6 +73,7 @@ WORKDIR /app
 COPY --from=build /prod/backend/node_modules ./node_modules
 COPY --from=build /prod/backend/package.json ./package.json
 COPY --from=build /repo/apps/backend/dist ./dist
+COPY --from=build /prod/version ./version
 
 # Drop privileges — the `node` user ships with the official image.
 USER node
@@ -81,5 +86,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
     CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/v1').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-# nest build (tsconfig rootDir ".") emits the tree under dist/src.
-CMD ["node", "dist/src/main.js"]
+# nest build (tsconfig rootDir ".") emits the tree under dist/src. APP_VERSION is
+# exported from the version stamped at build time so telemetry publishes it as
+# `service.version` (ENV cannot take a value computed by another stage).
+CMD ["sh", "-c", "export APP_VERSION=\"$(cat /app/version)\"; exec node dist/src/main.js"]
