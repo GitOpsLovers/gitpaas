@@ -4,8 +4,8 @@ import { hostname } from 'node:os';
 import type { Request } from 'express';
 
 import { resolveRequestIdUseCase } from '../../application/resolve-request-id.use-case';
-import { HTTP_REQUEST_EVENT_NAME, WIDE_EVENT_SERVICE_NAME, WIDE_EVENT_UNKNOWN_VERSION } from '../../domain/constants/wide-event.constants';
-import type { WideEvent } from '../../domain/models/wide-event.models';
+import { HTTP_REQUEST_EVENT_NAME, TELEMETRY_SERVICE_NAME, TELEMETRY_UNKNOWN_VERSION } from '../../domain/constants/telemetry.constants';
+import type { TelemetryEvent } from '../../domain/models/telemetry.models';
 import { REQUEST_ID_HEADER } from '../middlewares/request-id.middleware';
 
 /**
@@ -62,9 +62,9 @@ export function resolveRoute(request: Request): string | undefined {
  *
  * @param request Incoming request
  *
- * @returns The seed of the wide event of the request
+ * @returns The seed of the telemetry event of the request
  */
-export function buildWideEventSeed(request: Request): WideEvent {
+export function buildTelemetrySeed(request: Request): TelemetryEvent {
     // eslint-disable-next-line security/detect-object-injection
     const requestId = resolveRequestIdUseCase(request.headers[REQUEST_ID_HEADER]);
     const userAgent = readHeader(request.headers['user-agent']);
@@ -73,8 +73,8 @@ export function buildWideEventSeed(request: Request): WideEvent {
     return {
         timestamp: new Date().toISOString(),
         'event.name': HTTP_REQUEST_EVENT_NAME,
-        'service.name': WIDE_EVENT_SERVICE_NAME,
-        'service.version': process.env.APP_VERSION ?? WIDE_EVENT_UNKNOWN_VERSION,
+        'service.name': TELEMETRY_SERVICE_NAME,
+        'service.version': process.env.APP_VERSION ?? TELEMETRY_UNKNOWN_VERSION,
         'service.env': process.env.NODE_ENV ?? 'development',
         'host.name': hostname(),
         'process.pid': process.pid,

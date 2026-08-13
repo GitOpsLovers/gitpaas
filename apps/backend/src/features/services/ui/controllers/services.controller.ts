@@ -18,6 +18,7 @@ import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import { ServicesService } from '../services/services.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -29,11 +30,15 @@ export class ServicesController {
 
     @Get()
     public getAllByProject(@Query('projectId', ParseUUIDPipe) projectId: string): Promise<Service[]> {
+        enrichTelemetry({ 'project.id': projectId });
+
         return this.service.getAllByProject(projectId);
     }
 
     @Get(':id')
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Service> {
+        enrichTelemetry({ 'service.id': id });
+
         const service = await this.service.findById(id);
 
         if (!service) {
@@ -64,6 +69,8 @@ export class ServicesController {
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateDto: UpdateServiceDto,
     ): Promise<Service> {
+        enrichTelemetry({ 'service.id': id });
+
         const service = await this.service.update(id, updateDto);
 
         if (!service) {
@@ -76,6 +83,8 @@ export class ServicesController {
     @Delete(':id')
     @HttpCode(204)
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        enrichTelemetry({ 'service.id': id });
+
         const deleted = await this.service.delete(id);
 
         if (!deleted) {

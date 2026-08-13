@@ -5,6 +5,7 @@ import { Network } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
 import { NetworksController } from '../networks.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -112,6 +113,20 @@ describe('NetworksController', () => {
             const error = await sut.getByService(serviceId).catch((caught: unknown) => caught);
 
             expect((error as Error).cause).toBe(original);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the service id of the listing', async () => {
+            mockNetworksService.getByService.mockResolvedValue(networks);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getByService(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
         });
     });
 });

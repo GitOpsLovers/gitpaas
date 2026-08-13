@@ -10,6 +10,7 @@ import type { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
+import { enrichWithDeployment } from '../telemetry/enrich-with-deployment';
 
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
@@ -54,8 +55,14 @@ export class DeploymentsService {
      *
      * @returns Deployment record
      */
-    public findById(id: string): Promise<Deployment | null> {
-        return findDeploymentByIdUseCase(this.repository, id);
+    public async findById(id: string): Promise<Deployment | null> {
+        const deployment = await findDeploymentByIdUseCase(this.repository, id);
+
+        if (deployment) {
+            enrichWithDeployment(deployment);
+        }
+
+        return deployment;
     }
 
     /**
@@ -79,13 +86,17 @@ export class DeploymentsService {
      * @throws {ServiceNotFoundError} When the service does not exist
      * @throws {ServiceNotDeployableError} When the service cannot be deployed
      */
-    public create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
-        return createDeploymentUseCase(
+    public async create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+        const deployment = await createDeploymentUseCase(
             this.repository,
             this.servicesRepository,
             this.sourceControl,
             this.deploymentQueue,
             triggerDto,
         );
+
+        enrichWithDeployment(deployment);
+
+        return deployment;
     }
 }

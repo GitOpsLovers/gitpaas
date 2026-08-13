@@ -1,10 +1,10 @@
-import type { WideEvent } from '../../../domain/models/wide-event.models';
-import { StdoutWideEventSinkAdapter } from '../stdout-wide-event-sink.adapter';
+import type { TelemetryEvent } from '../../../domain/models/telemetry.models';
+import { StdoutTelemetryWriterAdapter } from '../stdout-telemetry-writer.adapter';
 
 /**
- * Minimal completed event the sink publishes.
+ * Minimal completed event the writer publishes.
  */
-const EVENT: WideEvent = {
+const EVENT: TelemetryEvent = {
     timestamp: '2026-01-01T00:00:00.000Z',
     'event.name': 'http.request',
     'service.name': 'gitpaas-backend',
@@ -15,7 +15,7 @@ const EVENT: WideEvent = {
     'trace.id': 'correlation-id',
 };
 
-describe('StdoutWideEventSinkAdapter', () => {
+describe('StdoutTelemetryWriterAdapter', () => {
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -23,31 +23,31 @@ describe('StdoutWideEventSinkAdapter', () => {
     it('writes one JSON line per event', () => {
         const mockWrite = jest.spyOn(process.stdout, 'write').mockReturnValue(true);
 
-        new StdoutWideEventSinkAdapter().emit(EVENT);
+        new StdoutTelemetryWriterAdapter().emit(EVENT);
 
         expect(mockWrite).toHaveBeenCalledWith(`${JSON.stringify(EVENT)}\n`);
     });
 
     it('writes a line a machine can parse back into the event', () => {
         const mockWrite = jest.spyOn(process.stdout, 'write').mockReturnValue(true);
-        const event: WideEvent = {
+        const event: TelemetryEvent = {
             ...EVENT,
             'http.query_keys': ['page', 'size'],
             'error.message': 'boom "quoted"\nsecond line',
         };
 
-        new StdoutWideEventSinkAdapter().emit(event);
+        new StdoutTelemetryWriterAdapter().emit(event);
 
         const [line] = mockWrite.mock.calls[0] as [string];
 
         expect(line.endsWith('\n')).toBe(true);
         expect(line.slice(0, -1)).not.toContain('\n');
-        expect(JSON.parse(line) as WideEvent).toEqual(event);
+        expect(JSON.parse(line) as TelemetryEvent).toEqual(event);
     });
 
     it('writes one line for each emitted event', () => {
         const mockWrite = jest.spyOn(process.stdout, 'write').mockReturnValue(true);
-        const sut = new StdoutWideEventSinkAdapter();
+        const sut = new StdoutTelemetryWriterAdapter();
 
         sut.emit(EVENT);
         sut.emit({ ...EVENT, 'trace.id': 'other-correlation-id' });
@@ -65,7 +65,7 @@ describe('StdoutWideEventSinkAdapter', () => {
             throw new Error('stdout closed');
         });
 
-        expect(() => new StdoutWideEventSinkAdapter().emit(EVENT)).not.toThrow();
+        expect(() => new StdoutTelemetryWriterAdapter().emit(EVENT)).not.toThrow();
     });
 
     it('returns nothing when the write fails, so the unit of work keeps going', () => {
@@ -73,16 +73,16 @@ describe('StdoutWideEventSinkAdapter', () => {
             throw new Error('stdout closed');
         });
 
-        expect(new StdoutWideEventSinkAdapter().emit(EVENT)).toBeUndefined();
+        expect(new StdoutTelemetryWriterAdapter().emit(EVENT)).toBeUndefined();
     });
 
     it('never throws when the event cannot be serialised', () => {
         const mockWrite = jest.spyOn(process.stdout, 'write').mockReturnValue(true);
-        const circular = { ...EVENT } as WideEvent & { self?: unknown };
+        const circular = { ...EVENT } as TelemetryEvent & { self?: unknown };
 
         circular.self = circular;
 
-        expect(() => new StdoutWideEventSinkAdapter().emit(circular)).not.toThrow();
+        expect(() => new StdoutTelemetryWriterAdapter().emit(circular)).not.toThrow();
         expect(mockWrite).not.toHaveBeenCalled();
     });
 });

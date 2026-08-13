@@ -8,18 +8,18 @@ import { INJECTABLE_WATERMARK, SELF_DECLARED_DEPS_METADATA } from '@nestjs/commo
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { NextFunction, Request, Response } from 'express';
 
-import { shouldKeepWideEventUseCase } from '../../../application/should-keep-wide-event.use-case';
-import type { WideEvent } from '../../../domain/models/wide-event.models';
-import type { WideEventSink } from '../../../domain/ports/wide-event-sink.port';
-import { StdoutWideEventSinkAdapter } from '../../../infrastructure/observability/stdout-wide-event-sink.adapter';
-import { enrichWideEvent } from '../../../infrastructure/observability/wide-event.context';
+import { shouldKeepTelemetryUseCase } from '../../../application/should-keep-telemetry.use-case';
+import type { TelemetryEvent } from '../../../domain/models/telemetry.models';
+import type { TelemetryWriter } from '../../../domain/ports/telemetry-writer.port';
+import { StdoutTelemetryWriterAdapter } from '../../../infrastructure/telemetry/stdout-telemetry-writer.adapter';
+import { enrichTelemetry } from '../../../infrastructure/telemetry/telemetry.context';
 import { REQUEST_ID_HEADER } from '../request-id.middleware';
-import { WideEventMiddleware } from '../wide-event.middleware';
+import { TelemetryMiddleware } from '../telemetry.middleware';
 
-jest.mock('../../../application/should-keep-wide-event.use-case');
+jest.mock('../../../application/should-keep-telemetry.use-case');
 
-const mockShouldKeepWideEvent = shouldKeepWideEventUseCase as jest.MockedFunction<
-    typeof shouldKeepWideEventUseCase
+const mockShouldKeepTelemetry = shouldKeepTelemetryUseCase as jest.MockedFunction<
+    typeof shouldKeepTelemetryUseCase
 >;
 
 /** RFC 4122 shape of a generated correlation id. */
@@ -70,24 +70,24 @@ function buildContext(overrides: Partial<Request> = {}) {
 }
 
 /**
- * Builds the middleware over a sink stub recording the events it receives.
+ * Builds the middleware over a writer stub recording the events it receives.
  */
-function buildSink() {
-    const emitted: WideEvent[] = [];
+function buildWriter() {
+    const emitted: TelemetryEvent[] = [];
 
-    const sink: WideEventSink = {
+    const writer: TelemetryWriter = {
         emit: (event) => {
             emitted.push(event);
         },
     };
 
-    return { emitted, middleware: new WideEventMiddleware(sink) };
+    return { emitted, middleware: new TelemetryMiddleware(writer) };
 }
 
-describe('WideEventMiddleware', () => {
+describe('TelemetryMiddleware', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockShouldKeepWideEvent.mockReturnValue(true);
+        mockShouldKeepTelemetry.mockReturnValue(true);
     });
 
     afterEach(() => {
@@ -95,7 +95,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('continues the chain without emitting anything yet', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -105,7 +105,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('emits the service, correlation and request fields when the response finishes', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext({
             method: 'POST',
             query: { page: '2', size: '10' },
@@ -145,7 +145,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('adds the matched route pattern', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext({
             route: { path: '/api/v1/projects/:id' },
         } as unknown as Partial<Request>);
@@ -158,10 +158,10 @@ describe('WideEventMiddleware', () => {
     });
 
     it('keeps the fields the layers added during the request', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
         // The rest of the chain runs inside the scope, so its enrichment reaches the event
-        const next = jest.fn(() => enrichWideEvent({ 'project.id': 'project-1' })) as unknown as NextFunction;
+        const next = jest.fn(() => enrichTelemetry({ 'project.id': 'project-1' })) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -171,7 +171,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('flags the log stream responses', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -183,7 +183,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('flags a client abort when the response closes unfinished', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -195,7 +195,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('emits one event only when finish and close both fire', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -209,7 +209,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('emits one event only when close fires before finish', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -223,7 +223,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('emits one event only when close fires twice', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -235,7 +235,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('never flags an abort when the response closes after being fully written', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -247,7 +247,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('records the status the client abort left on the response', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -266,7 +266,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('generates the correlation id when the request carries none', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext({ headers: {} } as unknown as Partial<Request>);
 
         middleware.use(request, response as unknown as Response, next);
@@ -278,7 +278,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('reports no query keys when the request has no query', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext({ query: undefined } as unknown as Partial<Request>);
 
         middleware.use(request, response as unknown as Response, next);
@@ -289,10 +289,10 @@ describe('WideEventMiddleware', () => {
     });
 
     it('keeps an enrichment made after an asynchronous boundary inside the scope', async () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
         const next = jest.fn(() => {
-            void Promise.resolve().then(() => enrichWideEvent({ 'user.id': 'user-1' }));
+            void Promise.resolve().then(() => enrichTelemetry({ 'user.id': 'user-1' }));
         }) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
@@ -304,11 +304,11 @@ describe('WideEventMiddleware', () => {
     });
 
     it('keeps every field several layers enriched during the request', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
         const next = jest.fn(() => {
-            enrichWideEvent({ 'auth.outcome': 'authenticated', 'user.id': 'user-1' });
-            enrichWideEvent({ 'project.id': 'project-1' });
+            enrichTelemetry({ 'auth.outcome': 'authenticated', 'user.id': 'user-1' });
+            enrichTelemetry({ 'project.id': 'project-1' });
         }) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
@@ -325,9 +325,9 @@ describe('WideEventMiddleware', () => {
     });
 
     it('lets an enrichment override a seeded field', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
-        const next = jest.fn(() => enrichWideEvent({ 'trace.id': 'overridden' })) as unknown as NextFunction;
+        const next = jest.fn(() => enrichTelemetry({ 'trace.id': 'overridden' })) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -337,9 +337,9 @@ describe('WideEventMiddleware', () => {
     });
 
     it('lets the outcome of the response win over an enriched status code', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
-        const next = jest.fn(() => enrichWideEvent({ 'http.status_code': 200 })) as unknown as NextFunction;
+        const next = jest.fn(() => enrichTelemetry({ 'http.status_code': 200 })) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -350,19 +350,19 @@ describe('WideEventMiddleware', () => {
     });
 
     it('never reaches an enrichment that lost the scope', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
 
-        enrichWideEvent({ 'project.id': 'project-1' });
+        enrichTelemetry({ 'project.id': 'project-1' });
         response.emit('finish');
 
         expect(Object.keys(emitted[0])).not.toContain('project.id');
     });
 
     it('measures a non-negative duration', () => {
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -373,7 +373,7 @@ describe('WideEventMiddleware', () => {
     });
 
     it('asks the sampler about the completed event', () => {
-        const { middleware } = buildSink();
+        const { middleware } = buildWriter();
 
         const { request, response, next } = buildContext();
 
@@ -382,16 +382,16 @@ describe('WideEventMiddleware', () => {
         response.statusCode = 204;
         response.emit('finish');
 
-        expect(mockShouldKeepWideEvent).toHaveBeenCalledTimes(1);
-        expect(mockShouldKeepWideEvent).toHaveBeenCalledWith(
+        expect(mockShouldKeepTelemetry).toHaveBeenCalledTimes(1);
+        expect(mockShouldKeepTelemetry).toHaveBeenCalledWith(
             expect.objectContaining({ 'http.status_code': 204 }),
         );
     });
 
     it('never emits an event the sampler dropped', () => {
-        mockShouldKeepWideEvent.mockReturnValue(false);
+        mockShouldKeepTelemetry.mockReturnValue(false);
 
-        const { emitted, middleware } = buildSink();
+        const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -401,10 +401,10 @@ describe('WideEventMiddleware', () => {
         expect(emitted).toHaveLength(0);
     });
 
-    it('emits to the sink it was injected with, and to no other', () => {
-        const mockSink: jest.Mocked<WideEventSink> = { emit: jest.fn() };
-        const mockOtherSink: jest.Mocked<WideEventSink> = { emit: jest.fn() };
-        const middleware = new WideEventMiddleware(mockSink);
+    it('emits to the writer it was injected with, and to no other', () => {
+        const mockWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
+        const mockOtherWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
+        const middleware = new TelemetryMiddleware(mockWriter);
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -412,36 +412,36 @@ describe('WideEventMiddleware', () => {
         response.statusCode = 201;
         response.emit('finish');
 
-        expect(mockSink.emit).toHaveBeenCalledTimes(1);
-        expect(mockSink.emit).toHaveBeenCalledWith(expect.objectContaining({ 'http.status_code': 201 }));
-        expect(mockOtherSink.emit).not.toHaveBeenCalled();
+        expect(mockWriter.emit).toHaveBeenCalledTimes(1);
+        expect(mockWriter.emit).toHaveBeenCalledWith(expect.objectContaining({ 'http.status_code': 201 }));
+        expect(mockOtherWriter.emit).not.toHaveBeenCalled();
     });
 
-    it('never writes to the sink of another instance of the middleware', () => {
-        const mockSink: jest.Mocked<WideEventSink> = { emit: jest.fn() };
-        const mockIdleSink: jest.Mocked<WideEventSink> = { emit: jest.fn() };
-        const middleware = new WideEventMiddleware(mockSink);
-        const idleMiddleware = new WideEventMiddleware(mockIdleSink);
+    it('never writes to the writer of another instance of the middleware', () => {
+        const mockWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
+        const mockIdleWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
+        const middleware = new TelemetryMiddleware(mockWriter);
+        const idleMiddleware = new TelemetryMiddleware(mockIdleWriter);
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
 
         response.emit('finish');
 
-        expect(idleMiddleware).toBeInstanceOf(WideEventMiddleware);
-        expect(mockSink.emit).toHaveBeenCalledTimes(1);
-        expect(mockIdleSink.emit).not.toHaveBeenCalled();
+        expect(idleMiddleware).toBeInstanceOf(TelemetryMiddleware);
+        expect(mockWriter.emit).toHaveBeenCalledTimes(1);
+        expect(mockIdleWriter.emit).not.toHaveBeenCalled();
     });
 
-    it('declares the stdout sink adapter as the injection token of its only constructor parameter', () => {
-        const injected = Reflect.getMetadata(SELF_DECLARED_DEPS_METADATA, WideEventMiddleware) as
+    it('declares the stdout writer adapter as the injection token of its only constructor parameter', () => {
+        const injected = Reflect.getMetadata(SELF_DECLARED_DEPS_METADATA, TelemetryMiddleware) as
             | { index: number; param: unknown }[]
             | undefined;
 
-        expect(injected).toEqual([{ index: 0, param: StdoutWideEventSinkAdapter }]);
+        expect(injected).toEqual([{ index: 0, param: StdoutTelemetryWriterAdapter }]);
     });
 
     it('is marked injectable, so the container can build it as a provider', () => {
-        expect(Reflect.getMetadata(INJECTABLE_WATERMARK, WideEventMiddleware)).toBe(true);
+        expect(Reflect.getMetadata(INJECTABLE_WATERMARK, TelemetryMiddleware)).toBe(true);
     });
 });

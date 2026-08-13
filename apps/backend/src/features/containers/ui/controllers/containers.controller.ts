@@ -3,6 +3,7 @@ import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } fr
 import { Container } from '../../domain/models/container.models';
 import { ContainersService } from '../services/containers.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -21,6 +22,8 @@ export class ContainersController {
      */
     @Get()
     public async getByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<Container[]> {
+        enrichTelemetry({ 'service.id': serviceId });
+
         try {
             return await this.service.getByService(serviceId);
         } catch (error) {

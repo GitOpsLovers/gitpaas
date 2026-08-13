@@ -5,6 +5,7 @@ import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
 import { ContainersController } from '../containers.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
 const serviceId = '11111111-1111-1111-1111-111111111111';
@@ -112,6 +113,20 @@ describe('ContainersController', () => {
             const error = await sut.getByService(serviceId).catch((caught: unknown) => caught);
 
             expect((error as Error).cause).toBe(original);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the service id of the listing', async () => {
+            mockContainersService.getByService.mockResolvedValue(containers);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getByService(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
         });
     });
 });

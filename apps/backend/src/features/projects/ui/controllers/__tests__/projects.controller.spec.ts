@@ -7,6 +7,8 @@ import { Project } from '../../../domain/models/project.models';
 import { ProjectsService } from '../../services/projects.service';
 import { ProjectsController } from '../projects.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 
 const project: Project = {
@@ -216,6 +218,56 @@ describe('ProjectsController', () => {
             mockProjectsService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(projectId)).rejects.toBe(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the project id of a read', async () => {
+            mockProjectsService.findById.mockResolvedValue(project);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(projectId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'project.id': projectId });
+        });
+
+        it('adds the project id of an update', async () => {
+            mockProjectsService.update.mockResolvedValue(project);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.update(projectId, { name: 'renamed' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'project.id': projectId });
+        });
+
+        it('adds the project id of a delete', async () => {
+            mockProjectsService.delete.mockResolvedValue(true);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.delete(projectId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'project.id': projectId });
+        });
+
+        it('adds the project id even when the project does not exist', async () => {
+            mockProjectsService.findById.mockResolvedValue(null);
+
+            const event = await runWithTelemetry({}, async () => {
+                await expect(sut.findById(projectId)).rejects.toBeInstanceOf(NotFoundException);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'project.id': projectId });
         });
     });
 });

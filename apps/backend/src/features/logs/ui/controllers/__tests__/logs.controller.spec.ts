@@ -8,6 +8,8 @@ import {
 import { LogsService } from '../../services/logs.service';
 import { LogsController } from '../logs.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
 const logId = 'a1b2c3d4-0000-0000-0000-000000000000';
 const entry = { id: logId } as LogEntry;
@@ -86,6 +88,32 @@ describe('LogsController', () => {
                     message: LOG_STREAM_UNAVAILABLE_MESSAGE,
                 }),
             }]);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the deployment id of a listing', async () => {
+            mockLogsService.getAllByDeployment.mockResolvedValue([entry]);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getAllByDeployment(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'deployment.id': deploymentId });
+        });
+
+        it('adds the deployment id of a stream', () => {
+            mockLogsService.streamLogs.mockReturnValue(EMPTY);
+
+            const event = runWithTelemetry({}, () => {
+                sut.streamLogs(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'deployment.id': deploymentId });
         });
     });
 });

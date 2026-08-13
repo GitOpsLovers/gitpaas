@@ -4,10 +4,10 @@ import { hostname } from 'node:os';
 import type { Request } from 'express';
 
 import { REQUEST_ID_HEADER } from '../../middlewares/request-id.middleware';
-import { buildWideEventSeed, resolveRoute } from '../wide-event.translator';
+import { buildTelemetrySeed, resolveRoute } from '../telemetry.translator';
 
 /**
- * Builds the request the translator maps into the wide event of a request.
+ * Builds the request the translator maps into the telemetry event of a request.
  */
 function buildRequest(overrides: Partial<Request> = {}): Request {
     return {
@@ -43,7 +43,7 @@ describe('resolveRoute', () => {
     });
 });
 
-describe('buildWideEventSeed', () => {
+describe('buildTelemetrySeed', () => {
     let envBackup: NodeJS.ProcessEnv;
 
     beforeEach(() => {
@@ -54,8 +54,8 @@ describe('buildWideEventSeed', () => {
         process.env = envBackup;
     });
 
-    it('stamps the event name and the service every wide event is attributed to', () => {
-        const seed = buildWideEventSeed(buildRequest());
+    it('stamps the event name and the service every telemetry event is attributed to', () => {
+        const seed = buildTelemetrySeed(buildRequest());
 
         expect(seed['event.name']).toBe('http.request');
         expect(seed['service.name']).toBe('gitpaas-backend');
@@ -64,43 +64,43 @@ describe('buildWideEventSeed', () => {
     it('reports the build version the process was stamped with', () => {
         process.env.APP_VERSION = '1.4.2';
 
-        expect(buildWideEventSeed(buildRequest())['service.version']).toBe('1.4.2');
+        expect(buildTelemetrySeed(buildRequest())['service.version']).toBe('1.4.2');
     });
 
     it('falls back to the unknown version when no build stamped one', () => {
         delete process.env.APP_VERSION;
 
-        expect(buildWideEventSeed(buildRequest())['service.version']).toBe('unknown');
+        expect(buildTelemetrySeed(buildRequest())['service.version']).toBe('unknown');
     });
 
     it('reports the environment the process runs in', () => {
         process.env.NODE_ENV = 'production';
 
-        expect(buildWideEventSeed(buildRequest())['service.env']).toBe('production');
+        expect(buildTelemetrySeed(buildRequest())['service.env']).toBe('production');
     });
 
     it('falls back to development when the environment is not set', () => {
         delete process.env.NODE_ENV;
 
-        expect(buildWideEventSeed(buildRequest())['service.env']).toBe('development');
+        expect(buildTelemetrySeed(buildRequest())['service.env']).toBe('development');
     });
 
     it('stamps the host and the process the event was produced on', () => {
-        const seed = buildWideEventSeed(buildRequest());
+        const seed = buildTelemetrySeed(buildRequest());
 
         expect(seed['host.name']).toBe(hostname());
         expect(seed['process.pid']).toBe(process.pid);
     });
 
     it('correlates the trace with the request id of the incoming request', () => {
-        const seed = buildWideEventSeed(buildRequest());
+        const seed = buildTelemetrySeed(buildRequest());
 
         expect(seed['request.id']).toBe('correlation-id');
         expect(seed['trace.id']).toBe(seed['request.id']);
     });
 
     it('omits the optional request fields when their headers are absent', () => {
-        const seed = buildWideEventSeed(buildRequest());
+        const seed = buildTelemetrySeed(buildRequest());
 
         const keys = Object.keys(seed);
 
@@ -113,7 +113,7 @@ describe('buildWideEventSeed', () => {
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'user-agent': '' },
         } as unknown as Partial<Request>);
 
-        expect(Object.keys(buildWideEventSeed(request))).not.toContain('http.user_agent');
+        expect(Object.keys(buildTelemetrySeed(request))).not.toContain('http.user_agent');
     });
 
     it('reports the declared body size as a number', () => {
@@ -121,7 +121,7 @@ describe('buildWideEventSeed', () => {
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'content-length': '128' },
         } as unknown as Partial<Request>);
 
-        expect(buildWideEventSeed(request)['http.request_bytes']).toBe(128);
+        expect(buildTelemetrySeed(request)['http.request_bytes']).toBe(128);
     });
 
     it('omits http.request_bytes when the content length is not a number', () => {
@@ -129,7 +129,7 @@ describe('buildWideEventSeed', () => {
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'content-length': 'many' },
         } as unknown as Partial<Request>);
 
-        const seed = buildWideEventSeed(request);
+        const seed = buildTelemetrySeed(request);
 
         expect(Object.keys(seed)).not.toContain('http.request_bytes');
     });
@@ -139,6 +139,6 @@ describe('buildWideEventSeed', () => {
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'user-agent': ['jest', 'curl'] },
         } as unknown as Partial<Request>);
 
-        expect(buildWideEventSeed(request)['http.user_agent']).toBe('jest');
+        expect(buildTelemetrySeed(request)['http.user_agent']).toBe('jest');
     });
 });

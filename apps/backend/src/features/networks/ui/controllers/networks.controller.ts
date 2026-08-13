@@ -3,6 +3,7 @@ import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } fr
 import { Network } from '../../domain/models/network.models';
 import { NetworksService } from '../services/networks.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -21,6 +22,8 @@ export class NetworksController {
      */
     @Get()
     public async getByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<Network[]> {
+        enrichTelemetry({ 'service.id': serviceId });
+
         try {
             return await this.service.getByService(serviceId);
         } catch (error) {

@@ -12,6 +12,7 @@ import type { ServiceRuntimeResources } from '../../domain/ports/service-runtime
 import type { ServicesRepository } from '../../domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '../../infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from '../../infrastructure/docker/docker-service-runtime-resources.adapter';
+import { enrichWithService } from '../telemetry/enrich-with-service';
 
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
@@ -38,16 +39,32 @@ export class ServicesService {
         return getServicesByProjectUseCase(this.repository, projectId);
     }
 
-    public findById(id: string): Promise<Service | null> {
-        return findServiceByIdUseCase(this.repository, id);
+    public async findById(id: string): Promise<Service | null> {
+        const service = await findServiceByIdUseCase(this.repository, id);
+
+        if (service) {
+            enrichWithService(service);
+        }
+
+        return service;
     }
 
-    public create(createDto: CreateServiceDto): Promise<Service> {
-        return createServiceUseCase(this.repository, createDto);
+    public async create(createDto: CreateServiceDto): Promise<Service> {
+        const service = await createServiceUseCase(this.repository, createDto);
+
+        enrichWithService(service);
+
+        return service;
     }
 
-    public update(id: string, updateDto: UpdateServiceDto): Promise<Service | null> {
-        return updateServiceUseCase(this.repository, id, updateDto);
+    public async update(id: string, updateDto: UpdateServiceDto): Promise<Service | null> {
+        const service = await updateServiceUseCase(this.repository, id, updateDto);
+
+        if (service) {
+            enrichWithService(service);
+        }
+
+        return service;
     }
 
     public delete(id: string): Promise<boolean> {
