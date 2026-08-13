@@ -1,0 +1,85 @@
+apps/backend/src/core/infrastructure/database/instrumented-data-source.ts
+  s_e101d54832f888::t_3080d0b6138962 1-64
+docs/backend-architecture.md
+  s_8615534adcbfe6::t_050e487d2a5562 15
+apps/backend/src/features/authentication/ui/controllers/__tests__/authentication.controller.spec.ts
+  s_6ee3349b550840::t_53d55450ae78e5 11,112-175
+apps/backend/src/features/authentication/ui/telemetry/__tests__/enrich-with-actor.spec.ts
+  s_6ee3349b550840::t_000cdd5786ef9d 1-151
+apps/backend/src/features/authentication/ui/controllers/authentication.controller.ts
+  s_e101d54832f888::t_77107451216115 13,42-43
+apps/backend/src/features/logs/ui/services/__tests__/logs.service.spec.ts
+  s_6ee3349b550840::t_31eaa7fa8f8bdb 11-12,97-153
+apps/backend/src/features/authentication/ui/guards/local-auth.guard.ts
+  s_0b0cd1d553b6aa::t_d76a657f3004c6 1,4-7,13-45
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_6ee3349b550840::t_79348c38ca9aea 14,299-329
+docs/backend-architecture/structure.md
+  s_8615534adcbfe6::t_886ad381451762 94
+apps/backend/src/features/authentication/ui/services/authentication.service.ts
+  s_e101d54832f888::t_a452389b835337 11,44-49,62-80,88-93
+apps/backend/src/core/application/truncate-stack.use-case.ts
+  s_e101d54832f888::t_26d52fb445665d 1-35
+apps/backend/src/features/authentication/ui/services/__tests__/authentication.service.spec.ts
+  s_6ee3349b550840::t_67457e3df35f32 8,13-14,28-32,46-47,54,129-241
+apps/backend/src/features/logs/ui/services/logs.service.ts
+  s_e101d54832f888::t_72bb960ce8d8ee 12-13,33-38
+apps/backend/src/core/application/__tests__/truncate-stack.use-case.spec.ts
+  s_6ee3349b550840::t_081a3421cc926d 1-97
+apps/backend/src/features/authentication/ui/guards/__tests__/local-auth.guard.spec.ts
+  s_6ee3349b550840::t_ae08a8e431ebab 1-2,5-33,43-46,59-130
+apps/backend/src/core/infrastructure/database/__tests__/instrumented-data-source.spec.ts
+  s_6ee3349b550840::t_2bb514d5972c13 1-204
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_e101d54832f888::t_301cc666edf6da 16,186
+apps/backend/src/core/ui/filters/all-exceptions.filter.ts
+  s_e101d54832f888::t_2018d6471a2c3f 7,232
+docs/backend-architecture/telemetry.md
+  s_8615534adcbfe6::t_a29795ce8fb965 1,3,5,7,9-12,14,16-21,23,25,27,29-44,46-102,104,106,108,110,112-117,119,121,123,125-131,133,135,137,139,141-149,151,153,155,157-160,162,164,166,168,170,172,174,176,178,180,182,184,186,192-210
+docs/backend-architecture/key-flows.md
+  s_8615534adcbfe6::t_e4c6659a292b93 133,139,141,143,145-147,149-151
+apps/backend/src/core/core.module.ts
+  s_e101d54832f888::t_8008b5a05ce372 7,28
+apps/backend/src/features/authentication/ui/telemetry/enrich-with-actor.ts
+  s_e101d54832f888::t_600ee06f41a338 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ccf9909320fc2c1d1425f1d3d3805e13ff254a3c",
+  "prompts": {},
+  "sessions": {
+    "s_0b0cd1d553b6aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aacc1dbda62424c08",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_6ee3349b550840": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7f83487801134249",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8615534adcbfe6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7725e49a31a2fdc7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e101d54832f888": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "648d9e59-983c-4b82-b9d7-0409f972ff49",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
