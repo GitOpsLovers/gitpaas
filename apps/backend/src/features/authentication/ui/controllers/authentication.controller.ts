@@ -10,6 +10,7 @@ import { Public } from '../decorators/public.decorator';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthenticationService } from '../services/authentication.service';
 import type { AuthenticatedUser } from '../services/authentication.service';
+import { enrichWithActor } from '../telemetry/enrich-with-actor';
 
 import { translateError } from '@core/ui/translators/http-error.translator';
 import type { User } from '@features/users/domain/models/user.models';
@@ -38,6 +39,8 @@ export class AuthenticationController {
     @Post('login')
     @HttpCode(200)
     public login(@Body() _loginDto: LoginDto, @CurrentUser() user: User): Promise<AuthTokens> {
+        enrichWithActor(user);
+
         return this.service.login(user);
     }
 

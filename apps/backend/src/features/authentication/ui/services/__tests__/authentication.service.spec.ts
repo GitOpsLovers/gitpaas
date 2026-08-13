@@ -5,10 +5,13 @@ import { logoutUseCase } from '../../../application/logout.use-case';
 import { refreshUseCase } from '../../../application/refresh.use-case';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../../domain/models/auth-tokens.models';
+import type { RefreshTokenPayload } from '../../../domain/models/token-payloads.models';
 import { DatabaseRefreshTokensRepository } from '../../../infrastructure/database/db-refresh-tokens.repository';
 import { JwtTokenServiceAdapter } from '../../../infrastructure/security/jwt-token-service.adapter';
 import { AuthenticationService } from '../authentication.service';
 
+import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { User, UserRole } from '@features/users/domain/models/user.models';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 
@@ -21,6 +24,11 @@ const mockLogoutUseCase = logoutUseCase as jest.MockedFunction<typeof logoutUseC
 const mockRefreshUseCase = refreshUseCase as jest.MockedFunction<typeof refreshUseCase>;
 
 const tokens: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'refresh.jwt.token' };
+
+const refreshPayload: RefreshTokenPayload = {
+    sub: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+    jti: 'a0c9c2ee-6b0d-4a6f-9b1a-1f1d3a2c4e5f',
+};
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -35,14 +43,15 @@ const user: User = {
 describe('AuthenticationService', () => {
     let mockUsersRepository: jest.Mocked<DatabaseUsersRepository>;
     let mockRefreshTokensRepository: jest.Mocked<DatabaseRefreshTokensRepository>;
-    let mockTokenService: jest.Mocked<JwtTokenServiceAdapter>;
+    // The service verifies the presented token itself, to name the actor of the event.
+    let mockTokenService: jest.Mocked<Pick<JwtTokenServiceAdapter, 'verifyRefreshToken'>>;
     let sut: AuthenticationService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
         mockUsersRepository = {} as jest.Mocked<DatabaseUsersRepository>;
         mockRefreshTokensRepository = {} as jest.Mocked<DatabaseRefreshTokensRepository>;
-        mockTokenService = {} as jest.Mocked<JwtTokenServiceAdapter>;
+        mockTokenService = { verifyRefreshToken: jest.fn().mockReturnValue(refreshPayload) };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -114,6 +123,119 @@ describe('AuthenticationService', () => {
 
             expect(mockLogoutUseCase).toHaveBeenCalledTimes(1);
             expect(mockLogoutUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, 'refresh.jwt.token');
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        /** Runs a unit of work in a fresh telemetry scope and returns the accumulated event. */
+        const eventOf = async (work: () => Promise<void>): Promise<Partial<TelemetryEvent> | undefined> =>
+            runWithTelemetry({}, async () => {
+                await work();
+
+                return getTelemetry();
+            });
+
+        it('marks a successful login as authenticated', async () => {
+            mockLoginUseCase.mockResolvedValue(tokens);
+
+            const event = await eventOf(async () => {
+                await sut.login(user);
+            });
+
+            expect(event).toEqual({
+                'auth.outcome': 'authenticated',
+            });
+        });
+
+        it('never publishes the e-mail or the password hash of the actor', async () => {
+            mockLoginUseCase.mockResolvedValue(tokens);
+
+            const event = await eventOf(async () => {
+                await sut.login(user);
+            });
+
+            expect(JSON.stringify(event)).not.toContain(user.email);
+            expect(JSON.stringify(event)).not.toContain(user.passwordHash);
+        });
+
+        it('names the subject of the token a successful refresh rotated', async () => {
+            mockRefreshUseCase.mockResolvedValue(tokens);
+
+            const event = await eventOf(async () => {
+                await sut.refresh('refresh.jwt.token');
+            });
+
+            expect(mockTokenService.verifyRefreshToken).toHaveBeenCalledWith('refresh.jwt.token');
+            expect(event).toEqual({ 'user.id': refreshPayload.sub, 'auth.outcome': 'authenticated' });
+        });
+
+        it('marks a refused refresh as rejected, keeping the named subject', async () => {
+            mockRefreshUseCase.mockRejectedValue(new InvalidRefreshTokenError());
+
+            const event = await eventOf(async () => {
+                await expect(sut.refresh('refresh.jwt.token')).rejects.toBeInstanceOf(
+                    InvalidRefreshTokenError,
+                );
+            });
+
+            expect(event).toEqual({ 'user.id': refreshPayload.sub, 'auth.outcome': 'rejected' });
+        });
+
+        it('names no actor when the refresh token cannot be verified', async () => {
+            mockTokenService.verifyRefreshToken.mockImplementation(() => {
+                throw new Error('jwt malformed');
+            });
+            mockRefreshUseCase.mockRejectedValue(new InvalidRefreshTokenError());
+
+            const event = await eventOf(async () => {
+                await expect(sut.refresh('tampered')).rejects.toBeInstanceOf(InvalidRefreshTokenError);
+            });
+
+            expect(event).toEqual({ 'auth.outcome': 'rejected' });
+        });
+
+        it('names the subject of the token a logout revoked', async () => {
+            mockLogoutUseCase.mockResolvedValue(undefined);
+
+            const event = await eventOf(async () => {
+                await sut.logout('refresh.jwt.token');
+            });
+
+            expect(event).toEqual({ 'user.id': refreshPayload.sub, 'auth.outcome': 'authenticated' });
+        });
+
+        it('marks a logout presenting an unverifiable token as rejected', async () => {
+            mockTokenService.verifyRefreshToken.mockImplementation(() => {
+                throw new Error('jwt expired');
+            });
+            mockLogoutUseCase.mockResolvedValue(undefined);
+
+            const event = await eventOf(async () => {
+                await sut.logout('expired');
+            });
+
+            expect(event).toEqual({ 'auth.outcome': 'rejected' });
+        });
+
+        it('still revokes the token of a logout that named no actor', async () => {
+            mockTokenService.verifyRefreshToken.mockImplementation(() => {
+                throw new Error('jwt expired');
+            });
+            mockLogoutUseCase.mockResolvedValue(undefined);
+
+            await sut.logout('expired');
+
+            expect(mockLogoutUseCase).toHaveBeenCalledTimes(1);
+        });
+
+        it('adds nothing for the projection of the authenticated user', () => {
+            const event = runWithTelemetry({}, () => {
+                sut.me(user);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
         });
     });
 

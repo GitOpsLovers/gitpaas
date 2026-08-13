@@ -91,3 +91,4 @@ Some behaviours apply to all the application. Thus they are configured one time 
 - **Environment validation**: a `class-validator` schema validates each variable when the application starts. If a variable is missing or incorrect, the application stops immediately.
 - **Request correlation id**: a global middleware gives an id to each request. It uses the inbound `X-Request-Id` header or makes a new id, and it returns the id in the `X-Request-Id` response header..
 - **Error envelope**: a global exception filter returns the same shape for all the errors. It keeps the message arrays that the `ValidationPipe` makes, and it changes an unexpected error into a generic 500.
+- **Telemetry**: a global middleware opens a telemetry scope for each request, every layer adds fields to it, and one JSON event goes to stdout when the response finishes.

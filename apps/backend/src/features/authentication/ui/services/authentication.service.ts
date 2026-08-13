@@ -8,6 +8,7 @@ import type { TokenService } from '../../domain/ports/token-service.port';
 import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { DatabaseRefreshTokensRepository } from '../../infrastructure/database/db-refresh-tokens.repository';
 import { JwtTokenServiceAdapter } from '../../infrastructure/security/jwt-token-service.adapter';
+import { enrichWithAuthOutcome, enrichWithTokenSubject } from '../telemetry/enrich-with-actor';
 
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
@@ -40,8 +41,12 @@ export class AuthenticationService {
      *
      * @returns Access + refresh token pair
      */
-    public login(user: User): Promise<AuthTokens> {
-        return loginUseCase(this.refreshTokensRepository, this.tokenService, user);
+    public async login(user: User): Promise<AuthTokens> {
+        const tokens = await loginUseCase(this.refreshTokensRepository, this.tokenService, user);
+
+        enrichWithAuthOutcome('authenticated');
+
+        return tokens;
     }
 
     /**
@@ -54,13 +59,25 @@ export class AuthenticationService {
      * @throws {InvalidRefreshTokenError} When the token is invalid, revoked, expired or unknown
      * @throws {UserInactiveError} When the owning account is deactivated
      */
-    public refresh(refreshToken: string): Promise<AuthTokens> {
-        return refreshUseCase(
-            this.usersRepository,
-            this.refreshTokensRepository,
-            this.tokenService,
-            refreshToken,
-        );
+    public async refresh(refreshToken: string): Promise<AuthTokens> {
+        enrichWithTokenSubject(this.tokenService, refreshToken);
+
+        try {
+            const tokens = await refreshUseCase(
+                this.usersRepository,
+                this.refreshTokensRepository,
+                this.tokenService,
+                refreshToken,
+            );
+
+            enrichWithAuthOutcome('authenticated');
+
+            return tokens;
+        } catch (error) {
+            enrichWithAuthOutcome('rejected');
+
+            throw error;
+        }
     }
 
     /**
@@ -68,8 +85,12 @@ export class AuthenticationService {
      *
      * @param refreshToken The refresh token to revoke
      */
-    public logout(refreshToken: string): Promise<void> {
-        return logoutUseCase(this.refreshTokensRepository, this.tokenService, refreshToken);
+    public async logout(refreshToken: string): Promise<void> {
+        const identified = enrichWithTokenSubject(this.tokenService, refreshToken);
+
+        enrichWithAuthOutcome(identified ? 'authenticated' : 'rejected');
+
+        await logoutUseCase(this.refreshTokensRepository, this.tokenService, refreshToken);
     }
 
     /**

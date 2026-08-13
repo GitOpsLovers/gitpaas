@@ -13,6 +13,7 @@ import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-execut
 import { buildDeploymentRunSeed } from '../telemetry/build-deployment-run-seed';
 
 import { shouldKeepTelemetryUseCase } from '@core/application/should-keep-telemetry.use-case';
+import { truncateStackUseCase } from '@core/application/truncate-stack.use-case';
 import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '@core/domain/constants/telemetry.constants';
 import { DomainError } from '@core/domain/errors/domain.error';
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
@@ -182,7 +183,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
             'error.type': error instanceof Error ? error.constructor.name : typeof error,
             ...(error instanceof DomainError ? { 'error.code': error.code } : {}),
             'error.message': this.resolveMessage(error),
-            ...(stack === undefined ? {} : { 'error.stack': stack }),
+            ...(stack === undefined ? {} : { 'error.stack': truncateStackUseCase(stack) }),
             'error.retriable': task.attempts + 1 < MAX_ATTEMPTS,
         };
     }

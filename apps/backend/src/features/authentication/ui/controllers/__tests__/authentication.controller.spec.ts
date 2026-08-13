@@ -8,6 +8,7 @@ import { AuthTokens } from '../../../domain/models/auth-tokens.models';
 import { AuthenticatedUser, AuthenticationService } from '../../services/authentication.service';
 import { AuthenticationController } from '../authentication.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { User, UserRole } from '@features/users/domain/models/user.models';
 
 const tokens: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'refresh.jwt.token' };
@@ -106,6 +107,70 @@ describe('AuthenticationController', () => {
 
         expect(mockAuthenticationService.logout).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.logout).toHaveBeenCalledWith('refresh.jwt.token');
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('names the actor the local strategy resolved on a login', async () => {
+            mockAuthenticationService.login.mockResolvedValue(tokens);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.login({} as LoginDto, user);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({ 'user.id': user.id, 'user.role': UserRole.Admin });
+        });
+
+        it('never publishes the e-mail or the password hash of the actor', async () => {
+            mockAuthenticationService.login.mockResolvedValue(tokens);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.login({} as LoginDto, user);
+
+                return getTelemetry();
+            });
+
+            expect(JSON.stringify(event)).not.toContain(user.email);
+            expect(JSON.stringify(event)).not.toContain(user.passwordHash);
+        });
+
+        it('names the actor of a login the service then refuses', async () => {
+            const boom = new Error('database is down');
+            mockAuthenticationService.login.mockRejectedValue(boom);
+
+            const event = await runWithTelemetry({}, async () => {
+                await expect(sut.login({} as LoginDto, user)).rejects.toBe(boom);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({ 'user.id': user.id, 'user.role': UserRole.Admin });
+        });
+
+        it('adds nothing of its own on a refresh, which the service names', async () => {
+            mockAuthenticationService.refresh.mockResolvedValue(tokens);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.refresh({ refreshToken: 'refresh.jwt.token' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
+        });
+
+        it('adds nothing of its own on a logout, which the service names', async () => {
+            mockAuthenticationService.logout.mockResolvedValue(undefined);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.logout({ refreshToken: 'refresh.jwt.token' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
+        });
     });
 
     it('me returns the public projection produced by the service', () => {
