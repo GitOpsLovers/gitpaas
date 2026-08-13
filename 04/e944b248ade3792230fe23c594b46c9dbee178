@@ -1,0 +1,79 @@
+apps/backend/src/features/authentication/ui/guards/jwt-auth.guard.ts
+  s_c6ef6defd68812::t_dc29b301229730 7-9,14-17,40-41,45-46,49-82
+apps/backend/src/features/containers/ui/controllers/__tests__/containers.controller.spec.ts
+  s_c6ef6defd68812::t_7d2d124f621bc0 8,118-131
+apps/backend/src/features/containers/ui/controllers/containers.controller.ts
+  s_c6ef6defd68812::t_c3b74d56579d30 6,25-26
+apps/backend/src/features/deployments/ui/controllers/__tests__/deployments.controller.spec.ts
+  s_c6ef6defd68812::t_8240de572470e2 10,205-254
+apps/backend/src/features/deployments/ui/controllers/deployments.controller.ts
+  s_c6ef6defd68812::t_110f3ff7ca7c69 10,29-30,43-44,63-64,80-81
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_c6ef6defd68812::t_91c268a673a8e4 15,242-315
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_c6ef6defd68812::t_e5d7eb633008f1 14,22-39,76-83,107-108,115-118
+apps/backend/src/features/logs/ui/controllers/__tests__/logs.controller.spec.ts
+  s_c6ef6defd68812::t_af44451804431a 11-12,93-118
+apps/backend/src/features/logs/ui/controllers/logs.controller.ts
+  s_c6ef6defd68812::t_7d517899b88874 11-12,29-30,45-46
+apps/backend/src/features/networks/ui/controllers/__tests__/networks.controller.spec.ts
+  s_c6ef6defd68812::t_0947f5aaa3ce13 8,118-131
+apps/backend/src/features/networks/ui/controllers/networks.controller.ts
+  s_c6ef6defd68812::t_a58d4cb574ee27 6,25-26
+apps/backend/src/features/projects/ui/controllers/__tests__/projects.controller.spec.ts
+  s_c6ef6defd68812::t_5c62ce5b89b7c2 10-11,223-272
+apps/backend/src/features/projects/ui/controllers/projects.controller.ts
+  s_c6ef6defd68812::t_e50fe610965e5d 20-21,36-37,57-58,71-72
+apps/backend/src/features/projects/ui/services/__tests__/projects.service.spec.ts
+  s_c6ef6defd68812::t_9d599291200eb1 14-15,231-244
+apps/backend/src/features/projects/ui/services/projects.service.ts
+  s_c6ef6defd68812::t_afdea66412c9c4 14-15,53-58
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_c6ef6defd68812::t_ff1ba307d2ac82 10,258-295
+apps/backend/src/features/services/ui/controllers/services.controller.ts
+  s_c6ef6defd68812::t_856e68c81a93e5 21,33-34,40-41,72-73,86-87
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_c6ef6defd68812::t_3422b464a9e0ff 15,258-305
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_c6ef6defd68812::t_d9516162f7d89a 16,21-34,56-63,66-71,74-81
+apps/backend/src/features/source-control/ui/controllers/__tests__/source-control.controller.spec.ts
+  s_c6ef6defd68812::t_89bcce7e72fbc3 15-16,160-173
+apps/backend/src/features/source-control/ui/controllers/source-control.controller.ts
+  s_c6ef6defd68812::t_82f7aa8ec7a039 7,40-41
+apps/backend/src/features/authentication/ui/guards/__tests__/jwt-auth.guard.spec.ts
+  s_f3100727316f3c::t_c7891fdb22a490 7-9,79-163
+docs/logging-plan-todo.md
+  s_963268984d65e1::t_80da579fc30703 33-36,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "04e944b248ade3792230fe23c594b46c9dbee178",
+  "prompts": {},
+  "sessions": {
+    "s_963268984d65e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a08e795dbd1bcb057",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c6ef6defd68812": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2fc152a7-1aeb-4e43-b178-4a8544db2c38",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f3100727316f3c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0208e14b400c29e4",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
