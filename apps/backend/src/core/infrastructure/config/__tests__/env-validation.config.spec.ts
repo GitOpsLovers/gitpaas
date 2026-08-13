@@ -104,6 +104,44 @@ describe('validate', () => {
         expect(() => validate(env)).toThrow(/LOGS_MAX_LINES/);
     });
 
+    it('falls back to the default telemetry sampling settings when none are given', () => {
+        const result = validate(validEnv());
+
+        expect(result.TELEMETRY_SLOW_MS).toBe(1000);
+        expect(result.TELEMETRY_SAMPLE_RATE).toBe(0.05);
+    });
+
+    it('coerces the telemetry sampling settings to numbers', () => {
+        const result = validate({
+            ...validEnv(),
+            TELEMETRY_SLOW_MS: '2500',
+            TELEMETRY_SAMPLE_RATE: '0.5',
+        });
+
+        expect(result.TELEMETRY_SLOW_MS).toBe(2500);
+        expect(result.TELEMETRY_SAMPLE_RATE).toBe(0.5);
+    });
+
+    it('rejects a sample rate outside the zero-to-one range', () => {
+        expect(() => validate({ ...validEnv(), TELEMETRY_SAMPLE_RATE: '1.5' })).toThrow(
+            /TELEMETRY_SAMPLE_RATE/,
+        );
+        expect(() => validate({ ...validEnv(), TELEMETRY_SAMPLE_RATE: '-0.1' })).toThrow(
+            /TELEMETRY_SAMPLE_RATE/,
+        );
+    });
+
+    it('accepts the sample rates right on the ends of the range', () => {
+        expect(validate({ ...validEnv(), TELEMETRY_SAMPLE_RATE: '0' }).TELEMETRY_SAMPLE_RATE).toBe(0);
+        expect(validate({ ...validEnv(), TELEMETRY_SAMPLE_RATE: '1' }).TELEMETRY_SAMPLE_RATE).toBe(1);
+    });
+
+    it('rejects a non-numeric slow threshold', () => {
+        expect(() => validate({ ...validEnv(), TELEMETRY_SLOW_MS: 'not-a-number' })).toThrow(
+            /TELEMETRY_SLOW_MS/,
+        );
+    });
+
     it('coerces the Redis port to a number', () => {
         expect(validate(validEnv()).REDIS_PORT).toBe(6379);
     });

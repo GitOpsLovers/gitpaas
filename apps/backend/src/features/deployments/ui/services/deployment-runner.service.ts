@@ -1,4 +1,5 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EMPTY, Subscription, catchError, concatMap, from, groupBy, mergeMap } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
@@ -12,6 +13,7 @@ import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-execut
 import { buildDeploymentRunSeed } from '../telemetry/build-deployment-run-seed';
 
 import { shouldKeepTelemetryUseCase } from '@core/application/should-keep-telemetry.use-case';
+import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '@core/domain/constants/telemetry.constants';
 import { DomainError } from '@core/domain/errors/domain.error';
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
@@ -36,6 +38,10 @@ const NANOSECONDS_PER_MILLISECOND = 1_000_000;
 export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     private subscription?: Subscription;
 
+    private readonly slowMs: number;
+
+    private readonly sampleRate: number;
+
     constructor(
         @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
@@ -51,7 +57,11 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly logger: AppLogger,
         @Inject(StdoutTelemetryWriterAdapter)
         private readonly telemetryWriter: TelemetryWriter,
-    ) {}
+        config: ConfigService,
+    ) {
+        this.slowMs = config.get<number>('TELEMETRY_SLOW_MS', TELEMETRY_DEFAULT_SLOW_MS);
+        this.sampleRate = config.get<number>('TELEMETRY_SAMPLE_RATE', TELEMETRY_DEFAULT_SAMPLE_RATE);
+    }
 
     /**
      * Subscribes to deployment-run requests when the module starts.
@@ -140,8 +150,19 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                 'task.duration_ms': Number(durationNs) / NANOSECONDS_PER_MILLISECOND,
             };
 
-            if (shouldKeepTelemetryUseCase(event)) {
-                this.telemetryWriter.emit(event);
+            const decision = shouldKeepTelemetryUseCase(
+                event,
+                this.slowMs,
+                this.sampleRate,
+                Math.random(),
+            );
+
+            if (decision.kept) {
+                this.telemetryWriter.emit({
+                    ...event,
+                    'sampling.kept_reason': decision.reason,
+                    'sampling.rate': decision.rate,
+                });
             }
         });
     }

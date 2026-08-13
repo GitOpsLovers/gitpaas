@@ -32,3 +32,53 @@ export const TELEMETRY_DEFAULT_SAMPLE_RATE = 0.05;
  * Duration, in milliseconds, above which a request counts as slow.
  */
 export const TELEMETRY_DEFAULT_SLOW_MS = 1000;
+
+/**
+ * HTTP method of the reads the tail sampler is allowed to drop.
+ */
+export const TELEMETRY_READ_METHOD = 'GET';
+
+/**
+ * Prefix of the routes served by the authentication feature.
+ */
+export const TELEMETRY_AUTH_ROUTE_PREFIX = '/api/v1/auth';
+
+/**
+ * Reason recorded when the request failed on the server side.
+ */
+export const TELEMETRY_KEPT_REASON_SERVER_ERROR = 'server_error';
+
+/**
+ * Reason recorded when the unit of work carries an error code.
+ */
+export const TELEMETRY_KEPT_REASON_ERROR = 'error';
+
+/**
+ * Reason recorded when the request changed state.
+ */
+export const TELEMETRY_KEPT_REASON_MUTATION = 'mutation';
+
+/**
+ * Reason recorded when the request hit the authentication feature.
+ */
+export const TELEMETRY_KEPT_REASON_AUTH = 'auth';
+
+/**
+ * Reason recorded when the unit of work is a deployment run.
+ */
+export const TELEMETRY_KEPT_REASON_DEPLOYMENT = 'deployment';
+
+/**
+ * Reason recorded when the request served a stream.
+ */
+export const TELEMETRY_KEPT_REASON_STREAM = 'stream';
+
+/**
+ * Reason recorded when the request took longer than the slow threshold.
+ */
+export const TELEMETRY_KEPT_REASON_SLOW = 'slow';
+
+/**
+ * Reason recorded when an ordinary fast, successful read was kept by chance.
+ */
+export const TELEMETRY_KEPT_REASON_RANDOM = 'random';

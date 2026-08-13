@@ -4,6 +4,7 @@ import 'reflect-metadata';
 import { EventEmitter } from 'node:events';
 
 import { INJECTABLE_WATERMARK, SELF_DECLARED_DEPS_METADATA } from '@nestjs/common/constants';
+import { ConfigService } from '@nestjs/config';
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { NextFunction, Request, Response } from 'express';
@@ -70,6 +71,19 @@ function buildContext(overrides: Partial<Request> = {}) {
 }
 
 /**
+ * Builds the configuration double serving the sampling settings.
+ */
+function buildConfig(slowMs = 1000, sampleRate = 0.05): ConfigService {
+    const values: Record<string, number> = {
+        TELEMETRY_SLOW_MS: slowMs,
+        TELEMETRY_SAMPLE_RATE: sampleRate,
+    };
+
+    // eslint-disable-next-line security/detect-object-injection
+    return { get: jest.fn((key: string) => values[key]) } as unknown as ConfigService;
+}
+
+/**
  * Builds the middleware over a writer stub recording the events it receives.
  */
 function buildWriter() {
@@ -81,13 +95,13 @@ function buildWriter() {
         },
     };
 
-    return { emitted, middleware: new TelemetryMiddleware(writer) };
+    return { emitted, middleware: new TelemetryMiddleware(writer, buildConfig()) };
 }
 
 describe('TelemetryMiddleware', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockShouldKeepTelemetry.mockReturnValue(true);
+        mockShouldKeepTelemetry.mockReturnValue({ kept: true, reason: 'mutation', rate: 1 });
     });
 
     afterEach(() => {
@@ -385,11 +399,82 @@ describe('TelemetryMiddleware', () => {
         expect(mockShouldKeepTelemetry).toHaveBeenCalledTimes(1);
         expect(mockShouldKeepTelemetry).toHaveBeenCalledWith(
             expect.objectContaining({ 'http.status_code': 204 }),
+            1000,
+            0.05,
+            expect.any(Number),
         );
     });
 
+    it('asks the sampler with the thresholds the configuration holds', () => {
+        const middleware = new TelemetryMiddleware({ emit: jest.fn() }, buildConfig(2500, 0.5));
+        const { request, response, next } = buildContext();
+
+        middleware.use(request, response as unknown as Response, next);
+
+        response.emit('finish');
+
+        expect(mockShouldKeepTelemetry).toHaveBeenCalledWith(
+            expect.any(Object),
+            2500,
+            0.5,
+            expect.any(Number),
+        );
+    });
+
+    it('falls back to the default thresholds when the configuration holds none', () => {
+        // A ConfigService returning its own fallback stands for an absent variable
+        const config = {
+            get: jest.fn((_key: string, fallback: number) => fallback),
+        } as unknown as ConfigService;
+        const middleware = new TelemetryMiddleware({ emit: jest.fn() }, config);
+        const { request, response, next } = buildContext();
+
+        middleware.use(request, response as unknown as Response, next);
+
+        response.emit('finish');
+
+        expect(mockShouldKeepTelemetry).toHaveBeenCalledWith(
+            expect.any(Object),
+            1000,
+            0.05,
+            expect.any(Number),
+        );
+    });
+
+    it('decides the sampled keep with a fresh random draw', () => {
+        jest.spyOn(Math, 'random').mockReturnValue(0.42);
+
+        const { middleware } = buildWriter();
+        const { request, response, next } = buildContext();
+
+        middleware.use(request, response as unknown as Response, next);
+
+        response.emit('finish');
+
+        expect(mockShouldKeepTelemetry).toHaveBeenCalledWith(
+            expect.any(Object),
+            1000,
+            0.05,
+            0.42,
+        );
+    });
+
+    it('records the sampling decision on the event it emits', () => {
+        mockShouldKeepTelemetry.mockReturnValue({ kept: true, reason: 'random', rate: 0.05 });
+
+        const { emitted, middleware } = buildWriter();
+        const { request, response, next } = buildContext();
+
+        middleware.use(request, response as unknown as Response, next);
+
+        response.emit('finish');
+
+        expect(emitted[0]['sampling.kept_reason']).toBe('random');
+        expect(emitted[0]['sampling.rate']).toBe(0.05);
+    });
+
     it('never emits an event the sampler dropped', () => {
-        mockShouldKeepTelemetry.mockReturnValue(false);
+        mockShouldKeepTelemetry.mockReturnValue({ kept: false });
 
         const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext();
@@ -404,7 +489,7 @@ describe('TelemetryMiddleware', () => {
     it('emits to the writer it was injected with, and to no other', () => {
         const mockWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
         const mockOtherWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
-        const middleware = new TelemetryMiddleware(mockWriter);
+        const middleware = new TelemetryMiddleware(mockWriter, buildConfig());
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -420,8 +505,8 @@ describe('TelemetryMiddleware', () => {
     it('never writes to the writer of another instance of the middleware', () => {
         const mockWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
         const mockIdleWriter: jest.Mocked<TelemetryWriter> = { emit: jest.fn() };
-        const middleware = new TelemetryMiddleware(mockWriter);
-        const idleMiddleware = new TelemetryMiddleware(mockIdleWriter);
+        const middleware = new TelemetryMiddleware(mockWriter, buildConfig());
+        const idleMiddleware = new TelemetryMiddleware(mockIdleWriter, buildConfig());
         const { request, response, next } = buildContext();
 
         middleware.use(request, response as unknown as Response, next);
@@ -433,7 +518,7 @@ describe('TelemetryMiddleware', () => {
         expect(mockIdleWriter.emit).not.toHaveBeenCalled();
     });
 
-    it('declares the stdout writer adapter as the injection token of its only constructor parameter', () => {
+    it('declares the stdout writer adapter as the injection token of its writer parameter', () => {
         const injected = Reflect.getMetadata(SELF_DECLARED_DEPS_METADATA, TelemetryMiddleware) as
             | { index: number; param: unknown }[]
             | undefined;
