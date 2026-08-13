@@ -1,0 +1,21 @@
+apps/backend/src/core/domain/models/telemetry.models.ts
+  s_f112fccf79a770::t_7372ab89364af0 29
+apps/backend/src/core/infrastructure/telemetry/telemetry-deps.ts
+  s_f112fccf79a770::t_38af2aa903a1ef 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "cff9d948d787540266d336254e8870a0752bd7d8",
+  "prompts": {},
+  "sessions": {
+    "s_f112fccf79a770": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ade43ae4b74bef820",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
