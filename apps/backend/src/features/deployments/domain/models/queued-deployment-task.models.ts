@@ -12,4 +12,5 @@ export interface QueuedDeploymentTask extends DeploymentRunTask {
     id: string;
     status: QueuedDeploymentTaskStatus;
     attempts: number;
+    parentRequestId: string | null;
 }

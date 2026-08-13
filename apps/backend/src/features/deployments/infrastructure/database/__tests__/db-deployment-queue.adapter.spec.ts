@@ -9,6 +9,8 @@ import { DbDeploymentQueueTaskEntity } from '../db-deployment-queue-task.entity'
 import { toQueuedDeploymentTask } from '../db-deployment-queue-task.transformer';
 import { DatabaseDeploymentQueueAdapter } from '../db-deployment-queue.adapter';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 /**
  * Builds a queue task entity fixture, overriding only the fields under test.
  */
@@ -23,6 +25,7 @@ function entity(overrides: Partial<DbDeploymentQueueTaskEntity> = {}): DbDeploym
         status: 'queued',
         attempts: 0,
         lastError: null,
+        parentRequestId: null,
         createdAt: new Date('2026-07-11T00:00:00.000Z'),
         updatedAt: new Date('2026-07-11T00:00:00.000Z'),
         ...overrides,
@@ -83,9 +86,54 @@ describe('DatabaseDeploymentQueueAdapter', () => {
             const emitted = firstValueFrom(sut.dequeued$);
             await sut.enqueue(runTask);
 
-            expect(mockRepo.create).toHaveBeenCalledWith({ ...runTask, status: 'queued', attempts: 0 });
+            expect(mockRepo.create).toHaveBeenCalledWith({
+                ...runTask,
+                status: 'queued',
+                attempts: 0,
+                parentRequestId: null,
+            });
             expect(mockRepo.save).toHaveBeenCalledWith(created);
             expect(await emitted).toEqual(toQueuedDeploymentTask(saved));
+        });
+
+        it('stamps the row with the request that enqueued it, so the run continues its trace', async () => {
+            const created = entity({ parentRequestId: 'req-9' });
+            mockRepo.create.mockReturnValue(created);
+            mockRepo.save.mockResolvedValue(created);
+
+            await runWithTelemetry({ 'request.id': 'req-9' }, () => sut.enqueue(runTask));
+
+            expect(mockRepo.create).toHaveBeenCalledWith({
+                ...runTask,
+                status: 'queued',
+                attempts: 0,
+                parentRequestId: 'req-9',
+            });
+        });
+
+        it('stamps no parent request when the enqueueing unit of work carries no request id', async () => {
+            const created = entity();
+            mockRepo.create.mockReturnValue(created);
+            mockRepo.save.mockResolvedValue(created);
+
+            await runWithTelemetry({ 'task.id': 'q-1' }, () => sut.enqueue(runTask));
+
+            expect(mockRepo.create).toHaveBeenCalledWith(
+                expect.objectContaining({ parentRequestId: null }),
+            );
+        });
+
+        it('stamps no parent request when nothing enqueued the task inside a telemetry scope', async () => {
+            const created = entity();
+            mockRepo.create.mockReturnValue(created);
+            mockRepo.save.mockResolvedValue(created);
+
+            await sut.enqueue(runTask);
+
+            expect(getTelemetry()).toBeUndefined();
+            expect(mockRepo.create).toHaveBeenCalledWith(
+                expect.objectContaining({ parentRequestId: null }),
+            );
         });
     });
 

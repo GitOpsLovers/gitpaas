@@ -34,6 +34,9 @@ export class DbDeploymentQueueTaskEntity {
     @Column({ type: 'text', nullable: true })
     public lastError!: string | null;
 
+    @Column({ type: 'text', name: 'parent_request_id', nullable: true })
+    public parentRequestId!: string | null;
+
     @CreateDateColumn({ type: 'timestamptz' })
     public createdAt!: Date;
 

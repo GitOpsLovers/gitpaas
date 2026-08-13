@@ -46,12 +46,12 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 4 — The background unit of work
 
-- [ ] Add a nullable `parent.request_id` column to `features/deployments/infrastructure/database/db-deployment-queue-task.entity.ts`.
-- [ ] Add the same column to a new numbered SQL file in `iac/production/migrations/`.
-- [ ] Add the value to the queue task model and its transformer in `features/deployments/domain/models/queued-deployment-task.models.ts` and `features/deployments/infrastructure/database/db-deployment-queue-task.transformer.ts`.
-- [ ] Add a `runWithTelemetry` scope for each task in the `run` method of `features/deployments/ui/services/deployment-runner.service.ts`.
-- [ ] Add the outcome, the attempt, the duration and the `deps.*` counters to the `deployment.run` event.
-- [ ] Remove the private `logFailure` method from `features/deployments/ui/services/deployment-runner.service.ts`.
+- [x] Add a nullable `parent.request_id` column to `features/deployments/infrastructure/database/db-deployment-queue-task.entity.ts`.
+- [x] Add the same column to a new numbered SQL file in `iac/production/migrations/`.
+- [x] Add the value to the queue task model and its transformer in `features/deployments/domain/models/queued-deployment-task.models.ts` and `features/deployments/infrastructure/database/db-deployment-queue-task.transformer.ts`.
+- [x] Add a `runWithTelemetry` scope for each task in the `run` method of `features/deployments/ui/services/deployment-runner.service.ts`.
+- [x] Add the outcome, the attempt, the duration and the `deps.*` counters to the `deployment.run` event.
+- [x] Remove the private `logFailure` method from `features/deployments/ui/services/deployment-runner.service.ts`.
 
 ## Phase 5 — Tail sampling
 

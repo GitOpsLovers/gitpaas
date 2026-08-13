@@ -13,6 +13,7 @@ describe('toQueuedDeploymentTask', () => {
             status: 'processing',
             attempts: 2,
             lastError: 'previous failure',
+            parentRequestId: 'req-1',
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:01:00.000Z'),
         };
@@ -26,6 +27,7 @@ describe('toQueuedDeploymentTask', () => {
             projectName: 'gitpaas',
             status: 'processing',
             attempts: 2,
+            parentRequestId: 'req-1',
         });
     });
 
@@ -40,6 +42,7 @@ describe('toQueuedDeploymentTask', () => {
             status: 'queued',
             attempts: 0,
             lastError: null,
+            parentRequestId: null,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:00:00.000Z'),
         };
@@ -49,5 +52,24 @@ describe('toQueuedDeploymentTask', () => {
         expect(result).not.toHaveProperty('lastError');
         expect(result).not.toHaveProperty('createdAt');
         expect(result).not.toHaveProperty('updatedAt');
+    });
+
+    it('keeps the parent request as null when no request enqueued the task', () => {
+        const entity: DbDeploymentQueueTaskEntity = {
+            id: 'q-3',
+            deploymentId: 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b',
+            repositoryId: 7,
+            commit: 'abc123',
+            composerPath: 'compose.yaml',
+            projectName: 'my-service',
+            status: 'queued',
+            attempts: 0,
+            lastError: null,
+            parentRequestId: null,
+            createdAt: new Date('2026-07-11T00:00:00.000Z'),
+            updatedAt: new Date('2026-07-11T00:00:00.000Z'),
+        };
+
+        expect(toQueuedDeploymentTask(entity).parentRequestId).toBeNull();
     });
 });

@@ -55,6 +55,9 @@ interface TelemetryEventFields {
     'task.id'?: string;
     'parent.request_id'?: string;
 
+    /* Background task details */
+    'task.duration_ms'?: number;
+
     /* Request details */
     'http.method'?: string;
     'http.route'?: string;
