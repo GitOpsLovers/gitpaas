@@ -9,6 +9,11 @@ export const TELEMETRY_SERVICE_NAME = 'gitpaas-backend';
 export const TELEMETRY_UNKNOWN_VERSION = 'unknown';
 
 /**
+ * Maximum length, in characters, of the stack published as `error.stack`.
+ */
+export const TELEMETRY_MAX_STACK_LENGTH = 4096;
+
+/**
  * Name of the telemetry event covering one inbound HTTP request.
  */
 export const HTTP_REQUEST_EVENT_NAME = 'http.request';

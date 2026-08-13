@@ -215,7 +215,7 @@ Present when the unit of work failed. The exception filter can give each of thes
 | `error.code`       | The `code` of the `DomainError`, or the generic `CLIENT_ERROR` / `SERVER_ERROR` that the filter gives |
 | `error.message`    | The internal message, which is **not** the message that the client receives       |
 | `error.cause_chain`| The list of the names of the chained causes, which the filter walks today in `resolveStack` |
-| `error.stack`      | The full stack chain, kept only on a 5xx (see section 5)                          |
+| `error.stack`      | The full stack chain, kept only on a 5xx (see section 5), capped at `TELEMETRY_MAX_STACK_LENGTH` (4096) characters |
 | `error.retriable`  | `true` when the failure lets the queue try the task again                         |
 
 Because the event carries `error.code` and the client envelope carries the same `code`, a user can quote the
@@ -392,7 +392,7 @@ They stay separate, and the plan does not mix them:
 | What it holds | The output of a deployment | The observability record of the backend |
 | Who reads it | The end user, in the browser, over SSE | The operator, in a query tool |
 | Where it lives | Redis stream `logs:<deploymentId>`, then the PostgreSQL `logs` table | The telemetry writer |
-| Lifetime | The run, then the archive of the deployment | The retention of the observability store |
+| Lifetime | The run, then the archive of the deployment | The rotation of the Docker log driver, while the project keeps no store |
 
 The connection between the two is one field: `deployment.id`. The telemetry event of a run carries it, so you go
 from an event to the full output of that run. Do **not** put the output lines in the telemetry event: the output of
@@ -551,7 +551,11 @@ becomes the attribute set of one span, and the `TelemetryWriter` port is the onl
 - **Double emission.** A client abort raises `close` and can also raise `finish`. The middleware must have a
   guard flag that permits one emission only.
 - **The size of an event.** `error.stack` with the full `cause` chain can be some kilobytes. Keep it only on a
-  5xx, and consider a maximum length.
+  5xx, and cap its length. **Decided: the whole joined chain is capped at 4096 characters, the value of the
+  `TELEMETRY_MAX_STACK_LENGTH` constant of `core/domain/constants/telemetry.constants.ts`.** The first
+  characters are kept, because the top of the stack carries the failure, and a marker
+  (`… [truncated N characters]`) states the quantity of characters that were removed. The value keeps one event
+  well under the 16 KB line limit of the Docker `json-file` log driver.
 - **The cardinality of `http.path`.** It carries UUIDs. This is correct and wanted, but the events must always
   carry `http.route` as well, because a dashboard groups on the route and not on the path.
 - **The existing tests.** `core/ui/filters/__tests__/all-exceptions.filter.spec.ts` asserts the calls to the
@@ -561,7 +565,6 @@ becomes the attribute set of one span, and the `TelemetryWriter` port is the onl
 
 ### Open items
 
-- What is the retention of the events? A control plane can be satisfied with 30 days.
 - Must the readiness probe (`GET /api/v1/server/readiness`) emit an event? It runs frequently and it succeeds
   almost always. The proposal is to keep it in the random 5 %, and to keep 100 % of its failures through the
   `server_error` rule.
