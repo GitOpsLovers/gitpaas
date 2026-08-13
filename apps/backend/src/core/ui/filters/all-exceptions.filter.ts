@@ -1,19 +1,11 @@
-import {
-    ArgumentsHost,
-    Catch,
-    ExceptionFilter,
-    HttpException,
-    HttpStatus,
-    Inject,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { Request, Response } from 'express';
 
 import { resolveRequestIdUseCase } from '../../application/resolve-request-id.use-case';
 import { DomainError } from '../../domain/errors/domain.error';
-import type { AppLogger } from '../../domain/ports/app-logger.port';
-import { NestLoggerAdapter } from '../../infrastructure/logging/nest-logger.adapter';
+import { enrichTelemetry } from '../../infrastructure/telemetry/telemetry.context';
 import { REQUEST_ID_HEADER } from '../middlewares/request-id.middleware';
 
 /**
@@ -45,17 +37,8 @@ interface ErrorEnvelope {
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-    constructor(
-        private readonly httpAdapterHost: HttpAdapterHost,
-        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
-    ) {}
+    constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-    /**
-     * Catches any thrown value and shapes it into a consistent JSON envelope.
-     *
-     * @param exception Caught exception
-     * @param host Arguments host, from which the request and response are extracted
-     */
     public catch(exception: unknown, host: ArgumentsHost): void {
         const { httpAdapter } = this.httpAdapterHost;
         const ctx = host.switchToHttp();
@@ -67,7 +50,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const requestId = resolveRequestIdUseCase(request.headers?.[REQUEST_ID_HEADER]);
         const envelope = this.buildEnvelope(exception, path, requestId);
 
-        this.logException(exception, envelope);
+        this.enrichWithError(exception, envelope);
 
         httpAdapter.reply(response, envelope, envelope.statusCode);
     }
@@ -224,7 +207,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     /**
-     * Builds the stack written to the log, following the `cause` chain.
+     * Builds the stack recorded in the telemetry event, following the `cause` chain.
      *
      * @param exception Caught exception
      *
@@ -249,30 +232,77 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     /**
-     * Logs 5xx errors at `error` level with the stack trace
-     * and ordinary 4xx client errors at `warn` without any stack trace.
+     * Names of the chained causes of the exception, following the `cause` chain.
      *
      * @param exception Caught exception
-     * @param envelope Error envelope to log
+     *
+     * @returns Name of every chained cause, or `undefined` when the exception has none
      */
-    private logException(exception: unknown, envelope: ErrorEnvelope): void {
-        const context = `${envelope.statusCode} ${envelope.path}`;
-        const prefix = `[${envelope.requestId}]`;
-
-        if (envelope.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
-            this.logger.error(
-                `${prefix} Unhandled exception on ${context}`,
-                this.resolveStack(exception),
-                AllExceptionsFilter.name,
-            );
-
-            return;
+    private resolveCauseChain(exception: unknown): string[] | undefined {
+        if (!(exception instanceof Error)) {
+            return undefined;
         }
 
-        const detail = Array.isArray(envelope.message)
-            ? envelope.message.join(', ')
-            : envelope.message;
+        const names: string[] = [];
+        const seen = new Set<unknown>([exception]);
+        let current: unknown = exception.cause;
 
-        this.logger.warn(`${prefix} ${context} - ${detail}`, AllExceptionsFilter.name);
+        while (current instanceof Error && !seen.has(current)) {
+            seen.add(current);
+            names.push(this.resolveType(current));
+            current = current.cause;
+        }
+
+        return names.length > 0 ? names : undefined;
+    }
+
+    /**
+     * Constructor name of the thrown value.
+     *
+     * @param exception Caught exception
+     *
+     * @returns Constructor name of the exception, or its primitive type when it is not an object
+     */
+    private resolveType(exception: unknown): string {
+        if (exception instanceof Error) {
+            return exception.constructor.name;
+        }
+
+        return typeof exception;
+    }
+
+    /**
+     * Internal message of the thrown value, which is not the message sent to the client.
+     *
+     * @param exception Caught exception
+     *
+     * @returns Message of the exception
+     */
+    private resolveMessage(exception: unknown): string {
+        if (exception instanceof Error) {
+            return exception.message;
+        }
+
+        return String(exception);
+    }
+
+    /**
+     * Adds the error fields of the failure to the telemetry event of the current request.
+     *
+     * @param exception Caught exception
+     * @param envelope Error envelope sent to the client
+     */
+    private enrichWithError(exception: unknown, envelope: ErrorEnvelope): void {
+        const isServerError = envelope.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR;
+        const stack = isServerError ? this.resolveStack(exception) : undefined;
+        const causeChain = this.resolveCauseChain(exception);
+
+        enrichTelemetry({
+            'error.type': this.resolveType(exception),
+            'error.code': envelope.code,
+            'error.message': this.resolveMessage(exception),
+            ...(causeChain ? { 'error.cause_chain': causeChain } : {}),
+            ...(stack ? { 'error.stack': stack } : {}),
+        });
     }
 }
