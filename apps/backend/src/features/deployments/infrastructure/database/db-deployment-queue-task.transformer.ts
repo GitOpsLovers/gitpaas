@@ -19,5 +19,6 @@ export function toQueuedDeploymentTask(entity: DbDeploymentQueueTaskEntity): Que
         projectName: entity.projectName,
         status: entity.status,
         attempts: entity.attempts,
+        parentRequestId: entity.parentRequestId,
     };
 }

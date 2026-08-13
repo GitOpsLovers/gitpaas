@@ -2,15 +2,20 @@ import { Test } from '@nestjs/testing';
 import { Subject } from 'rxjs';
 
 import { runDeploymentUseCase } from '../../../application/run-deployment.use-case';
+import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { QueuedDeploymentTask } from '../../../domain/models/queued-deployment-task.models';
-import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
+import { DeploymentQueue, MAX_ATTEMPTS } from '../../../domain/ports/deployment-queue.port';
 import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/db-deployments.repository';
 import { DockerExecutorAdapter } from '../../../infrastructure/docker/docker-executor.adapter';
 import { DeploymentRunnerService } from '../deployment-runner.service';
 
+import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import type { TelemetryWriter } from '@core/domain/ports/telemetry-writer.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
+import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
@@ -54,6 +59,7 @@ const task: QueuedDeploymentTask = {
     projectName: 'gitpaas',
     status: 'queued',
     attempts: 0,
+    parentRequestId: null,
 };
 
 /** Builds a queued task deriving unique ids from the given project name. */
@@ -72,7 +78,19 @@ describe('DeploymentRunnerService', () => {
     let dequeued: Subject<QueuedDeploymentTask>;
     let mockQueue: jest.Mocked<DeploymentQueue>;
     let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
+    let mockTelemetryWriter: jest.Mocked<Pick<TelemetryWriter, 'emit'>>;
     let sut: DeploymentRunnerService;
+
+    /** Single telemetry event the runner emitted for a run, failing loudly when none was. */
+    const emittedEvent = (index = 0): TelemetryEvent => {
+        const call = mockTelemetryWriter.emit.mock.calls[index];
+
+        if (call === undefined) {
+            throw new Error(`No telemetry event was emitted at index ${index}`);
+        }
+
+        return call[0];
+    };
 
     beforeEach(async () => {
         jest.clearAllMocks();
@@ -91,6 +109,7 @@ describe('DeploymentRunnerService', () => {
             recoverPending: jest.fn().mockResolvedValue(undefined),
         };
         mockLogger = { error: jest.fn() };
+        mockTelemetryWriter = { emit: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -101,6 +120,7 @@ describe('DeploymentRunnerService', () => {
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: NestLoggerAdapter, useValue: mockLogger },
+                { provide: StdoutTelemetryWriterAdapter, useValue: mockTelemetryWriter },
             ],
         }).compile();
 
@@ -144,17 +164,124 @@ describe('DeploymentRunnerService', () => {
         expect(mockQueue.markFailed).not.toHaveBeenCalled();
     });
 
-    it('marks the row failed and logs a diagnostic when the run unexpectedly throws', async () => {
+    it('emits one successful deployment.run event carrying the seed of the task', async () => {
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()).toEqual(
+            expect.objectContaining({
+                'event.name': 'deployment.run',
+                'deployment.status': 'success',
+                'trace.id': task.id,
+                'task.id': task.id,
+                'deployment.id': task.deploymentId,
+                'deployment.commit': task.commit,
+                'deployment.compose_path': task.composerPath,
+                'deployment.attempt': 1,
+                'docker.project': task.projectName,
+                'task.duration_ms': expect.any(Number),
+                timestamp: expect.any(String),
+            }),
+        );
+        expect(Object.keys(emittedEvent())).not.toContain('error.message');
+    });
+
+    it('correlates the run with the request that enqueued the task', async () => {
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
+        await sut.onModuleInit();
+
+        dequeued.next({ ...task, parentRequestId: 'req-7' });
+        await flush();
+
+        expect(emittedEvent()['trace.id']).toBe('req-7');
+        expect(emittedEvent()['parent.request_id']).toBe('req-7');
+    });
+
+    it('publishes the dependency counters recorded while the run was in flight', async () => {
+        mockRunDeploymentUseCase.mockImplementation(async () => {
+            recordDependencyCall('docker', 12, false);
+            recordDependencyCall('github', 8, true);
+        });
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(emittedEvent()).toEqual(
+            expect.objectContaining({
+                'deps.docker.calls': 1,
+                'deps.docker.duration_ms': 12,
+                'deps.docker.errors': 0,
+                'deps.docker.max_ms': 12,
+                'deps.github.calls': 1,
+                'deps.github.errors': 1,
+            }),
+        );
+    });
+
+    it('marks the row failed and emits a failed deployment.run event when the run throws', async () => {
         mockRunDeploymentUseCase.mockRejectedValue(new Error('boom'));
         await sut.onModuleInit();
 
         dequeued.next(task);
         await flush();
 
-        expect(mockLogger.error).toHaveBeenCalledTimes(1);
         expect(mockQueue.markFailed).toHaveBeenCalledTimes(1);
         expect(mockQueue.markFailed).toHaveBeenCalledWith(task.id, 'boom');
         expect(mockQueue.markCompleted).not.toHaveBeenCalled();
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()).toEqual(
+            expect.objectContaining({
+                'deployment.status': 'failed',
+                'error.type': 'Error',
+                'error.message': 'boom',
+                'error.stack': expect.stringContaining('Error: boom'),
+                'error.retriable': true,
+            }),
+        );
+        // The failure now travels on the event, so no separate text line is written.
+        expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports the stable code of a domain failure and its own error type', async () => {
+        mockRunDeploymentUseCase.mockRejectedValue(new ServiceNotDeployableError());
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(emittedEvent()['error.type']).toBe('ServiceNotDeployableError');
+        expect(emittedEvent()['error.code']).toBe('SERVICE_NOT_DEPLOYABLE');
+    });
+
+    it('omits error.code and error.stack when the thrown value is not an error', async () => {
+        mockRunDeploymentUseCase.mockRejectedValue('plain rejection');
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        const keys = Object.keys(emittedEvent());
+
+        expect(emittedEvent()['error.type']).toBe('string');
+        expect(emittedEvent()['error.message']).toBe('plain rejection');
+        expect(keys).not.toContain('error.code');
+        expect(keys).not.toContain('error.stack');
+    });
+
+    it('reports the failure as final once the task exhausted its attempts', async () => {
+        mockRunDeploymentUseCase.mockRejectedValue(new Error('boom'));
+        await sut.onModuleInit();
+
+        dequeued.next({ ...task, attempts: MAX_ATTEMPTS - 1 });
+        await flush();
+
+        expect(emittedEvent()['error.retriable']).toBe(false);
+        expect(emittedEvent()['deployment.attempt']).toBe(MAX_ATTEMPTS);
     });
 
     it('contains a markFailed rejection and keeps draining the queue', async () => {
@@ -170,18 +297,15 @@ describe('DeploymentRunnerService', () => {
         dequeued.next(taskA);
         await flush();
 
-        expect(mockLogger.error).toHaveBeenCalledTimes(2);
-        expect(mockLogger.error).toHaveBeenNthCalledWith(
-            1,
-            'Deployment runner crashed for deploy-a: boom',
-            expect.any(Error),
-            'DeploymentRunnerService',
-        );
-        expect(mockLogger.error).toHaveBeenNthCalledWith(
-            2,
-            'Could not mark the deployment deploy-a as failed: database down',
-            markFailedError,
-            'DeploymentRunnerService',
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()).toEqual(
+            expect.objectContaining({
+                'task.id': taskA.id,
+                'deployment.id': taskA.deploymentId,
+                'deployment.status': 'failed',
+                'error.type': 'Error',
+                'error.message': `boom; could not mark the task failed: ${markFailedError.message}`,
+            }),
         );
 
         // The consumer survived: the next task is still processed.
@@ -191,6 +315,8 @@ describe('DeploymentRunnerService', () => {
 
         expect(mockQueue.markCompleted).toHaveBeenCalledTimes(1);
         expect(mockQueue.markCompleted).toHaveBeenCalledWith(taskB.id);
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(2);
+        expect(emittedEvent(1)['deployment.status']).toBe('success');
     });
 
     it('keeps the subscription alive when a run rejects outside its own error handling', async () => {
@@ -330,7 +456,9 @@ describe('DeploymentRunnerService', () => {
         first.reject(new Error('boom'));
         await flush();
 
-        expect(mockLogger.error).toHaveBeenCalledTimes(1);
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()['deployment.status']).toBe('failed');
+        expect(emittedEvent()['task.id']).toBe(taskA.id);
         expect(mockQueue.markFailed).toHaveBeenCalledWith(taskA.id, 'boom');
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(2);
         expect(mockRunDeploymentUseCase).toHaveBeenLastCalledWith(
@@ -366,11 +494,18 @@ describe('DeploymentRunnerService', () => {
         await flush();
 
         // The other project's run is unaffected and still resolves cleanly.
-        expect(mockLogger.error).toHaveBeenCalledTimes(1);
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()).toEqual(
+            expect.objectContaining({ 'task.id': taskA.id, 'deployment.status': 'failed' }),
+        );
 
         healthy.resolve(undefined);
         await flush();
 
-        expect(mockLogger.error).toHaveBeenCalledTimes(1);
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(2);
+        expect(emittedEvent(1)).toEqual(
+            expect.objectContaining({ 'task.id': taskB.id, 'deployment.status': 'success' }),
+        );
+        expect(mockLogger.error).not.toHaveBeenCalled();
     });
 });

@@ -12,6 +12,8 @@ import { DbDeploymentQueueTaskEntity } from './db-deployment-queue-task.entity';
 import { toQueuedDeploymentTask } from './db-deployment-queue-task.transformer';
 import { DatabaseDeploymentsRepository } from './db-deployments.repository';
 
+import { getTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 /**
  * Database-backed deployment queue.
  *
@@ -44,7 +46,8 @@ export class DatabaseDeploymentQueueAdapter implements DeploymentQueue {
      * @param task Run task to enqueue
      */
     public async enqueue(task: DeploymentRunTask): Promise<void> {
-        const entity = this.repository.create({ ...task, status: 'queued', attempts: 0 });
+        const parentRequestId = getTelemetry()?.['request.id'] ?? null;
+        const entity = this.repository.create({ ...task, status: 'queued', attempts: 0, parentRequestId });
         const saved = await this.repository.save(entity);
 
         this.requests.next(toQueuedDeploymentTask(saved));

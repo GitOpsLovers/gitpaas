@@ -3,24 +3,34 @@ import { EMPTY, Subscription, catchError, concatMap, from, groupBy, mergeMap } f
 
 import { runDeploymentUseCase } from '../../application/run-deployment.use-case';
 import type { QueuedDeploymentTask } from '../../domain/models/queued-deployment-task.models';
-import type { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
+import { MAX_ATTEMPTS, type DeploymentQueue } from '../../domain/ports/deployment-queue.port';
 import type { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
 import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-executor.adapter';
+import { buildDeploymentRunSeed } from '../telemetry/build-deployment-run-seed';
 
+import { shouldKeepTelemetryUseCase } from '@core/application/should-keep-telemetry.use-case';
+import { DomainError } from '@core/domain/errors/domain.error';
+import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import type { TelemetryWriter } from '@core/domain/ports/telemetry-writer.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
+import { enrichTelemetry, getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
 import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 /**
+ * Nanoseconds in one millisecond, used to turn the monotonic clock into a duration.
+ */
+const NANOSECONDS_PER_MILLISECOND = 1_000_000;
+
+/**
  * Deployment runner.
- *
- * Subscribes to the deployment queue and on each requested run triggers the use case
  */
 @Injectable()
 export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
@@ -39,6 +49,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly deploymentQueue: DeploymentQueue,
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
+        @Inject(StdoutTelemetryWriterAdapter)
+        private readonly telemetryWriter: TelemetryWriter,
     ) {}
 
     /**
@@ -53,9 +65,10 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                         concatMap((task) =>
                             from(this.run(task)).pipe(
                                 catchError((error: unknown) => {
-                                    this.logFailure(
-                                        `Deployment runner failed unrecoverably for ${task.deploymentId}`,
+                                    this.logger.error(
+                                        `Deployment runner failed unrecoverably for ${task.deploymentId}: ${this.resolveMessage(error)}`,
                                         error,
+                                        DeploymentRunnerService.name,
                                     );
 
                                     return EMPTY;
@@ -76,48 +89,91 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Runs a single deployment.
+     * Runs a single deployment inside its own telemetry scope, emitting one event for the run.
      *
      * @param task Queued deployment task
      */
     private async run(task: QueuedDeploymentTask): Promise<void> {
-        try {
-            await this.deploymentQueue.markProcessing(task.id);
+        const startedAt = process.hrtime.bigint();
+        const seed = buildDeploymentRunSeed(task);
 
-            await runDeploymentUseCase(
-                this.deploymentsRepository,
-                this.sourceControl,
-                this.dockerExecutor,
-                this.logStore,
-                task,
-            );
-
-            await this.deploymentQueue.markCompleted(task.id);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-
-            this.logFailure(`Deployment runner crashed for ${task.deploymentId}`, error);
+        await runWithTelemetry(seed, async () => {
+            const enrichment = getTelemetry();
 
             try {
-                await this.deploymentQueue.markFailed(task.id, message);
-            } catch (markFailedError) {
-                this.logFailure(
-                    `Could not mark the deployment ${task.deploymentId} as failed`,
-                    markFailedError,
+                await this.deploymentQueue.markProcessing(task.id);
+
+                await runDeploymentUseCase(
+                    this.deploymentsRepository,
+                    this.sourceControl,
+                    this.dockerExecutor,
+                    this.logStore,
+                    task,
                 );
+
+                await this.deploymentQueue.markCompleted(task.id);
+
+                enrichTelemetry({ 'deployment.status': 'success' });
+            } catch (error) {
+                const message = this.resolveMessage(error);
+
+                enrichTelemetry({
+                    'deployment.status': 'failed',
+                    ...this.buildErrorFields(error, task),
+                });
+
+                try {
+                    await this.deploymentQueue.markFailed(task.id, message);
+                } catch (markFailedError) {
+                    enrichTelemetry({
+                        'error.message': `${message}; could not mark the task failed: ${this.resolveMessage(markFailedError)}`,
+                    });
+                }
             }
-        }
+
+            const durationNs = process.hrtime.bigint() - startedAt;
+
+            const event: TelemetryEvent = {
+                ...seed,
+                ...enrichment,
+                timestamp: new Date().toISOString(),
+                'task.duration_ms': Number(durationNs) / NANOSECONDS_PER_MILLISECOND,
+            };
+
+            if (shouldKeepTelemetryUseCase(event)) {
+                this.telemetryWriter.emit(event);
+            }
+        });
     }
 
     /**
-     * Logs a runner failure without ever throwing.
+     * Builds the error fields the failed run publishes on its telemetry event.
      *
-     * @param summary Human readable description of what failed
-     * @param error Original error
+     * @param error Error that ended the run
+     * @param task Queued deployment task that failed
+     *
+     * @returns The `error.*` fields of the failure
      */
-    private logFailure(summary: string, error: unknown): void {
-        const message = error instanceof Error ? error.message : String(error);
+    private buildErrorFields(error: unknown, task: QueuedDeploymentTask): Partial<TelemetryEvent> {
+        const stack = error instanceof Error ? error.stack : undefined;
 
-        this.logger.error(`${summary}: ${message}`, error, DeploymentRunnerService.name);
+        return {
+            'error.type': error instanceof Error ? error.constructor.name : typeof error,
+            ...(error instanceof DomainError ? { 'error.code': error.code } : {}),
+            'error.message': this.resolveMessage(error),
+            ...(stack === undefined ? {} : { 'error.stack': stack }),
+            'error.retriable': task.attempts + 1 < MAX_ATTEMPTS,
+        };
+    }
+
+    /**
+     * Message of a thrown value.
+     *
+     * @param error Thrown value
+     *
+     * @returns Message of the error
+     */
+    private resolveMessage(error: unknown): string {
+        return error instanceof Error ? error.message : String(error);
     }
 }
