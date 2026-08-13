@@ -22,11 +22,11 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 1 — Converge the errors
 
-- [ ] Add an `enrichTelemetry` call with the `error.*` fields in `core/ui/filters/all-exceptions.filter.ts`.
+- [x] Add an `enrichTelemetry` call with the `error.*` fields in `core/ui/filters/all-exceptions.filter.ts`.
 - [ ] Verify on the server that each failure gives one event with the error data and the request data.
-- [ ] Remove the `logException` method from `core/ui/filters/all-exceptions.filter.ts`.
-- [ ] Remove the `AppLogger` dependency from `core/ui/filters/all-exceptions.filter.ts`.
-- [ ] Move the logger assertions of `core/ui/filters/__tests__/all-exceptions.filter.spec.ts` to the enrichment call.
+- [x] Remove the `logException` method from `core/ui/filters/all-exceptions.filter.ts`.
+- [x] Remove the `AppLogger` dependency from `core/ui/filters/all-exceptions.filter.ts`.
+- [x] Move the logger assertions of `core/ui/filters/__tests__/all-exceptions.filter.spec.ts` to the enrichment call.
 
 ## Phase 2 — The actor and the business context
 
