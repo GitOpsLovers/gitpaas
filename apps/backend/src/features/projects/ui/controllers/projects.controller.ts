@@ -17,6 +17,8 @@ import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsService } from '../services/projects.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 /**
  * REST controller for the projects resource (`/api/v1/projects`).
  */
@@ -31,6 +33,8 @@ export class ProjectsController {
 
     @Get(':id')
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Project> {
+        enrichTelemetry({ 'project.id': id });
+
         const project = await this.service.findById(id);
 
         if (!project) {
@@ -50,6 +54,8 @@ export class ProjectsController {
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateDto: UpdateProjectDto,
     ): Promise<Project> {
+        enrichTelemetry({ 'project.id': id });
+
         const project = await this.service.update(id, updateDto);
 
         if (!project) {
@@ -62,6 +68,8 @@ export class ProjectsController {
     @Delete(':id')
     @HttpCode(204)
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        enrichTelemetry({ 'project.id': id });
+
         const deleted = await this.service.delete(id);
 
         if (!deleted) {

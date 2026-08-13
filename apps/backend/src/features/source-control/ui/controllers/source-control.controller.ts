@@ -4,6 +4,7 @@ import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
 import { SourceControlService } from '../services/source-control.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -36,6 +37,8 @@ export class SourceControlController {
      */
     @Get('repositories/:repositoryId/branches')
     public async listBranches(@Param('repositoryId', ParseIntPipe) repositoryId: number): Promise<GitBranch[]> {
+        enrichTelemetry({ 'deps.github.repository_id': repositoryId });
+
         try {
             return await this.service.listBranches(repositoryId);
         } catch (error) {

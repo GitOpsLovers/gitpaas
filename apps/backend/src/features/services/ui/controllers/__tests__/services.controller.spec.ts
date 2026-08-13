@@ -7,6 +7,7 @@ import { Service } from '../../../domain/models/service.models';
 import { ServicesService } from '../../services/services.service';
 import { ServicesController } from '../services.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
 
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
@@ -252,6 +253,44 @@ describe('ServicesController', () => {
             mockServicesService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(serviceId)).rejects.toBe(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the project id of a listing', async () => {
+            mockServicesService.getAllByProject.mockResolvedValue([service]);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getAllByProject(projectId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'project.id': projectId });
+        });
+
+        it('adds the service id of a read', async () => {
+            mockServicesService.findById.mockResolvedValue(service);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
+        });
+
+        it('adds the service id of a delete', async () => {
+            mockServicesService.delete.mockResolvedValue(true);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.delete(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
         });
     });
 });

@@ -7,6 +7,7 @@ import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -199,6 +200,56 @@ describe('DeploymentsController', () => {
             mockDeploymentsService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(deploymentId)).rejects.toBe(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the service id of a listing', async () => {
+            mockDeploymentsService.getAllByService.mockResolvedValue([deployment]);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getAllByService(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
+        });
+
+        it('adds the deployment id of a read', async () => {
+            mockDeploymentsService.findById.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'deployment.id': deploymentId });
+        });
+
+        it('adds the service id of a trigger', async () => {
+            mockDeploymentsService.create.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.create({ serviceId });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
+        });
+
+        it('adds the deployment id of a delete', async () => {
+            mockDeploymentsService.delete.mockResolvedValue(true);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.delete(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'deployment.id': deploymentId });
         });
     });
 });

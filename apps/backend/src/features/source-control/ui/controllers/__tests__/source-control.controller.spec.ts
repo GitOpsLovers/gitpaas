@@ -12,6 +12,8 @@ import { GitRepository } from '../../../domain/models/git-repository.models';
 import { SourceControlService } from '../../services/source-control.service';
 import { SourceControlController } from '../source-control.controller';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 const repositoryId = 42;
 
 const repositories: GitRepository[] = [
@@ -153,6 +155,20 @@ describe('SourceControlController', () => {
             mockSourceControlService.listBranches.mockRejectedValue(new SourceControlUnavailableError());
 
             await expect(sut.listBranches(repositoryId)).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the repository id of a branch listing', async () => {
+            mockSourceControlService.listBranches.mockResolvedValue(branches);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.listBranches(repositoryId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'deps.github.repository_id': repositoryId });
         });
     });
 });

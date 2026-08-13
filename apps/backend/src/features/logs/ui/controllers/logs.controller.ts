@@ -8,6 +8,8 @@ import { map, Observable } from 'rxjs';
 import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogsService } from '../services/logs.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 /**
  * Logs controller
  */
@@ -24,6 +26,8 @@ export class LogsController {
      */
     @Get()
     public getAllByDeployment(@Query('deploymentId', ParseUUIDPipe) deploymentId: string): Promise<LogEntry[]> {
+        enrichTelemetry({ 'deployment.id': deploymentId });
+
         return this.service.getAllByDeployment(deploymentId);
     }
 
@@ -38,6 +42,8 @@ export class LogsController {
     @SkipThrottle({ default: true })
     @Throttle({ stream: {} })
     public streamLogs(@Param('deploymentId', ParseUUIDPipe) deploymentId: string): Observable<MessageEvent> {
+        enrichTelemetry({ 'deployment.id': deploymentId });
+
         return this.service.streamLogs(deploymentId).pipe(map((event) => ({ data: JSON.stringify(event) })));
     }
 }

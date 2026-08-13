@@ -1,7 +1,7 @@
-# Logging plan — wide events for the backend
+# Logging plan — telemetry events for the backend
 
 This document is an **implementation proposal**. It gives a plan to move the logging of `apps/backend`
-from single-line text messages to **wide events**. Nothing in this document is implemented yet.
+from single-line text messages to **telemetry events**. Nothing in this document is implemented yet.
 
 For the layers and the conventions that the plan obeys, see [backend architecture](./backend-architecture.md).
 For the domain words that the event schema uses, see [backend business](./backend-business.md).
@@ -58,7 +58,7 @@ gives no result. Thus there is no per-request hook that sees the start and the e
 - **The volume is not controlled.** The adapters write a line for each Docker build, each pull and each start.
   The quantity of lines increases with the work, and almost all the lines are of no use.
 
-These are the four problems that the wide-event philosophy names: **volume**, **context**, **search** and a
+These are the four problems that the telemetry-event philosophy names: **volume**, **context**, **search** and a
 format that is optimized to write and not to query.
 
 > **The `logs` feature is not application logging.** `features/logs/` and its `LogStore` port keep the **output
@@ -69,10 +69,10 @@ format that is optimized to write and not to query.
 
 ## 2. Proposal summary
 
-Replace the dispersed text lines with **one wide event for each unit of work**.
+Replace the dispersed text lines with **one telemetry event for each unit of work**.
 
-A **GitPaaS wide event** is one flat, structured record, with many fields, that gives the full story of one unit
-of work in one row. The backend has two units of work:
+A **GitPaaS telemetry event** is one flat, structured record, with many fields, that gives the full story of one unit
+of work in one row (the industry calls this pattern a wide event). The backend has two units of work:
 
 | Unit of work        | `event.name`     | Starts when                             | Ends when                       |
 |---------------------|------------------|-----------------------------------------|---------------------------------|
@@ -88,7 +88,7 @@ The rules are:
 4. **High cardinality is welcome.** A deployment id, a commit SHA and a user id belong in the event.
 5. **The decision to keep the event is taken at the end** (tail sampling), from the outcome. See section 5.
 
-Structured logging is not the same thing as a wide event. JSON is only the format. The change is that
+Structured logging is not the same thing as a telemetry event. JSON is only the format. The change is that
 **one request gives one record**, and not twenty.
 
 ---
@@ -237,45 +237,45 @@ Each piece keeps the layering rule of the backend: an outer layer can depend on 
 opposite. All the new files are **new**.
 
 ```text
-                     (new) core/ui/middlewares/wide-event.middleware.ts
+                     (new) core/ui/middlewares/telemetry.middleware.ts
                                         │  starts the scope, emits at the end
                                         ▼
   ┌──────────────── AsyncLocalStorage scope ─────────────────────────────┐
   │  Guards → Interceptors → Controller → Service → Use case → Adapter   │
-  │      each layer calls enrichWideEvent({ ... })                       │
+  │      each layer calls enrichTelemetry({ ... })                       │
   │  AllExceptionsFilter adds the error fields                           │
   └──────────────────────────────────────────────────────────────────────┘
                                         │  response 'finish' / 'close'
                                         ▼
-                shouldKeepWideEventUseCase(event)  ── no ──► dropped
+                shouldKeepTelemetryUseCase(event)  ── no ──► dropped
                                         │ yes
                                         ▼
-                          WideEventSink.emit(event)  ──► one JSON line
+                        TelemetryWriter.emit(event)  ──► one JSON line
 ```
 
 ### 4.1 The domain pieces
 
-- **`core/domain/models/wide-event.models.ts`** *(new)* — the `WideEvent` type. It is a flat record of the
+- **`core/domain/models/telemetry.models.ts`** *(new)* — the `TelemetryEvent` type. It is a flat record of the
   fields of section 3. It uses no vendor type, so the domain and the application layer can name it.
-- **`core/domain/ports/wide-event-sink.port.ts`** *(new)* — the `WideEventSink` port with one method:
+- **`core/domain/ports/telemetry-writer.port.ts`** *(new)* — the `TelemetryWriter` port with one method:
 
   ```ts
   /**
-   * Destination of the completed wide events.
+   * Destination of the completed telemetry events.
    */
-  export interface WideEventSink {
+  export interface TelemetryWriter {
       /**
-       * Publishes one completed wide event.
+       * Publishes one completed telemetry event.
        *
-       * @param event Completed wide event
+       * @param event Completed telemetry event
        */
-      emit: (event: WideEvent) => void;
+      emit: (event: TelemetryEvent) => void;
   }
   ```
 
   The method returns `void` and never throws. An observability failure must never fail a request.
-- **`core/application/should-keep-wide-event.use-case.ts`** *(new)* — the pure sampling function of section 5.
-- **`core/domain/constants/wide-event.constants.ts`** *(new)* — the event names and the sampling constants.
+- **`core/application/should-keep-telemetry.use-case.ts`** *(new)* — the pure sampling function of section 5.
+- **`core/domain/constants/telemetry.constants.ts`** *(new)* — the event names and the sampling constants.
 
 ### 4.2 Where the event lives during the request
 
@@ -283,36 +283,36 @@ The event must be reachable from each layer, and no layer must receive it as a p
 chain. Thus the plan uses **`AsyncLocalStorage`** of the Node `node:async_hooks` module. It is part of Node and
 needs no new dependency.
 
-- **`core/infrastructure/observability/wide-event.context.ts`** *(new)* — one module-level
-  `AsyncLocalStorage<WideEvent>` and three plain exported functions, because these collaborators keep no
+- **`core/infrastructure/telemetry/telemetry.context.ts`** *(new)* — one module-level
+  `AsyncLocalStorage<TelemetryEvent>` and three plain exported functions, because these collaborators keep no
   injected state:
 
   ```ts
-  const storage = new AsyncLocalStorage<Partial<WideEvent>>();
+  const storage = new AsyncLocalStorage<Partial<TelemetryEvent>>();
 
   /**
-   * Runs a unit of work inside a fresh wide-event scope.
+   * Runs a unit of work inside a fresh telemetry scope.
    *
    * @param seed Fields known when the unit of work starts
    * @param work Unit of work to run
    *
    * @returns Whatever the unit of work returns
    */
-  export function runWithWideEvent<T>(seed: Partial<WideEvent>, work: () => T): T {
+  export function runWithTelemetry<T>(seed: Partial<TelemetryEvent>, work: () => T): T {
       return storage.run({ ...seed }, work);
   }
 
   /**
-   * Adds fields to the wide event of the current unit of work.
+   * Adds fields to the telemetry event of the current unit of work.
    *
    * @param fields Fields to add
    */
-  export function enrichWideEvent(fields: Partial<WideEvent>): void {
+  export function enrichTelemetry(fields: Partial<TelemetryEvent>): void {
       Object.assign(storage.getStore() ?? {}, fields);
   }
   ```
 
-  `enrichWideEvent` does nothing when there is no scope. Thus a unit test, a CLI path or the bootstrap code
+  `enrichTelemetry` does nothing when there is no scope. Thus a unit test, a CLI path or the bootstrap code
   calls it with no risk.
 
 ### 4.3 Where the event is made and emitted
@@ -321,12 +321,12 @@ needs no new dependency.
 application has a global `JwtAuthGuard` and a global `ThrottlerGuard`. Thus an interceptor would not see a 401
 or a 429, which are exactly the events that you want. A middleware runs before all of them.
 
-- **`core/ui/middlewares/wide-event.middleware.ts`** *(new)* — it runs immediately after
+- **`core/ui/middlewares/telemetry.middleware.ts`** *(new)* — it runs immediately after
   `requestIdMiddleware` in `src/bootstrap.ts`, so the correlation id is already resolved:
 
   ```ts
   app.use(requestIdMiddleware);
-  app.use(buildWideEventMiddleware(sink));   // new
+  app.use(buildTelemetryMiddleware(writer));   // new
   app.use(helmet());
   ```
 
@@ -334,7 +334,7 @@ or a 429, which are exactly the events that you want. A middleware runs before a
   registers the emission on the `finish` and the `close` events of the response. A guard flag makes sure that
   one request emits one event only, because a client abort can raise the two events.
 
-- **`core/infrastructure/observability/stdout-wide-event-sink.adapter.ts`** *(new)* — the first adapter. It writes one
+- **`core/infrastructure/telemetry/stdout-telemetry-writer.adapter.ts`** *(new)* — the first adapter. It writes one
   JSON line to `process.stdout`. It does **not** go through `NestLoggerAdapter`, because the Nest logger adds
   a text prefix and a colour, which breaks the machine reading. `CoreModule` declares it in its `providers`
   and its `exports`, like the other global adapters, and the consumers inject the concrete class with the type
@@ -342,10 +342,10 @@ or a 429, which are exactly the events that you want. A middleware runs before a
 
 ### 4.4 How each layer enriches the event
 
-- **`ui/controllers/` and `ui/services/`** call `enrichWideEvent` directly. They already import from `@core/*`
+- **`ui/controllers/` and `ui/services/`** call `enrichTelemetry` directly. They already import from `@core/*`
   (for example `translateError` in `features/deployments/ui/controllers/deployments.controller.ts`), so nothing
   in the layering changes.
-- **`infrastructure/`** adapters call `enrichWideEvent` in the place where they write a text line today. The
+- **`infrastructure/`** adapters call `enrichTelemetry` in the place where they write a text line today. The
   GitHub adapter is the clean example: its private `run<T>()` helper already wraps every call, so the timing
   and the counting of `deps.github.*` need one change in one method.
 - **`application/`** use cases must stay pure and must not import the infrastructure. Where a use case must add
@@ -358,7 +358,7 @@ or a 429, which are exactly the events that you want. A middleware runs before a
       sourceControl: SourceControl,
       dockerExecutor: DockerExecutor,
       logStore: LogStore,
-      events: WideEventSink,      // new collaborator, still a port
+      events: TelemetryWriter,    // new collaborator, still a port
       payload: DeploymentRunTask,
   ): Promise<void> { /* … */ }
   ```
@@ -371,7 +371,7 @@ or a 429, which are exactly the events that you want. A middleware runs before a
 correlation id and that walks the `cause` chain. It keeps that role, but it stops being a writer:
 
 - `buildEnvelope` does not change. The client contract stays the same.
-- `logException` is replaced by an `enrichWideEvent` call that adds the `error.*` fields of section 3.7. The
+- `logException` is replaced by an `enrichTelemetry` call that adds the `error.*` fields of section 3.7. The
   filter runs inside the request, thus inside the `AsyncLocalStorage` scope, and the middleware emits the
   complete event some milliseconds later, when the response finishes.
 - The result is that a failed request gives **one** record that has the error **and** the duration, the route,
@@ -383,15 +383,15 @@ correlation id and that walks the `cause` chain. It keeps that role, but it stop
 
 They stay separate, and the plan does not mix them:
 
-| | `features/logs/` (`LogStore`) | Wide events |
+| | `features/logs/` (`LogStore`) | Telemetry events |
 |---|---|---|
 | What it holds | The output of a deployment | The observability record of the backend |
 | Who reads it | The end user, in the browser, over SSE | The operator, in a query tool |
-| Where it lives | Redis stream `logs:<deploymentId>`, then the PostgreSQL `logs` table | The wide-event sink |
+| Where it lives | Redis stream `logs:<deploymentId>`, then the PostgreSQL `logs` table | The telemetry writer |
 | Lifetime | The run, then the archive of the deployment | The retention of the observability store |
 
-The connection between the two is one field: `deployment.id`. The wide event of a run carries it, so you go
-from an event to the full output of that run. Do **not** put the output lines in the wide event: the output of
+The connection between the two is one field: `deployment.id`. The telemetry event of a run carries it, so you go
+from an event to the full output of that run. Do **not** put the output lines in the telemetry event: the output of
 a build can contain the secrets of the user.
 
 ---
@@ -399,7 +399,7 @@ a build can contain the secrets of the user.
 ## 5. Sampling
 
 The decision is a **tail** decision. It runs in the emission path, after the outcome is known, in the pure
-function `shouldKeepWideEventUseCase` of `core/application/should-keep-wide-event.use-case.ts`.
+function `shouldKeepTelemetryUseCase` of `core/application/should-keep-telemetry.use-case.ts`.
 
 The generic policy speaks of VIP customers. **GitPaaS has no customers.** It is a single-tenant control plane,
 and the quantity of its human requests is small. The equivalent of the "important request" is the request that
@@ -422,7 +422,7 @@ changes the state of the platform. Thus the policy is:
 so a later count can multiply the kept events again and give the true totals.
 
 **The slow threshold.** The correct value is the p99 of the route. At the beginning there is no store that can
-compute it. Thus phase 5 starts with a fixed value from a new `WIDE_EVENT_SLOW_MS` environment variable
+compute it. Thus phase 5 starts with a fixed value from a new `TELEMETRY_SLOW_MS` environment variable
 (1000 ms is a reasonable start), and the value moves to a per-route p99 when the store can give one. The
 threshold must **not** apply to the SSE route, because that route is slow by design; the `http.sse` rule keeps
 it already.
@@ -440,15 +440,15 @@ its replacement operates.
 ### Phase 0 — The rails (no behaviour visible)
 
 - Add the model, the port, the sampling stub (which keeps everything), the constants and the
-  `wide-event.context.ts` store.
-- Add `stdout-wide-event-sink.adapter.ts` and declare it in `CoreModule`.
-- Add `wide-event.middleware.ts` and register it after `requestIdMiddleware` in `src/bootstrap.ts`.
+  `telemetry.context.ts` store.
+- Add `stdout-telemetry-writer.adapter.ts` and declare it in `CoreModule`.
+- Add `telemetry.middleware.ts` and register it after `requestIdMiddleware` in `src/bootstrap.ts`.
 - Emit an event that has only the groups 3.1, 3.2 and 3.3.
 - **Remove nothing.** The old text lines continue. The two systems run together.
 
 ### Phase 1 — Converge the errors
 
-- `AllExceptionsFilter` calls `enrichWideEvent` with the `error.*` fields.
+- `AllExceptionsFilter` calls `enrichTelemetry` with the `error.*` fields.
 - Verify on the server that each failure now gives one event that has the error and the request data.
 - **Remove**: the `logException` method of the filter and its `AppLogger` dependency. From this point one
   failed request gives one record and not two.
@@ -474,21 +474,21 @@ its replacement operates.
 - Persist `parent.request_id` on the queue task row, so the run connects to the request that queued it. This is
   a schema change: a new nullable column on the queue table, in the entity **and** in a new numbered SQL file
   in `iac/production/migrations/`.
-- `DeploymentRunnerService.run(task)` calls `runWithWideEvent` for each task and emits one `deployment.run`
+- `DeploymentRunnerService.run(task)` calls `runWithTelemetry` for each task and emits one `deployment.run`
   event with the outcome, the attempt, the duration and the `deps.*` counters.
 - **Remove**: the private `logFailure` method of `DeploymentRunnerService`.
 
 ### Phase 5 — Tail sampling
 
-- Implement `shouldKeepWideEventUseCase` with the policy of section 5, and add the `WIDE_EVENT_SLOW_MS` and
-  `WIDE_EVENT_SAMPLE_RATE` variables to `EnvironmentVariables`.
+- Implement `shouldKeepTelemetryUseCase` with the policy of section 5, and add the `TELEMETRY_SLOW_MS` and
+  `TELEMETRY_SAMPLE_RATE` variables to `EnvironmentVariables`.
 - Ship it only when the true volume is known, because a sampler that operates too early hides the events that
   you need to size it.
 
 ### Phase 6 — The transport and the store
 
-- Replace `StdoutWideEventSinkAdapter` with the adapter of the store that section 7 selects. Because the consumers
-  depend on `WideEventSink`, this is one new file and one line in `CoreModule`.
+- Replace `StdoutTelemetryWriterAdapter` with the adapter of the store that section 7 selects. Because the consumers
+  depend on `TelemetryWriter`, this is one new file and one line in `CoreModule`.
 
 ### What stays with `AppLogger`
 
@@ -511,17 +511,17 @@ This is the largest open decision, and the plan does not need it before phase 6.
 
 - **`stdout` and `docker logs` only** — the phase 0 position. No new component, but there is no query language.
   It is not sufficient as an end state.
-- **A `wide_events` table in the existing PostgreSQL, with a `JSONB` column** — attractive, because PostgreSQL
+- **A `telemetry_events` table in the existing PostgreSQL, with a `JSONB` column** — attractive, because PostgreSQL
   is already in the topology and the volume of a single-operator control plane is small. The risks are that the
   observability writes share the database of the application, and that a `JSONB` scan is not a columnar scan.
-- **A columnar store (for example ClickHouse)** — the correct technical answer for wide events, and the article
+- **A columnar store (for example ClickHouse)** — the correct technical answer for telemetry events, and the article
   is right that high cardinality is cheap on a columnar store. It adds one more service to the Compose stack of
   a single host. See [infrastructure architecture](./infrastructure-architecture.md).
 - **A hosted vendor** — no operation work, but the events leave the server, which section "PII" makes a
   question and not a detail.
 
-**OpenTelemetry** is a delivery mechanism and not an answer to this question. If it is adopted, the wide event
-becomes the attribute set of one span, and the `WideEventSink` port is the only file that changes.
+**OpenTelemetry** is a delivery mechanism and not an answer to this question. If it is adopted, the telemetry event
+becomes the attribute set of one span, and the `TelemetryWriter` port is the only file that changes.
 
 ### Personal data
 

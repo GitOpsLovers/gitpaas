@@ -12,6 +12,7 @@ import { DatabaseServicesRepository } from '../../../infrastructure/database/db-
 import { DockerServiceRuntimeResourcesAdapter } from '../../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { ServicesService } from '../services.service';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 
@@ -252,6 +253,54 @@ describe('ServicesService', () => {
             mockDeleteServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.delete(serviceId)).rejects.toThrow(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the identifiers and the slug of the service it read', async () => {
+            mockFindServiceByIdUseCase.mockResolvedValue(service);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({
+                'service.id': serviceId,
+                'service.slug': 'api-gateway',
+                'project.id': projectId,
+            });
+        });
+
+        it('adds the identifiers of the service it created', async () => {
+            mockCreateServiceUseCase.mockResolvedValue(service);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.create({
+                    name: 'api-gateway',
+                    projectId,
+                    repositoryId: '42',
+                    deploymentBranch: 'main',
+                    composerPath: 'docker-compose.yml',
+                });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId, 'project.id': projectId });
+        });
+
+        it('adds nothing when the service does not exist', async () => {
+            mockUpdateServiceUseCase.mockResolvedValue(null);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.update(serviceId, { name: 'renamed' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
         });
     });
 });

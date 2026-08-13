@@ -7,6 +7,7 @@ import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsService } from '../services/deployments.service';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -25,6 +26,8 @@ export class DeploymentsController {
      */
     @Get()
     public getAllByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<Deployment[]> {
+        enrichTelemetry({ 'service.id': serviceId });
+
         return this.service.getAllByService(serviceId);
     }
 
@@ -37,6 +40,8 @@ export class DeploymentsController {
      */
     @Get(':id')
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Deployment> {
+        enrichTelemetry({ 'deployment.id': id });
+
         const deployment = await this.service.findById(id);
 
         if (!deployment) {
@@ -55,6 +60,8 @@ export class DeploymentsController {
      */
     @Post()
     public async create(@Body() triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+        enrichTelemetry({ 'service.id': triggerDto.serviceId });
+
         try {
             return await this.service.create(triggerDto);
         } catch (error) {
@@ -70,6 +77,8 @@ export class DeploymentsController {
     @Delete(':id')
     @HttpCode(204)
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        enrichTelemetry({ 'deployment.id': id });
+
         const deleted = await this.service.delete(id);
 
         if (!deleted) {

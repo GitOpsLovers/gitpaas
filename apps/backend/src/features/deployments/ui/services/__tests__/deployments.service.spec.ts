@@ -12,6 +12,7 @@ import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database
 import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/db-deployments.repository';
 import { DeploymentsService } from '../deployments.service';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
@@ -236,6 +237,80 @@ describe('DeploymentsService', () => {
             mockCreateDeploymentUseCase.mockRejectedValue(error);
 
             await expect(sut.create(triggerDto)).rejects.toBe(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the business context of the deployment it read', async () => {
+            mockFindDeploymentByIdUseCase.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({
+                'service.id': serviceId,
+                'deployment.id': deploymentId,
+                'deployment.status': 'success',
+                'deployment.branch': 'main',
+                'deployment.trigger': 'marc',
+                'deployment.compose_path': 'docker-compose.yml',
+                'deployment.commit': 'abc123',
+            });
+        });
+
+        it('never adds the commit message', async () => {
+            mockFindDeploymentByIdUseCase.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(JSON.stringify(event)).not.toContain(String(deployment.commitMessage));
+        });
+
+        it('omits the commit when the deployment has none', async () => {
+            mockFindDeploymentByIdUseCase.mockResolvedValue({ ...deployment, commit: null });
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(Object.keys(event ?? {})).not.toContain('deployment.commit');
+        });
+
+        it('adds nothing when the deployment does not exist', async () => {
+            mockFindDeploymentByIdUseCase.mockResolvedValue(null);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({});
+        });
+
+        it('adds the business context of the deployment it created', async () => {
+            mockCreateDeploymentUseCase.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.create({ serviceId });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({
+                'deployment.id': deploymentId,
+                'deployment.status': 'success',
+                'service.id': serviceId,
+            });
         });
     });
 });

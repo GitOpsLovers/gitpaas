@@ -11,6 +11,8 @@ import { Project } from '../../../domain/models/project.models';
 import { DatabaseProjectsRepository } from '../../../infrastructure/database/db-projects.repository';
 import { ProjectsService } from '../projects.service';
 
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 jest.mock('../../../application/create-project.use-case');
 jest.mock('../../../application/delete-project.use-case');
 jest.mock('../../../application/find-project-by-id.use-case');
@@ -224,6 +226,20 @@ describe('ProjectsService', () => {
             mockDeleteProjectUseCase.mockRejectedValue(error);
 
             await expect(sut.delete(projectId)).rejects.toThrow(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        it('adds the id of the created project', async () => {
+            mockCreateProjectUseCase.mockResolvedValue(project);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.create({ name: 'platform' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'project.id': projectId });
         });
     });
 });

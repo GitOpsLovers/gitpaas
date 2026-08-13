@@ -4,9 +4,9 @@ import 'reflect-metadata';
 import type { MiddlewareConsumer } from '@nestjs/common';
 
 import { CoreModule } from '../core.module';
-import { StdoutWideEventSinkAdapter } from '../infrastructure/observability/stdout-wide-event-sink.adapter';
+import { StdoutTelemetryWriterAdapter } from '../infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { RequestIdMiddleware } from '../ui/middlewares/request-id.middleware';
-import { WideEventMiddleware } from '../ui/middlewares/wide-event.middleware';
+import { TelemetryMiddleware } from '../ui/middlewares/telemetry.middleware';
 
 /** Reads a metadata key of the module decorator. */
 const metadataOf = (key: string): unknown[] => (Reflect.getMetadata(key, CoreModule) as unknown[] | undefined) ?? [];
@@ -20,16 +20,16 @@ function buildConsumer() {
 }
 
 describe('CoreModule', () => {
-    it('provides the wide-event sink as a plain class provider', () => {
-        expect(metadataOf('providers')).toContain(StdoutWideEventSinkAdapter);
+    it('provides the telemetry writer as a plain class provider', () => {
+        expect(metadataOf('providers')).toContain(StdoutTelemetryWriterAdapter);
     });
 
-    it('exports the wide-event sink, so every feature resolves the container instance', () => {
-        expect(metadataOf('exports')).toContain(StdoutWideEventSinkAdapter);
+    it('exports the telemetry writer, so every feature resolves the container instance', () => {
+        expect(metadataOf('exports')).toContain(StdoutTelemetryWriterAdapter);
     });
 
-    it('provides the wide-event middleware, so the container injects its sink', () => {
-        expect(metadataOf('providers')).toContain(WideEventMiddleware);
+    it('provides the telemetry middleware, so the container injects its writer', () => {
+        expect(metadataOf('providers')).toContain(TelemetryMiddleware);
     });
 
     it('provides the request-id middleware, so the container instantiates it', () => {
@@ -42,16 +42,16 @@ describe('CoreModule', () => {
         new CoreModule().configure(consumer);
 
         expect(apply).toHaveBeenCalledTimes(1);
-        expect(apply).toHaveBeenCalledWith(RequestIdMiddleware, WideEventMiddleware);
+        expect(apply).toHaveBeenCalledWith(RequestIdMiddleware, TelemetryMiddleware);
         expect(forRoutes).toHaveBeenCalledTimes(1);
         expect(forRoutes).toHaveBeenCalledWith('*');
     });
 
-    it('resolves the correlation id before the wide event seeds itself', () => {
+    it('resolves the correlation id before the telemetry event seeds itself', () => {
         const { consumer, apply } = buildConsumer();
 
         new CoreModule().configure(consumer);
 
-        expect(apply.mock.calls[0]).toEqual([RequestIdMiddleware, WideEventMiddleware]);
+        expect(apply.mock.calls[0]).toEqual([RequestIdMiddleware, TelemetryMiddleware]);
     });
 });

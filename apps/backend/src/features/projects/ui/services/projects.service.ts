@@ -11,6 +11,8 @@ import { Project } from '../../domain/models/project.models';
 import type { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { DatabaseProjectsRepository } from '../../infrastructure/database/db-projects.repository';
 
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+
 /**
  * Projects service
  */
@@ -48,8 +50,12 @@ export class ProjectsService {
      *
      * @returns Created project
      */
-    public create(createDto: CreateProjectDto): Promise<Project> {
-        return createProjectUseCase(this.repository, createDto);
+    public async create(createDto: CreateProjectDto): Promise<Project> {
+        const project = await createProjectUseCase(this.repository, createDto);
+
+        enrichTelemetry({ 'project.id': project.id });
+
+        return project;
     }
 
     /**

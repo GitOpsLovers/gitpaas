@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import { bootstrap } from '../bootstrap';
 
 import { RequestIdMiddleware } from '@core/ui/middlewares/request-id.middleware';
-import { WideEventMiddleware } from '@core/ui/middlewares/wide-event.middleware';
+import { TelemetryMiddleware } from '@core/ui/middlewares/telemetry.middleware';
 import { UsersService } from '@features/users/ui/services/users.service';
 
 jest.mock('@nestjs/core', () => ({
@@ -129,14 +129,14 @@ describe('bootstrap (bootstrap.ts)', () => {
             expect(app.use).toHaveBeenNthCalledWith(1, HELMET_MIDDLEWARE);
         });
 
-        it('never registers the request-id or wide-event middlewares itself, since CoreModule applies them', async () => {
+        it('never registers the request-id or telemetry middlewares itself, since CoreModule applies them', async () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
             await bootstrap();
 
             expect(app.use).not.toHaveBeenCalledWith(RequestIdMiddleware);
-            expect(app.use).not.toHaveBeenCalledWith(WideEventMiddleware);
+            expect(app.use).not.toHaveBeenCalledWith(TelemetryMiddleware);
             expect(app.use.mock.calls.flat()).toEqual([HELMET_MIDDLEWARE]);
         });
 

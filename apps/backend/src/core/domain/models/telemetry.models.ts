@@ -1,19 +1,19 @@
-import { DEPLOYMENT_RUN_EVENT_NAME, HTTP_REQUEST_EVENT_NAME } from '../constants/wide-event.constants';
+import { DEPLOYMENT_RUN_EVENT_NAME, HTTP_REQUEST_EVENT_NAME } from '../constants/telemetry.constants';
 
 /**
- * Unit of work a wide event covers.
+ * Unit of work a telemetry event covers.
  */
-type WideEventName = typeof HTTP_REQUEST_EVENT_NAME | typeof DEPLOYMENT_RUN_EVENT_NAME;
+type TelemetryEventName = typeof HTTP_REQUEST_EVENT_NAME | typeof DEPLOYMENT_RUN_EVENT_NAME;
 
 /**
  * Outcome of the authentication of a unit of work.
  */
-type WideEventAuthOutcome = 'authenticated' | 'rejected' | 'anonymous';
+type TelemetryEventAuthOutcome = 'authenticated' | 'rejected' | 'anonymous';
 
 /**
- * Reason the tail sampler kept a wide event.
+ * Reason the tail sampler kept a telemetry event.
  */
-type WideEventKeptReason =
+type TelemetryEventKeptReason =
     | 'server_error'
     | 'error'
     | 'mutation'
@@ -24,30 +24,30 @@ type WideEventKeptReason =
     | 'random';
 
 /**
- * Outbound dependency the counters of a wide event are grouped by.
+ * Outbound dependency the counters of a telemetry event are grouped by.
  */
-type WideEventDependency = 'github' | 'docker' | 'redis' | 'postgres';
+type TelemetryEventDependency = 'github' | 'docker' | 'redis' | 'postgres';
 
 /**
  * Counters and timings accumulated for every outbound dependency of a unit of work.
  */
-type WideEventDependencyFields = {
-    [Name in WideEventDependency as `deps.${Name}.calls`]?: number;
+type TelemetryEventDependencyFields = {
+    [Name in TelemetryEventDependency as `deps.${Name}.calls`]?: number;
 } & {
-    [Name in WideEventDependency as `deps.${Name}.duration_ms`]?: number;
+    [Name in TelemetryEventDependency as `deps.${Name}.duration_ms`]?: number;
 } & {
-    [Name in WideEventDependency as `deps.${Name}.errors`]?: number;
+    [Name in TelemetryEventDependency as `deps.${Name}.errors`]?: number;
 } & {
-    [Name in WideEventDependency as `deps.${Name}.max_ms`]?: number;
+    [Name in TelemetryEventDependency as `deps.${Name}.max_ms`]?: number;
 };
 
 /**
  * Service, correlation, request, actor, business, dependency, error and policy fields a unit of work accumulates.
  */
-interface WideEventFields {
+interface TelemetryEventFields {
     /* Service and infrastructure context, present on every event */
     timestamp: string;
-    'event.name': WideEventName;
+    'event.name': TelemetryEventName;
     'service.name': string;
     'service.version': string;
     'service.env': string;
@@ -76,7 +76,7 @@ interface WideEventFields {
     'user.id'?: string;
     'user.role'?: string;
     'auth.public_route'?: boolean;
-    'auth.outcome'?: WideEventAuthOutcome;
+    'auth.outcome'?: TelemetryEventAuthOutcome;
 
     /* Business context */
     'project.id'?: string;
@@ -108,11 +108,11 @@ interface WideEventFields {
     /* Policy and sampling */
     'policy.throttler'?: string;
     'policy.logs_max_lines'?: number;
-    'sampling.kept_reason'?: WideEventKeptReason;
+    'sampling.kept_reason'?: TelemetryEventKeptReason;
     'sampling.rate'?: number;
 }
 
 /**
  * One flat, structured record telling the full story of one unit of work.
  */
-export type WideEvent = WideEventFields & WideEventDependencyFields;
+export type TelemetryEvent = TelemetryEventFields & TelemetryEventDependencyFields;
