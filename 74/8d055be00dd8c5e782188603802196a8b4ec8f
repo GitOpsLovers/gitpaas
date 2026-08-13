@@ -1,0 +1,21 @@
+apps/backend/src/core/__tests__/core.module.spec.ts
+  s_6181e34223910a::t_8cc26494ee1a2c 47
+apps/backend/src/core/core.module.ts
+  s_6181e34223910a::t_1a81f80d8effc6 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "748d055be00dd8c5e782188603802196a8b4ec8f",
+  "prompts": {},
+  "sessions": {
+    "s_6181e34223910a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14197312-98b4-4046-bd09-4dd3eb9688f7",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
