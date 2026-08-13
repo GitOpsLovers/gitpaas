@@ -1,0 +1,21 @@
+docs/roadmap/logging-plan-todo.md
+  s_b52da01815a737::t_75de0b184e4ed5 20,33,36,64,66-68,70-75,81,83
+docs/roadmap/logging-plan.md
+  s_b52da01815a737::t_ce629d0396a990 36-38,158,328-330,333-337,340-342,347,399,401,434-436,454-455,468-470,472-473,501-548,567-576
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "658524a456d8e3ecfa536a3de559d5a3a024a613",
+  "prompts": {},
+  "sessions": {
+    "s_b52da01815a737": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8571be3918804556",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
