@@ -24,11 +24,6 @@ type TelemetryEventKeptReason =
     | 'random';
 
 /**
- * Outbound dependency the counters of a telemetry event are grouped by.
- */
-type TelemetryEventDependency = 'github' | 'docker' | 'redis' | 'postgres';
-
-/**
  * Counters and timings accumulated for every outbound dependency of a unit of work.
  */
 type TelemetryEventDependencyFields = {
@@ -111,6 +106,11 @@ interface TelemetryEventFields {
     'sampling.kept_reason'?: TelemetryEventKeptReason;
     'sampling.rate'?: number;
 }
+
+/**
+ * Outbound dependency the counters of a telemetry event are grouped by.
+ */
+export type TelemetryEventDependency = 'github' | 'docker' | 'redis' | 'postgres';
 
 /**
  * One flat, structured record telling the full story of one unit of work.

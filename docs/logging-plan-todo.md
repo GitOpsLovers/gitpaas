@@ -37,12 +37,12 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 3 — The outbound calls
 
-- [ ] Add the `deps.github.*` counters in the private `run<T>()` helper of `features/source-control/infrastructure/github/github-source-control.adapter.ts`.
-- [ ] Add the `deps.docker.*` counters in `core/infrastructure/docker/docker-container-runtime.adapter.ts` and `features/deployments/infrastructure/docker/docker-executor.adapter.ts`.
-- [ ] Add the `deps.redis.*` counters in `features/logs/infrastructure/redis/redis-log-store.adapter.ts`.
-- [ ] Remove the breadcrumb line `logger.log('Creating GitHub App installation client', …)` from `features/source-control/infrastructure/github/github-source-control.adapter.ts`.
-- [ ] Remove the progress lines from `features/deployments/infrastructure/docker/docker-executor.adapter.ts`.
-- [ ] Remove the progress and warning lines from `features/services/infrastructure/docker/docker-service-runtime-resources.adapter.ts`.
+- [x] Add the `deps.github.*` counters in the private `run<T>()` helper of `features/source-control/infrastructure/github/github-source-control.adapter.ts`.
+- [x] Add the `deps.docker.*` counters in `core/infrastructure/docker/docker-container-runtime.adapter.ts` and `features/deployments/infrastructure/docker/docker-executor.adapter.ts`.
+- [x] Add the `deps.redis.*` counters in `features/logs/infrastructure/redis/redis-log-store.adapter.ts`.
+- [x] Remove the breadcrumb line `logger.log('Creating GitHub App installation client', …)` from `features/source-control/infrastructure/github/github-source-control.adapter.ts`.
+- [x] Remove the progress lines from `features/deployments/infrastructure/docker/docker-executor.adapter.ts`.
+- [x] Remove the progress and warning lines from `features/services/infrastructure/docker/docker-service-runtime-resources.adapter.ts`.
 
 ## Phase 4 — The background unit of work
 
