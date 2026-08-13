@@ -44,7 +44,7 @@ describe('CoreModule', () => {
         expect(apply).toHaveBeenCalledTimes(1);
         expect(apply).toHaveBeenCalledWith(RequestIdMiddleware, TelemetryMiddleware);
         expect(forRoutes).toHaveBeenCalledTimes(1);
-        expect(forRoutes).toHaveBeenCalledWith('*');
+        expect(forRoutes).toHaveBeenCalledWith('{*path}');
     });
 
     it('resolves the correlation id before the telemetry event seeds itself', () => {

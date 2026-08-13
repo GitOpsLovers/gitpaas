@@ -41,6 +41,6 @@ import { TelemetryMiddleware } from './ui/middlewares/telemetry.middleware';
 
 export class CoreModule implements NestModule {
     public configure(consumer: MiddlewareConsumer): void {
-        consumer.apply(RequestIdMiddleware, TelemetryMiddleware).forRoutes('*');
+        consumer.apply(RequestIdMiddleware, TelemetryMiddleware).forRoutes('{*path}');
     }
 }
