@@ -18,6 +18,7 @@ import {
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { RedisConnection } from '@core/infrastructure/redis/redis.connection';
+import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 
 /**
  * Redis log store adapter.
@@ -72,12 +73,12 @@ export class RedisLogStoreAdapter implements LogStore {
             const client = this.connection.getClient();
 
             await this.appendEntry(streamId, { type: 'end', status });
-            await client.del(toProducerLeaseKey(streamId));
+            await this.run(() => client.del(toProducerLeaseKey(streamId)));
 
             const archived = await this.archiveStream(streamId);
 
             if (archived) {
-                await client.expire(toLogStreamKey(streamId), LOG_STREAM_GRACE_SECONDS);
+                await this.run(() => client.expire(toLogStreamKey(streamId), LOG_STREAM_GRACE_SECONDS));
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -114,8 +115,8 @@ export class RedisLogStoreAdapter implements LogStore {
      */
     public async purge(streamId: string): Promise<void> {
         try {
-            await this.connection.getClient().del(toLogStreamKey(streamId));
-            await this.connection.getClient().del(toProducerLeaseKey(streamId));
+            await this.run(() => this.connection.getClient().del(toLogStreamKey(streamId)));
+            await this.run(() => this.connection.getClient().del(toProducerLeaseKey(streamId)));
             await this.repository.deleteByDeployment(streamId);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -147,7 +148,7 @@ export class RedisLogStoreAdapter implements LogStore {
             pipeline.xadd(key, '*', ...fields);
         }
 
-        await pipeline.set(leaseKey, '1', 'EX', LOG_STREAM_PRODUCER_LEASE_SECONDS).exec();
+        await this.run(() => pipeline.set(leaseKey, '1', 'EX', LOG_STREAM_PRODUCER_LEASE_SECONDS).exec());
     }
 
     /**
@@ -160,7 +161,7 @@ export class RedisLogStoreAdapter implements LogStore {
     private async archiveStream(streamId: string): Promise<boolean> {
         try {
             const client = this.connection.getClient();
-            const entries = await client.xrange(toLogStreamKey(streamId), '-', '+') as RedisStreamEntry[];
+            const entries = await this.run(() => client.xrange(toLogStreamKey(streamId), '-', '+')) as RedisStreamEntry[];
             const createDtos = toCreateLogDtos(streamId, entries);
 
             if (createDtos.length > 0) {
@@ -178,6 +179,29 @@ export class RedisLogStoreAdapter implements LogStore {
             );
 
             return false;
+        }
+    }
+
+    /**
+     * Runs a call against Redis, counting it on the telemetry event of the current unit of work.
+     *
+     * @param operation Redis call to run
+     *
+     * @returns Whatever the operation resolves to
+     */
+    private async run<T>(operation: () => Promise<T>): Promise<T> {
+        const startedAt = performance.now();
+
+        try {
+            const result = await operation();
+
+            recordDependencyCall('redis', performance.now() - startedAt, false);
+
+            return result;
+        } catch (error) {
+            recordDependencyCall('redis', performance.now() - startedAt, true);
+
+            throw error;
         }
     }
 }

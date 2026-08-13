@@ -10,8 +10,6 @@ import {
 } from '../../../domain/errors/source-control.errors';
 import { GithubSourceControlAdapter } from '../github-source-control.adapter';
 
-import type { AppLogger } from '@core/domain/ports/app-logger.port';
-
 const OctokitMock = Octokit as unknown as jest.Mock;
 
 /**
@@ -28,11 +26,6 @@ interface FakeClient {
 const createConfig = (values: Record<string, string | undefined> = {}): ConfigService =>
     ({ get: jest.fn((key: string) => values[key]) }) as unknown as ConfigService;
 
-/** Build a no-op application logger stub. */
-const createLogger = (): jest.Mocked<AppLogger> => ({
-    debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
-});
-
 describe('GithubSourceControlAdapter', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -48,7 +41,7 @@ describe('GithubSourceControlAdapter', () => {
         let mockClient: FakeClient;
 
         beforeEach(() => {
-            sut = new GithubSourceControlAdapter(createConfig(), createLogger());
+            sut = new GithubSourceControlAdapter(createConfig());
             mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             // `getClient()` is private, so cast through `unknown` to spy on it and hand
@@ -137,7 +130,7 @@ describe('GithubSourceControlAdapter', () => {
             Object.assign(new Error('secret octokit detail'), { status, response: { headers: {} } });
 
         beforeEach(() => {
-            sut = new GithubSourceControlAdapter(createConfig(), createLogger());
+            sut = new GithubSourceControlAdapter(createConfig());
             mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
@@ -207,7 +200,6 @@ describe('GithubSourceControlAdapter', () => {
                     GITHUB_APP_PRIVATE_KEY: undefined,
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
-                createLogger(),
             );
 
             await expect(sut.listRepositories()).rejects.toThrow(SourceControlNotConfiguredError);
@@ -221,7 +213,6 @@ describe('GithubSourceControlAdapter', () => {
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
-                createLogger(),
             );
 
             await sut.listRepositories();
@@ -244,7 +235,6 @@ describe('GithubSourceControlAdapter', () => {
                     GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
                     GITHUB_APP_INSTALLATION_ID: '456',
                 }),
-                createLogger(),
             );
 
             await sut.listRepositories();

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
@@ -11,8 +11,8 @@ import { SourceControl } from '../../domain/ports/source-control.port';
 
 import { toGitBranch, toGitCommit, toGitRepository, toSourceControlError } from './github-source-control.transformer';
 
-import type { AppLogger } from '@core/domain/ports/app-logger.port';
-import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
+import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 /**
  * GitHub source control adapter.
@@ -21,10 +21,7 @@ import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adap
 export class GithubSourceControlAdapter implements SourceControl {
     private client: Octokit | undefined;
 
-    constructor(
-        private readonly config: ConfigService,
-        @Inject(NestLoggerAdapter) private readonly logger: AppLogger,
-    ) {}
+    constructor(private readonly config: ConfigService) {}
 
     public listRepositories(): Promise<GitRepository[]> {
         return this.run(async () => {
@@ -35,6 +32,8 @@ export class GithubSourceControlAdapter implements SourceControl {
     }
 
     public listBranches(repositoryId: number): Promise<GitBranch[]> {
+        enrichTelemetry({ 'deps.github.repository_id': repositoryId });
+
         return this.run(async () => {
             const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
                 id: repositoryId,
@@ -52,6 +51,8 @@ export class GithubSourceControlAdapter implements SourceControl {
     }
 
     public getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
+        enrichTelemetry({ 'deps.github.repository_id': repositoryId, 'deps.github.ref': ref });
+
         return this.run(async () => {
             const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
                 id: repositoryId,
@@ -70,6 +71,8 @@ export class GithubSourceControlAdapter implements SourceControl {
     }
 
     public getRepositoryArchive(repositoryId: number, ref: string): Promise<Buffer> {
+        enrichTelemetry({ 'deps.github.repository_id': repositoryId, 'deps.github.ref': ref });
+
         return this.run(async () => {
             const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
                 id: repositoryId,
@@ -84,21 +87,33 @@ export class GithubSourceControlAdapter implements SourceControl {
                 ref,
             });
 
-            return Buffer.from(data as ArrayBuffer);
+            const archive = Buffer.from(data as ArrayBuffer);
+
+            enrichTelemetry({ 'deps.github.archive_bytes': archive.byteLength });
+
+            return archive;
         });
     }
 
     /**
-     * Runs a GitHub operation, translating any failure it raises into the domain error that describes it.
+     * Runs a GitHub operation, counting it on the telemetry.
      *
      * @param operation GitHub call to run
      *
      * @returns Whatever the operation resolves to
      */
     private async run<T>(operation: () => Promise<T>): Promise<T> {
+        const startedAt = performance.now();
+
         try {
-            return await operation();
+            const result = await operation();
+
+            recordDependencyCall('github', performance.now() - startedAt, false);
+
+            return result;
         } catch (error) {
+            recordDependencyCall('github', performance.now() - startedAt, true);
+
             throw toSourceControlError(error);
         }
     }
@@ -127,8 +142,6 @@ export class GithubSourceControlAdapter implements SourceControl {
         if (!appId || !privateKey || !installationId) {
             throw new SourceControlNotConfiguredError();
         }
-
-        this.logger.log('Creating GitHub App installation client', GithubSourceControlAdapter.name);
 
         return new Octokit({
             authStrategy: createAppAuth,

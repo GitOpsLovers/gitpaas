@@ -20,12 +20,17 @@ import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
+import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
-/** Number of trailing startup log lines captured per container after it starts. */
+/**
+ * Number of trailing startup log lines captured per container after it starts.
+ */
 const STARTUP_LOG_TAIL = 100;
 
-/** The subset of a started container the executor reads its startup output from. */
+/**
+ * The subset of a started container the executor reads its startup output from.
+ */
 interface StartedContainer {
     id: string;
     inspect: () => Promise<{ Name: string; Config: { Tty: boolean } }>;
@@ -59,13 +64,12 @@ export class DockerExecutorAdapter implements DockerExecutor {
             // rewrites them into plain image services in the recipe.
             const builtImages = await this.buildServices(compose, composeFile, projectName, emit);
 
-            this.logger.log(`Pulling images for project "${projectName}"`, DockerExecutorAdapter.name);
             emit('▶ Pulling images…');
 
             await this.pullWithProgress(compose, emit, builtImages);
 
             emit('▶ Removing previous containers…');
-            await compose.down();
+            await this.run(() => compose.down());
 
             // dockerode-compose crashes on a healthcheck with a missing duration and
             // mis-parses second-based durations; pre-normalize them to numeric
@@ -76,10 +80,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
             // so later maintenance operations can be scoped to what GitPaaS owns.
             stampLabels(compose, projectName);
 
-            this.logger.log(`Bringing project "${projectName}" up`, DockerExecutorAdapter.name);
             emit('▶ Creating and starting containers…');
 
-            const result = (await compose.up()) as { services?: StartedContainer[] };
+            const result = (await this.run(() => compose.up())) as { services?: StartedContainer[] };
             const containers = result.services ?? [];
 
             for (const container of containers) {
@@ -132,7 +135,6 @@ export class DockerExecutorAdapter implements DockerExecutor {
             const tag = `${projectName}_${name}`;
             const build = resolveBuild(service.build, baseDir);
 
-            this.logger.log(`Building service "${name}" as "${tag}"`, DockerExecutorAdapter.name);
             emit(`▶ Building ${name} (${tag})…`);
 
             await this.buildImage(build, tag, projectName, emit);
@@ -271,16 +273,16 @@ export class DockerExecutorAdapter implements DockerExecutor {
      */
     private async captureStartupLogs(container: StartedContainer, emit: DockerLogListener): Promise<void> {
         try {
-            const info = await container.inspect();
+            const info = await this.run(() => container.inspect());
             const name = info.Name.replace(/^\//, '') || container.id.slice(0, 12);
 
-            const raw = await container.logs({
+            const raw = await this.run(() => container.logs({
                 follow: false,
                 stdout: true,
                 stderr: true,
                 tail: STARTUP_LOG_TAIL,
                 timestamps: false,
-            });
+            }));
 
             const text = info.Config.Tty ? raw.toString('utf8') : decodeDockerLogBuffer(raw);
             const lines = toLogLines(text);
@@ -290,6 +292,29 @@ export class DockerExecutorAdapter implements DockerExecutor {
         } catch (error) {
             // Startup logs are best-effort; a failure here must not fail the deploy.
             this.logger.warn(`Could not read startup logs for container ${container.id}: ${String(error)}`, DockerExecutorAdapter.name);
+        }
+    }
+
+    /**
+     * Runs a call against the Docker daemon, counting it on the telemetry event of the current unit of work.
+     *
+     * @param operation Docker call to run
+     *
+     * @returns Whatever the operation resolves to
+     */
+    private async run<T>(operation: () => Promise<T>): Promise<T> {
+        const startedAt = performance.now();
+
+        try {
+            const result = await operation();
+
+            recordDependencyCall('docker', performance.now() - startedAt, false);
+
+            return result;
+        } catch (error) {
+            recordDependencyCall('docker', performance.now() - startedAt, true);
+
+            throw error;
         }
     }
 }
