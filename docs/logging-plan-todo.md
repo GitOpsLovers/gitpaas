@@ -55,11 +55,11 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 5 — Tail sampling
 
-- [ ] Add the `TELEMETRY_SLOW_MS` and `TELEMETRY_SAMPLE_RATE` variables to `core/infrastructure/config/env-validation.config.ts`.
-- [ ] Implement the keep rules in `core/application/should-keep-telemetry.use-case.ts`.
-- [ ] Add the random 5 % rule for the remaining fast successful `GET` requests.
-- [ ] Add the `sampling.kept_reason` and `sampling.rate` fields to the emitted event.
-- [ ] Remove the SSE route from the slow-threshold rule, because the `http.sse` rule keeps it already.
+- [x] Add the `TELEMETRY_SLOW_MS` and `TELEMETRY_SAMPLE_RATE` variables to `core/infrastructure/config/env-validation.config.ts`.
+- [x] Implement the keep rules in `core/application/should-keep-telemetry.use-case.ts`.
+- [x] Add the random 5 % rule for the remaining fast successful `GET` requests.
+- [x] Add the `sampling.kept_reason` and `sampling.rate` fields to the emitted event.
+- [x] Remove the SSE route from the slow-threshold rule, because the `http.sse` rule keeps it already.
 
 ## Phase 6 — The transport and the store
 
@@ -75,7 +75,7 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 - [ ] Decide the source of `service.version`, because no `APP_VERSION` variable exists today in `core/infrastructure/config/env-validation.config.ts` or in the image build.
 - [ ] Decide the retention period of the events.
 - [x] Decide if the commit message of a deployment can be a field, or only the SHA and the branch. **Decided: only the SHA and the branch.**
-- [ ] Decide if `GET /api/v1/server/readiness` stays in the random 5 % sample.
+- [x] Decide if `GET /api/v1/server/readiness` stays in the random 5 % sample. **Decided: it stays in the random 5 % sample.**
 - [ ] Decide how the SSE route keeps its `AsyncLocalStorage` reference across the blocking Redis reads.
 - [ ] Decide the maximum length of the `error.stack` field.
 - [ ] Measure the cost of `AsyncLocalStorage` on the SSE route before phase 1.

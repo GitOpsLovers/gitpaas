@@ -1,4 +1,15 @@
-import { DEPLOYMENT_RUN_EVENT_NAME, HTTP_REQUEST_EVENT_NAME } from '../constants/telemetry.constants';
+import {
+    DEPLOYMENT_RUN_EVENT_NAME,
+    HTTP_REQUEST_EVENT_NAME,
+    TELEMETRY_KEPT_REASON_AUTH,
+    TELEMETRY_KEPT_REASON_DEPLOYMENT,
+    TELEMETRY_KEPT_REASON_ERROR,
+    TELEMETRY_KEPT_REASON_MUTATION,
+    TELEMETRY_KEPT_REASON_RANDOM,
+    TELEMETRY_KEPT_REASON_SERVER_ERROR,
+    TELEMETRY_KEPT_REASON_SLOW,
+    TELEMETRY_KEPT_REASON_STREAM,
+} from '../constants/telemetry.constants';
 
 /**
  * Unit of work a telemetry event covers.
@@ -13,15 +24,22 @@ type TelemetryEventAuthOutcome = 'authenticated' | 'rejected' | 'anonymous';
 /**
  * Reason the tail sampler kept a telemetry event.
  */
-type TelemetryEventKeptReason =
-    | 'server_error'
-    | 'error'
-    | 'mutation'
-    | 'auth'
-    | 'deployment'
-    | 'stream'
-    | 'slow'
-    | 'random';
+export type TelemetryEventKeptReason =
+    | typeof TELEMETRY_KEPT_REASON_SERVER_ERROR
+    | typeof TELEMETRY_KEPT_REASON_ERROR
+    | typeof TELEMETRY_KEPT_REASON_MUTATION
+    | typeof TELEMETRY_KEPT_REASON_AUTH
+    | typeof TELEMETRY_KEPT_REASON_DEPLOYMENT
+    | typeof TELEMETRY_KEPT_REASON_STREAM
+    | typeof TELEMETRY_KEPT_REASON_SLOW
+    | typeof TELEMETRY_KEPT_REASON_RANDOM;
+
+/**
+ * Decision the tail sampler took on one completed telemetry event.
+ */
+export type TelemetrySamplingDecision =
+    | { kept: true; reason: TelemetryEventKeptReason; rate: number }
+    | { kept: false };
 
 /**
  * Counters and timings accumulated for every outbound dependency of a unit of work.

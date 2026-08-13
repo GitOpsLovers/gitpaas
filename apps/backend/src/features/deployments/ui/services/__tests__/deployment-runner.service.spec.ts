@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { Subject } from 'rxjs';
 
@@ -121,6 +122,10 @@ describe('DeploymentRunnerService', () => {
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: NestLoggerAdapter, useValue: mockLogger },
                 { provide: StdoutTelemetryWriterAdapter, useValue: mockTelemetryWriter },
+                {
+                    provide: ConfigService,
+                    useValue: { get: jest.fn((_key: string, fallback: number) => fallback) },
+                },
             ],
         }).compile();
 
@@ -188,6 +193,41 @@ describe('DeploymentRunnerService', () => {
             }),
         );
         expect(Object.keys(emittedEvent())).not.toContain('error.message');
+    });
+
+    it('records the sampling decision that always keeps a deployment run', async () => {
+        mockRunDeploymentUseCase.mockResolvedValue(undefined);
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(emittedEvent()['sampling.kept_reason']).toBe('deployment');
+        expect(emittedEvent()['sampling.rate']).toBe(1);
+    });
+
+    it('keeps a failed run carrying no error code as a deployment', async () => {
+        mockRunDeploymentUseCase.mockRejectedValue(new Error('boom'));
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()['sampling.kept_reason']).toBe('deployment');
+        expect(emittedEvent()['sampling.rate']).toBe(1);
+    });
+
+    it('keeps a failed run carrying a domain error code as an error', async () => {
+        mockRunDeploymentUseCase.mockRejectedValue(new ServiceNotDeployableError());
+        await sut.onModuleInit();
+
+        dequeued.next(task);
+        await flush();
+
+        expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
+        expect(emittedEvent()['sampling.kept_reason']).toBe('error');
+        expect(emittedEvent()['sampling.rate']).toBe(1);
     });
 
     it('correlates the run with the request that enqueued the task', async () => {

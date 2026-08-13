@@ -1,8 +1,10 @@
 import { Inject, Injectable, type NestMiddleware } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { NextFunction, Request, Response } from 'express';
 
 import { shouldKeepTelemetryUseCase } from '../../application/should-keep-telemetry.use-case';
+import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '../../domain/constants/telemetry.constants';
 import type { TelemetryEvent } from '../../domain/models/telemetry.models';
 import type { TelemetryWriter } from '../../domain/ports/telemetry-writer.port';
 import { StdoutTelemetryWriterAdapter } from '../../infrastructure/telemetry/stdout-telemetry-writer.adapter';
@@ -24,7 +26,17 @@ const EVENT_STREAM_CONTENT_TYPE = 'text/event-stream';
  */
 @Injectable()
 export class TelemetryMiddleware implements NestMiddleware {
-    constructor(@Inject(StdoutTelemetryWriterAdapter) private readonly writer: TelemetryWriter) {}
+    private readonly slowMs: number;
+
+    private readonly sampleRate: number;
+
+    constructor(
+        @Inject(StdoutTelemetryWriterAdapter) private readonly writer: TelemetryWriter,
+        config: ConfigService,
+    ) {
+        this.slowMs = config.get<number>('TELEMETRY_SLOW_MS', TELEMETRY_DEFAULT_SLOW_MS);
+        this.sampleRate = config.get<number>('TELEMETRY_SAMPLE_RATE', TELEMETRY_DEFAULT_SAMPLE_RATE);
+    }
 
     public use(request: Request, response: Response, next: NextFunction): void {
         const startedAt = process.hrtime.bigint();
@@ -59,8 +71,19 @@ export class TelemetryMiddleware implements NestMiddleware {
                     'http.client_aborted': clientAborted,
                 };
 
-                if (shouldKeepTelemetryUseCase(event)) {
-                    this.writer.emit(event);
+                const decision = shouldKeepTelemetryUseCase(
+                    event,
+                    this.slowMs,
+                    this.sampleRate,
+                    Math.random(),
+                );
+
+                if (decision.kept) {
+                    this.writer.emit({
+                        ...event,
+                        'sampling.kept_reason': decision.reason,
+                        'sampling.rate': decision.rate,
+                    });
                 }
             };
 
