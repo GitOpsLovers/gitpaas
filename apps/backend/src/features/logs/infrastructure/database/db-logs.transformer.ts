@@ -20,7 +20,17 @@ export function toLogEntry(entity: DbLogEntity): LogEntry {
     };
 
     if (entity.type === 'end') {
-        return { ...metadata, type: 'end', status: entity.status! };
+        const status = entity.status === 'success'
+            || entity.status === 'failed'
+            || entity.status === 'cancelled'
+            ? entity.status
+            : 'failed';
+
+        return {
+            ...metadata,
+            type: 'end',
+            status,
+        };
     }
 
     return { ...metadata, type: 'line', data: entity.content ?? '' };

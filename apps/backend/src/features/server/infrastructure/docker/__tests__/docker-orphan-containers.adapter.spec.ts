@@ -42,6 +42,7 @@ const hostContainer = (name: string, labels: Record<string, string>): { labels: 
     summary: containerSummary(name, {
         id: `id-${name}`,
         names: [`/${name}`],
+        // eslint-disable-next-line security/detect-object-injection
         projects: [labels[GITPAAS_PROJECT_LABEL], labels[COMPOSE_PROJECT_LABEL]].filter((project) => project !== undefined),
     }),
 });
@@ -56,6 +57,7 @@ const hostContainer = (name: string, labels: Record<string, string>): { labels: 
 const matchesSelector = (labels: Record<string, string>, selector: RuntimeSelector): boolean => {
     const required = { ...selector.labels, ...(selector.project === undefined ? {} : { [COMPOSE_PROJECT_LABEL]: selector.project }) };
 
+    // eslint-disable-next-line security/detect-object-injection
     return Object.entries(required).every(([key, value]) => (value === null ? key in labels : labels[key] === value));
 };
 

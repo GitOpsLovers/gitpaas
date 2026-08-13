@@ -133,7 +133,7 @@ describe('enrichTelemetry', () => {
     });
 
     it('does nothing outside a unit of work', () => {
-        expect(() => enrichTelemetry({ 'project.id': 'project-1' })).not.toThrow();
+        expect(() => { enrichTelemetry({ 'project.id': 'project-1' }); }).not.toThrow();
         expect(getTelemetry()).toBeUndefined();
     });
 });

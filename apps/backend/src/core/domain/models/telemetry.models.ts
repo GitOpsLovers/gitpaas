@@ -22,26 +22,6 @@ type TelemetryEventName = typeof HTTP_REQUEST_EVENT_NAME | typeof DEPLOYMENT_RUN
 type TelemetryEventAuthOutcome = 'authenticated' | 'rejected' | 'anonymous';
 
 /**
- * Reason the tail sampler kept a telemetry event.
- */
-export type TelemetryEventKeptReason =
-    | typeof TELEMETRY_KEPT_REASON_SERVER_ERROR
-    | typeof TELEMETRY_KEPT_REASON_ERROR
-    | typeof TELEMETRY_KEPT_REASON_MUTATION
-    | typeof TELEMETRY_KEPT_REASON_AUTH
-    | typeof TELEMETRY_KEPT_REASON_DEPLOYMENT
-    | typeof TELEMETRY_KEPT_REASON_STREAM
-    | typeof TELEMETRY_KEPT_REASON_SLOW
-    | typeof TELEMETRY_KEPT_REASON_RANDOM;
-
-/**
- * Decision the tail sampler took on one completed telemetry event.
- */
-export type TelemetrySamplingDecision =
-    | { kept: true; reason: TelemetryEventKeptReason; rate: number }
-    | { kept: false };
-
-/**
  * Counters and timings accumulated for every outbound dependency of a unit of work.
  */
 type TelemetryEventDependencyFields = {
@@ -127,6 +107,26 @@ interface TelemetryEventFields {
     'sampling.kept_reason'?: TelemetryEventKeptReason;
     'sampling.rate'?: number;
 }
+
+/**
+ * Reason the tail sampler kept a telemetry event.
+ */
+export type TelemetryEventKeptReason =
+    | typeof TELEMETRY_KEPT_REASON_SERVER_ERROR
+    | typeof TELEMETRY_KEPT_REASON_ERROR
+    | typeof TELEMETRY_KEPT_REASON_MUTATION
+    | typeof TELEMETRY_KEPT_REASON_AUTH
+    | typeof TELEMETRY_KEPT_REASON_DEPLOYMENT
+    | typeof TELEMETRY_KEPT_REASON_STREAM
+    | typeof TELEMETRY_KEPT_REASON_SLOW
+    | typeof TELEMETRY_KEPT_REASON_RANDOM;
+
+/**
+ * Decision the tail sampler took on one completed telemetry event.
+ */
+export type TelemetrySamplingDecision =
+    | { kept: true; reason: TelemetryEventKeptReason; rate: number }
+    | { kept: false };
 
 /**
  * Outbound dependency the counters of a telemetry event are grouped by.

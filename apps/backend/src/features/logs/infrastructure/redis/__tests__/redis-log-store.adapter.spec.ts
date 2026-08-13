@@ -109,7 +109,9 @@ describe('RedisLogStoreAdapter', () => {
         it('writes the terminal entry, then archives, and only then sets the expiry', async () => {
             const order: string[] = [];
 
+            // eslint-disable-next-line @typescript-eslint/require-await
             mockRepository.createMany.mockImplementation(async () => { order.push('archive'); });
+            // eslint-disable-next-line @typescript-eslint/require-await
             jest.spyOn(client, 'expire').mockImplementation(async () => {
                 order.push('expire');
 

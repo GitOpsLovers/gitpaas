@@ -102,6 +102,7 @@ export class RedisLogStoreAdapter implements LogStore {
         return new Observable<LogEvent>((subscriber) => {
             let cancelled = false;
 
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             readLogStream(this.connection, this.repository, this.logger, streamId, subscriber, () => cancelled);
 
             return () => { cancelled = true; };

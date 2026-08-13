@@ -42,7 +42,8 @@ describe('readLogStream', () => {
     const streamOf = (streamId = 'deployment-1'): Observable<LogEvent> => new Observable<LogEvent>((subscriber) => {
         let cancelled = false;
 
-        void readLogStream(
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        readLogStream(
             connection as unknown as RedisConnection,
             mockRepository as unknown as LogsRepository,
             mockLogger as unknown as AppLogger,

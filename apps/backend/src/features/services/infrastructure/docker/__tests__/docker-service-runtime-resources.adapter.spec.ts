@@ -50,6 +50,7 @@ const matchesSelector = (labels: Record<string, string> | undefined, selector: R
         ...(selector.project === undefined ? {} : { [COMPOSE_PROJECT_LABEL]: selector.project }),
     };
 
+    // eslint-disable-next-line security/detect-object-injection
     return Object.entries(required).every(([key, value]) => (value === null ? key in owned : owned[key] === value));
 };
 
@@ -141,7 +142,6 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             expect(mockRemoveContainer).not.toHaveBeenCalled();
         });
-
     });
 
     describe('removeNetworks', () => {
@@ -184,7 +184,6 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             expect(mockRemoveNetwork).not.toHaveBeenCalled();
         });
-
     });
 
     describe('removeImages', () => {
@@ -229,7 +228,6 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             expect(mockRemoveImage).not.toHaveBeenCalled();
         });
-
     });
 
     describe('against an unfiltered host set, with the runtime honouring the selector', () => {
@@ -290,6 +288,5 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             expect(mockRemoveContainer).toHaveBeenCalledWith('ctr-own', { force: true, removeVolumes: true });
             expect(mockRemoveContainer).not.toHaveBeenCalledWith('ctr-foreign', expect.anything());
         });
-
     });
 });

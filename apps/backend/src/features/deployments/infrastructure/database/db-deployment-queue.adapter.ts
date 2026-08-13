@@ -47,7 +47,9 @@ export class DatabaseDeploymentQueueAdapter implements DeploymentQueue {
      */
     public async enqueue(task: DeploymentRunTask): Promise<void> {
         const parentRequestId = getTelemetry()?.['request.id'] ?? null;
-        const entity = this.repository.create({ ...task, status: 'queued', attempts: 0, parentRequestId });
+        const entity = this.repository.create({
+            ...task, status: 'queued', attempts: 0, parentRequestId,
+        });
         const saved = await this.repository.save(entity);
 
         this.requests.next(toQueuedDeploymentTask(saved));

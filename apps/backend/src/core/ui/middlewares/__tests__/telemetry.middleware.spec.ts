@@ -5,7 +5,6 @@ import { EventEmitter } from 'node:events';
 
 import { INJECTABLE_WATERMARK, SELF_DECLARED_DEPS_METADATA } from '@nestjs/common/constants';
 import { ConfigService } from '@nestjs/config';
-
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { NextFunction, Request, Response } from 'express';
 
@@ -24,6 +23,7 @@ const mockShouldKeepTelemetry = shouldKeepTelemetryUseCase as jest.MockedFunctio
 >;
 
 /** RFC 4122 shape of a generated correlation id. */
+// eslint-disable-next-line security/detect-unsafe-regex
 const UUID_PATTERN = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/;
 
 /** Resolves after pending microtasks, letting an asynchronous enrichment settle. */
@@ -128,7 +128,7 @@ describe('TelemetryMiddleware', () => {
                 'user-agent': 'jest',
                 'content-length': '128',
             },
-        } as unknown as Partial<Request>);
+        });
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -162,7 +162,7 @@ describe('TelemetryMiddleware', () => {
         const { emitted, middleware } = buildWriter();
         const { request, response, next } = buildContext({
             route: { path: '/api/v1/projects/:id' },
-        } as unknown as Partial<Request>);
+        });
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -175,7 +175,7 @@ describe('TelemetryMiddleware', () => {
         const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
         // The rest of the chain runs inside the scope, so its enrichment reaches the event
-        const next = jest.fn(() => enrichTelemetry({ 'project.id': 'project-1' })) as unknown as NextFunction;
+        const next = jest.fn(() => { enrichTelemetry({ 'project.id': 'project-1' }); }) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -281,7 +281,7 @@ describe('TelemetryMiddleware', () => {
 
     it('generates the correlation id when the request carries none', () => {
         const { emitted, middleware } = buildWriter();
-        const { request, response, next } = buildContext({ headers: {} } as unknown as Partial<Request>);
+        const { request, response, next } = buildContext({ headers: {} });
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -293,7 +293,7 @@ describe('TelemetryMiddleware', () => {
 
     it('reports no query keys when the request has no query', () => {
         const { emitted, middleware } = buildWriter();
-        const { request, response, next } = buildContext({ query: undefined } as unknown as Partial<Request>);
+        const { request, response, next } = buildContext({ query: undefined });
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -306,7 +306,8 @@ describe('TelemetryMiddleware', () => {
         const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
         const next = jest.fn(() => {
-            void Promise.resolve().then(() => enrichTelemetry({ 'user.id': 'user-1' }));
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            Promise.resolve().then(() => { enrichTelemetry({ 'user.id': 'user-1' }); });
         }) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
@@ -341,7 +342,7 @@ describe('TelemetryMiddleware', () => {
     it('lets an enrichment override a seeded field', () => {
         const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
-        const next = jest.fn(() => enrichTelemetry({ 'trace.id': 'overridden' })) as unknown as NextFunction;
+        const next = jest.fn(() => { enrichTelemetry({ 'trace.id': 'overridden' }); }) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -353,7 +354,7 @@ describe('TelemetryMiddleware', () => {
     it('lets the outcome of the response win over an enriched status code', () => {
         const { emitted, middleware } = buildWriter();
         const { request, response } = buildContext();
-        const next = jest.fn(() => enrichTelemetry({ 'http.status_code': 200 })) as unknown as NextFunction;
+        const next = jest.fn(() => { enrichTelemetry({ 'http.status_code': 200 }); }) as unknown as NextFunction;
 
         middleware.use(request, response as unknown as Response, next);
 
@@ -520,7 +521,7 @@ describe('TelemetryMiddleware', () => {
 
     it('declares the stdout writer adapter as the injection token of its writer parameter', () => {
         const injected = Reflect.getMetadata(SELF_DECLARED_DEPS_METADATA, TelemetryMiddleware) as
-            | { index: number; param: unknown }[]
+            | Array<{ index: number; param: unknown }>
             | undefined;
 
         expect(injected).toEqual([{ index: 0, param: StdoutTelemetryWriterAdapter }]);

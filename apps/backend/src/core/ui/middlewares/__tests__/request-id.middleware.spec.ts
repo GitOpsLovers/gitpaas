@@ -2,13 +2,13 @@
 import 'reflect-metadata';
 
 import { INJECTABLE_WATERMARK, PARAMTYPES_METADATA, SELF_DECLARED_DEPS_METADATA } from '@nestjs/common/constants';
-
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import type { NextFunction, Request, Response } from 'express';
 
 import { REQUEST_ID_HEADER, RequestIdMiddleware } from '../request-id.middleware';
 
 /** RFC 4122 shape of a generated correlation id. */
+// eslint-disable-next-line security/detect-unsafe-regex
 const UUID_PATTERN = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/;
 
 /**
@@ -39,6 +39,7 @@ describe('RequestIdMiddleware', () => {
 
         sut.use(request, response, next);
 
+        // eslint-disable-next-line security/detect-object-injection
         const requestId = request.headers[REQUEST_ID_HEADER] as string;
 
         expect(requestId).toMatch(UUID_PATTERN);
@@ -53,6 +54,7 @@ describe('RequestIdMiddleware', () => {
 
         sut.use(request, response, next);
 
+        // eslint-disable-next-line security/detect-object-injection
         expect(request.headers[REQUEST_ID_HEADER]).toBe('client-supplied');
         expect(mockSetHeader).toHaveBeenCalledWith('X-Request-Id', 'client-supplied');
         expect(next).toHaveBeenCalledTimes(1);
@@ -63,6 +65,7 @@ describe('RequestIdMiddleware', () => {
 
         sut.use(request, response, next);
 
+        // eslint-disable-next-line security/detect-object-injection
         const requestId = request.headers[REQUEST_ID_HEADER] as string;
 
         expect(requestId).toMatch(UUID_PATTERN);
@@ -77,6 +80,7 @@ describe('RequestIdMiddleware', () => {
 
         sut.use(request, response, next);
 
+        // eslint-disable-next-line security/detect-object-injection
         const requestId = request.headers[REQUEST_ID_HEADER] as string;
 
         expect(requestId).toMatch(UUID_PATTERN);

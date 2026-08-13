@@ -65,7 +65,7 @@ describe('StdoutTelemetryWriterAdapter', () => {
             throw new Error('stdout closed');
         });
 
-        expect(() => new StdoutTelemetryWriterAdapter().emit(EVENT)).not.toThrow();
+        expect(() => { new StdoutTelemetryWriterAdapter().emit(EVENT); }).not.toThrow();
     });
 
     it('returns nothing when the write fails, so the unit of work keeps going', () => {
@@ -73,6 +73,7 @@ describe('StdoutTelemetryWriterAdapter', () => {
             throw new Error('stdout closed');
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
         expect(new StdoutTelemetryWriterAdapter().emit(EVENT)).toBeUndefined();
     });
 
@@ -82,7 +83,7 @@ describe('StdoutTelemetryWriterAdapter', () => {
 
         circular.self = circular;
 
-        expect(() => new StdoutTelemetryWriterAdapter().emit(circular)).not.toThrow();
+        expect(() => { new StdoutTelemetryWriterAdapter().emit(circular); }).not.toThrow();
         expect(mockWrite).not.toHaveBeenCalled();
     });
 });

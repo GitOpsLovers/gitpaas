@@ -28,7 +28,7 @@ describe('resolveRoute', () => {
     });
 
     it('omits http.route when the matched route carries no string path', () => {
-        const request = buildRequest({ route: {} } as unknown as Partial<Request>);
+        const request = buildRequest({ route: {} });
 
         expect(resolveRoute(request)).toBeUndefined();
     });
@@ -37,7 +37,7 @@ describe('resolveRoute', () => {
         const request = buildRequest({
             baseUrl: '/api/v1/projects',
             route: { path: '/:id' },
-        } as unknown as Partial<Request>);
+        });
 
         expect(resolveRoute(request)).toBe('/api/v1/projects/:id');
     });
@@ -111,7 +111,7 @@ describe('buildTelemetrySeed', () => {
     it('omits http.user_agent when the header carries an empty value', () => {
         const request = buildRequest({
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'user-agent': '' },
-        } as unknown as Partial<Request>);
+        });
 
         expect(Object.keys(buildTelemetrySeed(request))).not.toContain('http.user_agent');
     });
@@ -119,7 +119,7 @@ describe('buildTelemetrySeed', () => {
     it('reports the declared body size as a number', () => {
         const request = buildRequest({
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'content-length': '128' },
-        } as unknown as Partial<Request>);
+        });
 
         expect(buildTelemetrySeed(request)['http.request_bytes']).toBe(128);
     });
@@ -127,7 +127,7 @@ describe('buildTelemetrySeed', () => {
     it('omits http.request_bytes when the content length is not a number', () => {
         const request = buildRequest({
             headers: { [REQUEST_ID_HEADER]: 'correlation-id', 'content-length': 'many' },
-        } as unknown as Partial<Request>);
+        });
 
         const seed = buildTelemetrySeed(request);
 

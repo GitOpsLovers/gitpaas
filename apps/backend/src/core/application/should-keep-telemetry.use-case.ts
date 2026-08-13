@@ -49,7 +49,7 @@ function resolveDeterministicReason(event: TelemetryEvent, slowMs: number): Tele
         return TELEMETRY_KEPT_REASON_MUTATION;
     }
 
-    if (route !== undefined && route.startsWith(TELEMETRY_AUTH_ROUTE_PREFIX)) {
+    if (route?.startsWith(TELEMETRY_AUTH_ROUTE_PREFIX)) {
         return TELEMETRY_KEPT_REASON_AUTH;
     }
 

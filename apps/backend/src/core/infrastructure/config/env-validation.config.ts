@@ -1,5 +1,7 @@
 import { plainToInstance } from 'class-transformer';
-import { IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
+import {
+    IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, validateSync,
+} from 'class-validator';
 
 import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '../../domain/constants/telemetry.constants';
 

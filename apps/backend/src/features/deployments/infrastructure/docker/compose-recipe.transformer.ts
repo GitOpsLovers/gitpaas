@@ -5,20 +5,20 @@ import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructu
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /** A service's `build` block, in either the shorthand (string) or long (object) form. */
-export type ComposeBuild = string | { context?: string; dockerfile?: string; args?: string[] | Record<string, unknown>; target?: string };
+type ComposeBuild = string | { context?: string; dockerfile?: string; args?: string[] | Record<string, unknown>; target?: string };
 
 /** A service's `healthcheck` block (only the duration fields we normalize). */
-export interface ComposeHealthcheck {
+interface ComposeHealthcheck {
     interval?: string | number;
     timeout?: string | number;
     start_period?: string | number;
 }
 
 /** A compose `labels` block, in either the list (`KEY=value`) or map form. */
-export type ComposeLabels = string[] | Record<string, unknown>;
+type ComposeLabels = string[] | Record<string, unknown>;
 
 /** The subset of a compose service the executor reads/rewrites. */
-export interface ComposeService {
+interface ComposeService {
     image?: string;
     build?: ComposeBuild;
     healthcheck?: ComposeHealthcheck;
@@ -26,23 +26,15 @@ export interface ComposeService {
 }
 
 /** The subset of a top-level compose volume/network the executor rewrites. */
-export interface ComposeResource {
+interface ComposeResource {
     labels?: ComposeLabels;
 }
 
 /** The parsed compose recipe exposed by `dockerode-compose`. */
-export interface ComposeRecipe {
+interface ComposeRecipe {
     services?: Record<string, ComposeService>;
     volumes?: Record<string, ComposeResource | null>;
     networks?: Record<string, ComposeResource | null>;
-}
-
-/** A resolved build definition ready to hand to the runtime's image build. */
-export interface ResolvedBuild {
-    contextPath: string;
-    dockerfile: string;
-    buildargs?: Record<string, string>;
-    target?: string;
 }
 
 /**
@@ -108,6 +100,14 @@ function recipeResources(compose: RuntimeComposeProject): ComposeResource[] {
     }
 
     return resources;
+}
+
+/** A resolved build definition ready to hand to the runtime's image build. */
+export interface ResolvedBuild {
+    contextPath: string;
+    dockerfile: string;
+    buildargs?: Record<string, string>;
+    target?: string;
 }
 
 /**

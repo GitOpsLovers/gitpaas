@@ -57,6 +57,7 @@ export function toLogEventFromFields(fields: string[]): StoredLogEvent | null {
     const values = new Map<string, string>();
 
     for (let index = 0; index + 1 < fields.length; index += 2) {
+        // eslint-disable-next-line security/detect-object-injection
         values.set(fields[index], fields[index + 1]);
     }
 

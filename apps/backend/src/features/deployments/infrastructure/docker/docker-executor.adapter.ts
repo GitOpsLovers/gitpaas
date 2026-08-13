@@ -186,7 +186,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
                 stream,
                 (error) => {
                     if (error) {
-                        reject(error instanceof Error ? error : new Error(String(error)));
+                        reject(error instanceof Error ? error : new Error(JSON.stringify(error)));
                     } else {
                         resolvePromise();
                     }

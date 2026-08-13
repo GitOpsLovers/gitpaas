@@ -48,6 +48,7 @@ describe('CreateDeploymentDto', () => {
 
     it.each(STRING_PROPERTIES)('requires %s', (property: string) => {
         const payload = validPayload();
+        // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-dynamic-delete
         delete payload[property];
 
         expect(constraintsFor(validatePayload(payload), property)).toEqual(

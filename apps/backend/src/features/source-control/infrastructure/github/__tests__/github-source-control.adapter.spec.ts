@@ -24,6 +24,7 @@ interface FakeClient {
 
 /** Build a stub `ConfigService` whose `get` returns the provided values. */
 const createConfig = (values: Record<string, string | undefined> = {}): ConfigService =>
+    // eslint-disable-next-line security/detect-object-injection
     ({ get: jest.fn((key: string) => values[key]) }) as unknown as ConfigService;
 
 describe('GithubSourceControlAdapter', () => {

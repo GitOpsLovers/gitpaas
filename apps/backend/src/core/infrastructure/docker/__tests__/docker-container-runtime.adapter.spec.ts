@@ -619,6 +619,7 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('returns nothing, since the modem drives the stream', () => {
             const { sut } = buildSut();
 
+            // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
             const result = sut.followProgress(Readable.from([]), jest.fn(), jest.fn());
 
             expect(result).toBeUndefined();

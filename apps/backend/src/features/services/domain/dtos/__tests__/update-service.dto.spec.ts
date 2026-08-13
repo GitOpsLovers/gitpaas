@@ -61,9 +61,9 @@ describe('UpdateServiceDto', () => {
         'accepts an undefined %s, as it is optional',
         (property: string) => {
             const payload = validPayload();
-            delete payload[property];
+            const { [property]: _removed, ...payloadWithoutProperty } = payload;
 
-            expect(validatePayload(payload)).toEqual([]);
+            expect(validatePayload(payloadWithoutProperty)).toEqual([]);
         },
     );
 

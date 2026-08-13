@@ -100,6 +100,7 @@ describe('JwtAuthGuard', () => {
             mockReflector.getAllAndOverride.mockReturnValue(true);
 
             const event = runWithTelemetry({}, () => {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 sut.canActivate(contextFor());
 
                 return getTelemetry();
@@ -112,6 +113,7 @@ describe('JwtAuthGuard', () => {
             mockReflector.getAllAndOverride.mockReturnValue(false);
 
             const event = runWithTelemetry({}, () => {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 sut.canActivate(contextFor());
 
                 return getTelemetry();

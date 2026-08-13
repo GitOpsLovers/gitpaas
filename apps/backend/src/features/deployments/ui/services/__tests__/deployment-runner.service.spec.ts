@@ -84,6 +84,7 @@ describe('DeploymentRunnerService', () => {
 
     /** Single telemetry event the runner emitted for a run, failing loudly when none was. */
     const emittedEvent = (index = 0): TelemetryEvent => {
+        // eslint-disable-next-line security/detect-object-injection
         const call = mockTelemetryWriter.emit.mock.calls[index];
 
         if (call === undefined) {
@@ -242,6 +243,7 @@ describe('DeploymentRunnerService', () => {
     });
 
     it('publishes the dependency counters recorded while the run was in flight', async () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
         mockRunDeploymentUseCase.mockImplementation(async () => {
             recordDependencyCall('docker', 12, false);
             recordDependencyCall('github', 8, true);

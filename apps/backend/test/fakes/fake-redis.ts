@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable import/exports-last */
 /**
  * In-memory doubles for Redis, so the log-store specs need no Redis server.
  *

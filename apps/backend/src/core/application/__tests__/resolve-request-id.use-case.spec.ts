@@ -1,6 +1,7 @@
 import { resolveRequestIdUseCase } from '../resolve-request-id.use-case';
 
 /** RFC 4122 shape of a generated correlation id. */
+// eslint-disable-next-line security/detect-unsafe-regex
 const UUID_PATTERN = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/;
 
 describe('resolveRequestIdUseCase', () => {
