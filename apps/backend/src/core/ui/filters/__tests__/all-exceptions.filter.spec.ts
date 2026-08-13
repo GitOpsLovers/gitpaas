@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
+import { TELEMETRY_MAX_STACK_LENGTH } from '../../../domain/constants/telemetry.constants';
 import { DomainError } from '../../../domain/errors/domain.error';
 import type { TelemetryEvent } from '../../../domain/models/telemetry.models';
 import { getTelemetry, runWithTelemetry } from '../../../infrastructure/telemetry/telemetry.context';
@@ -274,12 +275,25 @@ describe('AllExceptionsFilter', () => {
 
                 Object.defineProperty(domainError, 'cause', { value: root });
 
-                const stack = catchInTelemetryScope(
-                    new ServiceUnavailableException(domainError.message, { cause: domainError }),
-                )['error.stack']!;
+                const exception = new ServiceUnavailableException(domainError.message, {
+                    cause: domainError,
+                });
 
-                expect(stack).toContain('Domain failure');
-                expect(stack).toContain('socket hang up');
+                // Short stacks, so the assertion is about following the chain and
+                // never about the cap the filter applies to the joined result.
+                root.stack = 'Error: socket hang up';
+                domainError.stack = 'CodedDomainError: Domain failure';
+                exception.stack = 'ServiceUnavailableException: Domain failure';
+
+                const stack = catchInTelemetryScope(exception)['error.stack']!;
+
+                expect(stack).toBe(
+                    'ServiceUnavailableException: Domain failure\n'
+                    + 'Caused by: CodedDomainError: Domain failure\n'
+                    + 'Caused by: Error: socket hang up',
+                );
+                expect(stack.match(/Caused by:/g)).toHaveLength(2);
+                expect(stack).not.toContain('truncated');
             });
 
             it('stops on a cyclic cause chain', () => {
@@ -292,6 +306,132 @@ describe('AllExceptionsFilter', () => {
 
                 expect(stack).toContain('first');
                 expect(stack.match(/Caused by:/g)).toHaveLength(1);
+            });
+
+            it('leaves a stack shorter than the cap unchanged, with no truncation marker', () => {
+                const error = new Error('boom');
+
+                error.stack = `Error: boom\n${'    at frame\n'.repeat(10)}`;
+
+                const stack = catchInTelemetryScope(error)['error.stack']!;
+
+                expect(stack).toBe(error.stack);
+                expect(stack).not.toContain('truncated');
+            });
+
+            it('leaves a stack of exactly the cap unchanged, with no truncation marker', () => {
+                const error = new Error('boom');
+
+                error.stack = 'a'.repeat(TELEMETRY_MAX_STACK_LENGTH);
+
+                const stack = catchInTelemetryScope(error)['error.stack']!;
+
+                expect(stack).toBe(error.stack);
+                expect(stack.length).toBe(TELEMETRY_MAX_STACK_LENGTH);
+                expect(stack).not.toContain('truncated');
+            });
+
+            it('caps a stack one character over the limit', () => {
+                const error = new Error('boom');
+
+                error.stack = 'b'.repeat(TELEMETRY_MAX_STACK_LENGTH + 1);
+
+                const stack = catchInTelemetryScope(error)['error.stack']!;
+                const removed = Number(/truncated (\d+) characters/.exec(stack)![1]);
+                const marker = `\n… [truncated ${removed} characters]`;
+
+                expect(stack.length).toBe(TELEMETRY_MAX_STACK_LENGTH);
+                expect(stack).toBe(
+                    'b'.repeat(TELEMETRY_MAX_STACK_LENGTH - marker.length) + marker,
+                );
+                expect(removed).toBe(error.stack.length - (TELEMETRY_MAX_STACK_LENGTH - marker.length));
+            });
+
+            it('accounts for the marker growing as the removed count gains a digit', () => {
+                const error = new Error('boom');
+                // The overflow is two digits long, but the marker it needs pushes the
+                // removed count to three, so the marker has to be measured again.
+                const overflow = 80;
+
+                error.stack = 'c'.repeat(TELEMETRY_MAX_STACK_LENGTH + overflow);
+
+                const stack = catchInTelemetryScope(error)['error.stack']!;
+                const removed = Number(/truncated (\d+) characters/.exec(stack)![1]);
+                const marker = `\n… [truncated ${removed} characters]`;
+
+                expect(String(overflow)).toHaveLength(2);
+                expect(String(removed)).toHaveLength(3);
+                expect(stack.length).toBe(TELEMETRY_MAX_STACK_LENGTH);
+                expect(removed).toBe(error.stack.length - (TELEMETRY_MAX_STACK_LENGTH - marker.length));
+                expect(stack.endsWith(marker)).toBe(true);
+            });
+
+            it('falls back to the name and message of an exception carrying no stack', () => {
+                const error = new Error('boom');
+
+                delete error.stack;
+
+                const event = catchInTelemetryScope(error);
+
+                expect(event['error.stack']).toBe('Error: boom');
+            });
+
+            it('falls back to the name and message of a chained cause carrying no stack', () => {
+                const root = new Error('socket hang up');
+                const exception = new ServiceUnavailableException('Could not reach the daemon', {
+                    cause: root,
+                });
+
+                delete root.stack;
+                exception.stack = 'ServiceUnavailableException: Could not reach the daemon';
+
+                const stack = catchInTelemetryScope(exception)['error.stack']!;
+
+                expect(stack).toBe(
+                    'ServiceUnavailableException: Could not reach the daemon\nCaused by: Error: socket hang up',
+                );
+            });
+
+            it('caps a stack longer than the limit, keeping its first characters', () => {
+                const error = new Error('boom');
+                const head = 'Error: boom\n    at the frame that carries the failure\n';
+
+                error.stack = head + 'x'.repeat(TELEMETRY_MAX_STACK_LENGTH * 2);
+
+                const stack = catchInTelemetryScope(error)['error.stack']!;
+
+                expect(stack.length).toBe(TELEMETRY_MAX_STACK_LENGTH);
+                expect(stack.startsWith(head)).toBe(true);
+                expect(stack).toMatch(/\n… \[truncated \d+ characters]$/);
+            });
+
+            it('reports how many characters the truncation removed', () => {
+                const error = new Error('boom');
+
+                error.stack = 'y'.repeat(TELEMETRY_MAX_STACK_LENGTH + 500);
+
+                const stack = catchInTelemetryScope(error)['error.stack']!;
+                const removed = Number(/truncated (\d+) characters/.exec(stack)![1]);
+                const marker = `\n… [truncated ${removed} characters]`;
+
+                expect(removed).toBe(error.stack.length - (TELEMETRY_MAX_STACK_LENGTH - marker.length));
+                expect(stack).toBe(
+                    error.stack.slice(0, TELEMETRY_MAX_STACK_LENGTH - marker.length) + marker,
+                );
+            });
+
+            it('caps the joined cause chain as a whole', () => {
+                const root = new Error('root');
+                const exception = new ServiceUnavailableException('outer', { cause: root });
+
+                root.stack = 'z'.repeat(TELEMETRY_MAX_STACK_LENGTH);
+                exception.stack = `Error: outer\n${'w'.repeat(TELEMETRY_MAX_STACK_LENGTH)}`;
+
+                const stack = catchInTelemetryScope(exception)['error.stack']!;
+
+                expect(stack.length).toBe(TELEMETRY_MAX_STACK_LENGTH);
+                expect(stack.startsWith('Error: outer\n')).toBe(true);
+                expect(stack).toContain('truncated');
             });
 
             it('adds no stack for a 4xx failure, which the server did not cause', () => {

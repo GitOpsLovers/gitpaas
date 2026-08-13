@@ -76,9 +76,9 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 - [x] Decide the store and the query tool: stdout only, a `telemetry_events` `JSONB` table in the existing PostgreSQL, a columnar store, or a hosted vendor. **Decided: stdout only for now; a persistent store is deferred.**
 - [x] Decide the source of `service.version`, because no `APP_VERSION` variable exists today in `core/infrastructure/config/env-validation.config.ts` or in the image build. **Decided: the `version` of the root `package.json`, stamped as `APP_VERSION` by the production image.**
-- [ ] Decide the retention period of the events.
+- [x] Decide the retention period of the events. **Decided: no store in the short term; the rotation of the Docker log driver is the retention.**
 - [x] Decide if the commit message of a deployment can be a field, or only the SHA and the branch. **Decided: only the SHA and the branch.**
 - [x] Decide if `GET /api/v1/server/readiness` stays in the random 5 % sample. **Decided: it stays in the random 5 % sample.**
 - [ ] Decide how the SSE route keeps its `AsyncLocalStorage` reference across the blocking Redis reads.
-- [ ] Decide the maximum length of the `error.stack` field.
+- [x] Decide the maximum length of the `error.stack` field. **Decided: 4096 characters for the whole chain, with the first characters kept.**
 - [ ] Measure the cost of `AsyncLocalStorage` on the SSE route before phase 1.
