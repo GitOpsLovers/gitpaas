@@ -1,0 +1,55 @@
+apps/backend/src/core/infrastructure/telemetry/resolve-service-version.ts
+  s_412b31c7332072::t_0dc2cd756365a7 1-88
+apps/backend/src/core/ui/translators/__tests__/telemetry.translator.spec.ts
+  s_412b31c7332072::t_3a7becc1ea5c6e 1,3,8,12-14,57,62,78,81
+apps/backend/src/core/ui/translators/telemetry.translator.ts
+  s_412b31c7332072::t_bd89ed8e3d2803 7,9,78
+apps/backend/src/features/deployments/ui/telemetry/__tests__/build-deployment-run-seed.spec.ts
+  s_412b31c7332072::t_f040f3b90db937 1,3,8-12,32,37,53,56
+apps/backend/src/features/deployments/ui/telemetry/build-deployment-run-seed.ts
+  s_412b31c7332072::t_f2862a93fc44dd 5,7,21
+iac/production/backend.Dockerfile
+  s_412b31c7332072::t_8b6bb10589b1b2 61-64,76,89-92
+apps/backend/src/core/infrastructure/telemetry/__tests__/resolve-service-version.spec.ts
+  s_8f71aefb0defeb::t_adc55266cf47f4 1-167
+apps/backend/src/core/ui/middlewares/__tests__/telemetry.middleware.spec.ts
+  s_8f71aefb0defeb::t_d2736eec842dfe 15,105,111
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_8f71aefb0defeb::t_33f4edf9eb0f91 18,100,138-141
+docs/roadmap/logging-plan-todo.md
+  s_aba22ba04b28ff::t_3c8d5ead867fc2 66-68,77-78
+docs/roadmap/logging-plan.md
+  s_aba22ba04b28ff::t_61815c192403d0 110,119-122,494-497,516-517,519-520
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f961fcf5f8b8f94f630b456eb24d4bcc64bb2612",
+  "prompts": {},
+  "sessions": {
+    "s_412b31c7332072": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2d85075a-bbf5-4402-8b0a-115badfce8ea",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8f71aefb0defeb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aecee5df35ff86bf9",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_aba22ba04b28ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2daa83b3658cc043",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
