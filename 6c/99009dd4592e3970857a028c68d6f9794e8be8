@@ -1,0 +1,43 @@
+apps/backend/src/core/ui/filters/all-exceptions.filter.ts
+  s_e732af7132c264::t_bb74b470a93c0f 7,232-266
+apps/backend/src/core/domain/constants/telemetry.constants.ts
+  s_e732af7132c264::t_365ce4d48c56a2 11-15
+apps/backend/src/core/ui/filters/__tests__/all-exceptions.filter.spec.ts
+  s_a7df163225c560::t_26afab8ae935f5 12,278-288,290-296,310-435
+docs/roadmap/logging-plan-todo.md
+  s_9da060e7d69a0b::t_4ece7bcd898260 79,83
+docs/roadmap/logging-plan.md
+  s_9da060e7d69a0b::t_e652608e108ad1 218,395,554-558
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "6c99009dd4592e3970857a028c68d6f9794e8be8",
+  "prompts": {},
+  "sessions": {
+    "s_9da060e7d69a0b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adbd5fe4971089273",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_a7df163225c560": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a63ded08274c041b4",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e732af7132c264": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a585ca95465daa29a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
