@@ -17,7 +17,7 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 - [x] Register the writer in the `providers` and the `exports` of `core/core.module.ts`.
 - [x] Create `core/ui/middlewares/telemetry.middleware.ts` (new) that seeds the event and emits it on the response `finish` and `close` events.
 - [x] Add a guard flag in `core/ui/middlewares/telemetry.middleware.ts` so one request emits one event only.
-- [x] Register the middleware in `bootstrap.ts`, after `requestIdMiddleware` and before `helmet()`.
+- [x] Register the middleware in the `configure` method of `core/core.module.ts`, which applies `RequestIdMiddleware` and then `TelemetryMiddleware` to every route.
 - [x] Add the service context, the correlation and the request fields to the emitted event.
 
 ## Phase 1 — Converge the errors
@@ -30,10 +30,10 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 
 ## Phase 2 — The actor and the business context
 
-- [x] Add the `user.*` and `auth.*` fields from the `request.user` that `features/authentication/infrastructure/passport/jwt.strategy.ts` attaches.
+- [x] Add the `user.*` and `auth.*` fields in `features/authentication/ui/guards/jwt-auth.guard.ts`, from the `request.user` that the JWT strategy attaches.
 - [x] Add the `project.*` fields in `features/projects/ui/controllers/projects.controller.ts` and `features/projects/ui/services/projects.service.ts`.
 - [x] Add the `service.*` and `deployment.*` fields in `features/deployments/ui/controllers/deployments.controller.ts` and `features/deployments/ui/services/deployments.service.ts`.
-- [x] Add the same enrichment to the remaining features, with the `projects` feature as the reference.
+- [x] Add the same enrichment to the controllers of the features that carry a business identifier — `services`, `networks`, `containers`, `logs` and `source-control` — with the `projects` feature as the reference.
 
 ## Phase 3 — The outbound calls
 
@@ -61,22 +61,26 @@ All the paths are relative to `apps/backend/src`, if there is no other indicatio
 - [x] Add the `sampling.kept_reason` and `sampling.rate` fields to the emitted event.
 - [x] Remove the SSE route from the slow-threshold rule, because the `http.sse` rule keeps it already.
 
-## Phase 6 — The transport and the store
+## Phase 6 — Complete the coverage of the event
 
-> **Deferred.** The console (stdout) stays as the transport for now, and `StdoutTelemetryWriterAdapter` covers it.
-> This phase restarts when the project selects a persistent store.
+> The transport is closed. `StdoutTelemetryWriterAdapter` writes one JSON line for each event, and the rotation
+> of the Docker log driver is the retention. There is no persistent store in the plan.
+> What is open is the **coverage**: some paths of the application still emit an event that has empty fields.
 
-- [ ] Create the adapter of the selected store in `core/infrastructure/telemetry/` (new).
-- [ ] Register the new adapter in `core/core.module.ts` in place of `stdout-telemetry-writer.adapter.ts`.
-- [ ] Remove `core/infrastructure/telemetry/stdout-telemetry-writer.adapter.ts` when the new adapter operates.
+- [ ] Add the enrichment to `features/authentication/ui/controllers/authentication.controller.ts` and `features/authentication/ui/services/authentication.service.ts`, so a successful login gives a `user.id` and an `auth.outcome`.
+- [ ] Add the enrichment to `features/users/ui/services/users.service.ts`, which is the only UI layer of that feature (it has no controller), for the operations that a request reaches.
+- [ ] Decide if `features/server` needs the enrichment, and add it or record the decision.
+- [ ] Move the enrichment of `logs`, `networks` and `containers` into their UI services, or confirm that the enrichment of their controllers is sufficient.
+- [ ] Record the `deps.postgres.*` counters with `recordDependencyCall('postgres', …)`, because no code calls them today.
+- [ ] Cap `error.stack` at `TELEMETRY_MAX_STACK_LENGTH` (4096) characters on the `deployment.run` path of `features/deployments/ui/services/deployment-runner.service.ts`, as `core/ui/filters/all-exceptions.filter.ts` does on the HTTP path.
 
 ---
 
 ## Blocked / decisions needed
 
-- [x] Decide the store and the query tool: stdout only, a `telemetry_events` `JSONB` table in the existing PostgreSQL, a columnar store, or a hosted vendor. **Decided: stdout only for now; a persistent store is deferred.**
+- [x] Decide the store and the query tool: stdout only, a `telemetry_events` `JSONB` table in the existing PostgreSQL, a columnar store, or a hosted vendor. **Decided: stdout only. `StdoutTelemetryWriterAdapter` is the definitive transport, and the project adds no persistent store.**
 - [x] Decide the source of `service.version`, because no `APP_VERSION` variable exists today in `core/infrastructure/config/env-validation.config.ts` or in the image build. **Decided: the `version` of the root `package.json`, stamped as `APP_VERSION` by the production image.**
-- [x] Decide the retention period of the events. **Decided: no store in the short term; the rotation of the Docker log driver is the retention.**
+- [x] Decide the retention period of the events. **Decided: the rotation of the Docker log driver is the retention.**
 - [x] Decide if the commit message of a deployment can be a field, or only the SHA and the branch. **Decided: only the SHA and the branch.**
 - [x] Decide if `GET /api/v1/server/readiness` stays in the random 5 % sample. **Decided: it stays in the random 5 % sample.**
 - [ ] Decide how the SSE route keeps its `AsyncLocalStorage` reference across the blocking Redis reads.

@@ -33,9 +33,9 @@ Four groups of files write log messages:
 4. **The background runner.** `features/deployments/ui/services/deployment-runner.service.ts` logs each
    unrecoverable failure of a queued task through its private `logFailure` method.
 
-There is a correlation id. `core/ui/middlewares/request-id.middleware.ts` runs before all the other
-middleware (`app.use(requestIdMiddleware)` in `src/bootstrap.ts`), resolves the `X-Request-Id` header or makes a
-UUID, writes the value back on the request headers and sets the response header.
+There is a correlation id. `core/ui/middlewares/request-id.middleware.ts` runs first in the middleware chain
+that `CoreModule` configures, resolves the `X-Request-Id` header or makes a UUID, writes the value back on the
+request headers and sets the response header.
 
 There is **no interceptor** in the application today. A search for `NestInterceptor` in `apps/backend/src`
 gives no result. Thus there is no per-request hook that sees the start and the end of a request.
@@ -155,7 +155,7 @@ operator accounts only, and has no tier and no account. Thus the applicable fiel
 
 | Field              | Source                                                                     |
 |--------------------|-----------------------------------------------------------------------------|
-| `user.id`          | `request.user` that `JwtStrategy.validate` attaches (`features/authentication/infrastructure/passport/jwt.strategy.ts`) |
+| `user.id`          | `request.user` that the JWT strategy attaches, read in `features/authentication/ui/guards/jwt-auth.guard.ts` |
 | `user.role`        | `UserRole` of `features/users/domain/models/user.models.ts` (`admin` or `user`) |
 | `auth.public_route`| `true` when the `@Public()` decorator removed the route from the global guard |
 | `auth.outcome`     | `authenticated`, `rejected` or `anonymous`                                  |
@@ -325,20 +325,26 @@ needs no new dependency.
 application has a global `JwtAuthGuard` and a global `ThrottlerGuard`. Thus an interceptor would not see a 401
 or a 429, which are exactly the events that you want. A middleware runs before all of them.
 
-- **`core/ui/middlewares/telemetry.middleware.ts`** *(new)* — it runs immediately after
-  `requestIdMiddleware` in `src/bootstrap.ts`, so the correlation id is already resolved:
+- **`core/ui/middlewares/telemetry.middleware.ts`** *(new)* — it runs immediately after the request-id
+  middleware, so the correlation id is already resolved. The `configure` method of `CoreModule` applies the two
+  middlewares in that order to every route:
 
   ```ts
-  app.use(requestIdMiddleware);
-  app.use(buildTelemetryMiddleware(writer));   // new
-  app.use(helmet());
+  export class CoreModule implements NestModule {
+      public configure(consumer: MiddlewareConsumer): void {
+          consumer.apply(RequestIdMiddleware, TelemetryMiddleware).forRoutes('*');
+      }
+  }
   ```
+
+  A middleware class, and not a module-level instance, because the telemetry middleware injects the writer
+  adapter.
 
   The middleware seeds the event with the service context, the correlation id and the request details, and
   registers the emission on the `finish` and the `close` events of the response. A guard flag makes sure that
   one request emits one event only, because a client abort can raise the two events.
 
-- **`core/infrastructure/telemetry/stdout-telemetry-writer.adapter.ts`** *(new)* — the first adapter. It writes one
+- **`core/infrastructure/telemetry/stdout-telemetry-writer.adapter.ts`** *(new)* — the definitive adapter. It writes one
   JSON line to `process.stdout`. It does **not** go through `NestLoggerAdapter`, because the Nest logger adds
   a text prefix and a colour, which breaks the machine reading. `CoreModule` declares it in its `providers`
   and its `exports`, like the other global adapters, and the consumers inject the concrete class with the type
@@ -390,9 +396,9 @@ They stay separate, and the plan does not mix them:
 | | `features/logs/` (`LogStore`) | Telemetry events |
 |---|---|---|
 | What it holds | The output of a deployment | The observability record of the backend |
-| Who reads it | The end user, in the browser, over SSE | The operator, in a query tool |
+| Who reads it | The end user, in the browser, over SSE | The operator, in the container logs |
 | Where it lives | Redis stream `logs:<deploymentId>`, then the PostgreSQL `logs` table | The telemetry writer |
-| Lifetime | The run, then the archive of the deployment | The rotation of the Docker log driver, while the project keeps no store |
+| Lifetime | The run, then the archive of the deployment | The rotation of the Docker log driver |
 
 The connection between the two is one field: `deployment.id`. The telemetry event of a run carries it, so you go
 from an event to the full output of that run. Do **not** put the output lines in the telemetry event: the output of
@@ -425,10 +431,9 @@ changes the state of the platform. Thus the policy is:
 `sampling.kept_reason` is then `random`, and `sampling.rate` is `0.05`. The rate must be a field of the event,
 so a later count can multiply the kept events again and give the true totals.
 
-**The slow threshold.** The correct value is the p99 of the route. At the beginning there is no store that can
-compute it. Thus phase 5 starts with a fixed value from a new `TELEMETRY_SLOW_MS` environment variable
-(1000 ms is a reasonable start), and the value moves to a per-route p99 when the store can give one. The
-threshold must **not** apply to the SSE route, because that route is slow by design; the `http.sse` rule keeps
+**The slow threshold.** The ideal value is the p99 of the route, but there is no store that can compute one.
+Thus the threshold is a fixed value that the `TELEMETRY_SLOW_MS` environment variable gives (1000 ms is a
+reasonable start), and the operator moves the value from what the events show. The threshold must **not** apply to the SSE route, because that route is slow by design; the `http.sse` rule keeps
 it already.
 
 **Never drop a `deployment.run` event.** There are some tens of them in a day, and each one is the record of a
@@ -446,7 +451,8 @@ its replacement operates.
 - Add the model, the port, the sampling stub (which keeps everything), the constants and the
   `telemetry.context.ts` store.
 - Add `stdout-telemetry-writer.adapter.ts` and declare it in `CoreModule`.
-- Add `telemetry.middleware.ts` and register it after `requestIdMiddleware` in `src/bootstrap.ts`.
+- Add `telemetry.middleware.ts` and register it in the `configure` method of `CoreModule`, after
+  `RequestIdMiddleware` and for every route.
 - Emit an event that has only the groups 3.1, 3.2 and 3.3.
 - **Remove nothing.** The old text lines continue. The two systems run together.
 
@@ -459,9 +465,12 @@ its replacement operates.
 
 ### Phase 2 — The actor and the business context
 
-- Add the `user.*` and the `auth.*` fields, from `request.user` that `JwtStrategy` attaches.
+- Add the `user.*` and the `auth.*` fields in `JwtAuthGuard`
+  (`features/authentication/ui/guards/jwt-auth.guard.ts`), from `request.user` that the JWT strategy attaches.
+  The guard, and not the strategy, is the place that sees the public routes and the rejected requests as well.
 - Add the `project.*`, `service.*` and `deployment.*` fields from the UI services and the controllers of the
-  applicable features. Take `projects` and `deployments` first; the other features follow the same pattern.
+  applicable features. Take `projects` and `deployments` first; the controllers of the other features that carry
+  a business identifier follow the same pattern. The features that this phase does not reach move to phase 6.
 - **Remove nothing yet.**
 
 ### Phase 3 — The outbound calls
@@ -489,12 +498,54 @@ its replacement operates.
 - Ship it only when the true volume is known, because a sampler that operates too early hides the events that
   you need to size it.
 
-### Phase 6 — The transport and the store
+### Phase 6 — Complete the coverage of the event
 
-- **Deferred.** The project selected the console (stdout) as the transport for now, and `StdoutTelemetryWriterAdapter`
-  covers it. This phase restarts when the project selects a persistent store.
-- Then, replace `StdoutTelemetryWriterAdapter` with the adapter of the store that section 7 selects. Because the
-  consumers depend on `TelemetryWriter`, this is one new file and one line in `CoreModule`.
+The transport is closed: `StdoutTelemetryWriterAdapter` writes one JSON line for each event, and the rotation of
+the Docker log driver is the retention. What is open is the **coverage**. The rails, the sampler and the schema
+operate, but some paths of the application emit an event whose fields stay empty. Each item below closes one of
+those holes.
+
+- **The authentication feature has no enrichment.** `POST /api/v1/auth/login` uses the local strategy, and thus
+  the global `JwtAuthGuard` — the one place that writes `user.id` and `auth.outcome` — does not run on it. The
+  route is `@Public()`, so the guard writes `auth.public_route: true` and `auth.outcome: 'anonymous'` and stops.
+  The result is that a successful login gives an event with **no actor**, which is exactly the event that a
+  security audit needs. The `refresh` and the `logout` routes are public in the same way. Add the enrichment to
+  `features/authentication/ui/controllers/authentication.controller.ts` and
+  to `features/authentication/ui/services/authentication.service.ts`. This is the item of the largest value of
+  the phase.
+- **The users feature has no controller.** `features/users/ui/services/users.service.ts` is the only UI layer of
+  the feature, and no code of the feature enriches an event. Add the enrichment there, so an operation on a user
+  carries its identifier. Note that the only method of the service today is the seed of the development
+  administrator, which `bootstrap.ts` calls **outside** a unit of work; that path keeps its `AppLogger` lines
+  (see "What stays with `AppLogger`"). Thus the item applies to the operations of the feature that a request
+  reaches.
+- **The server feature carries no business identifier.** Its routes are the health probe and the readiness
+  probe, and they touch no project, no service and no deployment. Decide if the feature needs an enrichment at
+  all (for example, the name of the probe that failed), then add it or write the decision in this document. A
+  recorded "no" is a result; an open question is not.
+- **Three features enrich in the controller only.** `logs`, `networks` and `containers` write their identifier
+  in the controller, and `logs.service.ts`, `networks.service.ts` and `containers.service.ts` write nothing.
+  The `projects` feature, which is the reference, enriches in the two layers, because the service knows values
+  that the route parameters do not give. Move the enrichment into the services of the three features, or confirm
+  that the identifier of the route is all that these features can give.
+- **`deps.postgres.*` is a schema that no code fills.** `TelemetryEventDependency` of
+  `core/domain/models/telemetry.models.ts` names `postgres`, and section 3.6 describes its counters, but no
+  caller of `recordDependencyCall('postgres', …)` exists. The GitHub, the Docker and the Redis adapters record
+  their calls; the database calls are invisible. Thus an event cannot show that a slow request was slow in the
+  database. Record the counters where the TypeORM repositories run.
+- **The stack cap applies to one path only.** `core/ui/filters/all-exceptions.filter.ts` caps the joined stack
+  chain at `TELEMETRY_MAX_STACK_LENGTH` (4096) characters, but
+  `features/deployments/ui/services/deployment-runner.service.ts` builds the `error.*` fields of a
+  `deployment.run` event with no cap. A long chain there can pass the 16 KB line limit of the Docker
+  `json-file` log driver, which truncates the JSON and makes the event unreadable. Apply the same cap on the
+  background path.
+
+### The transport is stdout, and it stays stdout
+
+`StdoutTelemetryWriterAdapter` writes one JSON line for each kept event to `process.stdout`, and the rotation of
+the Docker log driver gives the retention. The project adds **no** persistent store and no query tool. The
+`TelemetryWriter` port keeps the choice reversible at the cost of one file, but no phase of this plan waits for
+that change.
 
 ### What stays with `AppLogger`
 
@@ -513,19 +564,16 @@ outside a unit of work, use `AppLogger`.**
 
 ### The store and the query tool
 
-**Decided: `stdout` only for now; a persistent store is deferred.** The project keeps the console as the transport,
-and phase 6 restarts when a persistent store becomes necessary. The other options stay on the table for that moment.
+**Decided: `stdout` only, and this is the end state.** `StdoutTelemetryWriterAdapter` writes one JSON line for
+each kept event, and the rotation of the Docker log driver is the retention. The project adds no persistent
+store: the volume of a single-operator control plane does not justify a new component in the Compose stack of a
+single host, and the tail sampling of section 5 keeps the quantity of lines small. The cost that the project
+accepts is that there is no query language over the events: `docker logs` and a text filter are the tools.
 
-- **`stdout` and `docker logs` only** — the phase 0 position, and **the selected option today**. No new component,
-  but there is no query language. It is not sufficient as an end state.
-- **A `telemetry_events` table in the existing PostgreSQL, with a `JSONB` column** — attractive, because PostgreSQL
-  is already in the topology and the volume of a single-operator control plane is small. The risks are that the
-  observability writes share the database of the application, and that a `JSONB` scan is not a columnar scan.
-- **A columnar store (for example ClickHouse)** — the correct technical answer for telemetry events, and the article
-  is right that high cardinality is cheap on a columnar store. It adds one more service to the Compose stack of
-  a single host. See [infrastructure architecture](./infrastructure-architecture.md).
-- **A hosted vendor** — no operation work, but the events leave the server, which section "PII" makes a
-  question and not a detail.
+The options that the project examined and did not take were a `telemetry_events` table with a `JSONB` column in
+the existing PostgreSQL, a columnar store (for example ClickHouse) and a hosted vendor. If the position changes,
+the consumers depend on the `TelemetryWriter` port, so the change is one new adapter file and one line in
+`CoreModule`.
 
 **OpenTelemetry** is a delivery mechanism and not an answer to this question. If it is adopted, the telemetry event
 becomes the attribute set of one span, and the `TelemetryWriter` port is the only file that changes.
