@@ -92,6 +92,7 @@ while [ $# -gt 0 ]; do
         --dir=*)       GITPAAS_DIR="${1#*=}"; shift ;;
         --email)       GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
         --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
+        -h|--help)
             awk 'NR == 1 { next } /^#/ { print; next } { exit }' "$0" 2>/dev/null || true
             exit 0 ;;
         *) die "Unknown argument: $1 (try --help)" ;;
