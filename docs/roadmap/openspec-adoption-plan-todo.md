@@ -46,7 +46,7 @@ The specifications live in the repository, next to the code, under version contr
 OpenSpec ships its own workflow commands. They are the standard that this project adopts. Do not
 write a local copy of any of them.
 
-- [ ] Read the six commands of the core profile, and confirm each one after `openspec init`.
+- [x] Read the six commands of the core profile, and confirm each one after `openspec init`. All six exist in `.claude/commands/opsx/`. Each one declares `allowed-tools: Bash(openspec:*)`.
 
 | Command | Purpose | Who runs it |
 |---|---|---|
@@ -57,13 +57,15 @@ write a local copy of any of them.
 | `/opsx:sync` | Merge the delta specifications into the main specifications | The orchestrator |
 | `/opsx:archive` | Archive a completed change | The orchestrator |
 
-- [ ] Map each command onto the local subagents, and write the map into `CLAUDE.md`:
+- [x] Map each command onto the local subagents, and write the map into `CLAUDE.md`:
   - `/opsx:explore` and `/opsx:propose` run before any delegation. No subagent starts.
   - `/opsx:apply` does not implement alone. The orchestrator reads its task list, and it delegates each task to `implementer`, `refactorer` or `tester`.
   - `/opsx:sync` runs after the tests pass, and before `git-manager`.
   - `/opsx:archive` runs after the merge.
-- [ ] **(user)** Run `/opsx:onboard` once, if the expanded profile is enabled, to learn the full loop.
-- [ ] Record the decision not to enable the expanded profile (`/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify`, `/opsx:bulk-archive`).
+
+  Written into the new *The OpenSpec commands* section of `CLAUDE.md`, before the *Routing* section.
+- [x] ~~**(user)** Run `/opsx:onboard` once, if the expanded profile is enabled, to learn the full loop.~~ Not applicable. The expanded profile stays off, and version 1.9.0 ships no `/opsx:onboard` command.
+- [x] Record the decision not to enable the expanded profile (`/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify`, `/opsx:bulk-archive`). Recorded in `CLAUDE.md`. Version 1.9.0 installs none of these five commands.
 
 ## Phase 2 — The orchestrator rules
 

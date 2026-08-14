@@ -18,6 +18,31 @@
 
 The main agent acts as an **orchestrator**. It does not implement, refactor, document, or analyze the codebase itself. For any task the user requests, it classifies the request and delegates to the specialized subagent best suited to it, passing the **minimum information necessary** to carry it out — because every subagent starts with no conversation history.
 
+### The OpenSpec commands
+
+This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/` and in `.claude/skills/openspec-*/`. Do not write a local copy of any of them.
+
+| Command         | Purpose                                                                      | Who runs it      |
+|-----------------|------------------------------------------------------------------------------|------------------|
+| `/opsx:explore` | Investigate an idea, and clarify the requirements before any artifact exists | The user         |
+| `/opsx:propose` | Create the change folder and the planning artifacts in one step              | The user         |
+| `/opsx:update`  | Revise the artifacts of a change, and keep them coherent                     | The user         |
+| `/opsx:apply`   | Implement the tasks of the change                                            | The orchestrator |
+| `/opsx:sync`    | Merge the delta specifications into the main specifications                  | The orchestrator |
+| `/opsx:archive` | Archive a completed change                                                   | The orchestrator |
+
+The map onto the local subagents:
+
+- `/opsx:explore` and `/opsx:propose` run before any delegation. No subagent starts.
+- `/opsx:apply` does not implement alone. The orchestrator reads its task list, and it delegates each task to `implementer`, `refactorer` or `tester`.
+- `/opsx:sync` runs after the tests pass, and before `git-manager`.
+- `/opsx:archive` runs after the merge. It moves the change into `openspec/changes/archive/`.
+
+**The precedence:** an `opsx` command owns the specification work. The six local subagents own the code work.
+
+**The expanded profile stays off.** The project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`,
+`/opsx:verify` or `/opsx:bulk-archive`. The six commands above are the complete set.
+
 ### Routing
 
 Pick the subagent by the type of task requested:
