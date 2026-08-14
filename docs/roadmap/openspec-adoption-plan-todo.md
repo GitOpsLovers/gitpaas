@@ -189,15 +189,58 @@ Two corrections that the migration found:
 
 ## Phase 7 — The trial run
 
-- [ ] Choose one small feature, and run the full loop on it.
-- [ ] **(user)** Run `/opsx:propose <the feature>`.
-- [ ] **(user)** Review the proposal, the design and the task list, and approve them.
-- [ ] Run `/opsx:apply`, and delegate each task to `implementer` with the change folder as the only context.
-- [ ] Delegate the tests to `tester`, and check that the tests match the scenarios.
-- [ ] Run `/opsx:sync` after the tests pass, so the delta enters the main specifications.
-- [ ] Delegate the branch, the commit and the Pull Request to `git-manager`.
-- [ ] Run `/opsx:archive` after the merge.
-- [ ] Record every problem of the loop, and correct `CLAUDE.md` and the agent files.
+- [x] Choose one small feature, and run the full loop on it. **Chosen: the health panel of the server.** The screen `/server` shows the readiness and the state of the Docker daemon, above the maintenance. The backend already gives `GET /api/v1/server/readiness` and `GET /api/v1/server/status`, so the work touches the frontend only. It needs no migration and no change of the backend, and it closes a gap that the capability `web-server` records today.
+- [x] **(user)** Run `/opsx:propose <the feature>`. The change is `openspec/changes/server-health-panel/`. The four artifacts validate.
+- [x] **(user)** Review the proposal, the design and the task list, and approve them. The user approved by running `/opsx:apply`.
+- [x] Run `/opsx:apply`, and delegate each task to `implementer` with the change folder as the only context. 18 tasks, groups 1 to 4 to `implementer`. The build passes.
+- [x] Delegate the tests to `tester`, and check that the tests match the scenarios. Group 5. 4 files of specifications, 31 tests, one per scenario and named after it. The suite gives 26 files and 192 tests.
+- [ ] Run `/opsx:sync` after the tests pass, so the delta enters the main specifications. **Not done on purpose.** The user chose not to commit. A sync before the branch exists puts a behavior into the main specification that only the working tree holds, and Phase 4 puts the sync and the code into one commit.
+- [ ] Delegate the branch, the commit and the Pull Request to `git-manager`. **Blocked.** The user chose not to commit.
+- [ ] Run `/opsx:archive` after the merge. **Blocked.** It needs a merge.
+- [x] Record every problem of the loop, and correct `CLAUDE.md` and the agent files. Four problems, below. None of them needs a correction of `CLAUDE.md` or of an agent file; the reasons are with each one.
+
+**Phase 7 is not complete.** The loop ran from the proposal to the tests that pass. The three steps of the
+Git workflow wait for a decision to commit. The state of the working tree holds the whole change.
+
+### The problems of the loop
+
+1. **The loop cannot run unattended, and this is by design.** Steps 2, 3 and the merge need a human. The
+   orchestrator stops at the proposal, and it stops again at the merge, because the skill of the Git
+   workflow never merges. An agent that runs the whole phase alone would break two rules that Phase 2 and
+   Phase 4 wrote on purpose. **No correction.** The stops are the point.
+
+2. **A plan cannot see the shape of an answer that a filter wraps.** The design said that the body of a
+   `503` carries the result of the readiness. The true body nests that result under `details`, because
+   `AllExceptionsFilter` wraps the exception. Only the running code showed this. The `implementer` accepted
+   the two shapes and reported the reason. **No correction of a rule.** This is the normal limit of a
+   plan, and the agent handled it the right way: it widened the code, and it said so. The change
+   `request-model` removes the class of the problem, because the shape enters the shared package and the
+   compiler reads it.
+
+3. **A task that names "the two pure functions" gave three.** Task 5.1 counts the functions of the group 2,
+   and the `implementer` wrote a third helper that reads the body of an error. The `tester` covered the
+   three, and it did not stop to ask. **No correction.** A count in a task is a guide, and not a limit. A
+   rule that made the count binding would have blocked useful work.
+
+4. **The delegation loses the report of one agent to the next.** The `tester` found an asymmetry: the
+   mapping of the readiness unwraps `details`, and the mapping of the daemon does not. It reported the
+   asymmetry, and correctly changed no product code, because its rules forbid that. The orchestrator then
+   held a finding that belonged to the `implementer`, and the task list held no item for it. **No
+   correction of a file.** The rules behaved correctly: `tester` reports and does not fix, and the
+   orchestrator does not widen a scope by itself. The finding goes to the user, who decides. This is the
+   one place where the loop needs a human that the plan did not name.
+
+### The state of the trial
+
+The working tree holds the change: `apps/frontend` carries the panel and its specifications, and
+`openspec/changes/server-health-panel/tasks.md` marks 18 of 18 tasks. Nothing is committed, and the delta is
+not synced. To finish Phase 7, run `/opsx:sync`, then let `git-manager` open the Pull Request, then run
+`/opsx:archive` after the merge.
+
+**One open question for the user.** The mapping of the daemon does not unwrap `details`, and the mapping of
+the readiness does. A `503` whose envelope carries the information of the daemon under `details` therefore
+reads as "not reachable". The behavior agrees with `design.md`, and it will confuse the next reader. Decide
+if this branch makes the two symmetric.
 
 ## Phase 8 — The documentation
 

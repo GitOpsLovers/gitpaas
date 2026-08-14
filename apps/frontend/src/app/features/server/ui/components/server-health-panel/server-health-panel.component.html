@@ -1,0 +1,86 @@
+<app-component-card title="Health" desc="State of the server's critical dependencies, read when this screen opened.">
+    @if (loading()) {
+        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Reading the health of the server…</p>
+    } @else {
+        @if (readiness().read) {
+            <div class="flex items-center gap-3 pb-4">
+                @if (readiness().ready) {
+                    <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success-50 text-success-500 dark:bg-success-500/15 dark:text-success-500"
+                    >
+                        <svg lucideCircleCheck class="h-5 w-5"></svg>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">The server is ready</h4>
+                        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                            Every critical dependency is up.
+                        </p>
+                    </div>
+                } @else {
+                    <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-error-50 text-error-500 dark:bg-error-500/15 dark:text-error-500"
+                    >
+                        <svg lucideCircleAlert class="h-5 w-5"></svg>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">The server is not ready</h4>
+                        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                            At least one critical dependency is down.
+                        </p>
+                    </div>
+                }
+            </div>
+
+            <ul class="divide-y divide-gray-100 border-t border-gray-100 dark:divide-gray-800 dark:border-gray-800">
+                @for (dependency of readiness().dependencies; track dependency.name) {
+                    <li class="flex items-center justify-between gap-4 py-3">
+                        <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ dependency.name }}</span>
+
+                        @if (dependency.status === 'up') {
+                            <span
+                                class="rounded-full bg-success-50 px-2.5 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500"
+                            >
+                                up
+                            </span>
+                        } @else {
+                            <span
+                                class="rounded-full bg-error-50 px-2.5 py-0.5 text-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                            >
+                                down
+                            </span>
+                        }
+                    </li>
+                }
+            </ul>
+        } @else {
+            <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">{{ readiness().message }}</p>
+        }
+
+        <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+            <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">Docker daemon</h4>
+
+            @if (daemon().info; as info) {
+                <dl class="mt-2 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                    <div class="flex items-center justify-between gap-4">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">Version</dt>
+                        <dd class="text-sm text-gray-800 dark:text-white/90">{{ info.serverVersion }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">Operating system</dt>
+                        <dd class="text-sm text-gray-800 dark:text-white/90">{{ info.operatingSystem }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">Containers</dt>
+                        <dd class="text-sm text-gray-800 dark:text-white/90">{{ info.containers }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400">Images</dt>
+                        <dd class="text-sm text-gray-800 dark:text-white/90">{{ info.images }}</dd>
+                    </div>
+                </dl>
+            } @else {
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ daemon().message }}</p>
+            }
+        </div>
+    }
+</app-component-card>
