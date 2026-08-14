@@ -1,0 +1,21 @@
+docs/roadmap/namespace-entity-plan-todo.md
+  s_0e1237ec22796a::t_ba3bd557ba7a3f 1-96
+docs/roadmap/namespace-entity-plan.md
+  s_0e1237ec22796a::t_ebb46d9f77326a 1-710
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fbb61f9b700eb3f851db121e7a8b0db8024f2008",
+  "prompts": {},
+  "sessions": {
+    "s_0e1237ec22796a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a33cc065e79b0001e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
