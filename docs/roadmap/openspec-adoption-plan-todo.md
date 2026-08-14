@@ -169,12 +169,23 @@ The 15 frontend capabilities:
 
 ## Phase 6 — The existing roadmap plans
 
-- [ ] Convert `docs/roadmap/source-control-providers-plan.md` into `openspec/changes/source-control-providers/proposal.md` and `design.md`.
-- [ ] Convert `docs/roadmap/source-control-providers-plan-todo.md` into `openspec/changes/source-control-providers/tasks.md`.
-- [ ] Convert `docs/roadmap/request-model-plan.md` and its to-do file in the same way.
-- [ ] Write the specification delta of each change under `openspec/changes/<change-id>/specs/`.
-- [ ] Delete the migrated files from `docs/roadmap/`, and leave a pointer in `docs/TODO.md`.
-- [ ] Keep `docs/roadmap/deployment-roadmap.md` as a roadmap, because it plans no single change.
+- [x] Convert `docs/roadmap/source-control-providers-plan.md` into `openspec/changes/source-control-providers/proposal.md` and `design.md`.
+- [x] Convert `docs/roadmap/source-control-providers-plan-todo.md` into `openspec/changes/source-control-providers/tasks.md`. 8 groups, 63 tasks.
+- [x] Convert `docs/roadmap/request-model-plan.md` and its to-do file in the same way. 9 groups, 60 tasks. Groups 8 and 9 hold the open decisions and the records that the plan left behind, which the to-do file kept in two separate sections.
+- [x] Write the specification delta of each change under `openspec/changes/<change-id>/specs/`. `source-control-providers` carries 8 delta files, and `request-model` carries 4.
+- [x] Delete the migrated files from `docs/roadmap/`, and leave a pointer in `docs/TODO.md`. The pointer names the two change folders, and it says that the full text of the four documents stays in the history of Git at the commit `287d58f`.
+- [x] Keep `docs/roadmap/deployment-roadmap.md` as a roadmap, because it plans no single change. Unchanged.
+
+**Phase 6 is complete.** `rtk openspec validate --all` reports 28 passed, 0 failed — 26 capabilities and 2 changes.
+
+Two corrections that the migration found:
+
+1. The plan of the providers puts the select of the provider in `service-form`. That component holds only
+   the name of the service. The fields of the source control live in `service-provider`, which the tab
+   "Provider" of the detail of a service shows. Task 7.1 of the change records this.
+2. A `MODIFIED` requirement of a delta must repeat every scenario that the main specification still holds,
+   by its name. A requirement that a change replaces in full belongs under `## REMOVED Requirements`, with a
+   new requirement beside it. The delta of `source-control` uses that form.
 
 ## Phase 7 — The trial run
 
