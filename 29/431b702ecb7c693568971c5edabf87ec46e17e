@@ -1,0 +1,21 @@
+.claude/settings.json
+  s_a8a676ef8114b0::t_6b44bd9c574beb 23
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_373b626d918ebd 27-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "29431b702ecb7c693568971c5edabf87ec46e17e",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
