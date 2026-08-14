@@ -1,3 +1,17 @@
+## [1.1.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.0.0...v1.1.0) (2026-08-14)
+
+### Features
+
+* **frontend:** add namespaces feature with components and routes ([#63](https://github.com/GitOpsLovers/gitpaas/issues/63)) ([cc9fd0e](https://github.com/GitOpsLovers/gitpaas/commit/cc9fd0e6ee8afd3e799bef160978fa9088a0454c))
+* **frontend:** scope project screens under namespaces ([#64](https://github.com/GitOpsLovers/gitpaas/issues/64)) ([764f5a2](https://github.com/GitOpsLovers/gitpaas/commit/764f5a2f5fe95158a29581f7e6c347eefc7aa3f1))
+* improve installer script ([204d9e1](https://github.com/GitOpsLovers/gitpaas/commit/204d9e1ef917d02e5b6353b21484ee81d5f9ff80))
+* **namespaces:** add namespace entity with CRUD operations ([#61](https://github.com/GitOpsLovers/gitpaas/issues/61)) ([58b3e84](https://github.com/GitOpsLovers/gitpaas/commit/58b3e84b71f9f61c6ac8a8610d5c37c807b22318))
+* **projects:** scope under namespaces ([#62](https://github.com/GitOpsLovers/gitpaas/issues/62)) ([9342979](https://github.com/GitOpsLovers/gitpaas/commit/9342979f43cb78da436517f3eea1f0f3cdcbb0a7))
+
+### Bug Fixes
+
+* add version to checkout step ([a6e690c](https://github.com/GitOpsLovers/gitpaas/commit/a6e690cb9a59588063e8169124d24f6b9c3d4ff3))
+
 ## 1.0.0 (2026-08-13)
 
 ### Features
