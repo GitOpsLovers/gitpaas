@@ -1,6 +1,26 @@
+import { ProjectNameTakenError } from '../../domain/errors/project.errors';
 import { Project } from '../../domain/models/project.models';
 
 import { DbProjectEntity } from './db-project.entity';
+
+import { readSqlState, UNIQUE_VIOLATION } from '@core/infrastructure/database/sql-state';
+
+/**
+ * Maps a failure raised while writing a project into the domain error that describes it.
+ *
+ * @param error Caught error
+ * @param namespaceId Identifier of the namespace the project belongs to
+ * @param name Name the project was written with
+ *
+ * @returns The domain error to throw, or the original error when unclassifiable
+ */
+export function toProjectPersistenceError(error: unknown, namespaceId: string, name: string): unknown {
+    if (readSqlState(error) === UNIQUE_VIOLATION) {
+        return new ProjectNameTakenError(namespaceId, name, { cause: error });
+    }
+
+    return error;
+}
 
 /**
  * Maps a project database entity into its domain model, deriving the services
@@ -14,6 +34,7 @@ export function toProject(entity: DbProjectEntity): Project {
     return {
         id: entity.id,
         name: entity.name,
+        namespaceId: entity.namespaceId,
         servicesCount: entity.services?.length ?? 0,
     };
 }

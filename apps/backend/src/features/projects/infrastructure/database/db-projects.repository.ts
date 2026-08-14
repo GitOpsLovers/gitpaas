@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
+import { CreateProjectInNamespaceDto } from '../../domain/dtos/create-project-in-namespace.dto';
 import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 
 import { DbProjectEntity } from './db-project.entity';
-import { toProject } from './db-projects.transformer';
+import { toProject, toProjectPersistenceError } from './db-projects.transformer';
 
 /**
  * Projects database repository
@@ -20,8 +20,9 @@ export class DatabaseProjectsRepository implements ProjectsRepository {
         private readonly repository: Repository<DbProjectEntity>,
     ) {}
 
-    public async getAll(): Promise<Project[]> {
+    public async getAll(namespaceId: string): Promise<Project[]> {
         const projects = await this.repository.find({
+            where: { namespaceId },
             relations: { services: true },
             order: { id: 'DESC' },
         });
@@ -42,11 +43,15 @@ export class DatabaseProjectsRepository implements ProjectsRepository {
         return toProject(project);
     }
 
-    public async create(createDto: CreateProjectDto): Promise<Project> {
-        const project = this.repository.create(createDto);
-        const saved = await this.repository.save(project);
+    public async create(createDto: CreateProjectInNamespaceDto): Promise<Project> {
+        try {
+            const project = this.repository.create(createDto);
+            const saved = await this.repository.save(project);
 
-        return toProject({ ...saved, services: [] });
+            return toProject({ ...saved, services: [] });
+        } catch (error) {
+            throw toProjectPersistenceError(error, createDto.namespaceId, createDto.name);
+        }
     }
 
     public async update(id: string, updateDto: UpdateProjectDto): Promise<Project | null> {
@@ -57,9 +62,14 @@ export class DatabaseProjectsRepository implements ProjectsRepository {
         }
 
         this.repository.merge(project, updateDto);
-        const saved = await this.repository.save(project);
 
-        return toProject({ ...saved, services: [] });
+        try {
+            const saved = await this.repository.save(project);
+
+            return toProject({ ...saved, services: [] });
+        } catch (error) {
+            throw toProjectPersistenceError(error, project.namespaceId, updateDto.name);
+        }
     }
 
     public async delete(id: string): Promise<boolean> {

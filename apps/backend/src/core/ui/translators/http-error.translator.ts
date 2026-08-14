@@ -26,6 +26,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['NAMESPACE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['NAMESPACE_NOT_EMPTY', (error) => new ConflictException(error.message, { cause: error })],
     ['PROJECT_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['PROJECT_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
     ['SERVICE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['SERVICE_NOT_DEPLOYABLE', (error) => new BadRequestException(error.message, { cause: error })],
     ['INVALID_CREDENTIALS', (error) => new UnauthorizedException(error.message, { cause: error })],

@@ -40,22 +40,22 @@ All the paths are relative to the root of the repository, if there is no other i
 
 ## Phase 3 — Backend, the changes to the `projects` feature
 
-- [ ] Add the required `namespaceId` field to `apps/backend/src/features/projects/domain/models/project.models.ts` only; leave `apps/backend/src/features/projects/domain/dtos/create-project.dto.ts` and `update-project.dto.ts` name-only, because the path segment carries `namespaceId`.
-- [ ] Add `ProjectNameTakenError` to `apps/backend/src/features/projects/domain/errors/project.errors.ts`.
-- [ ] Change the `getAll` method of `apps/backend/src/features/projects/domain/repositories/projects.repository.ts` to take a required `namespaceId: string`.
-- [ ] Add the `namespaceId` parameter to `apps/backend/src/features/projects/application/create-project.use-case.ts`, merging it with the DTO before it calls `repository.create`.
-- [ ] Add the `namespaceId` parameter and the fetch-then-compare check to `apps/backend/src/features/projects/application/find-project-by-id.use-case.ts`, `update-project.use-case.ts` and `delete-project.use-case.ts`, throwing `ProjectNotFoundError` when the project does not exist or its `namespaceId` does not match.
-- [ ] Add the namespace-mismatch case to `apps/backend/src/features/projects/application/__tests__/find-project-by-id.use-case.spec.ts`, `update-project.use-case.spec.ts` and `delete-project.use-case.spec.ts`.
-- [ ] Add the `namespaceId` column, the `namespace` relation and the `@Unique('UQ_projects_namespaceId_name', ['namespaceId', 'name'])` decorator to `apps/backend/src/features/projects/infrastructure/database/db-project.entity.ts`.
-- [ ] Change the `where: { namespaceId }` filter on `getAll` to always apply (not just when a filter is given), and add the persistence-error catch on `create` and `update`, in `apps/backend/src/features/projects/infrastructure/database/db-projects.repository.ts`.
-- [ ] Add `toProjectPersistenceError` to `apps/backend/src/features/projects/infrastructure/database/db-projects.transformer.ts`, reading the `23505` `unique_violation` code.
-- [ ] Add the required-namespace-filter case, and the `toProjectPersistenceError` table-driven cases, to `apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts` and `db-projects.transformer.spec.ts`.
-- [ ] Change `apps/backend/src/features/projects/ui/controllers/projects.controller.ts` to `@Controller('namespaces/:namespaceId/projects')`, read `@Param('namespaceId', ParseUUIDPipe)` on every method and `@Param('id', ParseUUIDPipe)` on the id-bearing ones, keep `@Put(':id')` on the update method, and wrap every method's use case call in `try`/`catch`/`translateError`.
-- [ ] Remove the inline `if (!project) throw new NotFoundException(...)` checks from `apps/backend/src/features/projects/ui/controllers/projects.controller.ts`, because the use cases of this phase now throw `ProjectNotFoundError` themselves.
-- [ ] Add the `'namespace.id'` telemetry field, read from the `namespaceId` path parameter, to the `create` and `update` calls of `apps/backend/src/features/projects/ui/services/projects.service.ts`.
-- [ ] Add the `namespaceId` and `id` path-parameter validation cases, and the `try`/`catch`/`translateError` path for all five methods, to `apps/backend/src/features/projects/ui/controllers/__tests__/projects.controller.spec.ts`.
-- [ ] Add the `PROJECT_NAME_TAKEN` → `ConflictException` entry to `apps/backend/src/core/ui/translators/http-error.translator.ts`, and the matching case to its spec.
-- [ ] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the breaking `projects` contract change compiles and every spec passes.
+- [x] Add the required `namespaceId` field to `apps/backend/src/features/projects/domain/models/project.models.ts` only; leave `apps/backend/src/features/projects/domain/dtos/create-project.dto.ts` and `update-project.dto.ts` name-only, because the path segment carries `namespaceId`.
+- [x] Add `ProjectNameTakenError` to `apps/backend/src/features/projects/domain/errors/project.errors.ts`.
+- [x] Change the `getAll` method of `apps/backend/src/features/projects/domain/repositories/projects.repository.ts` to take a required `namespaceId: string`.
+- [x] Add the `namespaceId` parameter to `apps/backend/src/features/projects/application/create-project.use-case.ts`, merging it with the DTO before it calls `repository.create`.
+- [x] Add the `namespaceId` parameter and the fetch-then-compare check to `apps/backend/src/features/projects/application/find-project-by-id.use-case.ts`, `update-project.use-case.ts` and `delete-project.use-case.ts`, throwing `ProjectNotFoundError` when the project does not exist or its `namespaceId` does not match.
+- [x] Add the namespace-mismatch case to `apps/backend/src/features/projects/application/__tests__/find-project-by-id.use-case.spec.ts`, `update-project.use-case.spec.ts` and `delete-project.use-case.spec.ts`.
+- [x] Add the `namespaceId` column, the `namespace` relation and the `@Unique('UQ_projects_namespaceId_name', ['namespaceId', 'name'])` decorator to `apps/backend/src/features/projects/infrastructure/database/db-project.entity.ts`.
+- [x] Change the `where: { namespaceId }` filter on `getAll` to always apply (not just when a filter is given), and add the persistence-error catch on `create` and `update`, in `apps/backend/src/features/projects/infrastructure/database/db-projects.repository.ts`.
+- [x] Add `toProjectPersistenceError` to `apps/backend/src/features/projects/infrastructure/database/db-projects.transformer.ts`, reading the `23505` `unique_violation` code.
+- [x] Add the required-namespace-filter case, and the `toProjectPersistenceError` table-driven cases, to `apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts` and `db-projects.transformer.spec.ts`.
+- [x] Change `apps/backend/src/features/projects/ui/controllers/projects.controller.ts` to `@Controller('namespaces/:namespaceId/projects')`, read `@Param('namespaceId', ParseUUIDPipe)` on every method and `@Param('id', ParseUUIDPipe)` on the id-bearing ones, keep `@Put(':id')` on the update method, and wrap every method's use case call in `try`/`catch`/`translateError`.
+- [x] Remove the inline `if (!project) throw new NotFoundException(...)` checks from `apps/backend/src/features/projects/ui/controllers/projects.controller.ts`, because the use cases of this phase now throw `ProjectNotFoundError` themselves.
+- [x] Add the `'namespace.id'` telemetry field, read from the `namespaceId` path parameter, to the `create` and `update` calls of `apps/backend/src/features/projects/ui/services/projects.service.ts`.
+- [x] Add the `namespaceId` and `id` path-parameter validation cases, and the `try`/`catch`/`translateError` path for all five methods, to `apps/backend/src/features/projects/ui/controllers/__tests__/projects.controller.spec.ts`.
+- [x] Add the `PROJECT_NAME_TAKEN` → `ConflictException` entry to `apps/backend/src/core/ui/translators/http-error.translator.ts`, and the matching case to its spec.
+- [x] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the breaking `projects` contract change compiles and every spec passes.
 
 ## Phase 4 — Frontend, the `namespaces` feature
 

@@ -19,25 +19,21 @@ This skill is the single source of truth for how the **GitPaaS** monorepo perfor
 
 ## Commit messages
 
-[Conventional Commits](https://www.conventionalcommits.org/) — `type(scope): short description` (types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`). Subject line ≤ 72 characters. Add a body when the diff is large.
+[Conventional Commits](https://www.conventionalcommits.org/) — `type(scope): short description` (types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`). Subject line ≤ 72 characters.
 
 ## RTK rule
 
 **Run every bash/CLI command through RTK.** Prefix all shell commands — including every `git` and `gh` invocation — with `rtk` (e.g. `rtk git checkout -b feat/x`,
 `rtk git status`, `rtk git push -u origin <branch>`, `rtk gh pr create`, `rtk pnpm run test`). Never invoke a CLI tool directly.
 
-## Tests before committing
-
-The project convention is to run `rtk pnpm run test` (or the affected app's tests) before committing and confirm it passes. Run it when the working tree has code changes, and report the result. **Never run E2E tests, and never use Playwright / browser automation** — it is disallowed in this project. If tests fail, do not commit; report the failure.
-
 ## Standard sequence
 
 1. **Branch from latest `main`.** If already on a suitable non-`main` feature branch for this task, reuse it; otherwise `rtk git checkout main`, pull the latest, then
    `rtk git checkout -b <type>/<description>`.
 2. **Stage intended files only.** Run `rtk git status` and `rtk git diff` to confirm exactly which files should be committed, then `rtk git add <paths>`. Never blind `rtk git add -A` when unrelated changes are present. Report anything unexpected instead of including it.
-3. **Commit** with a Conventional-Commit message: `rtk git commit -m "type(scope): subject"` (add a body with additional `-m` args, or `-F <file>`, when the diff is large).
+3. **Commit** with a Conventional-Commit message: `rtk git commit -m "type(scope): subject"`.
 4. **Push:** `rtk git push -u origin <branch>`.
-5. **Open the PR:** `rtk gh pr create --base main --head <branch> --title "type(scope): subject" --body-file <path>`, with the usual `## Summary` / `## Test plan` / `Closes #N`. **Keep PR titles ≤ 60 characters** (including the `type(scope):` prefix) so they read fully in GitHub lists without truncation — tighter than the ≤ 72-char commit subject. Keep the same imperative, lowercase, no-trailing-period Conventional-Commit style; if the summary doesn't fit, shorten the wording and put the detail in the PR body, not the title.
+5. **Open the PR:** `rtk gh pr create --base main --head <branch> --title "type(scope): subject"`, with the usual `## Summary` / `## Test plan` / `Closes #N`. **Keep PR titles ≤ 60 characters** (including the `type(scope):` prefix) so they read fully in GitHub lists without truncation — tighter than the ≤ 72-char commit subject. Keep the same imperative, lowercase, no-trailing-period Conventional-Commit style; if the summary doesn't fit, shorten the wording.
 6. **Never merge.** The PR is left pending human review.
 
 ## Committing & opening the PR
@@ -52,7 +48,6 @@ Commits and PRs are made with plain `git` + `gh`, authenticated as the developer
    rtk git commit -m "type(scope): subject"
    ```
 
-   Add a body with additional `-m` args (or `-F <file>`) when the diff is large.
 4. **Push** the branch to the remote:
 
    ```
@@ -61,7 +56,7 @@ Commits and PRs are made with plain `git` + `gh`, authenticated as the developer
 5. **Open the PR**, including the usual `## Summary` / `## Test plan` / `Closes #N`:
 
    ```
-   rtk gh pr create --base main --head <branch> --title "type(scope): subject" --body-file <path>
+   rtk gh pr create --base main --head <branch> --title "type(scope): subject"
    ```
 
    Keep the PR title concise — **≤ 60 characters**, including the `type(scope):` prefix — so it isn't truncated in GitHub lists (tighter than the ≤ 72-char commit subject in the "Commit messages" section). Use the same imperative, lowercase, no-trailing-period style. If the summary doesn't fit, shorten the wording and move the detail into the PR body rather than the title.

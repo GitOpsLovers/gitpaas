@@ -1,4 +1,4 @@
-import { CreateProjectDto } from '../dtos/create-project.dto';
+import { CreateProjectInNamespaceDto } from '../dtos/create-project-in-namespace.dto';
 import { UpdateProjectDto } from '../dtos/update-project.dto';
 import { Project } from '../models/project.models';
 
@@ -7,11 +7,13 @@ import { Project } from '../models/project.models';
  */
 export interface ProjectsRepository {
     /**
-     * Gets all projects
+     * Gets all the projects of a namespace
      *
-     * @returns All projects
+     * @param namespaceId Namespace id
+     *
+     * @returns All the projects of the namespace
      */
-    getAll: () => Promise<Project[]>;
+    getAll: (namespaceId: string) => Promise<Project[]>;
 
     /**
      * Gets a single project by id
@@ -25,11 +27,11 @@ export interface ProjectsRepository {
     /**
      * Creates a project
      *
-     * @param createDto Project data
+     * @param createDto Project data, including the namespace it belongs to
      *
      * @returns Created project
      */
-    create: (createDto: CreateProjectDto) => Promise<Project>;
+    create: (createDto: CreateProjectInNamespaceDto) => Promise<Project>;
 
     /**
      * Updates a project

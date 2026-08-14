@@ -74,6 +74,18 @@ describe('translateError', () => {
             expect(translateError(new CodedDomainError('PROJECT_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
         });
 
+        it('maps PROJECT_NAME_TAKEN to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('PROJECT_NAME_TAKEN'))).toBeInstanceOf(ConflictException);
+        });
+
+        it('keeps the domain message of a PROJECT_NAME_TAKEN conflict', () => {
+            const error = new CodedDomainError('PROJECT_NAME_TAKEN', 'Project platform already exists in namespace n-1');
+
+            const result = translateError(error) as HttpException;
+
+            expect(result.message).toBe('Project platform already exists in namespace n-1');
+        });
+
         it('maps NAMESPACE_NOT_FOUND to a NotFoundException', () => {
             expect(translateError(new CodedDomainError('NAMESPACE_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
         });
