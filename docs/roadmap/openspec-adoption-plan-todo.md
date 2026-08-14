@@ -32,14 +32,14 @@ The specifications live in the repository, next to the code, under version contr
 
 ## Phase 1 — Initialization
 
-- [ ] **(user)** Run `rtk openspec init` in the root of the repository.
-- [ ] Verify that the command created `openspec/specs/`, `openspec/changes/` and `openspec/archive/`.
-- [ ] Find where the command wrote the six `opsx` commands. For Claude Code the documentation names `.claude/skills/openspec-*/SKILL.md`, so check that path and `.claude/commands/` too.
-- [ ] Confirm that the six new skill names do not collide with the eleven skills already in `.claude/skills/`.
-- [ ] Review the managed block that the command appended to `CLAUDE.md`, and keep it separate from the hand-written sections.
-- [ ] Add `openspec/archive/` to `.gitignore` only if the team decides not to keep the history. The default keeps it.
-- [ ] **(user)** Run `rtk openspec config set telemetry.enabled false` if the project forbids telemetry.
-- [ ] **(user)** Run `rtk openspec update` after any later version change, so the commands stay current.
+- [x] **(user)** Run `rtk openspec init` in the root of the repository. Command used: `rtk openspec init --tools claude --profile core --no-animation`.
+- [x] Verify that the command created `openspec/specs/`, `openspec/changes/` and `openspec/archive/`. **Correction:** version 1.9.0 creates `openspec/specs/`, `openspec/changes/` and `openspec/changes/archive/`. The archive folder is inside `changes/`. The command also wrote `openspec/config.yaml` with the `spec-driven` schema.
+- [x] Find where the command wrote the six `opsx` commands. Result: both paths carry them — `.claude/skills/openspec-*/SKILL.md` (six folders) and `.claude/commands/opsx/*.md` (six files).
+- [x] Confirm that the six new skill names do not collide with the eleven skills already in `.claude/skills/`. Result: no collision. Every new name carries the `openspec-` prefix.
+- [x] Review the managed block that the command appended to `CLAUDE.md`. **Correction:** the command wrote nothing into `CLAUDE.md`. The instructions live in the skill files instead. Phase 2 therefore owns every line that `CLAUDE.md` needs.
+- [x] Add `openspec/archive/` to `.gitignore` only if the team decides not to keep the history. Result: the team keeps the history, so `.gitignore` stays as it is.
+- [x] **(user)** Run `rtk openspec config set telemetry.enabled false` if the project forbids telemetry. Done.
+- [ ] **(user)** Run `rtk openspec update` after any later version change, so the commands stay current. This item stays open, because it repeats at every version change.
 
 ## Phase 1b — The OpenSpec commands
 
