@@ -69,17 +69,18 @@ write a local copy of any of them.
 
 ## Phase 2 — The orchestrator rules
 
-- [ ] Add a **Specification stage** section to `CLAUDE.md`, before the *Routing* section.
-- [ ] State the rule: for a task that changes behavior, the orchestrator creates or reads an OpenSpec change before it delegates.
-- [ ] State the exception: a bug fix, a pure refactor, a documentation edit and a configuration edit need no proposal.
-- [ ] State the stop: the orchestrator presents the proposal, and it waits for the approval of the user.
-- [ ] State that no subagent starts before the user approves the proposal.
-- [ ] Add a row to the routing table: *"Write a change proposal or a specification delta"* → the `/opsx:propose` command, and no subagent.
-- [ ] Add a row to the routing table: *"Explore an unclear idea"* → the `/opsx:explore` command.
-- [ ] State the precedence: an `opsx` command owns the specification work, and the six local subagents own the code work.
-- [ ] Extend the *Orchestration rules* section: every subagent prompt must name the change folder.
-- [ ] Extend the *Project-wide constraints* section: every `openspec` command carries the `rtk` prefix.
-- [ ] Update the *Git & GitHub workflow* section: the commit includes the specification delta.
+- [x] Add a **Specification stage** section to `CLAUDE.md`, before the *Routing* section. Added as *The specification stage*.
+- [x] State the rule: for a task that changes behavior, the orchestrator creates or reads an OpenSpec change before it delegates.
+- [x] State the exception: a bug fix, a pure refactor, a documentation edit and a configuration edit need no proposal.
+- [x] State the stop: the orchestrator presents the proposal, and it waits for the approval of the user.
+- [x] State that no subagent starts before the user approves the proposal.
+- [x] Add a row to the routing table: *"Write a change proposal or a specification delta"* → the `/opsx:propose` command, and no subagent. The column header now reads *Subagent or command*.
+- [x] Add a row to the routing table: *"Explore an unclear idea"* → the `/opsx:explore` command.
+- [x] State the precedence: an `opsx` command owns the specification work, and the six local subagents own the code work. Phase 1b already wrote this line into the *The OpenSpec commands* section.
+- [x] Extend the *Orchestration rules* section: every subagent prompt must name the change folder.
+- [x] Extend the *Project-wide constraints* section: every `openspec` command carries the `rtk` prefix.
+- [x] Update the *Git & GitHub workflow* section: the commit includes the specification delta.
+- [x] **Added item.** State the override of `/opsx:apply`: the orchestrator delegates each task, and it never implements. The command file says the opposite, so the local rule must win.
 
 ## Phase 3 — The subagents
 
