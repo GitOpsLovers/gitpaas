@@ -1,8 +1,10 @@
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
+import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 
 import { CreateProjectDto } from '../../../domain/dtos/create-project.dto';
 import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
+import { ProjectNameTakenError, ProjectNotFoundError } from '../../../domain/errors/project.errors';
 import { Project } from '../../../domain/models/project.models';
 import { ProjectsService } from '../../services/projects.service';
 import { ProjectsController } from '../projects.controller';
@@ -10,11 +12,39 @@ import { ProjectsController } from '../projects.controller';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
+const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
 const project: Project = {
     id: projectId,
     name: 'platform',
+    namespaceId,
     servicesCount: 3,
+};
+
+/**
+ * Shape of a single entry of the route-argument metadata NestJS stores per handler.
+ */
+interface RouteArgMetadata {
+    index: number;
+    data: unknown;
+    pipes: unknown[];
+}
+
+/**
+ * Reads the pipes the controller declares for one path parameter of a handler.
+ *
+ * The pipes themselves are framework mechanics that the unit specs never run, so
+ * this reads the declaration instead: dropping a `ParseUUIDPipe` would let a
+ * non-UUID path segment reach the service, and must fail a test.
+ */
+const pipesFor = (handler: string, parameter: string): unknown[] => {
+    const metadata =
+        (Reflect.getMetadata(ROUTE_ARGS_METADATA, ProjectsController, handler) as Record<
+            string,
+            RouteArgMetadata
+        >) ?? {};
+
+    return Object.values(metadata).find((argument) => argument.data === parameter)?.pipes ?? [];
 };
 
 describe('ProjectsController', () => {
@@ -42,232 +72,285 @@ describe('ProjectsController', () => {
         sut = moduleRef.get(ProjectsController);
     });
 
+    describe('path-parameter validation', () => {
+        it.each(['getAll', 'findById', 'create', 'update', 'delete'])(
+            'validates the namespaceId path parameter of %s as a UUID',
+            (handler) => {
+                expect(pipesFor(handler, 'namespaceId')).toContain(ParseUUIDPipe);
+            },
+        );
+
+        it.each(['findById', 'update', 'delete'])(
+            'validates the id path parameter of %s as a UUID',
+            (handler) => {
+                expect(pipesFor(handler, 'id')).toContain(ParseUUIDPipe);
+            },
+        );
+
+        it('never declares an id path parameter on the collection handlers', () => {
+            expect(pipesFor('getAll', 'id')).toEqual([]);
+            expect(pipesFor('create', 'id')).toEqual([]);
+        });
+    });
+
     describe('getAll', () => {
-        it('delegates to the service', async () => {
+        it('delegates to the service with the received namespace', async () => {
             mockProjectsService.getAll.mockResolvedValue([project]);
 
-            await sut.getAll();
+            await sut.getAll(namespaceId);
 
             expect(mockProjectsService.getAll).toHaveBeenCalledTimes(1);
-            expect(mockProjectsService.getAll).toHaveBeenCalledWith();
+            expect(mockProjectsService.getAll).toHaveBeenCalledWith(namespaceId);
         });
 
         it('returns the projects produced by the service', async () => {
             mockProjectsService.getAll.mockResolvedValue([project]);
 
-            const result = await sut.getAll();
+            const result = await sut.getAll(namespaceId);
 
             expect(result).toEqual([project]);
         });
 
-        it('returns an empty list when the service has no projects', async () => {
+        it('returns an empty list when the namespace holds no project', async () => {
             mockProjectsService.getAll.mockResolvedValue([]);
 
-            const result = await sut.getAll();
+            const result = await sut.getAll(namespaceId);
 
             expect(result).toEqual([]);
         });
 
-        it('propagates errors raised by the service', async () => {
+        it('translates a not-found domain error into a NotFoundException', async () => {
+            mockProjectsService.getAll.mockRejectedValue(new ProjectNotFoundError(projectId));
+
+            await expect(sut.getAll(namespaceId)).rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('propagates errors that no translation covers', async () => {
             const error = new Error('db unreachable');
             mockProjectsService.getAll.mockRejectedValue(error);
 
-            await expect(sut.getAll()).rejects.toBe(error);
+            await expect(sut.getAll(namespaceId)).rejects.toBe(error);
         });
     });
 
     describe('findById', () => {
-        it('delegates to the service with the received id', async () => {
+        it('delegates to the service with the received namespace and id', async () => {
             mockProjectsService.findById.mockResolvedValue(project);
 
-            await sut.findById(projectId);
+            await sut.findById(namespaceId, projectId);
 
             expect(mockProjectsService.findById).toHaveBeenCalledTimes(1);
-            expect(mockProjectsService.findById).toHaveBeenCalledWith(projectId);
+            expect(mockProjectsService.findById).toHaveBeenCalledWith(namespaceId, projectId);
         });
 
         it('returns the project produced by the service', async () => {
             mockProjectsService.findById.mockResolvedValue(project);
 
-            const result = await sut.findById(projectId);
+            const result = await sut.findById(namespaceId, projectId);
 
             expect(result).toBe(project);
         });
 
-        it('throws a NotFoundException when the project does not exist', async () => {
-            mockProjectsService.findById.mockResolvedValue(null);
+        it('translates a not-found domain error into a NotFoundException', async () => {
+            mockProjectsService.findById.mockRejectedValue(new ProjectNotFoundError(projectId));
 
-            await expect(sut.findById(projectId)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.findById(namespaceId, projectId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
-        it('includes the id in the not-found message', async () => {
-            mockProjectsService.findById.mockResolvedValue(null);
+        it('keeps the domain message on the not-found response', async () => {
+            mockProjectsService.findById.mockRejectedValue(new ProjectNotFoundError(projectId));
 
-            await expect(sut.findById(projectId)).rejects.toThrow(`Project ${projectId} not found`);
+            await expect(sut.findById(namespaceId, projectId)).rejects.toThrow(`Project ${projectId} not found`);
         });
 
-        it('propagates errors raised by the service', async () => {
+        it('propagates errors that no translation covers', async () => {
             const error = new Error('db unreachable');
             mockProjectsService.findById.mockRejectedValue(error);
 
-            await expect(sut.findById(projectId)).rejects.toBe(error);
+            await expect(sut.findById(namespaceId, projectId)).rejects.toBe(error);
         });
     });
 
     describe('create', () => {
         const createDto: CreateProjectDto = { name: 'platform' };
 
-        it('delegates to the service with the received dto', async () => {
+        it('delegates to the service with the received namespace and dto', async () => {
             mockProjectsService.create.mockResolvedValue(project);
 
-            await sut.create(createDto);
+            await sut.create(namespaceId, createDto);
 
             expect(mockProjectsService.create).toHaveBeenCalledTimes(1);
-            expect(mockProjectsService.create).toHaveBeenCalledWith(createDto);
+            expect(mockProjectsService.create).toHaveBeenCalledWith(namespaceId, createDto);
         });
 
         it('returns the created project', async () => {
             mockProjectsService.create.mockResolvedValue(project);
 
-            const result = await sut.create(createDto);
+            const result = await sut.create(namespaceId, createDto);
 
             expect(result).toBe(project);
         });
 
-        it('propagates errors raised by the service', async () => {
-            const error = new Error('name already taken');
+        it('translates a duplicate name into a ConflictException', async () => {
+            mockProjectsService.create.mockRejectedValue(new ProjectNameTakenError(namespaceId, 'platform'));
+
+            await expect(sut.create(namespaceId, createDto)).rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('names the namespace and the project in the conflict message', async () => {
+            mockProjectsService.create.mockRejectedValue(new ProjectNameTakenError(namespaceId, 'platform'));
+
+            await expect(sut.create(namespaceId, createDto)).rejects.toThrow(
+                `Project platform already exists in namespace ${namespaceId}`,
+            );
+        });
+
+        it('propagates errors that no translation covers', async () => {
+            const error = new Error('db unreachable');
             mockProjectsService.create.mockRejectedValue(error);
 
-            await expect(sut.create(createDto)).rejects.toBe(error);
+            await expect(sut.create(namespaceId, createDto)).rejects.toBe(error);
         });
     });
 
     describe('update', () => {
         const updateDto: UpdateProjectDto = { name: 'renamed' };
 
-        it('delegates to the service with the received id and dto', async () => {
+        it('delegates to the service with the received namespace, id and dto', async () => {
             mockProjectsService.update.mockResolvedValue(project);
 
-            await sut.update(projectId, updateDto);
+            await sut.update(namespaceId, projectId, updateDto);
 
             expect(mockProjectsService.update).toHaveBeenCalledTimes(1);
-            expect(mockProjectsService.update).toHaveBeenCalledWith(projectId, updateDto);
+            expect(mockProjectsService.update).toHaveBeenCalledWith(namespaceId, projectId, updateDto);
         });
 
         it('returns the updated project produced by the service', async () => {
             const updated: Project = { ...project, name: 'renamed' };
             mockProjectsService.update.mockResolvedValue(updated);
 
-            const result = await sut.update(projectId, updateDto);
+            const result = await sut.update(namespaceId, projectId, updateDto);
 
             expect(result).toBe(updated);
         });
 
-        it('throws a NotFoundException when the project does not exist', async () => {
-            mockProjectsService.update.mockResolvedValue(null);
+        it('translates a not-found domain error into a NotFoundException', async () => {
+            mockProjectsService.update.mockRejectedValue(new ProjectNotFoundError(projectId));
 
-            await expect(sut.update(projectId, updateDto)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.update(namespaceId, projectId, updateDto)).rejects.toBeInstanceOf(NotFoundException);
         });
 
-        it('includes the id in the not-found message', async () => {
-            mockProjectsService.update.mockResolvedValue(null);
+        it('keeps the domain message on the not-found response', async () => {
+            mockProjectsService.update.mockRejectedValue(new ProjectNotFoundError(projectId));
 
-            await expect(sut.update(projectId, updateDto)).rejects.toThrow(
+            await expect(sut.update(namespaceId, projectId, updateDto)).rejects.toThrow(
                 `Project ${projectId} not found`,
             );
         });
 
-        it('propagates errors raised by the service', async () => {
+        it('translates a duplicate name into a ConflictException', async () => {
+            mockProjectsService.update.mockRejectedValue(new ProjectNameTakenError(namespaceId, 'renamed'));
+
+            await expect(sut.update(namespaceId, projectId, updateDto)).rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('propagates errors that no translation covers', async () => {
             const error = new Error('db unreachable');
             mockProjectsService.update.mockRejectedValue(error);
 
-            await expect(sut.update(projectId, updateDto)).rejects.toBe(error);
+            await expect(sut.update(namespaceId, projectId, updateDto)).rejects.toBe(error);
         });
     });
 
     describe('delete', () => {
-        it('delegates to the service with the received id', async () => {
+        it('delegates to the service with the received namespace and id', async () => {
             mockProjectsService.delete.mockResolvedValue(true);
 
-            await sut.delete(projectId);
+            await sut.delete(namespaceId, projectId);
 
             expect(mockProjectsService.delete).toHaveBeenCalledTimes(1);
-            expect(mockProjectsService.delete).toHaveBeenCalledWith(projectId);
+            expect(mockProjectsService.delete).toHaveBeenCalledWith(namespaceId, projectId);
         });
 
         it('resolves with no value when a row was deleted', async () => {
             mockProjectsService.delete.mockResolvedValue(true);
 
-            await expect(sut.delete(projectId)).resolves.toBeUndefined();
+            await expect(sut.delete(namespaceId, projectId)).resolves.toBeUndefined();
         });
 
-        it('throws a NotFoundException when nothing was deleted', async () => {
+        it('resolves with no value when the service reports no deleted row, as the use case guards the lookup', async () => {
             mockProjectsService.delete.mockResolvedValue(false);
 
-            await expect(sut.delete(projectId)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.delete(namespaceId, projectId)).resolves.toBeUndefined();
         });
 
-        it('includes the id in the not-found message', async () => {
-            mockProjectsService.delete.mockResolvedValue(false);
+        it('translates a not-found domain error into a NotFoundException', async () => {
+            mockProjectsService.delete.mockRejectedValue(new ProjectNotFoundError(projectId));
 
-            await expect(sut.delete(projectId)).rejects.toThrow(`Project ${projectId} not found`);
+            await expect(sut.delete(namespaceId, projectId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
-        it('propagates errors raised by the service', async () => {
+        it('keeps the domain message on the not-found response', async () => {
+            mockProjectsService.delete.mockRejectedValue(new ProjectNotFoundError(projectId));
+
+            await expect(sut.delete(namespaceId, projectId)).rejects.toThrow(`Project ${projectId} not found`);
+        });
+
+        it('propagates errors that no translation covers', async () => {
             const error = new Error('db unreachable');
             mockProjectsService.delete.mockRejectedValue(error);
 
-            await expect(sut.delete(projectId)).rejects.toBe(error);
+            await expect(sut.delete(namespaceId, projectId)).rejects.toBe(error);
         });
     });
 
     describe('telemetry event enrichment', () => {
-        it('adds the project id of a read', async () => {
+        it('adds the namespace id of a list', async () => {
+            mockProjectsService.getAll.mockResolvedValue([project]);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getAll(namespaceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'namespace.id': namespaceId });
+        });
+
+        it('adds the namespace and project ids of a read', async () => {
             mockProjectsService.findById.mockResolvedValue(project);
 
             const event = await runWithTelemetry({}, async () => {
-                await sut.findById(projectId);
+                await sut.findById(namespaceId, projectId);
 
                 return getTelemetry();
             });
 
-            expect(event).toMatchObject({ 'project.id': projectId });
+            expect(event).toMatchObject({ 'namespace.id': namespaceId, 'project.id': projectId });
         });
 
-        it('adds the project id of an update', async () => {
-            mockProjectsService.update.mockResolvedValue(project);
-
-            const event = await runWithTelemetry({}, async () => {
-                await sut.update(projectId, { name: 'renamed' });
-
-                return getTelemetry();
-            });
-
-            expect(event).toMatchObject({ 'project.id': projectId });
-        });
-
-        it('adds the project id of a delete', async () => {
+        it('adds the namespace and project ids of a delete', async () => {
             mockProjectsService.delete.mockResolvedValue(true);
 
             const event = await runWithTelemetry({}, async () => {
-                await sut.delete(projectId);
+                await sut.delete(namespaceId, projectId);
 
                 return getTelemetry();
             });
 
-            expect(event).toMatchObject({ 'project.id': projectId });
+            expect(event).toMatchObject({ 'namespace.id': namespaceId, 'project.id': projectId });
         });
 
-        it('adds the project id even when the project does not exist', async () => {
-            mockProjectsService.findById.mockResolvedValue(null);
+        it('adds the ids even when the project does not exist', async () => {
+            mockProjectsService.findById.mockRejectedValue(new ProjectNotFoundError(projectId));
 
             const event = await runWithTelemetry({}, async () => {
-                await expect(sut.findById(projectId)).rejects.toBeInstanceOf(NotFoundException);
+                await expect(sut.findById(namespaceId, projectId)).rejects.toBeInstanceOf(NotFoundException);
 
                 return getTelemetry();
             });
 
-            expect(event).toMatchObject({ 'project.id': projectId });
+            expect(event).toMatchObject({ 'namespace.id': namespaceId, 'project.id': projectId });
         });
     });
 });

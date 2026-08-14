@@ -3,15 +3,23 @@ import { UpdateProjectDto } from '../dtos/update-project.dto';
 import { Project } from '../models/project.models';
 
 /**
+ * Data a project needs to be written, the name coming from the body and the
+ * namespace from the path segment that owns the resource.
+ */
+export type CreateProjectData = CreateProjectDto & Pick<Project, 'namespaceId'>;
+
+/**
  * Projects repository
  */
 export interface ProjectsRepository {
     /**
-     * Gets all projects
+     * Gets all the projects of a namespace
      *
-     * @returns All projects
+     * @param namespaceId Namespace id
+     *
+     * @returns All the projects of the namespace
      */
-    getAll: () => Promise<Project[]>;
+    getAll: (namespaceId: string) => Promise<Project[]>;
 
     /**
      * Gets a single project by id
@@ -25,11 +33,11 @@ export interface ProjectsRepository {
     /**
      * Creates a project
      *
-     * @param createDto Project data
+     * @param createData Project data, including the namespace it belongs to
      *
      * @returns Created project
      */
-    create: (createDto: CreateProjectDto) => Promise<Project>;
+    create: (createData: CreateProjectData) => Promise<Project>;
 
     /**
      * Updates a project

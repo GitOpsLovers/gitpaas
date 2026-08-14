@@ -24,59 +24,74 @@ export class ProjectsService {
     ) {}
 
     /**
-     * Gets all projects
+     * Gets all the projects of a namespace
      *
-     * @returns All projects
+     * @param namespaceId Namespace id
+     *
+     * @returns All the projects of the namespace
      */
-    public getAll(): Promise<Project[]> {
-        return getAllProjectsUseCase(this.repository);
+    public getAll(namespaceId: string): Promise<Project[]> {
+        return getAllProjectsUseCase(this.repository, namespaceId);
     }
 
     /**
-     * Gets a single project by id
+     * Gets a single project of a namespace by id
      *
+     * @param namespaceId Namespace id
      * @param id Project id
      *
-     * @returns Project, or `null` when it does not exist
+     * @returns Project
+     *
+     * @throws ProjectNotFoundError When the project does not exist, or belongs to another namespace
      */
-    public findById(id: string): Promise<Project | null> {
-        return findProjectByIdUseCase(this.repository, id);
+    public findById(namespaceId: string, id: string): Promise<Project> {
+        return findProjectByIdUseCase(this.repository, namespaceId, id);
     }
 
     /**
-     * Creates a project
+     * Creates a project inside a namespace
      *
+     * @param namespaceId Namespace id
      * @param createDto Project data
      *
      * @returns Created project
      */
-    public async create(createDto: CreateProjectDto): Promise<Project> {
-        const project = await createProjectUseCase(this.repository, createDto);
+    public async create(namespaceId: string, createDto: CreateProjectDto): Promise<Project> {
+        const project = await createProjectUseCase(this.repository, namespaceId, createDto);
 
-        enrichTelemetry({ 'project.id': project.id });
+        enrichTelemetry({ 'namespace.id': namespaceId, 'project.id': project.id });
 
         return project;
     }
 
     /**
-     * Updates a project
+     * Updates a project of a namespace
      *
+     * @param namespaceId Namespace id
      * @param id Project id
      * @param updateDto Project data
      *
-     * @returns Updated project, or `null` when it does not exist
+     * @returns Updated project
+     *
+     * @throws ProjectNotFoundError When the project does not exist, or belongs to another namespace
      */
-    public update(id: string, updateDto: UpdateProjectDto): Promise<Project | null> {
-        return updateProjectUseCase(this.repository, id, updateDto);
+    public update(namespaceId: string, id: string, updateDto: UpdateProjectDto): Promise<Project> {
+        enrichTelemetry({ 'namespace.id': namespaceId, 'project.id': id });
+
+        return updateProjectUseCase(this.repository, namespaceId, id, updateDto);
     }
 
     /**
-     * Deletes a project
+     * Deletes a project of a namespace
      *
+     * @param namespaceId Namespace id
      * @param id Project id
+     *
      * @returns `true` when a row was deleted, `false` otherwise
+     *
+     * @throws ProjectNotFoundError When the project does not exist, or belongs to another namespace
      */
-    public delete(id: string): Promise<boolean> {
-        return deleteProjectUseCase(this.repository, id);
+    public delete(namespaceId: string, id: string): Promise<boolean> {
+        return deleteProjectUseCase(this.repository, namespaceId, id);
     }
 }
