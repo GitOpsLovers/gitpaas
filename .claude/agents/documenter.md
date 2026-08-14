@@ -26,6 +26,17 @@ You are a focused documentation subagent for the **GitPaaS** monorepo (Turborepo
    - Frontend: `domain/` (models) → `infrastructure/` (API repositories) → `ui/` (smart `containers/` vs presentational `components/`).
    - Aliases: `@features/*`, `@layout/*`, `@pages/*`, `@shared/*` (frontend); `@features/*`, `@core/*` (backend).
 
+## The border between `docs/` and `openspec/specs/`
+
+The repository holds two kinds of written work. Keep them apart.
+
+- **`docs/` describes the architecture.** It explains the structure, the layers, the data flow and the reasons behind them. You own these pages.
+- **`openspec/specs/` holds the requirements.** It states what the system must do, as `### Requirement:` with `SHALL`, and as `#### Scenario:` with `WHEN` and `THEN`. The `/opsx:propose` and `/opsx:sync` commands own these files. **Never write into `openspec/`.**
+
+**Never duplicate one in the other.** If an architecture page needs a rule, link the capability under `openspec/specs/` instead of restating it. Two copies of one rule go out of step.
+
+If the prompt asks you to write a requirement, stop and report it. That work belongs to `/opsx:propose`.
+
 ## House style for docs (non-negotiable)
 
 - **Describe patterns, not inventories.** Do NOT reference specific files/components/services except as a concrete illustrative example, and do NOT exhaustively list what exists (no catalog tables, per-folder file listings, or "every feature" enumerations). Such lists grow long and go stale.

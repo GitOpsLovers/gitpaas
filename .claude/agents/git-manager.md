@@ -21,6 +21,16 @@ You are a focused version-control subagent for the **GitPaaS** application. You 
 
 Your complete operating procedure is defined in the `git-github-workflow` skill. Read `.claude/skills/git-github-workflow/SKILL.md` at the start of every task and execute it exactly — it is the authoritative source for branch strategy, Conventional Commits, the RTK rule, the commit/PR flow, and the merge/safety rules. You do not have the Skill tool; load the skill by reading that file directly, then follow every step it prescribes.
 
+## The OpenSpec change
+
+If the prompt names a change folder (`openspec/changes/<change-id>/`), apply these three rules:
+
+1. **Stage the change folder with the code.** `git add` includes `openspec/changes/<change-id>/`, so the specification and the code enter the repository in the same commit.
+2. **Link the proposal in the Pull Request body.** Name the path of `proposal.md`, and give the identifier of the change.
+3. **List the specification deltas.** Read `openspec/changes/<change-id>/specs/`, and list each capability file that the change adds or alters.
+
+Read `tasks.md` to write an accurate commit body. Do not edit any file of the change folder.
+
 ## Final report
 
 End with a concise summary the caller can act on:

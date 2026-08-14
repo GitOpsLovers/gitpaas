@@ -84,14 +84,14 @@ write a local copy of any of them.
 
 ## Phase 3 — The subagents
 
-- [ ] Add a first step to `.claude/agents/implementer.md`: read `proposal.md`, `design.md` and `tasks.md` of the change folder.
-- [ ] Add a last step to the same file: mark the completed items in `tasks.md`.
-- [ ] Apply the same two steps to `.claude/agents/refactorer.md`.
-- [ ] Apply the same two steps to `.claude/agents/tester.md`, and derive the test cases from the scenarios of the specification.
-- [ ] Update `.claude/agents/documenter.md`: the `docs/` pages describe the architecture, and `openspec/specs/` holds the requirements. Never duplicate one in the other.
-- [ ] Update `.claude/agents/architecture-analyst.md`: compare the code against the specifications, and report every deviation.
-- [ ] Update `.claude/agents/git-manager.md`: the Pull Request body links the proposal and lists the specification deltas.
-- [ ] Do not create a `spec-writer` subagent. The `/opsx:propose` command covers that work, and Phase 1b adopts it.
+- [x] Add a first step to `.claude/agents/implementer.md`: read `proposal.md`, `design.md` and `tasks.md` of the change folder. Added as *The OpenSpec change (do this first)*.
+- [x] Add a last step to the same file: mark the completed items in `tasks.md`. Added as *Mark the tasks (do this last)*.
+- [x] Apply the same two steps to `.claude/agents/refactorer.md`.
+- [x] Apply the same two steps to `.claude/agents/tester.md`, and derive the test cases from the scenarios of the specification. One test per `#### Scenario:`, named after it.
+- [x] Update `.claude/agents/documenter.md`: the `docs/` pages describe the architecture, and `openspec/specs/` holds the requirements. Never duplicate one in the other. The agent must never write into `openspec/`.
+- [x] Update `.claude/agents/architecture-analyst.md`: compare the code against the specifications, and report every deviation. The report gains a *Deviations from the specifications* section.
+- [x] Update `.claude/agents/git-manager.md`: the Pull Request body links the proposal and lists the specification deltas. The agent also stages the change folder with the code.
+- [x] Do not create a `spec-writer` subagent. The `/opsx:propose` command covers that work, and Phase 1b adopts it. No file was created.
 
 ## Phase 4 — The Git workflow skill
 
