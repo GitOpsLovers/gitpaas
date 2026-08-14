@@ -84,13 +84,19 @@ assert_version_tag() {
     esac
 }
 
+# A flag written as "--flag value" needs a second argument. Fail with a clear
+# message instead of letting "shift 2" abort the script on its own.
+require_value() {
+    [ "$1" -ge 2 ] || die "$2 needs a value, e.g. $2 $3 (try --help)."
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        --version)     GITPAAS_VERSION="$2"; shift 2 ;;
+        --version)     require_value $# --version v1.2.3; GITPAAS_VERSION="$2"; shift 2 ;;
         --version=*)   GITPAAS_VERSION="${1#*=}"; shift ;;
-        --dir)         GITPAAS_DIR="$2"; shift 2 ;;
+        --dir)         require_value $# --dir /opt/gitpaas; GITPAAS_DIR="$2"; shift 2 ;;
         --dir=*)       GITPAAS_DIR="${1#*=}"; shift ;;
-        --email)       GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
+        --email)       require_value $# --email admin@example.com; GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
         --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
         -h|--help)
             awk 'NR == 1 { next } /^#/ { print; next } { exit }' "$0" 2>/dev/null || true
@@ -212,20 +218,19 @@ rand_secret() { openssl rand -hex 32; }
 # Generate a random password of 28 alphanumeric characters.
 rand_password() { openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | cut -c1-28; }
 
-# Writes key=value into .env, replacing an existing line if the key exists.
+# Writes key=value into .env. It rewrites the existing line, or appends the key
+# when .env does not carry it yet, so a value is never lost without notice.
 set_env() {
     key="$1"; val="$2"
-    $SUDO sed -i.bak "s|^${key}=.*|${key}=${val}|" "$ENV_FILE" && $SUDO rm -f "$ENV_FILE.bak"
-}
-
-# Appends the key=value to .env if the key does not exist, or rewrites it if it does.
-upsert_env() {
-    if $SUDO grep -q "^$1=" "$ENV_FILE" 2>/dev/null; then
-        set_env "$1" "$2"
+    if $SUDO grep -q "^${key}=" "$ENV_FILE" 2>/dev/null; then
+        $SUDO sed -i.bak "s|^${key}=.*|${key}=${val}|" "$ENV_FILE" && $SUDO rm -f "$ENV_FILE.bak"
     else
-        printf '%s=%s\n' "$1" "$2" | $SUDO tee -a "$ENV_FILE" >/dev/null
+        printf '%s=%s\n' "$key" "$val" | $SUDO tee -a "$ENV_FILE" >/dev/null
     fi
 }
+
+# Kept as the explicit name for "write this value, whatever .env holds today".
+upsert_env() { set_env "$1" "$2"; }
 
 # Appends the key with a default ONLY when .env does not carry it yet.
 default_env() {
