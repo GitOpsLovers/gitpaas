@@ -1,0 +1,83 @@
+openspec/changes/server-health-panel/.openspec.yaml
+  s_a8a676ef8114b0::t_0248dcfa51b5c7 1-2
+openspec/changes/server-health-panel/README.md
+  s_a8a676ef8114b0::t_7f33e631e7af50 1-3
+apps/frontend/src/app/features/server/application/map-daemon-health.use-case.spec.ts
+  s_fbb263a094e948::t_e7088f6d1075c6 1-77
+apps/frontend/src/app/features/server/application/map-daemon-health.use-case.ts
+  s_c7dde436e5025d::t_31d97818cc1bb9 1-84
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.spec.ts
+  s_fbb263a094e948::t_b11cc72406be5f 1-134
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.ts
+  s_c7dde436e5025d::t_b82b5c438da909 1-101
+apps/frontend/src/app/features/server/application/read-error-payload.use-case.spec.ts
+  s_fbb263a094e948::t_5e9017f3885518 1-38
+apps/frontend/src/app/features/server/application/read-error-payload.use-case.ts
+  s_c7dde436e5025d::t_3577276797f747 1-33
+apps/frontend/src/app/features/server/domain/models/readiness-result.model.ts
+  s_c7dde436e5025d::t_0a6eccfea60072 1-25
+apps/frontend/src/app/features/server/domain/models/server-health.model.ts
+  s_c7dde436e5025d::t_3e776f53665b65 1-38
+apps/frontend/src/app/features/server/domain/models/server-status.model.ts
+  s_c7dde436e5025d::t_0b9f2888b57812 1-15
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_c7dde436e5025d::t_ef6bdb1fa08028 1,7-8,22-45
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.html
+  s_c7dde436e5025d::t_f62e7b9436f75c 1-86
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.spec.ts
+  s_fbb263a094e948::t_99a09e510094db 1-143
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.ts
+  s_c7dde436e5025d::t_9837827e4cdf76 1-33
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.html
+  s_c7dde436e5025d::t_e9d51afcde9099 1
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.ts
+  s_c7dde436e5025d::t_3cd9a36e43229f 1-56
+apps/frontend/src/app/pages/server/server.component.html
+  s_c7dde436e5025d::t_e5c181af2f401c 3-4
+apps/frontend/src/app/pages/server/server.component.ts
+  s_c7dde436e5025d::t_a5666e05eec401 3,10
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_99a8cf5899cbd9 192-243
+openspec/changes/server-health-panel/design.md
+  s_a8a676ef8114b0::t_f9a93cabd3e1ae 1-81
+openspec/changes/server-health-panel/proposal.md
+  s_a8a676ef8114b0::t_6931268cfbc468 1-49
+openspec/changes/server-health-panel/specs/web-server/spec.md
+  s_a8a676ef8114b0::t_bb0982f50a235d 1-88
+openspec/changes/server-health-panel/tasks.md
+  s_fbb263a094e948::t_7f5a7a143df0d6 1-32
+openspec/specs/web-server/spec.md
+  s_a8a676ef8114b0::t_c29d62bb0793f0 86,88,90-150,154-161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b64baa0fb3f5b9d21d076868ed2257420887513c",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c7dde436e5025d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9d6f9878350fd4ce",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_fbb263a094e948": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a546854fce8639e94",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
