@@ -1,0 +1,19 @@
+scripts/install.sh
+  s_68e842846b325c::t_ea271e93cafbec 95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c2b637fce08db46cc468f296d8c4ea52bf845517",
+  "prompts": {},
+  "sessions": {
+    "s_68e842846b325c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26f6e2ca-e2ca-4a19-860e-b60a0122b155",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
