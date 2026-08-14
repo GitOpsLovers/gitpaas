@@ -1,0 +1,21 @@
+.claude/agents/git-manager.md
+  s_a8a676ef8114b0::t_fcfb628c809ba9 24-33
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_218987e2bf7f2a 87-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7d1adec9d02580e0156612a3763adf380331b86f",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
