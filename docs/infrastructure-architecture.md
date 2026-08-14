@@ -16,7 +16,7 @@ This document gives the infrastructure on which the GitPaaS application runs. Tw
 
 ## Related docs
 
-- [Deployment roadmap](./deployment-roadmap.md)
+- [Planned work](../openspec/changes/)
 - [Backend architecture](./backend-architecture.md)
 - [Frontend architecture](./frontend-architecture.md)
 - [Monorepo architecture](./monorepo-architecture.md)

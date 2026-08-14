@@ -101,13 +101,13 @@ To install a specific release instead of the latest one, add `-s -- --version v1
 
 ## 📚 Documentation
 
-| Doc                                                                     | What's inside                                                    |
-|-------------------------------------------------------------------------|------------------------------------------------------------------|
-| 🧩 [Backend Architecture](./docs/backend-architecture.md)               | The NestJS API's hexagonal layout, ports & adapters, persistence |
-| 💼 [Backend Business](./docs/backend-business.md)                       | The domain workflows behind the deploy engine                    |
-| 🎨 [Frontend Architecture](./docs/frontend-architecture.md)             | The Angular SPA's feature folders, layering, and conventions     |
+| Doc                                                                     | What's inside                                                     |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------|
+| 🧩 [Backend Architecture](./docs/backend-architecture.md)               | The NestJS API's hexagonal layout, ports & adapters, persistence  |
+| 💼 [Backend Business](./docs/backend-business.md)                       | The domain workflows behind the deploy engine                     |
+| 🎨 [Frontend Architecture](./docs/frontend-architecture.md)             | The Angular SPA's feature folders, layering, and conventions      |
 | 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The single-server model, dev vs. production, and image publishing |
-| 🗺️ [Deployment Roadmap](./docs/roadmap/deployment-roadmap.md)           | The product vision and the phased path to a full PaaS            |
+| 🗺️ [Planned work](./openspec/changes/)                                  | The path to a full PaaS, as one folder per change                 |
 
 ---
 
