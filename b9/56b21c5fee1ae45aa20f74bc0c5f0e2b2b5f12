@@ -1,0 +1,25 @@
+docs/backend-architecture/structure.md
+  s_a11f641ca1873d::t_44b812c08d3077 74-75
+docs/backend-business.md
+  s_a11f641ca1873d::t_269d208e0c58ec 7
+docs/backend-business/domain-model.md
+  s_a11f641ca1873d::t_16036c5b3cd167 3
+docs/frontend-architecture/structure.md
+  s_a11f641ca1873d::t_fe2e02d6f63218 39-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b956b21c5fee1ae45aa20f74bc0c5f0e2b2b5f12",
+  "prompts": {},
+  "sessions": {
+    "s_a11f641ca1873d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae4071b7bbd5c7b21",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
