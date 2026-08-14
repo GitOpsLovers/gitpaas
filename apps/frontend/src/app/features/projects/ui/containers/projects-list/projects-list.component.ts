@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
@@ -26,6 +26,8 @@ export class ProjectsListComponent {
 
     private readonly toast = inject(ToastService);
 
+    public readonly namespaceId = input.required<string>();
+
     protected readonly projects = this.repository.projects;
 
     protected readonly pendingDelete = signal<Project | null>(null);
@@ -39,12 +41,18 @@ export class ProjectsListComponent {
         () => `“${this.pendingDelete()?.name ?? ''}” will be permanently deleted. This action cannot be undone.`,
     );
 
+    constructor() {
+        effect(() => {
+            this.repository.namespaceId.set(this.namespaceId());
+        });
+    }
+
     protected view(project: Project): void {
-        this.router.navigate(['/projects', project.id]);
+        this.router.navigate(['/namespaces', this.namespaceId(), 'projects', project.id]);
     }
 
     protected edit(project: Project): void {
-        this.router.navigate(['/projects/edit', project.id]);
+        this.router.navigate(['/namespaces', this.namespaceId(), 'projects', 'edit', project.id]);
     }
 
     /**

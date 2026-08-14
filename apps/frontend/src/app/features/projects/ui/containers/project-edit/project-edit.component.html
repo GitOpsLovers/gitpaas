@@ -2,6 +2,7 @@
     <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
 } @else {
     <app-project-form
+        [namespaceId]="namespaceId()"
         [initialName]="initialName()"
         submitLabel="Save changes"
         [submitting]="submitting()"

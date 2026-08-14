@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ProjectsListComponent } from '@features/projects/ui/containers/projects-list/projects-list.component';
@@ -14,5 +14,10 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Projects list page.
  */
 export class ProjectsListPage {
-    protected readonly breadcrumb: BreadcrumbItem[] = [{ label: 'Projects' }];
+    public readonly namespaceId = input.required<string>();
+
+    protected readonly breadcrumb: BreadcrumbItem[] = [
+        { label: 'Namespaces', link: '/namespaces' },
+        { label: 'Projects' },
+    ];
 }

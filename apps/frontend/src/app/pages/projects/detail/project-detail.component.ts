@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { ProjectDetailComponent } from '@features/projects/ui/containers/project-detail/project-detail.component';
 
@@ -11,4 +11,8 @@ import { ProjectDetailComponent } from '@features/projects/ui/containers/project
 /**
  * Project detail page.
  */
-export class ProjectDetailPage {}
+export class ProjectDetailPage {
+    public readonly namespaceId = input.required<string>();
+
+    public readonly id = input.required<string>();
+}

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
@@ -24,16 +24,18 @@ export class ProjectAddComponent {
 
     private readonly toast = inject(ToastService);
 
+    public readonly namespaceId = input.required<string>();
+
     protected readonly submitting = signal(false);
 
     protected async create(name: string): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const project = await lastValueFrom(this.repository.create({ name }));
+            const project = await lastValueFrom(this.repository.create(this.namespaceId(), { name }));
 
             this.toast.success('Project created', `“${project.name}” has been created.`);
-            this.router.navigate(['/projects']);
+            this.router.navigate(['/namespaces', this.namespaceId(), 'projects']);
         } catch {
             this.toast.error('Could not create project', 'Something went wrong. Please try again.');
             this.submitting.set(false);

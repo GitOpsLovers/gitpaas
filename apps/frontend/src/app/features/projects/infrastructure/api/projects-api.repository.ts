@@ -1,5 +1,5 @@
 import { HttpClient, httpResource } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
@@ -16,12 +16,21 @@ import { environment } from '@environments/environment';
 export class ProjectsApiRepository {
     private readonly http = inject(HttpClient);
 
-    private readonly url = `${environment.apiBaseUrl}/projects`;
+    private readonly url = `${environment.apiBaseUrl}/namespaces`;
 
     /**
-     * Resource with all projects
+     * Namespace scoping every projects request
      */
-    public readonly projects = httpResource<Project[]>(() => this.url);
+    public readonly namespaceId = signal<string | undefined>(undefined);
+
+    /**
+     * Resource with all projects of the current namespace
+     */
+    public readonly projects = httpResource<Project[]>(() => {
+        const namespaceId = this.namespaceId();
+
+        return namespaceId ? this.projectsUrl(namespaceId) : undefined;
+    });
 
     /**
      * Resource with a single project by id
@@ -32,41 +41,55 @@ export class ProjectsApiRepository {
      */
     public projectById(id: () => string | undefined) {
         return httpResource<Project>(() => {
+            const namespaceId = this.namespaceId();
             const projectId = id();
 
-            return projectId ? `${this.url}/${projectId}` : undefined;
+            return namespaceId && projectId ? `${this.projectsUrl(namespaceId)}/${projectId}` : undefined;
         });
     }
 
     /**
      * Creates a new project
      *
+     * @param namespaceId Namespace identifier
      * @param dto Data for creating the project
      *
      * @returns Created project
      */
-    public create(dto: CreateProjectDto): Observable<Project> {
-        return this.http.post<Project>(this.url, dto);
+    public create(namespaceId: string, dto: CreateProjectDto): Observable<Project> {
+        return this.http.post<Project>(this.projectsUrl(namespaceId), dto);
     }
 
     /**
      * Updates an existing project
      *
+     * @param namespaceId Namespace identifier
      * @param id Project identifier
      * @param dto Data for updating the project
      *
      * @returns Updated project
      */
-    public update(id: string, dto: UpdateProjectDto): Observable<Project> {
-        return this.http.put<Project>(`${this.url}/${id}`, dto);
+    public update(namespaceId: string, id: string, dto: UpdateProjectDto): Observable<Project> {
+        return this.http.put<Project>(`${this.projectsUrl(namespaceId)}/${id}`, dto);
     }
 
     /**
-     * Deletes a project
+     * Deletes a project from the current namespace
      *
      * @param id Project identifier
      */
     public delete(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.url}/${id}`);
+        return this.http.delete<void>(`${this.projectsUrl(this.namespaceId() ?? '')}/${id}`);
+    }
+
+    /**
+     * Builds the projects collection URL for a namespace
+     *
+     * @param namespaceId Namespace identifier
+     *
+     * @returns Projects collection URL
+     */
+    private projectsUrl(namespaceId: string): string {
+        return `${this.url}/${namespaceId}/projects`;
     }
 }

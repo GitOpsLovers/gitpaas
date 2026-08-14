@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { ProjectEditComponent } from '@features/projects/ui/containers/project-edit/project-edit.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -13,8 +13,13 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Edit project page.
  */
 export class ProjectsEditPage {
-    protected readonly breadcrumb: BreadcrumbItem[] = [
-        { label: 'Projects', link: '/projects' },
+    public readonly namespaceId = input.required<string>();
+
+    public readonly id = input.required<string>();
+
+    protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
+        { label: 'Namespaces', link: '/namespaces' },
+        { label: 'Projects', link: ['/namespaces', this.namespaceId(), 'projects'] },
         { label: 'Edit project' },
-    ];
+    ]);
 }

@@ -26,6 +26,8 @@ export class ServicesListComponent {
 
     private readonly toast = inject(ToastService);
 
+    public readonly namespaceId = input.required<string>();
+
     public readonly projectId = input.required<string>();
 
     protected readonly services = this.repository.services;
@@ -48,11 +50,11 @@ export class ServicesListComponent {
     }
 
     protected view(service: Service): void {
-        this.router.navigate(['/projects', this.projectId(), 'services', service.id]);
+        this.router.navigate(['/namespaces', this.namespaceId(), 'projects', this.projectId(), 'services', service.id]);
     }
 
     protected edit(service: Service): void {
-        this.router.navigate(['/projects', this.projectId(), 'services', 'edit', service.id]);
+        this.router.navigate(['/namespaces', this.namespaceId(), 'projects', this.projectId(), 'services', 'edit', service.id]);
     }
 
     /**

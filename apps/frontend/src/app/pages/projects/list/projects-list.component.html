@@ -2,11 +2,11 @@
 
 <div class="mb-6 flex justify-end">
     <a
-        routerLink="/projects/add"
+        [routerLink]="['/namespaces', namespaceId(), 'projects', 'add']"
         class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
     >
         Add project
     </a>
 </div>
 
-<app-projects-list />
+<app-projects-list [namespaceId]="namespaceId()" />

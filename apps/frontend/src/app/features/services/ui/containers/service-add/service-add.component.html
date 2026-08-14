@@ -1,3 +1,9 @@
 <app-breadcrumb [items]="breadcrumb()" />
 
-<app-service-form [projectId]="projectId" submitLabel="Create" [submitting]="submitting()" (save)="create($event)" />
+<app-service-form
+    [namespaceId]="namespaceId"
+    [projectId]="projectId"
+    submitLabel="Create"
+    [submitting]="submitting()"
+    (save)="create($event)"
+/>

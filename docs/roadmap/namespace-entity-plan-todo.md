@@ -77,15 +77,15 @@ All the paths are relative to the root of the repository, if there is no other i
 
 ## Phase 5 — Frontend, the changes to the project screens
 
-- [ ] Add the required `namespaceId` field to `apps/frontend/src/app/features/projects/domain/models/project.model.ts` only; leave `apps/frontend/src/app/features/projects/domain/dtos/create-project.dto.ts` and `update-project.dto.ts` name-only, because the route path carries `namespaceId`.
-- [ ] Add the `namespaceId = signal<string | undefined>(undefined)` field to `apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.ts`, and build the `projects` resource URL, the `projectById` URL and the `create` / `update` / `delete` URLs from `namespaces/${this.namespaceId()}/projects`.
-- [ ] Add the case that the `projects`, `projectById`, `create`, `update` and `delete` URLs include the current `namespaceId` to `apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.spec.ts` (new).
-- [ ] Read `namespaceId` from the route input (bound by `withComponentInputBinding()`) and set `repository.namespaceId` in `apps/frontend/src/app/features/projects/ui/containers/projects-list/projects-list.component.ts`; remove any namespace-filter `<select>` from this container.
-- [ ] Read `namespaceId` from the route input and pass it to `projectsApiRepository.create(namespaceId, { name })` in `apps/frontend/src/app/features/projects/ui/containers/project-add/project-add.component.ts`; do not inject `NamespacesApiRepository` here.
-- [ ] Read `namespaceId` and `id` from the route input and pass both to `projectsApiRepository.update(namespaceId, id, { name })` in `apps/frontend/src/app/features/projects/ui/containers/project-edit/project-edit.component.ts`; remove any namespace `<select>` from this container.
-- [ ] Verify that `apps/frontend/src/app/features/projects/ui/components/project-form/project-form.component.ts` keeps the name-only `save = output<string>()` and needs no edit.
-- [ ] Move the `projects` children of `apps/frontend/src/app/app.routes.ts` under a new `:namespaceId/projects` path nested inside the `namespaces` route, and remove the former top-level `projects` path.
-- [ ] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the project screens compile under the nested route and that their specs pass.
+- [x] Add the required `namespaceId` field to `apps/frontend/src/app/features/projects/domain/models/project.model.ts` only; leave `apps/frontend/src/app/features/projects/domain/dtos/create-project.dto.ts` and `update-project.dto.ts` name-only, because the route path carries `namespaceId`.
+- [x] Add the `namespaceId = signal<string | undefined>(undefined)` field to `apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.ts`, and build the `projects` resource URL, the `projectById` URL and the `create` / `update` / `delete` URLs from `namespaces/${this.namespaceId()}/projects`.
+- [x] Add the case that the `projects`, `projectById`, `create`, `update` and `delete` URLs include the current `namespaceId` to `apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.spec.ts` (new).
+- [x] Read `namespaceId` from the route input (bound by `withComponentInputBinding()`) and set `repository.namespaceId` in `apps/frontend/src/app/features/projects/ui/containers/projects-list/projects-list.component.ts`; remove any namespace-filter `<select>` from this container.
+- [x] Read `namespaceId` from the route input and pass it to `projectsApiRepository.create(namespaceId, { name })` in `apps/frontend/src/app/features/projects/ui/containers/project-add/project-add.component.ts`; do not inject `NamespacesApiRepository` here.
+- [x] Read `namespaceId` and `id` from the route input and pass both to `projectsApiRepository.update(namespaceId, id, { name })` in `apps/frontend/src/app/features/projects/ui/containers/project-edit/project-edit.component.ts`; remove any namespace `<select>` from this container.
+- [x] Verify that `apps/frontend/src/app/features/projects/ui/components/project-form/project-form.component.ts` keeps the name-only `save = output<string>()` and needs no edit.
+- [x] Move the `projects` children of `apps/frontend/src/app/app.routes.ts` under a new `:namespaceId/projects` path nested inside the `namespaces` route, and remove the former top-level `projects` path.
+- [x] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the project screens compile under the nested route and that their specs pass.
 
 ## Phase 6 — Documentation
 

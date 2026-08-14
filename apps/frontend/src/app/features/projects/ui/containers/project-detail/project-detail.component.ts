@@ -1,5 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, computed, effect, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
@@ -19,14 +19,21 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
 export class ProjectDetailComponent {
     private readonly repository = inject(ProjectsApiRepository);
 
-    private readonly route = inject(ActivatedRoute);
+    public readonly namespaceId = input.required<string>();
 
-    protected readonly id = this.route.snapshot.paramMap.get('id') ?? '';
+    public readonly id = input.required<string>();
 
-    private readonly project = this.repository.projectById(() => this.id);
+    private readonly project = this.repository.projectById(() => this.id());
 
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
-        { label: 'Projects', link: '/projects' },
+        { label: 'Namespaces', link: '/namespaces' },
+        { label: 'Projects', link: ['/namespaces', this.namespaceId(), 'projects'] },
         { label: this.project.value()?.name ?? 'Project' },
     ]);
+
+    constructor() {
+        effect(() => {
+            this.repository.namespaceId.set(this.namespaceId());
+        });
+    }
 }

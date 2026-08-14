@@ -1,5 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -21,13 +21,13 @@ export class ProjectEditComponent {
 
     private readonly router = inject(Router);
 
-    private readonly route = inject(ActivatedRoute);
-
     private readonly toast = inject(ToastService);
 
-    private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
+    public readonly namespaceId = input.required<string>();
 
-    private readonly project = this.repository.projectById(() => this.id);
+    public readonly id = input.required<string>();
+
+    private readonly project = this.repository.projectById(() => this.id());
 
     protected readonly initialName = computed(() => this.project.value()?.name ?? '');
 
@@ -35,14 +35,20 @@ export class ProjectEditComponent {
 
     protected readonly submitting = signal(false);
 
+    constructor() {
+        effect(() => {
+            this.repository.namespaceId.set(this.namespaceId());
+        });
+    }
+
     protected async update(name: string): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const project = await lastValueFrom(this.repository.update(this.id, { name }));
+            const project = await lastValueFrom(this.repository.update(this.namespaceId(), this.id(), { name }));
 
             this.toast.success('Project updated', `“${project.name}” has been saved.`);
-            this.router.navigate(['/projects']);
+            this.router.navigate(['/namespaces', this.namespaceId(), 'projects']);
         } catch {
             this.toast.error('Could not update project', 'Something went wrong. Please try again.');
             this.submitting.set(false);

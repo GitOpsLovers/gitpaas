@@ -1,1 +1,6 @@
-<app-project-form submitLabel="Create" [submitting]="submitting()" (save)="create($event)" />
+<app-project-form
+    [namespaceId]="namespaceId()"
+    submitLabel="Create"
+    [submitting]="submitting()"
+    (save)="create($event)"
+/>
