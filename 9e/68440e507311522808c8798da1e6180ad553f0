@@ -1,0 +1,19 @@
+apps/backend/src/features/projects/infrastructure/database/db-project.entity.ts
+  s_7d061678e0060b::t_5f545bf5e54cc9 8-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9e68440e507311522808c8798da1e6180ad553f0",
+  "prompts": {},
+  "sessions": {
+    "s_7d061678e0060b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2cfaf0bcab5478b7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
