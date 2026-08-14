@@ -41,8 +41,6 @@ export class ProjectsService {
      * @param id Project id
      *
      * @returns Project
-     *
-     * @throws ProjectNotFoundError When the project does not exist, or belongs to another namespace
      */
     public findById(namespaceId: string, id: string): Promise<Project> {
         return findProjectByIdUseCase(this.repository, namespaceId, id);
@@ -72,8 +70,6 @@ export class ProjectsService {
      * @param updateDto Project data
      *
      * @returns Updated project
-     *
-     * @throws ProjectNotFoundError When the project does not exist, or belongs to another namespace
      */
     public update(namespaceId: string, id: string, updateDto: UpdateProjectDto): Promise<Project> {
         enrichTelemetry({ 'namespace.id': namespaceId, 'project.id': id });
@@ -88,8 +84,6 @@ export class ProjectsService {
      * @param id Project id
      *
      * @returns `true` when a row was deleted, `false` otherwise
-     *
-     * @throws ProjectNotFoundError When the project does not exist, or belongs to another namespace
      */
     public delete(namespaceId: string, id: string): Promise<boolean> {
         return deleteProjectUseCase(this.repository, namespaceId, id);

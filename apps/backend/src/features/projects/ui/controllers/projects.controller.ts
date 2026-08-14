@@ -20,11 +20,7 @@ import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.contex
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
- * REST controller for the projects resource (`/api/v1/namespaces/:namespaceId/projects`).
- *
- * A project is only reachable through the namespace that owns it, so every
- * method reads the `namespaceId` path segment and hands it to the service; the
- * use cases are the single place that decides "not found".
+ * Projects controller
  */
 @Controller('namespaces/:namespaceId/projects')
 export class ProjectsController {
