@@ -284,6 +284,7 @@ generate_env() {
         upsert_env "IMAGE_TAG"  "$IMAGE_TAG"
         default_env "REDIS_HOST" "redis"
         default_env "REDIS_PORT" "6379"
+        default_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"
         return
     fi
 
@@ -295,12 +296,13 @@ generate_env() {
     set_env "DB_PASSWORD" "$db_password"
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
+    set_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"
     set_env "NODE_ENV" "production"
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"
     upsert_env "DOCKER_GID" "$DOCKER_GID"
     upsert_env "IMAGE_TAG" "$IMAGE_TAG"
 
-    log ".env written. GitHub App credentials remain as placeholders you must fill in."
+    log ".env written. Source control accounts are registered from the Providers screen."
 }
 
 # ---------------------------------------------------------------------------
@@ -491,9 +493,12 @@ print_summary() {
     printf '   admin already existed, its previous password is unchanged.)\n'
     printf '\n'
     printf '  %sStill to do manually:%s\n' "$C_BOLD" "$C_RESET"
-    printf '   * Fill GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_INSTALLATION_ID in\n'
-    printf '     %s/iac/production/.env\n' "$GITPAAS_DIR"
+    printf '   * Register your GitHub App in the Providers screen: http://%s:8080/providers/add\n' "$HOST_ADDR"
     printf '   * After editing .env, apply changes: %ssudo docker compose -f %s/iac/production/docker-compose.yml up -d%s\n' "$C_BOLD" "$GITPAAS_DIR" "$C_RESET"
+    printf '\n'
+    printf '  %sWarning:%s PROVIDERS_ENCRYPTION_KEY in %s/iac/production/.env encrypts every\n' "$C_YELLOW$C_BOLD" "$C_RESET" "$GITPAAS_DIR"
+    printf '  stored provider key. If you lose it, every registered provider key becomes\n'
+    printf '  unreadable and you must register the applications again. Back it up.\n'
     printf '%s────────────────────────────────────────────────────────%s\n\n' "$C_GREEN$C_BOLD" "$C_RESET"
 }
 

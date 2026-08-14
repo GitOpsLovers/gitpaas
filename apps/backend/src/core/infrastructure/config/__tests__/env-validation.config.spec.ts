@@ -14,9 +14,7 @@ const validEnv = (): Record<string, unknown> => ({
     DB_NAME: 'gitpaas_db',
     REDIS_HOST: 'localhost',
     REDIS_PORT: '6379',
-    GITHUB_APP_ID: '123',
-    GITHUB_APP_PRIVATE_KEY: 'key',
-    GITHUB_APP_INSTALLATION_ID: '456',
+    PROVIDERS_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef',
     CORS_ORIGIN: 'http://localhost:4200',
     THROTTLE_TTL: '60000',
     THROTTLE_LIMIT: '100',
@@ -160,6 +158,23 @@ describe('validate', () => {
 
     it('keeps a configured Redis password', () => {
         expect(validate({ ...validEnv(), REDIS_PASSWORD: 'secret' }).REDIS_PASSWORD).toBe('secret');
+    });
+
+    it('fails fast when the providers encryption key is missing', () => {
+        const env = validEnv();
+        delete env.PROVIDERS_ENCRYPTION_KEY;
+
+        expect(() => validate(env)).toThrow(/PROVIDERS_ENCRYPTION_KEY/);
+    });
+
+    it('rejects an empty providers encryption key', () => {
+        expect(() => validate({ ...validEnv(), PROVIDERS_ENCRYPTION_KEY: '' }))
+            .toThrow(/PROVIDERS_ENCRYPTION_KEY/);
+    });
+
+    it('keeps the configured providers encryption key', () => {
+        expect(validate(validEnv()).PROVIDERS_ENCRYPTION_KEY)
+            .toBe('0123456789abcdef0123456789abcdef');
     });
 
     it('rejects a non-numeric throttle limit', () => {

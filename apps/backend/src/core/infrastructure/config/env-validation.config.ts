@@ -66,17 +66,7 @@ export class EnvironmentVariables {
     @IsDefined()
     @IsNotEmpty()
     @IsString()
-    public GITHUB_APP_ID!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public GITHUB_APP_PRIVATE_KEY!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public GITHUB_APP_INSTALLATION_ID!: string;
+    public PROVIDERS_ENCRYPTION_KEY!: string;
 
     @IsDefined()
     @IsNotEmpty()

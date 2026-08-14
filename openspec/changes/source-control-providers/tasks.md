@@ -1,12 +1,12 @@
 ## 1. Unblock the boot
 
-- [ ] 1.1 Delete the `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` and `GITHUB_APP_INSTALLATION_ID` fields from `apps/backend/src/core/infrastructure/config/env-validation.config.ts`.
-- [ ] 1.2 Add a required `PROVIDERS_ENCRYPTION_KEY` field to the same file, validated as a non-empty string.
-- [ ] 1.3 Delete the three `GITHUB_APP_*` keys from `iac/production/.env.example`, and add `PROVIDERS_ENCRYPTION_KEY=`.
-- [ ] 1.4 Add `set_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"` to `generate_env` in `scripts/install.sh`.
-- [ ] 1.5 Replace the `GITHUB_APP_*` lines of `print_summary` in `scripts/install.sh` with a line that sends the operator to the Providers screen.
-- [ ] 1.6 Add a warning line to `print_summary`: a lost `PROVIDERS_ENCRYPTION_KEY` makes every stored provider key unreadable.
-- [ ] 1.7 Verify that the backend starts with no GitHub credential in the environment.
+- [x] 1.1 Delete the `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` and `GITHUB_APP_INSTALLATION_ID` fields from `apps/backend/src/core/infrastructure/config/env-validation.config.ts`.
+- [x] 1.2 Add a required `PROVIDERS_ENCRYPTION_KEY` field to the same file, validated as a non-empty string.
+- [x] 1.3 Delete the three `GITHUB_APP_*` keys from `iac/production/.env.example`, and add `PROVIDERS_ENCRYPTION_KEY=`.
+- [x] 1.4 Add `set_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"` to `generate_env` in `scripts/install.sh`.
+- [x] 1.5 Replace the `GITHUB_APP_*` lines of `print_summary` in `scripts/install.sh` with a line that sends the operator to the Providers screen.
+- [x] 1.6 Add a warning line to `print_summary`: a lost `PROVIDERS_ENCRYPTION_KEY` makes every stored provider key unreadable.
+- [x] 1.7 Verify that the backend starts with no GitHub credential in the environment.
 
 ## 2. The provider record
 
