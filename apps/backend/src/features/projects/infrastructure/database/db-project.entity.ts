@@ -5,12 +5,6 @@ import { DbServiceEntity } from '@features/services/infrastructure/database/db-s
 
 /**
  * Projects database entity
- *
- * The composite unique constraint is named explicitly so it matches the
- * hand-written `UQ_projects_namespaceId_name` constraint of
- * `iac/production/migrations/009_namespaces.sql`. The namespace relation uses
- * `RESTRICT`, so the database itself refuses to delete a namespace that still
- * holds projects.
  */
 @Entity('projects')
 @Unique('UQ_projects_namespaceId_name', ['namespaceId', 'name'])

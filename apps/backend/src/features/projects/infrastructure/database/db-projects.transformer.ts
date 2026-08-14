@@ -3,24 +3,7 @@ import { Project } from '../../domain/models/project.models';
 
 import { DbProjectEntity } from './db-project.entity';
 
-/**
- * PostgreSQL `SQLSTATE` of a unique violation.
- */
-const UNIQUE_VIOLATION = '23505';
-
-/**
- * Reads the `SQLSTATE` a driver failure carries.
- *
- * @param error Caught error
- *
- * @returns The `SQLSTATE`, or `undefined` when the error carries none
- */
-function readSqlState(error: unknown): string | undefined {
-    const candidate = error as { code?: unknown; driverError?: { code?: unknown } } | null;
-    const code = candidate?.driverError?.code ?? candidate?.code;
-
-    return typeof code === 'string' ? code : undefined;
-}
+import { readSqlState, UNIQUE_VIOLATION } from '@core/infrastructure/database/sql-state';
 
 /**
  * Maps a failure raised while writing a project into the domain error that describes it.
