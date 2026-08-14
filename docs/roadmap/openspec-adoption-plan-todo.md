@@ -95,11 +95,13 @@ write a local copy of any of them.
 
 ## Phase 4 — The Git workflow skill
 
-- [ ] Add a *Specification delta* section to `.claude/skills/git-github-workflow/SKILL.md`.
-- [ ] State that `git add` includes `openspec/changes/<change-id>/` in the first commit of the branch.
-- [ ] Propose the branch name from the change identifier, for example `feat/add-remember-me` from `add-remember-me`.
-- [ ] Add a line to the Pull Request template that names the change folder.
-- [ ] State the archive step: after the merge, the agent moves the change to `openspec/archive/`.
+- [x] Add a *Specification delta* section to `.claude/skills/git-github-workflow/SKILL.md`. It holds five rules, a Pull Request template and an archive step.
+- [x] State that `git add` includes `openspec/changes/<change-id>/` in the first commit of the branch. Step 2 of the *Standard sequence* points at the new section.
+- [x] Propose the branch name from the change identifier, for example `feat/add-remember-me` from `add-remember-me`.
+- [x] Add a line to the Pull Request template that names the change folder. A `## Change` section sits above `## Summary`, and it lists the specification deltas.
+- [x] State the archive step: after the merge, the agent moves the change to `openspec/archive/`. **Correction:** the destination is `openspec/changes/archive/`, and the agent runs `rtk openspec archive <change-id>` instead of moving the folder by hand, because the command also updates the main specifications.
+- [x] **Added item.** State that `/opsx:sync` can change `openspec/specs/`, so the agent stages those files too.
+- [x] **Added item.** Forbid `git-manager` to edit any file of the change folder. It reads, stages and cites only.
 
 ## Phase 5 — The first specifications
 
