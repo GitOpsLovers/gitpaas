@@ -1,9 +1,9 @@
 import { Repository } from 'typeorm';
 
+import { CreateProjectInNamespaceDto } from '../../../domain/dtos/create-project-in-namespace.dto';
 import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
 import { ProjectNameTakenError } from '../../../domain/errors/project.errors';
 import { Project } from '../../../domain/models/project.models';
-import { CreateProjectData } from '../../../domain/repositories/projects.repository';
 import { DbProjectEntity } from '../db-project.entity';
 import { DatabaseProjectsRepository } from '../db-projects.repository';
 
@@ -27,7 +27,7 @@ const projectEntity = (overrides: Partial<DbProjectEntity> = {}): DbProjectEntit
 const uniqueViolation = (): unknown => ({ code: '23505' });
 
 describe('DatabaseProjectsRepository', () => {
-    const createData: CreateProjectData = {
+    const createData: CreateProjectInNamespaceDto = {
         name: 'new-project',
         namespaceId,
     };

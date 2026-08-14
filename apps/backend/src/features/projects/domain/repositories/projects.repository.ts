@@ -1,12 +1,6 @@
-import { CreateProjectDto } from '../dtos/create-project.dto';
+import { CreateProjectInNamespaceDto } from '../dtos/create-project-in-namespace.dto';
 import { UpdateProjectDto } from '../dtos/update-project.dto';
 import { Project } from '../models/project.models';
-
-/**
- * Data a project needs to be written, the name coming from the body and the
- * namespace from the path segment that owns the resource.
- */
-export type CreateProjectData = CreateProjectDto & Pick<Project, 'namespaceId'>;
 
 /**
  * Projects repository
@@ -33,11 +27,11 @@ export interface ProjectsRepository {
     /**
      * Creates a project
      *
-     * @param createData Project data, including the namespace it belongs to
+     * @param createDto Project data, including the namespace it belongs to
      *
      * @returns Created project
      */
-    create: (createData: CreateProjectData) => Promise<Project>;
+    create: (createDto: CreateProjectInNamespaceDto) => Promise<Project>;
 
     /**
      * Updates a project
