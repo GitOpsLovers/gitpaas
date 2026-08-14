@@ -1,0 +1,19 @@
+package.json
+  s_e829cf6a139975::t_61856482749451 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "204d9e1ef917d02e5b6353b21484ee81d5f9ff80",
+  "prompts": {},
+  "sessions": {
+    "s_e829cf6a139975": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aff0e7d9fccf244d7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
