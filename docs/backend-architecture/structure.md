@@ -71,6 +71,8 @@ features/<feature>/
     services/                               — Orchestration and dependency declaration
 ```
 
+For example, the `projects` feature fills this shape with a `Project` model, a `ProjectsRepository` port, a `createProjectUseCase`, and a `DbProjectEntity`. The `namespaces` feature follows the same shape one level above it, because a namespace groups projects the same way a project groups services: it has a `Namespace` model, a `NamespacesRepository` port, and its own set of use cases and infrastructure classes.
+
 Usually, all the features must use this structure for their entities. But a layer can have more elements or fewer elements.
 
 The name of an infrastructure sub-folder is the name of the technology or the vendor that the sub-folder contains (`database`, `docker`, `github`).

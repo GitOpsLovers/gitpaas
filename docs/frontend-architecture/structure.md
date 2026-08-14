@@ -36,6 +36,8 @@ features/<feature>/
 
 Not all the features have a page. Some features give only components and a repository, which **a container of a different feature uses** on the screen of that other feature. For example, the service-detail screen uses child components and repositories from adjacent features, and these features have no route of their own. Other features have only models. Thus a feature gives the slots that it needs, and the screens are made by composition.
 
+The `projects` feature is the reference example of this shape: a `Project` model, a `ProjectsApiRepository`, and its `list`/`add`/`edit`/`detail` containers and components. The `namespaces` feature repeats the same shape one level above it, because a namespace groups projects: it has a `Namespace` model, a `NamespacesApiRepository`, and its own `list`/`add`/`edit` containers and components. The routes show this grouping too — the project routes nest below the namespace route (`namespaces/:namespaceId/projects/…`), the same way the service routes nest below the project route.
+
 ## Layout and pages
 
 `layout/ui/{components,containers,services}/` holds the application shell. `LayoutComponent` is the wrapper of the root route. It shows the sidebar, the header and `<router-outlet>`. The header injects `AuthService` for the user menu and for the logout. `BreadcrumbComponent` (`app-breadcrumb`) is the standard page header. It takes a `pageTitle` signal input and shows a `Home › {{ pageTitle }}` trail. Each page puts it first.

@@ -4,7 +4,7 @@ This document gives the primary domain workflows of `apps/backend` in simple wor
 
 ## Sections
 
-- [Domain model](./backend-business/domain-model.md): projects, services, deployments and users.
+- [Domain model](./backend-business/domain-model.md): namespaces, projects, services, deployments and users.
 - [Access & authentication](./backend-business/access-authentication.md): the private-by-default API, login, token refresh with rotation, and logout.
 - [Deployment workflow](./backend-business/deployment-workflow.md): trigger, validation, background run, logs and reading the output.
 - [Deletion & cleanup](./backend-business/deletion-cleanup.md): what happens when a deployment or a service is deleted.
