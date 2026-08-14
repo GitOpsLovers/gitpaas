@@ -1,0 +1,21 @@
+docs/TODO.md
+  s_a8a676ef8114b0::t_ea8ca4861f1cb8 9-23,43-52
+docs/monorepo-architecture.md
+  s_a8a676ef8114b0::t_27ad9996f79612 9-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dd465f05acee4d1fa3b89ae25dacb9e0c81714db",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
