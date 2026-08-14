@@ -110,13 +110,26 @@ each file before the next one.
 
 ### Backend
 
-- [ ] List the capabilities of the backend from `docs/backend-business.md` and `apps/backend/src/features/`.
-- [ ] Create `openspec/specs/auth/spec.md` from the authentication feature.
-- [ ] Create `openspec/specs/users/spec.md` from the users feature.
-- [ ] Create `openspec/specs/services/spec.md` from the services feature.
-- [ ] Create `openspec/specs/deployments/spec.md` from the deployments feature.
-- [ ] Create `openspec/specs/namespaces/spec.md` from the namespaces feature.
-- [ ] Create `openspec/specs/source-control/spec.md` from the source-control feature.
+- [x] List the capabilities of the backend from `docs/backend-business.md` and `apps/backend/src/features/`. The folder holds **eleven** features: `authentication`, `containers`, `deployments`, `logs`, `namespaces`, `networks`, `projects`, `server`, `services`, `source-control` and `users`. The six below cover six of them. **Five features carry no specification yet:** `projects`, `logs`, `containers`, `networks` and `server`. See the new *Backend — the remaining features* list.
+- [x] Create `openspec/specs/auth/spec.md` from the authentication feature. 9 requirements.
+- [x] Create `openspec/specs/users/spec.md` from the users feature. 4 requirements.
+- [x] Create `openspec/specs/services/spec.md` from the services feature. 6 requirements.
+- [x] Create `openspec/specs/deployments/spec.md` from the deployments feature. 11 requirements.
+- [x] Create `openspec/specs/namespaces/spec.md` from the namespaces feature. 6 requirements.
+- [x] Create `openspec/specs/source-control/spec.md` from the source-control feature. 6 requirements.
+
+#### Backend — the remaining features
+
+The plan named six capabilities, but the backend holds eleven features. These five complete the backfill
+of the backend:
+
+- [x] Create `openspec/specs/projects/spec.md` from the projects feature. 8 requirements.
+- [x] Create `openspec/specs/logs/spec.md` from the logs feature (the two tiers, the SSE stream and the archive). 8 requirements.
+- [x] Create `openspec/specs/server/spec.md` from the server feature (the cleanup of the resources and the readiness probe). 4 requirements.
+- [x] Create `openspec/specs/containers/spec.md` from the containers feature. 3 requirements.
+- [x] Create `openspec/specs/networks/spec.md` from the networks feature. 3 requirements.
+
+The backfill of the backend is complete. `rtk openspec validate --all` reports 11 passed, 0 failed.
 
 ### Frontend
 
@@ -129,7 +142,7 @@ each file before the next one.
 
 - [ ] Write every requirement as `### Requirement:` with a `SHALL` sentence, and every case as `#### Scenario:` with `WHEN` and `THEN` lines.
 - [ ] Write the specifications in English, because `docs/` is in English.
-- [ ] Verify each file with `rtk openspec validate`.
+- [ ] Verify each file with `rtk openspec validate`. Done for the six backend files: `rtk openspec validate --all` reports 6 passed, 0 failed. The command needs `--type spec` for a single capability, because a change carries the same name space.
 - [ ] Split Phase 5 across several sessions, because the full backfill is large.
 
 ## Phase 6 — The existing roadmap plans
