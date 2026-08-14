@@ -1,0 +1,14 @@
+.github/workflows/release.yml
+  h_e4f33aa49027b9 103-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a6e690cb9a59588063e8169124d24f6b9c3d4ff3",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
