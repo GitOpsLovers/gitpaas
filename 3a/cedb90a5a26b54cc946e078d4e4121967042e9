@@ -1,0 +1,43 @@
+openspec/changes/app-public-urls/.openspec.yaml
+  s_a8a676ef8114b0::t_6ae8207920c528 1-2
+openspec/changes/app-public-urls/README.md
+  s_a8a676ef8114b0::t_e474ca88a353e3 1-3
+openspec/changes/deploy-developer-experience/.openspec.yaml
+  s_a8a676ef8114b0::t_57b34eca13f494 1-2
+openspec/changes/deploy-developer-experience/README.md
+  s_a8a676ef8114b0::t_4fb7aadcde0c26 1-3
+openspec/changes/log-retention/.openspec.yaml
+  s_a8a676ef8114b0::t_f3fc80860a08c0 1-2
+openspec/changes/log-retention/README.md
+  s_a8a676ef8114b0::t_38e21c2fb5e865 1-3
+openspec/changes/multi-tenancy/.openspec.yaml
+  s_a8a676ef8114b0::t_ef25f0b1d9ab36 1-2
+openspec/changes/multi-tenancy/README.md
+  s_a8a676ef8114b0::t_a9037968b24895 1-3
+openspec/changes/service-env-secrets/.openspec.yaml
+  s_a8a676ef8114b0::t_f34a2a081c1f84 1-2
+openspec/changes/service-env-secrets/README.md
+  s_a8a676ef8114b0::t_9ee0c33e8a1df1 1-3
+openspec/changes/app-public-urls/design.md
+  s_a8a676ef8114b0::t_659fb60397b278 1-96
+openspec/changes/app-public-urls/proposal.md
+  s_a8a676ef8114b0::t_f897601d1d3e59 1-58
+openspec/changes/app-public-urls/specs/domains/spec.md
+  s_a8a676ef8114b0::t_df791580a0d05a 1-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3acedb90a5a26b54cc946e078d4e4121967042e9",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
