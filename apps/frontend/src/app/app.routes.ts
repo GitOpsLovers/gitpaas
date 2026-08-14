@@ -31,6 +31,26 @@ export const routes: Routes = [
                 title: 'Server | GitPaaS',
             },
             {
+                path: 'namespaces',
+                children: [
+                    {
+                        path: '',
+                        loadComponent: () => import('@pages/namespaces/list/namespaces-list.component').then((m) => m.NamespacesListPage),
+                        title: 'Namespaces | GitPaaS',
+                    },
+                    {
+                        path: 'add',
+                        loadComponent: () => import('@pages/namespaces/add/namespace-add.component').then((m) => m.NamespacesAddPage),
+                        title: 'Add namespace | GitPaaS',
+                    },
+                    {
+                        path: 'edit/:id',
+                        loadComponent: () => import('@pages/namespaces/edit/namespace-edit.component').then((m) => m.NamespacesEditPage),
+                        title: 'Edit namespace | GitPaaS',
+                    },
+                ],
+            },
+            {
                 path: 'projects',
                 children: [
                     {
