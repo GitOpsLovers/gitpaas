@@ -24,11 +24,11 @@ The specifications live in the repository, next to the code, under version contr
 
 ## Phase 0 — Preparation
 
-- [ ] **(user)** Install the CLI: `npm install -g @fission-ai/openspec@latest`.
-- [ ] **(user)** Verify the version with `rtk openspec --version`.
-- [ ] **(user)** Confirm that the working tree is clean, so the change of `CLAUDE.md` is visible in the difference.
-- [ ] Keep the **core `opsx` profile**, which `openspec init` selects by default. Do not use the legacy `/openspec:*` commands.
-- [ ] Add `Bash(rtk openspec *)` to the `permissions.allow` list of `.claude/settings.json`.
+- [x] **(user)** Install the CLI: `npm install -g @fission-ai/openspec@latest`.
+- [x] **(user)** Verify the version with `rtk openspec --version`. Result: `1.9.0`.
+- [x] **(user)** Confirm that the working tree is clean, so the change of `CLAUDE.md` is visible in the difference.
+- [x] Keep the **core `opsx` profile**, which `openspec init` selects by default. Do not use the legacy `/openspec:*` commands.
+- [x] Add `Bash(rtk openspec *)` to the `permissions.allow` list of `.claude/settings.json`.
 
 ## Phase 1 — Initialization
 

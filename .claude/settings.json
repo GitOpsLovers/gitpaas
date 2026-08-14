@@ -20,6 +20,7 @@
       "Bash(rtk tail *)",
       "Bash(rtk xargs *)",
       "Bash(rtk cp *)",
+      "Bash(rtk openspec *)",
       "WebFetch(domain:angular-demo.tailadmin.com)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:angular.dev)",
