@@ -1,0 +1,123 @@
+apps/frontend/src/app/app.routes.ts
+  s_53b779af5189c9::t_789d94c18a4166 52-94
+apps/frontend/src/app/features/projects/domain/models/project.model.ts
+  s_53b779af5189c9::t_3c421726380ea4 7
+apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.spec.ts
+  s_644a7d0bafc008::t_6174d842975333 1-219
+apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.ts
+  s_53b779af5189c9::t_361d97832c187d 2,19,22,24-33,44,47,54,59-60,66,72-73,77,82-93
+apps/frontend/src/app/features/projects/ui/components/project-form/project-form.component.html
+  s_53b779af5189c9::t_8a4950bb4c6fab 19
+apps/frontend/src/app/features/projects/ui/components/project-form/project-form.component.spec.ts
+  s_644a7d0bafc008::t_819b9ec03b6896 1-98
+apps/frontend/src/app/features/projects/ui/components/project-form/project-form.component.ts
+  s_53b779af5189c9::t_2e8c0b8484df13 15-16
+apps/frontend/src/app/features/projects/ui/containers/project-add/project-add.component.html
+  s_53b779af5189c9::t_2339bb5d3c6741 1-6
+apps/frontend/src/app/features/projects/ui/containers/project-add/project-add.component.spec.ts
+  s_644a7d0bafc008::t_487f9b737b8dd2 1-105
+apps/frontend/src/app/features/projects/ui/containers/project-add/project-add.component.ts
+  s_53b779af5189c9::t_0360422cef601e 1,27-28,35,38
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.html
+  s_53b779af5189c9::t_374bfaa7b48845 6,13
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.spec.ts
+  s_644a7d0bafc008::t_3c0003f0f3d3a4 1-154
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.ts
+  s_53b779af5189c9::t_e690a0a87e08aa 1-2,22,24,26,29-30,33-38
+apps/frontend/src/app/features/projects/ui/containers/project-edit/project-edit.component.html
+  s_53b779af5189c9::t_18cfe9e484209d 5
+apps/frontend/src/app/features/projects/ui/containers/project-edit/project-edit.component.spec.ts
+  s_644a7d0bafc008::t_02c8c2bd76ba1b 1-151
+apps/frontend/src/app/features/projects/ui/containers/project-edit/project-edit.component.ts
+  s_53b779af5189c9::t_0bab103e326423 1-2,26-28,30,38-43,48,51
+apps/frontend/src/app/features/projects/ui/containers/projects-list/projects-list.component.html
+  s_53b779af5189c9::t_aac3d9bbd39718 24
+apps/frontend/src/app/features/projects/ui/containers/projects-list/projects-list.component.spec.ts
+  s_644a7d0bafc008::t_6ba1ceab8b5f78 1-163
+apps/frontend/src/app/features/projects/ui/containers/projects-list/projects-list.component.ts
+  s_53b779af5189c9::t_8bca1d410c7084 1,29-30,44-49,51,55
+apps/frontend/src/app/features/services/ui/components/service-form/service-form.component.html
+  s_53b779af5189c9::t_27a6df9eb02418 19
+apps/frontend/src/app/features/services/ui/components/service-form/service-form.component.spec.ts
+  s_644a7d0bafc008::t_fc86eaef222a5b 1-89
+apps/frontend/src/app/features/services/ui/components/service-form/service-form.component.ts
+  s_53b779af5189c9::t_475155a3600cf1 19-20
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.html
+  s_53b779af5189c9::t_bb92fa5f31a4b7 3-9
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.spec.ts
+  s_644a7d0bafc008::t_2eaf296fee25c4 1-155
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.ts
+  s_53b779af5189c9::t_06d4d1fee38d16 33-34,44-45,49-52,60
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_644a7d0bafc008::t_085db68fd52dfb 1-264
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_53b779af5189c9::t_2a39039307805b 2,64-65,113-127,172
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.html
+  s_53b779af5189c9::t_0a4e44aa10f3bf 7
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.spec.ts
+  s_644a7d0bafc008::t_7924d99e4bfbee 1-184
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.ts
+  s_53b779af5189c9::t_251f9c5620c1c4 33-34,52-53,57-60,68
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.html
+  s_53b779af5189c9::t_4e86efe05513cd 24
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.spec.ts
+  s_644a7d0bafc008::t_18eae3563433c1 1-165
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.ts
+  s_53b779af5189c9::t_08df4969d947bc 29-30,53,57
+apps/frontend/src/app/layout/ui/components/sidebar/sidebar.component.ts
+  s_53b779af5189c9::t_36f9fbbca30106 69-70
+apps/frontend/src/app/pages/projects/add/project-add.component.html
+  s_53b779af5189c9::t_cbde51d67a4408 1,3
+apps/frontend/src/app/pages/projects/add/project-add.component.ts
+  s_53b779af5189c9::t_5a07efbe89e68c 1,16-20,22
+apps/frontend/src/app/pages/projects/detail/project-detail.component.html
+  s_53b779af5189c9::t_e6e69865d55102 1
+apps/frontend/src/app/pages/projects/detail/project-detail.component.ts
+  s_53b779af5189c9::t_435275d61b6219 1,14-18
+apps/frontend/src/app/pages/projects/edit/project-edit.component.html
+  s_53b779af5189c9::t_bc9836b02fa5e4 1,3
+apps/frontend/src/app/pages/projects/edit/project-edit.component.ts
+  s_53b779af5189c9::t_4d20b88544bed5 1,16-22,24
+apps/frontend/src/app/pages/projects/list/projects-list.component.html
+  s_53b779af5189c9::t_a4050e151abfc6 5,12
+apps/frontend/src/app/pages/projects/list/projects-list.component.ts
+  s_53b779af5189c9::t_80a70edbb0484b 1,17-22
+apps/frontend/src/app/pages/services/detail/service-detail.component.html
+  s_53b779af5189c9::t_68408cfed0bf94 1-6
+apps/frontend/src/app/pages/services/detail/service-detail.component.ts
+  s_53b779af5189c9::t_1a84589f155ef8 15-16
+docs/roadmap/namespace-entity-plan-todo.md
+  s_c8759e9ba9b11a::t_0f83939f5274cd 80-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "786d414744a14cccaaf701d7fdfe5651884817f0",
+  "prompts": {},
+  "sessions": {
+    "s_53b779af5189c9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1ee66f3dfb161a81",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_644a7d0bafc008": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0b80f041f83e4c56",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c8759e9ba9b11a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aaf87a4565d8c17b1",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
