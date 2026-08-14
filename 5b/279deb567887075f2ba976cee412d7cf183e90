@@ -1,0 +1,105 @@
+apps/backend/src/app.module.ts
+  s_8796a805aef153::t_d927a070121f89 15,48
+apps/backend/src/core/domain/models/telemetry.models.ts
+  s_8796a805aef153::t_a57f92f8c7849e 78
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_8796a805aef153::t_7826da960d7dac 3,77-92
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_8796a805aef153::t_1ea654e549eaba 3,26-27
+apps/backend/src/features/namespaces/application/__tests__/create-namespace.use-case.spec.ts
+  s_a575d943bbd6cf::t_d67a6fd82a1027 1-51
+apps/backend/src/features/namespaces/application/__tests__/find-namespace-by-id.use-case.spec.ts
+  s_dd9ca4c1306c3a::t_5f66704e4f731e 1-52
+apps/backend/src/features/namespaces/application/__tests__/get-all-namespaces.use-case.spec.ts
+  s_dd9ca4c1306c3a::t_18f7243d96c1aa 1-51
+apps/backend/src/features/namespaces/application/__tests__/update-namespace.use-case.spec.ts
+  s_dd9ca4c1306c3a::t_35b1604437c4cd 1-62
+apps/backend/src/features/namespaces/application/create-namespace.use-case.ts
+  s_dd9ca4c1306c3a::t_eb413e7e8a4fec 1-18
+apps/backend/src/features/namespaces/application/delete-namespace.use-case.ts
+  s_dd9ca4c1306c3a::t_4808e5585c5a75 1-23
+apps/backend/src/features/namespaces/application/find-namespace-by-id.use-case.ts
+  s_dd9ca4c1306c3a::t_ef56d13073ae33 1-14
+apps/backend/src/features/namespaces/application/get-all-namespaces.use-case.ts
+  s_dd9ca4c1306c3a::t_67cb1cd7c3cceb 1-13
+apps/backend/src/features/namespaces/application/update-namespace.use-case.ts
+  s_dd9ca4c1306c3a::t_219e18c8a30d3d 1-20
+apps/backend/src/features/namespaces/domain/dtos/__tests__/create-namespace.dto.spec.ts
+  s_a575d943bbd6cf::t_daf10d6b0e8fcc 1-75
+apps/backend/src/features/namespaces/domain/dtos/__tests__/update-namespace.dto.spec.ts
+  s_a575d943bbd6cf::t_bf350f4a336082 1-75
+apps/backend/src/features/namespaces/domain/dtos/create-namespace.dto.ts
+  s_dd9ca4c1306c3a::t_aba93fcd361f8a 1-10
+apps/backend/src/features/namespaces/domain/dtos/update-namespace.dto.ts
+  s_dd9ca4c1306c3a::t_6af69f4c87799f 1-10
+apps/backend/src/features/namespaces/domain/errors/__tests__/namespace.errors.spec.ts
+  s_dd9ca4c1306c3a::t_ee04428b481bbc 1-73
+apps/backend/src/features/namespaces/domain/errors/namespace.errors.ts
+  s_dd9ca4c1306c3a::t_607f79997d26e8 1-23
+apps/backend/src/features/namespaces/domain/models/namespace.models.ts
+  s_dd9ca4c1306c3a::t_15993f34f88c89 1-8
+apps/backend/src/features/namespaces/domain/repositories/namespaces.repository.ts
+  s_dd9ca4c1306c3a::t_7aab82eeddfc13 1-60
+apps/backend/src/features/namespaces/infrastructure/database/__tests__/db-namespaces.repository.spec.ts
+  s_dd9ca4c1306c3a::t_3d4fb25de6c58c 1-234
+apps/backend/src/features/namespaces/infrastructure/database/__tests__/db-namespaces.transformer.spec.ts
+  s_dd9ca4c1306c3a::t_08d3e04e5b522f 1-28
+apps/backend/src/features/namespaces/infrastructure/database/db-namespace.entity.ts
+  s_dd9ca4c1306c3a::t_73e80b2f95edcd 1-19
+apps/backend/src/features/namespaces/infrastructure/database/db-namespaces.repository.ts
+  s_dd9ca4c1306c3a::t_7662fda255c05a 1-81
+apps/backend/src/features/namespaces/infrastructure/database/db-namespaces.transformer.ts
+  s_dd9ca4c1306c3a::t_f0aa038fb42bf9 1-17
+apps/backend/src/features/namespaces/namespaces.module.ts
+  s_dd9ca4c1306c3a::t_4ab96599151d23 1-20
+apps/backend/src/features/namespaces/ui/controllers/__tests__/namespaces.controller.spec.ts
+  s_dd9ca4c1306c3a::t_150383a7c91904 1-287
+apps/backend/src/features/namespaces/ui/controllers/namespaces.controller.ts
+  s_dd9ca4c1306c3a::t_bc592e2fde5c03 1-91
+apps/backend/src/features/namespaces/ui/services/__tests__/namespaces.service.spec.ts
+  s_dd9ca4c1306c3a::t_d6961c0d91b0a9 1-261
+apps/backend/src/features/namespaces/ui/services/namespaces.service.ts
+  s_dd9ca4c1306c3a::t_df8a45578f8b07 1-82
+iac/production/migrations/009_namespaces.sql
+  s_2c16f182e7c192::t_e8fbb681a0d3df 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5b279deb567887075f2ba976cee412d7cf183e90",
+  "prompts": {},
+  "sessions": {
+    "s_2c16f182e7c192": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab0b9d676a4f65cb7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8796a805aef153": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "534660e9-e4b2-4c16-957e-72ca8bdef5f6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_a575d943bbd6cf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-afd24a3664b77f5bb",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_dd9ca4c1306c3a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae3129bd75fa7e7ce",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
