@@ -133,17 +133,39 @@ The backfill of the backend is complete. `rtk openspec validate --all` reports 1
 
 ### Frontend
 
-- [ ] List the screens and the routes of the frontend from `docs/frontend-architecture.md`.
-- [ ] Create one `openspec/specs/<screen>/spec.md` per screen, and name each folder after the route.
-- [ ] Describe the behavior that the user sees: the fields, the validation, the states and the messages.
-- [ ] Do not repeat a backend rule in a frontend specification. Link the backend capability instead.
+- [x] List the screens and the routes of the frontend from `docs/frontend-architecture.md`. Source: `apps/frontend/src/app/app.routes.ts`. The application declares **13 screens**.
+- [x] Create one `openspec/specs/<screen>/spec.md` per screen, and name each folder after the route. **Correction:** three route names collide with a backend capability (`namespaces`, `projects`, `server`), and `openspec/specs/` is one flat name space. Every frontend folder therefore carries the prefix `web-`. **Two capabilities are not screens:** `web-session` and `web-shell` hold the behavior that crosses every screen, which no single screen could own.
+- [x] Describe the behavior that the user sees: the fields, the validation, the states and the messages.
+- [x] Do not repeat a backend rule in a frontend specification. Link the backend capability instead.
+
+The 15 frontend capabilities:
+
+| Capability | Route |
+|---|---|
+| `web-session` | (crosses every screen) |
+| `web-shell` | (crosses every screen) |
+| `web-signin` | `/signin` |
+| `web-dashboard` | `/dashboard` |
+| `web-server` | `/server` |
+| `web-namespaces-list` | `/namespaces` |
+| `web-namespace-add` | `/namespaces/add` |
+| `web-namespace-edit` | `/namespaces/edit/:id` |
+| `web-projects-list` | `/namespaces/:namespaceId/projects` |
+| `web-project-add` | `…/projects/add` |
+| `web-project-edit` | `…/projects/edit/:id` |
+| `web-project-detail` | `…/projects/:id` |
+| `web-service-add` | `…/projects/:id/services/add` |
+| `web-service-edit` | `…/services/edit/:serviceId` |
+| `web-service-detail` | `…/services/:serviceId/:tab` |
 
 ### Both
 
-- [ ] Write every requirement as `### Requirement:` with a `SHALL` sentence, and every case as `#### Scenario:` with `WHEN` and `THEN` lines.
-- [ ] Write the specifications in English, because `docs/` is in English.
-- [ ] Verify each file with `rtk openspec validate`. Done for the six backend files: `rtk openspec validate --all` reports 6 passed, 0 failed. The command needs `--type spec` for a single capability, because a change carries the same name space.
-- [ ] Split Phase 5 across several sessions, because the full backfill is large.
+- [x] Write every requirement as `### Requirement:` with a `SHALL` sentence, and every case as `#### Scenario:` with `WHEN` and `THEN` lines. Checked across the 26 files: **128 requirements** and **268 scenarios**. Each requirement carries a `SHALL` sentence, each scenario carries a `WHEN` line and a `THEN` line, each file carries the title, the `## Purpose` section and the `## Requirements` section, and no file carries a delta operation header. One requirement of `web-namespaces-list` was missing its `SHALL`; it is corrected.
+- [x] Write the specifications in English, because `docs/` is in English. Checked across the 26 files. No file holds a word of another language.
+- [x] Verify each file with `rtk openspec validate`. `rtk openspec validate --all` reports **26 passed, 0 failed** — 11 backend capabilities and 15 frontend capabilities. The command needs `--type spec` for a single capability, because a change carries the same name space.
+- [x] Split Phase 5 across several sessions, because the full backfill is large. Done in three sessions: the six backend capabilities of the plan, the five remaining backend features, and the frontend.
+
+**Phase 5 is complete.**
 
 ## Phase 6 — The existing roadmap plans
 
