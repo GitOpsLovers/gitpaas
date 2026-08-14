@@ -1,0 +1,49 @@
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_812450c1eb62de 136-159,163-168
+openspec/specs/web-dashboard/spec.md
+  s_a8a676ef8114b0::t_f17b59b64d7359 1-40
+openspec/specs/web-namespace-add/spec.md
+  s_a8a676ef8114b0::t_72ebbb40f2ae14 1-49
+openspec/specs/web-namespace-edit/spec.md
+  s_a8a676ef8114b0::t_83761f2a061641 1-52
+openspec/specs/web-namespaces-list/spec.md
+  s_a8a676ef8114b0::t_91c8803c98e693 1-96
+openspec/specs/web-project-add/spec.md
+  s_a8a676ef8114b0::t_8a19fa6a1544cd 1-50
+openspec/specs/web-project-detail/spec.md
+  s_a8a676ef8114b0::t_f1b1a52a0cd5be 1-74
+openspec/specs/web-project-edit/spec.md
+  s_a8a676ef8114b0::t_293c8e865eaab6 1-52
+openspec/specs/web-projects-list/spec.md
+  s_a8a676ef8114b0::t_99e67568cc680c 1-84
+openspec/specs/web-server/spec.md
+  s_a8a676ef8114b0::t_2c00b96b96a4f0 1-97
+openspec/specs/web-service-add/spec.md
+  s_a8a676ef8114b0::t_607a76a3026e5f 1-63
+openspec/specs/web-service-detail/spec.md
+  s_a8a676ef8114b0::t_7bfd2f992bf6cb 1-178
+openspec/specs/web-service-edit/spec.md
+  s_a8a676ef8114b0::t_e8375922c12498 1-63
+openspec/specs/web-session/spec.md
+  s_a8a676ef8114b0::t_f776b0be70820d 1-131
+openspec/specs/web-shell/spec.md
+  s_a8a676ef8114b0::t_f12ec028547e00 1-109
+openspec/specs/web-signin/spec.md
+  s_a8a676ef8114b0::t_2b7d72998b6749 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "50444ee4e2eb19d74424499c6863f0e9bb6c445c",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
