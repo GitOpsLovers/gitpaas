@@ -75,6 +75,7 @@ interface TelemetryEventFields {
     'auth.outcome'?: TelemetryEventAuthOutcome;
 
     /* Business context */
+    'namespace.id'?: string;
     'project.id'?: string;
     'service.id'?: string;
     'service.slug'?: string;

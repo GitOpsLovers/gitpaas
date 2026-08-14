@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    ConflictException,
     HttpException,
     NotFoundException,
     ServiceUnavailableException,
@@ -22,6 +23,8 @@ type UnexpectedErrorTranslation = (error: unknown) => HttpException;
  * The single mapping from a domain error `code` to the HTTP exception the client receives.
  */
 const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
+    ['NAMESPACE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['NAMESPACE_NOT_EMPTY', (error) => new ConflictException(error.message, { cause: error })],
     ['PROJECT_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['SERVICE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['SERVICE_NOT_DEPLOYABLE', (error) => new BadRequestException(error.message, { cause: error })],
