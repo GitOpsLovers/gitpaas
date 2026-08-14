@@ -1,0 +1,19 @@
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_443718f70beda3 72-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9475458be8bca470361d0295c2ffc34ac8fada70",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
