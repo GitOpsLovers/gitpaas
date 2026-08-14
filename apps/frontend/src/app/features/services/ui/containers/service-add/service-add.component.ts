@@ -30,6 +30,8 @@ export class ServiceAddComponent {
 
     private readonly toast = inject(ToastService);
 
+    protected readonly namespaceId = this.route.snapshot.paramMap.get('namespaceId') ?? '';
+
     protected readonly projectId = this.route.snapshot.paramMap.get('id') ?? '';
 
     private readonly project = this.projectsRepository.projectById(() => this.projectId);
@@ -39,10 +41,14 @@ export class ServiceAddComponent {
     protected readonly submitting = signal(false);
 
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
-        { label: 'Projects', link: '/projects' },
-        { label: this.projectName(), link: ['/projects', this.projectId] },
+        { label: 'Projects', link: ['/namespaces', this.namespaceId, 'projects'] },
+        { label: this.projectName(), link: ['/namespaces', this.namespaceId, 'projects', this.projectId] },
         { label: 'Add service' },
     ]);
+
+    constructor() {
+        this.projectsRepository.namespaceId.set(this.namespaceId);
+    }
 
     protected async create(name: string): Promise<void> {
         this.submitting.set(true);
@@ -51,7 +57,7 @@ export class ServiceAddComponent {
             const service = await lastValueFrom(this.repository.create({ name, projectId: this.projectId }));
 
             this.toast.success('Service created', `“${service.name}” has been created.`);
-            this.router.navigate(['/projects', this.projectId]);
+            this.router.navigate(['/namespaces', this.namespaceId, 'projects', this.projectId]);
         } catch {
             this.toast.error('Could not create service', 'Something went wrong. Please try again.');
             this.submitting.set(false);

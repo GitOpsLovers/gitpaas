@@ -12,6 +12,8 @@ import { ServiceDetailComponent } from '@features/services/ui/containers/service
  * Service detail page component
  */
 export class ServiceDetailPage {
+    public readonly namespaceId = input.required<string>();
+
     public readonly id = input.required<string>();
 
     public readonly serviceId = input.required<string>();

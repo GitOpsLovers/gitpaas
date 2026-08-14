@@ -30,6 +30,8 @@ export class ServiceEditComponent {
 
     private readonly toast = inject(ToastService);
 
+    protected readonly namespaceId = this.route.snapshot.paramMap.get('namespaceId') ?? '';
+
     protected readonly projectId = this.route.snapshot.paramMap.get('id') ?? '';
 
     private readonly id = this.route.snapshot.paramMap.get('serviceId') ?? '';
@@ -47,10 +49,14 @@ export class ServiceEditComponent {
     protected readonly submitting = signal(false);
 
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
-        { label: 'Projects', link: '/projects' },
-        { label: this.projectName(), link: ['/projects', this.projectId] },
+        { label: 'Projects', link: ['/namespaces', this.namespaceId, 'projects'] },
+        { label: this.projectName(), link: ['/namespaces', this.namespaceId, 'projects', this.projectId] },
         { label: 'Edit service' },
     ]);
+
+    constructor() {
+        this.projectsRepository.namespaceId.set(this.namespaceId);
+    }
 
     protected async update(name: string): Promise<void> {
         this.submitting.set(true);
@@ -59,7 +65,7 @@ export class ServiceEditComponent {
             const service = await lastValueFrom(this.repository.update(this.id, { name }));
 
             this.toast.success('Service updated', `“${service.name}” has been saved.`);
-            this.router.navigate(['/projects', this.projectId]);
+            this.router.navigate(['/namespaces', this.namespaceId, 'projects', this.projectId]);
         } catch {
             this.toast.error('Could not update service', 'Something went wrong. Please try again.');
             this.submitting.set(false);

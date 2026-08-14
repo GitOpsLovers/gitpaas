@@ -16,6 +16,8 @@ import { LabelComponent } from '@shared/components/label/label.component';
  * Service form component
  */
 export class ServiceFormComponent {
+    public readonly namespaceId = input.required<string>();
+
     public readonly projectId = input.required<string>();
 
     public readonly initialName = input('');

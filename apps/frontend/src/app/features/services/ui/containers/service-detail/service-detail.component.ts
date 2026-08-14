@@ -1,5 +1,5 @@
 import { HttpResourceRef } from '@angular/common/http';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
@@ -61,6 +61,8 @@ export class ServiceDetailComponent {
 
     private readonly router = inject(Router);
 
+    public readonly namespaceId = input.required<string>();
+
     public readonly projectId = input.required<string>();
 
     public readonly serviceId = input.required<string>();
@@ -108,11 +110,21 @@ export class ServiceDetailComponent {
     /**
      * Maps the current project and service into a breadcrumb trail for navigation.
      */
-    protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
-        { label: 'Projects', link: '/projects' },
-        { label: this.project.value()?.name ?? 'Project', link: ['/projects', this.projectId()] },
-        { label: this.service.value()?.name ?? 'Service' },
-    ]);
+    protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => {
+        const projectsLink = ['/namespaces', this.namespaceId(), 'projects'];
+
+        return [
+            { label: 'Projects', link: projectsLink },
+            { label: this.project.value()?.name ?? 'Project', link: [...projectsLink, this.projectId()] },
+            { label: this.service.value()?.name ?? 'Service' },
+        ];
+    });
+
+    constructor() {
+        effect(() => {
+            this.projectsRepository.namespaceId.set(this.namespaceId());
+        });
+    }
 
     /**
      * Maps the service's provider settings into an object for the provider form.
@@ -157,7 +169,7 @@ export class ServiceDetailComponent {
      * @param tab Tab to activate
      */
     protected changeTab(tab: ServiceTab): void {
-        this.router.navigate(['/projects', this.projectId(), 'services', this.serviceId(), tab]);
+        this.router.navigate(['/namespaces', this.namespaceId(), 'projects', this.projectId(), 'services', this.serviceId(), tab]);
     }
 
     /**

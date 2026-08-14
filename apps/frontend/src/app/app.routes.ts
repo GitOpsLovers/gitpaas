@@ -48,50 +48,50 @@ export const routes: Routes = [
                         loadComponent: () => import('@pages/namespaces/edit/namespace-edit.component').then((m) => m.NamespacesEditPage),
                         title: 'Edit namespace | GitPaaS',
                     },
-                ],
-            },
-            {
-                path: 'projects',
-                children: [
                     {
-                        path: '',
-                        loadComponent: () => import('@pages/projects/list/projects-list.component').then((m) => m.ProjectsListPage),
-                        title: 'Projects | GitPaaS',
-                    },
-                    {
-                        path: 'add',
-                        loadComponent: () => import('@pages/projects/add/project-add.component').then((m) => m.ProjectsAddPage),
-                        title: 'Add project | GitPaaS',
-                    },
-                    {
-                        path: 'edit/:id',
-                        loadComponent: () => import('@pages/projects/edit/project-edit.component').then((m) => m.ProjectsEditPage),
-                        title: 'Edit project | GitPaaS',
-                    },
-                    {
-                        path: ':id',
-                        loadComponent: () => import('@pages/projects/detail/project-detail.component').then((m) => m.ProjectDetailPage),
-                        title: 'Project | GitPaaS',
-                    },
-                    {
-                        path: ':id/services/add',
-                        loadComponent: () => import('@pages/services/add/service-add.component').then((m) => m.ServicesAddPage),
-                        title: 'Add service | GitPaaS',
-                    },
-                    {
-                        path: ':id/services/edit/:serviceId',
-                        loadComponent: () => import('@pages/services/edit/service-edit.component').then((m) => m.ServicesEditPage),
-                        title: 'Edit service | GitPaaS',
-                    },
-                    {
-                        path: ':id/services/:serviceId',
-                        redirectTo: ':id/services/:serviceId/general',
-                        pathMatch: 'full',
-                    },
-                    {
-                        path: ':id/services/:serviceId/:tab',
-                        loadComponent: () => import('@pages/services/detail/service-detail.component').then((m) => m.ServiceDetailPage),
-                        title: 'Service | GitPaaS',
+                        path: ':namespaceId/projects',
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () => import('@pages/projects/list/projects-list.component').then((m) => m.ProjectsListPage),
+                                title: 'Projects | GitPaaS',
+                            },
+                            {
+                                path: 'add',
+                                loadComponent: () => import('@pages/projects/add/project-add.component').then((m) => m.ProjectsAddPage),
+                                title: 'Add project | GitPaaS',
+                            },
+                            {
+                                path: 'edit/:id',
+                                loadComponent: () => import('@pages/projects/edit/project-edit.component').then((m) => m.ProjectsEditPage),
+                                title: 'Edit project | GitPaaS',
+                            },
+                            {
+                                path: ':id',
+                                loadComponent: () => import('@pages/projects/detail/project-detail.component').then((m) => m.ProjectDetailPage),
+                                title: 'Project | GitPaaS',
+                            },
+                            {
+                                path: ':id/services/add',
+                                loadComponent: () => import('@pages/services/add/service-add.component').then((m) => m.ServicesAddPage),
+                                title: 'Add service | GitPaaS',
+                            },
+                            {
+                                path: ':id/services/edit/:serviceId',
+                                loadComponent: () => import('@pages/services/edit/service-edit.component').then((m) => m.ServicesEditPage),
+                                title: 'Edit service | GitPaaS',
+                            },
+                            {
+                                path: ':id/services/:serviceId',
+                                redirectTo: ':id/services/:serviceId/general',
+                                pathMatch: 'full',
+                            },
+                            {
+                                path: ':id/services/:serviceId/:tab',
+                                loadComponent: () => import('@pages/services/detail/service-detail.component').then((m) => m.ServiceDetailPage),
+                                title: 'Service | GitPaaS',
+                            },
+                        ],
                     },
                 ],
             },

@@ -4,6 +4,7 @@
     <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
 } @else {
     <app-service-form
+        [namespaceId]="namespaceId"
         [projectId]="projectId"
         [initialName]="initialName()"
         submitLabel="Save changes"

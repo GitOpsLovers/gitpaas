@@ -66,8 +66,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         },
         {
             icon: 'box',
-            name: 'Projects',
-            path: '/projects',
+            name: 'Namespaces',
+            path: '/namespaces',
         },
         {
             icon: 'server',

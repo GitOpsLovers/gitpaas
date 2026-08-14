@@ -12,6 +12,8 @@ import { LabelComponent } from '@shared/components/label/label.component';
     imports: [RouterLink, ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
 })
 export class ProjectFormComponent {
+    public readonly namespaceId = input.required<string>();
+
     public readonly initialName = input('');
 
     public readonly submitting = input(false);
