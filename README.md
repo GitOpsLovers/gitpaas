@@ -17,7 +17,6 @@
 [![GHCR Images](https://img.shields.io/badge/images-ghcr.io-2088FF?logo=github&logoColor=white)](https://github.com/orgs/gitopslovers/packages)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Status](https://img.shields.io/badge/status-actively%20evolving-blueviolet)](./docs/deployment-roadmap.md)
 
 </div>
 
@@ -108,9 +107,24 @@ To install a specific release instead of the latest one, add `-s -- --version v1
 | 💼 [Backend Business](./docs/backend-business.md)                       | The domain workflows behind the deploy engine                    |
 | 🎨 [Frontend Architecture](./docs/frontend-architecture.md)             | The Angular SPA's feature folders, layering, and conventions     |
 | 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The single-server model, dev vs. production, and image publishing |
-| 🗺️ [Deployment Roadmap](./docs/deployment-roadmap.md)                   | The product vision and the phased path to a full PaaS            |
+| 🗺️ [Deployment Roadmap](./docs/roadmap/deployment-roadmap.md)           | The product vision and the phased path to a full PaaS            |
 
 ---
+
+## 📐 Specifications
+
+The behavior of GitPaaS lives in **[`openspec/specs/`](./openspec/)**, next to the code and under version control. The project follows the [OpenSpec](https://openspec.dev/) standard.
+
+- **[`openspec/specs/`](./openspec/specs/)** — what the system does today. One folder per capability, with each rule written as a requirement and each case as a scenario. A backend capability carries the name of its feature (`auth`, `deployments`, `services`). A frontend capability carries the prefix `web-` (`web-signin`, `web-service-detail`).
+- **[`openspec/changes/`](./openspec/changes/)** — the work that is planned but not yet released. Each folder holds why the change exists, how it is designed, the task list, and the difference it makes to the specifications.
+
+The documents under `docs/` explain **how the system is built**. The specifications state **what it must do**. Read the specification for a rule, and the document for a structure.
+
+```bash
+openspec list            # the capabilities and the active changes
+openspec show auth       # one capability
+openspec validate --all  # check every file
+```
 
 ---
 

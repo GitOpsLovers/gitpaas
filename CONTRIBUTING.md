@@ -105,6 +105,48 @@ Add or update tests for any behavior you change. When you cannot run the app's t
 
 If you have questions about the project, read the documentation files in `docs`.
 
+## Agent workflow
+
+GitPaaS follows the [OpenSpec](https://openspec.dev/) standard. The behavior of the system lives in `openspec/specs/`, and the work that is planned lives in `openspec/changes/`. An AI agent working on this repository reads a change folder instead of a long prompt.
+
+**When a change needs a proposal.** A task that changes behavior gets one first — a new capability, a changed rule, a new flow that the user sees. Four kinds of task need none: a bug fix that restores the documented behavior, a pure refactor, a documentation edit and a configuration edit.
+
+**The loop.**
+
+| Step                                                | Command         | Who runs it                |
+|-----------------------------------------------------|-----------------|----------------------------|
+| 1. Investigate an unclear idea                      | `/opsx:explore` | You                        |
+| 2. Write the proposal, the design and the task list | `/opsx:propose` | You                        |
+| 3. Revise those artifacts                           | `/opsx:update`  | You                        |
+| 4. Implement the task list                          | `/opsx:apply`   | The agent                  |
+| 5. Merge the difference into the specifications     | `/opsx:sync`    | The agent                  |
+| 6. Archive the change                               | `/opsx:archive` | The agent, after the merge |
+
+**The two stops.** No agent starts to write code before you approve the proposal. And no agent merges a Pull Request. Everything between those two points runs without a further question.
+
+**What a change folder holds.**
+
+```text
+openspec/changes/<change-id>/
+  proposal.md   why the change exists, and what it changes
+  design.md     the technical decisions, and the alternatives rejected
+  tasks.md      the work, as a list of boxes that the agent marks
+  specs/        the difference that the change makes to openspec/specs/
+```
+
+**The commit carries the specification.** The first commit of a branch stages `openspec/changes/<change-id>/` together with the code, and the body of the Pull Request links the proposal. The branch takes its name from the change: the change `add-remember-me` gives the branch `feat/add-remember-me`.
+
+**Useful commands.**
+
+```bash
+openspec list                        # the capabilities and the active changes
+openspec show <change>               # one change
+openspec status --change <change>    # how many tasks are done
+openspec validate --all              # check every file
+```
+
+Install the CLI with `npm install -g @fission-ai/openspec@latest`.
+
 ## Commit & PR conventions
 
 This project follows the **[Conventional Commits](https://www.conventionalcommits.org)** convention for commit messages. Keep the history clean and the type accurate.
