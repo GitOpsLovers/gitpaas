@@ -59,21 +59,21 @@ All the paths are relative to the root of the repository, if there is no other i
 
 ## Phase 4 — Frontend, the `namespaces` feature
 
-- [ ] Create `apps/frontend/src/app/features/namespaces/domain/models/namespace.model.ts` (new) with the `Namespace` interface.
-- [ ] Create `apps/frontend/src/app/features/namespaces/domain/dtos/create-namespace.dto.ts` and `update-namespace.dto.ts` (new).
-- [ ] Create `apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.ts` (new), mirroring `projects-api.repository.ts`.
-- [ ] Create the spec `apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.spec.ts` (new).
-- [ ] Create `apps/frontend/src/app/features/namespaces/ui/components/namespace-card/namespace-card.component.ts` (new), mirroring `project-card.component.ts`.
-- [ ] Create `apps/frontend/src/app/features/namespaces/ui/components/namespace-form/namespace-form.component.ts` (new), mirroring `project-form.component.ts`.
-- [ ] Create `apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.ts` (new), mirroring `projects-list.component.ts`.
-- [ ] Create `apps/frontend/src/app/features/namespaces/ui/containers/namespace-add/namespace-add.component.ts` (new), mirroring `project-add.component.ts`.
-- [ ] Create `apps/frontend/src/app/features/namespaces/ui/containers/namespace-edit/namespace-edit.component.ts` (new), mirroring `project-edit.component.ts`.
-- [ ] Create the specs `namespaces-list.component.spec.ts`, `namespace-add.component.spec.ts` and `namespace-edit.component.spec.ts` (new) beside each container.
-- [ ] Create `apps/frontend/src/app/pages/namespaces/list/namespaces-list.component.ts` (new) as `NamespacesListPage`.
-- [ ] Create `apps/frontend/src/app/pages/namespaces/add/namespace-add.component.ts` (new) as `NamespacesAddPage`.
-- [ ] Create `apps/frontend/src/app/pages/namespaces/edit/namespace-edit.component.ts` (new) as `NamespacesEditPage`.
-- [ ] Add the `namespaces` route block, with the `list`, `add` and `edit/:id` children, to `apps/frontend/src/app/app.routes.ts`.
-- [ ] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the new namespace screens compile and their specs pass.
+- [x] Create `apps/frontend/src/app/features/namespaces/domain/models/namespace.model.ts` (new) with the `Namespace` interface.
+- [x] Create `apps/frontend/src/app/features/namespaces/domain/dtos/create-namespace.dto.ts` and `update-namespace.dto.ts` (new).
+- [x] Create `apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.ts` (new), mirroring `projects-api.repository.ts`.
+- [x] Create the spec `apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.spec.ts` (new).
+- [x] Create `apps/frontend/src/app/features/namespaces/ui/components/namespace-card/namespace-card.component.ts` (new), mirroring `project-card.component.ts`.
+- [x] Create `apps/frontend/src/app/features/namespaces/ui/components/namespace-form/namespace-form.component.ts` (new), mirroring `project-form.component.ts`.
+- [x] Create `apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.ts` (new), mirroring `projects-list.component.ts`.
+- [x] Create `apps/frontend/src/app/features/namespaces/ui/containers/namespace-add/namespace-add.component.ts` (new), mirroring `project-add.component.ts`.
+- [x] Create `apps/frontend/src/app/features/namespaces/ui/containers/namespace-edit/namespace-edit.component.ts` (new), mirroring `project-edit.component.ts`.
+- [x] Create the specs `namespaces-list.component.spec.ts`, `namespace-add.component.spec.ts` and `namespace-edit.component.spec.ts` (new) beside each container.
+- [x] Create `apps/frontend/src/app/pages/namespaces/list/namespaces-list.component.ts` (new) as `NamespacesListPage`.
+- [x] Create `apps/frontend/src/app/pages/namespaces/add/namespace-add.component.ts` (new) as `NamespacesAddPage`.
+- [x] Create `apps/frontend/src/app/pages/namespaces/edit/namespace-edit.component.ts` (new) as `NamespacesEditPage`.
+- [x] Add the `namespaces` route block, with the `list`, `add` and `edit/:id` children, to `apps/frontend/src/app/app.routes.ts`.
+- [x] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the new namespace screens compile and their specs pass.
 
 ## Phase 5 — Frontend, the changes to the project screens
 
