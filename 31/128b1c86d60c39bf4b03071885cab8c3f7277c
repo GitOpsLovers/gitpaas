@@ -1,0 +1,30 @@
+docs/TODO.md
+  h_e4f33aa49027b9 3
+apps/backend/src/features/projects/ui/controllers/projects.controller.ts
+  s_c4599e3e7e5efb::t_c5b03880c07849 23
+.claude/agents/git-manager.md
+  h_e4f33aa49027b9 7,14,22
+.claude/skills/git-github-workflow/SKILL.md
+  h_e4f33aa49027b9 22,34,36,59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "31128b1c86d60c39bf4b03071885cab8c3f7277c",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_c4599e3e7e5efb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5b32118e-a515-4f41-85eb-d1d52ffb2cc1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
