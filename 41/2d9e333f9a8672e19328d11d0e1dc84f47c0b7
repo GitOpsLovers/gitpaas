@@ -1,0 +1,41 @@
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_ed290602f4107a 113-132,145
+openspec/specs/auth/spec.md
+  s_a8a676ef8114b0::t_34be30eff9856a 1-188
+openspec/specs/containers/spec.md
+  s_a8a676ef8114b0::t_2a3ce8e06a07c4 1-76
+openspec/specs/deployments/spec.md
+  s_a8a676ef8114b0::t_e19a06651729cb 1-235
+openspec/specs/logs/spec.md
+  s_a8a676ef8114b0::t_fb48339b112d4e 1-177
+openspec/specs/namespaces/spec.md
+  s_a8a676ef8114b0::t_ec8660ec56ca46 1-126
+openspec/specs/networks/spec.md
+  s_a8a676ef8114b0::t_9353ea18d58f70 1-66
+openspec/specs/projects/spec.md
+  s_a8a676ef8114b0::t_affa286013aebd 1-151
+openspec/specs/server/spec.md
+  s_a8a676ef8114b0::t_4d1c93bdde9c0e 1-106
+openspec/specs/services/spec.md
+  s_a8a676ef8114b0::t_43bacc6857f9eb 1-155
+openspec/specs/source-control/spec.md
+  s_a8a676ef8114b0::t_2f79b3e0f3d471 1-127
+openspec/specs/users/spec.md
+  s_a8a676ef8114b0::t_3318af296b1786 1-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "412d9e333f9a8672e19328d11d0e1dc84f47c0b7",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
