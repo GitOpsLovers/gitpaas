@@ -1,0 +1,33 @@
+apps/backend/src/core/infrastructure/database/__tests__/sql-state.spec.ts
+  s_cb66adf12f4631::t_bf1e2ba5136bd4 1-51
+apps/backend/src/core/infrastructure/database/sql-state.ts
+  s_4050c4f689f9ff::t_c37f1831c4357d 1-23
+apps/backend/src/features/projects/infrastructure/database/db-projects.transformer.ts
+  s_4050c4f689f9ff::t_30445297e1191e 6
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_4050c4f689f9ff::t_55f40f25f6b9cf 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "2fdf96b5c173f176ebabe400704b0e7762bed1f4",
+  "prompts": {},
+  "sessions": {
+    "s_4050c4f689f9ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a386a8fbb8e737d36",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cb66adf12f4631": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-afa5e6f1f26a96f16",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
