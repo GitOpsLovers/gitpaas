@@ -1,0 +1,35 @@
+apps/backend/src/features/projects/domain/dtos/__tests__/create-project-in-namespace.dto.spec.ts
+  s_5a206146fa8645::t_22339f930dbaef 1-100
+apps/backend/src/features/projects/domain/dtos/create-project-in-namespace.dto.ts
+  s_2cb23ff655df00::t_efa2e782b50baa 1-14
+apps/backend/src/features/projects/domain/repositories/projects.repository.ts
+  s_2cb23ff655df00::t_e2a7381bb2fc98 1,30,34
+apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts
+  s_2cb23ff655df00::t_edf92d7098cdae 3,30
+apps/backend/src/features/projects/infrastructure/database/db-projects.repository.ts
+  s_2cb23ff655df00::t_a8df0274441107 5,8,46,48,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bf2023f8012e1f8e538f0d6fcdb0514585d5daf3",
+  "prompts": {},
+  "sessions": {
+    "s_2cb23ff655df00": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9f2e3405d8185bd5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5a206146fa8645": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abda8f82381983743",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
