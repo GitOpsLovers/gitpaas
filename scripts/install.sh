@@ -1,45 +1,4 @@
 #!/bin/sh
-#
-# GitPaaS one-line installer.
-#
-# Turns a fresh server into a running GitPaaS control plane with a single command:
-#
-#   curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
-#
-# What it does, in order:
-#   1. Ensures Docker + the compose plugin are installed (provisions them if not).
-#   2. Resolves the version to install ("latest" release tag by default, or an
-#      explicit tag/branch you pick) and fetches the repo source at that version.
-#   3. Writes iac/production/.env with secure random secrets (DB password + JWT
-#      secrets) and the host's docker group id (DOCKER_GID, so the non-root
-#      backend container can use the mounted Docker socket), leaving
-#      operator-supplied values (GitHub App) as clearly-marked placeholders.
-#   4. Starts ONLY the data store (postgres) and waits for Postgres.
-#   5. Applies the SQL migrations in iac/production/migrations/ (in filename
-#      order) straight into Postgres, tracking what ran in a `schema_migrations`
-#      ledger table, so the schema is complete before anything else runs.
-#   6. Bootstraps the FIRST admin straight into Postgres, with no application
-#      container involved: prompts for your email, generates a random password,
-#      hashes it as argon2id in a throwaway container, inserts the row, and
-#      prints the password for you to copy.
-#   7. Only then brings up the application stack — the backend and the frontend —
-#      and waits for the backend to become healthy.
-#
-# The application therefore never boots against a database without an admin in it.
-#
-# GitPaaS runs everything on THIS server: the backend drives the host's own Docker
-# daemon through the bind-mounted /var/run/docker.sock. The only thing that needs
-# resolving is the socket's group id, which the installer detects for you.
-#
-# It is written for POSIX /bin/sh, fails fast (set -e), and is safe to re-run:
-# an existing .env is preserved, already-applied migrations are skipped, and the
-# admin seed is idempotent.
-#
-# Configuration (flags OR environment variables):
-#   --version <ref>   / GITPAAS_VERSION   Tag or branch to install. Default: the
-#                                         latest release tag (falls back to "main").
-#   --dir <path>      / GITPAAS_DIR       Install directory. Default: /opt/gitpaas.
-#   --email <email>   / GITPAAS_ADMIN_EMAIL   Admin email (skips the prompt).
 
 set -e
 
@@ -54,12 +13,10 @@ GITPAAS_VERSION="${GITPAAS_VERSION:-latest}"
 GITPAAS_DIR="${GITPAAS_DIR:-/opt/gitpaas}"
 GITPAAS_ADMIN_EMAIL="${GITPAAS_ADMIN_EMAIL:-}"
 
-# Throwaway image used to hash the admin password with the argon2 CLI, so the
-# bootstrap needs no application container at all. Pinned for reproducibility.
 ARGON2_IMAGE="alpine:3.22"
 
 # ---------------------------------------------------------------------------
-# Logging helpers (kept dependency-free; colours only when stdout is a TTY)
+# Logging helpers
 # ---------------------------------------------------------------------------
 if [ -t 1 ]; then
     C_BOLD="$(printf '\033[1m')"; C_GREEN="$(printf '\033[32m')"
@@ -69,13 +26,23 @@ else
 fi
 
 log()  { printf '%s==>%s %s\n' "$C_GREEN$C_BOLD" "$C_RESET" "$*"; }
-warn() { printf '%s[warn]%s %s\n' "$C_YELLOW" "$C_RESET" "$*" >&2; }
 err()  { printf '%s[error]%s %s\n' "$C_RED" "$C_RESET" "$*" >&2; }
 die()  { err "$*"; exit 1; }
 
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
+
+# Only a released version is installable. The application images are published
+# per release, so installing any other ref (a branch such as "main") would run
+# release images against a source tree that does not match them.
+assert_version_tag() {
+    case "$1" in
+        v[0-9]*.[0-9]*|[0-9]*.[0-9]*) : ;;
+        *) die "'$1' is not a released GitPaaS version. Pass a published release tag, e.g. --version v1.2.3, or omit --version to install the latest release." ;;
+    esac
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --version)     GITPAAS_VERSION="$2"; shift 2 ;;
@@ -85,11 +52,15 @@ while [ $# -gt 0 ]; do
         --email)       GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
         --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
         -h|--help)
-            sed -n '2,42p' "$0" 2>/dev/null || true
+            sed -n '2,51p' "$0" 2>/dev/null || true
             exit 0 ;;
         *) die "Unknown argument: $1 (try --help)" ;;
     esac
 done
+
+# Reject a non-release version straight away, before anything on this host is
+# touched (no Docker install, no download, no directory created).
+[ "$GITPAAS_VERSION" = "latest" ] || assert_version_tag "$GITPAAS_VERSION"
 
 # ---------------------------------------------------------------------------
 # Privilege + prerequisite detection
@@ -107,7 +78,7 @@ else
 fi
 
 need() { command -v "$1" >/dev/null 2>&1 || die "Required command '$1' is not available."; }
-# curl reaches us here (we were piped from it), but be explicit for direct runs.
+
 need curl
 need openssl
 need tar
@@ -116,7 +87,7 @@ need tar
 docker_cmd() { $SUDO docker "$@"; }
 
 # ---------------------------------------------------------------------------
-# Step 1 — Ensure Docker + compose plugin
+# Step 1 — Ensure Docker and compose plugin
 # ---------------------------------------------------------------------------
 ensure_docker() {
     if command -v docker >/dev/null 2>&1 && docker_cmd compose version >/dev/null 2>&1; then
@@ -125,8 +96,7 @@ ensure_docker() {
     fi
 
     log "Docker (or the compose plugin) is missing — installing via get.docker.com ..."
-    # The official convenience script installs the engine + compose plugin and
-    # supports the common distros. It is the same path Coolify/Dokploy use.
+
     curl -fsSL https://get.docker.com -o /tmp/gitpaas-get-docker.sh
     $SUDO sh /tmp/gitpaas-get-docker.sh
     rm -f /tmp/gitpaas-get-docker.sh
@@ -134,13 +104,15 @@ ensure_docker() {
     command -v docker >/dev/null 2>&1 || die "Docker installation failed."
     docker_cmd compose version >/dev/null 2>&1 || die "The Docker compose plugin is still missing after install."
     $SUDO systemctl enable --now docker >/dev/null 2>&1 || true
+
     log "Docker installed."
 }
 
 # ---------------------------------------------------------------------------
-# Step 2 — Resolve version + fetch source
+# Step 2 — Resolve version and fetch source
 # ---------------------------------------------------------------------------
 resolve_version() {
+    # An explicit version was already validated right after argument parsing.
     if [ "$GITPAAS_VERSION" != "latest" ]; then
         RESOLVED_REF="$GITPAAS_VERSION"
         log "Installing requested version: $RESOLVED_REF"
@@ -148,61 +120,64 @@ resolve_version() {
     fi
 
     log "Resolving the latest release ..."
-    # Prefer the published "latest release"; fall back to the newest tag, then main.
+
+    # Prefer the published "latest release"; fall back to the newest tag.
     RESOLVED_REF="$(curl -fsSL "https://api.github.com/repos/${REPO_SLUG}/releases/latest" 2>/dev/null \
         | grep -m1 '"tag_name"' | cut -d'"' -f4 || true)"
     if [ -z "$RESOLVED_REF" ]; then
         RESOLVED_REF="$(curl -fsSL "https://api.github.com/repos/${REPO_SLUG}/tags" 2>/dev/null \
             | grep -m1 '"name"' | cut -d'"' -f4 || true)"
     fi
-    if [ -z "$RESOLVED_REF" ]; then
-        warn "Could not resolve a release tag (no releases/tags or API rate-limited); falling back to 'main'."
-        RESOLVED_REF="main"
-    fi
+    [ -n "$RESOLVED_REF" ] \
+        || die "Could not resolve the latest GitPaaS release (no release or tag found, or the GitHub API is unreachable/rate-limited). Re-run naming a released version explicitly, e.g. --version v1.2.3."
+    assert_version_tag "$RESOLVED_REF"
     log "Latest version resolves to: $RESOLVED_REF"
 }
 
 fetch_source() {
     # If the target dir already holds the production stack, assume a previous run
-    # and reuse it (idempotent). Delete the dir to force a clean re-fetch.
+    # and reuse it. Delete the dir to force a clean re-fetch.
     if [ -f "$GITPAAS_DIR/iac/production/docker-compose.yml" ]; then
         log "Existing install found at $GITPAAS_DIR — reusing its source (delete the dir to re-fetch)."
         return
     fi
 
-    log "Fetching GitPaaS source ($RESOLVED_REF) into $GITPAAS_DIR ..."
+    log "Fetching the GitPaaS production stack ($RESOLVED_REF) into $GITPAAS_DIR ..."
     $SUDO mkdir -p "$GITPAAS_DIR"
 
+    # Download the source tarball for the resolved release tag.
     tarball="/tmp/gitpaas-src.tar.gz"
-    # codeload resolves a short ref (tag OR branch) to a gzipped tarball whose
-    # single top-level dir we strip away with --strip-components=1.
     curl -fsSL "https://codeload.github.com/${REPO_SLUG}/tar.gz/${RESOLVED_REF}" -o "$tarball" \
-        || die "Could not download source for ref '$RESOLVED_REF'. Is it a valid tag/branch?"
-    $SUDO tar -xzf "$tarball" -C "$GITPAAS_DIR" --strip-components=1
+        || die "Could not download the GitPaaS production stack for version '$RESOLVED_REF'. Is it a published release tag?"
+    
+    # Untar only the iac/production/ subdir into the install directory
+    tar_wildcards=""
+    tar --version 2>/dev/null | grep -qi 'gnu tar' && tar_wildcards="--wildcards"
+    $SUDO tar -xzf "$tarball" -C "$GITPAAS_DIR" --strip-components=1 $tar_wildcards '*/iac/production/*' \
+        || die "Could not extract iac/production/ from the downloaded archive for '$RESOLVED_REF'."
     rm -f "$tarball"
 
     [ -f "$GITPAAS_DIR/iac/production/docker-compose.yml" ] \
-        || die "Fetched source is missing iac/production/docker-compose.yml."
-    log "Source fetched."
+        || die "Fetched archive is missing iac/production/docker-compose.yml."
+    log "Production stack fetched."
 }
 
 # ---------------------------------------------------------------------------
-# Step 3 — Generate .env with secure secrets
+# Step 3 — Generate .env
 # ---------------------------------------------------------------------------
+# Generate a random 32-byte hex string.
 rand_secret() { openssl rand -hex 32; }
-# Password we display to the operator: alphanumeric so it's trivial to copy and
-# safe to substitute into .env / pass through docker without quoting surprises.
+
+# Generate a random password of 28 alphanumeric characters.
 rand_password() { openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | cut -c1-28; }
 
+# Writes key=value into .env, replacing an existing line if the key exists.
 set_env() {
-    # Replace `KEY=...` in-place. Values passed here are alphanumeric/hex, so the
-    # sed replacement needs no escaping.
     key="$1"; val="$2"
     $SUDO sed -i.bak "s|^${key}=.*|${key}=${val}|" "$ENV_FILE" && $SUDO rm -f "$ENV_FILE.bak"
 }
 
-# Same as set_env, but appends the key when .env does not carry it yet (an .env
-# generated by an older installer, which we otherwise preserve untouched).
+# Appends the key=value to .env if the key does not exist, or rewrites it if it does.
 upsert_env() {
     if $SUDO grep -q "^$1=" "$ENV_FILE" 2>/dev/null; then
         set_env "$1" "$2"
@@ -211,21 +186,15 @@ upsert_env() {
     fi
 }
 
-# Appends the key with a default ONLY when .env does not carry it yet. Unlike
-# upsert_env it never rewrites an existing line, so a value the operator tuned by
-# hand survives a re-run — it exists to backfill keys the backend started
-# requiring after an older installer wrote the file.
+# Appends the key with a default ONLY when .env does not carry it yet.
 default_env() {
     if ! $SUDO grep -q "^$1=" "$ENV_FILE" 2>/dev/null; then
         printf '%s=%s\n' "$1" "$2" | $SUDO tee -a "$ENV_FILE" >/dev/null
     fi
 }
 
-# The backend container runs as the non-root `node` user, so it can only use the
-# bind-mounted /var/run/docker.sock if it joins the group that owns that socket.
-# Compose does that through `group_add: ["${DOCKER_GID}"]`, so resolve the GID
-# here: the host's `docker` group first, then whatever group actually owns the
-# socket (covers distros/setups where the group is named differently).
+# Detect the group id of the group that owns /var/run/docker.sock, so the
+# non-root backend container can join it and use the host's Docker daemon.
 detect_docker_gid() {
     DOCKER_GID="$(getent group docker 2>/dev/null | cut -d: -f3 || true)"
 
@@ -238,10 +207,19 @@ detect_docker_gid() {
 
     case "$DOCKER_GID" in
         ''|*[!0-9]*)
-            die "Could not resolve the GID of the group owning /var/run/docker.sock (tried 'getent group docker' and stat on the socket). Make sure Docker is installed and running, then re-run the installer — or set DOCKER_GID by hand in $GITPAAS_DIR/iac/production/.env." ;;
+            die "Could not resolve the GID of the group owning /var/run/docker.sock. Make sure Docker is installed and running, then re-run the installer — or set DOCKER_GID by hand in $GITPAAS_DIR/iac/production/.env." ;;
     esac
 
-    log "Host Docker socket group id: $DOCKER_GID (the backend container joins it)."
+    log "Host Docker socket group id: $DOCKER_GID."
+}
+
+# Map the resolved version tag to the tag of the PUBLISHED container images.
+image_tag_for_ref() {
+    ref="$1"
+    case "$ref" in
+        v[0-9]*) echo "${ref#v}" ;;
+        *)       echo "$ref" ;;
+    esac
 }
 
 generate_env() {
@@ -250,60 +228,51 @@ generate_env() {
 
     detect_docker_gid
 
+    # Determine the tag of the published images to pull.
+    IMAGE_TAG="$(image_tag_for_ref "$RESOLVED_REF")"
+    log "Application images will be pulled at tag: $IMAGE_TAG."
+
     if [ -f "$ENV_FILE" ]; then
         log "$ENV_FILE already exists — keeping it (edit it by hand to change secrets)."
         upsert_env "DOCKER_GID" "$DOCKER_GID"
-        default_env "REDIS_HOST"     "redis"
-        default_env "REDIS_PORT"     "6379"
-        default_env "REDIS_PASSWORD" ""
+        upsert_env "IMAGE_TAG"  "$IMAGE_TAG"
+        default_env "REDIS_HOST" "redis"
+        default_env "REDIS_PORT" "6379"
         return
     fi
 
-    log "Writing $ENV_FILE from .env.example with generated secrets ..."
+    log "Writing $ENV_FILE from .env.example..."
     $SUDO cp "$PROD_DIR/.env.example" "$ENV_FILE"
 
     db_password="$(rand_password)"
     set_env "POSTGRES_PASSWORD" "$db_password"
-    set_env "DB_PASSWORD"       "$db_password"
-    # Redis is the hot store for the live deployment logs. It only listens on the
-    # compose-internal network and runs without `requirepass`, so the password
-    # stays empty — but the key must exist, the backend reads it as optional.
-    upsert_env "REDIS_HOST"     "redis"
-    upsert_env "REDIS_PORT"     "6379"
-    upsert_env "REDIS_PASSWORD" ""
-
+    set_env "DB_PASSWORD" "$db_password"
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
-
-    # Schema comes from the SQL migrations applied below, never synchronize.
     set_env "NODE_ENV" "production"
-
-    # Point CORS at the origin the frontend is actually served from so login works.
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"
-
-    # Lets the non-root backend container use the mounted Docker socket.
     upsert_env "DOCKER_GID" "$DOCKER_GID"
+    upsert_env "IMAGE_TAG" "$IMAGE_TAG"
 
     log ".env written. GitHub App credentials remain as placeholders you must fill in."
 }
 
 # ---------------------------------------------------------------------------
-# Step 4 — Start the data stores only
+# Step 4 — Start the data stores
 # ---------------------------------------------------------------------------
+# The compose plugin is a separate binary, so we wrap it in a function that
 compose() { docker_cmd compose -f "$GITPAAS_DIR/iac/production/docker-compose.yml" "$@"; }
 
-# Read a single value out of the generated .env. The file is root-owned, hence
-# the $SUDO; `cut -f2-` keeps values that themselves contain '='.
+# Read a single value out of the generated .env.
 env_value() { $SUDO grep -m1 "^$1=" "$ENV_FILE" | cut -d= -f2- ; }
 
 start_data_stores() {
     log "Starting the data store (postgres) ..."
-    # Deliberately NOT `up -d`: the backend and frontend must stay down until the
-    # first admin exists, so the app never boots against an admin-less database.
-    # It uses a published image, so nothing needs building here.
+
     compose up -d postgres
 
     log "Waiting for Postgres to become healthy ..."
+    
     i=0
     while [ "$i" -lt 60 ]; do
         status="$(docker_cmd inspect --format '{{.State.Health.Status}}' gitpaas-postgres 2>/dev/null || echo starting)"
@@ -314,6 +283,7 @@ start_data_stores() {
         i=$((i + 1))
         sleep 5
     done
+
     die "Timed out waiting for Postgres to become healthy. Inspect: $SUDO docker compose -f $GITPAAS_DIR/iac/production/docker-compose.yml logs postgres"
 }
 
@@ -321,9 +291,7 @@ start_data_stores() {
 # Step 5 — Apply the SQL migrations
 # ---------------------------------------------------------------------------
 
-# Read the Postgres credentials out of the generated .env into the globals the
-# psql helpers use. Cheap and side-effect free, so every step that talks to the
-# database can call it and stay self-contained.
+# Read the Postgres credentials out of the generated .env.
 load_db_credentials() {
     POSTGRES_USER="$(env_value POSTGRES_USER)"
     POSTGRES_PASSWORD="$(env_value POSTGRES_PASSWORD)"
@@ -332,19 +300,12 @@ load_db_credentials() {
         || die "POSTGRES_USER / POSTGRES_DB are missing from $ENV_FILE."
 }
 
-# Run SQL inside the postgres container, reading the statements from stdin.
-# ON_ERROR_STOP makes psql exit non-zero on the first failure so we abort the
-# install instead of continuing on a half-built schema.
+# Run SQL inside the postgres container.
 psql_run() {
     compose exec -T -e PGPASSWORD="$POSTGRES_PASSWORD" postgres \
         psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"
 }
 
-# Production schema is owned by the plain .sql files in
-# iac/production/migrations/, applied here — never by the backend, which ships no
-# migration machinery at all. Files run in filename order (the numeric prefix IS
-# the order) and each applied file is recorded in a `schema_migrations` ledger,
-# so re-running the installer applies nothing.
 run_migrations() {
     load_db_credentials
 
@@ -358,12 +319,10 @@ SQL
 
     applied_any=0
     for migration_file in "$migrations_dir"/*.sql; do
-        # Guards the literal glob when the directory holds no .sql file.
+
         [ -f "$migration_file" ] || continue
         migration_name="${migration_file##*/}"
 
-        # Already in the ledger? Nothing to do. The filename travels as a psql
-        # variable, so psql — not the shell — does the quoting.
         already_applied="$(psql_run -tA -v fname="$migration_name" <<'SQL'
 SELECT 1 FROM "schema_migrations" WHERE "filename" = :'fname';
 SQL
@@ -371,8 +330,7 @@ SQL
         [ -z "$already_applied" ] || continue
 
         log "Applying $migration_name ..."
-        # The file and its ledger row go in as ONE transaction, so a failed
-        # migration is never recorded as applied.
+
         {
             echo 'BEGIN;'
             cat "$migration_file"
@@ -388,20 +346,17 @@ SQL
     done
 
     if [ "$applied_any" -eq 0 ]; then
-        log "Database schema is already up to date — no migrations to apply."
+        log "Database schema is already up to date."
     else
         log "Database migrations applied."
     fi
 }
 
 # ---------------------------------------------------------------------------
-# Step 6 — Bootstrap the first admin (no application container involved)
+# Step 6 — Bootstrap the admin
 # ---------------------------------------------------------------------------
 
-# Hash the password with the argon2 CLI in a throwaway container. The parameters
-# mirror node-argon2's defaults (m=65536 i.e. -m 16, t=3, p=4, 32-byte tag), so
-# the backend's argon2id verifier accepts the encoded string as-is. Password and
-# salt travel as env vars, never as arguments, so they stay out of `ps` output.
+# Hash the password with the argon2 CLI in a throwaway container.
 hash_password() {
     salt="$(openssl rand -hex 16)"
 
@@ -414,8 +369,7 @@ hash_password() {
     [ -n "$ADMIN_PASSWORD_HASH" ] \
         || die "Could not hash the admin password (the argon2 helper container produced no output). Check that this host can pull $ARGON2_IMAGE and reach the Alpine package mirrors."
 
-    # Guard against a CLI whose defaults ever drift: the backend only verifies
-    # argon2id strings with exactly these parameters.
+
     case "$ADMIN_PASSWORD_HASH" in
         '$argon2id$v=19$m=65536,t=3,p=4$'*) : ;;
         *) die "The generated password hash is not in the expected argon2id format (\$argon2id\$v=19\$m=65536,t=3,p=4\$...), so the backend could not verify it. Aborting instead of creating an admin that cannot log in." ;;
@@ -423,8 +377,7 @@ hash_password() {
 }
 
 bootstrap_admin() {
-    # Prompt for the email if it was not supplied. When piped from curl, stdin is
-    # the script itself, so read from the controlling terminal instead.
+    # Prompt for the email if it was not supplied.
     if [ -z "$GITPAAS_ADMIN_EMAIL" ]; then
         if [ -r /dev/tty ]; then
             printf '%sAdmin email:%s ' "$C_BOLD" "$C_RESET" > /dev/tty
@@ -436,13 +389,11 @@ bootstrap_admin() {
     load_db_credentials
 
     ADMIN_PASSWORD="$(rand_password)"
-    log "Hashing the admin password (argon2id) ..."
+    log "Hashing the admin password..."
     hash_password "$ADMIN_PASSWORD"
 
-    log "Creating the first admin ($GITPAAS_ADMIN_EMAIL) ..."
-    # Email and hash go in as psql variables, so psql — not the shell — does the
-    # quoting and no value can break out of the statement. ON CONFLICT keeps the
-    # install re-runnable: an existing admin keeps its current password.
+    log "Creating the admin ($GITPAAS_ADMIN_EMAIL) ..."
+
     psql_run -v "email=$GITPAAS_ADMIN_EMAIL" -v "hash=$ADMIN_PASSWORD_HASH" <<'SQL'
 INSERT INTO "users" ("email", "passwordHash", "role", "isActive")
 VALUES (:'email', :'hash', 'admin', true)
@@ -451,13 +402,17 @@ SQL
 }
 
 # ---------------------------------------------------------------------------
-# Step 7 — Bring up the application stack
+# Step 7 — Pull the published images and bring up the application stack
 # ---------------------------------------------------------------------------
 bring_up() {
-    log "Building images and bringing up the rest of the stack (this can take a while on first run) ..."
-    # The schema is migrated and the admin exists, so it is safe to start the
-    # application containers: the backend, then the frontend.
-    compose up -d --build
+    log "Pulling images from ghcr.io/gitopslovers (this can take a while on first run) ..."
+
+    compose pull \
+        || die "Could not pull the GitPaaS images at tag '$IMAGE_TAG'. Check this host's network access to ghcr.io and that the tag exists, then re-run the installer."
+
+    log "Bringing up the rest of the stack ..."
+    # The schema is migrated and the admin exists, so it is safe to start the application containers.
+    compose up -d
 
     log "Waiting for the backend to become healthy ..."
     i=0
