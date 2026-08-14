@@ -1,0 +1,21 @@
+iac/production/docker-compose.yml
+  s_68e842846b325c::t_023bc628fc3940 52-57
+scripts/install.sh
+  s_68e842846b325c::t_dc3cb3540cb094 87-92,95,97,99,221-222,225-226,228,232-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c8610862ace09325a666299f906a57ae4283de01",
+  "prompts": {},
+  "sessions": {
+    "s_68e842846b325c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26f6e2ca-e2ca-4a19-860e-b60a0122b155",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
