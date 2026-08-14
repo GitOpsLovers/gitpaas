@@ -1,0 +1,85 @@
+apps/frontend/src/app/app.routes.ts
+  s_69fcf1465ddd4a::t_7647d7280c2b88 33-52
+apps/frontend/src/app/features/namespaces/domain/dtos/create-namespace.dto.ts
+  s_69fcf1465ddd4a::t_97c3dac4e50852 1-6
+apps/frontend/src/app/features/namespaces/domain/dtos/update-namespace.dto.ts
+  s_69fcf1465ddd4a::t_01fbdab69bce3e 1-6
+apps/frontend/src/app/features/namespaces/domain/models/namespace.model.ts
+  s_69fcf1465ddd4a::t_3670b25a3d4910 1-8
+apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.spec.ts
+  s_82890b609d9150::t_0e8b37357f3721 1-153
+apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.ts
+  s_69fcf1465ddd4a::t_e2a21e9e50fee8 1-72
+apps/frontend/src/app/features/namespaces/ui/components/namespace-card/namespace-card.component.html
+  s_69fcf1465ddd4a::t_20fcd595d6b587 1-41
+apps/frontend/src/app/features/namespaces/ui/components/namespace-card/namespace-card.component.ts
+  s_69fcf1465ddd4a::t_5c8c2c6d9aef4a 1-24
+apps/frontend/src/app/features/namespaces/ui/components/namespace-form/namespace-form.component.html
+  s_69fcf1465ddd4a::t_1d7510516251d4 1-26
+apps/frontend/src/app/features/namespaces/ui/components/namespace-form/namespace-form.component.ts
+  s_69fcf1465ddd4a::t_8dab726093065b 1-38
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-add/namespace-add.component.html
+  s_69fcf1465ddd4a::t_37aa2330fe4242 1
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-add/namespace-add.component.spec.ts
+  s_82890b609d9150::t_ff0c755357646b 1-90
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-add/namespace-add.component.ts
+  s_69fcf1465ddd4a::t_ba41c391c74c2b 1-42
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-edit/namespace-edit.component.html
+  s_69fcf1465ddd4a::t_1b9822cb5a9670 1-10
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-edit/namespace-edit.component.spec.ts
+  s_82890b609d9150::t_1328161971c129 1-144
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-edit/namespace-edit.component.ts
+  s_69fcf1465ddd4a::t_bff08c9b864045 1-51
+apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.html
+  s_69fcf1465ddd4a::t_70e2ae25f3f2f8 1-43
+apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.spec.ts
+  s_82890b609d9150::t_e02f28618a38da 1-141
+apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.ts
+  s_69fcf1465ddd4a::t_8d15e77240759d 1-83
+apps/frontend/src/app/pages/namespaces/add/namespace-add.component.html
+  s_69fcf1465ddd4a::t_3936e1f5ffdbdf 1-3
+apps/frontend/src/app/pages/namespaces/add/namespace-add.component.ts
+  s_69fcf1465ddd4a::t_802c71e98da4ad 1-20
+apps/frontend/src/app/pages/namespaces/edit/namespace-edit.component.html
+  s_69fcf1465ddd4a::t_8f7d293d2476c0 1-3
+apps/frontend/src/app/pages/namespaces/edit/namespace-edit.component.ts
+  s_69fcf1465ddd4a::t_1b78f9c97737c3 1-20
+apps/frontend/src/app/pages/namespaces/list/namespaces-list.component.html
+  s_69fcf1465ddd4a::t_ef3bd64e6a6401 1-12
+apps/frontend/src/app/pages/namespaces/list/namespaces-list.component.ts
+  s_69fcf1465ddd4a::t_e53d5b24e225b7 1-18
+docs/roadmap/namespace-entity-plan-todo.md
+  s_97e00c18b0afd2::t_c8b5beb33a8f0c 62-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f110e5658081c24181720627eb0b9471dfdb0557",
+  "prompts": {},
+  "sessions": {
+    "s_69fcf1465ddd4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2b3fabfcf734debc",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_82890b609d9150": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ade809ac823474517",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_97e00c18b0afd2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "997d6b37-4f77-48eb-a37f-9fef07206b58",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
