@@ -1,0 +1,21 @@
+docs/roadmap/source-control-providers-plan-todo.md
+  s_68e842846b325c::t_16bae33a75d79c 1-116
+docs/roadmap/source-control-providers-plan.md
+  s_68e842846b325c::t_81626854b45076 1-309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "287d58f473314a830dfd18f8db553bcc12056f36",
+  "prompts": {},
+  "sessions": {
+    "s_68e842846b325c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26f6e2ca-e2ca-4a19-860e-b60a0122b155",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
