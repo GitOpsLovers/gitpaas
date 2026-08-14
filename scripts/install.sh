@@ -1,4 +1,45 @@
 #!/bin/sh
+#
+# GitPaaS one-line installer.
+#
+# Turns a fresh server into a running GitPaaS control plane with a single command:
+#
+#   curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
+#
+# What it does, in order:
+#   1. Ensures Docker + the compose plugin are installed (provisions them if not).
+#   2. Resolves the version to install (the latest published release by default, or
+#      the release tag you pass) and fetches iac/production/ at that version.
+#   3. Writes iac/production/.env with secure random secrets (DB password + JWT
+#      secrets), the host's docker group id (DOCKER_GID, so the non-root backend
+#      container can use the mounted Docker socket) and the image tag to pull,
+#      leaving operator-supplied values (GitHub App) as clearly-marked placeholders.
+#   4. Starts ONLY the data store (postgres) and waits for it to become healthy.
+#   5. Applies the SQL migrations in iac/production/migrations/ (in filename
+#      order) straight into Postgres, tracking what ran in a `schema_migrations`
+#      ledger table, so the schema is complete before anything else runs.
+#   6. Bootstraps the FIRST admin straight into Postgres, with no application
+#      container involved: prompts for your email, generates a random password,
+#      hashes it as argon2id in a throwaway container, inserts the row, and
+#      prints the password for you to copy.
+#   7. Only then pulls and brings up the application stack — the backend and the
+#      frontend — and waits for the backend to become healthy.
+#
+# The application therefore never boots against a database without an admin in it.
+#
+# GitPaaS runs everything on THIS server: the backend drives the host's own Docker
+# daemon through the bind-mounted /var/run/docker.sock. The only thing that needs
+# resolving is the socket's group id, which the installer detects for you.
+#
+# It is written for POSIX /bin/sh, fails fast (set -e), and is safe to re-run:
+# an existing .env is preserved, already-applied migrations are skipped, and the
+# admin seed is idempotent.
+#
+# Configuration (flags OR environment variables):
+#   --version <tag>   / GITPAAS_VERSION   Released version to install, e.g. v1.2.3.
+#                                         Default: the latest published release.
+#   --dir <path>      / GITPAAS_DIR       Install directory. Default: /opt/gitpaas.
+#   --email <email>   / GITPAAS_ADMIN_EMAIL   Admin email (skips the prompt).
 
 set -e
 
@@ -51,8 +92,7 @@ while [ $# -gt 0 ]; do
         --dir=*)       GITPAAS_DIR="${1#*=}"; shift ;;
         --email)       GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
         --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
-        -h|--help)
-            sed -n '2,51p' "$0" 2>/dev/null || true
+            awk 'NR == 1 { next } /^#/ { print; next } { exit }' "$0" 2>/dev/null || true
             exit 0 ;;
         *) die "Unknown argument: $1 (try --help)" ;;
     esac

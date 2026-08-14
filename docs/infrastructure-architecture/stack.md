@@ -3,7 +3,7 @@
 | Concern             | Tool                                                   |
 |---------------------|--------------------------------------------------------|
 | Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
-| Images              | Multi-stage Dockerfiles                                |
+| Images              | Multi-stage Dockerfiles, built and pushed by CI        |
 | Database            | `postgres:17.6-alpine`                                 |
 | Live log store      | `redis:8.2-alpine` with AOF persistence                |
 | Workload execution  | Local Docker daemon via `/var/run/docker.sock`         |

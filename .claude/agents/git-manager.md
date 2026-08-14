@@ -6,7 +6,7 @@ description: >-
 
   The caller MUST pass the complete task in the prompt (what to branch/commit/push/PR, the branch type + short description, a summary of the changes for the commit and PR body, and any issue to reference), because this agent starts with NO conversation history. Give it the minimum context it needs and nothing more.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: haiku
 ---
 
 # Git & GitHub specialist

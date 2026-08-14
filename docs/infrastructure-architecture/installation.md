@@ -12,7 +12,7 @@ The installer (`scripts/install.sh`) is a POSIX `/bin/sh` script with no depende
 
 ### Version selection
 
-By default, the installer installs `latest`. It finds this version from the **latest release** tag on GitHub. If there is no release, it uses the newest tag. If there is no tag or the API has a rate limit, it uses `main`. To select a specified ref, use a flag or an environment variable:
+By default, the installer installs `latest`. It finds this version from the **latest release** tag on GitHub. If there is no release, it uses the newest tag. If there is no tag, or if the API is not available or has a rate limit, the installer **stops with an error** and tells the operator to run it again with a released version. There is no fallback to a branch. To select a specified version, use a flag or an environment variable:
 
 ```sh
 # Flag form
@@ -22,7 +22,7 @@ curl -fsSL …/install.sh | sh -s -- --version v1.0.0
 GITPAAS_VERSION=v1.0.0 sh -c "$(curl -fsSL …/install.sh)"
 ```
 
-The source comes from the `codeload` tarball endpoint of GitHub. Thus `--version` accepts a tag name **or** a branch name.
+The source comes from the `codeload` tarball endpoint of GitHub, but `--version` accepts **only a released version tag** — `v1.2.3` or `1.2.3`. The `assert_version_tag` check applies this rule before the installer touches the host, and it refuses a branch name such as `main`. The reason is that the application images are published for each release: a branch would run release images against a source tree that is different from them.
 
 ### Options
 
@@ -30,7 +30,7 @@ Each option is a flag and has an equivalent environment variable:
 
 | Flag | Environment variable | Default | Purpose |
 |---|---|---|---|
-| `--version <ref>` | `GITPAAS_VERSION` | `latest` | Tag or branch to install. |
+| `--version <tag>` | `GITPAAS_VERSION` | `latest` | Released version tag to install (`v1.2.3` or `1.2.3`). A branch name is refused. |
 | `--dir <path>` | `GITPAAS_DIR` | `/opt/gitpaas` | Install directory the source is unpacked into. |
 | `--email <email>` | `GITPAAS_ADMIN_EMAIL` | *(prompted)* | First admin's email; skips the interactive prompt. |
 
@@ -39,12 +39,14 @@ Each option is a flag and has an equivalent environment variable:
 The script does seven steps in sequence:
 
 1. **Make sure that Docker is available.** If Docker or the compose plugin is missing, the script installs the two parts with the official `get.docker.com` convenience script and enables the daemon.
-2. **Find the version and get the source.** The script finds the ref (see above) and downloads the tarball of the repository from `codeload.github.com` into the install directory. If there is an installation already (a directory that has `iac/production/docker-compose.yml`), the script uses it and does not download the source again.
-3. **Write `.env`.** The script copies `iac/production/.env.example` to `.env` and puts secure random secrets in it: one value for `POSTGRES_PASSWORD` and `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`. It sets `NODE_ENV=production` and points `CORS_ORIGIN` to the address of the host on port `8080`. It also finds the docker group id of the host (with `getent group docker`, or from the owning group of the socket) and writes it as `DOCKER_GID`. Compose gives this value to the `group_add` of the backend, and then the non-root container can use the socket. If the script cannot find that GID, it stops with a clear message. The GitHub App credentials stay as placeholders.
+2. **Find the version and get the source.** The script finds the version tag (see above) and downloads the tarball of the repository from `codeload.github.com` into `/tmp`. From that archive it extracts **only** `*/iac/production/*` into the install directory, and then it deletes the tarball. Thus the install directory holds the production stack alone: no `apps/`, no `scripts/`, and no root manifests. If there is an installation already (a directory that has `iac/production/docker-compose.yml`), the script uses it and does not download the source again.
+3. **Write `.env`.** On a **fresh** install, the script copies `iac/production/.env.example` to `.env` and puts secure random secrets in it: one value for `POSTGRES_PASSWORD` and `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`. It sets `NODE_ENV=production` and points `CORS_ORIGIN` to the address of the host on port `8080`. It also writes `DOCKER_GID` and `IMAGE_TAG`. `DOCKER_GID` is the docker group id of the host, which the script finds with `getent group docker` or from the owning group of the socket; compose gives this value to the `group_add` of the backend, and then the non-root container can use the socket. If the script cannot find that GID, it stops with a clear message. `IMAGE_TAG` selects the published images to run (see [Conventions](./conventions.md#environment-contract)). The Redis keys are **not** written by the script on a fresh install: `REDIS_HOST` and `REDIS_PORT` come from `.env.example`. The GitHub App credentials stay as placeholders.
+
+   On a **pre-existing** `.env`, the script keeps the file and changes as little as possible: it refreshes `DOCKER_GID` and `IMAGE_TAG`, and it adds `REDIS_HOST=redis` and `REDIS_PORT=6379` only if the keys are not there. It never touches the secrets, the ports or the GitHub App credentials.
 4. **Start only the database.** The script runs `docker compose … up -d postgres` and not a full `up -d`. Then it examines the health of the `gitpaas-postgres` container until the container is `healthy` (for a maximum of approximately 5 minutes). At this step, the backend and the frontend do not run.
 5. **Apply the SQL migrations.** See [Schema bootstrap](./key-flows.md#schema-bootstrap).
 6. **Make the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
-7. **Start the application stack.** Only when the schema is current and the admin row is available, the script runs `docker compose … up -d --build`. This starts the backend and then the frontend, and the script examines the health of the `gitpaas-backend` container until the container is `healthy` (for a maximum of approximately 5 minutes).
+7. **Get the images and start the application stack.** Only when the schema is current and the admin row is available, the script runs `docker compose … pull` to get the published images from `ghcr.io/gitopslovers` at the tag in `IMAGE_TAG`. If the pull fails, the script stops and names that tag. Then it runs `docker compose … up -d`. Nothing is built on the server. This starts the backend and then the frontend, and the script examines the health of the `gitpaas-backend` container until the container is `healthy` (for a maximum of approximately 5 minutes).
 
 At the end, the script shows a summary with the frontend URL and the API URL, the admin credentials, and the manual steps that stay.
 

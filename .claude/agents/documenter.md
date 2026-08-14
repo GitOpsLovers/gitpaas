@@ -6,7 +6,7 @@ description: >-
 
   The caller MUST pass the complete task in the prompt (what to document + scope/paths + where the output goes), because this agent starts with NO conversation history. Give it the minimum context it needs and nothing more.
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: inherit
+model: sonnet
 ---
 
 # Documentation specialist
