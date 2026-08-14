@@ -8,35 +8,35 @@ All the paths are relative to the root of the repository, if there is no other i
 
 ## Phase 1 — The migration
 
-- [ ] Create `iac/production/migrations/009_namespaces.sql` (new) with the `CREATE TABLE IF NOT EXISTS "namespaces"` statement, following the shape of `004_projects_services.sql`.
-- [ ] Add the guarded `UQ_namespaces_name` unique-constraint statement to `iac/production/migrations/009_namespaces.sql`, before the `default` row insert.
-- [ ] Add the guarded `default` namespace insert statement to `iac/production/migrations/009_namespaces.sql`.
-- [ ] Add the nullable `namespaceId` column, the backfill and the `NOT NULL` statements for `projects` to `iac/production/migrations/009_namespaces.sql`.
-- [ ] Add the guarded foreign-key statement and the guarded `UQ_projects_namespaceId_name` composite unique-constraint statement for `projects` to `iac/production/migrations/009_namespaces.sql`.
-- [ ] Read the constraint names TypeORM generates for the entities of phase 2 and phase 3, and copy the exact names into `iac/production/migrations/009_namespaces.sql`.
-- [ ] Verify with `rtk pnpm run build` that the migration file changes nothing that fails the build.
+- [x] Create `iac/production/migrations/009_namespaces.sql` (new) with the `CREATE TABLE IF NOT EXISTS "namespaces"` statement, following the shape of `004_projects_services.sql`.
+- [x] Add the guarded `UQ_namespaces_name` unique-constraint statement to `iac/production/migrations/009_namespaces.sql`, before the `default` row insert.
+- [x] Add the guarded `default` namespace insert statement to `iac/production/migrations/009_namespaces.sql`.
+- [x] Add the nullable `namespaceId` column, the backfill and the `NOT NULL` statements for `projects` to `iac/production/migrations/009_namespaces.sql`.
+- [x] Add the guarded foreign-key statement and the guarded `UQ_projects_namespaceId_name` composite unique-constraint statement for `projects` to `iac/production/migrations/009_namespaces.sql`.
+- [x] Read the constraint names TypeORM generates for the entities of phase 2 and phase 3, and copy the exact names into `iac/production/migrations/009_namespaces.sql`.
+- [x] Verify with `rtk pnpm run build` that the migration file changes nothing that fails the build.
 
 ## Phase 2 — Backend, the `namespaces` feature
 
-- [ ] Create `apps/backend/src/features/namespaces/domain/models/namespace.models.ts` (new) with the `Namespace` interface.
-- [ ] Create `apps/backend/src/features/namespaces/domain/dtos/create-namespace.dto.ts` and `update-namespace.dto.ts` (new) with the validated `name` field.
-- [ ] Create `apps/backend/src/features/namespaces/domain/errors/namespace.errors.ts` (new) with `NamespaceNotFoundError` and `NamespaceNotEmptyError`.
-- [ ] Create the spec `apps/backend/src/features/namespaces/domain/errors/__tests__/namespace.errors.spec.ts` (new) that asserts the `code` and the `message` of each error.
-- [ ] Create `apps/backend/src/features/namespaces/domain/repositories/namespaces.repository.ts` (new) with the `getAll`, `findById`, `create`, `update`, `delete` and `countProjects` port methods.
-- [ ] Create `apps/backend/src/features/namespaces/infrastructure/database/db-namespace.entity.ts` (new) with the unique `name` column and the `projects` relation.
-- [ ] Create `apps/backend/src/features/namespaces/infrastructure/database/db-namespaces.transformer.ts` (new) with `toNamespace`.
-- [ ] Create `apps/backend/src/features/namespaces/infrastructure/database/db-namespaces.repository.ts` (new) that implements `NamespacesRepository`.
-- [ ] Create the specs `apps/backend/src/features/namespaces/infrastructure/database/__tests__/db-namespaces.transformer.spec.ts` and `db-namespaces.repository.spec.ts` (new).
-- [ ] Create `apps/backend/src/features/namespaces/application/get-all-namespaces.use-case.ts`, `find-namespace-by-id.use-case.ts`, `create-namespace.use-case.ts` and `update-namespace.use-case.ts` (new) as thin pass-through repository calls.
-- [ ] Create `apps/backend/src/features/namespaces/application/delete-namespace.use-case.ts` (new) that calls `countProjects` and throws `NamespaceNotEmptyError` when the count is above `0`.
-- [ ] Create the specs `apps/backend/src/features/namespaces/application/__tests__/*.use-case.spec.ts` (new), one per use case; the `delete-namespace.use-case.spec.ts` one covers both the empty-namespace case and the not-empty case.
-- [ ] Create `apps/backend/src/features/namespaces/ui/services/namespaces.service.ts` (new) that calls the use cases and calls `enrichTelemetry({ 'namespace.id': ... })` on create.
-- [ ] Create `apps/backend/src/features/namespaces/ui/controllers/namespaces.controller.ts` (new) with the `GET /namespaces`, `GET /namespaces/:id`, `POST /namespaces`, `PUT /namespaces/:id` and `DELETE /namespaces/:id` routes.
-- [ ] Create the specs `apps/backend/src/features/namespaces/ui/services/__tests__/namespaces.service.spec.ts` and `apps/backend/src/features/namespaces/ui/controllers/__tests__/namespaces.controller.spec.ts` (new).
-- [ ] Create `apps/backend/src/features/namespaces/namespaces.module.ts` (new) and register it in the `imports` array of `apps/backend/src/app.module.ts`.
-- [ ] Add the `NAMESPACE_NOT_FOUND` → `NotFoundException` and `NAMESPACE_NOT_EMPTY` → `ConflictException` entries, and the `ConflictException` import, to `apps/backend/src/core/ui/translators/http-error.translator.ts`.
-- [ ] Add the two new code-to-exception cases to `apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts`.
-- [ ] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the new `namespaces` module compiles and its specs pass.
+- [x] Create `apps/backend/src/features/namespaces/domain/models/namespace.models.ts` (new) with the `Namespace` interface.
+- [x] Create `apps/backend/src/features/namespaces/domain/dtos/create-namespace.dto.ts` and `update-namespace.dto.ts` (new) with the validated `name` field.
+- [x] Create `apps/backend/src/features/namespaces/domain/errors/namespace.errors.ts` (new) with `NamespaceNotFoundError` and `NamespaceNotEmptyError`.
+- [x] Create the spec `apps/backend/src/features/namespaces/domain/errors/__tests__/namespace.errors.spec.ts` (new) that asserts the `code` and the `message` of each error.
+- [x] Create `apps/backend/src/features/namespaces/domain/repositories/namespaces.repository.ts` (new) with the `getAll`, `findById`, `create`, `update`, `delete` and `countProjects` port methods.
+- [x] Create `apps/backend/src/features/namespaces/infrastructure/database/db-namespace.entity.ts` (new) with the unique `name` column and the `projects` relation. (relation deferred to phase 3)
+- [x] Create `apps/backend/src/features/namespaces/infrastructure/database/db-namespaces.transformer.ts` (new) with `toNamespace`.
+- [x] Create `apps/backend/src/features/namespaces/infrastructure/database/db-namespaces.repository.ts` (new) that implements `NamespacesRepository`.
+- [x] Create the specs `apps/backend/src/features/namespaces/infrastructure/database/__tests__/db-namespaces.transformer.spec.ts` and `db-namespaces.repository.spec.ts` (new).
+- [x] Create `apps/backend/src/features/namespaces/application/get-all-namespaces.use-case.ts`, `find-namespace-by-id.use-case.ts`, `create-namespace.use-case.ts` and `update-namespace.use-case.ts` (new) as thin pass-through repository calls.
+- [x] Create `apps/backend/src/features/namespaces/application/delete-namespace.use-case.ts` (new) that calls `countProjects` and throws `NamespaceNotEmptyError` when the count is above `0`.
+- [x] Create the specs `apps/backend/src/features/namespaces/application/__tests__/*.use-case.spec.ts` (new), one per use case; the `delete-namespace.use-case.spec.ts` one covers both the empty-namespace case and the not-empty case.
+- [x] Create `apps/backend/src/features/namespaces/ui/services/namespaces.service.ts` (new) that calls the use cases and calls `enrichTelemetry({ 'namespace.id': ... })` on create.
+- [x] Create `apps/backend/src/features/namespaces/ui/controllers/namespaces.controller.ts` (new) with the `GET /namespaces`, `GET /namespaces/:id`, `POST /namespaces`, `PUT /namespaces/:id` and `DELETE /namespaces/:id` routes.
+- [x] Create the specs `apps/backend/src/features/namespaces/ui/services/__tests__/namespaces.service.spec.ts` and `apps/backend/src/features/namespaces/ui/controllers/__tests__/namespaces.controller.spec.ts` (new).
+- [x] Create `apps/backend/src/features/namespaces/namespaces.module.ts` (new) and register it in the `imports` array of `apps/backend/src/app.module.ts`.
+- [x] Add the `NAMESPACE_NOT_FOUND` → `NotFoundException` and `NAMESPACE_NOT_EMPTY` → `ConflictException` entries, and the `ConflictException` import, to `apps/backend/src/core/ui/translators/http-error.translator.ts`.
+- [x] Add the two new code-to-exception cases to `apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts`.
+- [x] Verify with `rtk pnpm run test` and `rtk pnpm run build` that the new `namespaces` module compiles and its specs pass.
 
 ## Phase 3 — Backend, the changes to the `projects` feature
 

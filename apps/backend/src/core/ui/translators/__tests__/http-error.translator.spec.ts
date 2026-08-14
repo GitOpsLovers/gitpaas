@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    ConflictException,
     ForbiddenException,
     HttpException,
     NotFoundException,
@@ -71,6 +72,22 @@ describe('translateError', () => {
 
         it('maps PROJECT_NOT_FOUND to a NotFoundException', () => {
             expect(translateError(new CodedDomainError('PROJECT_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
+        });
+
+        it('maps NAMESPACE_NOT_FOUND to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('NAMESPACE_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
+        });
+
+        it('maps NAMESPACE_NOT_EMPTY to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('NAMESPACE_NOT_EMPTY'))).toBeInstanceOf(ConflictException);
+        });
+
+        it('keeps the domain message of a NAMESPACE_NOT_EMPTY conflict', () => {
+            const error = new CodedDomainError('NAMESPACE_NOT_EMPTY', 'Namespace n-1 still has 2 project(s) attached');
+
+            const result = translateError(error) as HttpException;
+
+            expect(result.message).toBe('Namespace n-1 still has 2 project(s) attached');
         });
 
         it('maps SERVICE_NOT_DEPLOYABLE to a BadRequestException', () => {

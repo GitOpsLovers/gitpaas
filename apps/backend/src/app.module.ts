@@ -12,6 +12,7 @@ import { AuthenticationModule } from '@features/authentication/authentication.mo
 import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { LogsModule } from '@features/logs/logs.module';
+import { NamespacesModule } from '@features/namespaces/namespaces.module';
 import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ServerModule } from '@features/server/server.module';
@@ -44,6 +45,7 @@ import { UsersModule } from '@features/users/users.module';
         }),
         UsersModule,
         AuthenticationModule,
+        NamespacesModule,
         ProjectsModule,
         SourceControlModule,
         ServicesModule,
