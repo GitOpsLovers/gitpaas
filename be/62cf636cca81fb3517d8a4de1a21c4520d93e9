@@ -1,0 +1,45 @@
+.claude/commands/opsx/apply.md
+  s_a8a676ef8114b0::t_388fc0dee61429 1-184
+.claude/commands/opsx/archive.md
+  s_a8a676ef8114b0::t_aba1743515c889 1-225
+.claude/commands/opsx/explore.md
+  s_a8a676ef8114b0::t_994ecf1ef7fe25 1-193
+.claude/commands/opsx/propose.md
+  s_a8a676ef8114b0::t_e7b35d49d3ab85 1-145
+.claude/commands/opsx/sync.md
+  s_a8a676ef8114b0::t_35d1e786377451 1-258
+.claude/commands/opsx/update.md
+  s_a8a676ef8114b0::t_ac84676d7421dd 1-87
+.claude/skills/openspec-apply-change/SKILL.md
+  s_a8a676ef8114b0::t_30fc6efdbf0cba 1-188
+.claude/skills/openspec-archive-change/SKILL.md
+  s_a8a676ef8114b0::t_0b0f08e2cdac03 1-182
+.claude/skills/openspec-explore/SKILL.md
+  s_a8a676ef8114b0::t_c88be42a4d7812 1-308
+.claude/skills/openspec-propose/SKILL.md
+  s_a8a676ef8114b0::t_e2b5c6abc8dcd4 1-149
+.claude/skills/openspec-sync-specs/SKILL.md
+  s_a8a676ef8114b0::t_57b72c9f41cdb5 1-262
+.claude/skills/openspec-update-change/SKILL.md
+  s_a8a676ef8114b0::t_9d54d34a0f7a5d 1-91
+openspec/config.yaml
+  s_a8a676ef8114b0::t_d74771494f4e56 1-32
+docs/roadmap/openspec-adoption-plan-todo.md
+  s_a8a676ef8114b0::t_a6e9452cfb0a2f 35-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "be62cf636cca81fb3517d8a4de1a21c4520d93e9",
+  "prompts": {},
+  "sessions": {
+    "s_a8a676ef8114b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f431e3e8-735a-49c5-9790-4347b5892149",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
