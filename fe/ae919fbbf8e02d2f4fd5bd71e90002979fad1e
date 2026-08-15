@@ -1,0 +1,51 @@
+apps/backend/src/app.module.ts
+  s_f73ce5a77538ca::t_4bacf96f5fbe53 18,52
+apps/backend/src/core/domain/models/telemetry.models.ts
+  s_f73ce5a77538ca::t_851786f28c9ffb 79
+apps/backend/src/features/authentication/ui/decorators/roles.decorator.ts
+  s_f73ce5a77538ca::t_d1295284923fc0 1-20
+apps/backend/src/features/authentication/ui/guards/roles.guard.ts
+  s_f73ce5a77538ca::t_32f5fc44700ea3 1-46
+apps/backend/src/features/providers/domain/models/provider.models.ts
+  s_f73ce5a77538ca::t_e928c8962e3e1d 25-33
+apps/backend/src/features/providers/providers.module.ts
+  s_f73ce5a77538ca::t_48e9a3ab7a4a49 1-26
+apps/backend/src/features/providers/ui/controllers/providers.controller.ts
+  s_f73ce5a77538ca::t_d49ac274f7c1e8 1-14,16-20,24-28,31-37,39-77,80-157,161-164,166,173,175,180-185,188
+apps/backend/src/features/providers/ui/services/providers.service.ts
+  s_f73ce5a77538ca::t_5b5d25e36aba11 3-23,26,29,31-34,40-113,117-120,124,126,131-134
+apps/backend/src/features/source-control/source-control.module.ts
+  s_f73ce5a77538ca::t_87c6594cd45b03 7-9,12
+apps/backend/src/features/authentication/ui/decorators/__tests__/roles.decorator.spec.ts
+  s_d71e45b4b34e32::t_ca7d0ee6444578 1-76
+apps/backend/src/features/authentication/ui/guards/__tests__/roles.guard.spec.ts
+  s_d71e45b4b34e32::t_b6876fd4ce55c8 1-25,27-33,35-40,42-43,46-48,50,52-57,59-60,62,64-65,67-68,70,72-73,75-77,79-81,84-87,89-90,92-93,95,97-98,100-101,103-104,106-107,109-112,114-115,117
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  s_d71e45b4b34e32::t_504752dffba4f3 1,4-5,7-13,16-34,36,39,42-58,63-69,75-76,79,82,84,86,88-89,92-93,95,97,100-101,103,108-337,339,341,343-347,349,351-352,355-358,360,363-366,368,371-372,374-381,386-387,389,391-392,396,398,400,403-404,406,411-413,415,417,419-421,423-427,430-433,435-468,473-522,525,530
+openspec/changes/source-control-providers/tasks.md
+  s_d71e45b4b34e32::t_fd20c4f52222f5 41-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "feae919fbbf8e02d2f4fd5bd71e90002979fad1e",
+  "prompts": {},
+  "sessions": {
+    "s_d71e45b4b34e32": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af514910a214de348",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f73ce5a77538ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a38ae1b7-da13-4563-ae08-13f317466293",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
