@@ -1,0 +1,95 @@
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_6ea82c7a0555ad::t_05ec0e0e177e6e 120-128
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_6ea82c7a0555ad::t_a6dc1124dcc0d5 127-140
+apps/backend/src/features/deployments/application/create-deployment.use-case.ts
+  s_6ea82c7a0555ad::t_93c9a698bf3c49 79
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_6ea82c7a0555ad::t_6dcef20a8b2260 1,25,41-44
+apps/backend/src/features/deployments/domain/errors/__tests__/deployment.errors.spec.ts
+  s_6ea82c7a0555ad::t_2ffa77807086be 24
+apps/backend/src/features/deployments/domain/errors/deployment.errors.ts
+  s_6ea82c7a0555ad::t_5c835fc8c8aa25 8-12
+apps/backend/src/features/deployments/ui/controllers/__tests__/deployments.controller.spec.ts
+  s_6ea82c7a0555ad::t_db3228b62f5893 165
+apps/backend/src/features/services/domain/dtos/__tests__/create-service.dto.spec.ts
+  s_6ea82c7a0555ad::t_9211f8304a4782 46,49
+apps/backend/src/features/services/domain/dtos/create-service.dto.ts
+  s_6ea82c7a0555ad::t_e9de31da7478d6 1,15,17
+apps/backend/src/features/services/domain/models/service.models.ts
+  s_6ea82c7a0555ad::t_1652214f49ac05 8
+apps/backend/src/features/services/infrastructure/database/db-service.entity.ts
+  s_6ea82c7a0555ad::t_30c1ec46e764b3 20-21
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_6ea82c7a0555ad::t_48597f8252c210 61
+apps/frontend/src/app/features/services/domain/dtos/create-service.dto.ts
+  s_6ea82c7a0555ad::t_5edc8c0a25559a 7
+apps/frontend/src/app/features/services/domain/dtos/update-service.dto.ts
+  s_6ea82c7a0555ad::t_767986c4c9b5c3 6
+apps/frontend/src/app/features/services/domain/models/service.model.ts
+  s_6ea82c7a0555ad::t_9777a79209a95a 8
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.html
+  s_6ea82c7a0555ad::t_cb8feb535bb071 3,5-15,17-34,36-51,53-73,75-79
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.spec.ts
+  s_6ea82c7a0555ad::t_f3f001a86e3364 1-357
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts
+  s_6ea82c7a0555ad::t_352c7681371c84 2,15,25,29,32,40-41,49-54,56,61-64,66-78,96,103-109
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_6ea82c7a0555ad::t_20537c2dbcd968 218,228,231,241-246,253-259,265-270,274
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_6ea82c7a0555ad::t_2052d99395bb4c 136
+apps/frontend/src/app/features/source-control/infrastructure/api/source-control-api.repository.ts
+  s_6ea82c7a0555ad::t_076a6bc75cba86 29-33,35-41,102,104,109,111,114
+iac/production/migrations/011_services_provider.sql
+  s_6ea82c7a0555ad::t_fe11b7ab7c286f 3-8,10-12
+openspec/changes/source-control-providers/design.md
+  s_6ea82c7a0555ad::t_d5a202571aa854 65-70,72-77,138-141
+openspec/changes/source-control-providers/specs/deployments/spec.md
+  s_6ea82c7a0555ad::t_5501a259fe0158 14-15,35-36
+openspec/changes/source-control-providers/specs/services/spec.md
+  s_6ea82c7a0555ad::t_0c1f78483e3a73 9-12,24-27,35-40,55-56
+apps/backend/src/features/services/application/__tests__/create-service.use-case.spec.ts
+  s_ef87669436556b::t_853fdc65324ce1 49-62
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_ef87669436556b::t_005d11d01daa9e 9,139-162
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.transformer.spec.ts
+  s_ef87669436556b::t_08e8e4bad6bf80 51-77
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_ef87669436556b::t_58e86d4b5801bb 12,154-171
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_ef87669436556b::t_e0ae8de219c9c6 171-181
+openspec/changes/source-control-providers/tasks.md
+  s_14414557275564::t_a9a279857786d4 68,72,74-75,93-100,139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3af9c26b75298677dfac43fb757d7f6b4f3acd7d",
+  "prompts": {},
+  "sessions": {
+    "s_14414557275564": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a92ae35ffe62e9c95",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_6ea82c7a0555ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c9af3927-fca9-4f33-987e-1673beb0f212",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ef87669436556b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a30dda8a3e92fd8a2",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
