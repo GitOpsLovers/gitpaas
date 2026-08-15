@@ -1,4 +1,4 @@
-# web-shell Specification
+# frontend-shell Specification
 
 ## Purpose
 
@@ -66,7 +66,7 @@ The system SHALL close the menu when the user chooses a point outside it, and wh
 #### Scenario: The user signs out
 
 - **WHEN** the user chooses the action to sign out
-- **THEN** the system closes the menu, and it ends the session. See the capability `web-session`
+- **THEN** the system closes the menu, and it ends the session. See the capability `auth`
 
 ### Requirement: The choice of the theme
 

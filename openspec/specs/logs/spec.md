@@ -175,3 +175,52 @@ The removal of a deployment and the removal of a service both purge the output. 
 - **WHEN** a caller purges the output of one deployment
 - **THEN** the system removes the entries of the hot store, the lease of the producer and the archived rows
   of that deployment
+
+### Requirement: The window of the output of a deployment
+
+When the user views a deployment, the system SHALL open a window that streams the output of that
+deployment.
+
+The window SHALL open the stream only while it is open and a deployment is chosen. It SHALL close the
+stream when the user closes the window.
+
+The window holds a mark of the status. The mark says `running` until the terminal event arrives, and then
+it says `success` or `failed`.
+
+The window SHALL keep the view at the last line as the output arrives. The window gives an action that
+copies the full output.
+
+#### Scenario: The user opens the output
+
+- **WHEN** the user views a deployment
+- **THEN** the system opens the window, it clears the old lines, and it streams the output from the first
+  line
+
+#### Scenario: The terminal event arrives
+
+- **WHEN** the stream sends the terminal event
+- **THEN** the mark of the status shows `success` or `failed`, and the stream ends
+
+#### Scenario: The user closes the window
+
+- **WHEN** the user closes the window
+- **THEN** the system ends the stream
+
+#### Scenario: The copy fails
+
+- **WHEN** the browser refuses the access to the clipboard
+- **THEN** the system shows no message of failure, and the window continues to work
+
+### Requirement: The tab "Logs" holds no true output
+
+The tab `logs` SHALL show a fixed set of eight lines of an example. It reads no data of the API.
+
+The output of a run lives in the window of the tab `deployments`. This tab is the rest of a first design of
+the theme.
+
+This requirement records the state of today. A later change must replace it.
+
+#### Scenario: The user opens the tab of the logs
+
+- **WHEN** the user opens the tab `logs`
+- **THEN** the system shows the same eight lines of the example for every service, and it calls no endpoint

@@ -74,3 +74,14 @@ the operator to verify that the server runs and that it is reachable.
 
 - **WHEN** the read of the containers fails because the daemon is not reachable
 - **THEN** the system answers `503 Service Unavailable` with that message
+
+### Requirement: The tab "Containers"
+
+The tab `containers` SHALL show the containers of the service.
+
+The tab shows its own state of the reading.
+
+#### Scenario: The user opens the tab of the containers
+
+- **WHEN** the user opens the tab `containers`
+- **THEN** the system shows the containers of the service, or the state of the reading

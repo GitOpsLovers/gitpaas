@@ -5,7 +5,7 @@ screen shows either. An operator who opens `/server` sees the four actions of th
 about the server itself. When a removal then fails with "Could not reach the server Docker daemon", the
 operator learns of the failure only after the attempt.
 
-The capability `web-server` records this gap today, in a requirement written as the state of today. This
+The capability `server` records this gap today, in a requirement written as the state of today. This
 change closes it.
 
 ## What Changes
@@ -26,11 +26,11 @@ No endpoint changes. No behavior of the backend changes.
 
 ### New Capabilities
 
-None. The screen `/server` belongs to the capability `web-server`, which already exists.
+None. The screen `/server` belongs to the capability `server`, which already exists.
 
 ### Modified Capabilities
 
-- `web-server`: the requirement *The screen shows no state of the server* goes away, and the requirements of
+- `server`: the requirement *The screen shows no state of the server* goes away, and the requirements of
   the panel of the health replace it.
 
 ## Impact

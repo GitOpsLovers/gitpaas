@@ -64,3 +64,14 @@ the operator to verify that the server runs and that it is reachable.
 
 - **WHEN** the read of the networks fails because the daemon is not reachable
 - **THEN** the system answers `503 Service Unavailable` with that message
+
+### Requirement: The tab "Network"
+
+The tab `network` SHALL show the networks of the service.
+
+The tab shows its own state of the reading.
+
+#### Scenario: The user opens the tab of the networks
+
+- **WHEN** the user opens the tab `network`
+- **THEN** the system shows the networks of the service, or the state of the reading

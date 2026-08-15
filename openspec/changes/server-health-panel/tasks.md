@@ -27,6 +27,6 @@
 
 ## 5. The specifications of the tests
 
-- [x] 5.1 Cover the two pure functions of the group 2, one test per scenario of the delta of `web-server`: every dependency up, one dependency down, the answer `503` with a body, the call that fails with no body, the daemon that answers and the daemon that does not.
+- [x] 5.1 Cover the two pure functions of the group 2, one test per scenario of the delta of `server`: every dependency up, one dependency down, the answer `503` with a body, the call that fails with no body, the daemon that answers and the daemon that does not.
 - [x] 5.2 Cover the panel: the aggregate mark, the line of each dependency, the state of the reading and the message of the failed reading.
 - [x] 5.3 Run the suite of the frontend with the command of `package.json`, headless, and never with Playwright.

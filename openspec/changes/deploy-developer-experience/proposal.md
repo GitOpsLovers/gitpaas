@@ -27,9 +27,10 @@ Deploying with GitPaaS takes more steps than it should, in three places:
 
 ### Modified Capabilities
 
-- `deployments`: a deployment records its origin, and an operation deploys a previous commit again.
-- `web-service-detail`: the history gives an action that deploys an entry again, and each entry shows its
-  origin.
+- `deployments`: a deployment records its origin, and an operation deploys a previous commit again. The
+  history gives an action that deploys an entry again, and each entry shows its origin.
+- `providers`: the tab of the provider shows the state of the webhook of the service, with the actions that
+  turn it on and off.
 
 ## Impact
 

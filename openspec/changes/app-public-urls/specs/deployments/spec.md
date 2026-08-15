@@ -40,3 +40,8 @@ the logs, and it SHALL call the completion of that port with the terminal status
 
 - **WHEN** the service holds no domain
 - **THEN** the run starts the stack with no routing, and the service answers on no public address
+
+#### Scenario: The provider went away
+
+- **WHEN** the runner cannot load the credentials of the provider of the service
+- **THEN** the run fails with a message that names the provider, and the deployment gets the status `failed`
