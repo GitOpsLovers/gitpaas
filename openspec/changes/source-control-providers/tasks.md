@@ -27,14 +27,14 @@
 
 ## 3. A source control that carries the credentials
 
-- [ ] 3.1 Add `credentials: ProviderCredentials` as the first parameter of the four methods of `apps/backend/src/features/source-control/domain/ports/source-control.port.ts`.
-- [ ] 3.2 Add `verifyCredentials(credentials): Promise<boolean>` to the same port.
-- [ ] 3.3 Replace the field `client` of `github-source-control.adapter.ts` with `private readonly clients = new Map<string, Octokit>()`.
-- [ ] 3.4 Rewrite `getClient` so it reads the map by the identifier of the provider, and builds a client only when the key is absent.
-- [ ] 3.5 Delete the dependency on `ConfigService` and the three calls of `config.get` from the adapter.
-- [ ] 3.6 Implement `verifyCredentials` with a request of `GET /app`.
-- [ ] 3.7 Reword `SourceControlNotConfiguredError` so it names the provider instead of the three environment variables.
-- [ ] 3.8 Update the specs of the adapter, to prove that two providers get two clients and that one provider uses its client again.
+- [x] 3.1 Add `credentials: ProviderCredentials` as the first parameter of the four methods of `apps/backend/src/features/source-control/domain/ports/source-control.port.ts`.
+- [x] 3.2 Add `verifyCredentials(credentials): Promise<boolean>` to the same port.
+- [x] 3.3 Replace the field `client` of `github-source-control.adapter.ts` with `private readonly clients = new Map<string, Octokit>()`.
+- [x] 3.4 Rewrite `getClient` so it reads the map by the identifier of the provider, and builds a client only when the key is absent.
+- [x] 3.5 Delete the dependency on `ConfigService` and the three calls of `config.get` from the adapter.
+- [x] 3.6 Implement `verifyCredentials` with a request of `GET /app`.
+- [x] 3.7 Reword `SourceControlNotConfiguredError` so it names the provider instead of the three environment variables.
+- [x] 3.8 Update the specs of the adapter, to prove that two providers get two clients and that one provider uses its client again.
 
 ## 4. The API of the providers
 

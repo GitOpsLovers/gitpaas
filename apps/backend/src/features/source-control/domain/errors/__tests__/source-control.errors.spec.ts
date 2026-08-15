@@ -9,26 +9,28 @@ import {
 import { DomainError } from '@core/domain/errors/domain.error';
 
 describe('SourceControlNotConfiguredError', () => {
+    const providerId = 'a3f1b2c4-0000-4000-8000-000000000001';
+
     it('is a DomainError', () => {
-        expect(new SourceControlNotConfiguredError()).toBeInstanceOf(DomainError);
+        expect(new SourceControlNotConfiguredError(providerId)).toBeInstanceOf(DomainError);
     });
 
     it('sets its name to SourceControlNotConfiguredError', () => {
-        expect(new SourceControlNotConfiguredError().name).toBe('SourceControlNotConfiguredError');
+        expect(new SourceControlNotConfiguredError(providerId).name).toBe('SourceControlNotConfiguredError');
     });
 
     it('carries the SOURCE_CONTROL_NOT_CONFIGURED code', () => {
-        expect(new SourceControlNotConfiguredError().code).toBe('SOURCE_CONTROL_NOT_CONFIGURED');
+        expect(new SourceControlNotConfiguredError(providerId).code).toBe('SOURCE_CONTROL_NOT_CONFIGURED');
     });
 
-    it('names the environment variables the operator must set', () => {
-        expect(new SourceControlNotConfiguredError().message).toContain('GITHUB_APP_ID');
+    it('names the provider the operator must correct', () => {
+        expect(new SourceControlNotConfiguredError(providerId).message).toContain(providerId);
     });
 
     it('chains the original error through the cause option', () => {
-        const original = new Error('config read failed');
+        const original = new Error('credentials read failed');
 
-        expect(new SourceControlNotConfiguredError({ cause: original }).cause).toBe(original);
+        expect(new SourceControlNotConfiguredError(providerId, { cause: original }).cause).toBe(original);
     });
 });
 
