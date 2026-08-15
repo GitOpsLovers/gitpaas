@@ -16,6 +16,8 @@ import {
 import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
 import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
 import { ProviderNotFoundError } from '../../domain/errors/provider.errors';
+import { GitBranch } from '../../domain/models/git-branch.models';
+import { GitRepository } from '../../domain/models/git-repository.models';
 import { Provider, ProviderConnectionTest } from '../../domain/models/provider.models';
 import { ProvidersService } from '../services/providers.service';
 
@@ -23,12 +25,10 @@ import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.contex
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Roles } from '@features/authentication/ui/decorators/roles.decorator';
 import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
-import { GitBranch } from '@features/source-control/domain/models/git-branch.models';
-import { GitRepository } from '@features/source-control/domain/models/git-repository.models';
 import { UserRole } from '@features/users/domain/models/user.models';
 
 /**
- * REST controller for the providers resource (`/api/v1/providers`).
+ * REST controller for the source control resource (`/api/v1/source-control`).
  *
  * The read routes stay open to each authenticated user, because the form of a
  * service must offer the list. Only an administrator writes a provider.
@@ -36,7 +36,7 @@ import { UserRole } from '@features/users/domain/models/user.models';
  * No answer of this controller carries a private key: the read model gives the
  * fingerprint of the key instead.
  */
-@Controller('providers')
+@Controller('source-control')
 @UseGuards(RolesGuard)
 export class ProvidersController {
     constructor(private readonly service: ProvidersService) {}

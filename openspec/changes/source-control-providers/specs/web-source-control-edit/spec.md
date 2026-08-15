@@ -1,7 +1,7 @@
 ## Purpose
 
 This capability gives the screen that changes a provider of the source control, at the route
-`/providers/edit/:id`.
+`/source-control/edit/:id`.
 
 ## ADDED Requirements
 
@@ -37,7 +37,7 @@ user gives a key, the system SHALL send it, and the API replaces the stored one.
 ### Requirement: The end of the change
 
 If the API accepts the change, the system SHALL show a message of success that names the provider, and it
-SHALL open the list at `/providers`.
+SHALL open the list at `/source-control`.
 
 If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
 same screen.
@@ -45,7 +45,7 @@ same screen.
 #### Scenario: The change succeeds
 
 - **WHEN** the API answers with the changed provider
-- **THEN** the system shows the message "Provider updated" with the name, and it opens `/providers`
+- **THEN** the system shows the message "Provider updated" with the name, and it opens `/source-control`
 
 #### Scenario: The change fails
 

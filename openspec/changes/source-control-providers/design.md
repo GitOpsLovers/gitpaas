@@ -33,10 +33,15 @@ capability `web-service-detail` records the behavior of that tab.
 
 ## Decisions
 
-**1. A provider is a record, and not a file of the configuration.**
-A new backend feature `providers` owns it, with the same division `domain` / `application` /
-`infrastructure` / `ui` that `namespaces` uses. A record can be created, changed and removed from the
-browser. A file cannot.
+**1. A provider is a record of the feature `source-control`, and not a file of the configuration.**
+A record can be created, changed and removed from the browser. A file cannot. The feature
+`source-control` owns that record, with the same division `domain` / `application` / `infrastructure` /
+`ui` that `namespaces` uses. One feature therefore owns the credentials, the port and the adapter.
+
+**Alternative that the change does not take:** a second feature `providers` beside `source-control`. The
+first commits of this change built it, and this design removes it. Two features for one idea split the port
+from the credentials that the port needs, they give the operator two names for one thing, and they force
+`source-control` to import the repository of another feature for every call.
 
 **2. The private key is encrypted at rest, with AES-256-GCM.**
 A new helper of `core` encrypts it under one new variable, `PROVIDERS_ENCRYPTION_KEY` (32 random bytes,
@@ -68,16 +73,21 @@ account that this change removes.
 The column holds `github_app` today. GitLab becomes a new value and a new adapter, with no change of the
 schema.
 
-**7. The routes of the repositories move under the provider.**
-`GET /providers/:providerId/repositories` replaces `GET /source-control/repositories`. A repository
-identifier is global at GitHub, but the access to it is not. The path must therefore name the account. The
-old routes go away, because no released client depends on them.
+**7. Every route of the capability shares the prefix `/source-control`.**
+The controller answers `/source-control` for the records, and
+`GET /source-control/:providerId/repositories` for the repositories of one record. A repository identifier
+is global at GitHub, but the access to it is not. The path must therefore name the account. The old route
+`GET /source-control/repositories` goes away, because no released client depends on it.
+
+The name of the table stays `providers`, the variable stays `PROVIDERS_ENCRYPTION_KEY`, and the codes of the
+errors stay `PROVIDER_*`. The word "provider" names one record, and the word "source control" names the
+capability. Thus migration 010, which the repository already holds, needs no change.
 
 **8. The guard of the role enters with this change, and it covers the providers only.**
 The management of a provider is an action of an administrator. The project holds the role and the enum
 `UserRole` today, and no guard reads them. The change adds `@Roles(...)` and a `RolesGuard`, and it applies
-them to the write routes of the providers controller. Every other endpoint keeps the rule of today. This
-keeps the change of the behavior small and visible.
+them to the write routes of the records of `source-control`. Every other endpoint keeps the rule of today.
+This keeps the change of the behavior small and visible.
 
 ## Risks / Trade-offs
 
@@ -99,6 +109,11 @@ must state the sequence.
 **5. A larger signature of the port.** Every method of `SourceControl` takes one more parameter. The change
 is mechanical, and the compiler finds each place that calls it.
 
-**6. The guard of the role changes an assumption.** Today each authenticated user can do each action, and
+**6. The merge touches code that three commits already delivered.** The feature `providers` exists in the
+repository, and the move carries every file of it into `source-control`. The move keeps the name of each
+file, so the compiler names each caller that must change. The tests move with their subjects, and the suite
+proves the result.
+
+**7. The guard of the role changes an assumption.** Today each authenticated user can do each action, and
 the documentation says so. After this change that sentence has one exception. A user with the role `user`
 meets a refusal for the first time.

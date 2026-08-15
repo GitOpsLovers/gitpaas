@@ -9,13 +9,13 @@ import {
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
+import { ProviderCredentials } from '../../domain/models/provider.models';
 import { SourceControl } from '../../domain/ports/source-control.port';
 
 import { toGitBranch, toGitCommit, toGitRepository, toSourceControlError } from './github-source-control.transformer';
 
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 
 /**
  * GitHub source control adapter.

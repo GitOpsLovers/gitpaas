@@ -14,22 +14,26 @@ After this change, GitPaaS holds no GitHub credential in its environment.
 
 ## What Changes
 
-An operator opens a **Providers** section in the frontend, and registers one or more GitHub Apps. Each
+An operator opens a **Source Control** section in the frontend, and registers one or more GitHub Apps. Each
 provider is a record of the database, with its private key encrypted at rest. When the operator configures
 a service, a select field offers the registered providers. The chosen provider gives the credentials that
 read the repository, list the branches, resolve the commit and download the archive for every deployment of
 that service.
 
-- **New:** the capability `providers` — the record, the encryption, the API and the test of the connection.
+One capability owns the whole idea. The capability `source-control` holds the record, the encryption, the
+API, the port and the adapter. The change adds no second capability for the credentials.
+
 - **New:** three screens — the list of the providers, the creation and the change.
+- **Changed:** `source-control` grows the record of the provider, the encryption of the private key at rest,
+  the API that manages a provider, and the test of the credentials.
 - **Changed:** every operation of `source-control` takes the credentials as its first parameter, and the
   adapter keeps one client for each provider instead of one client for the installation.
 - **Changed:** a service points at exactly one provider, and the trigger of a deployment loads the
   credentials of that provider.
 - **Changed:** the two routes of the repositories move under the provider, because a repository has no
-  meaning without an account.
-- **Changed:** the write routes of the providers need the role `admin`. The role exists today but no guard
-  reads it.
+  meaning without an account. Every route of the capability shares the prefix `/source-control`.
+- **Changed:** the write routes of the provider records need the role `admin`. The role exists today but no
+  guard reads it.
 - **Removed:** the three variables `GITHUB_APP_*`. One new variable, `PROVIDERS_ENCRYPTION_KEY`, replaces
   them.
 
@@ -37,17 +41,17 @@ that service.
 
 ### New Capabilities
 
-- `providers`: the provider record, the encryption of the private key at rest, the API that manages a
-  provider, and the test of the credentials against the source control.
-- `web-providers-list`: the screen that lists the providers, at `/providers`.
-- `web-provider-add`: the screen that registers a provider, at `/providers/add`.
-- `web-provider-edit`: the screen that changes a provider, at `/providers/edit/:id`.
+- `web-source-control-list`: the screen that lists the providers, at `/source-control`.
+- `web-source-control-add`: the screen that registers a provider, at `/source-control/add`.
+- `web-source-control-edit`: the screen that changes a provider, at `/source-control/edit/:id`.
 
 ### Modified Capabilities
 
-- `source-control`: every operation takes the credentials of a provider. The adapter keeps one client for
-  each provider. The two routes of the repositories move under the provider. The error of the configuration
-  names the provider instead of the three environment variables.
+- `source-control`: the capability grows the provider record, the encryption of the private key at rest, the
+  API that manages a provider, and the test of the credentials. Every operation takes the credentials of a
+  provider. The adapter keeps one client for each provider. The two routes of the repositories move under
+  the provider. The error of the configuration names the provider instead of the three environment
+  variables.
 - `services`: a service holds the identifier of its provider. The field is obligatory at the creation.
 - `deployments`: the trigger loads the credentials of the provider of the service, and it refuses a
   deployment whose provider cannot reach the stored repository.
@@ -57,17 +61,20 @@ that service.
 
 ## Impact
 
-**The backend.** A new feature `apps/backend/src/features/providers/`. A new helper
+**The backend.** The feature `apps/backend/src/features/source-control/` grows the four layers of the
+record: `domain`, `application`, `infrastructure/database` and `ui`. The feature
+`apps/backend/src/features/providers/`, which the first commits of this change created, goes away, and its
+files move into `source-control`. A new helper
 `apps/backend/src/core/infrastructure/crypto/secret-cipher.ts`. A new decorator and a new guard of the role
-under `apps/backend/src/features/authentication/ui/`. The controller and the service of `source-control`
-go away, because their routes move onto the provider. The two services of the deployments gain a
-dependency.
+under `apps/backend/src/features/authentication/ui/`. The old controller and the old service of
+`source-control` go away, because their routes move under the provider. The two services of the deployments
+gain a dependency.
 
 **The database.** Two migrations: `010_providers.sql` adds the table, and `011_services_provider.sql` adds
 the column `providerId` to the table `services`, with `ON DELETE RESTRICT`.
 
-**The frontend.** A new feature `apps/frontend/src/app/features/providers/`, three pages, three routes and
-one entry of the sidebar.
+**The frontend.** The feature `apps/frontend/src/app/features/source-control/` grows the record, three
+pages, three routes under `/source-control` and one entry "Source Control" of the sidebar.
 
 **The environment.** `PROVIDERS_ENCRYPTION_KEY` enters. The three `GITHUB_APP_*` variables go away, in
 `env-validation.config.ts`, in `iac/production/.env.example` and in `scripts/install.sh`.

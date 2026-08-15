@@ -1,7 +1,7 @@
 ## Purpose
 
 This capability gives the screen that registers a provider of the source control, at the route
-`/providers/add`.
+`/source-control/add`.
 
 ## ADDED Requirements
 
@@ -21,7 +21,7 @@ today.
 
 #### Scenario: The user opens the screen
 
-- **WHEN** a signed-in user opens `/providers/add`
+- **WHEN** a signed-in user opens `/source-control/add`
 - **THEN** the system shows the four empty controls
 
 ### Requirement: The check before the call
@@ -38,7 +38,7 @@ If one obligatory field is empty after that, the system SHALL do nothing. It sen
 ### Requirement: The end of the registration
 
 If the API accepts the provider, the system SHALL show a message of success that names it, and it SHALL open
-the list at `/providers`.
+the list at `/source-control`.
 
 If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
 same screen. The form SHALL keep the values that the user gave, including the PEM.
@@ -46,7 +46,7 @@ same screen. The form SHALL keep the values that the user gave, including the PE
 #### Scenario: The registration succeeds
 
 - **WHEN** the API answers with the new provider
-- **THEN** the system shows the message "Provider created" with the name, and it opens `/providers`
+- **THEN** the system shows the message "Provider created" with the name, and it opens `/source-control`
 
 #### Scenario: The name is already in use
 

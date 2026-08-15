@@ -1,8 +1,7 @@
 import { GitBranch } from '../../domain/models/git-branch.models';
+import { ProviderCredentials } from '../../domain/models/provider.models';
 import { SourceControl } from '../../domain/ports/source-control.port';
 import { listBranchesUseCase } from '../list-branches.use-case';
-
-import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 
 describe('listBranchesUseCase', () => {
     const repositoryId = 42;

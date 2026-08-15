@@ -5,22 +5,22 @@ import { deleteProviderUseCase } from '../../application/delete-provider.use-cas
 import { findProviderByIdUseCase } from '../../application/find-provider-by-id.use-case';
 import { getAllProvidersUseCase } from '../../application/get-all-providers.use-case';
 import { getProviderCredentialsUseCase } from '../../application/get-provider-credentials.use-case';
+import { listBranchesUseCase } from '../../application/list-branches.use-case';
+import { listRepositoriesUseCase } from '../../application/list-repositories.use-case';
 import { updateProviderUseCase } from '../../application/update-provider.use-case';
 import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
 import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
+import { GitBranch } from '../../domain/models/git-branch.models';
+import { GitRepository } from '../../domain/models/git-repository.models';
 import { Provider, ProviderConnectionTest } from '../../domain/models/provider.models';
+import type { SourceControl } from '../../domain/ports/source-control.port';
 import type { ProvidersRepository } from '../../domain/repositories/providers.repository';
 import { DatabaseProvidersRepository } from '../../infrastructure/database/db-providers.repository';
+import { GithubSourceControlAdapter } from '../../infrastructure/github/github-source-control.adapter';
 
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { listBranchesUseCase } from '@features/source-control/application/list-branches.use-case';
-import { listRepositoriesUseCase } from '@features/source-control/application/list-repositories.use-case';
-import { GitBranch } from '@features/source-control/domain/models/git-branch.models';
-import { GitRepository } from '@features/source-control/domain/models/git-repository.models';
-import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
-import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 /**
  * Providers service

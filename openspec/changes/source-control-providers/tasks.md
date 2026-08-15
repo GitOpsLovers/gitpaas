@@ -49,48 +49,60 @@
 - [x] 4.9 Delete the controller and the service of `apps/backend/src/features/source-control/ui/`, and remove them from `source-control.module.ts`.
 - [x] 4.10 Create the spec of the controller, with an assertion that no body of an answer carries a private key.
 
-## 5. The binding of a service to a provider
+## 5. The merge of the two features
 
-- [ ] 5.1 Add the column `providerId` and the relation `ManyToOne` to `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`.
-- [ ] 5.2 Add `providerId` to the domain model of the service and to its transformer.
-- [ ] 5.3 Add `providerId` with `@IsUUID()` to the data transfer object of the creation, and as optional in the one of the change.
-- [ ] 5.4 Inject the repository of the providers into `deployments.service.ts`, and pass the loaded credentials to each call of `SourceControl`.
-- [ ] 5.5 Do the same in `deployment-runner.service.ts`.
-- [ ] 5.6 Refuse a deployment whose provider cannot reach the stored repository, with a message that names the two.
-- [ ] 5.7 Create `iac/production/migrations/011_services_provider.sql`: add the column that can be empty, fill it from the single provider, set it to `NOT NULL`, then add `FK_services_providerId` with `ON DELETE RESTRICT`.
-- [ ] 5.8 Update the specs of the two services of the deployments for the new dependency.
+The sections 2 and 4 built the feature `apps/backend/src/features/providers/`. The plan now gives the whole
+management to `source-control`, so that feature moves and goes away.
 
-## 6. The Providers section of the frontend
+- [x] 5.1 Move `domain/`, `application/`, `infrastructure/database/` and `ui/` of `apps/backend/src/features/providers/` into `apps/backend/src/features/source-control/`, and keep the name of each file.
+- [x] 5.2 Move the specs of the use cases, of the repository, of the transformer and of the controller together with their subjects.
+- [x] 5.3 Merge `providers.module.ts` into `apps/backend/src/features/source-control/source-control.module.ts`, and delete the folder `apps/backend/src/features/providers/`.
+- [x] 5.4 Delete `ProvidersModule` from `apps/backend/src/app.module.ts`.
+- [x] 5.5 Change the base path of the controller of the records from `providers` to `source-control`, so the routes read `/api/v1/source-control`, `/api/v1/source-control/:id/test` and `/api/v1/source-control/:providerId/repositories`.
+- [x] 5.6 Verify that a search for `features/providers` in `apps/backend/` gives nothing.
 
-- [ ] 6.1 Create the model and the two data transfer objects under `apps/frontend/src/app/features/providers/domain/`.
-- [ ] 6.2 Create `apps/frontend/src/app/features/providers/infrastructure/api/providers-api.repository.ts` with the list, the read, the creation, the change, the removal and the test.
-- [ ] 6.3 Create the component of the card with the name, the mark of the type, the identifier of the application, the fingerprint of the key and the state of the connection.
-- [ ] 6.4 Create the component of the form with the name, the identifier of the application, the identifier of the installation and a field of several lines for the PEM.
-- [ ] 6.5 State in the help text of the field of the PEM that an empty value keeps the stored key on a change.
-- [ ] 6.6 Create the containers of the list, of the creation and of the change.
-- [ ] 6.7 Create the pages under `apps/frontend/src/app/pages/providers/{list,add,edit}/`.
-- [ ] 6.8 Add the three routes to `apps/frontend/src/app/app.routes.ts`, beside the block of the namespaces.
-- [ ] 6.9 Add the entry "Providers" to the sidebar, beside the entry of the namespaces.
-- [ ] 6.10 Apply the patterns of TailAdmin that the screens of the namespaces use.
-- [ ] 6.11 Create the specs of the containers and of the component of the form.
+## 6. The binding of a service to a provider
 
-## 7. The select of the provider in the tab "Provider"
+- [ ] 6.1 Add the column `providerId` and the relation `ManyToOne` to `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`.
+- [ ] 6.2 Add `providerId` to the domain model of the service and to its transformer.
+- [ ] 6.3 Add `providerId` with `@IsUUID()` to the data transfer object of the creation, and as optional in the one of the change.
+- [ ] 6.4 Inject the repository of the providers into `deployments.service.ts`, and pass the loaded credentials to each call of `SourceControl`.
+- [ ] 6.5 Do the same in `deployment-runner.service.ts`.
+- [ ] 6.6 Refuse a deployment whose provider cannot reach the stored repository, with a message that names the two.
+- [ ] 6.7 Create `iac/production/migrations/011_services_provider.sql`: add the column that can be empty, fill it from the single provider, set it to `NOT NULL`, then add `FK_services_providerId` with `ON DELETE RESTRICT`.
+- [ ] 6.8 Update the specs of the two services of the deployments for the new dependency.
 
-- [ ] 7.1 Add a select of the provider as the first field of `apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts`. **Note:** the plan of `docs/roadmap/` named `service-form` instead. That component holds only the name of the service.
-- [ ] 7.2 Load the options of the repository from `GET /providers/:providerId/repositories`, and keep the control blocked until a provider is chosen.
-- [ ] 7.3 Load the options of the branch from the route of the branches of the provider.
-- [ ] 7.4 Clear the control of the repository and the control of the branch when the provider changes.
-- [ ] 7.5 Show an empty state with a link to `/providers/add` when no provider exists.
-- [ ] 7.6 Point `source-control-api.repository.ts` at the routes of the provider, or fold it into `providers-api.repository.ts`.
-- [ ] 7.7 Add `providerId` to the data transfer objects of the service in the frontend.
-- [ ] 7.8 Update the spec of the component for the three selects in the chain.
+## 7. The Source Control section of the frontend
 
-## 8. The upgrade and the cleanup
+- [ ] 7.1 Create the model of the provider and the two data transfer objects under `apps/frontend/src/app/features/source-control/domain/`.
+- [ ] 7.2 Add the list, the read, the creation, the change, the removal and the test of a provider to `apps/frontend/src/app/features/source-control/infrastructure/api/source-control-api.repository.ts`.
+- [ ] 7.3 Create the component of the card with the name, the mark of the type, the identifier of the application, the fingerprint of the key and the state of the connection.
+- [ ] 7.4 Create the component of the form with the name, the identifier of the application, the identifier of the installation and a field of several lines for the PEM.
+- [ ] 7.5 State in the help text of the field of the PEM that an empty value keeps the stored key on a change.
+- [ ] 7.6 Create the containers of the list, of the creation and of the change.
+- [ ] 7.7 Create the pages under `apps/frontend/src/app/pages/source-control/{list,add,edit}/`.
+- [ ] 7.8 Add the three routes `/source-control`, `/source-control/add` and `/source-control/edit/:id` to `apps/frontend/src/app/app.routes.ts`, beside the block of the namespaces.
+- [ ] 7.9 Add the entry "Source Control" to the sidebar, beside the entry of the namespaces.
+- [ ] 7.10 Apply the patterns of TailAdmin that the screens of the namespaces use.
+- [ ] 7.11 Create the specs of the containers and of the component of the form.
 
-- [ ] 8.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
-- [ ] 8.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
-- [ ] 8.3 State in the release notes that an installation with services must create a provider before it applies migration 011.
-- [ ] 8.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
-- [ ] 8.5 Add the Providers section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
-- [ ] 8.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing.
-- [ ] 8.7 Verify that the whole suite of the tests passes.
+## 8. The select of the provider in the tab "Provider"
+
+- [ ] 8.1 Add a select of the provider as the first field of `apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts`. **Note:** the plan of `docs/roadmap/` named `service-form` instead. That component holds only the name of the service.
+- [ ] 8.2 Load the options of the repository from `GET /source-control/:providerId/repositories`, and keep the control blocked until a provider is chosen.
+- [ ] 8.3 Load the options of the branch from the route of the branches of the provider.
+- [ ] 8.4 Clear the control of the repository and the control of the branch when the provider changes.
+- [ ] 8.5 Show an empty state with a link to `/source-control/add` when no provider exists.
+- [ ] 8.6 Point the calls of the repositories and of the branches at the routes under `/source-control/:providerId`.
+- [ ] 8.7 Add `providerId` to the data transfer objects of the service in the frontend.
+- [ ] 8.8 Update the spec of the component for the three selects in the chain.
+
+## 9. The upgrade and the cleanup
+
+- [ ] 9.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
+- [ ] 9.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
+- [ ] 9.3 State in the release notes that an installation with services must create a provider before it applies migration 011.
+- [ ] 9.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
+- [ ] 9.5 Add the Source Control section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
+- [ ] 9.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing.
+- [ ] 9.7 Verify that the whole suite of the tests passes.
