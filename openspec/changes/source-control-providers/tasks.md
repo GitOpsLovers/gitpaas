@@ -74,17 +74,17 @@ management to `source-control`, so that feature moves and goes away.
 
 ## 7. The Source Control section of the frontend
 
-- [ ] 7.1 Create the model of the provider and the two data transfer objects under `apps/frontend/src/app/features/source-control/domain/`.
-- [ ] 7.2 Add the list, the read, the creation, the change, the removal and the test of a provider to `apps/frontend/src/app/features/source-control/infrastructure/api/source-control-api.repository.ts`.
-- [ ] 7.3 Create the component of the card with the name, the mark of the type, the identifier of the application, the fingerprint of the key and the state of the connection.
-- [ ] 7.4 Create the component of the form with the name, the identifier of the application, the identifier of the installation and a field of several lines for the PEM.
-- [ ] 7.5 State in the help text of the field of the PEM that an empty value keeps the stored key on a change.
-- [ ] 7.6 Create the containers of the list, of the creation and of the change.
-- [ ] 7.7 Create the pages under `apps/frontend/src/app/pages/source-control/{list,add,edit}/`.
-- [ ] 7.8 Add the three routes `/source-control`, `/source-control/add` and `/source-control/edit/:id` to `apps/frontend/src/app/app.routes.ts`, beside the block of the namespaces.
-- [ ] 7.9 Add the entry "Source Control" to the sidebar, beside the entry of the namespaces.
-- [ ] 7.10 Apply the patterns of TailAdmin that the screens of the namespaces use.
-- [ ] 7.11 Create the specs of the containers and of the component of the form.
+- [x] 7.1 Create the model of the provider and the two data transfer objects under `apps/frontend/src/app/features/source-control/domain/`.
+- [x] 7.2 Add the list, the read, the creation, the change, the removal and the test of a provider to `apps/frontend/src/app/features/source-control/infrastructure/api/source-control-api.repository.ts`.
+- [x] 7.3 Create the component of the card with the name, the mark of the type, the identifier of the application, the fingerprint of the key and the state of the connection.
+- [x] 7.4 Create the component of the form with the name, the identifier of the application, the identifier of the installation and a field of several lines for the PEM.
+- [x] 7.5 State in the help text of the field of the PEM that an empty value keeps the stored key on a change.
+- [x] 7.6 Create the containers of the list, of the creation and of the change.
+- [x] 7.7 Create the pages under `apps/frontend/src/app/pages/source-control/{list,add,edit}/`.
+- [x] 7.8 Add the three routes `/source-control`, `/source-control/add` and `/source-control/edit/:id` to `apps/frontend/src/app/app.routes.ts`, beside the block of the namespaces.
+- [x] 7.9 Add the entry "Source Control" to the sidebar, beside the entry of the namespaces.
+- [x] 7.10 Apply the patterns of TailAdmin that the screens of the namespaces use.
+- [x] 7.11 Create the specs of the containers and of the component of the form.
 
 ## 8. The select of the provider in the tab "Provider"
 
@@ -97,12 +97,45 @@ management to `source-control`, so that feature moves and goes away.
 - [ ] 8.7 Add `providerId` to the data transfer objects of the service in the frontend.
 - [ ] 8.8 Update the spec of the component for the three selects in the chain.
 
-## 9. The upgrade and the cleanup
+## 9. The single name
 
-- [ ] 9.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
-- [ ] 9.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
-- [ ] 9.3 State in the release notes that an installation with services must create a provider before it applies migration 011.
-- [ ] 9.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
-- [ ] 9.5 Add the Source Control section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
-- [ ] 9.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing.
-- [ ] 9.7 Verify that the whole suite of the tests passes.
+The sections 1 to 8 carry two words for one idea: "source control" and "provider". This section keeps the
+second word, and it deletes the first. The section runs after the section 8, so one pass covers every file.
+The word "provider" already names the table, the variable `PROVIDERS_ENCRYPTION_KEY` and the codes
+`PROVIDER_*`, so no migration changes.
+
+### The backend
+
+- [ ] 9.1 Rename the folder `apps/backend/src/features/source-control/` to `apps/backend/src/features/providers/`.
+- [ ] 9.2 Rename `source-control.module.ts` to `providers.module.ts`, rename the class `SourceControlModule` to `ProvidersModule`, and update `apps/backend/src/app.module.ts`.
+- [ ] 9.3 Rename `domain/ports/source-control.port.ts` to `domain/ports/provider-client.port.ts`, and the interface `SourceControl` to `ProviderClient`.
+- [ ] 9.4 Rename `infrastructure/github/github-source-control.adapter.ts` to `github-provider-client.adapter.ts`, and the class to `GithubProviderClientAdapter`.
+- [ ] 9.5 Rename `SourceControlNotConfiguredError` to `ProviderNotConfiguredError`, and its code to `PROVIDER_NOT_CONFIGURED`, in the errors and in `apps/backend/src/core/ui/translators/http-error.translator.ts`.
+- [ ] 9.6 Update the two services of the deployments, which inject the port, for the new name.
+- [ ] 9.7 Change the base path of the controller from `source-control` to `providers`, so the routes read `/api/v1/providers`, `/api/v1/providers/:id/test` and `/api/v1/providers/:providerId/repositories`.
+- [ ] 9.8 Rename the spec files that carry the old word, and update every path of an import and every route of a test.
+
+### The frontend
+
+- [ ] 9.9 Rename the folder `apps/frontend/src/app/features/source-control/` to `apps/frontend/src/app/features/providers/`, and rename `source-control-api.repository.ts` to `providers-api.repository.ts` with the class `ProvidersApiRepository`.
+- [ ] 9.10 Rename the folder `apps/frontend/src/app/pages/source-control/` to `apps/frontend/src/app/pages/providers/`, and rename the three page classes to `ProvidersListPage`, `ProvidersAddPage` and `ProvidersEditPage`.
+- [ ] 9.11 Change the three routes of `apps/frontend/src/app/app.routes.ts` to `/providers`, `/providers/add` and `/providers/edit/:id`.
+- [ ] 9.12 Change the entry of the sidebar to the label "Providers", and change its link to `/providers`.
+- [ ] 9.13 Point every call of the frontend at `/providers`, including the two routes of the repositories and of the branches that the task 8.6 set.
+- [ ] 9.14 Update every link of a template and of a test that names `/source-control`, including the link of the empty state and the two navigations after a submit.
+
+### The verification
+
+- [ ] 9.15 Rename the capability `openspec/specs/source-control/` to `openspec/specs/providers/`, and the three folders `web-source-control-*` to `web-providers-*`. **Note:** run this task after `/opsx:sync`, and not before.
+- [ ] 9.16 Verify that a search for `source-control`, `sourceControl`, `SourceControl` and `Source Control` in `apps/backend/src/`, `apps/frontend/src/`, `docs/` and `openspec/specs/` gives nothing.
+- [ ] 9.17 Verify that the build of the backend, the build of the frontend and the whole suite of the tests pass.
+
+## 10. The upgrade and the cleanup
+
+- [ ] 10.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
+- [ ] 10.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
+- [ ] 10.3 State in the release notes that an installation with services must create a provider before it applies migration 011.
+- [ ] 10.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
+- [ ] 10.5 Add the Providers section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
+- [ ] 10.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing.
+- [ ] 10.7 Verify that the whole suite of the tests passes.

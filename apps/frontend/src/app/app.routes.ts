@@ -31,6 +31,26 @@ export const routes: Routes = [
                 title: 'Server | GitPaaS',
             },
             {
+                path: 'source-control',
+                children: [
+                    {
+                        path: '',
+                        loadComponent: () => import('@pages/source-control/list/providers-list.component').then((m) => m.SourceControlListPage),
+                        title: 'Source Control | GitPaaS',
+                    },
+                    {
+                        path: 'add',
+                        loadComponent: () => import('@pages/source-control/add/provider-add.component').then((m) => m.SourceControlAddPage),
+                        title: 'Add provider | GitPaaS',
+                    },
+                    {
+                        path: 'edit/:id',
+                        loadComponent: () => import('@pages/source-control/edit/provider-edit.component').then((m) => m.SourceControlEditPage),
+                        title: 'Edit provider | GitPaaS',
+                    },
+                ],
+            },
+            {
                 path: 'namespaces',
                 children: [
                     {
