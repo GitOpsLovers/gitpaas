@@ -1,6 +1,6 @@
 import { CreateDeploymentDto } from '../../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { ServiceNotDeployableError } from '../../domain/errors/deployment.errors';
+import { ProviderRepositoryUnreachableError, ServiceNotDeployableError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
@@ -10,8 +10,11 @@ import { persistDeploymentUseCase } from '../persist-deployment.use-case';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { SourceControlResourceNotFoundError } from '@features/source-control/domain/errors/source-control.errors';
 import { GitCommit } from '@features/source-control/domain/models/git-commit.models';
+import { ProviderCredentials } from '@features/source-control/domain/models/provider.models';
 import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
+import { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
 
 jest.mock('../persist-deployment.use-case');
 
@@ -26,9 +29,17 @@ describe('createDeploymentUseCase', () => {
         id: triggerDto.serviceId,
         name: 'My Service',
         projectId: 'a1b2c3d4-0000-0000-0000-000000000000',
+        providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',
+    };
+
+    const credentials: ProviderCredentials = {
+        providerId: service.providerId,
+        appId: '1234',
+        installationId: '5678',
+        privateKey: '-----BEGIN RSA PRIVATE KEY-----',
     };
 
     const commit: GitCommit = {
@@ -61,6 +72,7 @@ describe('createDeploymentUseCase', () => {
 
     const mockDeploymentsRepository = {} as unknown as DeploymentsRepository;
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
+    let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCredentials'>>;
     let mockSourceControl: jest.Mocked<Pick<SourceControl, 'getCommit'>>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
 
@@ -68,6 +80,7 @@ describe('createDeploymentUseCase', () => {
         return createDeploymentUseCase(
             mockDeploymentsRepository,
             mockServicesRepository as unknown as ServicesRepository,
+            mockProvidersRepository as unknown as ProvidersRepository,
             mockSourceControl as unknown as SourceControl,
             mockQueue as unknown as DeploymentQueue,
             triggerDto,
@@ -78,6 +91,9 @@ describe('createDeploymentUseCase', () => {
         jest.clearAllMocks();
         mockServicesRepository = {
             findById: jest.fn(),
+        };
+        mockProvidersRepository = {
+            getCredentials: jest.fn().mockResolvedValue(credentials),
         };
         mockSourceControl = {
             getCommit: jest.fn(),
@@ -110,7 +126,41 @@ describe('createDeploymentUseCase', () => {
 
         await run();
 
-        expect(mockSourceControl.getCommit).toHaveBeenCalledWith(42, 'main');
+        expect(mockSourceControl.getCommit).toHaveBeenCalledWith(credentials, 42, 'main');
+    });
+
+    it('loads the credentials of the provider of the service', async () => {
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockSourceControl.getCommit.mockResolvedValue(commit);
+
+        await run();
+
+        expect(mockProvidersRepository.getCredentials).toHaveBeenCalledWith(service.providerId);
+    });
+
+    it('refuses the deployment when the provider cannot reach the stored repository', async () => {
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockSourceControl.getCommit.mockRejectedValue(new SourceControlResourceNotFoundError());
+
+        await expect(run()).rejects.toThrow(ProviderRepositoryUnreachableError);
+        expect(mockPersistDeploymentUseCase).not.toHaveBeenCalled();
+        expect(mockQueue.enqueue).not.toHaveBeenCalled();
+    });
+
+    it('names the provider and the repository in the refusal', async () => {
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockSourceControl.getCommit.mockRejectedValue(new SourceControlResourceNotFoundError());
+
+        await expect(run()).rejects.toThrow(`Provider ${service.providerId} cannot reach repository 42`);
+    });
+
+    it('surfaces any other failure of the source control unchanged', async () => {
+        const failure = new Error('boom');
+
+        mockServicesRepository.findById.mockResolvedValue(service);
+        mockSourceControl.getCommit.mockRejectedValue(failure);
+
+        await expect(run()).rejects.toBe(failure);
     });
 
     it('delegates persistence to persistDeploymentUseCase with the correctly-built DTO and returns its result', async () => {

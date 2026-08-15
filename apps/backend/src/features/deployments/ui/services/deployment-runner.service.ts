@@ -24,7 +24,11 @@ import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/std
 import { enrichTelemetry, getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
+import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
+import type { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
+import { DatabaseProvidersRepository } from '@features/source-control/infrastructure/database/db-providers.repository';
 import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 /**
@@ -46,6 +50,10 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     constructor(
         @Inject(DatabaseDeploymentsRepository)
         private readonly deploymentsRepository: DeploymentsRepository,
+        @Inject(DatabaseServicesRepository)
+        private readonly servicesRepository: ServicesRepository,
+        @Inject(DatabaseProvidersRepository)
+        private readonly providersRepository: ProvidersRepository,
         @Inject(GithubSourceControlAdapter)
         private readonly sourceControl: SourceControl,
         @Inject(DockerExecutorAdapter)
@@ -116,6 +124,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
 
                 await runDeploymentUseCase(
                     this.deploymentsRepository,
+                    this.servicesRepository,
+                    this.providersRepository,
                     this.sourceControl,
                     this.dockerExecutor,
                     this.logStore,

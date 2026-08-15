@@ -49,7 +49,7 @@ export class DatabaseServicesRepository implements ServicesRepository {
 
             return toService(saved);
         } catch (error) {
-            throw toServicePersistenceError(error, createDto.projectId);
+            throw toServicePersistenceError(error, createDto.projectId, createDto.providerId);
         }
     }
 
@@ -61,9 +61,14 @@ export class DatabaseServicesRepository implements ServicesRepository {
         }
 
         this.repository.merge(service, updateDto);
-        const saved = await this.repository.save(service);
 
-        return toService(saved);
+        try {
+            const saved = await this.repository.save(service);
+
+            return toService(saved);
+        } catch (error) {
+            throw toServicePersistenceError(error, service.projectId, updateDto.providerId);
+        }
     }
 
     public async delete(id: string): Promise<boolean> {

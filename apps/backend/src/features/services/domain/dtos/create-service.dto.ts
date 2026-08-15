@@ -11,4 +11,8 @@ export class CreateServiceDto {
     @IsUUID()
     @IsNotEmpty()
     public projectId!: string;
+
+    @IsUUID()
+    @IsNotEmpty()
+    public providerId!: string;
 }

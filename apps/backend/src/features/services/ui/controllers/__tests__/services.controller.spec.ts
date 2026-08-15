@@ -12,11 +12,13 @@ import { ProjectNotFoundError } from '@features/projects/domain/errors/project.e
 
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
+const providerId = 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f';
 
 const service: Service = {
     id: serviceId,
     name: 'api-gateway',
     projectId,
+    providerId,
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
@@ -122,7 +124,7 @@ describe('ServicesController', () => {
     });
 
     describe('create', () => {
-        const createDto: CreateServiceDto = { name: 'api-gateway', projectId };
+        const createDto: CreateServiceDto = { name: 'api-gateway', projectId, providerId };
 
         it('delegates to the service with the received dto', async () => {
             mockServicesService.create.mockResolvedValue(service);

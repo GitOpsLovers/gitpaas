@@ -33,6 +33,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PROVIDER_CREDENTIALS_INVALID', (error) => new BadRequestException(error.message, { cause: error })],
     ['SERVICE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['SERVICE_NOT_DEPLOYABLE', (error) => new BadRequestException(error.message, { cause: error })],
+    ['PROVIDER_REPOSITORY_UNREACHABLE', (error) => new BadRequestException(error.message, { cause: error })],
     ['INVALID_CREDENTIALS', (error) => new UnauthorizedException(error.message, { cause: error })],
     ['USER_INACTIVE', (error) => new UnauthorizedException(error.message, { cause: error })],
     ['INVALID_REFRESH_TOKEN', (error) => new UnauthorizedException(error.message, { cause: error })],

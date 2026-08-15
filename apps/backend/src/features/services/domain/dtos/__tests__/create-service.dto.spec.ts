@@ -22,6 +22,7 @@ const constraintsFor = (errors: ValidationError[], property: string): string[] =
 const validPayload = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
     name: 'api',
     projectId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+    providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
     ...overrides,
 });
 
@@ -40,6 +41,18 @@ describe('CreateServiceDto', () => {
         const errors = validatePayload({ name: 'api' });
 
         expect(constraintsFor(errors, 'projectId')).toEqual(expect.arrayContaining(['isUuid', 'isNotEmpty']));
+    });
+
+    it('requires providerId', () => {
+        const errors = validatePayload({ name: 'api', projectId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+
+        expect(constraintsFor(errors, 'providerId')).toEqual(expect.arrayContaining(['isUuid', 'isNotEmpty']));
+    });
+
+    it('rejects a providerId that is not a UUID', () => {
+        const errors = validatePayload(validPayload({ providerId: 'not-a-uuid' }));
+
+        expect(constraintsFor(errors, 'providerId')).toContain('isUuid');
     });
 
     it('rejects a non-string name', () => {

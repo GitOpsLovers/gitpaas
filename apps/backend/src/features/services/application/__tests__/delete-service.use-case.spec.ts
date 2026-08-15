@@ -14,6 +14,7 @@ describe('deleteServiceUseCase', () => {
         id,
         name: 'api-gateway',
         projectId: 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60',
+        providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',

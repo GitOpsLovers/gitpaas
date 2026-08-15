@@ -63,14 +63,14 @@ management to `source-control`, so that feature moves and goes away.
 
 ## 6. The binding of a service to a provider
 
-- [ ] 6.1 Add the column `providerId` and the relation `ManyToOne` to `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`.
-- [ ] 6.2 Add `providerId` to the domain model of the service and to its transformer.
-- [ ] 6.3 Add `providerId` with `@IsUUID()` to the data transfer object of the creation, and as optional in the one of the change.
-- [ ] 6.4 Inject the repository of the providers into `deployments.service.ts`, and pass the loaded credentials to each call of `SourceControl`.
-- [ ] 6.5 Do the same in `deployment-runner.service.ts`.
-- [ ] 6.6 Refuse a deployment whose provider cannot reach the stored repository, with a message that names the two.
-- [ ] 6.7 Create `iac/production/migrations/011_services_provider.sql`: add the column that can be empty, fill it from the single provider, set it to `NOT NULL`, then add `FK_services_providerId` with `ON DELETE RESTRICT`.
-- [ ] 6.8 Update the specs of the two services of the deployments for the new dependency.
+- [x] 6.1 Add the column `providerId` and the relation `ManyToOne` to `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`.
+- [x] 6.2 Add `providerId` to the domain model of the service and to its transformer.
+- [x] 6.3 Add `providerId` with `@IsUUID()` to the data transfer object of the creation, and as optional in the one of the change.
+- [x] 6.4 Inject the repository of the providers into `deployments.service.ts`, and pass the loaded credentials to each call of `SourceControl`.
+- [x] 6.5 Do the same in `deployment-runner.service.ts`.
+- [x] 6.6 Refuse a deployment whose provider cannot reach the stored repository, with a message that names the two.
+- [x] 6.7 Create `iac/production/migrations/011_services_provider.sql`: add the column that can be empty, fill it from the single provider, set it to `NOT NULL`, then add `FK_services_providerId` with `ON DELETE RESTRICT`.
+- [x] 6.8 Update the specs of the two services of the deployments for the new dependency.
 
 ## 7. The Source Control section of the frontend
 

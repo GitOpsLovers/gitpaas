@@ -2,6 +2,7 @@ import { DbServiceEntity } from '../db-service.entity';
 import { toService, toServicePersistenceError } from '../db-services.transformer';
 
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
+import { ProviderNotFoundError } from '@features/source-control/domain/errors/provider.errors';
 
 describe('toService', () => {
     it('maps every service entity field into the domain model', () => {
@@ -9,6 +10,7 @@ describe('toService', () => {
             id: 's-1',
             name: 'api',
             projectId: 'p-1',
+            providerId: 'pv-1',
             repositoryId: 'gitopslovers/api',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
@@ -18,6 +20,7 @@ describe('toService', () => {
             id: 's-1',
             name: 'api',
             projectId: 'p-1',
+            providerId: 'pv-1',
             repositoryId: 'gitopslovers/api',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
@@ -29,6 +32,7 @@ describe('toService', () => {
             id: 's-2',
             name: 'web',
             projectId: 'p-2',
+            providerId: 'pv-2',
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
@@ -38,6 +42,7 @@ describe('toService', () => {
             id: 's-2',
             name: 'web',
             projectId: 'p-2',
+            providerId: 'pv-2',
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
@@ -83,6 +88,16 @@ describe('toServicePersistenceError', () => {
         });
 
         expect(toServicePersistenceError(original, projectId)).toBeInstanceOf(ProjectNotFoundError);
+    });
+
+    it('maps a violation of the provider foreign key into a ProviderNotFoundError', () => {
+        const providerId = 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f';
+        const failure = Object.assign(queryFailure('23503'), { constraint: 'FK_services_providerId' });
+
+        const error = toServicePersistenceError(failure, projectId, providerId);
+
+        expect(error).toBeInstanceOf(ProviderNotFoundError);
+        expect((error as ProviderNotFoundError).message).toBe(`Provider ${providerId} not found`);
     });
 
     it('returns any other driver failure unchanged, so it still surfaces as a 500', () => {
