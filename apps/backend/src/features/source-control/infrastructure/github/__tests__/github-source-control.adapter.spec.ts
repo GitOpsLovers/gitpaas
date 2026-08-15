@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
@@ -9,6 +8,8 @@ import {
     SourceControlUnavailableError,
 } from '../../../domain/errors/source-control.errors';
 import { GithubSourceControlAdapter } from '../github-source-control.adapter';
+
+import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 
 const OctokitMock = Octokit as unknown as jest.Mock;
 
@@ -22,12 +23,18 @@ interface FakeClient {
     request: jest.Mock;
 }
 
-/** Build a stub `ConfigService` whose `get` returns the provided values. */
-const createConfig = (values: Record<string, string | undefined> = {}): ConfigService =>
-    // eslint-disable-next-line security/detect-object-injection
-    ({ get: jest.fn((key: string) => values[key]) }) as unknown as ConfigService;
+/** Build the credentials of a provider, overriding whatever the case needs. */
+const createCredentials = (overrides: Partial<ProviderCredentials> = {}): ProviderCredentials => ({
+    providerId: 'provider-1',
+    appId: '123',
+    installationId: '456',
+    privateKey: 'PEMKEY',
+    ...overrides,
+});
 
 describe('GithubSourceControlAdapter', () => {
+    const credentials = createCredentials();
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -42,7 +49,7 @@ describe('GithubSourceControlAdapter', () => {
         let mockClient: FakeClient;
 
         beforeEach(() => {
-            sut = new GithubSourceControlAdapter(createConfig());
+            sut = new GithubSourceControlAdapter();
             mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             // `getClient()` is private, so cast through `unknown` to spy on it and hand
@@ -60,7 +67,7 @@ describe('GithubSourceControlAdapter', () => {
                 },
             ]);
 
-            const result = await sut.listRepositories();
+            const result = await sut.listRepositories(credentials);
 
             expect(mockClient.paginate).toHaveBeenCalledWith('GET /installation/repositories');
             expect(result).toEqual([
@@ -73,11 +80,17 @@ describe('GithubSourceControlAdapter', () => {
             ]);
         });
 
+        it('answers with an empty list when the installation reaches no repository', async () => {
+            mockClient.paginate.mockResolvedValue([]);
+
+            await expect(sut.listRepositories(credentials)).resolves.toEqual([]);
+        });
+
         it('resolves the repository full name and maps its branches', async () => {
             mockClient.request.mockResolvedValue({ data: { full_name: 'octo/hello' } });
             mockClient.paginate.mockResolvedValue([{ name: 'main' }, { name: 'dev' }]);
 
-            const result = await sut.listBranches(42);
+            const result = await sut.listBranches(credentials, 42);
 
             expect(mockClient.request).toHaveBeenCalledWith('GET /repositories/{id}', { id: 42 });
             expect(mockClient.paginate).toHaveBeenCalledWith('GET /repos/{owner}/{repo}/branches', {
@@ -92,7 +105,7 @@ describe('GithubSourceControlAdapter', () => {
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockResolvedValueOnce({ data: { sha: 'abc123', commit: { message: 'Fix thing\n\nbody' } } });
 
-            const result = await sut.getCommit(42, 'main');
+            const result = await sut.getCommit(credentials, 42, 'main');
 
             expect(mockClient.request).toHaveBeenNthCalledWith(1, 'GET /repositories/{id}', { id: 42 });
             expect(mockClient.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/commits/{ref}', {
@@ -109,7 +122,7 @@ describe('GithubSourceControlAdapter', () => {
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockResolvedValueOnce({ data: bytes });
 
-            const result = await sut.getRepositoryArchive(42, 'main');
+            const result = await sut.getRepositoryArchive(credentials, 42, 'main');
 
             expect(mockClient.request).toHaveBeenNthCalledWith(2, 'GET /repos/{owner}/{repo}/tarball/{ref}', {
                 owner: 'octo',
@@ -118,6 +131,49 @@ describe('GithubSourceControlAdapter', () => {
             });
             expect(Buffer.isBuffer(result)).toBe(true);
             expect(result.toString()).toBe('tar-bytes');
+        });
+    });
+
+    // --- Layer A'': verification of the credentials ---
+    describe('verifyCredentials', () => {
+        let sut: GithubSourceControlAdapter;
+        let mockClient: FakeClient;
+
+        beforeEach(() => {
+            sut = new GithubSourceControlAdapter();
+            mockClient = { paginate: jest.fn(), request: jest.fn() };
+
+            jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
+        });
+
+        it('asks GitHub for the application and answers true when it answers', async () => {
+            mockClient.request.mockResolvedValue({ data: { id: 123 } });
+
+            await expect(sut.verifyCredentials(credentials)).resolves.toBe(true);
+            expect(mockClient.request).toHaveBeenCalledWith('GET /app');
+        });
+
+        it('answers false when GitHub rejects the credentials', async () => {
+            mockClient.request.mockRejectedValue(
+                Object.assign(new Error('bad credentials'), { status: 401, response: { headers: {} } }),
+            );
+
+            await expect(sut.verifyCredentials(credentials)).resolves.toBe(false);
+        });
+
+        it('answers false when the record holds no usable credentials', async () => {
+            const bare = new GithubSourceControlAdapter();
+
+            await expect(bare.verifyCredentials(createCredentials({ privateKey: '' }))).resolves.toBe(false);
+            expect(OctokitMock).not.toHaveBeenCalled();
+        });
+
+        it('lets a failure that is no authentication failure escape', async () => {
+            mockClient.request.mockRejectedValue(
+                Object.assign(new Error('boom'), { status: 503, response: { headers: {} } }),
+            );
+
+            await expect(sut.verifyCredentials(credentials)).rejects.toBeInstanceOf(SourceControlUnavailableError);
         });
     });
 
@@ -131,7 +187,7 @@ describe('GithubSourceControlAdapter', () => {
             Object.assign(new Error('secret octokit detail'), { status, response: { headers: {} } });
 
         beforeEach(() => {
-            sut = new GithubSourceControlAdapter(createConfig());
+            sut = new GithubSourceControlAdapter();
             mockClient = { paginate: jest.fn(), request: jest.fn() };
 
             jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
@@ -140,19 +196,19 @@ describe('GithubSourceControlAdapter', () => {
         it('translates a GitHub outage raised by listRepositories', async () => {
             mockClient.paginate.mockRejectedValue(requestError(503));
 
-            await expect(sut.listRepositories()).rejects.toBeInstanceOf(SourceControlUnavailableError);
+            await expect(sut.listRepositories(credentials)).rejects.toBeInstanceOf(SourceControlUnavailableError);
         });
 
         it('translates an exhausted rate limit raised by listRepositories', async () => {
             mockClient.paginate.mockRejectedValue(requestError(429));
 
-            await expect(sut.listRepositories()).rejects.toBeInstanceOf(SourceControlRateLimitedError);
+            await expect(sut.listRepositories(credentials)).rejects.toBeInstanceOf(SourceControlRateLimitedError);
         });
 
         it('translates a missing repository raised by listBranches', async () => {
             mockClient.request.mockRejectedValue(requestError(404));
 
-            await expect(sut.listBranches(42)).rejects.toBeInstanceOf(SourceControlResourceNotFoundError);
+            await expect(sut.listBranches(credentials, 42)).rejects.toBeInstanceOf(SourceControlResourceNotFoundError);
         });
 
         it('translates a missing ref raised by getCommit', async () => {
@@ -160,7 +216,8 @@ describe('GithubSourceControlAdapter', () => {
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockRejectedValueOnce(requestError(404));
 
-            await expect(sut.getCommit(42, 'nope')).rejects.toBeInstanceOf(SourceControlResourceNotFoundError);
+            await expect(sut.getCommit(credentials, 42, 'nope'))
+                .rejects.toBeInstanceOf(SourceControlResourceNotFoundError);
         });
 
         it('translates a failure raised by getRepositoryArchive', async () => {
@@ -168,55 +225,52 @@ describe('GithubSourceControlAdapter', () => {
                 .mockResolvedValueOnce({ data: { full_name: 'octo/hello' } })
                 .mockRejectedValueOnce(requestError(500));
 
-            await expect(sut.getRepositoryArchive(42, 'main')).rejects.toBeInstanceOf(SourceControlUnavailableError);
+            await expect(sut.getRepositoryArchive(credentials, 42, 'main'))
+                .rejects.toBeInstanceOf(SourceControlUnavailableError);
         });
 
         it('never lets the Octokit message escape', async () => {
             mockClient.paginate.mockRejectedValue(requestError(503));
 
-            await expect(sut.listRepositories()).rejects.not.toThrow('secret octokit detail');
+            await expect(sut.listRepositories(credentials)).rejects.not.toThrow('secret octokit detail');
         });
 
         it('chains the original Octokit failure as the cause', async () => {
             const original = requestError(404);
             mockClient.request.mockRejectedValue(original);
 
-            await expect(sut.listBranches(42)).rejects.toMatchObject({ cause: original });
+            await expect(sut.listBranches(credentials, 42)).rejects.toMatchObject({ cause: original });
         });
 
         it('leaves an unclassifiable failure untouched, so the filter answers 500', async () => {
             const original = requestError(422);
             mockClient.paginate.mockRejectedValue(original);
 
-            await expect(sut.listRepositories()).rejects.toBe(original);
+            await expect(sut.listRepositories(credentials)).rejects.toBe(original);
         });
     });
 
-    // --- Layer B: createClient / config wiring (real createClient, mocked Octokit) ---
+    // --- Layer B: createClient / credentials wiring (real createClient, mocked Octokit) ---
     describe('client creation', () => {
-        it('throws SourceControlNotConfiguredError and never builds a client when config is missing', async () => {
-            const sut = new GithubSourceControlAdapter(
-                createConfig({
-                    GITHUB_APP_ID: '123',
-                    GITHUB_APP_PRIVATE_KEY: undefined,
-                    GITHUB_APP_INSTALLATION_ID: '456',
-                }),
-            );
+        it('throws SourceControlNotConfiguredError and never builds a client when a credential is missing', async () => {
+            const sut = new GithubSourceControlAdapter();
 
-            await expect(sut.listRepositories()).rejects.toThrow(SourceControlNotConfiguredError);
+            await expect(sut.listRepositories(createCredentials({ privateKey: '' })))
+                .rejects.toThrow(SourceControlNotConfiguredError);
             expect(OctokitMock).not.toHaveBeenCalled();
         });
 
-        it('constructs Octokit with the decoded private key and app-auth strategy', async () => {
-            const sut = new GithubSourceControlAdapter(
-                createConfig({
-                    GITHUB_APP_ID: '123',
-                    GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
-                    GITHUB_APP_INSTALLATION_ID: '456',
-                }),
-            );
+        it('names the provider in the message, so the operator can correct that record', async () => {
+            const sut = new GithubSourceControlAdapter();
 
-            await sut.listRepositories();
+            await expect(sut.listRepositories(createCredentials({ providerId: 'acme-provider', appId: '' })))
+                .rejects.toThrow(/acme-provider/);
+        });
+
+        it('constructs Octokit with the credentials of the provider and the app-auth strategy', async () => {
+            const sut = new GithubSourceControlAdapter();
+
+            await sut.listRepositories(credentials);
 
             expect(OctokitMock).toHaveBeenCalledTimes(1);
             expect(OctokitMock).toHaveBeenCalledWith({
@@ -229,19 +283,27 @@ describe('GithubSourceControlAdapter', () => {
             });
         });
 
-        it('memoizes the client across calls, building Octokit only once', async () => {
-            const sut = new GithubSourceControlAdapter(
-                createConfig({
-                    GITHUB_APP_ID: '123',
-                    GITHUB_APP_PRIVATE_KEY: Buffer.from('PEMKEY').toString('base64'),
-                    GITHUB_APP_INSTALLATION_ID: '456',
-                }),
-            );
+        it('builds one client for each provider, authenticated as two different applications', async () => {
+            const sut = new GithubSourceControlAdapter();
 
-            await sut.listRepositories();
-            await sut.listRepositories();
+            await sut.listRepositories(createCredentials({ providerId: 'provider-a', appId: '111' }));
+            await sut.listRepositories(createCredentials({ providerId: 'provider-b', appId: '222' }));
+
+            expect(OctokitMock).toHaveBeenCalledTimes(2);
+            expect(OctokitMock.mock.calls[0][0].auth.appId).toBe('111');
+            expect(OctokitMock.mock.calls[1][0].auth.appId).toBe('222');
+            expect(OctokitMock.mock.results[0].value).not.toBe(OctokitMock.mock.results[1].value);
+        });
+
+        it('builds the client of one provider once, and reuses it on the second call', async () => {
+            const sut = new GithubSourceControlAdapter();
+            const getClient = sut as unknown as { getClient: (given: ProviderCredentials) => unknown };
+
+            await sut.listRepositories(credentials);
+            await sut.listRepositories(credentials);
 
             expect(OctokitMock).toHaveBeenCalledTimes(1);
+            expect(getClient.getClient(credentials)).toBe(OctokitMock.mock.results[0].value);
         });
     });
 });

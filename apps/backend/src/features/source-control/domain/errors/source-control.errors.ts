@@ -1,13 +1,13 @@
 import { DomainError } from '@core/domain/errors/domain.error';
 
 /**
- * Raised when source control is not configured in the backend.
+ * Raised when the record of a provider holds no usable credentials.
  */
 export class SourceControlNotConfiguredError extends DomainError {
-    constructor(options?: ErrorOptions) {
+    constructor(providerId: string, options?: ErrorOptions) {
         super(
             'SOURCE_CONTROL_NOT_CONFIGURED',
-            'GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY and GITHUB_APP_INSTALLATION_ID in the backend environment.',
+            `Provider ${providerId} holds no usable credentials. Check its application id, installation id and private key.`,
             options,
         );
     }

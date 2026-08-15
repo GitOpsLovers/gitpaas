@@ -72,7 +72,7 @@ describe('github-source-control.transformer', () => {
 
     describe('toSourceControlError', () => {
         it('returns a domain error untouched', () => {
-            const error = new SourceControlNotConfiguredError();
+            const error = new SourceControlNotConfiguredError('provider-id');
 
             expect(toSourceControlError(error)).toBe(error);
         });

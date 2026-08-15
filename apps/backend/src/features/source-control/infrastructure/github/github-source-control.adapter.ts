@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
-import { SourceControlNotConfiguredError } from '../../domain/errors/source-control.errors';
+import {
+    SourceControlAuthenticationError,
+    SourceControlNotConfiguredError,
+} from '../../domain/errors/source-control.errors';
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
@@ -13,35 +15,36 @@ import { toGitBranch, toGitCommit, toGitRepository, toSourceControlError } from 
 
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 
 /**
  * GitHub source control adapter.
  */
 @Injectable()
 export class GithubSourceControlAdapter implements SourceControl {
-    private client: Octokit | undefined;
+    private readonly clients = new Map<string, Octokit>();
 
-    constructor(private readonly config: ConfigService) {}
-
-    public listRepositories(): Promise<GitRepository[]> {
+    public listRepositories(credentials: ProviderCredentials): Promise<GitRepository[]> {
         return this.run(async () => {
-            const repositories = await this.getClient().paginate('GET /installation/repositories');
+            const repositories = await this.getClient(credentials).paginate('GET /installation/repositories');
 
             return repositories.map(toGitRepository);
         });
     }
 
-    public listBranches(repositoryId: number): Promise<GitBranch[]> {
+    public listBranches(credentials: ProviderCredentials, repositoryId: number): Promise<GitBranch[]> {
         enrichTelemetry({ 'deps.github.repository_id': repositoryId });
 
         return this.run(async () => {
-            const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+            const client = this.getClient(credentials);
+
+            const { data: repository } = await client.request('GET /repositories/{id}', {
                 id: repositoryId,
             });
 
             const [owner, repo] = repository.full_name.split('/');
 
-            const branches = await this.getClient().paginate('GET /repos/{owner}/{repo}/branches', {
+            const branches = await client.paginate('GET /repos/{owner}/{repo}/branches', {
                 owner,
                 repo,
             });
@@ -50,17 +53,19 @@ export class GithubSourceControlAdapter implements SourceControl {
         });
     }
 
-    public getCommit(repositoryId: number, ref: string): Promise<GitCommit> {
+    public getCommit(credentials: ProviderCredentials, repositoryId: number, ref: string): Promise<GitCommit> {
         enrichTelemetry({ 'deps.github.repository_id': repositoryId, 'deps.github.ref': ref });
 
         return this.run(async () => {
-            const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+            const client = this.getClient(credentials);
+
+            const { data: repository } = await client.request('GET /repositories/{id}', {
                 id: repositoryId,
             });
 
             const [owner, repo] = repository.full_name.split('/');
 
-            const { data: commit } = await this.getClient().request('GET /repos/{owner}/{repo}/commits/{ref}', {
+            const { data: commit } = await client.request('GET /repos/{owner}/{repo}/commits/{ref}', {
                 owner,
                 repo,
                 ref,
@@ -70,18 +75,20 @@ export class GithubSourceControlAdapter implements SourceControl {
         });
     }
 
-    public getRepositoryArchive(repositoryId: number, ref: string): Promise<Buffer> {
+    public getRepositoryArchive(credentials: ProviderCredentials, repositoryId: number, ref: string): Promise<Buffer> {
         enrichTelemetry({ 'deps.github.repository_id': repositoryId, 'deps.github.ref': ref });
 
         return this.run(async () => {
-            const { data: repository } = await this.getClient().request('GET /repositories/{id}', {
+            const client = this.getClient(credentials);
+
+            const { data: repository } = await client.request('GET /repositories/{id}', {
                 id: repositoryId,
             });
 
             const [owner, repo] = repository.full_name.split('/');
 
             // Octokit follows GitHub's 302 to codeload and returns the tarball bytes as an ArrayBuffer.
-            const { data } = await this.getClient().request('GET /repos/{owner}/{repo}/tarball/{ref}', {
+            const { data } = await client.request('GET /repos/{owner}/{repo}/tarball/{ref}', {
                 owner,
                 repo,
                 ref,
@@ -93,6 +100,22 @@ export class GithubSourceControlAdapter implements SourceControl {
 
             return archive;
         });
+    }
+
+    public async verifyCredentials(credentials: ProviderCredentials): Promise<boolean> {
+        try {
+            return await this.run(async () => {
+                await this.getClient(credentials).request('GET /app');
+
+                return true;
+            });
+        } catch (error) {
+            if (error instanceof SourceControlAuthenticationError || error instanceof SourceControlNotConfiguredError) {
+                return false;
+            }
+
+            throw error;
+        }
     }
 
     /**
@@ -119,35 +142,41 @@ export class GithubSourceControlAdapter implements SourceControl {
     }
 
     /**
-     * Lazily-created, reused Octokit client authenticated as the installation.
+     * Lazily-created, reused Octokit client authenticated as the installation of one provider.
      *
-     * @returns Octokit client authenticated as the GitHub App installation
+     * @param credentials Credentials of the provider
+     *
+     * @returns Octokit client authenticated as the GitHub App installation of the provider
      */
-    private getClient(): Octokit {
-        this.client ??= this.createClient();
+    private getClient(credentials: ProviderCredentials): Octokit {
+        const client = this.clients.get(credentials.providerId) ?? this.createClient(credentials);
 
-        return this.client;
+        this.clients.set(credentials.providerId, client);
+
+        return client;
     }
 
     /**
-     * Builds an Octokit client authenticated as the GitHub App installation from the configured credentials.
+     * Builds an Octokit client authenticated as the GitHub App installation of a provider.
+     *
+     * @param credentials Credentials of the provider
      *
      * @returns Freshly created Octokit client
+     *
+     * @throws SourceControlNotConfiguredError When the provider holds no usable credentials
      */
-    private createClient(): Octokit {
-        const appId = this.config.get<string>('GITHUB_APP_ID');
-        const privateKey = this.config.get<string>('GITHUB_APP_PRIVATE_KEY');
-        const installationId = this.config.get<string>('GITHUB_APP_INSTALLATION_ID');
+    private createClient(credentials: ProviderCredentials): Octokit {
+        const { providerId, appId, privateKey, installationId } = credentials;
 
         if (!appId || !privateKey || !installationId) {
-            throw new SourceControlNotConfiguredError();
+            throw new SourceControlNotConfiguredError(providerId);
         }
 
         return new Octokit({
             authStrategy: createAppAuth,
             auth: {
                 appId,
-                privateKey: Buffer.from(privateKey, 'base64').toString('utf8'),
+                privateKey,
                 installationId: Number(installationId),
             },
         });
