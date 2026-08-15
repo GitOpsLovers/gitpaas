@@ -1,12 +1,13 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { CreateProviderDto } from '../../../domain/dtos/create-provider.dto';
 import { UpdateProviderDto } from '../../../domain/dtos/update-provider.dto';
+import { ProviderAuthenticationError } from '../../../domain/errors/provider-client.errors';
 import {
-    ProviderCredentialsInvalidError,
     ProviderInUseError,
     ProviderNameTakenError,
+    ProviderNotFoundError,
 } from '../../../domain/errors/provider.errors';
 import { GitBranch } from '../../../domain/models/git-branch.models';
 import { GitRepository } from '../../../domain/models/git-repository.models';
@@ -328,10 +329,10 @@ describe('ProvidersController', () => {
             expect(result).toEqual({ success: false });
         });
 
-        it('translates invalid credentials into a BadRequestException', async () => {
-            mockProvidersService.testConnection.mockRejectedValue(new ProviderCredentialsInvalidError(providerId));
+        it('translates an unknown provider into a NotFoundException', async () => {
+            mockProvidersService.testConnection.mockRejectedValue(new ProviderNotFoundError(providerId));
 
-            await expect(sut.testConnection(providerId)).rejects.toBeInstanceOf(BadRequestException);
+            await expect(sut.testConnection(providerId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('propagates errors raised by the service that no translation covers', async () => {
@@ -368,10 +369,10 @@ describe('ProvidersController', () => {
             expect(result).toEqual([]);
         });
 
-        it('translates invalid credentials into a BadRequestException', async () => {
-            mockProvidersService.listRepositories.mockRejectedValue(new ProviderCredentialsInvalidError(providerId));
+        it('translates refused credentials into a ServiceUnavailableException', async () => {
+            mockProvidersService.listRepositories.mockRejectedValue(new ProviderAuthenticationError());
 
-            await expect(sut.listRepositories(providerId)).rejects.toBeInstanceOf(BadRequestException);
+            await expect(sut.listRepositories(providerId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('propagates errors raised by the service that no translation covers', async () => {

@@ -26,12 +26,3 @@ export class ProviderInUseError extends DomainError {
         super('PROVIDER_IN_USE', `Provider ${providerId} is still used by ${servicesCount} service(s)`, options);
     }
 }
-
-/**
- * Raised whenever the provider refuses the credentials of a provider.
- */
-export class ProviderCredentialsInvalidError extends DomainError {
-    constructor(providerId: string, options?: ErrorOptions) {
-        super('PROVIDER_CREDENTIALS_INVALID', `The credentials of provider ${providerId} are invalid`, options);
-    }
-}

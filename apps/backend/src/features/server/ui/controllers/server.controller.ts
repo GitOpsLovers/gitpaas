@@ -97,7 +97,7 @@ export class ServerController {
 
     /**
      * Runs a prune action, translating daemon connectivity failures into a
-     * 503 with a hint about the emulated server in local development.
+     * 503 that asks the operator to verify the server is running and reachable.
      *
      * @param resource Human-readable resource name used in the error message
      * @param action Prune action to execute
