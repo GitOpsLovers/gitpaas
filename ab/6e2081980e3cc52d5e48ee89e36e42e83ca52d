@@ -1,0 +1,49 @@
+scripts/import-github-app-provider.sh
+  s_47a7e705999b15::t_e8adac1cab25ea 1-358
+apps/backend/src/core/infrastructure/logging/__tests__/nest-logger.adapter.spec.ts
+  s_a382fbdd514e80::t_e56c00fd9b029c 70
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_a382fbdd514e80::t_5d1e1dabf4bdb5 260-262,449-451
+docs/backend-business/domain-model.md
+  s_e77c95067c772d::t_37258248765e39 4-20
+docs/frontend-architecture/key-flows.md
+  s_e77c95067c772d::t_f31604a74c2b27 46-68
+docs/infrastructure-architecture/conventions.md
+  s_e77c95067c772d::t_ea05d2767235b3 22
+docs/infrastructure-architecture/installation.md
+  s_e77c95067c772d::t_b068191b88c3ae 43,45,71,73,75-79
+openspec/changes/source-control-providers/tasks.md
+  s_47a7e705999b15::t_56a8ba65e798d9 137-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ab6e2081980e3cc52d5e48ee89e36e42e83ca52d",
+  "prompts": {},
+  "sessions": {
+    "s_47a7e705999b15": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f996dfc8-2e75-4144-bd73-66245aea95bb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_a382fbdd514e80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9302cd5180289882",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e77c95067c772d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-acddae5134f2d48bd",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
