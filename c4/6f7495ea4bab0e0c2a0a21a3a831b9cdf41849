@@ -1,0 +1,43 @@
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_f08410971a92ea::t_62578932a72366 28-29,34,41
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  s_8e101418224b28::t_e64fd565a535b2 1,6,10,332-333,335,372-373,375
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_84cbe8ca31e43d::t_f66f6c28e7902d 100
+apps/backend/src/features/services/application/__tests__/create-service.use-case.spec.ts
+  s_f08410971a92ea::t_f1ed4ea0606465 7-8,12,19
+scripts/install.sh
+  s_84cbe8ca31e43d::t_6c841a767c3adc 13-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c46f7495ea4bab0e0c2a0a21a3a831b9cdf41849",
+  "prompts": {},
+  "sessions": {
+    "s_84cbe8ca31e43d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac12f1c3336576e39",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8e101418224b28": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7d47c15f1c517bf0",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f08410971a92ea": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad69438115035724d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
