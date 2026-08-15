@@ -10,20 +10,20 @@
 
 ## 2. The provider record
 
-- [ ] 2.1 Create `apps/backend/src/core/infrastructure/crypto/secret-cipher.ts` with the exported functions `encryptSecret` and `decryptSecret`, using AES-256-GCM.
-- [ ] 2.2 Create the spec of the cipher with the round trip, the wrong-key failure and the distinct-output cases.
-- [ ] 2.3 Create `apps/backend/src/features/providers/domain/models/provider.models.ts` with `Provider`, `ProviderCredentials` and the `ProviderType` enum.
-- [ ] 2.4 Create the data transfer objects of the creation and of the change under `apps/backend/src/features/providers/domain/dtos/`.
-- [ ] 2.5 Create `apps/backend/src/features/providers/domain/errors/provider.errors.ts` with `ProviderNotFoundError`, `ProviderNameTakenError`, `ProviderInUseError` and `ProviderCredentialsInvalidError`.
-- [ ] 2.6 Register the four new error codes in `apps/backend/src/core/ui/translators/http-error.translator.ts`, with `404`, `409`, `409` and `400`.
-- [ ] 2.7 Create `apps/backend/src/features/providers/domain/repositories/providers.repository.ts` with the interface of the repository.
-- [ ] 2.8 Create the use cases under `apps/backend/src/features/providers/application/`: `create-provider`, `update-provider`, `delete-provider`, `find-provider-by-id`, `get-all-providers` and `get-provider-credentials`.
-- [ ] 2.9 Make `create-provider` encrypt the key before it writes the row, and make `update-provider` keep the stored key when the new key is empty.
-- [ ] 2.10 Make `delete-provider` raise `ProviderInUseError` when a service still points at the provider.
-- [ ] 2.11 Create the entity, the repository and the transformer under `apps/backend/src/features/providers/infrastructure/database/`.
-- [ ] 2.12 Add the fingerprint of the key — the first eight characters of the SHA-256 of the PEM — to the output of the transformer, and never the key itself.
-- [ ] 2.13 Create `iac/production/migrations/010_providers.sql` with the table `providers` and the guarded constraint `UQ_providers_name`.
-- [ ] 2.14 Create the specs of the use cases and of the repository.
+- [x] 2.1 Create `apps/backend/src/core/infrastructure/crypto/secret-cipher.ts` with the exported functions `encryptSecret` and `decryptSecret`, using AES-256-GCM.
+- [x] 2.2 Create the spec of the cipher with the round trip, the wrong-key failure and the distinct-output cases.
+- [x] 2.3 Create `apps/backend/src/features/providers/domain/models/provider.models.ts` with `Provider`, `ProviderCredentials` and the `ProviderType` enum.
+- [x] 2.4 Create the data transfer objects of the creation and of the change under `apps/backend/src/features/providers/domain/dtos/`.
+- [x] 2.5 Create `apps/backend/src/features/providers/domain/errors/provider.errors.ts` with `ProviderNotFoundError`, `ProviderNameTakenError`, `ProviderInUseError` and `ProviderCredentialsInvalidError`.
+- [x] 2.6 Register the four new error codes in `apps/backend/src/core/ui/translators/http-error.translator.ts`, with `404`, `409`, `409` and `400`.
+- [x] 2.7 Create `apps/backend/src/features/providers/domain/repositories/providers.repository.ts` with the interface of the repository.
+- [x] 2.8 Create the use cases under `apps/backend/src/features/providers/application/`: `create-provider`, `update-provider`, `delete-provider`, `find-provider-by-id`, `get-all-providers` and `get-provider-credentials`.
+- [x] 2.9 Make `create-provider` encrypt the key before it writes the row, and make `update-provider` keep the stored key when the new key is empty.
+- [x] 2.10 Make `delete-provider` raise `ProviderInUseError` when a service still points at the provider.
+- [x] 2.11 Create the entity, the repository and the transformer under `apps/backend/src/features/providers/infrastructure/database/`.
+- [x] 2.12 Add the fingerprint of the key — the first eight characters of the SHA-256 of the PEM — to the output of the transformer, and never the key itself.
+- [x] 2.13 Create `iac/production/migrations/010_providers.sql` with the table `providers` and the guarded constraint `UQ_providers_name`.
+- [x] 2.14 Create the specs of the use cases and of the repository.
 
 ## 3. A source control that carries the credentials
 
