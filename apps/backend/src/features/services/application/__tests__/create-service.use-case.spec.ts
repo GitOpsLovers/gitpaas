@@ -7,12 +7,14 @@ describe('createServiceUseCase', () => {
     const createDto: CreateServiceDto = {
         name: 'api',
         projectId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
     };
 
     const createdService: Service = {
         id: '9c858901-8a57-4791-81fe-4c455b099bc9',
         name: createDto.name,
         projectId: createDto.projectId,
+        providerId: createDto.providerId,
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',

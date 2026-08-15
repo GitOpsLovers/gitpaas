@@ -21,6 +21,7 @@ const constraintsFor = (errors: ValidationError[], property: string): string[] =
 /** A payload satisfying every rule of the DTO. */
 const validPayload = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
     name: 'api',
+    providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
     repositoryId: '123456',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
@@ -73,6 +74,18 @@ describe('UpdateServiceDto', () => {
             expect(validatePayload(validPayload({ [property]: null }))).toEqual([]);
         },
     );
+
+    it('accepts an undefined providerId, as it is optional', () => {
+        const { providerId: _removed, ...payloadWithoutProvider } = validPayload();
+
+        expect(validatePayload(payloadWithoutProvider)).toEqual([]);
+    });
+
+    it('rejects a providerId that is not a UUID', () => {
+        const errors = validatePayload(validPayload({ providerId: 'not-a-uuid' }));
+
+        expect(constraintsFor(errors, 'providerId')).toContain('isUuid');
+    });
 
     it('rejects an unknown property under forbidNonWhitelisted', () => {
         const errors = validatePayload(validPayload({ projectId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }));

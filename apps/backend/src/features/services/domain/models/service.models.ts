@@ -5,6 +5,7 @@ export interface Service {
     id: string;
     name: string;
     projectId: string;
+    providerId: string;
     repositoryId: string;
     deploymentBranch: string;
     composerPath: string;

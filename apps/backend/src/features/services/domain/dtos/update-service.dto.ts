@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 /**
  * Data transfer object for updating an existing service
@@ -7,6 +7,10 @@ export class UpdateServiceDto {
     @IsString()
     @IsNotEmpty()
     public name!: string;
+
+    @IsOptional()
+    @IsUUID()
+    public providerId?: string;
 
     @IsOptional()
     @IsString()

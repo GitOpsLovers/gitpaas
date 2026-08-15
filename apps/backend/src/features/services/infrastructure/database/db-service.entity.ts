@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { DbProjectEntity } from '@features/projects/infrastructure/database/db-project.entity';
+import { DbProviderEntity } from '@features/source-control/infrastructure/database/db-provider.entity';
 
 /**
  * Services database entity
@@ -16,6 +17,9 @@ export class DbServiceEntity {
     @Column('uuid')
     public projectId!: string;
 
+    @Column('uuid')
+    public providerId!: string;
+
     @Column({ type: 'text', default: '' })
     public repositoryId!: string;
 
@@ -28,4 +32,8 @@ export class DbServiceEntity {
     @ManyToOne(() => DbProjectEntity, (project) => project.services, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'projectId' })
     public project?: DbProjectEntity;
+
+    @ManyToOne(() => DbProviderEntity, { onDelete: 'RESTRICT' })
+    @JoinColumn({ name: 'providerId', foreignKeyConstraintName: 'FK_services_providerId' })
+    public provider?: DbProviderEntity;
 }

@@ -8,3 +8,19 @@ export class ServiceNotDeployableError extends DomainError {
         super('SERVICE_NOT_DEPLOYABLE', 'Service has no repository or deployment branch configured', options);
     }
 }
+
+/**
+ * Raised when the provider of a service cannot reach the repository the service stores.
+ *
+ * A repository identifier is global at GitHub, and the access to it is not: a service
+ * that keeps a repository of another account can never be deployed.
+ */
+export class ProviderRepositoryUnreachableError extends DomainError {
+    constructor(providerId: string, repositoryId: string, options?: ErrorOptions) {
+        super(
+            'PROVIDER_REPOSITORY_UNREACHABLE',
+            `Provider ${providerId} cannot reach repository ${repositoryId}`,
+            options,
+        );
+    }
+}

@@ -12,6 +12,7 @@ const service = (overrides: Partial<Service> = {}): Service => {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         name: 'checkout',
         projectId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+        providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
         repositoryId: 'repo-1',
         deploymentBranch: 'main',
         composerPath: 'services/checkout',

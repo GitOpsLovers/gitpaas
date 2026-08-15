@@ -1,10 +1,15 @@
+import type { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentRunTask } from '../../domain/models/deployment-run-task.models';
 import { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { runDeploymentUseCase } from '../run-deployment.use-case';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
+import { Service } from '@features/services/domain/models/service.models';
+import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { ProviderCredentials } from '@features/source-control/domain/models/provider.models';
 import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
+import { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
 
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {
@@ -17,7 +22,28 @@ describe('runDeploymentUseCase', () => {
 
     const archive = Buffer.from('gzipped-repo-tarball');
 
-    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'update'>>;
+    const service = {
+        id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        name: 'My Service',
+        projectId: 'a1b2c3d4-0000-0000-0000-000000000000',
+        providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
+        repositoryId: '42',
+        deploymentBranch: 'main',
+        composerPath: 'docker-compose.yml',
+    } satisfies Service;
+
+    const deployment = { id: payload.deploymentId, serviceId: service.id } as Deployment;
+
+    const credentials: ProviderCredentials = {
+        providerId: service.providerId,
+        appId: '1234',
+        installationId: '5678',
+        privateKey: '-----BEGIN RSA PRIVATE KEY-----',
+    };
+
+    let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'update' | 'findById'>>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
+    let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCredentials'>>;
     let mockSourceControl: jest.Mocked<Pick<SourceControl, 'getRepositoryArchive'>>;
     let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
     let mockLogStore: jest.Mocked<Pick<LogStore, 'append' | 'complete'>>;
@@ -25,6 +51,8 @@ describe('runDeploymentUseCase', () => {
     const run = (): Promise<void> => {
         return runDeploymentUseCase(
             mockDeploymentsRepository as unknown as DeploymentsRepository,
+            mockServicesRepository as unknown as ServicesRepository,
+            mockProvidersRepository as unknown as ProvidersRepository,
             mockSourceControl as unknown as SourceControl,
             mockDockerExecutor,
             mockLogStore as unknown as LogStore,
@@ -36,6 +64,13 @@ describe('runDeploymentUseCase', () => {
         jest.clearAllMocks();
         mockDeploymentsRepository = {
             update: jest.fn(),
+            findById: jest.fn().mockResolvedValue(deployment),
+        };
+        mockServicesRepository = {
+            findById: jest.fn().mockResolvedValue(service),
+        };
+        mockProvidersRepository = {
+            getCredentials: jest.fn().mockResolvedValue(credentials),
         };
         mockSourceControl = {
             getRepositoryArchive: jest.fn(),
@@ -64,7 +99,29 @@ describe('runDeploymentUseCase', () => {
 
         await run();
 
-        expect(mockSourceControl.getRepositoryArchive).toHaveBeenCalledWith(payload.repositoryId, payload.commit);
+        expect(mockSourceControl.getRepositoryArchive).toHaveBeenCalledWith(credentials, payload.repositoryId, payload.commit);
+    });
+
+    it('loads the credentials of the provider of the deployed service', async () => {
+        mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        expect(mockProvidersRepository.getCredentials).toHaveBeenCalledWith(service.providerId);
+    });
+
+    it('fails the run with a message that names the provider when the provider went away', async () => {
+        mockProvidersRepository.getCredentials.mockResolvedValue(null);
+
+        await run();
+
+        expect(mockSourceControl.getRepositoryArchive).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: `Provider ${service.providerId} not found`,
+        });
+        expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
     });
 
     it('brings the stack up with the archive, compose path, project name and a log listener', async () => {

@@ -17,6 +17,7 @@ import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
+import { DatabaseProvidersRepository } from '@features/source-control/infrastructure/database/db-providers.repository';
 import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 jest.mock('../../../application/create-deployment.use-case');
@@ -57,6 +58,7 @@ const deployment: Deployment = {
 describe('DeploymentsService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
+    let mockProvidersRepository: jest.Mocked<DatabaseProvidersRepository>;
     let mockSourceControl: jest.Mocked<GithubSourceControlAdapter>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
     let mockLogStore: jest.Mocked<LogStore>;
@@ -67,6 +69,7 @@ describe('DeploymentsService', () => {
 
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
+        mockProvidersRepository = {} as jest.Mocked<DatabaseProvidersRepository>;
         mockSourceControl = {} as jest.Mocked<GithubSourceControlAdapter>;
         mockQueue = { enqueue: jest.fn().mockResolvedValue(undefined) };
         mockLogStore = {
@@ -81,6 +84,7 @@ describe('DeploymentsService', () => {
                 DeploymentsService,
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
+                { provide: DatabaseProvidersRepository, useValue: mockProvidersRepository },
                 { provide: GithubSourceControlAdapter, useValue: mockSourceControl },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
@@ -204,10 +208,19 @@ describe('DeploymentsService', () => {
             expect(mockCreateDeploymentUseCase).toHaveBeenCalledWith(
                 mockDeploymentsRepository,
                 mockServicesRepository,
+                mockProvidersRepository,
                 mockSourceControl,
                 mockQueue,
                 triggerDto,
             );
+        });
+
+        it('threads the providers repository so the use case can load the credentials of the provider', async () => {
+            mockCreateDeploymentUseCase.mockResolvedValue(deployment);
+
+            await sut.create(triggerDto);
+
+            expect(mockCreateDeploymentUseCase.mock.calls[0]?.[2]).toBe(mockProvidersRepository);
         });
 
         it('returns the created deployment', async () => {

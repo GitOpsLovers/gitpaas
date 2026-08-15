@@ -17,6 +17,8 @@ import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
+import type { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
+import { DatabaseProvidersRepository } from '@features/source-control/infrastructure/database/db-providers.repository';
 import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
 
 /**
@@ -29,6 +31,8 @@ export class DeploymentsService {
         private readonly repository: DeploymentsRepository,
         @Inject(DatabaseServicesRepository)
         private readonly servicesRepository: ServicesRepository,
+        @Inject(DatabaseProvidersRepository)
+        private readonly providersRepository: ProvidersRepository,
         @Inject(GithubSourceControlAdapter)
         private readonly sourceControl: SourceControl,
         @Inject(DatabaseDeploymentQueueAdapter)
@@ -85,11 +89,14 @@ export class DeploymentsService {
      *
      * @throws {ServiceNotFoundError} When the service does not exist
      * @throws {ServiceNotDeployableError} When the service cannot be deployed
+     * @throws {ProviderNotFoundError} When the provider of the service no longer exists
+     * @throws {ProviderRepositoryUnreachableError} When the provider cannot reach the stored repository
      */
     public async create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
         const deployment = await createDeploymentUseCase(
             this.repository,
             this.servicesRepository,
+            this.providersRepository,
             this.sourceControl,
             this.deploymentQueue,
             triggerDto,
