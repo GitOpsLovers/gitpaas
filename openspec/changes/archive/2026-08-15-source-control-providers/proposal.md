@@ -45,20 +45,20 @@ code, the API and the screens carry one word.
 
 ## Capabilities
 
-**The names of the folders of this change.** The four folders below keep the word "source control", because
-the sections 1 to 8 wrote them under that word. The section 9 renames the capability in
-`openspec/specs/` after the sync, so the main specifications end as `providers`, `web-providers-list`,
-`web-providers-add` and `web-providers-edit`.
+**The names of the folders of this change.** The sections 1 to 8 wrote the four folders below under the word
+"source control". The section 9 renamed the capability to `providers` in `openspec/specs/`, and the four
+folders of this change now carry the same name. The delta and the main specification therefore hold one
+word, and the archive writes the delta back into the correct capability.
 
 ### New Capabilities
 
-- `web-source-control-list`: the screen that lists the providers, at `/providers`.
-- `web-source-control-add`: the screen that registers a provider, at `/providers/add`.
-- `web-source-control-edit`: the screen that changes a provider, at `/providers/edit/:id`.
+- `web-providers-list`: the screen that lists the providers, at `/providers`.
+- `web-providers-add`: the screen that registers a provider, at `/providers/add`.
+- `web-providers-edit`: the screen that changes a provider, at `/providers/edit/:id`.
 
 ### Modified Capabilities
 
-- `source-control`: the capability grows the provider record, the encryption of the private key at rest, the
+- `providers`: the capability grows the provider record, the encryption of the private key at rest, the
   API that manages a provider, and the test of the credentials. Every operation takes the credentials of a
   provider. The adapter keeps one client for each provider. The two routes of the repositories move under
   the provider. The error of the configuration names the provider instead of the three environment

@@ -9,7 +9,7 @@ The record holds the identifier, the name, the type, the identifier of the appli
 the installation, the encrypted private key, the date of the creation and the date of the last change.
 
 The identifier is a UUID that the database generates. The type holds `github_app`, which is the one value
-of today. The system SHALL manage the records under the path `/api/v1/source-control`.
+of today. The system SHALL manage the records under the path `/api/v1/providers`.
 
 #### Scenario: The system gives a provider
 
@@ -93,19 +93,19 @@ to its projects.
 ### Requirement: The test of the credentials
 
 The system SHALL give an operation that tests the credentials of a provider, at
-`POST /api/v1/source-control/:id/test`.
+`POST /api/v1/providers/:id/test`.
 
-The system SHALL ask the source control if the application answers, and it SHALL report the result. The
+The system SHALL ask GitHub if the application answers, and it SHALL report the result. The
 operation changes no record.
 
 #### Scenario: The credentials operate
 
-- **WHEN** a client tests a provider whose credentials the source control accepts
+- **WHEN** a client tests a provider whose credentials GitHub accepts
 - **THEN** the system answers that the test succeeded
 
-#### Scenario: The source control refuses the credentials
+#### Scenario: GitHub refuses the credentials
 
-- **WHEN** the source control refuses the credentials of the provider
+- **WHEN** GitHub refuses the credentials of the provider
 - **THEN** the system answers that the test failed, and it changes no record
 
 ### Requirement: Only an administrator writes a provider
@@ -136,19 +136,19 @@ The system SHALL read the identifier of the application, the private key and the
 installation from the record of the provider.
 
 If the record holds credentials that the system cannot use, it SHALL raise
-`SOURCE_CONTROL_NOT_CONFIGURED`. The message SHALL name the provider, so the operator can correct that
+`PROVIDER_NOT_CONFIGURED`. The message SHALL name the provider, so the operator can correct that
 record.
 
 #### Scenario: The credentials of the record are not complete
 
 - **WHEN** a caller uses a provider whose record holds no usable credentials
-- **THEN** the system raises `SOURCE_CONTROL_NOT_CONFIGURED` with a message that names the provider, and it
+- **THEN** the system raises `PROVIDER_NOT_CONFIGURED` with a message that names the provider, and it
   answers `503 Service Unavailable`
 
 #### Scenario: The environment holds no credential
 
 - **WHEN** the application starts, and no variable of the environment names a GitHub App
-- **THEN** the application starts, because no operation of the source control reads the environment
+- **THEN** the application starts, because no operation of the provider client reads the environment
 
 ### Requirement: One client for each provider
 
@@ -168,7 +168,7 @@ system SHALL build a client only when the map holds none for that provider.
 
 ## MODIFIED Requirements
 
-### Requirement: The operations of the source control
+### Requirement: The operations of the provider client
 
 The system SHALL give five operations behind one port. Every operation takes the credentials of a provider
 as its first parameter:
@@ -177,7 +177,7 @@ as its first parameter:
 2. List the branches of one repository.
 3. Resolve a reference — a branch, a tag or a commit — into its head commit.
 4. Download the source of a repository at a reference, as a gzipped tarball.
-5. Verify that the source control accepts the credentials.
+5. Verify that GitHub accepts the credentials.
 
 The system SHALL identify a repository by a number. The first two operations answer an HTTP request under
 the path of the provider. The next two serve the deployment, and they have no endpoint of their own. The
@@ -191,12 +191,12 @@ last one serves the test of a provider.
 #### Scenario: A caller verifies the credentials
 
 - **WHEN** a caller verifies the credentials of a provider
-- **THEN** the system asks the source control if the application answers, and it reports the result
+- **THEN** the system asks GitHub if the application answers, and it reports the result
 
 ### Requirement: List of the repositories
 
 The system SHALL answer with the repositories of one provider at
-`GET /api/v1/source-control/:providerId/repositories`.
+`GET /api/v1/providers/:providerId/repositories`.
 
 Each repository holds the number, the full name, the default branch and the state of the visibility.
 
@@ -219,7 +219,7 @@ Each repository holds the number, the full name, the default branch and the stat
 ### Requirement: List of the branches
 
 The system SHALL answer with the branches of one repository at
-`GET /api/v1/source-control/:providerId/repositories/:repositoryId/branches`.
+`GET /api/v1/providers/:providerId/repositories/:repositoryId/branches`.
 
 The identifier of the provider must be a UUID, and the identifier of the repository must be a whole number.
 Each branch holds only the name.
@@ -243,6 +243,6 @@ Each branch holds only the name.
 `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` and `GITHUB_APP_INSTALLATION_ID` go away.
 
 **Migration:** an operator registers the same GitHub App as a provider, with the script
-`scripts/import-github-app-provider.sh` or in the screen of the source control. The three requirements *The
+`scripts/import-github-app-provider.sh` or in the screen of the providers. The three requirements *The
 provider record*, *The credentials come from the record of the provider* and *One client for each provider*
 replace this one.

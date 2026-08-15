@@ -17,13 +17,13 @@ The system SHALL keep the control of the repository blocked until the user choos
 repository has no meaning without an account.
 
 When the user changes the provider, the system SHALL clear the repository and the branch. A repository
-identifier is global at the source control, and the access to it is not. Thus a pair that stays behind would
-name a repository that the new provider cannot reach.
+identifier is global at GitHub, and the access to it is not. Thus a pair that stays behind would name a
+repository that the new provider cannot reach.
 
 When the user changes the repository, the system SHALL clear the branch, because a branch of the old
 repository does not exist in the new one.
 
-If no provider exists, the system SHALL show an empty state with a link to `/source-control/add`, in place
+If no provider exists, the system SHALL show an empty state with a link to `/providers/add`, in place
 of the form.
 
 The system SHALL send the name of the service together with the four values, because the API asks for the
@@ -43,7 +43,7 @@ name in every change.
 #### Scenario: No provider exists
 
 - **WHEN** the installation holds no provider
-- **THEN** the tab shows an empty state with a link to `/source-control/add`, and it shows no form
+- **THEN** the tab shows an empty state with a link to `/providers/add`, and it shows no form
 
 #### Scenario: The change succeeds
 
