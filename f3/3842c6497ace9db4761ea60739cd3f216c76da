@@ -1,0 +1,217 @@
+apps/backend/src/app.module.ts
+  s_acf958e320f25a::t_510a90266cfa46 20,50
+apps/backend/src/core/ui/filters/__tests__/all-exceptions.filter.spec.ts
+  s_acf958e320f25a::t_af498cc86ac76d 274,471,625,634
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_acf958e320f25a::t_c982e95a42f74b 122-123,127-128,132-133,137-138,142-143
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_acf958e320f25a::t_fbbaed41f4bbe3 40-41,43,46-47
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_acf958e320f25a::t_c2ff64c8fdc25c 13-17,76,84,98,134,138,143,152,161,166,170,177,188
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_acf958e320f25a::t_0b6910e418f231 10-12,47,56,75,88,97,102,106,119,133,142,151,164,180,195,206,215
+apps/backend/src/features/deployments/application/create-deployment.use-case.ts
+  s_acf958e320f25a::t_481cd05e8b1b4b 12-17,23,33,39,41,59,69,86
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_acf958e320f25a::t_c3707368ada351 9-12,15,58,67,82
+apps/backend/src/features/deployments/deployments.module.ts
+  s_acf958e320f25a::t_6f41328605fced 15,24
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_acf958e320f25a::t_977eff1bb1907f 24-25,82,110,131,169,481,496,528,538,579
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_acf958e320f25a::t_3712c8d59902fa 20-21,62,73,88,212
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_acf958e320f25a::t_6ec7bbceb320a8 29-32,57-58,129
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_acf958e320f25a::t_eb802335f15348 19-22,36-37,100
+apps/backend/src/features/providers/application/__tests__/create-provider.use-case.spec.ts
+  s_acf958e320f25a::t_32604e83249752 1-136
+apps/backend/src/features/providers/application/__tests__/delete-provider.use-case.spec.ts
+  s_acf958e320f25a::t_5c5a7feae0d061 1-104
+apps/backend/src/features/providers/application/__tests__/find-provider-by-id.use-case.spec.ts
+  s_acf958e320f25a::t_cf758619985bff 1-79
+apps/backend/src/features/providers/application/__tests__/get-all-providers.use-case.spec.ts
+  s_acf958e320f25a::t_191bd37709e801 1-71
+apps/backend/src/features/providers/application/__tests__/get-provider-credentials.use-case.spec.ts
+  s_acf958e320f25a::t_e69bc0975317e1 1-73
+apps/backend/src/features/providers/application/__tests__/list-branches.use-case.spec.ts
+  s_acf958e320f25a::t_a9a3fa57544be0 1-52
+apps/backend/src/features/providers/application/__tests__/list-repositories.use-case.spec.ts
+  s_acf958e320f25a::t_9ef895da773d16 1-54
+apps/backend/src/features/providers/application/__tests__/update-provider.use-case.spec.ts
+  s_acf958e320f25a::t_2b8824750a91e1 1-205
+apps/backend/src/features/providers/application/create-provider.use-case.ts
+  s_acf958e320f25a::t_bd7c657dae9802 1-31
+apps/backend/src/features/providers/application/delete-provider.use-case.ts
+  s_acf958e320f25a::t_b73ec4045eb6de 1-23
+apps/backend/src/features/providers/application/find-provider-by-id.use-case.ts
+  s_acf958e320f25a::t_0f07ccb4352387 1-14
+apps/backend/src/features/providers/application/get-all-providers.use-case.ts
+  s_acf958e320f25a::t_0e5f175794a217 1-13
+apps/backend/src/features/providers/application/get-provider-credentials.use-case.ts
+  s_acf958e320f25a::t_b86a6efc54e2ae 1-26
+apps/backend/src/features/providers/application/list-branches.use-case.ts
+  s_acf958e320f25a::t_1cb4cb2a87f5ad 1-20
+apps/backend/src/features/providers/application/list-repositories.use-case.ts
+  s_acf958e320f25a::t_acd514c7a47f7a 1-18
+apps/backend/src/features/providers/application/update-provider.use-case.ts
+  s_acf958e320f25a::t_6e6f4125f148f1 1-41
+apps/backend/src/features/providers/domain/dtos/create-provider.dto.ts
+  s_acf958e320f25a::t_9624638b23398b 1-28
+apps/backend/src/features/providers/domain/dtos/update-provider.dto.ts
+  s_acf958e320f25a::t_0f946d9a09c0ea 1-34
+apps/backend/src/features/providers/domain/errors/__tests__/provider-client.errors.spec.ts
+  s_acf958e320f25a::t_69079c6119ead1 1-133
+apps/backend/src/features/providers/domain/errors/provider-client.errors.ts
+  s_acf958e320f25a::t_cf6a234029f643 1-66
+apps/backend/src/features/providers/domain/errors/provider.errors.ts
+  s_acf958e320f25a::t_f28c92d846b385 1-37
+apps/backend/src/features/providers/domain/models/git-branch.models.ts
+  s_acf958e320f25a::t_6a849f0bd35646 1-6
+apps/backend/src/features/providers/domain/models/git-commit.models.ts
+  s_acf958e320f25a::t_b44cd27833ad16 1-7
+apps/backend/src/features/providers/domain/models/git-repository.models.ts
+  s_acf958e320f25a::t_0fc0d61fea657c 1-9
+apps/backend/src/features/providers/domain/models/provider.models.ts
+  s_acf958e320f25a::t_33812d38a4283e 1-44
+apps/backend/src/features/providers/domain/ports/provider-client.port.ts
+  s_acf958e320f25a::t_3af33e90bc4cd8 1-59
+apps/backend/src/features/providers/domain/repositories/providers.repository.ts
+  s_acf958e320f25a::t_3ca0cbf3ccc61a 1-85
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.repository.spec.ts
+  s_acf958e320f25a::t_2d05ee49bfcc5c 1-405
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.transformer.spec.ts
+  s_acf958e320f25a::t_8d02750893e8b1 1-157
+apps/backend/src/features/providers/infrastructure/database/db-provider.entity.ts
+  s_acf958e320f25a::t_6f3646efb902aa 1-35
+apps/backend/src/features/providers/infrastructure/database/db-providers.repository.ts
+  s_acf958e320f25a::t_068dc8bca8428a 1-123
+apps/backend/src/features/providers/infrastructure/database/db-providers.transformer.ts
+  s_acf958e320f25a::t_0dbd83097ec76e 1-82
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.adapter.spec.ts
+  s_acf958e320f25a::t_649190496991ef 1-308
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.transformer.spec.ts
+  s_acf958e320f25a::t_d2327896064844 1-154
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.adapter.ts
+  s_acf958e320f25a::t_06decb745d7b54 1-184
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.transformer.ts
+  s_acf958e320f25a::t_8496b9d6e810e0 1-154
+apps/backend/src/features/providers/providers.module.ts
+  s_acf958e320f25a::t_f94a7d7e0827b1 1-30
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  s_acf958e320f25a::t_7dc14d3a327a88 1-533
+apps/backend/src/features/providers/ui/controllers/providers.controller.ts
+  s_acf958e320f25a::t_32b7a6fd685911 1-193
+apps/backend/src/features/providers/ui/services/providers.service.ts
+  s_acf958e320f25a::t_1a523ba7e71545 1-136
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_acf958e320f25a::t_4b091468b543ea 9
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.transformer.spec.ts
+  s_acf958e320f25a::t_4d4bb73b3b383a 5
+apps/backend/src/features/services/infrastructure/database/db-service.entity.ts
+  s_acf958e320f25a::t_65df67e479c448 4
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_acf958e320f25a::t_dfbc269a21ce83 7
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_acf958e320f25a::t_054bf769808efb 12
+apps/frontend/src/app/app.routes.ts
+  s_acf958e320f25a::t_0a70b81dc5fb7a 34,38-39,43,48
+apps/frontend/src/app/features/providers/application/describe-provider-failure.use-case.ts
+  s_acf958e320f25a::t_b1ba206ae5b3ad 1-39
+apps/frontend/src/app/features/providers/domain/dtos/create-provider.dto.ts
+  s_acf958e320f25a::t_bcc1a9408d345c 1-9
+apps/frontend/src/app/features/providers/domain/dtos/update-provider.dto.ts
+  s_acf958e320f25a::t_817b0f4630ddbd 1-12
+apps/frontend/src/app/features/providers/domain/models/git-branch.model.ts
+  s_acf958e320f25a::t_444895c8509d7a 1-6
+apps/frontend/src/app/features/providers/domain/models/git-repository.model.ts
+  s_acf958e320f25a::t_777ba4a9a613cf 1-9
+apps/frontend/src/app/features/providers/domain/models/provider.model.ts
+  s_acf958e320f25a::t_671d631c782688 1-26
+apps/frontend/src/app/features/providers/infrastructure/api/providers-api.repository.ts
+  s_acf958e320f25a::t_0da30d650035ae 1-117
+apps/frontend/src/app/features/providers/ui/components/provider-card/provider-card.component.html
+  s_acf958e320f25a::t_955cdea07302d7 1-92
+apps/frontend/src/app/features/providers/ui/components/provider-card/provider-card.component.ts
+  s_acf958e320f25a::t_98e56808b6b6b0 1-35
+apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.html
+  s_acf958e320f25a::t_318454aac4f5d7 1-65
+apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.spec.ts
+  s_acf958e320f25a::t_fe039fd88f9dcc 1-217
+apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.ts
+  s_acf958e320f25a::t_ff73134d39f713 1-110
+apps/frontend/src/app/features/providers/ui/containers/provider-add/provider-add.component.html
+  s_acf958e320f25a::t_25231762b2da5e 1
+apps/frontend/src/app/features/providers/ui/containers/provider-add/provider-add.component.spec.ts
+  s_acf958e320f25a::t_33d6eae9d13bdf 1-219
+apps/frontend/src/app/features/providers/ui/containers/provider-add/provider-add.component.ts
+  s_acf958e320f25a::t_1f1e742d75cb2d 1-58
+apps/frontend/src/app/features/providers/ui/containers/provider-edit/provider-edit.component.html
+  s_acf958e320f25a::t_9b03a26fe01f1a 1-13
+apps/frontend/src/app/features/providers/ui/containers/provider-edit/provider-edit.component.spec.ts
+  s_acf958e320f25a::t_a001f8afec4959 1-296
+apps/frontend/src/app/features/providers/ui/containers/provider-edit/provider-edit.component.ts
+  s_acf958e320f25a::t_62489bd736941b 1-80
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.html
+  s_acf958e320f25a::t_af045dea2fd386 1-44
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.spec.ts
+  s_acf958e320f25a::t_ff870e3bca6bb5 1-324
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.ts
+  s_acf958e320f25a::t_be213470569ea7 1-130
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.html
+  s_acf958e320f25a::t_3d0475b16b53c3 8,11
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.spec.ts
+  s_acf958e320f25a::t_4fe23db501dc43 8-11,121,266,274
+apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts
+  s_acf958e320f25a::t_fc89183dfafaae 4,24,32,51,56,61,105
+apps/frontend/src/app/layout/ui/components/sidebar/sidebar.component.ts
+  s_acf958e320f25a::t_17f4df0bfb7692 76-77
+apps/frontend/src/app/pages/providers/add/provider-add.component.html
+  s_acf958e320f25a::t_cfab5732d860f9 1-3
+apps/frontend/src/app/pages/providers/add/provider-add.component.ts
+  s_acf958e320f25a::t_a4cf8f6c40cf26 1-20
+apps/frontend/src/app/pages/providers/edit/provider-edit.component.html
+  s_acf958e320f25a::t_101330cce0067b 1-3
+apps/frontend/src/app/pages/providers/edit/provider-edit.component.ts
+  s_acf958e320f25a::t_dc20cee49c667a 1-20
+apps/frontend/src/app/pages/providers/list/providers-list.component.html
+  s_acf958e320f25a::t_5cc60ba44831eb 1-12
+apps/frontend/src/app/pages/providers/list/providers-list.component.ts
+  s_acf958e320f25a::t_bf67d421a7118e 1-18
+docs/backend-business/deployment-workflow.md
+  s_acf958e320f25a::t_f172f1770a5a75 3,11,20
+openspec/changes/source-control-providers/tasks.md
+  s_acf958e320f25a::t_365cc3c191a67b 111-118,122-127,131-133
+openspec/specs/auth/spec.md
+  s_acf958e320f25a::t_a16a27fedc2f8a 180,182-186,190-191,193-202
+openspec/specs/deployments/spec.md
+  s_acf958e320f25a::t_f7c08193323385 51,54-57,59-60,65-66,75-76,79,81-88,171-174,176,197-201
+openspec/specs/providers/spec.md
+  s_acf958e320f25a::t_bb472f9b37a375 1-294
+openspec/specs/services/spec.md
+  s_acf958e320f25a::t_4847f837ada8a9 15-16,18-21,27,74-77,81-82,85-90,97-102,105-106,113-115,117-118,128-129
+openspec/specs/web-service-detail/spec.md
+  s_acf958e320f25a::t_ffd24b07897849 60,64-65,71-77,81-84,87-92,98-102,105
+openspec/specs/web-providers-add/spec.md
+  s_acf958e320f25a::t_15e0a98814ad7b 1-62
+openspec/specs/web-providers-edit/spec.md
+  s_acf958e320f25a::t_31c679313cf7a1 1-55
+openspec/specs/web-providers-list/spec.md
+  s_acf958e320f25a::t_9ac24b79a14f64 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f33842c6497ace9db4761ea60739cd3f216c76da",
+  "prompts": {},
+  "sessions": {
+    "s_acf958e320f25a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2820e9b1-8004-4df6-9e39-95b4efe385a7",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
