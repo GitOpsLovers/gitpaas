@@ -1,7 +1,7 @@
 ## Purpose
 
-This capability gives the screen that lists the providers of the source control, at the route `/providers`.
-An operator registers a GitHub App here, and the services of the installation select it.
+This capability gives the screen that lists the providers of the source control, at the route
+`/source-control`. An operator registers a GitHub App here, and the services of the installation select it.
 
 ## ADDED Requirements
 

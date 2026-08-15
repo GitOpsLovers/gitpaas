@@ -8,13 +8,13 @@ import {
     ProviderInUseError,
     ProviderNameTakenError,
 } from '../../../domain/errors/provider.errors';
+import { GitBranch } from '../../../domain/models/git-branch.models';
+import { GitRepository } from '../../../domain/models/git-repository.models';
 import { Provider, ProviderType } from '../../../domain/models/provider.models';
 import { ProvidersService } from '../../services/providers.service';
 import { ProvidersController } from '../providers.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { GitBranch } from '@features/source-control/domain/models/git-branch.models';
-import { GitRepository } from '@features/source-control/domain/models/git-repository.models';
 
 const providerId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 

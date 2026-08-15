@@ -1,8 +1,7 @@
 import { GitBranch } from '../models/git-branch.models';
 import { GitCommit } from '../models/git-commit.models';
 import { GitRepository } from '../models/git-repository.models';
-
-import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
+import { ProviderCredentials } from '../models/provider.models';
 
 /**
  * Source control port

@@ -15,7 +15,6 @@ import { LogsModule } from '@features/logs/logs.module';
 import { NamespacesModule } from '@features/namespaces/namespaces.module';
 import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
-import { ProvidersModule } from '@features/providers/providers.module';
 import { ServerModule } from '@features/server/server.module';
 import { ServicesModule } from '@features/services/services.module';
 import { SourceControlModule } from '@features/source-control/source-control.module';
@@ -49,7 +48,6 @@ import { UsersModule } from '@features/users/users.module';
         NamespacesModule,
         ProjectsModule,
         SourceControlModule,
-        ProvidersModule,
         ServicesModule,
         DeploymentsModule,
         LogsModule,

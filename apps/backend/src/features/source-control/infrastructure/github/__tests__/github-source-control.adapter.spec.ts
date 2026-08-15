@@ -7,9 +7,8 @@ import {
     SourceControlResourceNotFoundError,
     SourceControlUnavailableError,
 } from '../../../domain/errors/source-control.errors';
+import { ProviderCredentials } from '../../../domain/models/provider.models';
 import { GithubSourceControlAdapter } from '../github-source-control.adapter';
-
-import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 
 const OctokitMock = Octokit as unknown as jest.Mock;
 

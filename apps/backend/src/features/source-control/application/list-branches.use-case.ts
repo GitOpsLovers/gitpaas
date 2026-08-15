@@ -1,7 +1,6 @@
 import { GitBranch } from '../domain/models/git-branch.models';
+import { ProviderCredentials } from '../domain/models/provider.models';
 import { SourceControl } from '../domain/ports/source-control.port';
-
-import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 
 /**
  * Use case that lists the branches of a repository.
