@@ -5,7 +5,7 @@
 Each user carries the role `admin` or the role `user`.
 
 The system SHALL restrict by the role only the write routes of the provider records, which the capability
-`source-control` holds. Every other endpoint stays open to each authenticated user, whatever the role.
+`providers` holds. Every other endpoint stays open to each authenticated user, whatever the role.
 
 The token carries the role. A guard reads it for those routes, and a later change can extend that guard to
 other routes.

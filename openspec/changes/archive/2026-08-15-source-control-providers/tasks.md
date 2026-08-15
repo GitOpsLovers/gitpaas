@@ -129,7 +129,7 @@ The word "provider" already names the table, the variable `PROVIDERS_ENCRYPTION_
 ### The verification
 
 - [x] 9.15 Rename the capability `openspec/specs/source-control/` to `openspec/specs/providers/`, and the three folders `web-source-control-*` to `web-providers-*`. **Note:** run this task after `/opsx:sync`, and not before.
-- [x] 9.16 Verify that a search for `source-control`, `sourceControl`, `SourceControl` and `Source Control` in `apps/backend/src/`, `apps/frontend/src/`, `docs/` and `openspec/specs/` gives nothing.
+- [x] 9.16 Verify that a search for `source-control`, `sourceControl`, `SourceControl` and `Source Control` in `apps/backend/src/`, `apps/frontend/src/`, `docs/` and `openspec/specs/` gives nothing. **Note:** the search of the task did not cover `openspec/changes/`, so the delta files kept the old word. A later run of `/opsx:update` renamed the four delta folders and corrected every stale route, every stale requirement title and the code `SOURCE_CONTROL_NOT_CONFIGURED`. The stale folder `openspec/specs/source-control/`, which the rename left behind, goes away after the archive.
 - [x] 9.17 Verify that the build of the backend, the build of the frontend and the whole suite of the tests pass.
 
 ## 10. The upgrade and the cleanup
