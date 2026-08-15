@@ -168,6 +168,17 @@ describe('ServicesService', () => {
             expect(result).toBe(service);
         });
 
+        it('creates a service from a dto that names no provider', async () => {
+            const dtoWithoutProvider: CreateServiceDto = { name: 'api-gateway', projectId };
+            const serviceWithoutProvider: Service = { ...service, providerId: null };
+            mockCreateServiceUseCase.mockResolvedValue(serviceWithoutProvider);
+
+            const result = await sut.create(dtoWithoutProvider);
+
+            expect(mockCreateServiceUseCase).toHaveBeenCalledWith(mockServicesRepository, dtoWithoutProvider);
+            expect(result).toBe(serviceWithoutProvider);
+        });
+
         it('propagates errors thrown by the use case', async () => {
             const error = new Error('name already taken');
             mockCreateServiceUseCase.mockRejectedValue(error);

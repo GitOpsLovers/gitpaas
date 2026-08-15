@@ -17,8 +17,8 @@ export class DbServiceEntity {
     @Column('uuid')
     public projectId!: string;
 
-    @Column('uuid')
-    public providerId!: string;
+    @Column({ type: 'uuid', nullable: true })
+    public providerId!: string | null;
 
     @Column({ type: 'text', default: '' })
     public repositoryId!: string;

@@ -120,6 +120,15 @@ describe('createDeploymentUseCase', () => {
         expect(mockQueue.enqueue).not.toHaveBeenCalled();
     });
 
+    it('throws ServiceNotDeployableError when the service names no provider', async () => {
+        mockServicesRepository.findById.mockResolvedValue({ ...service, providerId: null });
+
+        await expect(run()).rejects.toThrow(ServiceNotDeployableError);
+        expect(mockProvidersRepository.getCredentials).not.toHaveBeenCalled();
+        expect(mockPersistDeploymentUseCase).not.toHaveBeenCalled();
+        expect(mockQueue.enqueue).not.toHaveBeenCalled();
+    });
+
     it('resolves the head commit for the service repository and branch', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
         mockSourceControl.getCommit.mockResolvedValue(commit);

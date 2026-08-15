@@ -9,6 +9,7 @@ import { ServicesController } from '../services.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
+import { ProviderNotFoundError } from '@features/source-control/domain/errors/provider.errors';
 
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
@@ -148,6 +149,24 @@ describe('ServicesController', () => {
             mockServicesService.create.mockRejectedValue(error);
 
             await expect(sut.create(createDto)).rejects.toBe(error);
+        });
+
+        it('creates a service from a body that holds no provider', async () => {
+            const dtoWithoutProvider: CreateServiceDto = { name: 'api-gateway', projectId };
+            const serviceWithoutProvider: Service = { ...service, providerId: null };
+            mockServicesService.create.mockResolvedValue(serviceWithoutProvider);
+
+            const result = await sut.create(dtoWithoutProvider);
+
+            expect(mockServicesService.create).toHaveBeenCalledWith(dtoWithoutProvider);
+            expect(result).toBe(serviceWithoutProvider);
+        });
+
+        it('translates a ProviderNotFoundError into a NotFoundException', async () => {
+            mockServicesService.create.mockRejectedValue(new ProviderNotFoundError(providerId));
+
+            await expect(sut.create(createDto)).rejects.toBeInstanceOf(NotFoundException);
+            await expect(sut.create(createDto)).rejects.toThrow(`Provider ${providerId} not found`);
         });
 
         it('translates a ProjectNotFoundError into a NotFoundException', async () => {

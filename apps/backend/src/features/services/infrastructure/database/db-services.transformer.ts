@@ -58,7 +58,7 @@ export function toService(entity: DbServiceEntity): Service {
         id: entity.id,
         name: entity.name,
         projectId: entity.projectId,
-        providerId: entity.providerId,
+        providerId: entity.providerId ?? null,
         repositoryId: entity.repositoryId,
         deploymentBranch: entity.deploymentBranch,
         composerPath: entity.composerPath,

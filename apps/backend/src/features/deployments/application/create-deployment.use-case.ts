@@ -76,7 +76,7 @@ export async function createDeploymentUseCase(
         throw new ServiceNotFoundError(triggerDto.serviceId);
     }
 
-    if (!service.repositoryId || !service.deploymentBranch) {
+    if (!service.providerId || !service.repositoryId || !service.deploymentBranch) {
         throw new ServiceNotDeployableError();
     }
 

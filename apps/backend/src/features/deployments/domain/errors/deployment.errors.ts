@@ -5,7 +5,11 @@ import { DomainError } from '@core/domain/errors/domain.error';
  */
 export class ServiceNotDeployableError extends DomainError {
     constructor(options?: ErrorOptions) {
-        super('SERVICE_NOT_DEPLOYABLE', 'Service has no repository or deployment branch configured', options);
+        super(
+            'SERVICE_NOT_DEPLOYABLE',
+            'Service has no provider, repository or deployment branch configured',
+            options,
+        );
     }
 }
 

@@ -3,6 +3,7 @@
  */
 export interface UpdateServiceDto {
     name: string;
+    providerId?: string;
     repositoryId?: string;
     deploymentBranch?: string;
     composerPath?: string;

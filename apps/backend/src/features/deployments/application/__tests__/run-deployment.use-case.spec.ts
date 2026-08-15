@@ -124,6 +124,20 @@ describe('runDeploymentUseCase', () => {
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
     });
 
+    it('fails the run when the service names no provider', async () => {
+        mockServicesRepository.findById.mockResolvedValue({ ...service, providerId: null });
+
+        await run();
+
+        expect(mockProvidersRepository.getCredentials).not.toHaveBeenCalled();
+        expect(mockSourceControl.getRepositoryArchive).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: 'Service has no provider, repository or deployment branch configured',
+        });
+        expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
+    });
+
     it('brings the stack up with the archive, compose path, project name and a log listener', async () => {
         mockSourceControl.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);

@@ -1,3 +1,4 @@
+import { ServiceNotDeployableError } from '../domain/errors/deployment.errors';
 import { DeploymentRunTask } from '../domain/models/deployment-run-task.models';
 import { DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
@@ -21,6 +22,7 @@ import { ProvidersRepository } from '@features/source-control/domain/repositorie
  * @returns Credentials of the provider of the service
  *
  * @throws ServiceNotFoundError When the deployment or its service no longer exists
+ * @throws ServiceNotDeployableError When the service names no provider
  * @throws ProviderNotFoundError When the provider of the service no longer exists
  */
 async function loadCredentials(
@@ -34,6 +36,10 @@ async function loadCredentials(
 
     if (!service) {
         throw new ServiceNotFoundError(deployment?.serviceId ?? deploymentId);
+    }
+
+    if (!service.providerId) {
+        throw new ServiceNotDeployableError();
     }
 
     return getProviderCredentialsUseCase(providersRepository, service.providerId);

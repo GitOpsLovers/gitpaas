@@ -48,6 +48,33 @@ describe('toService', () => {
             composerPath: '',
         });
     });
+
+    it('gives a null provider when the service names none', () => {
+        const entity: DbServiceEntity = {
+            id: 's-3',
+            name: 'worker',
+            projectId: 'p-3',
+            providerId: null,
+            repositoryId: '',
+            deploymentBranch: '',
+            composerPath: '',
+        };
+
+        expect(toService(entity).providerId).toBeNull();
+    });
+
+    it('gives a null provider when the column carries no value at all', () => {
+        const entity = {
+            id: 's-4',
+            name: 'worker',
+            projectId: 'p-4',
+            repositoryId: '',
+            deploymentBranch: '',
+            composerPath: '',
+        } as unknown as DbServiceEntity;
+
+        expect(toService(entity).providerId).toBeNull();
+    });
 });
 
 describe('toServicePersistenceError', () => {

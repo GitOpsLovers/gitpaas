@@ -162,7 +162,7 @@ describe('DeploymentsController', () => {
 
             await expect(sut.create(triggerDto)).rejects.toBeInstanceOf(BadRequestException);
             await expect(sut.create(triggerDto)).rejects.toThrow(
-                'Service has no repository or deployment branch configured',
+                'Service has no provider, repository or deployment branch configured',
             );
         });
     });

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 /**
  * Data transfer object for creating a new service
@@ -12,7 +12,7 @@ export class CreateServiceDto {
     @IsNotEmpty()
     public projectId!: string;
 
+    @IsOptional()
     @IsUUID()
-    @IsNotEmpty()
-    public providerId!: string;
+    public providerId?: string;
 }

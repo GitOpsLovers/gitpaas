@@ -62,13 +62,19 @@ client for each account.
 **Alternative that the change does not take:** a factory that builds a client for each call. It is simpler,
 and it loses the reuse of the connection and the token of the installation, which Octokit caches.
 
-**5. A service points at exactly one provider.**
-`services."providerId"` is `NOT NULL` with `ON DELETE RESTRICT`. A provider that still holds services
-cannot be removed. This copies the rule of the namespaces.
+**5. A service points at one provider at most.**
+`services."providerId"` allows an empty value, and it keeps `ON DELETE RESTRICT`. A provider that still
+holds services cannot be removed, which copies the rule of the namespaces. The screen of the creation gives
+only the name and the project, so a new service starts with no provider. The tab "Provider" sets the
+provider, the identifier of the repository and the branch together, and the service becomes deployable at
+that moment.
 
-**Alternative that the change does not take:** a provider by default at the level of the installation, with
-`providerId` allowed to be empty. It keeps the upgrade simpler, and it brings back the hidden global
-account that this change removes.
+A deployment refuses a service that names no provider, in the same way that it refuses a service with no
+identifier of a repository.
+
+**Alternative that the change does not take:** a column `NOT NULL`. It states the rule in the schema, and it
+forces the screen of the creation to hold a select of the provider. That select needs a second change of the
+capability `web-service-add`, and this change keeps the creation at one field.
 
 **6. The field `type` prepares the next kind of provider.**
 The column holds `github_app` today. GitLab becomes a new value and a new adapter, with no change of the
@@ -129,9 +135,10 @@ The recovery is to register the Apps again. The summary of the installer must st
 access is not. The screen must clear the repository when the provider changes, and the backend must refuse
 a deployment whose provider cannot reach the stored repository, with a message that names the two.
 
-**4. The order of the migrations.** Migration 011 makes `providerId` obligatory. An installation that holds
-services and no provider fails that migration. The upgrade must create the provider first. The release notes
-must state the sequence.
+**4. A service that the upgrade leaves without a provider.** Migration 011 fills `providerId` from the
+single provider. An installation with no provider, or with several providers, keeps that column empty. Those
+services stop being deployable, and the operator must open each one and set its provider. The release notes
+must state this step.
 
 **5. A larger signature of the port.** Every method of `SourceControl` takes one more parameter. The change
 is mechanical, and the compiler finds each place that calls it.

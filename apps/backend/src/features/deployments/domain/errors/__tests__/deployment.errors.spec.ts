@@ -21,7 +21,7 @@ describe('ServiceNotDeployableError', () => {
 
     it('explains what the service is missing', () => {
         expect(new ServiceNotDeployableError().message)
-            .toBe('Service has no repository or deployment branch configured');
+            .toBe('Service has no provider, repository or deployment branch configured');
     });
 
     it('chains the original error through the cause option', () => {
