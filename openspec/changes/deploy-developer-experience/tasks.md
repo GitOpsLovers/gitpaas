@@ -45,7 +45,7 @@
 - [ ] 5.2 Add the action that deploys the commit of an entry again, and hide it on an entry that holds no commit.
 - [ ] 5.3 Show the state of the webhook in the tab of the provider, with the actions that turn it on and off.
 - [ ] 5.4 Hide the action that turns the webhook on when the service is not deployable.
-- [ ] 5.5 Create the specs of the tab, one per scenario of the delta of `web-service-detail`.
+- [ ] 5.5 Create the specs of the tab, one per scenario of the deltas of `deployments` and of `providers`.
 
 ## 6. The gaps that this change leaves
 

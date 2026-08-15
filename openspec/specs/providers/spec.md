@@ -5,7 +5,9 @@
 This capability keeps the providers of the operator, and it reads the Git repositories through them. A
 provider holds the credentials of one GitHub App. The capability lists the repositories and the branches for
 the user interface, and it gives the commit and the source archive that a deployment needs. GitHub is the
-one kind of provider at this time.
+one kind of provider at this time. It also gives the screens of the providers: the list at the route
+`/providers`, the registration at `/providers/add` and the change at `/providers/edit/:id`. A provider is a
+GitHub App that the services of the installation use to reach their repositories.
 
 ## Requirements
 
@@ -292,3 +294,229 @@ The system SHALL record the duration of each call to the provider, and it SHALL 
 
 - **WHEN** a call to the provider succeeds or fails
 - **THEN** the system records the duration of that call, and it marks the failure if one occurred
+
+### Requirement: The four states of the screen
+
+The system SHALL show one of four states:
+
+1. **The reading runs.** The screen says "Loading providers…".
+2. **The reading failed.** The screen shows a red panel that says "Could not load providers. Is the backend
+   running?".
+3. **The list holds providers.** The screen shows one card per provider, in a grid.
+4. **The list is empty.** The screen shows a panel with a dotted border, and a button that opens the screen
+   of the creation.
+
+#### Scenario: The list is empty
+
+- **WHEN** the API answers with an empty list
+- **THEN** the screen shows the panel "No providers yet." with the button "Register your first provider"
+
+#### Scenario: The reading fails
+
+- **WHEN** the call of the API fails
+- **THEN** the screen shows the red panel with the question about the backend
+
+### Requirement: The content of a card
+
+Each card SHALL show the name, a mark of the type, the identifier of the application, the fingerprint of the
+key and the state of the connection.
+
+The card SHALL NOT show the private key, because the API never gives it.
+
+#### Scenario: The user reads a card
+
+- **WHEN** the screen shows a provider
+- **THEN** the card holds the name, the mark of the type, the identifier of the application and the
+  fingerprint of the key, and it holds no private key
+
+### Requirement: The test of the connection
+
+Each card SHALL give an action that tests the credentials of the provider.
+
+While the test runs, the card shows the state of the work. After the test, the card shows the result.
+
+#### Scenario: The test succeeds
+
+- **WHEN** the user tests a provider, and the API answers that the credentials operate
+- **THEN** the card shows a state of success
+
+#### Scenario: The test fails
+
+- **WHEN** the API answers that the credentials do not operate
+- **THEN** the card shows a state of failure
+
+### Requirement: The removal of a provider
+
+The system SHALL ask the user to confirm before it removes a provider.
+
+The question carries the title "Delete provider?" and a message that names the provider between marks of
+quotation, and that says that the action has no way back.
+
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
+again.
+
+#### Scenario: The removal succeeds
+
+- **WHEN** the user confirms the removal, and the API answers `204`
+- **THEN** the system shows the message "Provider deleted", and it reads the list again
+
+#### Scenario: The provider still holds services
+
+- **WHEN** the API refuses the removal, because a service still points at the provider
+- **THEN** the system shows a message of failure that says that services still use the provider
+
+### Requirement: The fields of the form
+
+The system SHALL show a form with four controls:
+
+| Control | Kind | Obligatory |
+|---|---|---|
+| The name | A field of text | Yes |
+| The identifier of the application | A field of text | Yes |
+| The identifier of the installation | A field of text | Yes |
+| The private key | A field of several lines, for the PEM | Yes |
+
+The type of the provider is `github_app`, and the form does not ask for it, because it is the one kind of
+today.
+
+#### Scenario: The user opens the screen
+
+- **WHEN** a signed-in user opens `/providers/add`
+- **THEN** the system shows the four empty controls
+
+### Requirement: The check before the call
+
+The system SHALL remove the empty places at the two ends of each field of text.
+
+If one obligatory field is empty after that, the system SHALL do nothing. It sends no call.
+
+#### Scenario: A field is empty
+
+- **WHEN** the user sends the form, and one of the four fields is empty
+- **THEN** the system does nothing, and the user stays on the screen
+
+### Requirement: The end of the registration
+
+If the API accepts the provider, the system SHALL show a message of success that names it, and it SHALL open
+the list at `/providers`.
+
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
+same screen. The form SHALL keep the values that the user gave, including the PEM.
+
+#### Scenario: The registration succeeds
+
+- **WHEN** the API answers with the new provider
+- **THEN** the system shows the message "Provider created" with the name, and it opens `/providers`
+
+#### Scenario: The name is already in use
+
+- **WHEN** the API refuses the creation, because another provider carries that name
+- **THEN** the system shows a message of failure, and the user stays on the screen with the values in the
+  form
+
+#### Scenario: The user has no role of administrator
+
+- **WHEN** the API answers `403 Forbidden`, because the user carries the role `user`
+- **THEN** the system shows a message that says that the action needs an administrator
+
+### Requirement: The load of the provider
+
+The system SHALL read the provider of the path, and it SHALL put the name, the identifier of the application
+and the identifier of the installation into the form.
+
+The field of the private key SHALL stay empty, because the API never gives the key.
+
+#### Scenario: The provider arrives
+
+- **WHEN** the API answers with the provider
+- **THEN** the system fills the three fields of text, and it leaves the field of the key empty
+
+### Requirement: An empty key keeps the stored key
+
+The help text of the field of the key SHALL state that an empty field keeps the stored key.
+
+If the user leaves the field empty, the system SHALL send no key, and the API keeps the stored one. If the
+user gives a key, the system SHALL send it, and the API replaces the stored one.
+
+#### Scenario: The user leaves the key empty
+
+- **WHEN** the user sends the form with an empty field of the key
+- **THEN** the system sends the other fields only, and the stored key stays
+
+#### Scenario: The user gives a new key
+
+- **WHEN** the user writes a new PEM into the field of the key
+- **THEN** the system sends the new key, and the API replaces the stored one
+
+### Requirement: The end of the change
+
+If the API accepts the change, the system SHALL show a message of success that names the provider, and it
+SHALL open the list at `/providers`.
+
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
+same screen.
+
+#### Scenario: The change succeeds
+
+- **WHEN** the API answers with the changed provider
+- **THEN** the system shows the message "Provider updated" with the name, and it opens `/providers`
+
+#### Scenario: The change fails
+
+- **WHEN** the API refuses the change
+- **THEN** the system shows a message of failure, and the user stays on the screen
+
+### Requirement: The tab "Provider" configures the source
+
+The tab `provider` SHALL give a form with four controls, in this order:
+
+| Control | Kind |
+|---|---|
+| The provider | A list of the registered providers |
+| The repository | A list of the repositories that the chosen provider can reach |
+| The branch | A list of the branches of the chosen repository |
+| The path of the compose file | A field of text |
+
+The system SHALL show `docker-compose.yml` as the path if the service holds no path.
+
+The system SHALL keep the control of the repository blocked until the user chooses a provider, because a
+repository has no meaning without an account.
+
+When the user changes the provider, the system SHALL clear the repository and the branch. A repository
+identifier is global at GitHub, and the access to it is not. Thus a pair that stays behind would name a
+repository that the new provider cannot reach.
+
+When the user changes the repository, the system SHALL clear the branch, because a branch of the old
+repository does not exist in the new one.
+
+If no provider exists, the system SHALL show an empty state with a link to `/providers/add`, in place
+of the form.
+
+The system SHALL send the name of the service together with the four values, because the API asks for the
+name in every change.
+
+#### Scenario: The user chooses a provider
+
+- **WHEN** the user chooses a provider
+- **THEN** the system reads the repositories of that provider, it opens the control of the repository, and
+  it clears the repository and the branch of the form
+
+#### Scenario: The user chooses a repository
+
+- **WHEN** the user chooses a repository
+- **THEN** the system reads the branches of that repository, and it clears the branch of the form
+
+#### Scenario: No provider exists
+
+- **WHEN** the installation holds no provider
+- **THEN** the tab shows an empty state with a link to `/providers/add`, and it shows no form
+
+#### Scenario: The change succeeds
+
+- **WHEN** the API accepts the four values
+- **THEN** the system writes the answer into the screen, and it shows the message "Provider settings saved"
+
+#### Scenario: The change fails
+
+- **WHEN** the API refuses the change
+- **THEN** the system shows the message "Could not save provider settings", and the form keeps the values

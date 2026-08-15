@@ -43,3 +43,8 @@ The runner SHALL NOT write the value of a secret into the log.
 - **WHEN** the system cannot decrypt a secret of the service, because the key of the encryption changed
 - **THEN** the run fails with a message that names the variable, and it starts no stack with a value that is
   missing
+
+#### Scenario: The provider went away
+
+- **WHEN** the runner cannot load the credentials of the provider of the service
+- **THEN** the run fails with a message that names the provider, and the deployment gets the status `failed`

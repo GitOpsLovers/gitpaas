@@ -5,7 +5,11 @@
 This capability holds the deployable units of the platform. A service belongs to one project, and it
 points to a Git repository, to a deployment branch and to a compose file. This capability gives the
 operations that read, create, change and remove a service, and it removes the resources of the server
-when a service goes away.
+when a service goes away. It also gives the screens of the services of one project: the creation at the
+route `/namespaces/:namespaceId/projects/:id/services/add`, the change of the name at
+`/namespaces/:namespaceId/projects/:id/services/edit/:serviceId` and the detail at
+`/namespaces/:namespaceId/projects/:id/services/:serviceId/:tab`, which is the screen where the operator
+configures the source of the service, starts a deployment, and reads the output of a run.
 
 ## Requirements
 
@@ -170,3 +174,161 @@ them.
 
 - **WHEN** a client deletes an available service that holds no deployment
 - **THEN** the system removes the record, it cleans the resources of the server, and it answers `204`
+
+### Requirement: The field of the form
+
+The system SHALL show a form with one field: the name of the service. The system SHALL take the identifiers
+of the namespace and of the project from the path.
+
+The form asks for no repository, for no branch and for no path of the compose file. A new service is
+therefore not deployable. The user gives those three values later, in the tab "Provider" of the detail of
+the service. See the requirement *The tab "Provider" configures the source* of the capability `providers`.
+
+#### Scenario: The user opens the screen
+
+- **WHEN** a signed-in user opens the screen
+- **THEN** the system shows one field for the name, and no other field
+
+### Requirement: The trail of the navigation
+
+The system SHALL show a trail with three parts: the projects of the namespace, the name of the project and
+the words "Add service".
+
+Until the name of the project arrives from the API, the second part shows the word "Project".
+
+#### Scenario: The name of the project is not yet available
+
+- **WHEN** the screen opens, and the call that reads the project still runs
+- **THEN** the trail shows the word "Project" in the second part
+
+### Requirement: The check before the creation
+
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
+system SHALL do nothing.
+
+#### Scenario: The name is empty
+
+- **WHEN** the user sends the form with an empty name
+- **THEN** the system does nothing, and the user stays on the screen
+
+### Requirement: The end of the creation
+
+If the API accepts the name, the system SHALL show a message of success that names the new service, and it
+SHALL open the detail of the project.
+
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
+same screen.
+
+#### Scenario: The creation succeeds
+
+- **WHEN** the API answers with the new service
+- **THEN** the system shows the message "Service created" with the name, and it opens the detail of the
+  project
+
+#### Scenario: The creation fails
+
+- **WHEN** the API refuses the creation
+- **THEN** the system shows the message "Could not create service", and the user stays on the screen
+
+### Requirement: The screen changes only the name
+
+The system SHALL show a form with one field: the name of the service.
+
+The screen changes no other value. The user gives the repository, the branch and the path of the compose
+file in the tab "Provider" of the detail of the service. See the requirement *The tab "Provider" configures
+the source* of the capability `providers`.
+
+#### Scenario: The user opens the screen
+
+- **WHEN** a signed-in user opens the screen
+- **THEN** the system shows one field for the name, and no other field
+
+### Requirement: The load of the service
+
+The system SHALL read the service of the path, and it SHALL put the name into the field.
+
+#### Scenario: The service arrives
+
+- **WHEN** the API answers with the service
+- **THEN** the system puts the name of that service into the field
+
+#### Scenario: The reading still runs
+
+- **WHEN** the user opens the screen, and the call of the API still runs
+- **THEN** the field stays empty until the name arrives
+
+### Requirement: The check before the change
+
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
+system SHALL do nothing.
+
+#### Scenario: The name is empty
+
+- **WHEN** the user sends the form with an empty name
+- **THEN** the system does nothing, and the user stays on the screen
+
+### Requirement: The end of the change
+
+If the API accepts the change, the system SHALL show a message of success that names the service, and it
+SHALL open the detail of the project.
+
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
+same screen.
+
+#### Scenario: The change succeeds
+
+- **WHEN** the API answers with the changed service
+- **THEN** the system shows the message "Service updated" with the name, and it opens the detail of the
+  project
+
+#### Scenario: The change fails
+
+- **WHEN** the API refuses the change
+- **THEN** the system shows the message "Could not update service", and the user stays on the screen
+
+### Requirement: The six tabs of the screen
+
+The system SHALL show six tabs, in this order: `general`, `provider`, `deployments`, `containers`,
+`network` and `logs`.
+
+The path holds the tab. A path that names no tab opens `general`. A path that names an unknown tab also
+shows `general`.
+
+When the user chooses a tab, the system SHALL open the path of that tab. Thus the address of the browser
+always names the tab that the screen shows.
+
+#### Scenario: The path names no tab
+
+- **WHEN** the user opens the service without a tab in the path
+- **THEN** the system opens the path of the tab `general`
+
+#### Scenario: The path names an unknown tab
+
+- **WHEN** the path holds a word that no tab carries
+- **THEN** the system shows the tab `general`
+
+#### Scenario: The user chooses a tab
+
+- **WHEN** the user chooses a tab
+- **THEN** the system opens the path of that tab, and the screen shows it
+
+### Requirement: The tab "General" starts a deployment
+
+The tab `general` SHALL give one action: start a deployment of the service.
+
+When the user starts a deployment, the system SHALL open the tab `deployments` immediately, before the
+answer of the API arrives. Thus the user sees the history while the new deployment starts.
+
+The system SHALL block the action while the call runs.
+
+#### Scenario: The deployment starts
+
+- **WHEN** the user starts a deployment, and the API accepts it
+- **THEN** the system opens the tab `deployments`, it reads the history again, and it shows the message
+  "Deployment started"
+
+#### Scenario: The deployment cannot start
+
+- **WHEN** the API refuses the deployment, for example because the service is not deployable
+- **THEN** the system shows the message "Could not start deployment", and the screen stays on the tab
+  `deployments`

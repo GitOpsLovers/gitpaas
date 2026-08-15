@@ -36,7 +36,7 @@
 - [ ] 4.5 Give the actions that set, change and remove a variable.
 - [ ] 4.6 State that a change takes effect at the next deployment, and that a variable reaches the containers and not the build.
 - [ ] 4.7 Show which rule a name breaks, when the API refuses it.
-- [ ] 4.8 Create the specs of the tab, one per scenario of the delta of `web-service-detail`.
+- [ ] 4.8 Create the specs of the tab, one per scenario of the delta of `services`.
 
 ## 5. The documentation and the release
 
@@ -46,4 +46,4 @@
 
 ## 6. The order against the other change
 
-- [ ] 6.1 If `app-public-urls` landed first, re-sync the delta of `web-service-detail` against the main specification that it wrote, so the list of the tabs holds the tab of the domains and the tab of the variables.
+- [ ] 6.1 If `app-public-urls` landed first, re-sync the delta of `services` against the main specification that it wrote, so the list of the tabs holds the tab of the domains and the tab of the variables.

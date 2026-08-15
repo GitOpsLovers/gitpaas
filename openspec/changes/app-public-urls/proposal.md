@@ -35,7 +35,7 @@ itself.
 
 - `deployments`: the run writes the configuration of the routing of the service before it starts the stack,
   and it removes that configuration when a service goes away.
-- `web-service-detail`: a tab manages the domains of the service.
+- `services`: a tab manages the domains of the service.
 
 ## Impact
 

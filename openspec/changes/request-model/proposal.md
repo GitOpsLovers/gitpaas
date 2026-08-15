@@ -55,9 +55,8 @@ backend validates with it, and the frontend derives its types from it.
 ### Modified Capabilities
 
 - `logs`: the stream declares three kinds of event, and the client parses them against the schema instead of
-  a cast. This closes the live defect of the window of the output.
-- `web-service-detail`: the window of the output shows the code and the safe message of an `error` event, in
-  place of a status that is not defined.
+  a cast. This closes the live defect of the window of the output. The window of the output shows the code
+  and the safe message of an `error` event, in place of a status that is not defined.
 - `services`: the specification records the true optionality of the three fields of the deployment, which
   the two applications describe in opposite ways today.
 - `auth`: the shape of the profile of the user gets one name, and the hash of the password enters no shape

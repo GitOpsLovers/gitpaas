@@ -38,8 +38,8 @@ one owner, which `design.md` sets out.
 - `users`: an administrator creates, changes and deactivates a user through the API. The rule that no
   endpoint creates a user goes away.
 - `namespaces`: a namespace holds an owner, and the list gives only the namespaces of the user.
-- `deployments`: the record holds the user who triggered the run, in place of the fixed text `system`.
-- `web-service-detail`: the list of the deployments shows the user who triggered each one.
+- `deployments`: the record holds the user who triggered the run, in place of the fixed text `system`, and
+  the list of the deployments shows the user who triggered each one.
 
 ## Impact
 

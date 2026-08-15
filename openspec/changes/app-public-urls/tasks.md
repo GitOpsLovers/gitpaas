@@ -43,7 +43,7 @@
 - [ ] 5.4 Give the action that claims a domain, and the action that removes one.
 - [ ] 5.5 Say that a domain that the operator just claimed answers after the next deployment.
 - [ ] 5.6 Show the message of the domain that another service holds, when the API answers `409`.
-- [ ] 5.7 Create the specs of the tab, one per scenario of the delta of `web-service-detail`.
+- [ ] 5.7 Create the specs of the tab, one per scenario of the delta of `services`.
 
 ## 6. The documentation
 

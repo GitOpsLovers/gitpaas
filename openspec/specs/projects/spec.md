@@ -4,7 +4,11 @@
 
 This capability groups the services of the platform. A project belongs to one namespace, and it holds a
 set of services. It sits between the namespace and the service in the domain model, and every endpoint of
-this capability lives under the path of its namespace.
+this capability lives under the path of its namespace. It also gives the screens of the projects of one
+namespace: the list at the route `/namespaces/:namespaceId/projects`, the creation at
+`/namespaces/:namespaceId/projects/add`, the change of the name at
+`/namespaces/:namespaceId/projects/edit/:id` and the detail at `/namespaces/:namespaceId/projects/:id`,
+which shows the services of the project.
 
 ## Requirements
 
@@ -149,3 +153,232 @@ before the removal, so a project that holds services goes away with them.
 
 - **WHEN** a client deletes a UUID that matches no project of that namespace
 - **THEN** the system raises `PROJECT_NOT_FOUND`, and it answers `404 Not Found`
+
+### Requirement: The screen belongs to one namespace
+
+The system SHALL take the identifier of the namespace from the path, and it SHALL read only the projects of
+that namespace.
+
+Every link of the screen carries the same identifier of the namespace.
+
+#### Scenario: The user opens the screen
+
+- **WHEN** a signed-in user opens the projects of a namespace
+- **THEN** the system reads the projects of that namespace only
+
+### Requirement: The four states of the screen
+
+The system SHALL show one of four states:
+
+1. **The reading runs.** The screen says "Loading projects…".
+2. **The reading failed.** The screen shows a red panel that says "Could not load projects. Is the backend
+   running?".
+3. **The list holds projects.** The screen shows one card per project, in a grid.
+4. **The list is empty.** The screen shows a panel with a dotted border that says "No projects yet.", and a
+   button that opens the screen of the creation.
+
+#### Scenario: The reading fails
+
+- **WHEN** the call of the API fails
+- **THEN** the screen shows the red panel with the question about the backend
+
+#### Scenario: The list is empty
+
+- **WHEN** the API answers with an empty list
+- **THEN** the screen shows the panel "No projects yet." with the button "Create your first project"
+
+### Requirement: The actions of a card
+
+Each card SHALL give three actions:
+
+| Action | Result |
+|---|---|
+| View | Opens the detail of the project |
+| Edit | Opens the change of the project |
+| Delete | Opens the question before the removal |
+
+#### Scenario: The user chooses "View"
+
+- **WHEN** the user chooses "View" on a card
+- **THEN** the system opens the detail of that project, inside the same namespace
+
+### Requirement: The removal of a project
+
+The system SHALL ask the user to confirm before it removes a project.
+
+The question carries the title "Delete project?" and a message that names the project between marks of
+quotation, and that says that the action has no way back.
+
+The message SHALL NOT say that the removal also removes the services of the project. The API removes them
+by the cascade. See the requirement *Removal of a project*.
+
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
+again.
+
+#### Scenario: The removal succeeds
+
+- **WHEN** the user confirms the removal, and the API answers `204`
+- **THEN** the system shows the message "Project deleted", and it reads the list again
+
+#### Scenario: The removal fails
+
+- **WHEN** the call of the removal fails
+- **THEN** the system shows the message "Could not delete project", and it keeps the list as it is
+
+#### Scenario: The project holds services
+
+- **WHEN** the user removes a project that holds services
+- **THEN** the question warns about the project only, and the services go away with it
+
+### Requirement: The field of the form
+
+The system SHALL show a form with one field: the name of the project. The system SHALL take the identifier
+of the namespace from the path, and the user does not give it.
+
+#### Scenario: The user opens the screen
+
+- **WHEN** a signed-in user opens the screen
+- **THEN** the system shows an empty field for the name
+
+### Requirement: The check before the creation
+
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
+system SHALL do nothing.
+
+#### Scenario: The name is empty
+
+- **WHEN** the user sends the form with an empty name
+- **THEN** the system does nothing, and the user stays on the screen
+
+### Requirement: The end of the creation
+
+If the API accepts the name, the system SHALL show a message of success that names the new project, and it
+SHALL open the list of the projects of that namespace.
+
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
+same screen.
+
+The name of a project must be unique inside its namespace. See the requirement *The name of a project is
+unique inside its namespace*. The screen shows the same message of failure for that reason and for any
+other.
+
+#### Scenario: The creation succeeds
+
+- **WHEN** the API answers with the new project
+- **THEN** the system shows the message "Project created" with the name, and it opens the list of the
+  projects
+
+#### Scenario: The name is already in use
+
+- **WHEN** the API refuses the creation, because another project of the namespace carries that name
+- **THEN** the system shows the message "Could not create project", and the user stays on the screen
+
+### Requirement: The load of the project
+
+The system SHALL read the project of the path, and it SHALL put the name into the field.
+
+#### Scenario: The project arrives
+
+- **WHEN** the API answers with the project
+- **THEN** the system puts the name of that project into the field
+
+#### Scenario: The reading still runs
+
+- **WHEN** the user opens the screen, and the call of the API still runs
+- **THEN** the field stays empty until the name arrives
+
+### Requirement: The check before the change
+
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
+system SHALL do nothing.
+
+#### Scenario: The name is empty
+
+- **WHEN** the user sends the form with an empty name
+- **THEN** the system does nothing, and the user stays on the screen
+
+### Requirement: The end of the change
+
+If the API accepts the change, the system SHALL show a message of success that names the project, and it
+SHALL open the list of the projects of that namespace.
+
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
+same screen.
+
+#### Scenario: The change succeeds
+
+- **WHEN** the API answers with the changed project
+- **THEN** the system shows the message "Project updated" with the name, and it opens the list of the
+  projects
+
+#### Scenario: The change fails
+
+- **WHEN** the API refuses the change, for example because another project of the namespace carries that
+  name
+- **THEN** the system shows the message "Could not update project", and the user stays on the screen
+
+### Requirement: The content of the screen
+
+The system SHALL show the trail of the navigation and the list of the services of the project.
+
+The trail holds three parts: the namespaces, the projects of the namespace and the name of the project.
+Until the name arrives from the API, the last part shows the word "Project".
+
+#### Scenario: The user opens the screen
+
+- **WHEN** a signed-in user opens the detail of a project
+- **THEN** the system shows the trail and the list of the services of that project
+
+### Requirement: The four states of the list of the services
+
+The system SHALL show one of four states:
+
+1. **The reading runs.** The screen says "Loading services…".
+2. **The reading failed.** The screen shows a red panel that says "Could not load services. Is the backend
+   running?".
+3. **The list holds services.** The screen shows one card per service, in a grid.
+4. **The list is empty.** The screen shows a panel with a dotted border that says "No services yet.", and a
+   button that opens the screen of the creation.
+
+#### Scenario: The list is empty
+
+- **WHEN** the project holds no service
+- **THEN** the screen shows the panel "No services yet." with the button "Create your first service"
+
+### Requirement: The actions of a card of a service
+
+Each card SHALL give three actions:
+
+| Action | Result |
+|---|---|
+| View | Opens the detail of the service |
+| Edit | Opens the change of the name of the service |
+| Delete | Opens the question before the removal |
+
+#### Scenario: The user chooses "View"
+
+- **WHEN** the user chooses "View" on a card
+- **THEN** the system opens the detail of that service
+
+### Requirement: The removal of a service
+
+The system SHALL ask the user to confirm before it removes a service.
+
+The question carries the title "Delete service?" and a message that names the service between marks of
+quotation, and that says that the action has no way back.
+
+The message SHALL NOT say that the removal also removes the containers, the networks and the images of the
+service on the server. See the capability `services`.
+
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
+again.
+
+#### Scenario: The removal succeeds
+
+- **WHEN** the user confirms the removal, and the API answers `204`
+- **THEN** the system shows the message "Service deleted", and it reads the list again
+
+#### Scenario: The removal fails
+
+- **WHEN** the call of the removal fails
+- **THEN** the system shows the message "Could not delete service", and it keeps the list as it is

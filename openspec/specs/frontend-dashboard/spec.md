@@ -1,4 +1,4 @@
-# web-dashboard Specification
+# frontend-dashboard Specification
 
 ## Purpose
 

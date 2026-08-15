@@ -29,7 +29,7 @@ value or as a secret. The system encrypts a secret at rest and never gives it ba
 ### Modified Capabilities
 
 - `deployments`: the run injects the variables of the service into the stack that it starts.
-- `web-service-detail`: a tab manages the variables of the service.
+- `services`: a tab manages the variables of the service.
 
 ## Impact
 
