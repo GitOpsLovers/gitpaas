@@ -23,6 +23,15 @@ export interface Provider {
 }
 
 /**
+ * The outcome of a test of the credentials of a provider.
+ *
+ * The test changes no record: it only reports whether the source control answers.
+ */
+export interface ProviderConnectionTest {
+    success: boolean;
+}
+
+/**
  * The credentials of a provider, as the source control consumes them.
  *
  * The private key is in clear text here, so this value never leaves the server.
