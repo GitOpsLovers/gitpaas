@@ -38,16 +38,16 @@
 
 ## 4. The API of the providers
 
-- [ ] 4.1 Create `apps/backend/src/features/authentication/ui/decorators/roles.decorator.ts` with the decorator `@Roles(...)`.
-- [ ] 4.2 Create `apps/backend/src/features/authentication/ui/guards/roles.guard.ts`, which reads `UserRole` from the users feature.
-- [ ] 4.3 Create the specs of the decorator and of the guard.
-- [ ] 4.4 Create `apps/backend/src/features/providers/ui/services/providers.service.ts`, in the style of `NamespacesService`.
-- [ ] 4.5 Create `apps/backend/src/features/providers/ui/controllers/providers.controller.ts` with the list, the read, the creation, the change, the removal and the test of the connection.
-- [ ] 4.6 Add `GET /providers/:providerId/repositories` and `GET /providers/:providerId/repositories/:repositoryId/branches` to the same controller.
-- [ ] 4.7 Apply `@Roles(UserRole.Admin)` to every write route of the controller of the providers.
-- [ ] 4.8 Create `apps/backend/src/features/providers/providers.module.ts`, and register it in `apps/backend/src/app.module.ts`.
-- [ ] 4.9 Delete the controller and the service of `apps/backend/src/features/source-control/ui/`, and remove them from `source-control.module.ts`.
-- [ ] 4.10 Create the spec of the controller, with an assertion that no body of an answer carries a private key.
+- [x] 4.1 Create `apps/backend/src/features/authentication/ui/decorators/roles.decorator.ts` with the decorator `@Roles(...)`.
+- [x] 4.2 Create `apps/backend/src/features/authentication/ui/guards/roles.guard.ts`, which reads `UserRole` from the users feature.
+- [x] 4.3 Create the specs of the decorator and of the guard.
+- [x] 4.4 Create `apps/backend/src/features/providers/ui/services/providers.service.ts`, in the style of `NamespacesService`.
+- [x] 4.5 Create `apps/backend/src/features/providers/ui/controllers/providers.controller.ts` with the list, the read, the creation, the change, the removal and the test of the connection.
+- [x] 4.6 Add `GET /providers/:providerId/repositories` and `GET /providers/:providerId/repositories/:repositoryId/branches` to the same controller.
+- [x] 4.7 Apply `@Roles(UserRole.Admin)` to every write route of the controller of the providers.
+- [x] 4.8 Create `apps/backend/src/features/providers/providers.module.ts`, and register it in `apps/backend/src/app.module.ts`.
+- [x] 4.9 Delete the controller and the service of `apps/backend/src/features/source-control/ui/`, and remove them from `source-control.module.ts`.
+- [x] 4.10 Create the spec of the controller, with an assertion that no body of an answer carries a private key.
 
 ## 5. The binding of a service to a provider
 
