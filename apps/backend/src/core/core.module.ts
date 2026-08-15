@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { validate } from './infrastructure/config/env-validation.config';
+import { SecretCipherAdapter } from './infrastructure/crypto/secret-cipher.adapter';
 import { buildDataSourceOptions } from './infrastructure/database/data-source-options';
 import { createInstrumentedDataSource } from './infrastructure/database/instrumented-data-source';
 import { DockerContainerRuntimeAdapter } from './infrastructure/docker/docker-container-runtime.adapter';
@@ -33,10 +34,17 @@ import { TelemetryMiddleware } from './ui/middlewares/telemetry.middleware';
         NestLoggerAdapter,
         RedisConnection,
         RequestIdMiddleware,
+        SecretCipherAdapter,
         StdoutTelemetryWriterAdapter,
         TelemetryMiddleware,
     ],
-    exports: [DockerContainerRuntimeAdapter, NestLoggerAdapter, RedisConnection, StdoutTelemetryWriterAdapter],
+    exports: [
+        DockerContainerRuntimeAdapter,
+        NestLoggerAdapter,
+        RedisConnection,
+        SecretCipherAdapter,
+        StdoutTelemetryWriterAdapter,
+    ],
 })
 
 export class CoreModule implements NestModule {
