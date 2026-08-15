@@ -25,18 +25,20 @@ describe('createDeploymentUseCase', () => {
         serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     };
 
+    const providerId = 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f';
+
     const service: Service = {
         id: triggerDto.serviceId,
         name: 'My Service',
         projectId: 'a1b2c3d4-0000-0000-0000-000000000000',
-        providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
+        providerId,
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',
     };
 
     const credentials: ProviderCredentials = {
-        providerId: service.providerId,
+        providerId,
         appId: '1234',
         installationId: '5678',
         privateKey: '-----BEGIN RSA PRIVATE KEY-----',

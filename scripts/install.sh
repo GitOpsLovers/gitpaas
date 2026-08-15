@@ -10,10 +10,11 @@
 #   1. Ensures Docker + the compose plugin are installed (provisions them if not).
 #   2. Resolves the version to install (the latest published release by default, or
 #      the release tag you pass) and fetches iac/production/ at that version.
-#   3. Writes iac/production/.env with secure random secrets (DB password + JWT
-#      secrets), the host's docker group id (DOCKER_GID, so the non-root backend
-#      container can use the mounted Docker socket) and the image tag to pull,
-#      leaving operator-supplied values (GitHub App) as clearly-marked placeholders.
+#   3. Writes iac/production/.env with secure random secrets (DB password, JWT
+#      secrets and the PROVIDERS_ENCRYPTION_KEY that protects provider keys), the
+#      host's docker group id (DOCKER_GID, so the non-root backend container can
+#      use the mounted Docker socket) and the image tag to pull. The operator
+#      registers their GitHub App later, from the Providers screen of the frontend.
 #   4. Starts ONLY the data store (postgres) and waits for it to become healthy.
 #   5. Applies the SQL migrations in iac/production/migrations/ (in filename
 #      order) straight into Postgres, tracking what ran in a `schema_migrations`
