@@ -1,0 +1,91 @@
+apps/backend/src/features/providers/application/update-provider.use-case.ts
+  s_22a207ce72f6ad::t_0e2350f06c02f0 1-41
+apps/backend/src/features/providers/application/__tests__/get-provider-credentials.use-case.spec.ts
+  s_728b394a196fd2::t_605081c55c27a7 1-73
+apps/backend/src/features/providers/domain/dtos/update-provider.dto.ts
+  s_22a207ce72f6ad::t_dbc61af6d84724 1-34
+apps/backend/src/features/providers/infrastructure/database/db-provider.entity.ts
+  s_22a207ce72f6ad::t_8148667c3891bc 1-35
+openspec/changes/source-control-providers/tasks.md
+  s_728b394a196fd2::t_2593f04bbee036 13-26
+apps/backend/src/features/providers/application/__tests__/update-provider.use-case.spec.ts
+  s_728b394a196fd2::t_11fc4122ea6a98 1-205
+apps/backend/src/features/providers/infrastructure/database/db-providers.repository.ts
+  s_22a207ce72f6ad::t_69d40e5bea48f2 1-123
+iac/production/migrations/010_providers.sql
+  s_22a207ce72f6ad::t_27a9507dd10cd8 1-18
+apps/backend/src/features/providers/application/__tests__/find-provider-by-id.use-case.spec.ts
+  s_728b394a196fd2::t_2ed3e809502035 1-79
+apps/backend/src/features/providers/application/get-all-providers.use-case.ts
+  s_22a207ce72f6ad::t_69305d6aa146fc 1-13
+apps/backend/src/features/providers/application/__tests__/get-all-providers.use-case.spec.ts
+  s_728b394a196fd2::t_09cdf432d8e475 1-71
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.repository.spec.ts
+  s_728b394a196fd2::t_3f67b57c1514d3 1-405
+apps/backend/src/features/providers/application/__tests__/create-provider.use-case.spec.ts
+  s_728b394a196fd2::t_910545bb0748db 1-136
+apps/backend/src/features/providers/domain/repositories/providers.repository.ts
+  s_22a207ce72f6ad::t_b42587bf6b7dfd 1-85
+apps/backend/src/features/providers/application/__tests__/delete-provider.use-case.spec.ts
+  s_728b394a196fd2::t_e3e8940bf17679 1-104
+apps/backend/src/features/providers/application/create-provider.use-case.ts
+  s_22a207ce72f6ad::t_3c25498cae0a64 1-31
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.transformer.spec.ts
+  s_728b394a196fd2::t_1e721eada06a79 1-157
+apps/backend/src/features/providers/domain/models/provider.models.ts
+  s_22a207ce72f6ad::t_da3646a517bf20 1-35
+apps/backend/src/features/providers/domain/dtos/create-provider.dto.ts
+  s_22a207ce72f6ad::t_e159cae6ec62fb 1-28
+apps/backend/src/features/providers/application/get-provider-credentials.use-case.ts
+  s_22a207ce72f6ad::t_be3bebda25df0b 1-26
+apps/backend/src/features/providers/application/delete-provider.use-case.ts
+  s_22a207ce72f6ad::t_8aeb11338fd6ee 1-23
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_22a207ce72f6ad::t_a9443d21d47bf6 30-33
+apps/backend/src/features/providers/application/find-provider-by-id.use-case.ts
+  s_22a207ce72f6ad::t_666300d6385d55 1-14
+apps/backend/src/features/providers/infrastructure/database/db-providers.transformer.ts
+  s_22a207ce72f6ad::t_6c2cfd8ca1ea76 1-82
+apps/backend/src/features/providers/domain/errors/provider.errors.ts
+  s_22a207ce72f6ad::t_c0f48510ebfc00 1-37
+apps/backend/src/core/core.module.ts
+  s_a9b918f88b7271::t_c8244b10defe56 6,37,41-47
+apps/backend/src/core/domain/ports/secret-cipher.port.ts
+  s_a9b918f88b7271::t_65532543fc952f 1-22
+apps/backend/src/core/infrastructure/crypto/__tests__/secret-cipher.adapter.spec.ts
+  s_a9b918f88b7271::t_01285cba5c61e0 1-130
+apps/backend/src/core/infrastructure/crypto/secret-cipher.adapter.ts
+  s_a9b918f88b7271::t_de8c6d53119d0f 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0ec50957b27182b0900d93d79404a04cf7918fd2",
+  "prompts": {},
+  "sessions": {
+    "s_22a207ce72f6ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e0bc0692e507a73",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_728b394a196fd2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a740d2c1d480b3dcc",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_a9b918f88b7271": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad3a1e2aecde6ca72",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
