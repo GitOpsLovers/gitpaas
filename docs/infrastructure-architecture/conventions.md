@@ -19,7 +19,7 @@
 | Deployment logs   | `LOGS_MAX_LINES` (per-deployment line cap, example value `5000`)                                                    |
 | Redis             | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (optional; empty when the server needs no authentication)              |
 | PostgreSQL        | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`      |
-| GitHub App        | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` (base64 PEM), `GITHUB_APP_INSTALLATION_ID`                                |
+| Providers         | `PROVIDERS_ENCRYPTION_KEY` (32 random bytes, hex; encrypts every stored provider private key at rest)               |
 | Docker            | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                                         |
 | JWT               | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`                        |
 

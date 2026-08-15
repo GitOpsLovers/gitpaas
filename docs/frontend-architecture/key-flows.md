@@ -43,3 +43,26 @@ sequenceDiagram
     I->>C: retry original request with new Bearer
     Note over I,T: refresh fails → clear() + redirect /signin
 ```
+
+## Providers
+
+The `providers` feature manages the accounts a service reaches its source code through (today, one GitHub App
+for each provider). It follows the standard read/command flows above, with the three screens under
+`pages/providers/{list,add,edit}/` and their containers under `features/providers/ui/containers/`:
+
+| Screen                       | Route                  | Container               | Responsibility                                                                                       |
+|-------------------------------|------------------------|--------------------------|-------------------------------------------------------------------------------------------------------|
+| List                          | `/providers`           | `ProvidersListComponent` | Reads the `providers` resource of `ProvidersApiRepository`, shows one `ProviderCardComponent` for each provider, tests a connection on demand, and confirms a deletion with `ConfirmModalComponent`. |
+| Add                           | `/providers/add`       | `ProviderAddComponent`   | Wraps `ProviderFormComponent` with `keyOptional` unset, and posts the name, the application id, the installation id and the private key (PEM). |
+| Edit                          | `/providers/edit/:id`  | `ProviderEditComponent`  | Loads one provider by id, wraps the same `ProviderFormComponent` with `keyOptional` set, and sends only the changed fields. |
+
+The API never gives the private key back, only its fingerprint (see [Domain model](../backend-business/domain-model.md#the-provider)). Because of this, the private-key field of `ProviderFormComponent` always starts empty, and the two containers treat an empty submission differently: `ProviderAddComponent` requires a key, and `ProviderEditComponent` omits the `privateKey` field of its `UpdateProviderDto` when the field stays empty, so the backend keeps the stored key.
+
+The list container also drives the "test connection" action: it calls `POST /providers/:id/test` through the repository and keeps the outcome (`idle` / `testing` / `success` / `failure`) in a local signal keyed by the provider id, so each card shows its own state without a full reload of the list.
+
+The tab "Provider" of a service detail page (`features/services/ui/components/service-provider/`) is a
+consumer of this feature rather than a screen of it: its first field is a select of the registered providers,
+and the controls of the repository and of the branch stay blocked, and clear on a change of provider, until a
+provider is chosen. That component calls `GET /providers/:providerId/repositories` and
+`GET /providers/:providerId/repositories/:repositoryId/branches` through `ProvidersApiRepository`, and it
+shows an empty state with a link to `/providers/add` when no provider is registered yet.

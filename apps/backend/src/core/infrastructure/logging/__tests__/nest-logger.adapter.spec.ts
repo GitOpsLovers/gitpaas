@@ -67,7 +67,7 @@ describe('NestLoggerAdapter', () => {
     it('stringifies a non-Error, non-string trace', () => {
         sut.error('failed', { code: 42 }, 'Ctx');
 
-        expect(errorSpy).toHaveBeenCalledWith('failed', '[object Object]', 'Ctx');
+        expect(errorSpy).toHaveBeenCalledWith('failed', '{"code":42}', 'Ctx');
     });
 
     it('omits the context when none is provided', () => {

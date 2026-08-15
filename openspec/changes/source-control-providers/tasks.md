@@ -134,10 +134,10 @@ The word "provider" already names the table, the variable `PROVIDERS_ENCRYPTION_
 
 ## 10. The upgrade and the cleanup
 
-- [ ] 10.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
-- [ ] 10.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
-- [ ] 10.3 State in the release notes that every service needs a provider after the upgrade, because migration 011 leaves the column empty when the installation holds no single provider.
-- [ ] 10.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
-- [ ] 10.5 Add the Providers section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
-- [ ] 10.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing.
-- [ ] 10.7 Verify that the whole suite of the tests passes.
+- [x] 10.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
+- [x] 10.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
+- [x] 10.3 State in the release notes that every service needs a provider after the upgrade, because migration 011 leaves the column empty when the installation holds no single provider. **Note:** `CHANGELOG.md` comes from semantic-release, so the note lives in the section "Upgrade from a version with `GITHUB_APP_*` variables" of `docs/infrastructure-architecture/installation.md`.
+- [x] 10.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
+- [x] 10.5 Add the Providers section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
+- [x] 10.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing, except in the two places that the tasks 10.1 and 10.3 need: `scripts/import-github-app-provider.sh`, which reads the three variables, and the section of the upgrade of `docs/infrastructure-architecture/installation.md`, which explains where they went.
+- [x] 10.7 Verify that the whole suite of the tests passes. Backend: 1884 tests, 169 suites. Frontend: 324 tests, 35 files. **Note:** three stale expectations of the backend failed before the run, in `nest-logger.adapter.spec.ts` and in `server.controller.spec.ts`. They belong to the server feature and to the logging adapter, and not to this change. The `tester` corrected the three expectations, and it changed no product code.
