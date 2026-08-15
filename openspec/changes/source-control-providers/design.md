@@ -33,15 +33,16 @@ capability `web-service-detail` records the behavior of that tab.
 
 ## Decisions
 
-**1. A provider is a record of the feature `source-control`, and not a file of the configuration.**
-A record can be created, changed and removed from the browser. A file cannot. The feature
-`source-control` owns that record, with the same division `domain` / `application` / `infrastructure` /
-`ui` that `namespaces` uses. One feature therefore owns the credentials, the port and the adapter.
+**1. A provider is a record of one feature, and not a file of the configuration.**
+A record can be created, changed and removed from the browser. A file cannot. One feature owns that record,
+with the same division `domain` / `application` / `infrastructure` / `ui` that `namespaces` uses. One
+feature therefore owns the credentials, the port and the adapter. The sections 1 to 8 build that feature
+under the name `source-control`, and the decision 9 gives it its final name `providers`.
 
-**Alternative that the change does not take:** a second feature `providers` beside `source-control`. The
-first commits of this change built it, and this design removes it. Two features for one idea split the port
-from the credentials that the port needs, they give the operator two names for one thing, and they force
-`source-control` to import the repository of another feature for every call.
+**Alternative that the change does not take:** two features, one for the record and one for the port. The
+first commits of this change built them, and this design removes the split. Two features for one idea
+separate the port from the credentials that the port needs, they give the operator two names for one thing,
+and they force one feature to import the repository of the other for every call.
 
 **2. The private key is encrypted at rest, with AES-256-GCM.**
 A new helper of `core` encrypts it under one new variable, `PROVIDERS_ENCRYPTION_KEY` (32 random bytes,
@@ -73,21 +74,47 @@ account that this change removes.
 The column holds `github_app` today. GitLab becomes a new value and a new adapter, with no change of the
 schema.
 
-**7. Every route of the capability shares the prefix `/source-control`.**
-The controller answers `/source-control` for the records, and
-`GET /source-control/:providerId/repositories` for the repositories of one record. A repository identifier
-is global at GitHub, but the access to it is not. The path must therefore name the account. The old route
-`GET /source-control/repositories` goes away, because no released client depends on it.
+**7. Every route of the capability shares one prefix.**
+The controller answers the prefix for the records, and `GET /<prefix>/:providerId/repositories` for the
+repositories of one record. A repository identifier is global at GitHub, but the access to it is not. The
+path must therefore name the account. The old route `GET /source-control/repositories` goes away, because
+no released client depends on it. The sections 5 to 8 use the prefix `/source-control`, and the decision 9
+gives the final prefix `/providers`.
 
 The name of the table stays `providers`, the variable stays `PROVIDERS_ENCRYPTION_KEY`, and the codes of the
-errors stay `PROVIDER_*`. The word "provider" names one record, and the word "source control" names the
-capability. Thus migration 010, which the repository already holds, needs no change.
+errors stay `PROVIDER_*`. Thus migration 010, which the repository already holds, needs no change.
 
 **8. The guard of the role enters with this change, and it covers the providers only.**
 The management of a provider is an action of an administrator. The project holds the role and the enum
 `UserRole` today, and no guard reads them. The change adds `@Roles(...)` and a `RolesGuard`, and it applies
 them to the write routes of the records of `source-control`. Every other endpoint keeps the rule of today.
 This keeps the change of the behavior small and visible.
+
+**9. One word names the capability, and that word is "provider".**
+The sections 1 to 8 carry two words for one idea. The folder, the port, the module, the routes and the
+screens say "source control", and the table, the variable, the errors, the record and the screens of the
+management say "provider". The operator meets both words, and so does the developer. The change keeps the
+second word, because it names the thing that the operator creates. The first word goes away.
+
+The rename covers the folder of the backend, the folder and the pages of the frontend, the symbols, the
+routes `/api/v1/providers`, the routes `/providers` of the browser, the entry "Providers" of the sidebar,
+the documentation and the capability of the specifications.
+
+**The one collision.** The model of the record already holds the name `Provider`, so the port cannot take
+that name. The port becomes `ProviderClient`, in `domain/ports/provider-client.port.ts`, and the adapter
+becomes `GithubProviderClientAdapter`. The error `SourceControlNotConfiguredError` becomes
+`ProviderNotConfiguredError`. This follows the rule of the ports of the project, where the name states what
+the collaborator does: `LogStore`, `TokenService`, `ContainerRuntime`.
+
+**The place in the order.** The rename runs after the section 8, and before the cleanup. The section 8
+writes the old names, because it builds against the code of the section 7. One pass then replaces every
+name at once, and the cleanup that follows checks the final names. A rename before the section 8 would cost
+two passes over the frontend.
+
+**Alternative that the change does not take:** "source control" as the single word. It is the name of the
+domain, and it reads well for a capability. It loses to "provider" because the operator creates a provider,
+the table is `providers`, the variable is `PROVIDERS_ENCRYPTION_KEY` and the errors are `PROVIDER_*`. That
+word already won in the data, and a rename of the table costs a migration.
 
 ## Risks / Trade-offs
 
@@ -117,3 +144,9 @@ proves the result.
 **7. The guard of the role changes an assumption.** Today each authenticated user can do each action, and
 the documentation says so. After this change that sentence has one exception. A user with the role `user`
 meets a refusal for the first time.
+
+**8. The rename touches code that the sections 5 to 8 deliver.** The pass is wide, and it is mechanical.
+The compiler names each caller of a renamed symbol, and the suite of the tests proves the result. The two
+risky parts are the strings, which the compiler does not check: the paths of the routes, the paths of the
+tests and the entry of the sidebar. A search for the word "source control" in every form closes that gap.
+Nothing of this change is released, so no client of the API breaks.

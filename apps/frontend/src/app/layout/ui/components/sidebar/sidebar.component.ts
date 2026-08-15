@@ -14,6 +14,7 @@ import {
     LucideBox,
     LucideChevronDown,
     LucideEllipsis,
+    LucideGitBranch,
     LucideLayoutGrid,
     LucideServer,
 } from '@lucide/angular';
@@ -22,7 +23,7 @@ import { combineLatest, Subscription } from 'rxjs';
 import { SidebarService } from '../../services/sidebar.service';
 import { SidebarWidgetComponent } from '../sidebar-widget/sidebar-widget.component';
 
-type NavIcon = 'grid' | 'box' | 'server';
+type NavIcon = 'grid' | 'box' | 'git-branch' | 'server';
 
 interface NavItem {
     name: string;
@@ -41,6 +42,7 @@ interface NavItem {
         SidebarWidgetComponent,
         LucideLayoutGrid,
         LucideBox,
+        LucideGitBranch,
         LucideServer,
         LucideEllipsis,
         LucideChevronDown,
@@ -68,6 +70,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
             icon: 'box',
             name: 'Namespaces',
             path: '/namespaces',
+        },
+        {
+            icon: 'git-branch',
+            name: 'Source Control',
+            path: '/source-control',
         },
         {
             icon: 'server',
