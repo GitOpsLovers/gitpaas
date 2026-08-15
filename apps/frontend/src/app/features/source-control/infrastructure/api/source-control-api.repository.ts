@@ -26,9 +26,19 @@ export class SourceControlApiRepository {
     public readonly providers = httpResource<Provider[]>(() => this.url);
 
     /**
-     * Resource with the repositories accessible to the installation
+     * Resource with the repositories a provider can reach
+     *
+     * @param providerId Accessor returning the provider identifier
+     *
+     * @returns Resource that resolves to the accessible repositories
      */
-    public readonly repositories = httpResource<GitRepository[]>(() => `${this.url}/repositories`);
+    public repositoriesByProvider(providerId: () => string | undefined) {
+        return httpResource<GitRepository[]>(() => {
+            const id = providerId();
+
+            return id ? `${this.url}/${id}/repositories` : undefined;
+        });
+    }
 
     /**
      * Resource with a single provider by id
@@ -89,17 +99,19 @@ export class SourceControlApiRepository {
     }
 
     /**
-     * Resource with the branches of a repository
+     * Resource with the branches of a repository of a provider
      *
+     * @param providerId Accessor returning the provider identifier
      * @param repositoryId Accessor returning the repository identifier
      *
      * @returns Resource that resolves to the repository branches
      */
-    public branchesByRepository(repositoryId: () => number | undefined) {
+    public branchesByRepository(providerId: () => string | undefined, repositoryId: () => number | undefined) {
         return httpResource<GitBranch[]>(() => {
+            const provider = providerId();
             const id = repositoryId();
 
-            return id ? `${this.url}/repositories/${id}/branches` : undefined;
+            return provider && id ? `${this.url}/${provider}/repositories/${id}/branches` : undefined;
         });
     }
 }

@@ -133,6 +133,7 @@ export class ServiceDetailComponent {
         const service = this.service.value();
 
         return {
+            providerId: service?.providerId ?? '',
             repositoryId: service?.repositoryId ?? '',
             deploymentBranch: service?.deploymentBranch ?? '',
             composerPath: service?.composerPath || 'docker-compose.yml',

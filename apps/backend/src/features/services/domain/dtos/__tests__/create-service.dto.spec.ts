@@ -43,10 +43,10 @@ describe('CreateServiceDto', () => {
         expect(constraintsFor(errors, 'projectId')).toEqual(expect.arrayContaining(['isUuid', 'isNotEmpty']));
     });
 
-    it('requires providerId', () => {
+    it('accepts a payload without providerId, as a new service starts with no provider', () => {
         const errors = validatePayload({ name: 'api', projectId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
 
-        expect(constraintsFor(errors, 'providerId')).toEqual(expect.arrayContaining(['isUuid', 'isNotEmpty']));
+        expect(errors).toEqual([]);
     });
 
     it('rejects a providerId that is not a UUID', () => {

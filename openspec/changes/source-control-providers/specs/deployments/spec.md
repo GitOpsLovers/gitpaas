@@ -11,7 +11,8 @@ other value.
 Before the system writes the record, it SHALL do these four checks and steps:
 
 1. The service must exist.
-2. The service must be deployable. It must hold an identifier of a repository and a deployment branch.
+2. The service must be deployable. It must hold an identifier of a provider, an identifier of a repository
+   and a deployment branch.
 3. The system loads the credentials of the provider of the service.
 4. The system asks the source control for the head commit of the branch, with those credentials.
 
@@ -31,8 +32,8 @@ of the compose file and the origin of the trigger.
 
 #### Scenario: The service is not deployable
 
-- **WHEN** a client posts the identifier of a service that holds no identifier of a repository, or no
-  deployment branch
+- **WHEN** a client posts the identifier of a service that holds no identifier of a provider, no identifier
+  of a repository, or no deployment branch
 - **THEN** the system raises `SERVICE_NOT_DEPLOYABLE`, and it answers `400 Bad Request`
 
 #### Scenario: The provider cannot reach the repository

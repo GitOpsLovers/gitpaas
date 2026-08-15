@@ -215,6 +215,7 @@ describe('ServiceDetailComponent', () => {
         create();
 
         expect(component.providerSettings()).toEqual({
+            providerId: '',
             repositoryId: '',
             deploymentBranch: '',
             composerPath: 'docker-compose.yml',
@@ -224,9 +225,10 @@ describe('ServiceDetailComponent', () => {
     it('maps the loaded provider settings and defaults an empty composer path', () => {
         create();
 
-        serviceValue.set({ ...service, repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: '' });
+        serviceValue.set({ ...service, providerId: 'pr-1', repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: '' });
 
         expect(component.providerSettings()).toEqual({
+            providerId: 'pr-1',
             repositoryId: 'repo-1',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
@@ -236,23 +238,40 @@ describe('ServiceDetailComponent', () => {
     it('does nothing when saving the provider settings before the service resolves', async () => {
         create();
 
-        await component.saveProvider({ repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: 'compose.yml' });
+        await component.saveProvider({
+            providerId: 'pr-1',
+            repositoryId: 'repo-1',
+            deploymentBranch: 'main',
+            composerPath: 'compose.yml',
+        });
 
         expect(repository.update).not.toHaveBeenCalled();
         expect(component.savingProvider()).toBe(false);
     });
 
     it('saves the provider settings keeping the service name and reflects the response', async () => {
-        const updated = { ...service, repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: 'compose.yml' };
+        const updated = {
+            ...service,
+            providerId: 'pr-1',
+            repositoryId: 'repo-1',
+            deploymentBranch: 'main',
+            composerPath: 'compose.yml',
+        };
         repository.update.mockReturnValue(of(updated));
         create();
 
         serviceValue.set(service);
 
-        await component.saveProvider({ repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: 'compose.yml' });
+        await component.saveProvider({
+            providerId: 'pr-1',
+            repositoryId: 'repo-1',
+            deploymentBranch: 'main',
+            composerPath: 'compose.yml',
+        });
 
         expect(repository.update).toHaveBeenCalledWith('sv-1', {
             name: 'web',
+            providerId: 'pr-1',
             repositoryId: 'repo-1',
             deploymentBranch: 'main',
             composerPath: 'compose.yml',

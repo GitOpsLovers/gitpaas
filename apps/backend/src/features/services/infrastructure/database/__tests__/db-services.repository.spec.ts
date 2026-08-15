@@ -6,6 +6,7 @@ import { DbServiceEntity } from '../db-service.entity';
 import { DatabaseServicesRepository } from '../db-services.repository';
 
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
+import { ProviderNotFoundError } from '@features/source-control/domain/errors/provider.errors';
 
 /** The failure PostgreSQL raises when the project a service points at does not exist. */
 const foreignKeyViolation = Object.assign(
@@ -133,6 +134,30 @@ describe('DatabaseServicesRepository', () => {
             expect(mockRepository.create).toHaveBeenCalledWith(createDto);
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
             expect(result).toEqual(saved);
+        });
+
+        it('writes a service that names no provider and maps its provider to null', async () => {
+            const dtoWithoutProvider: CreateServiceDto = { name: 'new-service', projectId };
+            const entity = serviceEntity({ name: dtoWithoutProvider.name, providerId: null });
+            mockRepository.create.mockReturnValue(entity);
+            mockRepository.save.mockResolvedValue(entity);
+
+            const result = await sut.create(dtoWithoutProvider);
+
+            expect(mockRepository.create).toHaveBeenCalledWith(dtoWithoutProvider);
+            expect(result.providerId).toBeNull();
+        });
+
+        it('raises ProviderNotFoundError when the write violates the provider foreign key', async () => {
+            const providerViolation = Object.assign(
+                new Error('insert or update on table "services" violates foreign key constraint'),
+                { code: '23503', driverError: { code: '23503', constraint: 'FK_services_providerId' } },
+            );
+            mockRepository.create.mockReturnValue(serviceEntity());
+            mockRepository.save.mockRejectedValue(providerViolation);
+
+            await expect(sut.create(createDto)).rejects.toBeInstanceOf(ProviderNotFoundError);
+            await expect(sut.create(createDto)).rejects.toThrow(`Provider ${createDto.providerId} not found`);
         });
 
         it('raises ProjectNotFoundError when the write violates the project foreign key', async () => {

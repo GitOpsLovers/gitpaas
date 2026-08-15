@@ -46,6 +46,20 @@ describe('createServiceUseCase', () => {
         expect(result).toBe(createdService);
     });
 
+    it('delegates a DTO that names no provider unchanged, and returns the service with a null provider', async () => {
+        const dtoWithoutProvider: CreateServiceDto = { name: createDto.name, projectId: createDto.projectId };
+        const serviceWithoutProvider: Service = { ...createdService, providerId: null };
+        mockServicesRepository.create.mockResolvedValue(serviceWithoutProvider);
+
+        const result = await createServiceUseCase(
+            mockServicesRepository as unknown as ServicesRepository,
+            dtoWithoutProvider,
+        );
+
+        expect(mockServicesRepository.create).toHaveBeenCalledWith(dtoWithoutProvider);
+        expect(result.providerId).toBeNull();
+    });
+
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('database unavailable');
         mockServicesRepository.create.mockRejectedValue(error);

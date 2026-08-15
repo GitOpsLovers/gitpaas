@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { SourceControlApiRepository } from '@features/source-control/infrastructure/api/source-control-api.repository';
 import { ButtonComponent } from '@shared/components/button/button.component';
@@ -11,6 +12,7 @@ import { Select2Component, Select2Option } from '@shared/components/select2/sele
  * Provider settings submitted by the form.
  */
 export interface ServiceProviderSettings {
+    providerId: string;
     repositoryId: string;
     deploymentBranch: string;
     composerPath: string;
@@ -20,20 +22,22 @@ export interface ServiceProviderSettings {
     selector: 'app-service-provider',
     templateUrl: './service-provider.component.html',
     providers: [SourceControlApiRepository],
-    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent, Select2Component],
+    imports: [RouterLink, ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent, Select2Component],
 })
 
 /**
- * Provider configuration form: source repository, branch and compose file path.
+ * Provider configuration form: provider, source repository, branch and compose file path.
  */
 export class ServiceProviderComponent {
-    private readonly github = inject(SourceControlApiRepository);
+    private readonly sourceControl = inject(SourceControlApiRepository);
 
     public readonly initial = input.required<ServiceProviderSettings>();
 
     public readonly saving = input(false);
 
     public readonly save = output<ServiceProviderSettings>();
+
+    protected readonly providerId = linkedSignal(() => this.initial().providerId);
 
     protected readonly repositoryId = linkedSignal(() => this.initial().repositoryId);
 
@@ -42,18 +46,36 @@ export class ServiceProviderComponent {
     protected readonly composerPath = linkedSignal(() => this.initial().composerPath);
 
     /**
-     * Repositories accessible to the GitHub App installation.
+     * Providers registered in the installation.
      */
-    protected readonly repositories = this.github.repositories;
+    protected readonly providers = this.sourceControl.providers;
+
+    /**
+     * Repositories the selected provider can reach.
+     */
+    protected readonly repositories = this.sourceControl.repositoriesByProvider(() => this.providerId() || undefined);
 
     /**
      * Branches of the currently selected repository.
      */
-    protected readonly branches = this.github.branchesByRepository(() => {
-        const value = this.repositoryId();
+    protected readonly branches = this.sourceControl.branchesByRepository(
+        () => this.providerId() || undefined,
+        () => {
+            const value = this.repositoryId();
 
-        return value ? Number(value) : undefined;
-    });
+            return value ? Number(value) : undefined;
+        });
+
+    /**
+     * States that the installation holds no provider, so no service can name one.
+     */
+    protected readonly noProviders = computed(() => this.providers.hasValue() && this.providers.value()!.length === 0);
+
+    protected readonly providerOptions = computed<Select2Option[]>(() =>
+        (this.providers.value() ?? []).map((provider) => ({
+            value: provider.id,
+            label: provider.name,
+        })));
 
     protected readonly repositoryOptions = computed<Select2Option[]>(() =>
         (this.repositories.value() ?? []).map((repository) => ({
@@ -71,10 +93,18 @@ export class ServiceProviderComponent {
         event.preventDefault();
 
         this.save.emit({
+            providerId: this.providerId(),
             repositoryId: this.repositoryId(),
             deploymentBranch: this.branch(),
             composerPath: this.composerPath().trim(),
         });
+    }
+
+    protected onProviderChange(value: string): void {
+        this.providerId.set(value);
+        // A repository identifier is global at the source control, and the access to it is not.
+        this.repositoryId.set('');
+        this.branch.set('');
     }
 
     protected onRepositoryChange(value: string): void {

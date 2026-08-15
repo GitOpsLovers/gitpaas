@@ -65,12 +65,14 @@ management to `source-control`, so that feature moves and goes away.
 
 - [x] 6.1 Add the column `providerId` and the relation `ManyToOne` to `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`.
 - [x] 6.2 Add `providerId` to the domain model of the service and to its transformer.
-- [x] 6.3 Add `providerId` with `@IsUUID()` to the data transfer object of the creation, and as optional in the one of the change.
+- [x] 6.3 Add optional `providerId`, with `@IsUUID()` and `@IsOptional()`, to the data transfer object of the creation and to the one of the change.
 - [x] 6.4 Inject the repository of the providers into `deployments.service.ts`, and pass the loaded credentials to each call of `SourceControl`.
 - [x] 6.5 Do the same in `deployment-runner.service.ts`.
 - [x] 6.6 Refuse a deployment whose provider cannot reach the stored repository, with a message that names the two.
-- [x] 6.7 Create `iac/production/migrations/011_services_provider.sql`: add the column that can be empty, fill it from the single provider, set it to `NOT NULL`, then add `FK_services_providerId` with `ON DELETE RESTRICT`.
+- [x] 6.7 Create `iac/production/migrations/011_services_provider.sql`: add the column that can be empty, fill it from the single provider, then add `FK_services_providerId` with `ON DELETE RESTRICT`. The column stays nullable.
 - [x] 6.8 Update the specs of the two services of the deployments for the new dependency.
+- [x] 6.9 Make the column `providerId` of `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts` nullable.
+- [x] 6.10 Refuse a deployment of a service that names no provider, with `SERVICE_NOT_DEPLOYABLE`, in `deployments.service.ts`.
 
 ## 7. The Source Control section of the frontend
 
@@ -88,14 +90,14 @@ management to `source-control`, so that feature moves and goes away.
 
 ## 8. The select of the provider in the tab "Provider"
 
-- [ ] 8.1 Add a select of the provider as the first field of `apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts`. **Note:** the plan of `docs/roadmap/` named `service-form` instead. That component holds only the name of the service.
-- [ ] 8.2 Load the options of the repository from `GET /source-control/:providerId/repositories`, and keep the control blocked until a provider is chosen.
-- [ ] 8.3 Load the options of the branch from the route of the branches of the provider.
-- [ ] 8.4 Clear the control of the repository and the control of the branch when the provider changes.
-- [ ] 8.5 Show an empty state with a link to `/source-control/add` when no provider exists.
-- [ ] 8.6 Point the calls of the repositories and of the branches at the routes under `/source-control/:providerId`.
-- [ ] 8.7 Add `providerId` to the data transfer objects of the service in the frontend.
-- [ ] 8.8 Update the spec of the component for the three selects in the chain.
+- [x] 8.1 Add a select of the provider as the first field of `apps/frontend/src/app/features/services/ui/components/service-provider/service-provider.component.ts`. **Note:** the plan of `docs/roadmap/` named `service-form` instead. That component holds only the name of the service.
+- [x] 8.2 Load the options of the repository from `GET /source-control/:providerId/repositories`, and keep the control blocked until a provider is chosen.
+- [x] 8.3 Load the options of the branch from the route of the branches of the provider.
+- [x] 8.4 Clear the control of the repository and the control of the branch when the provider changes.
+- [x] 8.5 Show an empty state with a link to `/source-control/add` when no provider exists.
+- [x] 8.6 Point the calls of the repositories and of the branches at the routes under `/source-control/:providerId`.
+- [x] 8.7 Add `providerId` to the data transfer objects of the service in the frontend.
+- [x] 8.8 Update the spec of the component for the three selects in the chain.
 
 ## 9. The single name
 
@@ -134,7 +136,7 @@ The word "provider" already names the table, the variable `PROVIDERS_ENCRYPTION_
 
 - [ ] 10.1 Create `scripts/import-github-app-provider.sh`, which reads the three variables of the `.env` file and creates a provider named `default` through the API.
 - [ ] 10.2 Document the manual alternative in the header of the script: create the provider in the screen, then save each service again.
-- [ ] 10.3 State in the release notes that an installation with services must create a provider before it applies migration 011.
+- [ ] 10.3 State in the release notes that every service needs a provider after the upgrade, because migration 011 leaves the column empty when the installation holds no single provider.
 - [ ] 10.4 Delete every remaining mention of `GITHUB_APP_*` from `docs/backend-architecture.md`, `docs/backend-business.md` and `docs/infrastructure-architecture.md`.
 - [ ] 10.5 Add the Providers section to `docs/frontend-architecture.md`, and the provider record to `docs/backend-business.md`.
 - [ ] 10.6 Verify that a search for `GITHUB_APP` in `apps/`, `iac/`, `scripts/` and `docs/` gives nothing.

@@ -4,4 +4,5 @@
 export interface CreateServiceDto {
     name: string;
     projectId: string;
+    providerId?: string;
 }

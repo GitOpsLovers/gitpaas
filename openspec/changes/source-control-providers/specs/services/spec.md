@@ -6,9 +6,10 @@ The system SHALL keep one record per service. The record holds the identifier, t
 the project, the identifier of the provider, the identifier of the repository, the deployment branch and the
 path of the compose file.
 
-The identifier is a UUID that the database generates. The identifier of the provider is obligatory, and the
-database refuses the removal of a provider that a service still names. The three fields of the deployment
-start as an empty text, because a caller gives them after the creation.
+The identifier is a UUID that the database generates. The identifier of the provider can be empty, and the
+database refuses the removal of a provider that a service still names. A service with no provider is not
+deployable. The three fields of the deployment start as an empty text, because a caller gives them after the
+creation.
 
 #### Scenario: The system gives a service
 
@@ -20,15 +21,22 @@ start as an empty text, because a caller gives them after the creation.
 
 The system SHALL create a service at `POST /api/v1/services`.
 
-The body holds the name, the identifier of the project and the identifier of the provider. The system SHALL
-set the identifier of the repository, the deployment branch and the path of the compose file to an empty
-text. Thus a new service is not deployable, and a caller makes it deployable with a later change.
+The body holds the name and the identifier of the project. It can also hold the identifier of the provider.
+The system SHALL set the identifier of the repository, the deployment branch and the path of the compose
+file to an empty text. Thus a new service is not deployable, and a caller makes it deployable with a later
+change.
 
 #### Scenario: The body is correct
 
 - **WHEN** a client posts a name, the identifier of an available project and the identifier of an available
   provider
 - **THEN** the system writes the record, and it answers `201` with the new service
+
+#### Scenario: The body holds no provider
+
+- **WHEN** a client posts a name and the identifier of an available project, and no identifier of a provider
+- **THEN** the system writes the record with an empty identifier of a provider, and it answers `201` with the
+  new service
 
 #### Scenario: The project does not exist
 
@@ -44,8 +52,8 @@ text. Thus a new service is not deployable, and a caller makes it deployable wit
 
 #### Scenario: The body is not correct
 
-- **WHEN** a client posts a body without a name, with an empty name, without a `projectId`, without a
-  `providerId`, or with a value that is no UUID
+- **WHEN** a client posts a body without a name, with an empty name, without a `projectId`, or with a value
+  that is no UUID
 - **THEN** the system answers `400 Bad Request`
 
 ### Requirement: Change of a service

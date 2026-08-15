@@ -1,49 +1,80 @@
 <app-component-card
     title="Provider"
-    desc="Configure the repository, branch and compose file this service deploys from."
+    desc="Configure the provider, repository, branch and compose file this service deploys from."
 >
-    <form class="space-y-6" (submit)="onSubmit($event)">
-        <div>
-            <app-label>GitHub repository</app-label>
-            <app-select2
-                [options]="repositoryOptions()"
-                [value]="repositoryId()"
-                (valueChange)="onRepositoryChange($event)"
-                [disabled]="repositories.isLoading()"
-                [placeholder]="repositories.isLoading() ? 'Loading repositories…' : 'Select a repository…'"
-                searchPlaceholder="Search repositories…"
-            />
-            @if (repositories.error()) {
-                <p class="mt-1.5 text-xs text-error-500">
-                    Could not load repositories. Check the GitHub App configuration.
-                </p>
-            }
+    @if (noProviders()) {
+        <div class="rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                No providers yet. Register a source control provider before you configure this service.
+            </p>
+            <a
+                routerLink="/source-control/add"
+                class="mt-3 inline-block rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
+            >
+                Register your first provider
+            </a>
         </div>
+    } @else {
+        <form class="space-y-6" (submit)="onSubmit($event)">
+            <div>
+                <app-label>Provider</app-label>
+                <app-select2
+                    [options]="providerOptions()"
+                    [value]="providerId()"
+                    (valueChange)="onProviderChange($event)"
+                    [disabled]="providers.isLoading()"
+                    [placeholder]="providers.isLoading() ? 'Loading providers…' : 'Select a provider…'"
+                    searchPlaceholder="Search providers…"
+                />
+                @if (providers.error()) {
+                    <p class="mt-1.5 text-xs text-error-500">
+                        Could not load providers. Is the backend running?
+                    </p>
+                }
+            </div>
 
-        <div>
-            <app-label>Deployment branch</app-label>
-            <app-select2
-                [options]="branchOptions()"
-                [(value)]="branch"
-                [disabled]="!repositoryId() || branches.isLoading()"
-                [placeholder]="branches.isLoading() ? 'Loading branches…' : 'Select a branch…'"
-                searchPlaceholder="Search branches…"
-            />
-        </div>
+            <div>
+                <app-label>Repository</app-label>
+                <app-select2
+                    [options]="repositoryOptions()"
+                    [value]="repositoryId()"
+                    (valueChange)="onRepositoryChange($event)"
+                    [disabled]="!providerId() || repositories.isLoading()"
+                    [placeholder]="repositories.isLoading() ? 'Loading repositories…' : 'Select a repository…'"
+                    searchPlaceholder="Search repositories…"
+                />
+                @if (repositories.error()) {
+                    <p class="mt-1.5 text-xs text-error-500">
+                        Could not load repositories. Check the credentials of the provider.
+                    </p>
+                }
+            </div>
 
-        <div>
-            <app-label for="provider-compose-path">Docker Compose path</app-label>
-            <app-input-field
-                id="provider-compose-path"
-                name="provider-compose-path"
-                placeholder="docker-compose.yml"
-                [value]="composerPath()"
-                (valueChange)="onComposerPathChange($event)"
-            />
-        </div>
+            <div>
+                <app-label>Deployment branch</app-label>
+                <app-select2
+                    [options]="branchOptions()"
+                    [(value)]="branch"
+                    [disabled]="!repositoryId() || branches.isLoading()"
+                    [placeholder]="branches.isLoading() ? 'Loading branches…' : 'Select a branch…'"
+                    searchPlaceholder="Search branches…"
+                />
+            </div>
 
-        <app-button type="submit" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : 'Save' }}
-        </app-button>
-    </form>
+            <div>
+                <app-label for="provider-compose-path">Docker Compose path</app-label>
+                <app-input-field
+                    id="provider-compose-path"
+                    name="provider-compose-path"
+                    placeholder="docker-compose.yml"
+                    [value]="composerPath()"
+                    (valueChange)="onComposerPathChange($event)"
+                />
+            </div>
+
+            <app-button type="submit" [disabled]="saving()">
+                {{ saving() ? 'Saving…' : 'Save' }}
+            </app-button>
+        </form>
+    }
 </app-component-card>
