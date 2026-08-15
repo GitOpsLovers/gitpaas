@@ -9,7 +9,7 @@ import { ServicesController } from '../services.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
-import { ProviderNotFoundError } from '@features/source-control/domain/errors/provider.errors';
+import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
 
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';

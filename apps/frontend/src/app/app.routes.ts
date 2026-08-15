@@ -31,21 +31,21 @@ export const routes: Routes = [
                 title: 'Server | GitPaaS',
             },
             {
-                path: 'source-control',
+                path: 'providers',
                 children: [
                     {
                         path: '',
-                        loadComponent: () => import('@pages/source-control/list/providers-list.component').then((m) => m.SourceControlListPage),
-                        title: 'Source Control | GitPaaS',
+                        loadComponent: () => import('@pages/providers/list/providers-list.component').then((m) => m.ProvidersListPage),
+                        title: 'Providers | GitPaaS',
                     },
                     {
                         path: 'add',
-                        loadComponent: () => import('@pages/source-control/add/provider-add.component').then((m) => m.SourceControlAddPage),
+                        loadComponent: () => import('@pages/providers/add/provider-add.component').then((m) => m.ProvidersAddPage),
                         title: 'Add provider | GitPaaS',
                     },
                     {
                         path: 'edit/:id',
-                        loadComponent: () => import('@pages/source-control/edit/provider-edit.component').then((m) => m.SourceControlEditPage),
+                        loadComponent: () => import('@pages/providers/edit/provider-edit.component').then((m) => m.ProvidersEditPage),
                         title: 'Edit provider | GitPaaS',
                     },
                 ],

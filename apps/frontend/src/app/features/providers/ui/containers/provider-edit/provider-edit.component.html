@@ -1,0 +1,13 @@
+@if (loading()) {
+    <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+} @else {
+    <app-provider-form
+        [initialName]="initialName()"
+        [initialAppId]="initialAppId()"
+        [initialInstallationId]="initialInstallationId()"
+        [keyOptional]="true"
+        submitLabel="Save changes"
+        [submitting]="submitting()"
+        (save)="update($event)"
+    />
+}

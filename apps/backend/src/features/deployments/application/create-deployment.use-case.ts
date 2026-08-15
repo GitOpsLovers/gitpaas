@@ -9,18 +9,18 @@ import { persistDeploymentUseCase } from './persist-deployment.use-case';
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getProviderCredentialsUseCase } from '@features/source-control/application/get-provider-credentials.use-case';
-import { SourceControlResourceNotFoundError } from '@features/source-control/domain/errors/source-control.errors';
-import { GitCommit } from '@features/source-control/domain/models/git-commit.models';
-import { ProviderCredentials } from '@features/source-control/domain/models/provider.models';
-import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
-import { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
+import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
+import { ProviderResourceNotFoundError } from '@features/providers/domain/errors/provider-client.errors';
+import { GitCommit } from '@features/providers/domain/models/git-commit.models';
+import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
+import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
+import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Resolves the head commit of the deployment branch, with the credentials of the provider.
  *
- * @param sourceControl Source control port
+ * @param providerClient Provider client port
  * @param credentials Credentials of the provider of the service
  * @param repositoryId Repository the service stores
  * @param ref Branch to resolve
@@ -30,15 +30,15 @@ import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
  * @throws ProviderRepositoryUnreachableError When the provider cannot reach the repository
  */
 async function resolveHeadCommit(
-    sourceControl: SourceControl,
+    providerClient: ProviderClient,
     credentials: ProviderCredentials,
     repositoryId: string,
     ref: string,
 ): Promise<GitCommit> {
     try {
-        return await sourceControl.getCommit(credentials, Number(repositoryId), ref);
+        return await providerClient.getCommit(credentials, Number(repositoryId), ref);
     } catch (error) {
-        if (error instanceof SourceControlResourceNotFoundError) {
+        if (error instanceof ProviderResourceNotFoundError) {
             throw new ProviderRepositoryUnreachableError(credentials.providerId, repositoryId, { cause: error });
         }
 
@@ -56,7 +56,7 @@ async function resolveHeadCommit(
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
  * @param providersRepository Providers repository
- * @param sourceControl Source control port
+ * @param providerClient Provider client port
  * @param deploymentQueue Deployment queue
  * @param triggerDto Data for triggering the deployment
  *
@@ -66,7 +66,7 @@ export async function createDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
     providersRepository: ProvidersRepository,
-    sourceControl: SourceControl,
+    providerClient: ProviderClient,
     deploymentQueue: DeploymentQueue,
     triggerDto: TriggerDeploymentDto,
 ): Promise<Deployment> {
@@ -83,7 +83,7 @@ export async function createDeploymentUseCase(
     const credentials = await getProviderCredentialsUseCase(providersRepository, service.providerId);
 
     const commit = await resolveHeadCommit(
-        sourceControl,
+        providerClient,
         credentials,
         service.repositoryId,
         service.deploymentBranch,

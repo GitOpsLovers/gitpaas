@@ -16,10 +16,10 @@ import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
-import type { SourceControl } from '@features/source-control/domain/ports/source-control.port';
-import type { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
-import { DatabaseProvidersRepository } from '@features/source-control/infrastructure/database/db-providers.repository';
-import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
+import type { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
+import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
+import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 
 /**
  * Deployments service
@@ -33,8 +33,8 @@ export class DeploymentsService {
         private readonly servicesRepository: ServicesRepository,
         @Inject(DatabaseProvidersRepository)
         private readonly providersRepository: ProvidersRepository,
-        @Inject(GithubSourceControlAdapter)
-        private readonly sourceControl: SourceControl,
+        @Inject(GithubProviderClientAdapter)
+        private readonly providerClient: ProviderClient,
         @Inject(DatabaseDeploymentQueueAdapter)
         private readonly deploymentQueue: DeploymentQueue,
         @Inject(RedisLogStoreAdapter)
@@ -97,7 +97,7 @@ export class DeploymentsService {
             this.repository,
             this.servicesRepository,
             this.providersRepository,
-            this.sourceControl,
+            this.providerClient,
             this.deploymentQueue,
             triggerDto,
         );
