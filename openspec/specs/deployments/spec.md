@@ -48,20 +48,22 @@ the service.
 The request means "deploy the head of the branch of this service, now". The system SHALL calculate every
 other value.
 
-Before the system writes the record, it SHALL do these three checks and steps:
+Before the system writes the record, it SHALL do these four checks and steps:
 
 1. The service must exist.
-2. The service must be deployable. It must hold an identifier of a repository and a deployment branch.
-3. The system asks the source control for the head commit of the branch.
+2. The service must be deployable. It must hold an identifier of a provider, an identifier of a repository
+   and a deployment branch.
+3. The system loads the credentials of the provider of the service.
+4. The system asks the provider client for the head commit of the branch, with those credentials.
 
-The system SHALL then write the record with the status `pending`, the selected commit, the branch, the
-path of the compose file and the origin of the trigger.
+The system SHALL then write the record with the status `pending`, the selected commit, the branch, the path
+of the compose file and the origin of the trigger.
 
 #### Scenario: The service is deployable
 
 - **WHEN** a client posts the identifier of an available and deployable service
-- **THEN** the system resolves the head commit, it writes a record with the status `pending`, and it puts
-  a run task into the queue
+- **THEN** the system loads the credentials of the provider, it resolves the head commit, it writes a record
+  with the status `pending`, and it puts a run task into the queue
 
 #### Scenario: The service does not exist
 
@@ -70,14 +72,20 @@ path of the compose file and the origin of the trigger.
 
 #### Scenario: The service is not deployable
 
-- **WHEN** a client posts the identifier of a service that holds no identifier of a repository, or no
-  deployment branch
+- **WHEN** a client posts the identifier of a service that holds no identifier of a provider, no identifier
+  of a repository, or no deployment branch
 - **THEN** the system raises `SERVICE_NOT_DEPLOYABLE`, and it answers `400 Bad Request`
 
-#### Scenario: The source control cannot give the commit
+#### Scenario: The provider cannot reach the repository
 
-- **WHEN** the source control cannot resolve the head of the branch
-- **THEN** the system writes no record, and it answers with the error of the source control
+- **WHEN** the provider of the service cannot reach the stored repository
+- **THEN** the system writes no record, and it answers with a message that names the provider and the
+  repository
+
+#### Scenario: The provider client cannot give the commit
+
+- **WHEN** the provider client cannot resolve the head of the branch
+- **THEN** the system writes no record, and it answers with the error of the provider client
 
 #### Scenario: The body is not correct
 
@@ -160,10 +168,12 @@ deployment with the status `failed` and with its log entries, and the system doe
 The system SHALL do these steps for each run task:
 
 1. Set the status of the deployment to `running`.
-2. Get the archive of the repository at the selected commit from the source control.
-3. Run the Docker executor. It extracts the archive, it builds the local services, it pulls the images of
+2. Load the credentials of the provider of the service.
+3. Get the archive of the repository at the selected commit from the provider client, with those
+   credentials.
+4. Run the Docker executor. It extracts the archive, it builds the local services, it pulls the images of
    the registry, it stops the previous stack, and it starts the new stack.
-4. Set the status to `success` or to `failed`.
+5. Set the status to `success` or to `failed`.
 
 The runner SHALL NOT keep the output itself. It SHALL send each line of the executor to the write port of
 the logs, and it SHALL call the completion of that port with the terminal status.
@@ -183,6 +193,11 @@ the logs, and it SHALL call the completion of that port with the terminal status
 - **WHEN** a step of the run raises an error
 - **THEN** the runner writes one more line that holds the message of the error, and then it calls the
   completion with `failed`
+
+#### Scenario: The provider went away
+
+- **WHEN** the runner cannot load the credentials of the provider of the service
+- **THEN** the run fails with a message that names the provider, and the deployment gets the status `failed`
 
 ### Requirement: List of the deployments of a service
 

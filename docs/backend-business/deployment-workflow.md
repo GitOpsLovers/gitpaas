@@ -1,6 +1,6 @@
 # Deployment workflow
 
-The work takes a long time. Thus it is divided into a **quick synchronous request** that records the intention, and a **background run** that does the work. Three features operate together: `deployments` (the trigger, the record, the lifecycle and the execution), `source-control` (GitHub: it finds the commits and downloads the source), and `logs` (it keeps and streams the output).
+The work takes a long time. Thus it is divided into a **quick synchronous request** that records the intention, and a **background run** that does the work. Three features operate together: `deployments` (the trigger, the record, the lifecycle and the execution), `providers` (GitHub: it finds the commits and downloads the source), and `logs` (it keeps and streams the output).
 
 **1. Trigger.** Send `POST /api/v1/deployments` with only a `serviceId`. The server calculates all the other data. The request means "deploy the current head of the branch of this service, now".
 
@@ -8,7 +8,7 @@ The work takes a long time. Thus it is divided into a **quick synchronous reques
 
 - The service must be available. If not, the use case gives a `ServiceNotFoundError`.
 - The service must be deployable (it must have a repository and a deployment branch). If not, the use case gives a `ServiceNotDeployableError`.
-- Find the head commit of the branch with `source-control`. Thus the deployment points to an exact SHA (and to the first line of the message).
+- Find the head commit of the branch with the provider client. Thus the deployment points to an exact SHA (and to the first line of the message).
 
 Then write a deployment record with the status `pending`, which holds the selected commit, the branch, the compose path and the trigger.
 
@@ -17,7 +17,7 @@ Then write a deployment record with the status `pending`, which holds the select
 **4. Background run.** The use case puts a run task in the `DeploymentQueue`. The queue is **durable**: each task is a row in a queue table and is not only in the memory. Thus the work that is not complete stays after a restart of the process. A runner in the same feature takes the tasks and runs each one:
 
 1. Set the status to `running`.
-2. Get the repository archive at the selected commit (a gzipped tarball) from `source-control`.
+2. Get the repository archive at the selected commit (a gzipped tarball) from the provider client.
 3. Run the Docker executor: extract the archive, build the local `build:` services, pull the registry images, stop the previous stack, and start the new stack. The executor emits one line of output for each step.
 4. Set the status to `success` or to `failed`.
 

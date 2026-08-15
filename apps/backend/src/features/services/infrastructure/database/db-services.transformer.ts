@@ -4,7 +4,7 @@ import { DbServiceEntity } from './db-service.entity';
 
 import { FOREIGN_KEY_VIOLATION, readSqlState } from '@core/infrastructure/database/sql-state';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
-import { ProviderNotFoundError } from '@features/source-control/domain/errors/provider.errors';
+import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
 
 /**
  * Name of the foreign key that ties a service to its provider.

@@ -271,7 +271,7 @@ describe('AllExceptionsFilter', () => {
 
             it('follows the whole cause chain, so the root failure is never lost', () => {
                 const root = new Error('socket hang up');
-                const domainError = new CodedDomainError('SOURCE_CONTROL_UNAVAILABLE');
+                const domainError = new CodedDomainError('PROVIDER_UNAVAILABLE');
 
                 Object.defineProperty(domainError, 'cause', { value: root });
 
@@ -468,7 +468,7 @@ describe('AllExceptionsFilter', () => {
         describe('cause chain', () => {
             it('adds the type of every chained cause, from the nearest to the root', () => {
                 const root = new Error('socket hang up');
-                const domainError = new CodedDomainError('SOURCE_CONTROL_UNAVAILABLE');
+                const domainError = new CodedDomainError('PROVIDER_UNAVAILABLE');
 
                 Object.defineProperty(domainError, 'cause', { value: root });
 
@@ -622,7 +622,7 @@ describe('AllExceptionsFilter', () => {
         });
 
         it('publishes the domain code for a 5xx translated from a domain error too', () => {
-            const domainError = new CodedDomainError('SOURCE_CONTROL_UNAVAILABLE', 'GitHub is unreachable.');
+            const domainError = new CodedDomainError('PROVIDER_UNAVAILABLE', 'GitHub is unreachable.');
 
             sut.catch(
                 new ServiceUnavailableException(domainError.message, { cause: domainError }),
@@ -631,7 +631,7 @@ describe('AllExceptionsFilter', () => {
 
             const [, envelope] = mockReply.mock.calls[0] as [unknown, ErrorEnvelope, number];
 
-            expect(envelope.code).toBe('SOURCE_CONTROL_UNAVAILABLE');
+            expect(envelope.code).toBe('PROVIDER_UNAVAILABLE');
         });
 
         it('falls back to the generic client code for a 4xx with no domain cause', () => {

@@ -17,7 +17,7 @@ import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ServerModule } from '@features/server/server.module';
 import { ServicesModule } from '@features/services/services.module';
-import { SourceControlModule } from '@features/source-control/source-control.module';
+import { ProvidersModule } from '@features/providers/providers.module';
 import { UsersModule } from '@features/users/users.module';
 
 /**
@@ -47,7 +47,7 @@ import { UsersModule } from '@features/users/users.module';
         AuthenticationModule,
         NamespacesModule,
         ProjectsModule,
-        SourceControlModule,
+        ProvidersModule,
         ServicesModule,
         DeploymentsModule,
         LogsModule,

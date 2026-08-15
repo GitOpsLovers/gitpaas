@@ -108,29 +108,29 @@ The word "provider" already names the table, the variable `PROVIDERS_ENCRYPTION_
 
 ### The backend
 
-- [ ] 9.1 Rename the folder `apps/backend/src/features/source-control/` to `apps/backend/src/features/providers/`.
-- [ ] 9.2 Rename `source-control.module.ts` to `providers.module.ts`, rename the class `SourceControlModule` to `ProvidersModule`, and update `apps/backend/src/app.module.ts`.
-- [ ] 9.3 Rename `domain/ports/source-control.port.ts` to `domain/ports/provider-client.port.ts`, and the interface `SourceControl` to `ProviderClient`.
-- [ ] 9.4 Rename `infrastructure/github/github-source-control.adapter.ts` to `github-provider-client.adapter.ts`, and the class to `GithubProviderClientAdapter`.
-- [ ] 9.5 Rename `SourceControlNotConfiguredError` to `ProviderNotConfiguredError`, and its code to `PROVIDER_NOT_CONFIGURED`, in the errors and in `apps/backend/src/core/ui/translators/http-error.translator.ts`.
-- [ ] 9.6 Update the two services of the deployments, which inject the port, for the new name.
-- [ ] 9.7 Change the base path of the controller from `source-control` to `providers`, so the routes read `/api/v1/providers`, `/api/v1/providers/:id/test` and `/api/v1/providers/:providerId/repositories`.
-- [ ] 9.8 Rename the spec files that carry the old word, and update every path of an import and every route of a test.
+- [x] 9.1 Rename the folder `apps/backend/src/features/source-control/` to `apps/backend/src/features/providers/`.
+- [x] 9.2 Rename `source-control.module.ts` to `providers.module.ts`, rename the class `SourceControlModule` to `ProvidersModule`, and update `apps/backend/src/app.module.ts`.
+- [x] 9.3 Rename `domain/ports/source-control.port.ts` to `domain/ports/provider-client.port.ts`, and the interface `SourceControl` to `ProviderClient`.
+- [x] 9.4 Rename `infrastructure/github/github-source-control.adapter.ts` to `github-provider-client.adapter.ts`, and the class to `GithubProviderClientAdapter`.
+- [x] 9.5 Rename `SourceControlNotConfiguredError` to `ProviderNotConfiguredError`, and its code to `PROVIDER_NOT_CONFIGURED`, in the errors and in `apps/backend/src/core/ui/translators/http-error.translator.ts`.
+- [x] 9.6 Update the two services of the deployments, which inject the port, for the new name.
+- [x] 9.7 Change the base path of the controller from `source-control` to `providers`, so the routes read `/api/v1/providers`, `/api/v1/providers/:id/test` and `/api/v1/providers/:providerId/repositories`.
+- [x] 9.8 Rename the spec files that carry the old word, and update every path of an import and every route of a test.
 
 ### The frontend
 
-- [ ] 9.9 Rename the folder `apps/frontend/src/app/features/source-control/` to `apps/frontend/src/app/features/providers/`, and rename `source-control-api.repository.ts` to `providers-api.repository.ts` with the class `ProvidersApiRepository`.
-- [ ] 9.10 Rename the folder `apps/frontend/src/app/pages/source-control/` to `apps/frontend/src/app/pages/providers/`, and rename the three page classes to `ProvidersListPage`, `ProvidersAddPage` and `ProvidersEditPage`.
-- [ ] 9.11 Change the three routes of `apps/frontend/src/app/app.routes.ts` to `/providers`, `/providers/add` and `/providers/edit/:id`.
-- [ ] 9.12 Change the entry of the sidebar to the label "Providers", and change its link to `/providers`.
-- [ ] 9.13 Point every call of the frontend at `/providers`, including the two routes of the repositories and of the branches that the task 8.6 set.
-- [ ] 9.14 Update every link of a template and of a test that names `/source-control`, including the link of the empty state and the two navigations after a submit.
+- [x] 9.9 Rename the folder `apps/frontend/src/app/features/source-control/` to `apps/frontend/src/app/features/providers/`, and rename `source-control-api.repository.ts` to `providers-api.repository.ts` with the class `ProvidersApiRepository`.
+- [x] 9.10 Rename the folder `apps/frontend/src/app/pages/source-control/` to `apps/frontend/src/app/pages/providers/`, and rename the three page classes to `ProvidersListPage`, `ProvidersAddPage` and `ProvidersEditPage`.
+- [x] 9.11 Change the three routes of `apps/frontend/src/app/app.routes.ts` to `/providers`, `/providers/add` and `/providers/edit/:id`.
+- [x] 9.12 Change the entry of the sidebar to the label "Providers", and change its link to `/providers`.
+- [x] 9.13 Point every call of the frontend at `/providers`, including the two routes of the repositories and of the branches that the task 8.6 set.
+- [x] 9.14 Update every link of a template and of a test that names `/source-control`, including the link of the empty state and the two navigations after a submit.
 
 ### The verification
 
-- [ ] 9.15 Rename the capability `openspec/specs/source-control/` to `openspec/specs/providers/`, and the three folders `web-source-control-*` to `web-providers-*`. **Note:** run this task after `/opsx:sync`, and not before.
-- [ ] 9.16 Verify that a search for `source-control`, `sourceControl`, `SourceControl` and `Source Control` in `apps/backend/src/`, `apps/frontend/src/`, `docs/` and `openspec/specs/` gives nothing.
-- [ ] 9.17 Verify that the build of the backend, the build of the frontend and the whole suite of the tests pass.
+- [x] 9.15 Rename the capability `openspec/specs/source-control/` to `openspec/specs/providers/`, and the three folders `web-source-control-*` to `web-providers-*`. **Note:** run this task after `/opsx:sync`, and not before.
+- [x] 9.16 Verify that a search for `source-control`, `sourceControl`, `SourceControl` and `Source Control` in `apps/backend/src/`, `apps/frontend/src/`, `docs/` and `openspec/specs/` gives nothing.
+- [x] 9.17 Verify that the build of the backend, the build of the frontend and the whole suite of the tests pass.
 
 ## 10. The upgrade and the cleanup
 

@@ -12,7 +12,7 @@ import { DeploymentsService } from './ui/services/deployments.service';
 
 import { LogsModule } from '@features/logs/logs.module';
 import { ServicesModule } from '@features/services/services.module';
-import { SourceControlModule } from '@features/source-control/source-control.module';
+import { ProvidersModule } from '@features/providers/providers.module';
 
 /**
  * Deployments feature module.
@@ -21,7 +21,7 @@ import { SourceControlModule } from '@features/source-control/source-control.mod
     imports: [
         TypeOrmModule.forFeature([DbDeploymentEntity, DbDeploymentQueueTaskEntity]),
         forwardRef(() => ServicesModule),
-        SourceControlModule,
+        ProvidersModule,
         LogsModule,
     ],
     controllers: [DeploymentsController],

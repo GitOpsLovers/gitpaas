@@ -2,7 +2,7 @@ import { DbServiceEntity } from '../db-service.entity';
 import { toService, toServicePersistenceError } from '../db-services.transformer';
 
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
-import { ProviderNotFoundError } from '@features/source-control/domain/errors/provider.errors';
+import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
 
 describe('toService', () => {
     it('maps every service entity field into the domain model', () => {

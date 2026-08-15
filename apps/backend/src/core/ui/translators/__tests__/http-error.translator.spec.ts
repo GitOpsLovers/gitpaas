@@ -119,28 +119,28 @@ describe('translateError', () => {
                 .toBeInstanceOf(UnauthorizedException);
         });
 
-        it('maps SOURCE_CONTROL_RESOURCE_NOT_FOUND to a NotFoundException', () => {
-            expect(translateError(new CodedDomainError('SOURCE_CONTROL_RESOURCE_NOT_FOUND')))
+        it('maps PROVIDER_RESOURCE_NOT_FOUND to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_RESOURCE_NOT_FOUND')))
                 .toBeInstanceOf(NotFoundException);
         });
 
-        it('maps SOURCE_CONTROL_NOT_CONFIGURED to a ServiceUnavailableException', () => {
-            expect(translateError(new CodedDomainError('SOURCE_CONTROL_NOT_CONFIGURED')))
+        it('maps PROVIDER_NOT_CONFIGURED to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_NOT_CONFIGURED')))
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 
-        it('maps SOURCE_CONTROL_AUTHENTICATION_FAILED to a ServiceUnavailableException', () => {
-            expect(translateError(new CodedDomainError('SOURCE_CONTROL_AUTHENTICATION_FAILED')))
+        it('maps PROVIDER_AUTHENTICATION_FAILED to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_AUTHENTICATION_FAILED')))
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 
-        it('maps SOURCE_CONTROL_RATE_LIMITED to a ServiceUnavailableException', () => {
-            expect(translateError(new CodedDomainError('SOURCE_CONTROL_RATE_LIMITED')))
+        it('maps PROVIDER_RATE_LIMITED to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_RATE_LIMITED')))
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 
-        it('maps SOURCE_CONTROL_UNAVAILABLE to a ServiceUnavailableException', () => {
-            expect(translateError(new CodedDomainError('SOURCE_CONTROL_UNAVAILABLE')))
+        it('maps PROVIDER_UNAVAILABLE to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_UNAVAILABLE')))
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 

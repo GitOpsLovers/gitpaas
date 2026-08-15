@@ -21,8 +21,8 @@ import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/std
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
-import { DatabaseProvidersRepository } from '@features/source-control/infrastructure/database/db-providers.repository';
-import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
+import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
+import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 
 jest.mock('../../../application/run-deployment.use-case');
 
@@ -79,7 +79,7 @@ describe('DeploymentRunnerService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
     let mockProvidersRepository: jest.Mocked<DatabaseProvidersRepository>;
-    let mockSourceControl: jest.Mocked<GithubSourceControlAdapter>;
+    let mockProviderClient: jest.Mocked<GithubProviderClientAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
@@ -107,7 +107,7 @@ describe('DeploymentRunnerService', () => {
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
         mockProvidersRepository = {} as jest.Mocked<DatabaseProvidersRepository>;
-        mockSourceControl = {} as jest.Mocked<GithubSourceControlAdapter>;
+        mockProviderClient = {} as jest.Mocked<GithubProviderClientAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
@@ -128,7 +128,7 @@ describe('DeploymentRunnerService', () => {
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DatabaseProvidersRepository, useValue: mockProvidersRepository },
-                { provide: GithubSourceControlAdapter, useValue: mockSourceControl },
+                { provide: GithubProviderClientAdapter, useValue: mockProviderClient },
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
@@ -166,7 +166,7 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
-            mockSourceControl,
+            mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
             task,
@@ -478,7 +478,7 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
-            mockSourceControl,
+            mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
             taskA,
@@ -493,7 +493,7 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
-            mockSourceControl,
+            mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
             taskB,
@@ -525,7 +525,7 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
-            mockSourceControl,
+            mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
             taskA,
@@ -535,7 +535,7 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
-            mockSourceControl,
+            mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
             taskB,
@@ -576,7 +576,7 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
-            mockSourceControl,
+            mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
             taskB,

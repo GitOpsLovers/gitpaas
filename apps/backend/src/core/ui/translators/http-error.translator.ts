@@ -37,14 +37,14 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['INVALID_CREDENTIALS', (error) => new UnauthorizedException(error.message, { cause: error })],
     ['USER_INACTIVE', (error) => new UnauthorizedException(error.message, { cause: error })],
     ['INVALID_REFRESH_TOKEN', (error) => new UnauthorizedException(error.message, { cause: error })],
-    ['SOURCE_CONTROL_RESOURCE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
-    ['SOURCE_CONTROL_NOT_CONFIGURED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['PROVIDER_RESOURCE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['PROVIDER_NOT_CONFIGURED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     [
-        'SOURCE_CONTROL_AUTHENTICATION_FAILED',
+        'PROVIDER_AUTHENTICATION_FAILED',
         (error) => new ServiceUnavailableException(error.message, { cause: error }),
     ],
-    ['SOURCE_CONTROL_RATE_LIMITED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
-    ['SOURCE_CONTROL_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['PROVIDER_RATE_LIMITED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['PROVIDER_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
 ]);
 
 /**

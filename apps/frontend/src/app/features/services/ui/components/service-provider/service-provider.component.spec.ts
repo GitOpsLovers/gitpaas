@@ -5,10 +5,10 @@ import { provideRouter } from '@angular/router';
 
 import { ServiceProviderComponent, ServiceProviderSettings } from './service-provider.component';
 
-import { GitBranch } from '@features/source-control/domain/models/git-branch.model';
-import { GitRepository } from '@features/source-control/domain/models/git-repository.model';
-import { Provider } from '@features/source-control/domain/models/provider.model';
-import { SourceControlApiRepository } from '@features/source-control/infrastructure/api/source-control-api.repository';
+import { GitBranch } from '@features/providers/domain/models/git-branch.model';
+import { GitRepository } from '@features/providers/domain/models/git-repository.model';
+import { Provider } from '@features/providers/domain/models/provider.model';
+import { ProvidersApiRepository } from '@features/providers/infrastructure/api/providers-api.repository';
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
 
 interface ServiceProviderInternals {
@@ -118,7 +118,7 @@ describe('ServiceProviderComponent', () => {
         });
 
         TestBed.overrideComponent(ServiceProviderComponent, {
-            set: { providers: [{ provide: SourceControlApiRepository, useValue: repository }] },
+            set: { providers: [{ provide: ProvidersApiRepository, useValue: repository }] },
         });
     });
 
@@ -263,7 +263,7 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('Scenario: No provider exists', () => {
-        it('shows the empty state with a link to /source-control/add, and it shows no form', () => {
+        it('shows the empty state with a link to /providers/add, and it shows no form', () => {
             providersResource.value.set([]);
             create();
 
@@ -271,7 +271,7 @@ describe('ServiceProviderComponent', () => {
             expect(fixture.nativeElement.querySelector('form')).toBeNull();
             expect(selects()).toHaveLength(0);
 
-            const link = fixture.nativeElement.querySelector('a[href="/source-control/add"]') as HTMLAnchorElement;
+            const link = fixture.nativeElement.querySelector('a[href="/providers/add"]') as HTMLAnchorElement;
 
             expect(link).not.toBeNull();
             expect(link.textContent?.trim()).toBe('Register your first provider');

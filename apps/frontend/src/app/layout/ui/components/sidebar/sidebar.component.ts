@@ -73,8 +73,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         },
         {
             icon: 'git-branch',
-            name: 'Source Control',
-            path: '/source-control',
+            name: 'Providers',
+            path: '/providers',
         },
         {
             icon: 'server',

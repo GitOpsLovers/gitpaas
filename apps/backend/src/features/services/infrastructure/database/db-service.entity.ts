@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { DbProjectEntity } from '@features/projects/infrastructure/database/db-project.entity';
-import { DbProviderEntity } from '@features/source-control/infrastructure/database/db-provider.entity';
+import { DbProviderEntity } from '@features/providers/infrastructure/database/db-provider.entity';
 
 /**
  * Services database entity

@@ -17,8 +17,8 @@ import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
-import { DatabaseProvidersRepository } from '@features/source-control/infrastructure/database/db-providers.repository';
-import { GithubSourceControlAdapter } from '@features/source-control/infrastructure/github/github-source-control.adapter';
+import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
+import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 
 jest.mock('../../../application/create-deployment.use-case');
 jest.mock('../../../application/delete-deployment.use-case');
@@ -59,7 +59,7 @@ describe('DeploymentsService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
     let mockProvidersRepository: jest.Mocked<DatabaseProvidersRepository>;
-    let mockSourceControl: jest.Mocked<GithubSourceControlAdapter>;
+    let mockProviderClient: jest.Mocked<GithubProviderClientAdapter>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
     let mockLogStore: jest.Mocked<LogStore>;
     let sut: DeploymentsService;
@@ -70,7 +70,7 @@ describe('DeploymentsService', () => {
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
         mockProvidersRepository = {} as jest.Mocked<DatabaseProvidersRepository>;
-        mockSourceControl = {} as jest.Mocked<GithubSourceControlAdapter>;
+        mockProviderClient = {} as jest.Mocked<GithubProviderClientAdapter>;
         mockQueue = { enqueue: jest.fn().mockResolvedValue(undefined) };
         mockLogStore = {
             append: jest.fn(),
@@ -85,7 +85,7 @@ describe('DeploymentsService', () => {
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DatabaseProvidersRepository, useValue: mockProvidersRepository },
-                { provide: GithubSourceControlAdapter, useValue: mockSourceControl },
+                { provide: GithubProviderClientAdapter, useValue: mockProviderClient },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
             ],
@@ -209,7 +209,7 @@ describe('DeploymentsService', () => {
                 mockDeploymentsRepository,
                 mockServicesRepository,
                 mockProvidersRepository,
-                mockSourceControl,
+                mockProviderClient,
                 mockQueue,
                 triggerDto,
             );

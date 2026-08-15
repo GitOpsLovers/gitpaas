@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { SourceControlApiRepository } from '@features/source-control/infrastructure/api/source-control-api.repository';
+import { ProvidersApiRepository } from '@features/providers/infrastructure/api/providers-api.repository';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -21,7 +21,7 @@ export interface ServiceProviderSettings {
 @Component({
     selector: 'app-service-provider',
     templateUrl: './service-provider.component.html',
-    providers: [SourceControlApiRepository],
+    providers: [ProvidersApiRepository],
     imports: [RouterLink, ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent, Select2Component],
 })
 
@@ -29,7 +29,7 @@ export interface ServiceProviderSettings {
  * Provider configuration form: provider, source repository, branch and compose file path.
  */
 export class ServiceProviderComponent {
-    private readonly sourceControl = inject(SourceControlApiRepository);
+    private readonly providersApi = inject(ProvidersApiRepository);
 
     public readonly initial = input.required<ServiceProviderSettings>();
 
@@ -48,17 +48,17 @@ export class ServiceProviderComponent {
     /**
      * Providers registered in the installation.
      */
-    protected readonly providers = this.sourceControl.providers;
+    protected readonly providers = this.providersApi.providers;
 
     /**
      * Repositories the selected provider can reach.
      */
-    protected readonly repositories = this.sourceControl.repositoriesByProvider(() => this.providerId() || undefined);
+    protected readonly repositories = this.providersApi.repositoriesByProvider(() => this.providerId() || undefined);
 
     /**
      * Branches of the currently selected repository.
      */
-    protected readonly branches = this.sourceControl.branchesByRepository(
+    protected readonly branches = this.providersApi.branchesByRepository(
         () => this.providerId() || undefined,
         () => {
             const value = this.repositoryId();
@@ -102,7 +102,7 @@ export class ServiceProviderComponent {
 
     protected onProviderChange(value: string): void {
         this.providerId.set(value);
-        // A repository identifier is global at the source control, and the access to it is not.
+        // A repository identifier is global at GitHub, and the access to it is not.
         this.repositoryId.set('');
         this.branch.set('');
     }

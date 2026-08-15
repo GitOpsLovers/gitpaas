@@ -6,13 +6,13 @@ import { DeploymentsRepository } from '../domain/repositories/deployments.reposi
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getProviderCredentialsUseCase } from '@features/source-control/application/get-provider-credentials.use-case';
-import { ProviderCredentials } from '@features/source-control/domain/models/provider.models';
-import { SourceControl } from '@features/source-control/domain/ports/source-control.port';
-import { ProvidersRepository } from '@features/source-control/domain/repositories/providers.repository';
+import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
+import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
+import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
+import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 
 /**
- * Loads the credentials the provider of a deployed service gives to the source control.
+ * Loads the credentials the provider of a deployed service gives to the provider client.
  *
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
@@ -55,7 +55,7 @@ async function loadCredentials(
  * @param deploymentsRepository Deployments repository
  * @param servicesRepository Services repository
  * @param providersRepository Providers repository
- * @param sourceControl Source control port
+ * @param providerClient Provider client port
  * @param dockerExecutor Docker executor
  * @param logStore Logs store
  * @param payload Run payload
@@ -64,7 +64,7 @@ export async function runDeploymentUseCase(
     deploymentsRepository: DeploymentsRepository,
     servicesRepository: ServicesRepository,
     providersRepository: ProvidersRepository,
-    sourceControl: SourceControl,
+    providerClient: ProviderClient,
     dockerExecutor: DockerExecutor,
     logStore: LogStore,
     payload: DeploymentRunTask,
@@ -79,7 +79,7 @@ export async function runDeploymentUseCase(
             payload.deploymentId,
         );
 
-        const archive = await sourceControl.getRepositoryArchive(credentials, payload.repositoryId, payload.commit);
+        const archive = await providerClient.getRepositoryArchive(credentials, payload.repositoryId, payload.commit);
 
         await dockerExecutor.up(archive, payload.composerPath, payload.projectName, (line) => {
             logStore.append(payload.deploymentId, line).catch(() => undefined);
