@@ -67,9 +67,8 @@ it.
 
 **6. The origin of a deployment is a field, and not a guess.**
 
-The record says `user`, `push` or `repeat`. The change `multi-tenancy` writes the user who triggered the
-run, and it allows an empty value for a run that no user started. The two fields answer different questions:
-who, and how.
+The record says `user`, `push` or `repeat`. This field says how a run started, and not who started it. A
+field that names the user would answer a different question, and this change does not add one.
 
 ## Risks / Trade-offs
 
