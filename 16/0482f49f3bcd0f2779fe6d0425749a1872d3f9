@@ -1,0 +1,19 @@
+openspec/changes/log-retention/proposal.md
+  s_6b34174fb62d1e::t_d23c65c184747a 3,5,9,11,17,21,23,25,27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "160482f49f3bcd0f2779fe6d0425749a1872d3f9",
+  "prompts": {},
+  "sessions": {
+    "s_6b34174fb62d1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62c4cf95-af82-4295-bd88-79854d56be8e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
