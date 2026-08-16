@@ -490,16 +490,6 @@ print_summary() {
     printf '\n'
     printf '  %sAdmin email%s    : %s\n' "$C_BOLD" "$C_RESET" "$GITPAAS_ADMIN_EMAIL"
     printf '  %sAdmin password%s : %s%s%s\n' "$C_BOLD" "$C_RESET" "$C_YELLOW$C_BOLD" "$ADMIN_PASSWORD" "$C_RESET"
-    printf '  (copy it now — it is not stored anywhere in readable form. If this\n'
-    printf '   admin already existed, its previous password is unchanged.)\n'
-    printf '\n'
-    printf '  %sStill to do manually:%s\n' "$C_BOLD" "$C_RESET"
-    printf '   * Register your GitHub App in the Providers screen: http://%s:8080/providers/add\n' "$HOST_ADDR"
-    printf '   * After editing .env, apply changes: %ssudo docker compose -f %s/iac/production/docker-compose.yml up -d%s\n' "$C_BOLD" "$GITPAAS_DIR" "$C_RESET"
-    printf '\n'
-    printf '  %sWarning:%s PROVIDERS_ENCRYPTION_KEY in %s/iac/production/.env encrypts every\n' "$C_YELLOW$C_BOLD" "$C_RESET" "$GITPAAS_DIR"
-    printf '  stored provider key. If you lose it, every registered provider key becomes\n'
-    printf '  unreadable and you must register the applications again. Back it up.\n'
     printf '%s────────────────────────────────────────────────────────%s\n\n' "$C_GREEN$C_BOLD" "$C_RESET"
 }
 

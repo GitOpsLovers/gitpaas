@@ -34,16 +34,16 @@ There is no managed cloud in the middle. The platform and the apps it runs both 
 
 ## ✨ Features
 
-|    | Feature                      | What it means for you                                                                                                             |
-|----|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| 🔀 | **Git-based deploys**        | Deploy any repo at a resolved commit — builds the `build:` services, pulls the rest, and brings the compose stack up.             |
-| 📬 | **Durable deployment queue** | DB-backed, at-least-once queue with bounded retries, dead-lettering, and restart recovery. In-flight work survives a restart.     |
-| 📡 | **Live log streaming**       | Deployment output streams to the browser over Server-Sent Events *and* is persisted, so history is replayable after the run ends. |
+|    | Feature                      | What it means for you                                                                                                                     |
+|----|------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| 🔀 | **Git-based deploys**        | Deploy any repository from multiple source providers.                                                                                     |
+| 📬 | **Durable deployment queue** | DB-backed, at-least-once queue with bounded retries, dead-lettering, and restart recovery. In-flight work survives a restart.             |
+| 📡 | **Live log streaming**       | Deployment output streams to the browser over Server-Sent Events *and* is persisted, so history is replayable after the run ends.         |
 | 🔐 | **Single-server by design**  | GitPaaS and your apps run on the *same* machine; the engine drives the local Docker daemon through its unix socket — nothing to wire up.  |
-| 🏠 | **Own your infrastructure**  | Self-hosted by design. Your code, your data, your servers — no third-party platform in between.                                   |
-| 🐙 | **GitHub App integration**   | Browse repositories and branches, resolve commits, and pull archives through a GitHub App.                                        |
-| 🛡️ | **Built-in authentication**  | JWT with refresh-token rotation and argon2 password hashing.                                                                      |
-| 🩺 | **Operational tooling**      | Readiness probes for PostgreSQL and Docker, plus image/volume/container pruning and read-only inspection.                        |
+| 🏠 | **Own your infrastructure**  | Self-hosted by design. Your code, your data, your servers — no third-party platform in between.                                           |
+| 🐙 | **GitHub App integration**   | Browse repositories and branches, resolve commits, and pull archives through a GitHub App.                                                |
+| 🛡️ | **Built-in authentication**  | JWT with refresh-token rotation and argon2 password hashing.                                                                              |
+| 🩺 | **Operational tooling**      | Readiness probes for PostgreSQL and Docker, plus image/volume/container pruning and read-only inspection.                                 |
 
 ---
 
@@ -87,13 +87,11 @@ A single deployment is one self-contained unit of work — *"bring this service'
    curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
    ```
 
-2. **Enter your admin email** when prompted, and **copy the generated password** it prints — it is shown only once.
+2. **Enter your admin email** when prompted, and **copy the generated password** it prints.
 
 3. **Open the app** at the frontend URL the installer prints (`http://<your-server>:8080`) and log in with that email and password.
 
 To install a specific release instead of the latest one, add `-s -- --version v1.0.0`. The installer is safe to re-run.
-
-> ⚙️ **Before your first deploy**, edit `/opt/gitpaas/iac/production/.env` to add your GitHub App credentials, then re-apply with `sudo docker compose -f /opt/gitpaas/iac/production/docker-compose.yml up -d`. The installer prints the exact steps when it finishes.
 
 🛠️ Setting up GitPaaS to work on it instead? See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
