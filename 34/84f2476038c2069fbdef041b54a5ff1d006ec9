@@ -1,0 +1,19 @@
+openspec/changes/deploy-developer-experience/design.md
+  s_6b34174fb62d1e::t_d57ae566f16a6d 70-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3484f2476038c2069fbdef041b54a5ff1d006ec9",
+  "prompts": {},
+  "sessions": {
+    "s_6b34174fb62d1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62c4cf95-af82-4295-bd88-79854d56be8e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
