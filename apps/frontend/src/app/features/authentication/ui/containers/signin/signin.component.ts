@@ -1,7 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideEye, LucideEyeOff } from '@lucide/angular';
 
+import { environment } from '@environments/environment';
 import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -9,10 +11,37 @@ import { LabelComponent } from '@shared/components/label/label.component';
 import { ToastService } from '@shared/services/toast.service';
 
 /**
- * Sign-in form container.
+ * Turns a failed login into the message the user sees.
  *
- * Collects credentials, drives the login flow through {@link AuthService} and
- * offers an optional "keep me logged in" persistence toggle.
+ * @param error Whatever the login call rejected with
+ *
+ * @returns The title and the detail of the message
+ */
+function describeSigninFailure(error: unknown): { title: string; detail: string } {
+    const status = error instanceof HttpErrorResponse ? error.status : undefined;
+
+    if (status === 0) {
+        return {
+            title: 'Cannot reach the API',
+            detail: `No answer from ${environment.apiBaseUrl}. Check that the backend runs and that this address is reachable from your browser.`,
+        };
+    }
+
+    if (status !== undefined && status >= 500) {
+        return {
+            title: 'The API failed',
+            detail: 'The backend answered with an error. Check its logs and try again.',
+        };
+    }
+
+    return {
+        title: 'Sign in failed',
+        detail: 'Invalid credentials or inactive account.',
+    };
+}
+
+/**
+ * Sign-in form container.
  */
 @Component({
     selector: 'app-signin-form',
@@ -79,9 +108,12 @@ export class SigninComponent {
         this.submitting.set(true);
 
         this.authService.login({ email, password }, this.rememberMe()).subscribe({
-            error: () => {
+            error: (error: unknown) => {
                 this.submitting.set(false);
-                this.toast.error('Sign in failed', 'Invalid credentials or inactive account.');
+
+                const { title, detail } = describeSigninFailure(error);
+
+                this.toast.error(title, detail);
             },
         });
     }

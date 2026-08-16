@@ -13,6 +13,7 @@ module.exports = {
         '^@octokit/rest$': '<rootDir>/../test/stubs/octokit-rest.stub.ts',
         '^@octokit/auth-app$': '<rootDir>/../test/stubs/octokit-auth-app.stub.ts',
     },
+    setupFiles: ['<rootDir>/../test/setup-env.ts'],
     collectCoverageFrom: ['**/*.(t|j)s'],
     coverageDirectory: '../coverage',
     testEnvironment: 'node',
