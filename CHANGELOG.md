@@ -1,3 +1,23 @@
+## [1.2.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.1.0...v1.2.0) (2026-08-16)
+
+### Features
+
+* add server status to Frontend ([b64baa0](https://github.com/GitOpsLovers/gitpaas/commit/b64baa0fb3f5b9d21d076868ed2257420887513c))
+* add source countrol - phase 1 ([11050f9](https://github.com/GitOpsLovers/gitpaas/commit/11050f91c10cc8cb738edc1b289037373fd11628))
+* delete obsolete code ([e813043](https://github.com/GitOpsLovers/gitpaas/commit/e813043fbd6355942b389a3a7fc8ab8c6a392128))
+* finish Proviers feature ([ab6e208](https://github.com/GitOpsLovers/gitpaas/commit/ab6e2081980e3cc52d5e48ee89e36e42e83ca52d))
+* **frontend:** add source control section ([#70](https://github.com/GitOpsLovers/gitpaas/issues/70)) ([873de4a](https://github.com/GitOpsLovers/gitpaas/commit/873de4abe73b12d7f3eb3eabe50e55fe32a9691e))
+* **providers:** add provider record with encryption and repository ([#65](https://github.com/GitOpsLovers/gitpaas/issues/65)) ([757833e](https://github.com/GitOpsLovers/gitpaas/commit/757833e26252b0bc1ed647e6190d04cd77250b48))
+* **providers:** add the API of the providers ([#67](https://github.com/GitOpsLovers/gitpaas/issues/67)) ([80f32cf](https://github.com/GitOpsLovers/gitpaas/commit/80f32cf15d739153cdf94dc887877fa71bbd38d5))
+* **services:** add provider selection UI and make provider optional ([#71](https://github.com/GitOpsLovers/gitpaas/issues/71)) ([f4060bd](https://github.com/GitOpsLovers/gitpaas/commit/f4060bd649911abb751fa7f32566e676779127fc))
+* **services:** bind services to providers ([#69](https://github.com/GitOpsLovers/gitpaas/issues/69)) ([883ee3d](https://github.com/GitOpsLovers/gitpaas/commit/883ee3d578cc9df6074a89ec48a33fcc44b19e3b))
+* **source-control:** consolidate provider module into capability ([#68](https://github.com/GitOpsLovers/gitpaas/issues/68)) ([2baeb76](https://github.com/GitOpsLovers/gitpaas/commit/2baeb76ed8082f6a4d15228972ff1bfe4997fba5))
+* **source-control:** pass provider credentials through the port ([#66](https://github.com/GitOpsLovers/gitpaas/issues/66)) ([7184db3](https://github.com/GitOpsLovers/gitpaas/commit/7184db3041ff333f93c3c873a544f185086086e9))
+
+### Bug Fixes
+
+* fix install script syntax error ([c2b637f](https://github.com/GitOpsLovers/gitpaas/commit/c2b637fce08db46cc468f296d8c4ea52bf845517))
+
 ## [1.1.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.0.0...v1.1.0) (2026-08-14)
 
 ### Features
