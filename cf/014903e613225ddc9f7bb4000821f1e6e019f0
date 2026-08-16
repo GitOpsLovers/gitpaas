@@ -1,0 +1,33 @@
+README.md
+  s_6b34174fb62d1e::t_92b36db2d7db89 7,25,27,29,31-35,39,41,43-44,47,49,51,55,57-59,61,67-72,74,80
+iac/production/.env.example
+  s_6b34174fb62d1e::t_cfb96249efec24 6
+docs/infrastructure-architecture/conventions.md
+  s_6b34174fb62d1e::t_1a452d1164b4ac 3,5,7,9-13,17-40
+turbo.json
+  s_9e6b49c5c69a35::t_f17a449bac289e 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cf014903e613225ddc9f7bb4000821f1e6e019f0",
+  "prompts": {},
+  "sessions": {
+    "s_6b34174fb62d1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62c4cf95-af82-4295-bd88-79854d56be8e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_9e6b49c5c69a35": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5350593235652886",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
