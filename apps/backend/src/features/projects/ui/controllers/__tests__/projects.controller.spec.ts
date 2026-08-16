@@ -38,6 +38,7 @@ interface RouteArgMetadata {
  * non-UUID path segment reach the service, and must fail a test.
  */
 const pipesFor = (handler: string, parameter: string): unknown[] => {
+    // eslint-disable-next-line operator-linebreak
     const metadata =
         (Reflect.getMetadata(ROUTE_ARGS_METADATA, ProjectsController, handler) as Record<
             string,

@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { CreateDeploymentDto } from '../../domain/dtos/create-deployment.dto';
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { ProviderRepositoryUnreachableError, ServiceNotDeployableError } from '../../domain/errors/deployment.errors';
@@ -7,14 +8,14 @@ import { DeploymentsRepository } from '../../domain/repositories/deployments.rep
 import { createDeploymentUseCase } from '../create-deployment.use-case';
 import { persistDeploymentUseCase } from '../persist-deployment.use-case';
 
-import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
-import { Service } from '@features/services/domain/models/service.models';
-import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { ProviderResourceNotFoundError } from '@features/providers/domain/errors/provider-client.errors';
 import { GitCommit } from '@features/providers/domain/models/git-commit.models';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
+import { Service } from '@features/services/domain/models/service.models';
+import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
 jest.mock('../persist-deployment.use-case');
 

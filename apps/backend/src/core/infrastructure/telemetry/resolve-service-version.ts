@@ -26,7 +26,7 @@ function readManifest(directory: string): { name?: unknown; version?: unknown } 
         const raw = readFileSync(join(directory, 'package.json'), 'utf8');
         const parsed: unknown = JSON.parse(raw);
 
-        return typeof parsed === 'object' && parsed !== null ? (parsed as { name?: unknown; version?: unknown }) : undefined;
+        return typeof parsed === 'object' && parsed !== null ? (parsed) : undefined;
     } catch {
         return undefined;
     }

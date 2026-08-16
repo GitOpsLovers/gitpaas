@@ -80,8 +80,12 @@ describe('DatabaseProjectsRepository', () => {
                 order: { id: 'DESC' },
             });
             expect(result).toEqual<Project[]>([
-                { id: withServices.id, name: 'with-services', namespaceId, servicesCount: 3 },
-                { id: withoutServices.id, name: 'no-services', namespaceId, servicesCount: 0 },
+                {
+                    id: withServices.id, name: 'with-services', namespaceId, servicesCount: 3,
+                },
+                {
+                    id: withoutServices.id, name: 'no-services', namespaceId, servicesCount: 0,
+                },
             ]);
         });
 

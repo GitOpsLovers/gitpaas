@@ -78,6 +78,7 @@ describe('RolesGuard', () => {
 
         sut.canActivate(context);
 
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(context.switchToHttp).not.toHaveBeenCalled();
     });
 

@@ -11,8 +11,8 @@ import { DeploymentRunnerService } from './ui/services/deployment-runner.service
 import { DeploymentsService } from './ui/services/deployments.service';
 
 import { LogsModule } from '@features/logs/logs.module';
-import { ServicesModule } from '@features/services/services.module';
 import { ProvidersModule } from '@features/providers/providers.module';
+import { ServicesModule } from '@features/services/services.module';
 
 /**
  * Deployments feature module.

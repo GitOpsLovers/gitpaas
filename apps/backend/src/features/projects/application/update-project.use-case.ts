@@ -23,7 +23,7 @@ export async function updateProjectUseCase(
 ): Promise<Project> {
     const project = await repository.findById(id);
 
-    if (!project || project.namespaceId !== namespaceId) {
+    if (project?.namespaceId !== namespaceId) {
         throw new ProjectNotFoundError(id);
     }
 

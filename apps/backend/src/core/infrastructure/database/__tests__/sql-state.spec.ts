@@ -2,7 +2,7 @@ import { FOREIGN_KEY_VIOLATION, UNIQUE_VIOLATION, readSqlState } from '../sql-st
 
 describe('readSqlState', () => {
     /** Failures carrying a readable SQLSTATE, with the state each one must yield. */
-    const readableFailures: [string, unknown, string][] = [
+    const readableFailures: Array<[string, unknown, string]> = [
         ['a driver failure carrying the SQLSTATE at its top level', { code: '23505' }, '23505'],
         ['a TypeORM QueryFailedError wrapping the driver failure', { driverError: { code: '23503' } }, '23503'],
         [
@@ -13,7 +13,7 @@ describe('readSqlState', () => {
     ];
 
     /** Failures carrying no readable SQLSTATE. */
-    const unreadableFailures: [string, unknown][] = [
+    const unreadableFailures: Array<[string, unknown]> = [
         ['a numeric code, since only a string SQLSTATE is read', { code: 23505 }],
         ['a wrapper whose driverError code is not a string', { driverError: { code: 23505 } }],
         ['a null throw', null],

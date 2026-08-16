@@ -35,7 +35,9 @@ describe('toProject', () => {
     });
 
     it('derives servicesCount of 0 for an empty loaded relation', () => {
-        const entity: DbProjectEntity = { id: 'p-3', name: 'Empty', namespaceId, services: [] };
+        const entity: DbProjectEntity = {
+            id: 'p-3', name: 'Empty', namespaceId, services: [],
+        };
 
         expect(toProject(entity)).toEqual({
             id: 'p-3',
@@ -60,7 +62,7 @@ describe('toProject', () => {
 
 describe('toProjectPersistenceError', () => {
     /** Failures the transformer must classify as a duplicate project name. */
-    const uniqueViolations: [string, unknown][] = [
+    const uniqueViolations: Array<[string, unknown]> = [
         ['a driver failure carrying the SQLSTATE at its top level', { code: '23505' }],
         ['a TypeORM QueryFailedError wrapping the driver failure', { driverError: { code: '23505' } }],
         [
@@ -70,7 +72,7 @@ describe('toProjectPersistenceError', () => {
     ];
 
     /** Failures the transformer must leave untouched. */
-    const passThroughFailures: [string, unknown][] = [
+    const passThroughFailures: Array<[string, unknown]> = [
         ['a foreign-key violation', { code: '23503' }],
         ['a wrapper carrying a non-unique driver SQLSTATE', { driverError: { code: '23502' } }],
         ['an error with no code at all', new Error('connection terminated')],

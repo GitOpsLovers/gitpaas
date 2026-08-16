@@ -14,12 +14,12 @@ import { enrichWithDeployment } from '../telemetry/enrich-with-deployment';
 
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import type { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
+import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 /**
  * Deployments service

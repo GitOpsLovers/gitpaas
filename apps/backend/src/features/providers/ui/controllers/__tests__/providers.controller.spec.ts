@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { ConflictException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
@@ -37,7 +38,9 @@ const providerFixture = (overrides: Partial<Provider> = {}): Provider => ({
 const provider = providerFixture();
 
 const repositories: GitRepository[] = [
-    { id: 42, fullName: 'gitopslovers/gitpaas', defaultBranch: 'main', private: false },
+    {
+        id: 42, fullName: 'gitopslovers/gitpaas', defaultBranch: 'main', private: false,
+    },
 ];
 
 const branches: GitBranch[] = [{ name: 'main' }];

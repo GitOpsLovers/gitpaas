@@ -20,9 +20,9 @@ import { resetServiceVersionCache } from '@core/infrastructure/telemetry/resolve
 import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/run-deployment.use-case');
 
@@ -180,7 +180,7 @@ describe('DeploymentRunnerService', () => {
         dequeued.next(task);
         await flush();
 
-        const [, servicesRepository, providersRepository] = mockRunDeploymentUseCase.mock.calls[0]!;
+        const [, servicesRepository, providersRepository] = mockRunDeploymentUseCase.mock.calls[0];
 
         expect(servicesRepository).toBe(mockServicesRepository);
         expect(providersRepository).toBe(mockProvidersRepository);
@@ -330,7 +330,11 @@ describe('DeploymentRunnerService', () => {
         dequeued.next(task);
         await flush();
 
-        const stack = emittedEvent()['error.stack']!;
+        const stack = emittedEvent()['error.stack'];
+
+        if (stack === undefined) {
+            throw new Error('Expected telemetry event to include an error stack');
+        }
 
         expect(stack).toHaveLength(TELEMETRY_MAX_STACK_LENGTH);
         expect(stack.startsWith(head)).toBe(true);

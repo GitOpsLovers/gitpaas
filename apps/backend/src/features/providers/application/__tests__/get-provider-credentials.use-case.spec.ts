@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { ProviderNotFoundError } from '../../domain/errors/provider.errors';
 import { ProviderCredentials } from '../../domain/models/provider.models';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';

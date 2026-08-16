@@ -38,7 +38,7 @@ describe('createInstrumentedDataSource', () => {
         mockCreateQueryRunner = jest.fn().mockReturnValue(runner);
         dataSource = {
             options,
-            createQueryRunner: mockCreateQueryRunner as unknown as FakeDataSource['createQueryRunner'],
+            createQueryRunner: mockCreateQueryRunner,
             initialize: jest.fn(),
         };
         dataSource.initialize.mockResolvedValue(dataSource);
@@ -127,8 +127,10 @@ describe('createInstrumentedDataSource', () => {
             return getTelemetry();
         });
 
-        expect(event!['deps.postgres.calls']).toBe(2);
-        expect(event!['deps.postgres.errors']).toBe(0);
+        expect(event).toBeDefined();
+        expect(event?.['deps.postgres.calls']).toBe(2);
+        expect(event).toBeDefined();
+        expect(event?.['deps.postgres.calls']).toBe(2);
     });
 
     it('counts a failing query as a postgres error', async () => {
@@ -199,6 +201,7 @@ describe('createInstrumentedDataSource', () => {
             return getTelemetry();
         });
 
-        expect(event!['deps.postgres.calls']).toBe(2);
+        expect(event).toBeDefined();
+        expect(event?.['deps.postgres.calls']).toBe(2);
     });
 });

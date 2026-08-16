@@ -4,12 +4,12 @@ import { DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
-import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
+import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
 /**
  * Loads the credentials the provider of a deployed service gives to the provider client.

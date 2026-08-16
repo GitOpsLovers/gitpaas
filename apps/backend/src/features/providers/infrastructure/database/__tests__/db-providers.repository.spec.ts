@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { createHash } from 'node:crypto';
 
 import { EntityManager, Repository } from 'typeorm';
@@ -66,6 +67,7 @@ const domainProviderOf = (entity: DbProviderEntity): Provider => ({
 });
 
 describe('DatabaseProvidersRepository', () => {
+    // eslint-disable-next-line security/detect-object-injection
     const originalKey = process.env[KEY_VARIABLE];
     const sealedKey = 'iv:tag:cipher';
 
@@ -83,13 +85,15 @@ describe('DatabaseProvidersRepository', () => {
     let sut: DatabaseProvidersRepository;
 
     beforeAll(() => {
+        // eslint-disable-next-line security/detect-object-injection
         process.env[KEY_VARIABLE] = KEY;
     });
 
     afterAll(() => {
         if (originalKey === undefined) {
-            delete process.env[KEY_VARIABLE];
+            Reflect.deleteProperty(process.env, KEY_VARIABLE);
         } else {
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = originalKey;
         }
     });

@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { SecretCipherAdapter } from '../secret-cipher.adapter';
 
 /**
@@ -23,20 +24,23 @@ const PEM = ['-----BEGIN RSA PRIVATE KEY-----', 'MIIEowIBAAKCAQEAx0Vb+7uP', '---
 );
 
 describe('SecretCipherAdapter', () => {
+    // eslint-disable-next-line security/detect-object-injection
     const originalKey = process.env[KEY_VARIABLE];
 
     let sut: SecretCipherAdapter;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // eslint-disable-next-line security/detect-object-injection
         process.env[KEY_VARIABLE] = KEY;
         sut = new SecretCipherAdapter();
     });
 
     afterAll(() => {
         if (originalKey === undefined) {
-            delete process.env[KEY_VARIABLE];
+            Reflect.deleteProperty(process.env, KEY_VARIABLE);
         } else {
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = originalKey;
         }
     });
@@ -65,7 +69,7 @@ describe('SecretCipherAdapter', () => {
 
             expect(parts).toHaveLength(3);
             parts.forEach((part) => {
-                expect(part).toMatch(/^[0-9a-f]+$/);
+                expect(part).toMatch(/^[\da-f]+$/);
             });
         });
     });
@@ -73,6 +77,7 @@ describe('SecretCipherAdapter', () => {
     describe('when the key of the decryption is wrong', () => {
         it('throws instead of returning the clear text', () => {
             const payload = sut.encryptSecret(PEM);
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = OTHER_KEY;
 
             expect(() => sut.decryptSecret(payload)).toThrow();
@@ -83,12 +88,13 @@ describe('SecretCipherAdapter', () => {
         });
 
         it('throws when the variable of the encryption is absent', () => {
-            delete process.env[KEY_VARIABLE];
+            Reflect.deleteProperty(process.env, KEY_VARIABLE);
 
             expect(() => sut.encryptSecret(PEM)).toThrow(`${KEY_VARIABLE} is not set`);
         });
 
         it('throws when the variable does not hold 32 bytes in the hexadecimal form', () => {
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = 'abcd';
 
             expect(() => sut.encryptSecret(PEM)).toThrow(
@@ -98,10 +104,12 @@ describe('SecretCipherAdapter', () => {
 
         it('reads the key on every call, so a change of the variable takes effect at once', () => {
             const first = sut.encryptSecret(PEM);
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = OTHER_KEY;
             const second = sut.encryptSecret(PEM);
 
             expect(sut.decryptSecret(second)).toBe(PEM);
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = KEY;
             expect(sut.decryptSecret(first)).toBe(PEM);
         });

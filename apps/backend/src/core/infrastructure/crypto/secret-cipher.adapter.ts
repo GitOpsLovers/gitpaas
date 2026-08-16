@@ -40,6 +40,7 @@ const KEY_VARIABLE = 'PROVIDERS_ENCRYPTION_KEY';
  * @throws Error When the variable is absent, or does not hold 32 bytes in the hexadecimal form
  */
 function readKey(): Buffer {
+    // eslint-disable-next-line security/detect-object-injection
     const raw = process.env[KEY_VARIABLE];
 
     if (!raw) {

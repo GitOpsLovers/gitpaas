@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { createHash } from 'node:crypto';
 
 import { ProviderType } from '../../../domain/models/provider.models';
@@ -49,16 +50,19 @@ const providerEntity = (overrides: Partial<DbProviderEntity> = {}): DbProviderEn
 });
 
 describe('db-providers.transformer', () => {
+    // eslint-disable-next-line security/detect-object-injection
     const originalKey = process.env[KEY_VARIABLE];
 
     beforeAll(() => {
+        // eslint-disable-next-line security/detect-object-injection
         process.env[KEY_VARIABLE] = KEY;
     });
 
     afterAll(() => {
         if (originalKey === undefined) {
-            delete process.env[KEY_VARIABLE];
+            Reflect.deleteProperty(process.env, KEY_VARIABLE);
         } else {
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = originalKey;
         }
     });
@@ -120,9 +124,11 @@ describe('db-providers.transformer', () => {
 
         it('gives an empty fingerprint when the key of the encryption does not open the row', () => {
             const entity = providerEntity();
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = 'd'.repeat(64);
 
             const result = toProvider(cipher, entity);
+            // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = KEY;
 
             expect(result.keyFingerprint).toBe('');
@@ -150,8 +156,7 @@ describe('db-providers.transformer', () => {
 
         it('throws when the stored key cannot be opened', () => {
             expect(() =>
-                toProviderCredentials(cipher, providerEntity({ encryptedPrivateKey: 'not-a-sealed-payload' })),
-            ).toThrow('The sealed payload is malformed');
+                toProviderCredentials(cipher, providerEntity({ encryptedPrivateKey: 'not-a-sealed-payload' }))).toThrow('The sealed payload is malformed');
         });
     });
 });

@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
 import { ProviderNameTakenError } from '../../domain/errors/provider.errors';
 import { Provider, ProviderType } from '../../domain/models/provider.models';

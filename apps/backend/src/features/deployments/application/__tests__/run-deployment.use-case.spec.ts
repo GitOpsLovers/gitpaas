@@ -1,15 +1,16 @@
-import type { Deployment } from '../../domain/models/deployment.models';
+/* eslint-disable no-secrets/no-secrets */
 import { DeploymentRunTask } from '../../domain/models/deployment-run-task.models';
+import type { Deployment } from '../../domain/models/deployment.models';
 import { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { runDeploymentUseCase } from '../run-deployment.use-case';
 
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { Service } from '@features/services/domain/models/service.models';
-import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { Service } from '@features/services/domain/models/service.models';
+import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {

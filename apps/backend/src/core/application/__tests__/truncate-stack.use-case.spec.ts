@@ -2,6 +2,7 @@ import { TELEMETRY_MAX_STACK_LENGTH } from '../../domain/constants/telemetry.con
 import { truncateStackUseCase } from '../truncate-stack.use-case';
 
 /** Reads the character count the truncation marker reports. */
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const removedCharacters = (stack: string): number => Number(/truncated (\d+) characters/.exec(stack)![1]);
 
 /** Rebuilds the marker the use case appends for a given removed count. */

@@ -15,10 +15,10 @@ import { DeploymentsService } from '../deployments.service';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
-import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
+import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
+import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/create-deployment.use-case');
 jest.mock('../../../application/delete-deployment.use-case');
