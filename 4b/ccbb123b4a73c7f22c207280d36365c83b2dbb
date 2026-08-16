@@ -1,0 +1,74 @@
+apps/backend/src/app.module.ts
+  h_e4f33aa49027b9 18
+apps/backend/src/core/application/__tests__/truncate-stack.use-case.spec.ts
+  h_e4f33aa49027b9 5
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  h_e4f33aa49027b9 1
+apps/backend/src/core/infrastructure/crypto/__tests__/secret-cipher.adapter.spec.ts
+  h_e4f33aa49027b9 1,27,34,41,43,72,80,91,97,107,112
+apps/backend/src/core/infrastructure/crypto/secret-cipher.adapter.ts
+  h_e4f33aa49027b9 43
+apps/backend/src/core/infrastructure/database/__tests__/instrumented-data-source.spec.ts
+  h_e4f33aa49027b9 41,130-133,204-205
+apps/backend/src/core/infrastructure/database/__tests__/sql-state.spec.ts
+  h_e4f33aa49027b9 5,16
+apps/backend/src/core/infrastructure/telemetry/resolve-service-version.ts
+  h_e4f33aa49027b9 29
+apps/backend/src/core/ui/middlewares/__tests__/telemetry.middleware.spec.ts
+  h_e4f33aa49027b9 15
+apps/backend/src/features/authentication/ui/guards/__tests__/roles.guard.spec.ts
+  h_e4f33aa49027b9 81
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  h_e4f33aa49027b9 1,16-18
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  h_e4f33aa49027b9 1,3,12-13
+apps/backend/src/features/deployments/application/create-deployment.use-case.ts
+  h_e4f33aa49027b9 16-17
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  h_e4f33aa49027b9 11-12
+apps/backend/src/features/deployments/deployments.module.ts
+  h_e4f33aa49027b9 15
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  h_e4f33aa49027b9 25,183,333-337
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  h_e4f33aa49027b9 20-21
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  h_e4f33aa49027b9 31-32
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  h_e4f33aa49027b9 21-22
+apps/backend/src/features/projects/application/delete-project.use-case.ts
+  h_e4f33aa49027b9 22
+apps/backend/src/features/projects/application/find-project-by-id.use-case.ts
+  h_e4f33aa49027b9 23
+apps/backend/src/features/projects/application/update-project.use-case.ts
+  h_e4f33aa49027b9 26
+apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts
+  h_e4f33aa49027b9 83-88
+apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.transformer.spec.ts
+  h_e4f33aa49027b9 38-40,65,75
+apps/backend/src/features/projects/ui/controllers/__tests__/projects.controller.spec.ts
+  h_e4f33aa49027b9 41
+apps/backend/src/features/providers/application/__tests__/create-provider.use-case.spec.ts
+  h_e4f33aa49027b9 1
+apps/backend/src/features/providers/application/__tests__/get-provider-credentials.use-case.spec.ts
+  h_e4f33aa49027b9 1
+apps/backend/src/features/providers/application/__tests__/update-provider.use-case.spec.ts
+  h_e4f33aa49027b9 1
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.repository.spec.ts
+  h_e4f33aa49027b9 1,70,88,94,96
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.transformer.spec.ts
+  h_e4f33aa49027b9 1,53,57,63,65,127,131,159
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  h_e4f33aa49027b9 1,41-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4bccbb123b4a73c7f22c207280d36365c83b2dbb",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
