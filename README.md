@@ -34,7 +34,6 @@ No managed cloud sits in the middle. GitPaaS and the apps it runs share one mach
 - 🔐 Provider credentials encrypted at rest, and never returned by the API
 - 🩺 Readiness probes, image pruning and container cleanup
 
----
 
 ## 🚀 Install
 
@@ -48,9 +47,6 @@ Enter your admin email, **copy the password it prints**, then open `http://<your
 
 Add `-s -- --version v1.0.0` to pin a release. The installer is safe to re-run.
 
-> 🔑 The backend mounts `/var/run/docker.sock`, which is equivalent to root on that machine. Give GitPaaS a server you are willing to dedicate to it, and trust its users accordingly.
-
----
 
 ## 🧭 First deployment
 
@@ -60,7 +56,6 @@ Add `-s -- --version v1.0.0` to pin a release. The installer is safe to re-run.
 
 Each repository needs its own `docker-compose.yml`. GitPaaS runs that file; it does not generate one for you.
 
----
 
 ## 📚 Documentation
 
@@ -73,13 +68,11 @@ Each repository needs its own `docker-compose.yml`. GitPaaS runs that file; it d
 
 Behaviour is specified in [`openspec/specs/`](./openspec/specs/) and planned work in [`openspec/changes/`](./openspec/changes/), following the [OpenSpec](https://openspec.dev/) standard. The `docs/` pages explain how the system is built; the specifications state what it must do.
 
----
 
 ## 🤝 Contributing
 
 Contributions are warmly welcome! 🎉 A new provider adapter is a great place to start. See **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
----
 
 ## 📄 License
 

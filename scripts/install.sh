@@ -303,7 +303,7 @@ generate_env() {
     upsert_env "DOCKER_GID" "$DOCKER_GID"
     upsert_env "IMAGE_TAG" "$IMAGE_TAG"
 
-    log ".env written. Source control accounts are registered from the Providers screen."
+    log ".env written."
 }
 
 # ---------------------------------------------------------------------------
