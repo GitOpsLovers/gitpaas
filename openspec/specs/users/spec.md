@@ -2,18 +2,15 @@
 
 ## Purpose
 
-This capability holds the operators of the platform. It keeps the record of each user, it stores the
-password only as a hash, and it puts one administrative user into a development database.
+This capability holds the operators of the platform. It keeps the record of each user, it stores the password only as a hash, and it puts one administrative user into a development database.
 
 ## Requirements
 
 ### Requirement: The user record
 
-The system SHALL keep one record per user. The record holds the identifier, the email, the hash of the
-password, the role, the state, the date of the creation and the date of the last change.
+The system SHALL keep one record per user. The record holds the identifier, the email, the hash of the password, the role, the state, the date of the creation and the date of the last change.
 
-The role is `admin` or `user`. The state `isActive` says if the user can authenticate. A new user is
-active if no caller gives another value.
+The role is `admin` or `user`. The state `isActive` says if the user can authenticate. A new user is active if no caller gives another value.
 
 #### Scenario: The system reads a user
 
@@ -22,19 +19,16 @@ active if no caller gives another value.
 
 ### Requirement: The password is stored only as a hash
 
-The system SHALL hash each password with argon2id before it writes the record. The system SHALL NOT store
-the password itself, and it SHALL NOT give the hash to any client.
+The system SHALL hash each password with argon2id before it writes the record. The system SHALL NOT store the password itself, and it SHALL NOT give the hash to any client.
 
 #### Scenario: The system creates a user
 
 - **WHEN** a caller creates a user with a password
-- **THEN** the system writes the argon2id hash into the field `passwordHash`, and it writes no other copy
-  of the password
+- **THEN** the system writes the argon2id hash into the field `passwordHash`, and it writes no other copy of the password
 
 ### Requirement: No endpoint creates a user
 
-The system SHALL give no HTTP endpoint that creates, changes or removes a user. There is no public
-sign-up.
+The system SHALL give no HTTP endpoint that creates, changes or removes a user. There is no public sign-up.
 
 An administrator makes a user with a different tool, directly in the database.
 
@@ -45,11 +39,9 @@ An administrator makes a user with a different tool, directly in the database.
 
 ### Requirement: The administrative user of the development mode
 
-The system SHALL create one administrative user at the start of the application, and only if the
-environment variable `NODE_ENV` holds the value `development`.
+The system SHALL create one administrative user at the start of the application, and only if the environment variable `NODE_ENV` holds the value `development`.
 
-The user carries the email `admin@gitpaas.dev`, the password `gitpaas`, the role `admin` and the state
-active. The seed runs after the server listens.
+The user carries the email `admin@gitpaas.dev`, the password `gitpaas`, the role `admin` and the state active. The seed runs after the server listens.
 
 #### Scenario: The database holds no administrative user
 

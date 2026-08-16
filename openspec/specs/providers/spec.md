@@ -357,11 +357,9 @@ If one obligatory field is empty after that, the system SHALL do nothing. It sen
 
 ### Requirement: The end of the registration
 
-If the API accepts the provider, the system SHALL show a message of success that names it, and it SHALL open
-the list at `/providers`.
+If the API accepts the provider, the system SHALL show a message of success that names it, and it SHALL open the list at `/providers`.
 
-If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
-same screen. The form SHALL keep the values that the user gave, including the PEM.
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the same screen. The form SHALL keep the values that the user gave, including the PEM.
 
 #### Scenario: The registration succeeds
 
@@ -371,8 +369,7 @@ same screen. The form SHALL keep the values that the user gave, including the PE
 #### Scenario: The name is already in use
 
 - **WHEN** the API refuses the creation, because another provider carries that name
-- **THEN** the system shows a message of failure, and the user stays on the screen with the values in the
-  form
+- **THEN** the system shows a message of failure, and the user stays on the screen with the values in the form
 
 #### Scenario: The user has no role of administrator
 
@@ -381,8 +378,7 @@ same screen. The form SHALL keep the values that the user gave, including the PE
 
 ### Requirement: The load of the provider
 
-The system SHALL read the provider of the path, and it SHALL put the name, the identifier of the application
-and the identifier of the installation into the form.
+The system SHALL read the provider of the path, and it SHALL put the name, the identifier of the application and the identifier of the installation into the form.
 
 The field of the private key SHALL stay empty, because the API never gives the key.
 
@@ -395,8 +391,7 @@ The field of the private key SHALL stay empty, because the API never gives the k
 
 The help text of the field of the key SHALL state that an empty field keeps the stored key.
 
-If the user leaves the field empty, the system SHALL send no key, and the API keeps the stored one. If the
-user gives a key, the system SHALL send it, and the API replaces the stored one.
+If the user leaves the field empty, the system SHALL send no key, and the API keeps the stored one. If the user gives a key, the system SHALL send it, and the API replaces the stored one.
 
 #### Scenario: The user leaves the key empty
 
@@ -410,11 +405,9 @@ user gives a key, the system SHALL send it, and the API replaces the stored one.
 
 ### Requirement: The end of the change
 
-If the API accepts the change, the system SHALL show a message of success that names the provider, and it
-SHALL open the list at `/providers`.
+If the API accepts the change, the system SHALL show a message of success that names the provider, and it SHALL open the list at `/providers`.
 
-If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
-same screen.
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the same screen.
 
 #### Scenario: The change succeeds
 
@@ -430,36 +423,29 @@ same screen.
 
 The tab `provider` SHALL give a form with four controls, in this order:
 
-| Control | Kind |
-|---|---|
-| The provider | A list of the registered providers |
-| The repository | A list of the repositories that the chosen provider can reach |
-| The branch | A list of the branches of the chosen repository |
-| The path of the compose file | A field of text |
+| Control                      | Kind                                                          |
+|------------------------------|---------------------------------------------------------------|
+| The provider                 | A list of the registered providers                            |
+| The repository               | A list of the repositories that the chosen provider can reach |
+| The branch                   | A list of the branches of the chosen repository               |
+| The path of the compose file | A field of text                                               |
 
 The system SHALL show `docker-compose.yml` as the path if the service holds no path.
 
-The system SHALL keep the control of the repository blocked until the user chooses a provider, because a
-repository has no meaning without an account.
+The system SHALL keep the control of the repository blocked until the user chooses a provider, because a repository has no meaning without an account.
 
-When the user changes the provider, the system SHALL clear the repository and the branch. A repository
-identifier is global at GitHub, and the access to it is not. Thus a pair that stays behind would name a
-repository that the new provider cannot reach.
+When the user changes the provider, the system SHALL clear the repository and the branch. A repository identifier is global at GitHub, and the access to it is not. Thus a pair that stays behind would name a repository that the new provider cannot reach.
 
-When the user changes the repository, the system SHALL clear the branch, because a branch of the old
-repository does not exist in the new one.
+When the user changes the repository, the system SHALL clear the branch, because a branch of the old repository does not exist in the new one.
 
-If no provider exists, the system SHALL show an empty state with a link to `/providers/add`, in place
-of the form.
+If no provider exists, the system SHALL show an empty state with a link to `/providers/add`, in place of the form.
 
-The system SHALL send the name of the service together with the four values, because the API asks for the
-name in every change.
+The system SHALL send the name of the service together with the four values, because the API asks for the name in every change.
 
 #### Scenario: The user chooses a provider
 
 - **WHEN** the user chooses a provider
-- **THEN** the system reads the repositories of that provider, it opens the control of the repository, and
-  it clears the repository and the branch of the form
+- **THEN** the system reads the repositories of that provider, it opens the control of the repository, and it clears the repository and the branch of the form
 
 #### Scenario: The user chooses a repository
 
