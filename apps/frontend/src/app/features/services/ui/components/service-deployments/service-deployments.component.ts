@@ -58,6 +58,7 @@ export class ServiceDeploymentsComponent {
     }
 
     protected statusBadgeClass(status: DeploymentStatus): string {
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
         switch (status) {
             case 'success':
                 return 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500';

@@ -4,19 +4,20 @@ import { of, throwError } from 'rxjs';
 
 import { Namespace } from '../../../domain/models/namespace.model';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
+
 import { NamespacesListComponent } from './namespaces-list.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface NamespacesListInternals {
-    namespaces: { reload(): void };
+    namespaces: { reload: () => void };
     pendingDelete: () => Namespace | null;
     deleting: () => boolean;
     deleteMessage: () => string;
-    view(namespace: Namespace): void;
-    edit(namespace: Namespace): void;
-    requestDelete(namespace: Namespace): void;
-    confirmDelete(): Promise<void>;
+    view: (namespace: Namespace) => void;
+    edit: (namespace: Namespace) => void;
+    requestDelete: (namespace: Namespace) => void;
+    confirmDelete: () => Promise<void>;
 }
 
 const namespace: Namespace = { id: 'ns-1', name: 'platform', projectsCount: 2 };
@@ -58,7 +59,7 @@ describe('NamespacesListComponent', () => {
         });
     });
 
-    it('exposes the namespaces resource from the repository', () => {
+    test('exposes the namespaces resource from the repository', () => {
         create();
 
         expect(component.namespaces).toBe(repository.namespaces);
@@ -66,7 +67,7 @@ describe('NamespacesListComponent', () => {
         expect(component.deleting()).toBe(false);
     });
 
-    it('navigates to the namespace projects when viewing', () => {
+    test('navigates to the namespace projects when viewing', () => {
         create();
 
         component.view(namespace);
@@ -74,7 +75,7 @@ describe('NamespacesListComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects']);
     });
 
-    it('navigates to the edit page when editing', () => {
+    test('navigates to the edit page when editing', () => {
         create();
 
         component.edit(namespace);
@@ -82,7 +83,7 @@ describe('NamespacesListComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces/edit', 'ns-1']);
     });
 
-    it('stores the namespace pending deletion and names it in the confirmation message', () => {
+    test('stores the namespace pending deletion and names it in the confirmation message', () => {
         create();
 
         component.requestDelete(namespace);
@@ -91,13 +92,13 @@ describe('NamespacesListComponent', () => {
         expect(component.deleteMessage()).toContain('platform');
     });
 
-    it('renders an empty name in the confirmation message when nothing is pending', () => {
+    test('renders an empty name in the confirmation message when nothing is pending', () => {
         create();
 
         expect(component.deleteMessage()).toBe('“” will be permanently deleted. This action cannot be undone.');
     });
 
-    it('does nothing when confirming with no namespace pending', async () => {
+    test('does nothing when confirming with no namespace pending', async () => {
         create();
 
         await component.confirmDelete();
@@ -108,7 +109,7 @@ describe('NamespacesListComponent', () => {
         expect(repository.namespaces.reload).not.toHaveBeenCalled();
     });
 
-    it('deletes the pending namespace, notifies success and reloads the list', async () => {
+    test('deletes the pending namespace, notifies success and reloads the list', async () => {
         repository.delete.mockReturnValue(of(undefined));
         create();
 
@@ -122,7 +123,7 @@ describe('NamespacesListComponent', () => {
         expect(component.pendingDelete()).toBeNull();
     });
 
-    it('notifies an error and skips the reload when the deletion fails', async () => {
+    test('notifies an error and skips the reload when the deletion fails', async () => {
         repository.delete.mockReturnValue(throwError(() => new Error('boom')));
         create();
 

@@ -5,6 +5,7 @@ import { NEVER, of, throwError } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+
 import { ServiceEditComponent } from './service-edit.component';
 
 import { Project } from '@features/projects/domain/models/project.model';
@@ -19,7 +20,7 @@ interface ServiceEditInternals {
     loading: () => boolean;
     submitting: () => boolean;
     breadcrumb: () => BreadcrumbItem[];
-    update(name: string): Promise<void>;
+    update: (name: string) => Promise<void>;
 }
 
 const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
@@ -90,7 +91,7 @@ describe('ServiceEditComponent', () => {
         });
     });
 
-    it('reads the namespace, the project and the service from the route', () => {
+    test('reads the namespace, the project and the service from the route', () => {
         create();
 
         expect(component.namespaceId).toBe('ns-1');
@@ -100,7 +101,7 @@ describe('ServiceEditComponent', () => {
         expect(serviceIdAccessor()).toBe('sv-1');
     });
 
-    it('scopes the projects repository to the namespace of the route', () => {
+    test('scopes the projects repository to the namespace of the route', () => {
         create();
 
         expect(projectsRepository.namespaceId()).toBe('ns-1');
@@ -109,7 +110,7 @@ describe('ServiceEditComponent', () => {
         expect(idAccessor()).toBe('pr-1');
     });
 
-    it('exposes an empty initial name until the service resolves', () => {
+    test('exposes an empty initial name until the service resolves', () => {
         create();
 
         expect(component.initialName()).toBe('');
@@ -119,7 +120,7 @@ describe('ServiceEditComponent', () => {
         expect(component.initialName()).toBe('web');
     });
 
-    it('mirrors the resource loading state', () => {
+    test('mirrors the resource loading state', () => {
         isLoading.set(true);
         create();
 
@@ -130,7 +131,7 @@ describe('ServiceEditComponent', () => {
         expect(component.loading()).toBe(false);
     });
 
-    it('builds a breadcrumb with namespaced links', () => {
+    test('builds a breadcrumb with namespaced links', () => {
         create();
 
         expect(component.breadcrumb()).toEqual([
@@ -144,7 +145,7 @@ describe('ServiceEditComponent', () => {
         expect(component.breadcrumb()[1]?.label).toBe('api');
     });
 
-    it('updates the service, notifies success and navigates to the namespaced project', async () => {
+    test('updates the service, notifies success and navigates to the namespaced project', async () => {
         repository.update.mockReturnValue(of({ ...service, name: 'renamed' }));
         create();
 
@@ -156,7 +157,7 @@ describe('ServiceEditComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
+    test('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
         repository.update.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -171,13 +172,13 @@ describe('ServiceEditComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('marks the form as submitting while the request is in flight', () => {
+    test('marks the form as submitting while the request is in flight', () => {
         repository.update.mockReturnValue(NEVER);
         create();
 
         expect(component.submitting()).toBe(false);
 
-        void component.update('renamed');
+        component.update('renamed');
 
         expect(component.submitting()).toBe(true);
     });

@@ -5,8 +5,8 @@ import { ProjectFormComponent } from './project-form.component';
 
 interface ProjectFormInternals {
     name: () => string;
-    onSubmit(event: Event): void;
-    onValueChange(value: string | number): void;
+    onSubmit: (event: Event) => void;
+    onValueChange: (value: string | number) => void;
 }
 
 describe('ProjectFormComponent', () => {
@@ -31,7 +31,7 @@ describe('ProjectFormComponent', () => {
         });
     });
 
-    it('points Cancel at the project list of the namespace', () => {
+    test('points Cancel at the project list of the namespace', () => {
         create();
 
         const cancel = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
@@ -40,7 +40,7 @@ describe('ProjectFormComponent', () => {
         expect(cancel.getAttribute('href')).toBe('/namespaces/ns-1/projects');
     });
 
-    it('re-targets Cancel when the namespace changes', () => {
+    test('re-targets Cancel when the namespace changes', () => {
         create();
 
         fixture.componentRef.setInput('namespaceId', 'ns-2');
@@ -51,7 +51,7 @@ describe('ProjectFormComponent', () => {
         expect(cancel.getAttribute('href')).toBe('/namespaces/ns-2/projects');
     });
 
-    it('seeds the name from the initial value and follows later changes', () => {
+    test('seeds the name from the initial value and follows later changes', () => {
         create('ns-1', 'api');
 
         expect(component.name()).toBe('api');
@@ -62,7 +62,7 @@ describe('ProjectFormComponent', () => {
         expect(component.name()).toBe('web');
     });
 
-    it('emits the trimmed name and prevents the native submit', () => {
+    test('emits the trimmed name and prevents the native submit', () => {
         create();
 
         component.onValueChange('  api  ');
@@ -76,7 +76,7 @@ describe('ProjectFormComponent', () => {
         expect(saved).toEqual(['api']);
     });
 
-    it('does not emit when the name is blank', () => {
+    test('does not emit when the name is blank', () => {
         create();
 
         component.onValueChange('   ');
@@ -85,7 +85,7 @@ describe('ProjectFormComponent', () => {
         expect(saved).toEqual([]);
     });
 
-    it('disables the submit button while submitting', () => {
+    test('disables the submit button while submitting', () => {
         create('ns-1', 'api');
 
         fixture.componentRef.setInput('submitting', true);

@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 
 import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+
 import { ProjectDetailComponent } from './project-detail.component';
 
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -60,13 +61,13 @@ describe('ProjectDetailComponent', () => {
             });
         });
 
-        it('scopes the repository to the namespace of the route', () => {
+        test('scopes the repository to the namespace of the route', () => {
             create();
 
             expect(repository.namespaceId()).toBe('ns-1');
         });
 
-        it('re-scopes the repository when the namespace input changes', () => {
+        test('re-scopes the repository when the namespace input changes', () => {
             create();
 
             fixture.componentRef.setInput('namespaceId', 'ns-2');
@@ -75,7 +76,7 @@ describe('ProjectDetailComponent', () => {
             expect(repository.namespaceId()).toBe('ns-2');
         });
 
-        it('loads the project of the route through the namespace-scoped repository', () => {
+        test('loads the project of the route through the namespace-scoped repository', () => {
             create();
 
             expect(repository.projectById).toHaveBeenCalledTimes(1);
@@ -89,7 +90,7 @@ describe('ProjectDetailComponent', () => {
             expect(idAccessor()).toBe('pr-2');
         });
 
-        it('builds a breadcrumb linking back to the namespace project list', () => {
+        test('builds a breadcrumb linking back to the namespace project list', () => {
             create();
 
             expect(component.breadcrumb()).toEqual([
@@ -99,7 +100,7 @@ describe('ProjectDetailComponent', () => {
             ]);
         });
 
-        it('names the last breadcrumb crumb after the project once it resolves', () => {
+        test('names the last breadcrumb crumb after the project once it resolves', () => {
             create();
 
             value.set(project);
@@ -107,7 +108,7 @@ describe('ProjectDetailComponent', () => {
             expect(component.breadcrumb().at(-1)).toEqual({ label: 'api' });
         });
 
-        it('rebuilds the breadcrumb link when the namespace changes', () => {
+        test('rebuilds the breadcrumb link when the namespace changes', () => {
             create();
 
             fixture.componentRef.setInput('namespaceId', 'ns-2');
@@ -124,7 +125,7 @@ describe('ProjectDetailComponent', () => {
             });
         });
 
-        it('links "Add service" to the namespaced service creation route', () => {
+        test('links "Add service" to the namespaced service creation route', () => {
             create();
 
             const link = fixture.nativeElement.querySelector('a[href$="/services/add"]') as HTMLAnchorElement;
@@ -132,7 +133,7 @@ describe('ProjectDetailComponent', () => {
             expect(link.getAttribute('href')).toBe('/namespaces/ns-1/projects/pr-1/services/add');
         });
 
-        it('links the projects breadcrumb to the namespaced project list', () => {
+        test('links the projects breadcrumb to the namespaced project list', () => {
             create();
 
             const hrefs = Array.from(fixture.nativeElement.querySelectorAll('a'))
@@ -141,7 +142,7 @@ describe('ProjectDetailComponent', () => {
             expect(hrefs).toContain('/namespaces/ns-1/projects');
         });
 
-        it('passes the namespace and the project down to the services list', () => {
+        test('passes the namespace and the project down to the services list', () => {
             create();
 
             const servicesList = fixture.debugElement.children

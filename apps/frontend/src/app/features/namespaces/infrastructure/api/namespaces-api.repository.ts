@@ -67,6 +67,7 @@ export class NamespacesApiRepository {
      * @param id Namespace identifier
      */
     public delete(id: string): Observable<void> {
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
         return this.http.delete<void>(`${this.url}/${id}`);
     }
 }

@@ -7,7 +7,7 @@ const UNREADABLE_MESSAGE = 'Could not read the health of the server.';
 const httpError = (status: number, body: unknown): unknown => ({ status, error: body });
 
 describe('mapReadinessHealthUseCase', () => {
-    it('Every dependency is available', () => {
+    test('Every dependency is available', () => {
         const result: ReadinessResult = {
             status: 'ok',
             dependencies: [
@@ -27,7 +27,7 @@ describe('mapReadinessHealthUseCase', () => {
         });
     });
 
-    it('One dependency is not available', () => {
+    test('One dependency is not available', () => {
         const result: ReadinessResult = {
             status: 'error',
             dependencies: [
@@ -47,7 +47,7 @@ describe('mapReadinessHealthUseCase', () => {
         expect(health.message).toBeNull();
     });
 
-    it('The API answers 503 with a body', () => {
+    test('The API answers 503 with a body', () => {
         const body: ReadinessResult = {
             status: 'error',
             dependencies: [
@@ -67,7 +67,7 @@ describe('mapReadinessHealthUseCase', () => {
         });
     });
 
-    it('The API answers 503 with a body nested under the details of the error envelope', () => {
+    test('The API answers 503 with a body nested under the details of the error envelope', () => {
         const error = httpError(503, {
             statusCode: 503,
             message: 'Service Unavailable',
@@ -85,7 +85,7 @@ describe('mapReadinessHealthUseCase', () => {
         });
     });
 
-    it('The API does not answer', () => {
+    test('The API does not answer', () => {
         expect(mapReadinessHealthUseCase(undefined, httpError(0, null))).toEqual({
             read: false,
             ready: false,
@@ -94,7 +94,7 @@ describe('mapReadinessHealthUseCase', () => {
         });
     });
 
-    it('reports a failed reading when the body of the error has no usable shape', () => {
+    test('reports a failed reading when the body of the error has no usable shape', () => {
         const error = httpError(503, { statusCode: 503, message: 'Service Unavailable' });
 
         expect(mapReadinessHealthUseCase(undefined, error)).toEqual({
@@ -105,7 +105,7 @@ describe('mapReadinessHealthUseCase', () => {
         });
     });
 
-    it('reports a failed reading when a dependency of the body carries no valid state', () => {
+    test('reports a failed reading when a dependency of the body carries no valid state', () => {
         const error = httpError(503, {
             status: 'error',
             dependencies: [{ name: 'docker', status: 'unknown' }],
@@ -114,7 +114,7 @@ describe('mapReadinessHealthUseCase', () => {
         expect(mapReadinessHealthUseCase(undefined, error).read).toBe(false);
     });
 
-    it('is not ready when the aggregate says ok but a dependency is down', () => {
+    test('is not ready when the aggregate says ok but a dependency is down', () => {
         const result = {
             status: 'ok',
             dependencies: [{ name: 'docker', status: 'down' }],
@@ -123,7 +123,7 @@ describe('mapReadinessHealthUseCase', () => {
         expect(mapReadinessHealthUseCase(result, undefined).ready).toBe(false);
     });
 
-    it('is ready when the aggregate is ok and the list of the dependencies is empty', () => {
+    test('is ready when the aggregate is ok and the list of the dependencies is empty', () => {
         expect(mapReadinessHealthUseCase({ status: 'ok', dependencies: [] }, undefined)).toEqual({
             read: true,
             ready: true,

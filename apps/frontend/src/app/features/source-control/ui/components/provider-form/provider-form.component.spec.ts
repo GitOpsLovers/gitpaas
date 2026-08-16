@@ -10,7 +10,7 @@ interface ProviderFormInternals {
     privateKey: () => string;
     keyHint: () => string;
     valid: () => boolean;
-    onSubmit(event: Event): void;
+    onSubmit: (event: Event) => void;
 }
 
 describe('ProviderFormComponent', () => {
@@ -36,6 +36,7 @@ describe('ProviderFormComponent', () => {
         fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
 
     const type = (element: HTMLInputElement | HTMLTextAreaElement, value: string): void => {
+        // eslint-disable-next-line no-param-reassign
         element.value = value;
         element.dispatchEvent(new Event('input'));
         fixture.detectChanges();
@@ -55,7 +56,7 @@ describe('ProviderFormComponent', () => {
         });
     });
 
-    it('shows the four controls of the provider', () => {
+    test('shows the four controls of the provider', () => {
         create();
 
         expect(inputOf('provider-name')).not.toBeNull();
@@ -64,7 +65,7 @@ describe('ProviderFormComponent', () => {
         expect(textarea()).not.toBeNull();
     });
 
-    it('seeds the three fields of text from the initial values and follows later changes', () => {
+    test('seeds the three fields of text from the initial values and follows later changes', () => {
         create();
 
         expect(component.name()).toBe('');
@@ -81,7 +82,7 @@ describe('ProviderFormComponent', () => {
         expect(component.installationId()).toBe('98765432');
     });
 
-    it('leaves the field of the key empty when the initial values arrive', () => {
+    test('leaves the field of the key empty when the initial values arrive', () => {
         create();
 
         fixture.componentRef.setInput('initialName', 'acme-github');
@@ -91,7 +92,7 @@ describe('ProviderFormComponent', () => {
         expect(textarea().value).toBe('');
     });
 
-    it('blocks the submit while a required field is empty', () => {
+    test('blocks the submit while a required field is empty', () => {
         create();
 
         expect(submitButton().disabled).toBe(true);
@@ -107,7 +108,7 @@ describe('ProviderFormComponent', () => {
         expect(submitButton().disabled).toBe(false);
     });
 
-    it('blocks the submit when a required field holds only empty places', () => {
+    test('blocks the submit when a required field holds only empty places', () => {
         create();
 
         fillEveryField();
@@ -117,7 +118,7 @@ describe('ProviderFormComponent', () => {
         expect(submitButton().disabled).toBe(true);
     });
 
-    it('sends nothing when the form is not valid', () => {
+    test('sends nothing when the form is not valid', () => {
         create();
 
         const event = new Event('submit');
@@ -129,7 +130,7 @@ describe('ProviderFormComponent', () => {
         expect(saved).toEqual([]);
     });
 
-    it('emits the trimmed values and prevents the native submit', () => {
+    test('emits the trimmed values and prevents the native submit', () => {
         create();
 
         type(inputOf('provider-name'), '  acme-github  ');
@@ -149,14 +150,14 @@ describe('ProviderFormComponent', () => {
         expect(saved[0].installationId).toBe('98765432');
     });
 
-    it('asks for the PEM in the help text while the key is obligatory', () => {
+    test('asks for the PEM in the help text while the key is obligatory', () => {
         create();
 
         expect(component.keyHint()).toBe('Paste the contents of the PEM file the GitHub App gave you.');
         expect(fixture.nativeElement.textContent).toContain('Paste the contents of the PEM file');
     });
 
-    it('states that an empty key keeps the stored key when the key is optional', () => {
+    test('states that an empty key keeps the stored key when the key is optional', () => {
         create();
 
         fixture.componentRef.setInput('keyOptional', true);
@@ -166,7 +167,7 @@ describe('ProviderFormComponent', () => {
         expect(fixture.nativeElement.textContent).toContain('Leave this field empty to keep the stored private key.');
     });
 
-    it('allows the submit with an empty key when the key is optional', () => {
+    test('allows the submit with an empty key when the key is optional', () => {
         create();
 
         fixture.componentRef.setInput('keyOptional', true);
@@ -187,7 +188,7 @@ describe('ProviderFormComponent', () => {
         });
     });
 
-    it('disables the submit while the container saves', () => {
+    test('disables the submit while the container saves', () => {
         create();
 
         fillEveryField();
@@ -197,7 +198,7 @@ describe('ProviderFormComponent', () => {
         expect(submitButton().disabled).toBe(true);
     });
 
-    it('shows the label the container gives to the submit', () => {
+    test('shows the label the container gives to the submit', () => {
         create();
 
         fixture.componentRef.setInput('submitLabel', 'Register provider');
@@ -206,7 +207,7 @@ describe('ProviderFormComponent', () => {
         expect(submitButton().textContent?.trim()).toBe('Register provider');
     });
 
-    it('points Cancel at the list of the providers', () => {
+    test('points Cancel at the list of the providers', () => {
         create();
 
         const cancel = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;

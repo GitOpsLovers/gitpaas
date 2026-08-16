@@ -74,7 +74,7 @@ export class DeploymentsApiRepository {
         return new Observable<LogEvent>((subscriber) => {
             const controller = new AbortController();
 
-            void this.streamLogs(deploymentId, controller.signal, subscriber);
+            this.streamLogs(deploymentId, controller.signal, subscriber);
 
             return () => { controller.abort(); };
         });

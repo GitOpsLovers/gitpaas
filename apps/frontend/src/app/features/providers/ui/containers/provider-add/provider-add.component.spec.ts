@@ -5,13 +5,14 @@ import { NEVER, of, throwError } from 'rxjs';
 import { Provider } from '../../../domain/models/provider.model';
 import { ProvidersApiRepository } from '../../../infrastructure/api/providers-api.repository';
 import { ProviderFormValue } from '../../components/provider-form/provider-form.component';
+
 import { ProviderAddComponent } from './provider-add.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface ProviderAddInternals {
     submitting: () => boolean;
-    create(value: ProviderFormValue): Promise<void>;
+    create: (value: ProviderFormValue) => Promise<void>;
 }
 
 const formValue: ProviderFormValue = {
@@ -68,13 +69,13 @@ describe('ProviderAddComponent', () => {
             });
         });
 
-        it('starts idle', () => {
+        test('starts idle', () => {
             create();
 
             expect(component.submitting()).toBe(false);
         });
 
-        it('registers the provider, notifies success and opens the list', async () => {
+        test('registers the provider, notifies success and opens the list', async () => {
             repository.create.mockReturnValue(of(created));
             create();
 
@@ -91,7 +92,7 @@ describe('ProviderAddComponent', () => {
             expect(toast.error).not.toHaveBeenCalled();
         });
 
-        it('names the conflict of the name and stays on the screen when the API answers 409', async () => {
+        test('names the conflict of the name and stays on the screen when the API answers 409', async () => {
             repository.create.mockReturnValue(throwError(() => ({ status: 409 })));
             create();
 
@@ -106,7 +107,7 @@ describe('ProviderAddComponent', () => {
             expect(component.submitting()).toBe(false);
         });
 
-        it('asks for an administrator when the API answers 403', async () => {
+        test('asks for an administrator when the API answers 403', async () => {
             repository.create.mockReturnValue(throwError(() => ({ status: 403 })));
             create();
 
@@ -119,7 +120,7 @@ describe('ProviderAddComponent', () => {
             expect(router.navigate).not.toHaveBeenCalled();
         });
 
-        it('notifies a generic error, stays on the page and re-enables the form when the creation fails', async () => {
+        test('notifies a generic error, stays on the page and re-enables the form when the creation fails', async () => {
             repository.create.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
@@ -133,11 +134,11 @@ describe('ProviderAddComponent', () => {
             expect(component.submitting()).toBe(false);
         });
 
-        it('marks the form as submitting while the request is in flight', () => {
+        test('marks the form as submitting while the request is in flight', () => {
             repository.create.mockReturnValue(NEVER);
             create();
 
-            void component.create(formValue);
+            component.create(formValue);
 
             expect(component.submitting()).toBe(true);
         });
@@ -167,7 +168,7 @@ describe('ProviderAddComponent', () => {
             type('textarea[name="provider-private-key"]', 'pem-contents');
         };
 
-        it('shows the four empty controls when the user opens the screen', () => {
+        test('shows the four empty controls when the user opens the screen', () => {
             create();
 
             expect((fixture.nativeElement.querySelector('input[name="provider-name"]') as HTMLInputElement).value).toBe('');
@@ -180,7 +181,7 @@ describe('ProviderAddComponent', () => {
             ).toBe('');
         });
 
-        it('sends no call while one field is empty', () => {
+        test('sends no call while one field is empty', () => {
             create();
 
             type('input[name="provider-name"]', 'acme-github');
@@ -191,7 +192,7 @@ describe('ProviderAddComponent', () => {
             expect(repository.create).not.toHaveBeenCalled();
         });
 
-        it('keeps the values of the form when the API refuses the creation', async () => {
+        test('keeps the values of the form when the API refuses the creation', async () => {
             repository.create.mockReturnValue(throwError(() => ({ status: 409 })));
             create();
 

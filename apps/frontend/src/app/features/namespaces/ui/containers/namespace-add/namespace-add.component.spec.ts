@@ -4,13 +4,14 @@ import { NEVER, of, throwError } from 'rxjs';
 
 import { Namespace } from '../../../domain/models/namespace.model';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
+
 import { NamespaceAddComponent } from './namespace-add.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface NamespaceAddInternals {
     submitting: () => boolean;
-    create(name: string): Promise<void>;
+    create: (name: string) => Promise<void>;
 }
 
 const created: Namespace = { id: 'ns-1', name: 'platform' };
@@ -46,13 +47,13 @@ describe('NamespaceAddComponent', () => {
         });
     });
 
-    it('starts idle', () => {
+    test('starts idle', () => {
         create();
 
         expect(component.submitting()).toBe(false);
     });
 
-    it('creates the namespace, notifies success and navigates to the list', async () => {
+    test('creates the namespace, notifies success and navigates to the list', async () => {
         repository.create.mockReturnValue(of(created));
         create();
 
@@ -64,7 +65,7 @@ describe('NamespaceAddComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('notifies an error, stays on the page and re-enables the form when creation fails', async () => {
+    test('notifies an error, stays on the page and re-enables the form when creation fails', async () => {
         repository.create.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -79,11 +80,11 @@ describe('NamespaceAddComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('marks the form as submitting while the request is in flight', () => {
+    test('marks the form as submitting while the request is in flight', () => {
         repository.create.mockReturnValue(NEVER);
         create();
 
-        void component.create('platform');
+        component.create('platform');
 
         expect(component.submitting()).toBe(true);
     });

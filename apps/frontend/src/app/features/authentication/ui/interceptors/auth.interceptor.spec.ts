@@ -5,16 +5,16 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { environment } from '@environments/environment';
-
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
+
 import { authInterceptor } from './auth.interceptor';
+
+import { environment } from '@environments/environment';
 
 const API_URL = `${environment.apiBaseUrl}/deployments`;
 const LOGIN_URL = `${environment.apiBaseUrl}/auth/login`;
-const REFRESH_URL = `${environment.apiBaseUrl}/auth/refresh`;
 const EXTERNAL_URL = 'https://example.com/data';
 
 const freshTokens: AuthTokens = { accessToken: 'new-access', refreshToken: 'new-refresh' };
@@ -60,7 +60,7 @@ describe('authInterceptor', () => {
     });
 
     describe('bearer attachment', () => {
-        it('attaches the Authorization header to API requests when a token exists', () => {
+        test('attaches the Authorization header to API requests when a token exists', () => {
             tokenStorage.accessToken.set('access-1');
 
             http.get(API_URL).subscribe();
@@ -70,7 +70,7 @@ describe('authInterceptor', () => {
             req.flush({});
         });
 
-        it('does not attach the header when there is no token', () => {
+        test('does not attach the header when there is no token', () => {
             http.get(API_URL).subscribe();
 
             const req = httpMock.expectOne(API_URL);
@@ -78,7 +78,7 @@ describe('authInterceptor', () => {
             req.flush({});
         });
 
-        it('does not attach the header to auth endpoints even when a token exists', () => {
+        test('does not attach the header to auth endpoints even when a token exists', () => {
             tokenStorage.accessToken.set('access-1');
 
             http.post(LOGIN_URL, {}).subscribe();
@@ -88,7 +88,7 @@ describe('authInterceptor', () => {
             req.flush({});
         });
 
-        it('leaves non-API requests untouched', () => {
+        test('leaves non-API requests untouched', () => {
             tokenStorage.accessToken.set('access-1');
 
             http.get(EXTERNAL_URL).subscribe();
@@ -100,7 +100,7 @@ describe('authInterceptor', () => {
     });
 
     describe('401 handling', () => {
-        it('refreshes once and retries the original request with the new access token', () => {
+        test('refreshes once and retries the original request with the new access token', () => {
             tokenStorage.accessToken.set('old-access');
             tokenStorage.refreshToken.set('old-refresh');
             authRepository.refresh.mockReturnValue(of(freshTokens));
@@ -124,7 +124,7 @@ describe('authInterceptor', () => {
             expect(router.navigate).not.toHaveBeenCalled();
         });
 
-        it('clears storage and redirects to /signin when the refresh fails', () => {
+        test('clears storage and redirects to /signin when the refresh fails', () => {
             tokenStorage.accessToken.set('old-access');
             tokenStorage.refreshToken.set('old-refresh');
             authRepository.refresh.mockReturnValue(
@@ -143,7 +143,7 @@ describe('authInterceptor', () => {
             expect(errored).toBe(true);
         });
 
-        it('clears storage and redirects to /signin when there is no refresh token', () => {
+        test('clears storage and redirects to /signin when there is no refresh token', () => {
             tokenStorage.accessToken.set('old-access');
             tokenStorage.refreshToken.set(null);
 
@@ -158,7 +158,7 @@ describe('authInterceptor', () => {
             expect(errored).toBe(true);
         });
 
-        it('is loop-safe: a 401 on the retried request does not trigger a second refresh', () => {
+        test('is loop-safe: a 401 on the retried request does not trigger a second refresh', () => {
             tokenStorage.accessToken.set('old-access');
             tokenStorage.refreshToken.set('old-refresh');
             authRepository.refresh.mockReturnValue(of(freshTokens));
@@ -175,7 +175,7 @@ describe('authInterceptor', () => {
             expect(errored).toBe(true);
         });
 
-        it('propagates non-401 errors without attempting a refresh', () => {
+        test('propagates non-401 errors without attempting a refresh', () => {
             tokenStorage.accessToken.set('access-1');
             tokenStorage.refreshToken.set('old-refresh');
 

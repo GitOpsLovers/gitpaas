@@ -12,10 +12,10 @@ import { ProvidersApiRepository } from '@features/providers/infrastructure/api/p
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
 
 interface ServiceProviderInternals {
-    onSubmit(event: Event): void;
-    onProviderChange(value: string): void;
-    onRepositoryChange(value: string): void;
-    onComposerPathChange(value: string | number): void;
+    onSubmit: (event: Event) => void;
+    onProviderChange: (value: string) => void;
+    onRepositoryChange: (value: string) => void;
+    onComposerPathChange: (value: string | number) => void;
 }
 
 interface ResourceStub<T> {
@@ -25,13 +25,21 @@ interface ResourceStub<T> {
 }
 
 const providers: Provider[] = [
-    { id: 'pv-1', name: 'acme-github', type: 'github_app', appId: '123456', installationId: '9876', keyFingerprint: 'a1b2c3d4' },
-    { id: 'pv-2', name: 'other-github', type: 'github_app', appId: '654321', installationId: '6789', keyFingerprint: 'd4c3b2a1' },
+    {
+        id: 'pv-1', name: 'acme-github', type: 'github_app', appId: '123456', installationId: '9876', keyFingerprint: 'a1b2c3d4',
+    },
+    {
+        id: 'pv-2', name: 'other-github', type: 'github_app', appId: '654321', installationId: '6789', keyFingerprint: 'd4c3b2a1',
+    },
 ];
 
 const repositories: GitRepository[] = [
-    { id: 11, fullName: 'acme/api', defaultBranch: 'main', private: true },
-    { id: 22, fullName: 'acme/web', defaultBranch: 'main', private: false },
+    {
+        id: 11, fullName: 'acme/api', defaultBranch: 'main', private: true,
+    },
+    {
+        id: 22, fullName: 'acme/web', defaultBranch: 'main', private: false,
+    },
 ];
 
 const branches: GitBranch[] = [
@@ -123,7 +131,7 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('the three selects of the chain', () => {
-        it('shows the provider, the repository and the branch as the first three controls', () => {
+        test('shows the provider, the repository and the branch as the first three controls', () => {
             create();
 
             const [provider, repositorySelect, branch] = selects();
@@ -143,8 +151,10 @@ describe('ServiceProviderComponent', () => {
             ]);
         });
 
-        it('seeds the four controls from the initial settings', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: 'stack/compose.yml' });
+        test('seeds the four controls from the initial settings', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: 'stack/compose.yml',
+            });
 
             const [provider, repositorySelect, branch] = selects();
 
@@ -156,7 +166,7 @@ describe('ServiceProviderComponent', () => {
             expect(path.value).toBe('stack/compose.yml');
         });
 
-        it('keeps the repository blocked until the user chooses a provider', () => {
+        test('keeps the repository blocked until the user chooses a provider', () => {
             create();
 
             expect(selects()[1].disabled()).toBe(true);
@@ -167,7 +177,7 @@ describe('ServiceProviderComponent', () => {
             expect(selects()[1].disabled()).toBe(false);
         });
 
-        it('keeps the branch blocked until the user chooses a repository', () => {
+        test('keeps the branch blocked until the user chooses a repository', () => {
             create({ ...initial, providerId: 'pv-1' });
 
             expect(selects()[2].disabled()).toBe(true);
@@ -178,8 +188,10 @@ describe('ServiceProviderComponent', () => {
             expect(selects()[2].disabled()).toBe(false);
         });
 
-        it('blocks each control while its own list is being read', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '' });
+        test('blocks each control while its own list is being read', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '',
+            });
 
             providersResource.isLoading.set(true);
             repositoriesResource.isLoading.set(true);
@@ -196,7 +208,7 @@ describe('ServiceProviderComponent', () => {
             expect(branch.placeholder()).toBe('Loading branches…');
         });
 
-        it('asks the repository resource for no provider while none is chosen', () => {
+        test('asks the repository resource for no provider while none is chosen', () => {
             create();
 
             expect(repository.repositoriesByProvider).toHaveBeenCalledTimes(1);
@@ -207,8 +219,10 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('Scenario: The user chooses a provider', () => {
-        it('reads the repositories of that provider, opens the repository and clears the repository and the branch', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: 'docker-compose.yml' });
+        test('reads the repositories of that provider, opens the repository and clears the repository and the branch', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: 'docker-compose.yml',
+            });
 
             component.onProviderChange('pv-2');
             fixture.detectChanges();
@@ -224,8 +238,10 @@ describe('ServiceProviderComponent', () => {
             expect(branchesRepositoryId()).toBeUndefined();
         });
 
-        it('stops reading the repositories when the provider is cleared', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '' });
+        test('stops reading the repositories when the provider is cleared', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '',
+            });
 
             component.onProviderChange('');
             fixture.detectChanges();
@@ -236,8 +252,10 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('Scenario: The user chooses a repository', () => {
-        it('reads the branches of that repository and clears the branch', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '' });
+        test('reads the branches of that repository and clears the branch', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '',
+            });
 
             component.onRepositoryChange('22');
             fixture.detectChanges();
@@ -251,8 +269,10 @@ describe('ServiceProviderComponent', () => {
             expect(branch.disabled()).toBe(false);
         });
 
-        it('keeps the provider untouched when the repository changes', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '' });
+        test('keeps the provider untouched when the repository changes', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '',
+            });
 
             component.onRepositoryChange('22');
             fixture.detectChanges();
@@ -263,7 +283,7 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('Scenario: No provider exists', () => {
-        it('shows the empty state with a link to /providers/add, and it shows no form', () => {
+        test('shows the empty state with a link to /providers/add, and it shows no form', () => {
             providersResource.value.set([]);
             create();
 
@@ -277,7 +297,7 @@ describe('ServiceProviderComponent', () => {
             expect(link.textContent?.trim()).toBe('Register your first provider');
         });
 
-        it('shows the form while the list of the providers has not arrived', () => {
+        test('shows the form while the list of the providers has not arrived', () => {
             providersResource.value.set(undefined);
             providersResource.isLoading.set(true);
             create();
@@ -286,7 +306,7 @@ describe('ServiceProviderComponent', () => {
             expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
         });
 
-        it('shows the form when at least one provider exists', () => {
+        test('shows the form when at least one provider exists', () => {
             create();
 
             expect(text()).not.toContain('No providers yet.');
@@ -295,8 +315,10 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('the submit', () => {
-        it('emits the provider first, together with the repository, the branch and the trimmed path', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '' });
+        test('emits the provider first, together with the repository, the branch and the trimmed path', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: '',
+            });
 
             component.onComposerPathChange('  stack/compose.yml  ');
 
@@ -315,8 +337,10 @@ describe('ServiceProviderComponent', () => {
             expect(Object.keys(saved[0])[0]).toBe('providerId');
         });
 
-        it('emits the cleared repository and branch after the provider changed', () => {
-            create({ providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: 'docker-compose.yml' });
+        test('emits the cleared repository and branch after the provider changed', () => {
+            create({
+                providerId: 'pv-1', repositoryId: '11', deploymentBranch: 'main', composerPath: 'docker-compose.yml',
+            });
 
             component.onProviderChange('pv-2');
             component.onSubmit(new Event('submit'));
@@ -329,7 +353,7 @@ describe('ServiceProviderComponent', () => {
             }]);
         });
 
-        it('announces the saving on the button and blocks it', () => {
+        test('announces the saving on the button and blocks it', () => {
             create(initial, true);
 
             const button = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
@@ -340,14 +364,14 @@ describe('ServiceProviderComponent', () => {
     });
 
     describe('the failures of the reading', () => {
-        it('reports a failed reading of the providers', () => {
+        test('reports a failed reading of the providers', () => {
             providersResource.error.set(new Error('boom'));
             create();
 
             expect(text()).toContain('Could not load providers. Is the backend running?');
         });
 
-        it('reports a failed reading of the repositories', () => {
+        test('reports a failed reading of the repositories', () => {
             repositoriesResource.error.set(new Error('boom'));
             create({ ...initial, providerId: 'pv-1' });
 

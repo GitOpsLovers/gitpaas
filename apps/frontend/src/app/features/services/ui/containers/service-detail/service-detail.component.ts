@@ -76,10 +76,8 @@ export class ServiceDetailComponent {
     // eslint-disable-next-line max-len
     protected readonly deployments: HttpResourceRef<Deployment[] | undefined> = this.deploymentsRepository.deploymentsByService(() => this.serviceId());
 
-    // eslint-disable-next-line max-len
     protected readonly containers: HttpResourceRef<Container[] | undefined> = this.containersRepository.containersByService(() => this.serviceId());
 
-    // eslint-disable-next-line max-len
     protected readonly networks: HttpResourceRef<Network[] | undefined> = this.networksRepository.networksByService(() => this.serviceId());
 
     protected readonly activeTab = computed<ServiceTab>(() => {

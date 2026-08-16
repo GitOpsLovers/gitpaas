@@ -8,11 +8,15 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class SidebarService {
     private readonly isExpandedSubject = new BehaviorSubject<boolean>(true);
+
     private readonly isMobileOpenSubject = new BehaviorSubject<boolean>(false);
+
     private readonly isHoveredSubject = new BehaviorSubject<boolean>(false);
 
     public readonly isExpanded$ = this.isExpandedSubject.asObservable();
+
     public readonly isMobileOpen$ = this.isMobileOpenSubject.asObservable();
+
     public readonly isHovered$ = this.isHoveredSubject.asObservable();
 
     public setExpanded(value: boolean): void {

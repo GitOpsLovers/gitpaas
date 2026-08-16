@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
+
 import { AuthService } from './auth.service';
 
 const tokens: AuthTokens = { accessToken: 'access-1', refreshToken: 'refresh-1' };
@@ -56,11 +57,11 @@ describe('AuthService', () => {
     });
 
     describe('isAuthenticated', () => {
-        it('is false when no access token is present', () => {
+        test('is false when no access token is present', () => {
             expect(service.isAuthenticated()).toBe(false);
         });
 
-        it('reflects the presence of an access token reactively', () => {
+        test('reflects the presence of an access token reactively', () => {
             accessToken.set('access-1');
 
             expect(service.isAuthenticated()).toBe(true);
@@ -68,7 +69,7 @@ describe('AuthService', () => {
     });
 
     describe('login', () => {
-        it('stores the tokens and navigates to the dashboard', () => {
+        test('stores the tokens and navigates to the dashboard', () => {
             repository.login.mockReturnValue(of(tokens));
             const dto = { email: 'user@example.com', password: 'secret' };
 
@@ -79,7 +80,7 @@ describe('AuthService', () => {
             expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
         });
 
-        it('does not store tokens or navigate when login fails', () => {
+        test('does not store tokens or navigate when login fails', () => {
             repository.login.mockReturnValue(throwError(() => new Error('bad credentials')));
 
             service.login({ email: 'a', password: 'b' }, false).subscribe({ error: () => {} });
@@ -90,7 +91,7 @@ describe('AuthService', () => {
     });
 
     describe('logout', () => {
-        it('revokes the session, clears storage and returns to sign-in', () => {
+        test('revokes the session, clears storage and returns to sign-in', () => {
             refreshTokenValue = 'refresh-1';
             repository.logout.mockReturnValue(of(undefined));
 
@@ -102,7 +103,7 @@ describe('AuthService', () => {
             expect(router.navigate).toHaveBeenCalledWith(['/signin']);
         });
 
-        it('finalises the sign-out even when the revoke call errors', () => {
+        test('finalises the sign-out even when the revoke call errors', () => {
             refreshTokenValue = 'refresh-1';
             repository.logout.mockReturnValue(throwError(() => new Error('server error')));
 
@@ -112,7 +113,7 @@ describe('AuthService', () => {
             expect(router.navigate).toHaveBeenCalledWith(['/signin']);
         });
 
-        it('is idempotent and skips the revoke call when no refresh token is present', () => {
+        test('is idempotent and skips the revoke call when no refresh token is present', () => {
             refreshTokenValue = null;
 
             service.logout();
@@ -124,7 +125,7 @@ describe('AuthService', () => {
     });
 
     describe('loadCurrentUser', () => {
-        it('loads the user from the API and caches it in the signal', () => {
+        test('loads the user from the API and caches it in the signal', () => {
             const user = {
                 id: '1',
                 email: 'user@example.com',

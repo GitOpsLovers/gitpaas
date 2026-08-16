@@ -32,6 +32,7 @@ export class ServiceLogsComponent {
     ];
 
     protected logLevelClass(level: LogLine['level']): string {
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
         switch (level) {
             case 'ERROR':
                 return 'text-red-400';

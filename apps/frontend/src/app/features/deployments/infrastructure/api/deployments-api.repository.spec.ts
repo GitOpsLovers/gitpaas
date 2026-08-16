@@ -3,11 +3,11 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { DeploymentsApiRepository } from './deployments-api.repository';
+
 import { environment } from '@environments/environment';
 import { TokenStorageService } from '@features/authentication/infrastructure/storage/token-storage.service';
 import { LogEvent } from '@features/logs/domain/models/log-event.model';
-
-import { DeploymentsApiRepository } from './deployments-api.repository';
 
 const DEPLOYMENT_ID = 'dep-1';
 const STREAM_URL = `${environment.apiBaseUrl}/logs/${DEPLOYMENT_ID}/stream`;
@@ -48,8 +48,8 @@ function collectLogs(
 
         repository.logs(id).subscribe({
             next: (event) => events.push(event),
-            error: (error: unknown) => resolve({ events, error }),
-            complete: () => resolve({ events, completed: true }),
+            error: (error: unknown) => { resolve({ events, error }); },
+            complete: () => { resolve({ events, completed: true }); },
         });
     });
 }
@@ -88,7 +88,7 @@ describe('DeploymentsApiRepository', () => {
     });
 
     describe('logs authorization headers', () => {
-        it('sends the Bearer token and SSE Accept header when a token is present', async () => {
+        test('sends the Bearer token and SSE Accept header when a token is present', async () => {
             tokenStorage.accessToken.set('token-1');
             fetchMock.mockReturnValue(
                 Promise.resolve(streamResponse(['data: {"type":"end","status":"success"}\n\n'])),
@@ -105,7 +105,7 @@ describe('DeploymentsApiRepository', () => {
             });
         });
 
-        it('omits the Authorization header when the token is null', async () => {
+        test('omits the Authorization header when the token is null', async () => {
             fetchMock.mockReturnValue(
                 Promise.resolve(streamResponse(['data: {"type":"end","status":"success"}\n\n'])),
             );
@@ -119,7 +119,7 @@ describe('DeploymentsApiRepository', () => {
     });
 
     describe('logs stream URL', () => {
-        it('requests the configured logs stream URL for the deployment id', async () => {
+        test('requests the configured logs stream URL for the deployment id', async () => {
             fetchMock.mockReturnValue(
                 Promise.resolve(streamResponse(['data: {"type":"end","status":"success"}\n\n'])),
             );
@@ -132,7 +132,7 @@ describe('DeploymentsApiRepository', () => {
     });
 
     describe('logs SSE parsing', () => {
-        it('emits a LogEvent per frame, joins multi-line data, and completes on end', async () => {
+        test('emits a LogEvent per frame, joins multi-line data, and completes on end', async () => {
             fetchMock.mockReturnValue(Promise.resolve(streamResponse([
                 // Frame split across chunks to exercise buffering.
                 'data: {"type":"line","dat',
@@ -154,7 +154,7 @@ describe('DeploymentsApiRepository', () => {
             expect(outcome.error).toBeUndefined();
         });
 
-        it('ignores non-data blocks such as comments and heartbeats', async () => {
+        test('ignores non-data blocks such as comments and heartbeats', async () => {
             fetchMock.mockReturnValue(Promise.resolve(streamResponse([
                 ': heartbeat\n\n',
                 'data: {"type":"line","data":"only"}\n\n',
@@ -172,7 +172,7 @@ describe('DeploymentsApiRepository', () => {
     });
 
     describe('logs stream failures', () => {
-        it('errors when the stream ends without an end event', async () => {
+        test('errors when the stream ends without an end event', async () => {
             fetchMock.mockReturnValue(Promise.resolve(streamResponse([
                 'data: {"type":"line","data":"partial"}\n\n',
             ])));
@@ -185,7 +185,7 @@ describe('DeploymentsApiRepository', () => {
             expect((outcome.error as Error).message).toBe('Log stream connection closed');
         });
 
-        it('errors when fetch resolves a non-OK response', async () => {
+        test('errors when fetch resolves a non-OK response', async () => {
             fetchMock.mockReturnValue(Promise.resolve(streamResponse([], false, 500)));
 
             const outcome = await collectLogs(repository, DEPLOYMENT_ID);
@@ -197,7 +197,7 @@ describe('DeploymentsApiRepository', () => {
     });
 
     describe('logs teardown', () => {
-        it('aborts the fetch on unsubscribe without emitting an error', async () => {
+        test('aborts the fetch on unsubscribe without emitting an error', async () => {
             let capturedSignal: AbortSignal | undefined;
 
             fetchMock.mockImplementation((_url: string, init: RequestInit) => {

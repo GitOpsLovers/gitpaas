@@ -1,19 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
+import { SigninComponent } from './signin.component';
+
 import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ToastService } from '@shared/services/toast.service';
 
-import { SigninComponent } from './signin.component';
-
 interface SigninInternals {
-    email: { set(value: string): void };
-    password: { set(value: string): void };
-    rememberMe: { set(value: boolean): void };
+    email: { set: (value: string) => void };
+    password: { set: (value: string) => void };
+    rememberMe: { set: (value: boolean) => void };
     showPassword: () => boolean;
     submitting: () => boolean;
-    togglePasswordVisibility(): void;
-    onSubmit(): void;
+    togglePasswordVisibility: () => void;
+    onSubmit: () => void;
 }
 
 describe('SigninComponent', () => {
@@ -40,7 +40,7 @@ describe('SigninComponent', () => {
         TestBed.overrideComponent(SigninComponent, { set: { template: '' } });
     });
 
-    it('submits the trimmed credentials with the rememberMe flag', () => {
+    test('submits the trimmed credentials with the rememberMe flag', () => {
         authService.login.mockReturnValue(of({ accessToken: 'a', refreshToken: 'b' }));
         create();
 
@@ -56,7 +56,7 @@ describe('SigninComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('toggles the password visibility flag', () => {
+    test('toggles the password visibility flag', () => {
         create();
 
         expect(component.showPassword()).toBe(false);
@@ -66,7 +66,7 @@ describe('SigninComponent', () => {
         expect(component.showPassword()).toBe(false);
     });
 
-    it('shows an error and does not call login when credentials are missing', () => {
+    test('shows an error and does not call login when credentials are missing', () => {
         create();
 
         component.email.set('   ');
@@ -77,7 +77,7 @@ describe('SigninComponent', () => {
         expect(toast.error).toHaveBeenCalledWith('Missing credentials', expect.any(String));
     });
 
-    it('surfaces an error toast and resets submitting when login fails', () => {
+    test('surfaces an error toast and resets submitting when login fails', () => {
         authService.login.mockReturnValue(throwError(() => new Error('invalid')));
         create();
 

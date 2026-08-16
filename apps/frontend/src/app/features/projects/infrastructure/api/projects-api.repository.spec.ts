@@ -3,16 +3,19 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { environment } from '@environments/environment';
-
 import { Project } from '../../domain/models/project.model';
+
 import { ProjectsApiRepository } from './projects-api.repository';
+
+import { environment } from '@environments/environment';
 
 const NAMESPACE_ID = 'ns-1';
 
 const BASE_URL = `${environment.apiBaseUrl}/namespaces/${NAMESPACE_ID}/projects`;
 
-const project: Project = { id: 'pr-1', name: 'api', namespaceId: NAMESPACE_ID, servicesCount: 2 };
+const project: Project = {
+    id: 'pr-1', name: 'api', namespaceId: NAMESPACE_ID, servicesCount: 2,
+};
 
 /**
  * Yields to the macrotask queue and flushes effects so resource signals settle.
@@ -47,13 +50,14 @@ describe('ProjectsApiRepository', () => {
     });
 
     describe('projects resource', () => {
-        it('issues no request until a namespace is set', () => {
+        // eslint-disable-next-line vitest/expect-expect
+        test('issues no request until a namespace is set', () => {
             TestBed.tick();
 
             httpMock.expectNone(() => true);
         });
 
-        it('GETs the namespace projects URL and exposes the response', async () => {
+        test('GETs the namespace projects URL and exposes the response', async () => {
             repository.namespaceId.set(NAMESPACE_ID);
             TestBed.tick();
 
@@ -65,7 +69,7 @@ describe('ProjectsApiRepository', () => {
             expect(repository.projects.value()).toEqual([project]);
         });
 
-        it('re-requests the collection under the new namespace when it changes', async () => {
+        test('re-requests the collection under the new namespace when it changes', async () => {
             repository.namespaceId.set(NAMESPACE_ID);
             TestBed.tick();
 
@@ -85,7 +89,7 @@ describe('ProjectsApiRepository', () => {
     });
 
     describe('projectById', () => {
-        it('GETs the project URL scoped by the current namespace', async () => {
+        test('GETs the project URL scoped by the current namespace', async () => {
             repository.namespaceId.set(NAMESPACE_ID);
 
             const resource = TestBed.runInInjectionContext(
@@ -104,7 +108,7 @@ describe('ProjectsApiRepository', () => {
             httpMock.expectOne(BASE_URL).flush([]);
         });
 
-        it('re-requests the project under the new namespace when it changes', async () => {
+        test('re-requests the project under the new namespace when it changes', async () => {
             repository.namespaceId.set(NAMESPACE_ID);
 
             const resource = TestBed.runInInjectionContext(
@@ -129,7 +133,7 @@ describe('ProjectsApiRepository', () => {
             httpMock.expectOne(`${environment.apiBaseUrl}/namespaces/ns-2/projects`).flush([]);
         });
 
-        it('issues no request while the namespace or the id is undefined', () => {
+        test('issues no request while the namespace or the id is undefined', () => {
             const id = signal<string | undefined>(undefined);
             const resource = TestBed.runInInjectionContext(() => repository.projectById(() => id()));
             TestBed.tick();
@@ -145,7 +149,7 @@ describe('ProjectsApiRepository', () => {
     });
 
     describe('create', () => {
-        it('POSTs the dto to the projects URL of the given namespace', () => {
+        test('POSTs the dto to the projects URL of the given namespace', () => {
             let result: Project | undefined;
 
             repository.create(NAMESPACE_ID, { name: 'api' }).subscribe((value) => { result = value; });
@@ -158,7 +162,8 @@ describe('ProjectsApiRepository', () => {
             expect(result).toEqual(project);
         });
 
-        it('targets the given namespace, not the one currently selected', () => {
+        // eslint-disable-next-line vitest/expect-expect
+        test('targets the given namespace, not the one currently selected', () => {
             repository.namespaceId.set('ns-other');
             TestBed.tick();
             httpMock.expectOne(`${environment.apiBaseUrl}/namespaces/ns-other/projects`).flush([]);
@@ -170,7 +175,7 @@ describe('ProjectsApiRepository', () => {
     });
 
     describe('update', () => {
-        it('PUTs the dto to the project URL of the given namespace', () => {
+        test('PUTs the dto to the project URL of the given namespace', () => {
             let result: Project | undefined;
 
             repository.update(NAMESPACE_ID, 'pr-1', { name: 'renamed' }).subscribe((value) => { result = value; });
@@ -183,7 +188,8 @@ describe('ProjectsApiRepository', () => {
             expect(result).toEqual({ ...project, name: 'renamed' });
         });
 
-        it('targets the given namespace, not the one currently selected', () => {
+        // eslint-disable-next-line vitest/expect-expect
+        test('targets the given namespace, not the one currently selected', () => {
             repository.namespaceId.set('ns-other');
             TestBed.tick();
             httpMock.expectOne(`${environment.apiBaseUrl}/namespaces/ns-other/projects`).flush([]);
@@ -195,7 +201,7 @@ describe('ProjectsApiRepository', () => {
     });
 
     describe('delete', () => {
-        it('DELETEs the project URL of the current namespace', () => {
+        test('DELETEs the project URL of the current namespace', () => {
             let completed = false;
 
             repository.namespaceId.set(NAMESPACE_ID);
@@ -208,7 +214,7 @@ describe('ProjectsApiRepository', () => {
             expect(completed).toBe(true);
         });
 
-        it('falls back to an empty namespace segment when no namespace is selected', () => {
+        test('falls back to an empty namespace segment when no namespace is selected', () => {
             repository.delete('pr-1').subscribe();
 
             const req = httpMock.expectOne(`${environment.apiBaseUrl}/namespaces//projects/pr-1`);

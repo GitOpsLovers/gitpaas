@@ -206,6 +206,7 @@ export class ServerMaintenanceComponent {
      * @returns Cold observable of the prune result
      */
     private request(resource: PruneResource) {
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
         switch (resource) {
             case 'images':
                 return this.repository.pruneImages();
@@ -248,6 +249,7 @@ export class ServerMaintenanceComponent {
         const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(BYTES_PER_UNIT)), units.length - 1);
         const value = bytes / BYTES_PER_UNIT ** exponent;
 
+        // eslint-disable-next-line security/detect-object-injection
         return `${value.toFixed(exponent === 0 ? 0 : 1)} ${units[exponent]}`;
     }
 }

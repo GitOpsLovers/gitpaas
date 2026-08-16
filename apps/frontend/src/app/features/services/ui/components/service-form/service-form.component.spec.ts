@@ -5,8 +5,8 @@ import { ServiceFormComponent } from './service-form.component';
 
 interface ServiceFormInternals {
     name: () => string;
-    onSubmit(event: Event): void;
-    onValueChange(value: string | number): void;
+    onSubmit: (event: Event) => void;
+    onValueChange: (value: string | number) => void;
 }
 
 describe('ServiceFormComponent', () => {
@@ -32,7 +32,7 @@ describe('ServiceFormComponent', () => {
         });
     });
 
-    it('points Cancel at the project detail inside the namespace', () => {
+    test('points Cancel at the project detail inside the namespace', () => {
         create();
 
         const cancel = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
@@ -41,7 +41,7 @@ describe('ServiceFormComponent', () => {
         expect(cancel.getAttribute('href')).toBe('/namespaces/ns-1/projects/pr-1');
     });
 
-    it('re-targets Cancel when the namespace or the project changes', () => {
+    test('re-targets Cancel when the namespace or the project changes', () => {
         create();
 
         fixture.componentRef.setInput('namespaceId', 'ns-2');
@@ -53,7 +53,7 @@ describe('ServiceFormComponent', () => {
         expect(cancel.getAttribute('href')).toBe('/namespaces/ns-2/projects/pr-2');
     });
 
-    it('seeds the name from the initial value and follows later changes', () => {
+    test('seeds the name from the initial value and follows later changes', () => {
         create('ns-1', 'pr-1', 'api');
 
         expect(component.name()).toBe('api');
@@ -64,7 +64,7 @@ describe('ServiceFormComponent', () => {
         expect(component.name()).toBe('web');
     });
 
-    it('emits the trimmed name and prevents the native submit', () => {
+    test('emits the trimmed name and prevents the native submit', () => {
         create();
 
         component.onValueChange('  api  ');
@@ -78,7 +78,7 @@ describe('ServiceFormComponent', () => {
         expect(saved).toEqual(['api']);
     });
 
-    it('does not emit when the name is blank', () => {
+    test('does not emit when the name is blank', () => {
         create();
 
         component.onValueChange('   ');

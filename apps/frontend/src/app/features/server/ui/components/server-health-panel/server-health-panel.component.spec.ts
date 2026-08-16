@@ -64,14 +64,13 @@ describe('ServerHealthPanelComponent', () => {
 
     const dependencyLines = (): string[] =>
         Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li')).map((line) =>
-            (line.textContent ?? '').replace(/\s+/g, ' ').trim(),
-        );
+            (line.textContent ?? '').replace(/\s+/g, ' ').trim());
 
     beforeEach(() => {
         TestBed.configureTestingModule({ imports: [ServerHealthPanelComponent] });
     });
 
-    it('Every dependency is available', () => {
+    test('Every dependency is available', () => {
         create(readyHealth, reachableDaemon);
 
         expect(dependencyLines()).toEqual(['database up', 'docker up']);
@@ -79,19 +78,18 @@ describe('ServerHealthPanelComponent', () => {
         expect(text()).not.toContain('The server is not ready');
     });
 
-    it('One dependency is not available', () => {
+    test('One dependency is not available', () => {
         create(notReadyHealth, reachableDaemon);
 
         expect(dependencyLines()).toEqual(['database up', 'docker down']);
         expect(text()).toContain('The server is not ready');
     });
 
-    it('The daemon answers', () => {
+    test('The daemon answers', () => {
         create(readyHealth, reachableDaemon);
 
         const entries = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('dl > div')).map((entry) =>
-            (entry.textContent ?? '').replace(/\s+/g, ' ').trim(),
-        );
+            (entry.textContent ?? '').replace(/\s+/g, ' ').trim());
 
         expect(entries).toEqual([
             'Version25.0.3',
@@ -102,14 +100,14 @@ describe('ServerHealthPanelComponent', () => {
         expect(text()).not.toContain('not reachable');
     });
 
-    it('The daemon does not answer', () => {
+    test('The daemon does not answer', () => {
         create(notReadyHealth, unreachableDaemon);
 
         expect(text()).toContain('The server Docker daemon is not reachable.');
         expect(text()).not.toContain('25.0.3');
     });
 
-    it('shows that the reading runs while the two calls run', () => {
+    test('shows that the reading runs while the two calls run', () => {
         create(readyHealth, reachableDaemon, true);
 
         expect(text()).toContain('Reading the health of the server');
@@ -118,7 +116,7 @@ describe('ServerHealthPanelComponent', () => {
         expect(text()).not.toContain('Docker daemon');
     });
 
-    it('shows the message of the failed reading and no dependency line', () => {
+    test('shows the message of the failed reading and no dependency line', () => {
         create(unreadableHealth, {
             state: 'unreadable',
             info: null,
@@ -132,7 +130,7 @@ describe('ServerHealthPanelComponent', () => {
         expect(text()).not.toContain('The server is not ready');
     });
 
-    it('keeps the values it received when the panel stays open', () => {
+    test('keeps the values it received when the panel stays open', () => {
         create(readyHealth, reachableDaemon);
 
         fixture.detectChanges();

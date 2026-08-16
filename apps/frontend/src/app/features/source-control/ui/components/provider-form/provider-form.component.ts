@@ -6,6 +6,12 @@ import { ComponentCardComponent } from '@shared/components/component-card/compon
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 
+/** Help text shown under the key when an empty value keeps the stored key. */
+const OPTIONAL_KEY_HINT = 'Leave this field empty to keep the stored private key.';
+
+/** Help text shown under the key when the key is obligatory. */
+const REQUIRED_KEY_HINT = 'Paste the contents of the PEM file the GitHub App gave you.';
+
 /**
  * Values a provider form submits.
  *
@@ -18,12 +24,6 @@ export interface ProviderFormValue {
     installationId: string;
     privateKey: string;
 }
-
-/** Help text shown under the key when an empty value keeps the stored key. */
-const OPTIONAL_KEY_HINT = 'Leave this field empty to keep the stored private key.';
-
-/** Help text shown under the key when the key is obligatory. */
-const REQUIRED_KEY_HINT = 'Paste the contents of the PEM file the GitHub App gave you.';
 
 @Component({
     selector: 'app-provider-form',

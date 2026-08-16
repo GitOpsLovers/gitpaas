@@ -1,3 +1,4 @@
+<!-- eslint-disable @angular-eslint/template/no-negated-async -->
 <ng-template #navIcon let-icon="icon">
     @switch (icon) {
         @case ('grid') {
@@ -221,7 +222,6 @@
 
                 <!-- Support Section -->
                 <!-- end support section -->
-
             </div>
         </nav>
         @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {

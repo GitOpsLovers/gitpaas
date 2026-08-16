@@ -6,20 +6,21 @@ import { NEVER, of, throwError } from 'rxjs';
 import { Provider } from '../../../domain/models/provider.model';
 import { SourceControlApiRepository } from '../../../infrastructure/api/source-control-api.repository';
 import { ProviderConnectionState } from '../../components/provider-card/provider-card.component';
+
 import { ProvidersListComponent } from './providers-list.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface ProvidersListInternals {
-    providers: { reload(): void };
+    providers: { reload: () => void };
     pendingDelete: () => Provider | null;
     deleting: () => boolean;
     deleteMessage: () => string;
-    connectionOf(provider: Provider): ProviderConnectionState;
-    edit(provider: Provider): void;
-    test(provider: Provider): Promise<void>;
-    requestDelete(provider: Provider): void;
-    confirmDelete(): Promise<void>;
+    connectionOf: (provider: Provider) => ProviderConnectionState;
+    edit: (provider: Provider) => void;
+    test: (provider: Provider) => Promise<void>;
+    requestDelete: (provider: Provider) => void;
+    confirmDelete: () => Promise<void>;
 }
 
 const provider: Provider = {
@@ -97,7 +98,7 @@ describe('ProvidersListComponent', () => {
             });
         });
 
-        it('exposes the providers resource from the repository', () => {
+        test('exposes the providers resource from the repository', () => {
             create();
 
             expect(component.providers).toBe(repository.providers);
@@ -105,7 +106,7 @@ describe('ProvidersListComponent', () => {
             expect(component.deleting()).toBe(false);
         });
 
-        it('navigates to the edit page when editing', () => {
+        test('navigates to the edit page when editing', () => {
             create();
 
             component.edit(provider);
@@ -113,23 +114,23 @@ describe('ProvidersListComponent', () => {
             expect(router.navigate).toHaveBeenCalledWith(['/source-control/edit', 'pv-1']);
         });
 
-        it('reports every provider as not tested before any test', () => {
+        test('reports every provider as not tested before any test', () => {
             create();
 
             expect(component.connectionOf(provider)).toBe('idle');
         });
 
-        it('marks the card as testing while the test runs', () => {
+        test('marks the card as testing while the test runs', () => {
             repository.testConnection.mockReturnValue(NEVER);
             create();
 
-            void component.test(provider);
+            component.test(provider);
 
             expect(repository.testConnection).toHaveBeenCalledWith('pv-1');
             expect(component.connectionOf(provider)).toBe('testing');
         });
 
-        it('marks the card as connected when the credentials operate', async () => {
+        test('marks the card as connected when the credentials operate', async () => {
             repository.testConnection.mockReturnValue(of({ success: true }));
             create();
 
@@ -138,7 +139,7 @@ describe('ProvidersListComponent', () => {
             expect(component.connectionOf(provider)).toBe('success');
         });
 
-        it('marks the card as failed when the credentials do not operate', async () => {
+        test('marks the card as failed when the credentials do not operate', async () => {
             repository.testConnection.mockReturnValue(of({ success: false }));
             create();
 
@@ -147,7 +148,7 @@ describe('ProvidersListComponent', () => {
             expect(component.connectionOf(provider)).toBe('failure');
         });
 
-        it('marks the card as failed when the test call itself fails', async () => {
+        test('marks the card as failed when the test call itself fails', async () => {
             repository.testConnection.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
@@ -156,7 +157,7 @@ describe('ProvidersListComponent', () => {
             expect(component.connectionOf(provider)).toBe('failure');
         });
 
-        it('keeps the state of each provider apart', async () => {
+        test('keeps the state of each provider apart', async () => {
             const other: Provider = { ...provider, id: 'pv-2', name: 'other-github' };
 
             repository.testConnection.mockReturnValue(of({ success: true }));
@@ -168,7 +169,7 @@ describe('ProvidersListComponent', () => {
             expect(component.connectionOf(other)).toBe('idle');
         });
 
-        it('stores the provider pending deletion and names it in the confirmation message', () => {
+        test('stores the provider pending deletion and names it in the confirmation message', () => {
             create();
 
             component.requestDelete(provider);
@@ -178,13 +179,13 @@ describe('ProvidersListComponent', () => {
             expect(component.deleteMessage()).toContain('This action cannot be undone.');
         });
 
-        it('renders an empty name in the confirmation message when nothing is pending', () => {
+        test('renders an empty name in the confirmation message when nothing is pending', () => {
             create();
 
             expect(component.deleteMessage()).toBe('“” will be permanently deleted. This action cannot be undone.');
         });
 
-        it('does nothing when confirming with no provider pending', async () => {
+        test('does nothing when confirming with no provider pending', async () => {
             create();
 
             await component.confirmDelete();
@@ -195,7 +196,7 @@ describe('ProvidersListComponent', () => {
             expect(repository.providers.reload).not.toHaveBeenCalled();
         });
 
-        it('deletes the pending provider, notifies success and reloads the list', async () => {
+        test('deletes the pending provider, notifies success and reloads the list', async () => {
             repository.delete.mockReturnValue(of(undefined));
             create();
 
@@ -209,7 +210,7 @@ describe('ProvidersListComponent', () => {
             expect(component.pendingDelete()).toBeNull();
         });
 
-        it('names the services in use when the API refuses the removal with a conflict', async () => {
+        test('names the services in use when the API refuses the removal with a conflict', async () => {
             repository.delete.mockReturnValue(throwError(() => ({ status: 409 })));
             create();
 
@@ -225,7 +226,7 @@ describe('ProvidersListComponent', () => {
             expect(component.pendingDelete()).toBeNull();
         });
 
-        it('asks for an administrator when the API refuses the removal for the role', async () => {
+        test('asks for an administrator when the API refuses the removal for the role', async () => {
             repository.delete.mockReturnValue(throwError(() => ({ status: 403 })));
             create();
 
@@ -238,7 +239,7 @@ describe('ProvidersListComponent', () => {
             );
         });
 
-        it('notifies a generic error and skips the reload when the deletion fails', async () => {
+        test('notifies a generic error and skips the reload when the deletion fails', async () => {
             repository.delete.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
@@ -263,7 +264,7 @@ describe('ProvidersListComponent', () => {
             });
         });
 
-        it('announces the reading while it runs', () => {
+        test('announces the reading while it runs', () => {
             isLoading.set(true);
             value.set(undefined);
             create();
@@ -272,7 +273,7 @@ describe('ProvidersListComponent', () => {
             expect(fixture.nativeElement.querySelector('app-provider-card')).toBeNull();
         });
 
-        it('shows the red panel when the reading fails', () => {
+        test('shows the red panel when the reading fails', () => {
             error.set(new Error('boom'));
             value.set(undefined);
             create();
@@ -281,7 +282,7 @@ describe('ProvidersListComponent', () => {
             expect(text()).not.toContain('No providers yet.');
         });
 
-        it('shows one card per provider, and no private key', () => {
+        test('shows one card per provider, and no private key', () => {
             value.set([provider, { ...provider, id: 'pv-2', name: 'other-github' }]);
             create();
 
@@ -295,7 +296,7 @@ describe('ProvidersListComponent', () => {
             expect(text()).not.toContain('PRIVATE KEY');
         });
 
-        it('offers to register the first provider when the list is empty', () => {
+        test('offers to register the first provider when the list is empty', () => {
             value.set([]);
             create();
 
@@ -308,7 +309,7 @@ describe('ProvidersListComponent', () => {
             expect(link).not.toBeNull();
         });
 
-        it('keeps the confirmation closed until the user asks for a removal', () => {
+        test('keeps the confirmation closed until the user asks for a removal', () => {
             value.set([provider]);
             create();
 

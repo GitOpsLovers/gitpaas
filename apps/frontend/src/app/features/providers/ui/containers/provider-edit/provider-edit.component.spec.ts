@@ -6,6 +6,7 @@ import { NEVER, of, throwError } from 'rxjs';
 import { Provider } from '../../../domain/models/provider.model';
 import { ProvidersApiRepository } from '../../../infrastructure/api/providers-api.repository';
 import { ProviderFormValue } from '../../components/provider-form/provider-form.component';
+
 import { ProviderEditComponent } from './provider-edit.component';
 
 import { ToastService } from '@shared/services/toast.service';
@@ -16,7 +17,7 @@ interface ProviderEditInternals {
     initialInstallationId: () => string;
     loading: () => boolean;
     submitting: () => boolean;
-    update(value: ProviderFormValue): Promise<void>;
+    update: (value: ProviderFormValue) => Promise<void>;
 }
 
 const provider: Provider = {
@@ -91,7 +92,7 @@ describe('ProviderEditComponent', () => {
             });
         });
 
-        it('loads the provider identified by the route parameter', () => {
+        test('loads the provider identified by the route parameter', () => {
             create();
 
             expect(repository.providerById).toHaveBeenCalledTimes(1);
@@ -100,14 +101,14 @@ describe('ProviderEditComponent', () => {
             expect(idAccessor()).toBe('pv-1');
         });
 
-        it('falls back to an empty id when the route has no id parameter', () => {
+        test('falls back to an empty id when the route has no id parameter', () => {
             create(null);
 
             const [idAccessor] = repository.providerById.mock.calls[0] as [() => string | undefined];
             expect(idAccessor()).toBe('');
         });
 
-        it('fills the three fields of text once the provider arrives', () => {
+        test('fills the three fields of text once the provider arrives', () => {
             create();
 
             expect(component.initialName()).toBe('');
@@ -121,7 +122,7 @@ describe('ProviderEditComponent', () => {
             expect(component.initialInstallationId()).toBe('98765432');
         });
 
-        it('mirrors the resource loading state', () => {
+        test('mirrors the resource loading state', () => {
             isLoading.set(true);
             create();
 
@@ -132,7 +133,7 @@ describe('ProviderEditComponent', () => {
             expect(component.loading()).toBe(false);
         });
 
-        it('sends no key when the user leaves the field of the key empty', async () => {
+        test('sends no key when the user leaves the field of the key empty', async () => {
             repository.update.mockReturnValue(of(provider));
             create();
 
@@ -148,7 +149,7 @@ describe('ProviderEditComponent', () => {
             expect('privateKey' in dto).toBe(false);
         });
 
-        it('sends the new key when the user gives one', async () => {
+        test('sends the new key when the user gives one', async () => {
             repository.update.mockReturnValue(of(provider));
             create();
 
@@ -162,7 +163,7 @@ describe('ProviderEditComponent', () => {
             });
         });
 
-        it('saves the provider, notifies success and opens the list', async () => {
+        test('saves the provider, notifies success and opens the list', async () => {
             repository.update.mockReturnValue(of({ ...provider, name: 'renamed' }));
             create();
 
@@ -173,7 +174,7 @@ describe('ProviderEditComponent', () => {
             expect(toast.error).not.toHaveBeenCalled();
         });
 
-        it('names the conflict of the name and stays on the screen when the API answers 409', async () => {
+        test('names the conflict of the name and stays on the screen when the API answers 409', async () => {
             repository.update.mockReturnValue(throwError(() => ({ status: 409 })));
             create();
 
@@ -188,7 +189,7 @@ describe('ProviderEditComponent', () => {
             expect(component.submitting()).toBe(false);
         });
 
-        it('asks for an administrator when the API answers 403', async () => {
+        test('asks for an administrator when the API answers 403', async () => {
             repository.update.mockReturnValue(throwError(() => ({ status: 403 })));
             create();
 
@@ -201,7 +202,7 @@ describe('ProviderEditComponent', () => {
             expect(router.navigate).not.toHaveBeenCalled();
         });
 
-        it('notifies a generic error, stays on the page and re-enables the form when the change fails', async () => {
+        test('notifies a generic error, stays on the page and re-enables the form when the change fails', async () => {
             repository.update.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
@@ -215,13 +216,13 @@ describe('ProviderEditComponent', () => {
             expect(component.submitting()).toBe(false);
         });
 
-        it('marks the form as submitting while the request is in flight', () => {
+        test('marks the form as submitting while the request is in flight', () => {
             repository.update.mockReturnValue(NEVER);
             create();
 
             expect(component.submitting()).toBe(false);
 
-            void component.update(formValue);
+            component.update(formValue);
 
             expect(component.submitting()).toBe(true);
         });
@@ -236,7 +237,7 @@ describe('ProviderEditComponent', () => {
             });
         });
 
-        it('announces the reading while the provider loads', () => {
+        test('announces the reading while the provider loads', () => {
             isLoading.set(true);
             create();
 
@@ -244,7 +245,7 @@ describe('ProviderEditComponent', () => {
             expect(fixture.nativeElement.querySelector('app-provider-form')).toBeNull();
         });
 
-        it('fills the three fields of text and leaves the field of the key empty', () => {
+        test('fills the three fields of text and leaves the field of the key empty', () => {
             create();
 
             value.set(provider);
@@ -262,7 +263,7 @@ describe('ProviderEditComponent', () => {
             ).toBe('');
         });
 
-        it('states in the help text that an empty key keeps the stored key', () => {
+        test('states in the help text that an empty key keeps the stored key', () => {
             create();
 
             value.set(provider);
@@ -271,7 +272,7 @@ describe('ProviderEditComponent', () => {
             expect(fixture.nativeElement.textContent).toContain('Leave this field empty to keep the stored private key.');
         });
 
-        it('allows the change with an empty key', () => {
+        test('allows the change with an empty key', () => {
             repository.update.mockReturnValue(NEVER);
             create();
 

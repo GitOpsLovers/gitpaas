@@ -5,6 +5,7 @@ import { NEVER, of, throwError } from 'rxjs';
 
 import { Namespace } from '../../../domain/models/namespace.model';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
+
 import { NamespaceEditComponent } from './namespace-edit.component';
 
 import { ToastService } from '@shared/services/toast.service';
@@ -13,7 +14,7 @@ interface NamespaceEditInternals {
     initialName: () => string;
     loading: () => boolean;
     submitting: () => boolean;
-    update(name: string): Promise<void>;
+    update: (name: string) => Promise<void>;
 }
 
 const namespace: Namespace = { id: 'ns-1', name: 'platform' };
@@ -67,7 +68,7 @@ describe('NamespaceEditComponent', () => {
         });
     });
 
-    it('loads the namespace identified by the route parameter', () => {
+    test('loads the namespace identified by the route parameter', () => {
         create();
 
         expect(repository.namespaceById).toHaveBeenCalledTimes(1);
@@ -76,14 +77,14 @@ describe('NamespaceEditComponent', () => {
         expect(idAccessor()).toBe('ns-1');
     });
 
-    it('falls back to an empty id when the route has no id parameter', () => {
+    test('falls back to an empty id when the route has no id parameter', () => {
         create(null);
 
         const [idAccessor] = repository.namespaceById.mock.calls[0] as [() => string | undefined];
         expect(idAccessor()).toBe('');
     });
 
-    it('exposes an empty initial name until the namespace resolves', () => {
+    test('exposes an empty initial name until the namespace resolves', () => {
         create();
 
         expect(component.initialName()).toBe('');
@@ -93,7 +94,7 @@ describe('NamespaceEditComponent', () => {
         expect(component.initialName()).toBe('platform');
     });
 
-    it('mirrors the resource loading state', () => {
+    test('mirrors the resource loading state', () => {
         isLoading.set(true);
         create();
 
@@ -104,7 +105,7 @@ describe('NamespaceEditComponent', () => {
         expect(component.loading()).toBe(false);
     });
 
-    it('updates the namespace, notifies success and navigates to the list', async () => {
+    test('updates the namespace, notifies success and navigates to the list', async () => {
         repository.update.mockReturnValue(of({ ...namespace, name: 'renamed' }));
         create();
 
@@ -116,7 +117,7 @@ describe('NamespaceEditComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
+    test('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
         repository.update.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -131,13 +132,13 @@ describe('NamespaceEditComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('marks the form as submitting while the request is in flight', () => {
+    test('marks the form as submitting while the request is in flight', () => {
         repository.update.mockReturnValue(NEVER);
         create();
 
         expect(component.submitting()).toBe(false);
 
-        void component.update('renamed');
+        component.update('renamed');
 
         expect(component.submitting()).toBe(true);
     });

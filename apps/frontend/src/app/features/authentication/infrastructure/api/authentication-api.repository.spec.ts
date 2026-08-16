@@ -2,11 +2,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { AuthTokens } from '../../domain/models/auth-tokens.model';
+
+import { AuthenticationApiRepository } from './authentication-api.repository';
+
 import { environment } from '@environments/environment';
 import { User } from '@features/users/domain/models/user.model';
-
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
-import { AuthenticationApiRepository } from './authentication-api.repository';
 
 const BASE_URL = `${environment.apiBaseUrl}/auth`;
 
@@ -33,7 +34,7 @@ describe('AuthenticationApiRepository', () => {
         httpMock.verify();
     });
 
-    it('login POSTs the credentials and returns the token pair', () => {
+    test('login POSTs the credentials and returns the token pair', () => {
         const dto = { email: 'user@example.com', password: 'secret' };
         let result: AuthTokens | undefined;
 
@@ -47,7 +48,7 @@ describe('AuthenticationApiRepository', () => {
         expect(result).toEqual(tokens);
     });
 
-    it('refresh POSTs the refresh token and returns a fresh pair', () => {
+    test('refresh POSTs the refresh token and returns a fresh pair', () => {
         let result: AuthTokens | undefined;
 
         repository.refresh('refresh-1').subscribe((value) => { result = value; });
@@ -60,7 +61,7 @@ describe('AuthenticationApiRepository', () => {
         expect(result).toEqual(tokens);
     });
 
-    it('logout POSTs the refresh token', () => {
+    test('logout POSTs the refresh token', () => {
         let completed = false;
 
         repository.logout('refresh-1').subscribe(() => { completed = true; });
@@ -73,7 +74,7 @@ describe('AuthenticationApiRepository', () => {
         expect(completed).toBe(true);
     });
 
-    it('me GETs the authenticated user', () => {
+    test('me GETs the authenticated user', () => {
         const user: User = {
             id: '1',
             email: 'user@example.com',

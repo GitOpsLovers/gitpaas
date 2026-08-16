@@ -4,13 +4,14 @@ import { NEVER, of, throwError } from 'rxjs';
 
 import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+
 import { ProjectAddComponent } from './project-add.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface ProjectAddInternals {
     submitting: () => boolean;
-    create(name: string): Promise<void>;
+    create: (name: string) => Promise<void>;
 }
 
 const created: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
@@ -48,13 +49,13 @@ describe('ProjectAddComponent', () => {
         });
     });
 
-    it('starts idle', () => {
+    test('starts idle', () => {
         create();
 
         expect(component.submitting()).toBe(false);
     });
 
-    it('creates the project in the namespace, notifies success and navigates to the list', async () => {
+    test('creates the project in the namespace, notifies success and navigates to the list', async () => {
         repository.create.mockReturnValue(of(created));
         create();
 
@@ -66,7 +67,7 @@ describe('ProjectAddComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('creates in and navigates to the namespace currently bound to the input', async () => {
+    test('creates in and navigates to the namespace currently bound to the input', async () => {
         repository.create.mockReturnValue(of({ ...created, namespaceId: 'ns-2' }));
         create();
 
@@ -79,7 +80,7 @@ describe('ProjectAddComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-2', 'projects']);
     });
 
-    it('notifies an error, stays on the page and re-enables the form when creation fails', async () => {
+    test('notifies an error, stays on the page and re-enables the form when creation fails', async () => {
         repository.create.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -94,11 +95,11 @@ describe('ProjectAddComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('marks the form as submitting while the request is in flight', () => {
+    test('marks the form as submitting while the request is in flight', () => {
         repository.create.mockReturnValue(NEVER);
         create();
 
-        void component.create('api');
+        component.create('api');
 
         expect(component.submitting()).toBe(true);
     });

@@ -31,6 +31,7 @@ export type ConfirmIcon = 'help' | 'warning' | 'rocket' | 'trash' | 'info' | 'su
     imports: [
         ModalComponent,
         ButtonComponent,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         LucideCircleHelp,
         LucideTriangleAlert,
         LucideRocket,

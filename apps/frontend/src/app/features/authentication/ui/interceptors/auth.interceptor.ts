@@ -55,7 +55,7 @@ function handleUnauthorised(
 
     if (!refreshToken) {
         tokenStorage.clear();
-        void router.navigate(['/signin']);
+        router.navigate(['/signin']);
 
         return throwError(() => new HttpErrorResponse({ status: 401, url: req.url }));
     }
@@ -68,7 +68,7 @@ function handleUnauthorised(
         }),
         catchError((refreshError) => {
             tokenStorage.clear();
-            void router.navigate(['/signin']);
+            router.navigate(['/signin']);
 
             return throwError(() => refreshError);
         }),

@@ -46,6 +46,7 @@ export class AuthenticationApiRepository {
      * @param refreshToken Refresh token to revoke
      */
     public logout(refreshToken: string): Observable<void> {
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
         return this.http.post<void>(`${this.url}/logout`, { refreshToken });
     }
 

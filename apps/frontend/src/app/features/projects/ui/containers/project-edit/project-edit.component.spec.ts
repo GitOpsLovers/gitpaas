@@ -5,6 +5,7 @@ import { NEVER, of, throwError } from 'rxjs';
 
 import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+
 import { ProjectEditComponent } from './project-edit.component';
 
 import { ToastService } from '@shared/services/toast.service';
@@ -13,7 +14,7 @@ interface ProjectEditInternals {
     initialName: () => string;
     loading: () => boolean;
     submitting: () => boolean;
-    update(name: string): Promise<void>;
+    update: (name: string) => Promise<void>;
 }
 
 const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
@@ -65,7 +66,7 @@ describe('ProjectEditComponent', () => {
         });
     });
 
-    it('scopes the repository to the namespace and loads the project of the route', () => {
+    test('scopes the repository to the namespace and loads the project of the route', () => {
         create();
 
         expect(repository.namespaceId()).toBe('ns-1');
@@ -75,7 +76,7 @@ describe('ProjectEditComponent', () => {
         expect(idAccessor()).toBe('pr-1');
     });
 
-    it('re-scopes the repository and updates within the namespace when it changes', async () => {
+    test('re-scopes the repository and updates within the namespace when it changes', async () => {
         repository.update.mockReturnValue(of({ ...project, namespaceId: 'ns-2' }));
         create();
 
@@ -90,7 +91,7 @@ describe('ProjectEditComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-2', 'projects']);
     });
 
-    it('exposes an empty initial name until the project resolves', () => {
+    test('exposes an empty initial name until the project resolves', () => {
         create();
 
         expect(component.initialName()).toBe('');
@@ -100,7 +101,7 @@ describe('ProjectEditComponent', () => {
         expect(component.initialName()).toBe('api');
     });
 
-    it('mirrors the resource loading state', () => {
+    test('mirrors the resource loading state', () => {
         isLoading.set(true);
         create();
 
@@ -111,7 +112,7 @@ describe('ProjectEditComponent', () => {
         expect(component.loading()).toBe(false);
     });
 
-    it('updates the project within its namespace, notifies success and navigates to the list', async () => {
+    test('updates the project within its namespace, notifies success and navigates to the list', async () => {
         repository.update.mockReturnValue(of({ ...project, name: 'renamed' }));
         create();
 
@@ -123,7 +124,7 @@ describe('ProjectEditComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
+    test('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
         repository.update.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -138,13 +139,13 @@ describe('ProjectEditComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('marks the form as submitting while the request is in flight', () => {
+    test('marks the form as submitting while the request is in flight', () => {
         repository.update.mockReturnValue(NEVER);
         create();
 
         expect(component.submitting()).toBe(false);
 
-        void component.update('renamed');
+        component.update('renamed');
 
         expect(component.submitting()).toBe(true);
     });

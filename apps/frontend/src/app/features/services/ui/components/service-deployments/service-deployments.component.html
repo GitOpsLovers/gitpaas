@@ -1,7 +1,4 @@
-<app-component-card
-    title="Deployments"
-    desc="History of this service's deployments, most recent first."
->
+<app-component-card title="Deployments" desc="History of this service's deployments, most recent first.">
     <div class="flex flex-col gap-3">
         @for (deployment of deployments(); track deployment.id) {
             <div

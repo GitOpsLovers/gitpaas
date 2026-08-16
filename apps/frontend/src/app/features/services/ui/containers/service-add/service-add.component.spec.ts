@@ -5,6 +5,7 @@ import { NEVER, of, throwError } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+
 import { ServiceAddComponent } from './service-add.component';
 
 import { Project } from '@features/projects/domain/models/project.model';
@@ -17,7 +18,7 @@ interface ServiceAddInternals {
     projectId: string;
     submitting: () => boolean;
     breadcrumb: () => BreadcrumbItem[];
-    create(name: string): Promise<void>;
+    create: (name: string) => Promise<void>;
 }
 
 const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
@@ -76,7 +77,7 @@ describe('ServiceAddComponent', () => {
         });
     });
 
-    it('reads the namespace and the project from the route and starts idle', () => {
+    test('reads the namespace and the project from the route and starts idle', () => {
         create();
 
         expect(component.namespaceId).toBe('ns-1');
@@ -84,14 +85,14 @@ describe('ServiceAddComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('falls back to empty identifiers when the route carries no params', () => {
+    test('falls back to empty identifiers when the route carries no params', () => {
         create({});
 
         expect(component.namespaceId).toBe('');
         expect(component.projectId).toBe('');
     });
 
-    it('scopes the projects repository to the namespace of the route', () => {
+    test('scopes the projects repository to the namespace of the route', () => {
         create();
 
         expect(projectsRepository.namespaceId()).toBe('ns-1');
@@ -100,7 +101,7 @@ describe('ServiceAddComponent', () => {
         expect(idAccessor()).toBe('pr-1');
     });
 
-    it('builds a breadcrumb with namespaced links', () => {
+    test('builds a breadcrumb with namespaced links', () => {
         create();
 
         expect(component.breadcrumb()).toEqual([
@@ -117,7 +118,7 @@ describe('ServiceAddComponent', () => {
         });
     });
 
-    it('creates the service in the project, notifies success and navigates to the namespaced project', async () => {
+    test('creates the service in the project, notifies success and navigates to the namespaced project', async () => {
         repository.create.mockReturnValue(of(created));
         create();
 
@@ -129,7 +130,7 @@ describe('ServiceAddComponent', () => {
         expect(toast.error).not.toHaveBeenCalled();
     });
 
-    it('notifies an error, stays on the page and re-enables the form when creation fails', async () => {
+    test('notifies an error, stays on the page and re-enables the form when creation fails', async () => {
         repository.create.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -144,11 +145,11 @@ describe('ServiceAddComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    it('marks the form as submitting while the request is in flight', () => {
+    test('marks the form as submitting while the request is in flight', () => {
         repository.create.mockReturnValue(NEVER);
         create();
 
-        void component.create('web');
+        component.create('web');
 
         expect(component.submitting()).toBe(true);
     });

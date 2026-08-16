@@ -138,6 +138,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
         if (this.openSubmenu === key) {
             this.openSubmenu = null;
+            // eslint-disable-next-line security/detect-object-injection
             this.subMenuHeights[key] = 0;
         } else {
             this.openSubmenu = key;
@@ -145,6 +146,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
             setTimeout(() => {
                 const el = document.getElementById(key);
                 if (el) {
+                    // eslint-disable-next-line security/detect-object-injection
                     this.subMenuHeights[key] = el.scrollHeight;
                     this.cdr.detectChanges();
                 }
@@ -186,6 +188,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
                             setTimeout(() => {
                                 const el = document.getElementById(key);
                                 if (el) {
+                                    // eslint-disable-next-line security/detect-object-injection
                                     this.subMenuHeights[key] = el.scrollHeight;
                                     this.cdr.detectChanges();
                                 }

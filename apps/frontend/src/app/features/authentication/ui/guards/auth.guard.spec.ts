@@ -5,6 +5,7 @@ import {
 } from '@angular/router';
 
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
+
 import { authGuard, guestGuard } from './auth.guard';
 
 describe('auth guards', () => {
@@ -37,14 +38,14 @@ describe('auth guards', () => {
     });
 
     describe('authGuard', () => {
-        it('allows navigation when a session is active', () => {
+        test('allows navigation when a session is active', () => {
             accessToken.set('access-1');
 
             expect(run(authGuard)).toBe(true);
             expect(router.createUrlTree).not.toHaveBeenCalled();
         });
 
-        it('redirects to /signin when signed out', () => {
+        test('redirects to /signin when signed out', () => {
             accessToken.set(null);
 
             expect(run(authGuard)).toBe(signinUrlTree);
@@ -53,14 +54,14 @@ describe('auth guards', () => {
     });
 
     describe('guestGuard', () => {
-        it('allows navigation when signed out', () => {
+        test('allows navigation when signed out', () => {
             accessToken.set(null);
 
             expect(run(guestGuard)).toBe(true);
             expect(router.createUrlTree).not.toHaveBeenCalled();
         });
 
-        it('redirects to /dashboard when already authenticated', () => {
+        test('redirects to /dashboard when already authenticated', () => {
             accessToken.set('access-1');
 
             expect(run(guestGuard)).toBe(dashboardUrlTree);

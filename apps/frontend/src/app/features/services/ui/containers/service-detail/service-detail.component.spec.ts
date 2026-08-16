@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
+
 import { ServiceDetailComponent } from './service-detail.component';
 
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
@@ -22,9 +23,9 @@ interface ServiceDetailInternals {
     savingProvider: () => boolean;
     deploying: () => boolean;
     providerSettings: () => ServiceProviderSettings;
-    changeTab(tab: string): void;
-    saveProvider(settings: ServiceProviderSettings): Promise<void>;
-    deploy(): Promise<void>;
+    changeTab: (tab: string) => void;
+    saveProvider: (settings: ServiceProviderSettings) => Promise<void>;
+    deploy: () => Promise<void>;
 }
 
 const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
@@ -110,7 +111,7 @@ describe('ServiceDetailComponent', () => {
         });
     });
 
-    it('scopes the projects repository to the namespace of the route', () => {
+    test('scopes the projects repository to the namespace of the route', () => {
         create();
 
         expect(projectsRepository.namespaceId()).toBe('ns-1');
@@ -121,7 +122,7 @@ describe('ServiceDetailComponent', () => {
         expect(projectsRepository.namespaceId()).toBe('ns-2');
     });
 
-    it('loads the project and the service of the route', () => {
+    test('loads the project and the service of the route', () => {
         create();
 
         const [projectAccessor] = projectsRepository.projectById.mock.calls[0] as [() => string | undefined];
@@ -131,7 +132,7 @@ describe('ServiceDetailComponent', () => {
         expect(serviceAccessor()).toBe('sv-1');
     });
 
-    it('builds a breadcrumb with namespaced project links', () => {
+    test('builds a breadcrumb with namespaced project links', () => {
         create();
 
         expect(component.breadcrumb()).toEqual([
@@ -150,7 +151,7 @@ describe('ServiceDetailComponent', () => {
         ]);
     });
 
-    it('rebuilds the breadcrumb links when the namespace changes', () => {
+    test('rebuilds the breadcrumb links when the namespace changes', () => {
         create();
 
         fixture.componentRef.setInput('namespaceId', 'ns-2');
@@ -160,19 +161,19 @@ describe('ServiceDetailComponent', () => {
         expect(component.breadcrumb()[1]?.link).toEqual(['/namespaces', 'ns-2', 'projects', 'pr-1']);
     });
 
-    it('activates the tab coming from the route', () => {
+    test('activates the tab coming from the route', () => {
         create('ns-1', 'pr-1', 'sv-1', 'logs');
 
         expect(component.activeTab()).toBe('logs');
     });
 
-    it('falls back to the general tab for an unknown tab segment', () => {
+    test('falls back to the general tab for an unknown tab segment', () => {
         create('ns-1', 'pr-1', 'sv-1', 'nope');
 
         expect(component.activeTab()).toBe('general');
     });
 
-    it('navigates to the namespaced tab route when changing tab', () => {
+    test('navigates to the namespaced tab route when changing tab', () => {
         create();
 
         component.changeTab('containers');
@@ -182,7 +183,7 @@ describe('ServiceDetailComponent', () => {
         );
     });
 
-    it('switches to the namespaced deployments tab when deploying', async () => {
+    test('switches to the namespaced deployments tab when deploying', async () => {
         deploymentsRepository.deploy.mockReturnValue(of({ id: 'dp-1' }));
         create();
 
@@ -197,7 +198,7 @@ describe('ServiceDetailComponent', () => {
         expect(component.deploying()).toBe(false);
     });
 
-    it('notifies an error and skips the reload when the deployment fails', async () => {
+    test('notifies an error and skips the reload when the deployment fails', async () => {
         deploymentsRepository.deploy.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
@@ -211,7 +212,7 @@ describe('ServiceDetailComponent', () => {
         expect(component.deploying()).toBe(false);
     });
 
-    it('defaults the provider settings while the service is unresolved', () => {
+    test('defaults the provider settings while the service is unresolved', () => {
         create();
 
         expect(component.providerSettings()).toEqual({
@@ -222,10 +223,12 @@ describe('ServiceDetailComponent', () => {
         });
     });
 
-    it('maps the loaded provider settings and defaults an empty composer path', () => {
+    test('maps the loaded provider settings and defaults an empty composer path', () => {
         create();
 
-        serviceValue.set({ ...service, providerId: 'pr-1', repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: '' });
+        serviceValue.set({
+            ...service, providerId: 'pr-1', repositoryId: 'repo-1', deploymentBranch: 'main', composerPath: '',
+        });
 
         expect(component.providerSettings()).toEqual({
             providerId: 'pr-1',
@@ -235,7 +238,7 @@ describe('ServiceDetailComponent', () => {
         });
     });
 
-    it('does nothing when saving the provider settings before the service resolves', async () => {
+    test('does nothing when saving the provider settings before the service resolves', async () => {
         create();
 
         await component.saveProvider({
@@ -249,7 +252,7 @@ describe('ServiceDetailComponent', () => {
         expect(component.savingProvider()).toBe(false);
     });
 
-    it('saves the provider settings keeping the service name and reflects the response', async () => {
+    test('saves the provider settings keeping the service name and reflects the response', async () => {
         const updated = {
             ...service,
             providerId: 'pr-1',

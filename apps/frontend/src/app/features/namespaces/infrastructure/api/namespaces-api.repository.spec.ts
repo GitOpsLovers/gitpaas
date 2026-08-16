@@ -3,10 +3,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { environment } from '@environments/environment';
-
 import { Namespace } from '../../domain/models/namespace.model';
+
 import { NamespacesApiRepository } from './namespaces-api.repository';
+
+import { environment } from '@environments/environment';
 
 const BASE_URL = `${environment.apiBaseUrl}/namespaces`;
 
@@ -45,7 +46,7 @@ describe('NamespacesApiRepository', () => {
     });
 
     describe('namespaces resource', () => {
-        it('GETs the namespaces collection URL and exposes the response', async () => {
+        test('GETs the namespaces collection URL and exposes the response', async () => {
             TestBed.tick();
 
             const req = httpMock.expectOne(BASE_URL);
@@ -56,7 +57,7 @@ describe('NamespacesApiRepository', () => {
             expect(repository.namespaces.value()).toEqual([namespace]);
         });
 
-        it('surfaces the failure on the resource when the request errors', async () => {
+        test('surfaces the failure on the resource when the request errors', async () => {
             TestBed.tick();
 
             httpMock.expectOne(BASE_URL).flush('boom', { status: 500, statusText: 'Server Error' });
@@ -68,7 +69,7 @@ describe('NamespacesApiRepository', () => {
     });
 
     describe('namespaceById', () => {
-        it('GETs the namespace URL for the current id and exposes the response', async () => {
+        test('GETs the namespace URL for the current id and exposes the response', async () => {
             const resource = TestBed.runInInjectionContext(
                 () => repository.namespaceById(() => namespace.id),
             );
@@ -85,7 +86,7 @@ describe('NamespacesApiRepository', () => {
             httpMock.expectOne(BASE_URL).flush([]);
         });
 
-        it('issues no request while the id is undefined and requests once it resolves', async () => {
+        test('issues no request while the id is undefined and requests once it resolves', async () => {
             const id = signal<string | undefined>(undefined);
             const resource = TestBed.runInInjectionContext(() => repository.namespaceById(() => id()));
             TestBed.tick();
@@ -108,7 +109,7 @@ describe('NamespacesApiRepository', () => {
     });
 
     describe('create', () => {
-        it('POSTs the dto to the collection URL and returns the created namespace', () => {
+        test('POSTs the dto to the collection URL and returns the created namespace', () => {
             let result: Namespace | undefined;
 
             repository.create({ name: 'platform' }).subscribe((value) => { result = value; });
@@ -123,7 +124,7 @@ describe('NamespacesApiRepository', () => {
     });
 
     describe('update', () => {
-        it('PUTs the dto to the namespace URL and returns the updated namespace', () => {
+        test('PUTs the dto to the namespace URL and returns the updated namespace', () => {
             let result: Namespace | undefined;
 
             repository.update('ns-1', { name: 'renamed' }).subscribe((value) => { result = value; });
@@ -138,7 +139,7 @@ describe('NamespacesApiRepository', () => {
     });
 
     describe('delete', () => {
-        it('DELETEs the namespace URL', () => {
+        test('DELETEs the namespace URL', () => {
             let completed = false;
 
             repository.delete('ns-1').subscribe(() => { completed = true; });

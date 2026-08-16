@@ -17,7 +17,7 @@ const status: ServerStatus = {
 const httpError = (statusCode: number, body: unknown): unknown => ({ status: statusCode, error: body });
 
 describe('mapDaemonHealthUseCase', () => {
-    it('The daemon answers', () => {
+    test('The daemon answers', () => {
         expect(mapDaemonHealthUseCase(status, undefined)).toEqual({
             state: 'reachable',
             info: status,
@@ -25,7 +25,7 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    it('The daemon does not answer', () => {
+    test('The daemon does not answer', () => {
         expect(mapDaemonHealthUseCase(undefined, httpError(503, null))).toEqual({
             state: 'unreachable',
             info: null,
@@ -33,7 +33,7 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    it('shows the message the body of the 503 carries', () => {
+    test('shows the message the body of the 503 carries', () => {
         const error = httpError(503, { statusCode: 503, message: 'The Docker daemon did not answer.' });
 
         expect(mapDaemonHealthUseCase(undefined, error)).toEqual({
@@ -43,7 +43,7 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    it('reads the information out of the body of a failed reading when it has the shape of the daemon', () => {
+    test('reads the information out of the body of a failed reading when it has the shape of the daemon', () => {
         expect(mapDaemonHealthUseCase(undefined, httpError(503, status))).toEqual({
             state: 'reachable',
             info: status,
@@ -51,7 +51,7 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    it('reports that the state could not be read when the call itself fails', () => {
+    test('reports that the state could not be read when the call itself fails', () => {
         expect(mapDaemonHealthUseCase(undefined, httpError(0, null))).toEqual({
             state: 'unreadable',
             info: null,
@@ -59,7 +59,7 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    it('reports that the state could not be read when the answer is not a 503', () => {
+    test('reports that the state could not be read when the answer is not a 503', () => {
         expect(mapDaemonHealthUseCase(undefined, httpError(500, { message: 'Internal Server Error' }))).toEqual({
             state: 'unreadable',
             info: null,
@@ -67,7 +67,7 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    it('reports that the state could not be read when there is no value and no error', () => {
+    test('reports that the state could not be read when there is no value and no error', () => {
         expect(mapDaemonHealthUseCase(undefined, undefined)).toEqual({
             state: 'unreadable',
             info: null,

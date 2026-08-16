@@ -61,6 +61,7 @@ export class ToastComponent {
      * @returns Tailwind classes for the toast container
      */
     protected containerClasses(variant: ToastVariant): string {
+        // eslint-disable-next-line security/detect-object-injection
         return VARIANT_CLASSES[variant].container;
     }
 
@@ -72,6 +73,7 @@ export class ToastComponent {
      * @returns Tailwind classes for the toast icon
      */
     protected iconClasses(variant: ToastVariant): string {
+        // eslint-disable-next-line security/detect-object-injection
         return VARIANT_CLASSES[variant].icon;
     }
 

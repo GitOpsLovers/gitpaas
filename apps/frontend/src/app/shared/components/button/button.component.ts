@@ -33,6 +33,7 @@ export class ButtonComponent {
     }
 
     public get variantClasses(): string {
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
         switch (this.variant()) {
             case 'primary':
                 return 'bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300';

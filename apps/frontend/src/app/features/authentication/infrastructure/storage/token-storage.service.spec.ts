@@ -1,4 +1,5 @@
 import { AuthTokens } from '../../domain/models/auth-tokens.model';
+
 import { TokenStorageService } from './token-storage.service';
 
 const ACCESS_TOKEN_KEY = 'gitpaas.accessToken';
@@ -18,7 +19,9 @@ function createStorage(): Storage {
             return map.size;
         },
         clear: (): void => { map.clear(); },
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         getItem: (key: string): string | null => (map.has(key) ? map.get(key)! : null),
+        // eslint-disable-next-line security/detect-object-injection
         key: (index: number): string | null => Array.from(map.keys())[index] ?? null,
         removeItem: (key: string): void => { map.delete(key); },
         setItem: (key: string, value: string): void => { map.set(key, String(value)); },
@@ -36,7 +39,7 @@ describe('TokenStorageService', () => {
     });
 
     describe('store', () => {
-        it('persists to localStorage and updates signals when remember is true', () => {
+        test('persists to localStorage and updates signals when remember is true', () => {
             const service = new TokenStorageService();
 
             service.store(tokens, true);
@@ -48,7 +51,7 @@ describe('TokenStorageService', () => {
             expect(service.refreshToken()).toBe('refresh-1');
         });
 
-        it('persists to sessionStorage when remember is false', () => {
+        test('persists to sessionStorage when remember is false', () => {
             const service = new TokenStorageService();
 
             service.store(tokens, false);
@@ -59,7 +62,7 @@ describe('TokenStorageService', () => {
             expect(service.accessToken()).toBe('access-1');
         });
 
-        it('clears any previously persisted tokens before writing the new ones', () => {
+        test('clears any previously persisted tokens before writing the new ones', () => {
             const service = new TokenStorageService();
 
             service.store(tokens, true);
@@ -73,7 +76,7 @@ describe('TokenStorageService', () => {
     });
 
     describe('update', () => {
-        it('reuses the active localStorage after a refresh', () => {
+        test('reuses the active localStorage after a refresh', () => {
             const service = new TokenStorageService();
             service.store(tokens, true);
 
@@ -86,7 +89,7 @@ describe('TokenStorageService', () => {
             expect(service.refreshToken()).toBe('refresh-2');
         });
 
-        it('reuses the active sessionStorage after a refresh', () => {
+        test('reuses the active sessionStorage after a refresh', () => {
             const service = new TokenStorageService();
             service.store(tokens, false);
 
@@ -97,7 +100,7 @@ describe('TokenStorageService', () => {
             expect(service.accessToken()).toBe('access-2');
         });
 
-        it('falls back to sessionStorage when no storage is active', () => {
+        test('falls back to sessionStorage when no storage is active', () => {
             const service = new TokenStorageService();
 
             service.update({ accessToken: 'access-2', refreshToken: 'refresh-2' });
@@ -109,7 +112,7 @@ describe('TokenStorageService', () => {
     });
 
     describe('clear', () => {
-        it('wipes both storages and resets the signals', () => {
+        test('wipes both storages and resets the signals', () => {
             const service = new TokenStorageService();
             localStorage.setItem(ACCESS_TOKEN_KEY, 'a');
             localStorage.setItem(REFRESH_TOKEN_KEY, 'b');
@@ -129,7 +132,7 @@ describe('TokenStorageService', () => {
     });
 
     describe('hydrate (construction)', () => {
-        it('restores tokens from localStorage when present', () => {
+        test('restores tokens from localStorage when present', () => {
             localStorage.setItem(ACCESS_TOKEN_KEY, 'access-local');
             localStorage.setItem(REFRESH_TOKEN_KEY, 'refresh-local');
 
@@ -139,7 +142,7 @@ describe('TokenStorageService', () => {
             expect(service.refreshToken()).toBe('refresh-local');
         });
 
-        it('restores tokens from sessionStorage when localStorage is empty', () => {
+        test('restores tokens from sessionStorage when localStorage is empty', () => {
             sessionStorage.setItem(ACCESS_TOKEN_KEY, 'access-session');
             sessionStorage.setItem(REFRESH_TOKEN_KEY, 'refresh-session');
 
@@ -149,7 +152,7 @@ describe('TokenStorageService', () => {
             expect(service.refreshToken()).toBe('refresh-session');
         });
 
-        it('prefers localStorage over sessionStorage when both hold tokens', () => {
+        test('prefers localStorage over sessionStorage when both hold tokens', () => {
             localStorage.setItem(ACCESS_TOKEN_KEY, 'access-local');
             localStorage.setItem(REFRESH_TOKEN_KEY, 'refresh-local');
             sessionStorage.setItem(ACCESS_TOKEN_KEY, 'access-session');
@@ -161,7 +164,7 @@ describe('TokenStorageService', () => {
             expect(service.refreshToken()).toBe('refresh-local');
         });
 
-        it('leaves signals null when no storage holds tokens', () => {
+        test('leaves signals null when no storage holds tokens', () => {
             const service = new TokenStorageService();
 
             expect(service.accessToken()).toBeNull();

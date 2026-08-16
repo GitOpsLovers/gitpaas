@@ -5,22 +5,25 @@ import { of, throwError } from 'rxjs';
 
 import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+
 import { ProjectsListComponent } from './projects-list.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface ProjectsListInternals {
-    projects: { reload(): void };
+    projects: { reload: () => void };
     pendingDelete: () => Project | null;
     deleting: () => boolean;
     deleteMessage: () => string;
-    view(project: Project): void;
-    edit(project: Project): void;
-    requestDelete(project: Project): void;
-    confirmDelete(): Promise<void>;
+    view: (project: Project) => void;
+    edit: (project: Project) => void;
+    requestDelete: (project: Project) => void;
+    confirmDelete: () => Promise<void>;
 }
 
-const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 2 };
+const project: Project = {
+    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 2,
+};
 
 describe('ProjectsListComponent', () => {
     let repository: {
@@ -64,7 +67,7 @@ describe('ProjectsListComponent', () => {
         });
     });
 
-    it('scopes the repository to the namespace of the route', () => {
+    test('scopes the repository to the namespace of the route', () => {
         create();
 
         expect(repository.namespaceId()).toBe('ns-1');
@@ -75,7 +78,7 @@ describe('ProjectsListComponent', () => {
         expect(repository.namespaceId()).toBe('ns-2');
     });
 
-    it('exposes the projects resource from the repository', () => {
+    test('exposes the projects resource from the repository', () => {
         create();
 
         expect(component.projects).toBe(repository.projects);
@@ -83,7 +86,7 @@ describe('ProjectsListComponent', () => {
         expect(component.deleting()).toBe(false);
     });
 
-    it('navigates to the project detail inside the namespace when viewing', () => {
+    test('navigates to the project detail inside the namespace when viewing', () => {
         create();
 
         component.view(project);
@@ -91,7 +94,7 @@ describe('ProjectsListComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1']);
     });
 
-    it('navigates to the edit page inside the namespace when editing', () => {
+    test('navigates to the edit page inside the namespace when editing', () => {
         create();
 
         component.edit(project);
@@ -99,7 +102,7 @@ describe('ProjectsListComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'edit', 'pr-1']);
     });
 
-    it('navigates within the namespace currently bound to the input', () => {
+    test('navigates within the namespace currently bound to the input', () => {
         create();
 
         fixture.componentRef.setInput('namespaceId', 'ns-2');
@@ -112,7 +115,7 @@ describe('ProjectsListComponent', () => {
         expect(router.navigate).toHaveBeenNthCalledWith(2, ['/namespaces', 'ns-2', 'projects', 'edit', 'pr-1']);
     });
 
-    it('stores the project pending deletion and names it in the confirmation message', () => {
+    test('stores the project pending deletion and names it in the confirmation message', () => {
         create();
 
         component.requestDelete(project);
@@ -121,7 +124,7 @@ describe('ProjectsListComponent', () => {
         expect(component.deleteMessage()).toContain('api');
     });
 
-    it('does nothing when confirming with no project pending', async () => {
+    test('does nothing when confirming with no project pending', async () => {
         create();
 
         await component.confirmDelete();
@@ -130,7 +133,7 @@ describe('ProjectsListComponent', () => {
         expect(repository.projects.reload).not.toHaveBeenCalled();
     });
 
-    it('deletes the pending project, notifies success and reloads the list', async () => {
+    test('deletes the pending project, notifies success and reloads the list', async () => {
         repository.delete.mockReturnValue(of(undefined));
         create();
 
@@ -144,7 +147,7 @@ describe('ProjectsListComponent', () => {
         expect(component.pendingDelete()).toBeNull();
     });
 
-    it('notifies an error and skips the reload when the deletion fails', async () => {
+    test('notifies an error and skips the reload when the deletion fails', async () => {
         repository.delete.mockReturnValue(throwError(() => new Error('boom')));
         create();
 

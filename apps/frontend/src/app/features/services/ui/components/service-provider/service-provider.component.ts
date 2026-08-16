@@ -64,12 +64,13 @@ export class ServiceProviderComponent {
             const value = this.repositoryId();
 
             return value ? Number(value) : undefined;
-        });
+        },
+    );
 
     /**
      * States that the installation holds no provider, so no service can name one.
      */
-    protected readonly noProviders = computed(() => this.providers.hasValue() && this.providers.value()!.length === 0);
+    protected readonly noProviders = computed(() => this.providers.hasValue() && this.providers.value().length === 0);
 
     protected readonly providerOptions = computed<Select2Option[]>(() =>
         (this.providers.value() ?? []).map((provider) => ({

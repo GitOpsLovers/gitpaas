@@ -48,7 +48,7 @@ export class AuthService {
         return this.repository.login(dto).pipe(
             tap((tokens) => {
                 this.tokenStorage.store(tokens, rememberMe);
-                void this.router.navigate(['/dashboard']);
+                this.router.navigate(['/dashboard']);
             }),
         );
     }
@@ -62,7 +62,7 @@ export class AuthService {
         const finalise = (): void => {
             this.tokenStorage.clear();
             this.currentUserSignal.set(null);
-            void this.router.navigate(['/signin']);
+            this.router.navigate(['/signin']);
         };
 
         if (!refreshToken) {

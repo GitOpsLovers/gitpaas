@@ -5,19 +5,20 @@ import { of, throwError } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+
 import { ServicesListComponent } from './services-list.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
 interface ServicesListInternals {
-    services: { reload(): void };
+    services: { reload: () => void };
     pendingDelete: () => Service | null;
     deleting: () => boolean;
     deleteMessage: () => string;
-    view(service: Service): void;
-    edit(service: Service): void;
-    requestDelete(service: Service): void;
-    confirmDelete(): Promise<void>;
+    view: (service: Service) => void;
+    edit: (service: Service) => void;
+    requestDelete: (service: Service) => void;
+    confirmDelete: () => Promise<void>;
 }
 
 const service: Service = { id: 'sv-1', name: 'api', projectId: 'pr-1' };
@@ -65,7 +66,7 @@ describe('ServicesListComponent', () => {
         });
     });
 
-    it('scopes the repository to the project of the route', () => {
+    test('scopes the repository to the project of the route', () => {
         create();
 
         expect(repository.projectId()).toBe('pr-1');
@@ -76,7 +77,7 @@ describe('ServicesListComponent', () => {
         expect(repository.projectId()).toBe('pr-2');
     });
 
-    it('exposes the services resource from the repository', () => {
+    test('exposes the services resource from the repository', () => {
         create();
 
         expect(component.services).toBe(repository.services);
@@ -84,7 +85,7 @@ describe('ServicesListComponent', () => {
         expect(component.deleting()).toBe(false);
     });
 
-    it('navigates to the service detail under the namespaced project when viewing', () => {
+    test('navigates to the service detail under the namespaced project when viewing', () => {
         create();
 
         component.view(service);
@@ -94,7 +95,7 @@ describe('ServicesListComponent', () => {
         );
     });
 
-    it('navigates to the service edit page under the namespaced project when editing', () => {
+    test('navigates to the service edit page under the namespaced project when editing', () => {
         create();
 
         component.edit(service);
@@ -104,7 +105,7 @@ describe('ServicesListComponent', () => {
         );
     });
 
-    it('builds the navigation targets from the current namespace and project', () => {
+    test('builds the navigation targets from the current namespace and project', () => {
         create('ns-2', 'pr-2');
 
         component.view(service);
@@ -114,7 +115,7 @@ describe('ServicesListComponent', () => {
         );
     });
 
-    it('stores the service pending deletion and names it in the confirmation message', () => {
+    test('stores the service pending deletion and names it in the confirmation message', () => {
         create();
 
         component.requestDelete(service);
@@ -123,7 +124,7 @@ describe('ServicesListComponent', () => {
         expect(component.deleteMessage()).toContain('api');
     });
 
-    it('does nothing when confirming with no service pending', async () => {
+    test('does nothing when confirming with no service pending', async () => {
         create();
 
         await component.confirmDelete();
@@ -132,7 +133,7 @@ describe('ServicesListComponent', () => {
         expect(repository.services.reload).not.toHaveBeenCalled();
     });
 
-    it('deletes the pending service, notifies success and reloads the list', async () => {
+    test('deletes the pending service, notifies success and reloads the list', async () => {
         repository.delete.mockReturnValue(of(undefined));
         create();
 
@@ -146,7 +147,7 @@ describe('ServicesListComponent', () => {
         expect(component.pendingDelete()).toBeNull();
     });
 
-    it('notifies an error and skips the reload when the deletion fails', async () => {
+    test('notifies an error and skips the reload when the deletion fails', async () => {
         repository.delete.mockReturnValue(throwError(() => new Error('boom')));
         create();
 

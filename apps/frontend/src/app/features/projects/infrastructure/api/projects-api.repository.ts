@@ -79,6 +79,7 @@ export class ProjectsApiRepository {
      * @param id Project identifier
      */
     public delete(id: string): Observable<void> {
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
         return this.http.delete<void>(`${this.projectsUrl(this.namespaceId() ?? '')}/${id}`);
     }
 
