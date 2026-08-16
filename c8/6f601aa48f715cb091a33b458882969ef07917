@@ -1,0 +1,14 @@
+scripts/install.sh
+  h_e4f33aa49027b9 306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c86f601aa48f715cb091a33b458882969ef07917",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
