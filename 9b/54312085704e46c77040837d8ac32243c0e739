@@ -1,0 +1,21 @@
+openspec/changes/provider-app-registration/.openspec.yaml
+  s_6b34174fb62d1e::t_60a3bcd91f9bab 1-2
+openspec/changes/provider-app-registration/tasks.md
+  s_6b34174fb62d1e::t_91873bc0ffc421 1-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9b54312085704e46c77040837d8ac32243c0e739",
+  "prompts": {},
+  "sessions": {
+    "s_6b34174fb62d1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62c4cf95-af82-4295-bd88-79854d56be8e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
