@@ -2,15 +2,13 @@
 
 ## Purpose
 
-This capability gives the frame around every screen of the signed-in application: the sidebar with the
-navigation, the header with the user menu, and the choice between the light theme and the dark theme.
+This capability gives the frame around every screen of the signed-in application: the sidebar with the navigation, the header with the user menu, and the choice between the light theme and the dark theme.
 
 ## Requirements
 
 ### Requirement: The frame of the signed-in application
 
-The system SHALL show every signed-in screen inside one shell. The shell holds the sidebar, the header and
-the area of the screen.
+The system SHALL show every signed-in screen inside one shell. The shell holds the sidebar, the header and the area of the screen.
 
 The sign-in screen stays outside the shell. It fills the window, and it shows no sidebar and no header.
 
@@ -28,8 +26,7 @@ The sign-in screen stays outside the shell. It fills the window, and it shows no
 
 The system SHALL give the navigation in the sidebar.
 
-On a wide window, the control of the header makes the sidebar wide or narrow. On a narrow window, the same
-control opens the sidebar above the screen, and a dark ground behind it closes the sidebar.
+On a wide window, the control of the header makes the sidebar wide or narrow. On a narrow window, the same control opens the sidebar above the screen, and a dark ground behind it closes the sidebar.
 
 #### Scenario: The user uses the control on a wide window
 
@@ -45,8 +42,7 @@ control opens the sidebar above the screen, and a dark ground behind it closes t
 
 The system SHALL give a menu in the header that holds the action to sign out.
 
-The system SHALL close the menu when the user chooses a point outside it, and when the user presses the key
-`Escape`.
+The system SHALL close the menu when the user chooses a point outside it, and when the user presses the key `Escape`.
 
 #### Scenario: The user opens the menu
 
@@ -72,8 +68,7 @@ The system SHALL close the menu when the user chooses a point outside it, and wh
 
 The system SHALL give a control that changes between the light theme and the dark theme.
 
-The system SHALL keep the choice under the key `theme` of `localStorage`, and it SHALL apply that choice at
-the start of the application.
+The system SHALL keep the choice under the key `theme` of `localStorage`, and it SHALL apply that choice at the start of the application.
 
 #### Scenario: The user changes the theme
 
@@ -94,14 +89,12 @@ the start of the application.
 
 The system SHALL show a trail of the navigation at the top of each screen that lies below the first level.
 
-Each part of the trail before the last one opens its screen. The last part names the screen of the moment,
-and it opens nothing.
+Each part of the trail before the last one opens its screen. The last part names the screen of the moment, and it opens nothing.
 
 #### Scenario: The user opens the detail of a service
 
 - **WHEN** the user opens the detail of a service
-- **THEN** the trail shows the projects, the name of the project and the name of the service, and only the
-  first two parts open a screen
+- **THEN** the trail shows the projects, the name of the project and the name of the service, and only the first two parts open a screen
 
 #### Scenario: The name is not yet available
 

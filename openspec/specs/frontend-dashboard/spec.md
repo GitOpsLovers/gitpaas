@@ -2,8 +2,7 @@
 
 ## Purpose
 
-This capability gives the first screen of the signed-in application, at the route `/dashboard`. It is the
-target of every redirection that names no other screen.
+This capability gives the first screen of the signed-in application, at the route `/dashboard`. It is the target of every redirection that names no other screen.
 
 ## Requirements
 
@@ -29,8 +28,7 @@ The system SHALL open `/dashboard` in three cases:
 
 The system SHALL show the word "Dashboard" and nothing more. The screen reads no data of the API.
 
-The component declares a set of numbers and a set of names of services, but the template of the screen uses
-none of them. They are the rest of a first design of the theme.
+The component declares a set of numbers and a set of names of services, but the template of the screen uses none of them. They are the rest of a first design of the theme.
 
 This requirement records the state of today. A later change must replace it.
 

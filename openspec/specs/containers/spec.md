@@ -2,8 +2,7 @@
 
 ## Purpose
 
-This capability reads the Docker containers that the compose stack of a service makes. It gives the
-operator a view of what runs on the server for one service. It only reads, and it changes nothing.
+This capability reads the Docker containers that the compose stack of a service makes. It gives the operator a view of what runs on the server for one service. It only reads, and it changes nothing.
 
 ## Requirements
 
@@ -13,9 +12,7 @@ The system SHALL answer with the containers of one service at `GET /api/v1/conta
 
 The parameter `serviceId` is obligatory, and it must be a UUID.
 
-Each container of the answer holds the identifier, the name, the image, the state, the status, the date of
-the creation and the list of the published ports. Each port holds the private port, the public port and
-the kind of the protocol. The public port holds `null` if the container publishes no port to the server.
+Each container of the answer holds the identifier, the name, the image, the state, the status, the date of the creation and the list of the published ports. Each port holds the private port, the public port and the kind of the protocol. The public port holds `null` if the container publishes no port to the server.
 
 #### Scenario: The service runs containers
 
@@ -44,9 +41,7 @@ The system SHALL select the containers by two conditions together:
 1. The container carries the label that marks a resource of the platform.
 2. The name of the compose project of the container agrees with the slug of the service.
 
-The system SHALL calculate the slug from the name of the service. It puts the name into small letters, and
-it replaces each group of other characters with one hyphen. If the result is empty, the system uses the
-identifier of the service instead.
+The system SHALL calculate the slug from the name of the service. It puts the name into small letters, and it replaces each group of other characters with one hyphen. If the result is empty, the system uses the identifier of the service instead.
 
 The system SHALL list the containers that stopped as well. Thus the operator sees a container that failed.
 
@@ -67,8 +62,7 @@ The system SHALL list the containers that stopped as well. Thus the operator see
 
 ### Requirement: The daemon is not reachable
 
-The system SHALL answer `503 Service Unavailable` if the Docker daemon does not answer. The message asks
-the operator to verify that the server runs and that it is reachable.
+The system SHALL answer `503 Service Unavailable` if the Docker daemon does not answer. The message asks the operator to verify that the server runs and that it is reachable.
 
 #### Scenario: The daemon does not answer
 

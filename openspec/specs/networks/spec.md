@@ -2,8 +2,7 @@
 
 ## Purpose
 
-This capability reads the Docker networks that the compose stack of a service makes. It gives the operator
-a view of the networks that belong to one service. It only reads, and it changes nothing.
+This capability reads the Docker networks that the compose stack of a service makes. It gives the operator a view of the networks that belong to one service. It only reads, and it changes nothing.
 
 ## Requirements
 
@@ -13,8 +12,7 @@ The system SHALL answer with the networks of one service at `GET /api/v1/network
 
 The parameter `serviceId` is obligatory, and it must be a UUID.
 
-Each network of the answer holds the identifier, the name, the driver, the scope, the state of the
-internal flag, the state of the attachable flag and the date of the creation.
+Each network of the answer holds the identifier, the name, the driver, the scope, the state of the internal flag, the state of the attachable flag and the date of the creation.
 
 #### Scenario: The service holds networks
 
@@ -57,8 +55,7 @@ The system SHALL calculate the slug of the service in the same way as the capabi
 
 ### Requirement: The daemon is not reachable
 
-The system SHALL answer `503 Service Unavailable` if the Docker daemon does not answer. The message asks
-the operator to verify that the server runs and that it is reachable.
+The system SHALL answer `503 Service Unavailable` if the Docker daemon does not answer. The message asks the operator to verify that the server runs and that it is reachable.
 
 #### Scenario: The daemon does not answer
 

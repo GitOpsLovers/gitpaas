@@ -2,9 +2,7 @@
 
 ## Purpose
 
-This capability keeps and gives the output of a deployment. It holds the output in two tiers — a hot store
-for the run and a cold archive for the history — and it gives the output as a live stream and as a flat
-list.
+This capability keeps and gives the output of a deployment. It holds the output in two tiers — a hot store for the run and a cold archive for the history — and it gives the output as a live stream and as a flat list.
 
 ## Requirements
 
@@ -13,31 +11,25 @@ list.
 The system SHALL keep the output of a deployment in two tiers:
 
 - The **hot store** is a Redis stream. It holds the output of a deployment while the deployment runs.
-- The **cold archive** is a table of the database. It receives the full output one time, at the end of the
-  run.
+- The **cold archive** is a table of the database. It receives the full output one time, at the end of the run.
 
-The system SHALL trim the hot store to the number of lines that the variable `LOGS_MAX_LINES` gives. The
-system SHALL keep the hot copy for 60 seconds after the archive, so a slow reader can read the last lines.
+The system SHALL trim the hot store to the number of lines that the variable `LOGS_MAX_LINES` gives. The system SHALL keep the hot copy for 60 seconds after the archive, so a slow reader can read the last lines.
 
 #### Scenario: A line arrives during the run
 
 - **WHEN** the runner appends one line
-- **THEN** the system writes that line into the hot store immediately, and it writes nothing into the
-  archive
+- **THEN** the system writes that line into the hot store immediately, and it writes nothing into the archive
 
 #### Scenario: The run ends
 
 - **WHEN** the runner calls the completion with the terminal status
-- **THEN** the system writes the terminal entry into the hot store, it copies the full output into the
-  archive, and it gives the hot copy a life of 60 seconds
+- **THEN** the system writes the terminal entry into the hot store, it copies the full output into the archive, and it gives the hot copy a life of 60 seconds
 
 ### Requirement: The write port of the output
 
-The system SHALL give one write port with four operations: append one line, complete the stream with the
-terminal status, read the stream, and purge the stream.
+The system SHALL give one write port with four operations: append one line, complete the stream with the terminal status, read the stream, and purge the stream.
 
-Only the runner writes into the store, and it writes through this port. The capability SHALL give no
-endpoint that writes a log entry.
+Only the runner writes into the store, and it writes through this port. The capability SHALL give no endpoint that writes a log entry.
 
 #### Scenario: A caller looks for a write endpoint
 
@@ -46,8 +38,7 @@ endpoint that writes a log entry.
 
 ### Requirement: A failure of the store does not stop the run
 
-The system SHALL catch every failure of the append, of the completion, of the archive and of the purge. It
-SHALL write the failure into the log of the application, and it SHALL let the deployment continue.
+The system SHALL catch every failure of the append, of the completion, of the archive and of the purge. It SHALL write the failure into the log of the application, and it SHALL let the deployment continue.
 
 Thus a store that is not available loses the output, but it does not fail the deployment.
 
@@ -59,13 +50,11 @@ Thus a store that is not available loses the output, but it does not fail the de
 #### Scenario: The archive fails
 
 - **WHEN** the copy into the archive fails
-- **THEN** the system writes the failure into the log of the application, and it does not give the hot copy
-  the short life, so the output stays available
+- **THEN** the system writes the failure into the log of the application, and it does not give the hot copy the short life, so the output stays available
 
 ### Requirement: The order of the output
 
-The system SHALL take the order of the output from the hot store itself. The system SHALL NOT give a
-number to a line at the moment of the write.
+The system SHALL take the order of the output from the hot store itself. The system SHALL NOT give a number to a line at the moment of the write.
 
 Thus every reader of one deployment reads the same recorded output, in the same order.
 
@@ -76,8 +65,7 @@ Thus every reader of one deployment reads the same recorded output, in the same 
 
 ### Requirement: The live stream of the output
 
-The system SHALL stream the output of a deployment at `GET /api/v1/logs/:deploymentId/stream`, with
-Server-Sent Events. Each message carries one event as JSON.
+The system SHALL stream the output of a deployment at `GET /api/v1/logs/:deploymentId/stream`, with Server-Sent Events. Each message carries one event as JSON.
 
 The stream carries three kinds of event:
 
@@ -85,18 +73,14 @@ The stream carries three kinds of event:
 - `end` — the terminal event, with the status `success` or `failed`.
 - `error` — the stream could not be read. It carries the code `LOG_STREAM_UNAVAILABLE` and a safe message.
 
-The system SHALL start the read at the first entry, and it SHALL continue with the live output on the same
-cursor. Thus there is no change-over between a replay and a live channel, and there is nothing to remove
-twice.
+The system SHALL start the read at the first entry, and it SHALL continue with the live output on the same cursor. Thus there is no change-over between a replay and a live channel, and there is nothing to remove twice.
 
-The stream needs an access token, as the rest of the API. Thus the client must use a reader of the Server-
-Sent Events that can send a header of the authentication, because a plain `EventSource` cannot.
+The stream needs an access token, as the rest of the API. Thus the client must use a reader of the Server-Sent Events that can send a header of the authentication, because a plain `EventSource` cannot.
 
 #### Scenario: A client connects during the run
 
 - **WHEN** a client subscribes while the deployment runs
-- **THEN** the system sends the output from the first line, then it continues with the live output, then it
-  sends the `end` event, and then it closes
+- **THEN** the system sends the output from the first line, then it continues with the live output, then it sends the `end` event, and then it closes
 
 #### Scenario: A client connects after the run
 
@@ -106,8 +90,7 @@ Sent Events that can send a header of the authentication, because a plain `Event
 #### Scenario: The store cannot be read
 
 - **WHEN** the read of the stream raises a failure, for example because the hot store is not available
-- **THEN** the system sends one `error` event with the code `LOG_STREAM_UNAVAILABLE` and a safe message,
-  and then it closes. The system SHALL NOT break the connection without an event.
+- **THEN** the system sends one `error` event with the code `LOG_STREAM_UNAVAILABLE` and a safe message, and then it closes. The system SHALL NOT break the connection without an event.
 
 #### Scenario: The producer stopped without a terminal entry
 
@@ -126,14 +109,11 @@ Sent Events that can send a header of the authentication, because a plain `Event
 
 ### Requirement: The durable list of the output
 
-The system SHALL answer with the archived entries of a deployment at
-`GET /api/v1/logs?deploymentId=<uuid>`.
+The system SHALL answer with the archived entries of a deployment at `GET /api/v1/logs?deploymentId=<uuid>`.
 
-The system SHALL give the entries as a flat list, in the correct order. The parameter `deploymentId` is
-obligatory, and it must be a UUID.
+The system SHALL give the entries as a flat list, in the correct order. The parameter `deploymentId` is obligatory, and it must be a UUID.
 
-This endpoint gives no history while a deployment runs, because the system writes the archive one time, at
-the end of the run. To see the output of a deployment that runs, the client uses the stream.
+This endpoint gives no history while a deployment runs, because the system writes the archive one time, at the end of the run. To see the output of a deployment that runs, the client uses the stream.
 
 #### Scenario: The deployment ended
 
@@ -152,8 +132,7 @@ the end of the run. To see the output of a deployment that runs, the client uses
 
 ### Requirement: The rate limit of the stream
 
-The system SHALL apply a rate limit of the stream to the endpoint of the Server-Sent Events, and not the
-default rate limit of the API.
+The system SHALL apply a rate limit of the stream to the endpoint of the Server-Sent Events, and not the default rate limit of the API.
 
 A stream holds one connection open for the length of a run, so the default limit does not apply to it.
 
@@ -164,37 +143,29 @@ A stream holds one connection open for the length of a run, so the default limit
 
 ### Requirement: The purge of the output
 
-The system SHALL remove the hot copy and the archived entries of a deployment when a caller purges that
-deployment.
+The system SHALL remove the hot copy and the archived entries of a deployment when a caller purges that deployment.
 
-The removal of a deployment and the removal of a service both purge the output. See the capabilities
-`deployments` and `services`.
+The removal of a deployment and the removal of a service both purge the output. See the capabilities `deployments` and `services`.
 
 #### Scenario: A caller purges a deployment
 
 - **WHEN** a caller purges the output of one deployment
-- **THEN** the system removes the entries of the hot store, the lease of the producer and the archived rows
-  of that deployment
+- **THEN** the system removes the entries of the hot store, the lease of the producer and the archived rows of that deployment
 
 ### Requirement: The window of the output of a deployment
 
-When the user views a deployment, the system SHALL open a window that streams the output of that
-deployment.
+When the user views a deployment, the system SHALL open a window that streams the output of that deployment.
 
-The window SHALL open the stream only while it is open and a deployment is chosen. It SHALL close the
-stream when the user closes the window.
+The window SHALL open the stream only while it is open and a deployment is chosen. It SHALL close the stream when the user closes the window.
 
-The window holds a mark of the status. The mark says `running` until the terminal event arrives, and then
-it says `success` or `failed`.
+The window holds a mark of the status. The mark says `running` until the terminal event arrives, and then it says `success` or `failed`.
 
-The window SHALL keep the view at the last line as the output arrives. The window gives an action that
-copies the full output.
+The window SHALL keep the view at the last line as the output arrives. The window gives an action that copies the full output.
 
 #### Scenario: The user opens the output
 
 - **WHEN** the user views a deployment
-- **THEN** the system opens the window, it clears the old lines, and it streams the output from the first
-  line
+- **THEN** the system opens the window, it clears the old lines, and it streams the output from the first line
 
 #### Scenario: The terminal event arrives
 
@@ -215,8 +186,7 @@ copies the full output.
 
 The tab `logs` SHALL show a fixed set of eight lines of an example. It reads no data of the API.
 
-The output of a run lives in the window of the tab `deployments`. This tab is the rest of a first design of
-the theme.
+The output of a run lives in the window of the tab `deployments`. This tab is the rest of a first design of the theme.
 
 This requirement records the state of today. A later change must replace it.
 

@@ -2,31 +2,22 @@
 
 ## Purpose
 
-This capability keeps the providers of the operator, and it reads the Git repositories through them. A
-provider holds the credentials of one GitHub App. The capability lists the repositories and the branches for
-the user interface, and it gives the commit and the source archive that a deployment needs. GitHub is the
-one kind of provider at this time. It also gives the screens of the providers: the list at the route
-`/providers`, the registration at `/providers/add` and the change at `/providers/edit/:id`. A provider is a
-GitHub App that the services of the installation use to reach their repositories.
+This capability keeps the providers of the operator, and it reads the Git repositories through them. A provider holds the credentials of one GitHub App. The capability lists the repositories and the branches for the user interface, and it gives the commit and the source archive that a deployment needs. GitHub is the one kind of provider at this time. It also gives the screens of the providers: the list at the route `/providers`, the registration at `/providers/add` and the change at `/providers/edit/:id`. A provider is a GitHub App that the services of the installation use to reach their repositories.
 
 ## Requirements
 
 ### Requirement: The provider record
 
-The system SHALL keep one record per provider. A provider is a GitHub App that an operator registers, whose
-private key the system encrypts at rest, and which a service selects to reach its repository.
+The system SHALL keep one record per provider. A provider is a GitHub App that an operator registers, whose private key the system encrypts at rest, and which a service selects to reach its repository.
 
-The record holds the identifier, the name, the type, the identifier of the application, the identifier of
-the installation, the encrypted private key, the date of the creation and the date of the last change.
+The record holds the identifier, the name, the type, the identifier of the application, the identifier of the installation, the encrypted private key, the date of the creation and the date of the last change.
 
-The identifier is a UUID that the database generates. The type holds `github_app`, which is the one value
-of today. The system SHALL manage the records under the path `/api/v1/providers`.
+The identifier is a UUID that the database generates. The type holds `github_app`, which is the one value of today. The system SHALL manage the records under the path `/api/v1/providers`.
 
 #### Scenario: The system gives a provider
 
 - **WHEN** a client reads a provider
-- **THEN** the system gives the identifier, the name, the type, the identifier of the application, the
-  identifier of the installation and the fingerprint of the key
+- **THEN** the system gives the identifier, the name, the type, the identifier of the application, the identifier of the installation and the fingerprint of the key
 
 ### Requirement: The name of a provider is unique
 
@@ -39,9 +30,7 @@ The system SHALL refuse a provider whose name another provider already carries.
 
 ### Requirement: The private key is encrypted at rest
 
-The system SHALL encrypt the private key with AES-256-GCM before it writes the record. The key of the
-encryption comes from the environment variable `PROVIDERS_ENCRYPTION_KEY`, which holds 32 random bytes in
-the hexadecimal form.
+The system SHALL encrypt the private key with AES-256-GCM before it writes the record. The key of the encryption comes from the environment variable `PROVIDERS_ENCRYPTION_KEY`, which holds 32 random bytes in the hexadecimal form.
 
 The system SHALL NOT write the private key in clear text, in the database or in the log.
 
@@ -59,8 +48,7 @@ The system SHALL NOT write the private key in clear text, in the database or in 
 
 The system SHALL NOT put the private key into the body of any answer.
 
-Instead of the key, the read model carries a fingerprint: the first eight characters of the SHA-256 of the
-PEM. The fingerprint lets the operator recognize a key, and it gives no way back to the key.
+Instead of the key, the read model carries a fingerprint: the first eight characters of the SHA-256 of the PEM. The fingerprint lets the operator recognize a key, and it gives no way back to the key.
 
 #### Scenario: A client reads a provider
 
@@ -69,8 +57,7 @@ PEM. The fingerprint lets the operator recognize a key, and it gives no way back
 
 ### Requirement: A change with an empty key keeps the stored key
 
-The system SHALL keep the stored private key when the body of the change holds no key, or holds an empty
-key.
+The system SHALL keep the stored private key when the body of the change holds no key, or holds an empty key.
 
 Thus an operator changes the name of a provider without the PEM at hand.
 
@@ -88,8 +75,7 @@ Thus an operator changes the name of a provider without the PEM at hand.
 
 The system SHALL refuse the removal of a provider while a service still points at it.
 
-The database enforces the same rule with `ON DELETE RESTRICT`. This copies the rule that a namespace applies
-to its projects.
+The database enforces the same rule with `ON DELETE RESTRICT`. This copies the rule that a namespace applies to its projects.
 
 #### Scenario: The provider holds services
 
@@ -103,11 +89,9 @@ to its projects.
 
 ### Requirement: The test of the credentials
 
-The system SHALL give an operation that tests the credentials of a provider, at
-`POST /api/v1/providers/:id/test`.
+The system SHALL give an operation that tests the credentials of a provider, at `POST /api/v1/providers/:id/test`.
 
-The system SHALL ask GitHub if the application answers, and it SHALL report the result. The operation
-changes no record.
+The system SHALL ask GitHub if the application answers, and it SHALL report the result. The operation changes no record.
 
 #### Scenario: The credentials operate
 
@@ -121,8 +105,7 @@ changes no record.
 
 ### Requirement: Only an administrator writes a provider
 
-The system SHALL let a user with the role `admin` create, change and remove a provider. The system SHALL
-refuse those three operations to a user with the role `user`.
+The system SHALL let a user with the role `admin` create, change and remove a provider. The system SHALL refuse those three operations to a user with the role `user`.
 
 The read of a provider needs no role, because the form of a service must offer the list to each operator.
 
@@ -143,18 +126,14 @@ The read of a provider needs no role, because the form of a service must offer t
 
 ### Requirement: The credentials come from the record of the provider
 
-The system SHALL read the identifier of the application, the private key and the identifier of the
-installation from the record of the provider.
+The system SHALL read the identifier of the application, the private key and the identifier of the installation from the record of the provider.
 
-If the record holds credentials that the system cannot use, it SHALL raise
-`PROVIDER_NOT_CONFIGURED`. The message SHALL name the provider, so the operator can correct that
-record.
+If the record holds credentials that the system cannot use, it SHALL raise `PROVIDER_NOT_CONFIGURED`. The message SHALL name the provider, so the operator can correct that record.
 
 #### Scenario: The credentials of the record are not complete
 
 - **WHEN** a caller uses a provider whose record holds no usable credentials
-- **THEN** the system raises `PROVIDER_NOT_CONFIGURED` with a message that names the provider, and it
-  answers `503 Service Unavailable`
+- **THEN** the system raises `PROVIDER_NOT_CONFIGURED` with a message that names the provider, and it answers `503 Service Unavailable`
 
 #### Scenario: The environment holds no credential
 
@@ -163,14 +142,12 @@ record.
 
 ### Requirement: One client for each provider
 
-The system SHALL keep one client for each provider, in a map that the identifier of the provider keys. The
-system SHALL build a client only when the map holds none for that provider.
+The system SHALL keep one client for each provider, in a map that the identifier of the provider keys. The system SHALL build a client only when the map holds none for that provider.
 
 #### Scenario: Two providers in one process
 
 - **WHEN** two callers use two different providers
-- **THEN** the system builds one client for each provider, and the two clients authenticate as two
-  different applications
+- **THEN** the system builds one client for each provider, and the two clients authenticate as two different applications
 
 #### Scenario: One provider in two calls
 
@@ -179,8 +156,7 @@ system SHALL build a client only when the map holds none for that provider.
 
 ### Requirement: The operations of the provider client
 
-The system SHALL give five operations behind one port. Every operation takes the credentials of a provider
-as its first parameter:
+The system SHALL give five operations behind one port. Every operation takes the credentials of a provider as its first parameter:
 
 1. List the repositories that the installation of the provider can reach.
 2. List the branches of one repository.
@@ -188,9 +164,7 @@ as its first parameter:
 4. Download the source of a repository at a reference, as a gzipped tarball.
 5. Verify that GitHub accepts the credentials.
 
-The system SHALL identify a repository by a number. The first two operations answer an HTTP request under
-the path of the provider. The next two serve the deployment, and they have no endpoint of their own. The
-last one serves the test of a provider.
+The system SHALL identify a repository by a number. The first two operations answer an HTTP request under the path of the provider. The next two serve the deployment, and they have no endpoint of their own. The last one serves the test of a provider.
 
 #### Scenario: A caller resolves a reference
 
@@ -204,8 +178,7 @@ last one serves the test of a provider.
 
 ### Requirement: List of the repositories
 
-The system SHALL answer with the repositories of one provider at
-`GET /api/v1/providers/:providerId/repositories`.
+The system SHALL answer with the repositories of one provider at `GET /api/v1/providers/:providerId/repositories`.
 
 Each repository holds the number, the full name, the default branch and the state of the visibility.
 
@@ -216,8 +189,7 @@ Each repository holds the number, the full name, the default branch and the stat
 
 #### Scenario: The installation can reach no repository
 
-- **WHEN** an authenticated client calls the endpoint, and the installation of the provider holds no
-  repository
+- **WHEN** an authenticated client calls the endpoint, and the installation of the provider holds no repository
 - **THEN** the system answers `200` with an empty list
 
 #### Scenario: The provider does not exist
@@ -227,16 +199,13 @@ Each repository holds the number, the full name, the default branch and the stat
 
 ### Requirement: List of the branches
 
-The system SHALL answer with the branches of one repository at
-`GET /api/v1/providers/:providerId/repositories/:repositoryId/branches`.
+The system SHALL answer with the branches of one repository at `GET /api/v1/providers/:providerId/repositories/:repositoryId/branches`.
 
-The identifier of the provider must be a UUID, and the identifier of the repository must be a whole number.
-Each branch holds only the name.
+The identifier of the provider must be a UUID, and the identifier of the repository must be a whole number. Each branch holds only the name.
 
 #### Scenario: The repository exists
 
-- **WHEN** a client calls the endpoint with an available provider and the number of a repository that it
-  can reach
+- **WHEN** a client calls the endpoint with an available provider and the number of a repository that it can reach
 - **THEN** the system answers `200` with every branch of that repository, across all the pages
 
 #### Scenario: The identifier is no number
@@ -246,19 +215,17 @@ Each branch holds only the name.
 
 ### Requirement: The classification of a failure of the provider
 
-The system SHALL translate each failure of the provider into one domain error. The system SHALL classify
-the failure by the HTTP status that the provider answers:
+The system SHALL translate each failure of the provider into one domain error. The system SHALL classify the failure by the HTTP status that the provider answers:
 
-| Condition | Domain error | HTTP answer |
-|---|---|---|
-| The status is 404 | `PROVIDER_RESOURCE_NOT_FOUND` | `404 Not Found` |
-| The status is 429, or the status is 403 with an exhausted quota | `PROVIDER_RATE_LIMITED` | `503 Service Unavailable` |
-| The status is 401, or the status is 403 for another reason | `PROVIDER_AUTHENTICATION_FAILED` | `503 Service Unavailable` |
-| The status is 500 or higher | `PROVIDER_UNAVAILABLE` | `503 Service Unavailable` |
-| The call carries no status, because the network failed | `PROVIDER_UNAVAILABLE` | `503 Service Unavailable` |
+| Condition                                                       | Domain error                     | HTTP answer               |
+|-----------------------------------------------------------------|----------------------------------|---------------------------|
+| The status is 404                                               | `PROVIDER_RESOURCE_NOT_FOUND`    | `404 Not Found`           |
+| The status is 429, or the status is 403 with an exhausted quota | `PROVIDER_RATE_LIMITED`          | `503 Service Unavailable` |
+| The status is 401, or the status is 403 for another reason      | `PROVIDER_AUTHENTICATION_FAILED` | `503 Service Unavailable` |
+| The status is 500 or higher                                     | `PROVIDER_UNAVAILABLE`           | `503 Service Unavailable` |
+| The call carries no status, because the network failed          | `PROVIDER_UNAVAILABLE`           | `503 Service Unavailable` |
 
-The system SHALL NOT give the message of the provider to the client. Each domain error carries its own
-message.
+The system SHALL NOT give the message of the provider to the client. Each domain error carries its own message.
 
 #### Scenario: The repository does not exist, or the installation cannot see it
 
@@ -267,8 +234,7 @@ message.
 
 #### Scenario: The quota of the installation is exhausted
 
-- **WHEN** the provider answers with the status 429, or with the status 403 and the marks of an exhausted
-  quota
+- **WHEN** the provider answers with the status 429, or with the status 403 and the marks of an exhausted quota
 - **THEN** the system raises `PROVIDER_RATE_LIMITED`, and it answers `503 Service Unavailable`
 
 #### Scenario: The credentials are not correct
@@ -300,11 +266,9 @@ The system SHALL record the duration of each call to the provider, and it SHALL 
 The system SHALL show one of four states:
 
 1. **The reading runs.** The screen says "Loading providers…".
-2. **The reading failed.** The screen shows a red panel that says "Could not load providers. Is the backend
-   running?".
+2. **The reading failed.** The screen shows a red panel that says "Could not load providers. Is the backend running?".
 3. **The list holds providers.** The screen shows one card per provider, in a grid.
-4. **The list is empty.** The screen shows a panel with a dotted border, and a button that opens the screen
-   of the creation.
+4. **The list is empty.** The screen shows a panel with a dotted border, and a button that opens the screen of the creation.
 
 #### Scenario: The list is empty
 
@@ -318,16 +282,14 @@ The system SHALL show one of four states:
 
 ### Requirement: The content of a card
 
-Each card SHALL show the name, a mark of the type, the identifier of the application, the fingerprint of the
-key and the state of the connection.
+Each card SHALL show the name, a mark of the type, the identifier of the application, the fingerprint of the key and the state of the connection.
 
 The card SHALL NOT show the private key, because the API never gives it.
 
 #### Scenario: The user reads a card
 
 - **WHEN** the screen shows a provider
-- **THEN** the card holds the name, the mark of the type, the identifier of the application and the
-  fingerprint of the key, and it holds no private key
+- **THEN** the card holds the name, the mark of the type, the identifier of the application and the fingerprint of the key, and it holds no private key
 
 ### Requirement: The test of the connection
 
@@ -349,11 +311,9 @@ While the test runs, the card shows the state of the work. After the test, the c
 
 The system SHALL ask the user to confirm before it removes a provider.
 
-The question carries the title "Delete provider?" and a message that names the provider between marks of
-quotation, and that says that the action has no way back.
+The question carries the title "Delete provider?" and a message that names the provider between marks of quotation, and that says that the action has no way back.
 
-After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
-again.
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list again.
 
 #### Scenario: The removal succeeds
 
@@ -369,12 +329,12 @@ again.
 
 The system SHALL show a form with four controls:
 
-| Control | Kind | Obligatory |
-|---|---|---|
-| The name | A field of text | Yes |
-| The identifier of the application | A field of text | Yes |
-| The identifier of the installation | A field of text | Yes |
-| The private key | A field of several lines, for the PEM | Yes |
+| Control                            | Kind                                  | Obligatory |
+|------------------------------------|---------------------------------------|------------|
+| The name                           | A field of text                       | Yes        |
+| The identifier of the application  | A field of text                       | Yes        |
+| The identifier of the installation | A field of text                       | Yes        |
+| The private key                    | A field of several lines, for the PEM | Yes        |
 
 The type of the provider is `github_app`, and the form does not ask for it, because it is the one kind of
 today.

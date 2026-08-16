@@ -2,29 +2,20 @@
 
 ## Purpose
 
-This capability groups the services of the platform. A project belongs to one namespace, and it holds a
-set of services. It sits between the namespace and the service in the domain model, and every endpoint of
-this capability lives under the path of its namespace. It also gives the screens of the projects of one
-namespace: the list at the route `/namespaces/:namespaceId/projects`, the creation at
-`/namespaces/:namespaceId/projects/add`, the change of the name at
-`/namespaces/:namespaceId/projects/edit/:id` and the detail at `/namespaces/:namespaceId/projects/:id`,
-which shows the services of the project.
+This capability groups the services of the platform. A project belongs to one namespace, and it holds a set of services. It sits between the namespace and the service in the domain model, and every endpoint of this capability lives under the path of its namespace. It also gives the screens of the projects of one namespace: the list at the route `/namespaces/:namespaceId/projects`, the creation at `/namespaces/:namespaceId/projects/add`, the change of the name at `/namespaces/:namespaceId/projects/edit/:id` and the detail at `/namespaces/:namespaceId/projects/:id`, which shows the services of the project.
 
 ## Requirements
 
 ### Requirement: The project record
 
-The system SHALL keep one record per project. The record holds the identifier, the name, the identifier of
-the namespace and the count of the services.
+The system SHALL keep one record per project. The record holds the identifier, the name, the identifier of the namespace and the count of the services.
 
-The identifier is a UUID that the database generates. The system SHALL calculate the count of the services
-from the services that belong to the project.
+The identifier is a UUID that the database generates. The system SHALL calculate the count of the services from the services that belong to the project.
 
 #### Scenario: The system gives a project
 
 - **WHEN** a client reads a project
-- **THEN** the system gives the identifier, the name, the identifier of the namespace and the count of the
-  services
+- **THEN** the system gives the identifier, the name, the identifier of the namespace and the count of the services
 
 #### Scenario: The system creates or changes a project
 
@@ -39,8 +30,7 @@ Two projects of different namespaces can carry the same name.
 
 #### Scenario: The name is already in use in that namespace
 
-- **WHEN** a client creates or changes a project with a name that another project of the same namespace
-  carries
+- **WHEN** a client creates or changes a project with a name that another project of the same namespace carries
 - **THEN** the system raises `PROJECT_NAME_TAKEN`, and it answers `409 Conflict`
 
 #### Scenario: The name is in use in another namespace
@@ -50,17 +40,13 @@ Two projects of different namespaces can carry the same name.
 
 ### Requirement: Every operation runs inside a namespace
 
-The system SHALL put every endpoint of this capability under
-`/api/v1/namespaces/:namespaceId/projects`.
+The system SHALL put every endpoint of this capability under `/api/v1/namespaces/:namespaceId/projects`.
 
-The system SHALL check that the project belongs to the namespace of the path, for the read of one project,
-for the change and for the removal. A project of a different namespace SHALL give the same answer as a
-project that does not exist. Thus the path gives no information about a project of another namespace.
+The system SHALL check that the project belongs to the namespace of the path, for the read of one project, for the change and for the removal. A project of a different namespace SHALL give the same answer as a project that does not exist. Thus the path gives no information about a project of another namespace.
 
 #### Scenario: The project belongs to another namespace
 
-- **WHEN** a client reads, changes or deletes a project with the correct identifier of the project, but
-  with the identifier of a namespace that does not hold it
+- **WHEN** a client reads, changes or deletes a project with the correct identifier of the project, but with the identifier of a namespace that does not hold it
 - **THEN** the system raises `PROJECT_NOT_FOUND`, and it answers `404 Not Found`
 
 #### Scenario: The identifier of the namespace is no UUID
@@ -70,11 +56,9 @@ project that does not exist. Thus the path gives no information about a project 
 
 ### Requirement: List of the projects of a namespace
 
-The system SHALL answer with the projects of one namespace at
-`GET /api/v1/namespaces/:namespaceId/projects`.
+The system SHALL answer with the projects of one namespace at `GET /api/v1/namespaces/:namespaceId/projects`.
 
-The system SHALL sort the list by the identifier, in the falling direction. Each project of the list
-carries its count of the services.
+The system SHALL sort the list by the identifier, in the falling direction. Each project of the list carries its count of the services.
 
 #### Scenario: The namespace holds projects
 
@@ -137,17 +121,14 @@ The system SHALL change the name of a project at `PUT /api/v1/namespaces/:namesp
 
 ### Requirement: Removal of a project
 
-The system SHALL remove a project at `DELETE /api/v1/namespaces/:namespaceId/projects/:id`, and it SHALL
-answer `204 No Content`.
+The system SHALL remove a project at `DELETE /api/v1/namespaces/:namespaceId/projects/:id`, and it SHALL answer `204 No Content`.
 
-The database removes the services of the project by the cascade. The system SHALL NOT count the services
-before the removal, so a project that holds services goes away with them.
+The database removes the services of the project by the cascade. The system SHALL NOT count the services before the removal, so a project that holds services goes away with them.
 
 #### Scenario: The project exists in that namespace
 
 - **WHEN** a client deletes an available project of that namespace
-- **THEN** the system removes the record, the database removes the services of the project, and the system
-  answers `204`
+- **THEN** the system removes the record, the database removes the services of the project, and the system answers `204`
 
 #### Scenario: The project does not exist
 
@@ -156,8 +137,7 @@ before the removal, so a project that holds services goes away with them.
 
 ### Requirement: The screen belongs to one namespace
 
-The system SHALL take the identifier of the namespace from the path, and it SHALL read only the projects of
-that namespace.
+The system SHALL take the identifier of the namespace from the path, and it SHALL read only the projects of that namespace.
 
 Every link of the screen carries the same identifier of the namespace.
 
@@ -171,11 +151,9 @@ Every link of the screen carries the same identifier of the namespace.
 The system SHALL show one of four states:
 
 1. **The reading runs.** The screen says "Loading projects…".
-2. **The reading failed.** The screen shows a red panel that says "Could not load projects. Is the backend
-   running?".
+2. **The reading failed.** The screen shows a red panel that says "Could not load projects. Is the backend running?".
 3. **The list holds projects.** The screen shows one card per project, in a grid.
-4. **The list is empty.** The screen shows a panel with a dotted border that says "No projects yet.", and a
-   button that opens the screen of the creation.
+4. **The list is empty.** The screen shows a panel with a dotted border that says "No projects yet.", and a button that opens the screen of the creation.
 
 #### Scenario: The reading fails
 
@@ -191,10 +169,10 @@ The system SHALL show one of four states:
 
 Each card SHALL give three actions:
 
-| Action | Result |
-|---|---|
-| View | Opens the detail of the project |
-| Edit | Opens the change of the project |
+| Action | Result                                |
+|--------|---------------------------------------|
+| View   | Opens the detail of the project       |
+| Edit   | Opens the change of the project       |
 | Delete | Opens the question before the removal |
 
 #### Scenario: The user chooses "View"
@@ -206,14 +184,11 @@ Each card SHALL give three actions:
 
 The system SHALL ask the user to confirm before it removes a project.
 
-The question carries the title "Delete project?" and a message that names the project between marks of
-quotation, and that says that the action has no way back.
+The question carries the title "Delete project?" and a message that names the project between marks of quotation, and that says that the action has no way back.
 
-The message SHALL NOT say that the removal also removes the services of the project. The API removes them
-by the cascade. See the requirement *Removal of a project*.
+The message SHALL NOT say that the removal also removes the services of the project. The API removes them by the cascade. See the requirement *Removal of a project*.
 
-After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
-again.
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list again.
 
 #### Scenario: The removal succeeds
 
@@ -232,8 +207,7 @@ again.
 
 ### Requirement: The field of the form
 
-The system SHALL show a form with one field: the name of the project. The system SHALL take the identifier
-of the namespace from the path, and the user does not give it.
+The system SHALL show a form with one field: the name of the project. The system SHALL take the identifier of the namespace from the path, and the user does not give it.
 
 #### Scenario: The user opens the screen
 
@@ -242,8 +216,7 @@ of the namespace from the path, and the user does not give it.
 
 ### Requirement: The check before the creation
 
-The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
-system SHALL do nothing.
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL do nothing.
 
 #### Scenario: The name is empty
 
@@ -252,21 +225,16 @@ system SHALL do nothing.
 
 ### Requirement: The end of the creation
 
-If the API accepts the name, the system SHALL show a message of success that names the new project, and it
-SHALL open the list of the projects of that namespace.
+If the API accepts the name, the system SHALL show a message of success that names the new project, and it SHALL open the list of the projects of that namespace.
 
-If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
-same screen.
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the same screen.
 
-The name of a project must be unique inside its namespace. See the requirement *The name of a project is
-unique inside its namespace*. The screen shows the same message of failure for that reason and for any
-other.
+The name of a project must be unique inside its namespace. See the requirement *The name of a project is unique inside its namespace*. The screen shows the same message of failure for that reason and for any other.
 
 #### Scenario: The creation succeeds
 
 - **WHEN** the API answers with the new project
-- **THEN** the system shows the message "Project created" with the name, and it opens the list of the
-  projects
+- **THEN** the system shows the message "Project created" with the name, and it opens the list of the projects
 
 #### Scenario: The name is already in use
 
@@ -289,8 +257,7 @@ The system SHALL read the project of the path, and it SHALL put the name into th
 
 ### Requirement: The check before the change
 
-The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
-system SHALL do nothing.
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL do nothing.
 
 #### Scenario: The name is empty
 
@@ -299,30 +266,25 @@ system SHALL do nothing.
 
 ### Requirement: The end of the change
 
-If the API accepts the change, the system SHALL show a message of success that names the project, and it
-SHALL open the list of the projects of that namespace.
+If the API accepts the change, the system SHALL show a message of success that names the project, and it SHALL open the list of the projects of that namespace.
 
-If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
-same screen.
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the same screen.
 
 #### Scenario: The change succeeds
 
 - **WHEN** the API answers with the changed project
-- **THEN** the system shows the message "Project updated" with the name, and it opens the list of the
-  projects
+- **THEN** the system shows the message "Project updated" with the name, and it opens the list of the projects
 
 #### Scenario: The change fails
 
-- **WHEN** the API refuses the change, for example because another project of the namespace carries that
-  name
+- **WHEN** the API refuses the change, for example because another project of the namespace carries that name
 - **THEN** the system shows the message "Could not update project", and the user stays on the screen
 
 ### Requirement: The content of the screen
 
 The system SHALL show the trail of the navigation and the list of the services of the project.
 
-The trail holds three parts: the namespaces, the projects of the namespace and the name of the project.
-Until the name arrives from the API, the last part shows the word "Project".
+The trail holds three parts: the namespaces, the projects of the namespace and the name of the project. Until the name arrives from the API, the last part shows the word "Project".
 
 #### Scenario: The user opens the screen
 
@@ -334,11 +296,9 @@ Until the name arrives from the API, the last part shows the word "Project".
 The system SHALL show one of four states:
 
 1. **The reading runs.** The screen says "Loading services…".
-2. **The reading failed.** The screen shows a red panel that says "Could not load services. Is the backend
-   running?".
+2. **The reading failed.** The screen shows a red panel that says "Could not load services. Is the backend running?".
 3. **The list holds services.** The screen shows one card per service, in a grid.
-4. **The list is empty.** The screen shows a panel with a dotted border that says "No services yet.", and a
-   button that opens the screen of the creation.
+4. **The list is empty.** The screen shows a panel with a dotted border that says "No services yet.", and a button that opens the screen of the creation.
 
 #### Scenario: The list is empty
 
@@ -349,11 +309,11 @@ The system SHALL show one of four states:
 
 Each card SHALL give three actions:
 
-| Action | Result |
-|---|---|
-| View | Opens the detail of the service |
-| Edit | Opens the change of the name of the service |
-| Delete | Opens the question before the removal |
+| Action | Result                                      |
+|--------|---------------------------------------------|
+| View   | Opens the detail of the service             |
+| Edit   | Opens the change of the name of the service |
+| Delete | Opens the question before the removal       |
 
 #### Scenario: The user chooses "View"
 
@@ -364,14 +324,11 @@ Each card SHALL give three actions:
 
 The system SHALL ask the user to confirm before it removes a service.
 
-The question carries the title "Delete service?" and a message that names the service between marks of
-quotation, and that says that the action has no way back.
+The question carries the title "Delete service?" and a message that names the service between marks of quotation, and that says that the action has no way back.
 
-The message SHALL NOT say that the removal also removes the containers, the networks and the images of the
-service on the server. See the capability `services`.
+The message SHALL NOT say that the removal also removes the containers, the networks and the images of the service on the server. See the capability `services`.
 
-After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
-again.
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list again.
 
 #### Scenario: The removal succeeds
 

@@ -2,11 +2,7 @@
 
 ## Purpose
 
-This capability groups the projects of the platform. A namespace is the widest scope of the domain model,
-and it holds a set of projects. This capability gives the operations that read, create, change and remove
-a namespace. It also gives the screens of the namespaces: the list at the route `/namespaces`, the creation
-at `/namespaces/add` and the change of the name at `/namespaces/edit/:id`. The list is the entry into the
-tree of the domain: a namespace holds the projects, and a project holds the services.
+This capability groups the projects of the platform. A namespace is the widest scope of the domain model, and it holds a set of projects. This capability gives the operations that read, create, change and remove a namespace. It also gives the screens of the namespaces: the list at the route `/namespaces`, the creation at `/namespaces/add` and the change of the name at `/namespaces/edit/:id`. The list is the entry into the tree of the domain: a namespace holds the projects, and a project holds the services.
 
 ## Requirements
 
@@ -67,8 +63,7 @@ The identifier in the path must be a UUID.
 
 The system SHALL create a namespace at `POST /api/v1/namespaces`.
 
-The body holds only the name. The name must be a text, and it must not be empty. The system SHALL refuse
-a body that holds an unknown field.
+The body holds only the name. The name must be a text, and it must not be empty. The system SHALL refuse a body that holds an unknown field.
 
 #### Scenario: The body is correct
 
@@ -106,11 +101,9 @@ The system SHALL change the name of a namespace at `PUT /api/v1/namespaces/:id`.
 
 ### Requirement: Removal of a namespace
 
-The system SHALL remove a namespace at `DELETE /api/v1/namespaces/:id`, and it SHALL answer
-`204 No Content`.
+The system SHALL remove a namespace at `DELETE /api/v1/namespaces/:id`, and it SHALL answer `204 No Content`.
 
-The system SHALL count the projects of the namespace before the removal. If the namespace still holds one
-project or more, the system SHALL refuse the removal. Thus no project loses its namespace.
+The system SHALL count the projects of the namespace before the removal. If the namespace still holds one project or more, the system SHALL refuse the removal. Thus no project loses its namespace.
 
 #### Scenario: The namespace is empty
 
@@ -132,11 +125,9 @@ project or more, the system SHALL refuse the removal. Thus no project loses its 
 The system SHALL show one of four states:
 
 1. **The reading runs.** The screen says "Loading namespaces…".
-2. **The reading failed.** The screen shows a red panel that says "Could not load namespaces. Is the
-   backend running?".
+2. **The reading failed.** The screen shows a red panel that says "Could not load namespaces. Is the backend running?".
 3. **The list holds namespaces.** The screen shows one card per namespace, in a grid.
-4. **The list is empty.** The screen shows a panel with a dotted border that says "No namespaces yet.",
-   and a button that opens the screen of the creation.
+4. **The list is empty.** The screen shows a panel with a dotted border that says "No namespaces yet.", and a button that opens the screen of the creation.
 
 #### Scenario: The reading runs
 
@@ -157,11 +148,11 @@ The system SHALL show one of four states:
 
 Each card SHALL give three actions:
 
-| Action | Result |
-|---|---|
-| View | Opens the projects of the namespace, at `/namespaces/:id/projects` |
-| Edit | Opens the change of the namespace, at `/namespaces/edit/:id` |
-| Delete | Opens the question before the removal |
+| Action | Result                                                             |
+|--------|--------------------------------------------------------------------|
+| View   | Opens the projects of the namespace, at `/namespaces/:id/projects` |
+| Edit   | Opens the change of the namespace, at `/namespaces/edit/:id`       |
+| Delete | Opens the question before the removal                              |
 
 #### Scenario: The user chooses "View"
 
@@ -177,12 +168,9 @@ Each card SHALL give three actions:
 
 The system SHALL ask the user to confirm before it removes a namespace.
 
-The question carries the title "Delete namespace?" and a message that names the namespace between marks of
-quotation, and that says that the action has no way back.
+The question carries the title "Delete namespace?" and a message that names the namespace between marks of quotation, and that says that the action has no way back.
 
-After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list
-again. After a removal that fails, the system SHALL show a message of failure, and it SHALL keep the list
-as it is.
+After a removal that succeeds, the system SHALL show a message of success, and it SHALL read the list again. After a removal that fails, the system SHALL show a message of failure, and it SHALL keep the list as it is.
 
 #### Scenario: The removal succeeds
 
@@ -192,8 +180,7 @@ as it is.
 #### Scenario: The namespace still holds projects
 
 - **WHEN** the user confirms the removal, and the API refuses because the namespace still holds projects
-- **THEN** the system shows the message "Could not delete namespace" with the text "Something went wrong.
-  Please try again."
+- **THEN** the system shows the message "Could not delete namespace" with the text "Something went wrong. Please try again."
 
 #### Scenario: The user cancels
 
@@ -202,11 +189,9 @@ as it is.
 
 ### Requirement: The message of the failure does not name the reason
 
-The system SHALL show one message for every failure of the removal. The message does not say if the
-namespace still holds projects, or if the backend does not answer.
+The system SHALL show one message for every failure of the removal. The message does not say if the namespace still holds projects, or if the backend does not answer.
 
-The API separates the two — it answers `409` for a namespace that is not empty, and it names the count of
-the projects. The screen does not read that answer. See the requirement *Removal of a namespace*.
+The API separates the two — it answers `409` for a namespace that is not empty, and it names the count of the projects. The screen does not read that answer. See the requirement *Removal of a namespace*.
 
 This requirement records the state of today. A later change must show the true reason.
 
@@ -217,8 +202,7 @@ This requirement records the state of today. A later change must show the true r
 
 ### Requirement: The field of the form
 
-The system SHALL show a form with one field: the name of the namespace. The form also gives a control that
-goes back to the list without a change.
+The system SHALL show a form with one field: the name of the namespace. The form also gives a control that goes back to the list without a change.
 
 #### Scenario: The user opens the screen
 
@@ -238,11 +222,9 @@ If the name is empty after that, the system SHALL do nothing. It sends no call, 
 
 ### Requirement: The end of the creation
 
-If the API accepts the name, the system SHALL show a message of success that names the new namespace, and
-it SHALL open the list at `/namespaces`.
+If the API accepts the name, the system SHALL show a message of success that names the new namespace, and it SHALL open the list at `/namespaces`.
 
-If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
-same screen, with the name that the user gave.
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the same screen, with the name that the user gave.
 
 The button carries the state of the sending, so the user cannot send the form twice.
 
@@ -254,8 +236,7 @@ The button carries the state of the sending, so the user cannot send the form tw
 #### Scenario: The creation fails
 
 - **WHEN** the API refuses the creation, for example because the name is already in use
-- **THEN** the system shows the message "Could not create namespace", and the user stays on the screen with
-  the name in the field
+- **THEN** the system shows the message "Could not create namespace", and the user stays on the screen with the name in the field
 
 ### Requirement: The load of the namespace
 
@@ -275,8 +256,7 @@ The system SHALL take the identifier one time, when the screen opens.
 
 ### Requirement: The check before the change
 
-The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the
-system SHALL do nothing.
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL do nothing.
 
 #### Scenario: The name is empty
 
@@ -285,11 +265,9 @@ system SHALL do nothing.
 
 ### Requirement: The end of the change
 
-If the API accepts the change, the system SHALL show a message of success that names the namespace, and it
-SHALL open the list at `/namespaces`.
+If the API accepts the change, the system SHALL show a message of success that names the namespace, and it SHALL open the list at `/namespaces`.
 
-If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the
-same screen.
+If the API refuses, the system SHALL show a message of failure, and it SHALL let the user try again on the same screen.
 
 #### Scenario: The change succeeds
 
