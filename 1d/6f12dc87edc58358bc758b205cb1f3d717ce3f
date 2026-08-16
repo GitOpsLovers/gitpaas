@@ -1,0 +1,23 @@
+iac/production/.env.example
+  s_6b34174fb62d1e::t_cfb96249efec24 6
+README.md
+  s_6b34174fb62d1e::t_92b36db2d7db89 7,25,27,29,31-35,39,41,43-44,47,49,51,55,57-59,61,67-72,74,80
+docs/infrastructure-architecture/conventions.md
+  s_6b34174fb62d1e::t_1a452d1164b4ac 3,5,7,9-13,17-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1d6f12dc87edc58358bc758b205cb1f3d717ce3f",
+  "prompts": {},
+  "sessions": {
+    "s_6b34174fb62d1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62c4cf95-af82-4295-bd88-79854d56be8e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
