@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.2.0...v1.3.0) (2026-08-16)
+
+### Features
+
+* proxy Backend with Nginx ([#76](https://github.com/GitOpsLovers/gitpaas/issues/76)) ([a5b3a3c](https://github.com/GitOpsLovers/gitpaas/commit/a5b3a3c7afbc9a7ef5d71b70977f25361da3cc00))
+
 ## [1.2.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.1.0...v1.2.0) (2026-08-16)
 
 ### Features
