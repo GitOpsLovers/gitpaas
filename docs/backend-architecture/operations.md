@@ -3,6 +3,7 @@
 | Script                | Command                               |
 |-----------------------|---------------------------------------|
 | `dev`                 | `nest start --watch`                  |
+| `start:debug`         | `nest start --debug --watch`          |
 | `build`               | `nest build`                          |
 | `start` / `start:prod`| `nest start` / `node dist/main`       |
 | `lint` / `test`       | `eslint .` / `jest` (plus `test:e2e`) |

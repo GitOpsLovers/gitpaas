@@ -12,9 +12,3 @@ The application uses **feature folders** with layers: `domain` (the types), `inf
 - [Conventions](./frontend-architecture/conventions.md): programming conventions used in the application.
 - [Key flows](./frontend-architecture/key-flows.md): explanation of the main flows and why they were designed this way.
 - [Operations](./frontend-architecture/operations.md): actions that need to be performed on the application.
-
-## Related docs
-
-- [Backend architecture](./backend-architecture.md)
-- [Infrastructure architecture](./infrastructure-architecture.md)
-- [Monorepo architecture](./monorepo-architecture.md)

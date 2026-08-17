@@ -62,7 +62,6 @@ Each repository needs its own `docker-compose.yml`. GitPaaS runs that file; it d
 | Doc | What's inside |
 |---|---|
 | 🧩 [Backend Architecture](./docs/backend-architecture.md) | The NestJS API's hexagonal layout, ports and adapters, persistence |
-| 💼 [Backend Business](./docs/backend-business.md) | The domain workflows behind the deploy engine |
 | 🎨 [Frontend Architecture](./docs/frontend-architecture.md) | The Angular SPA's feature folders, layering and conventions |
 | 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The single-server model, dev vs. production, image publishing |
 

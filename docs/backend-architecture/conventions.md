@@ -6,7 +6,7 @@ The repositories and the other collaborators obey the **port and adapter** patte
 
 - **Port**: a plain `interface` (for example, `ProjectsRepository`). Its methods are arrow-function properties written in domain terms: they accept and return domain models and DTOs, and never ORM types or vendor types. A use case depends only on this interface.
 - **Adapter**: an `@Injectable()` class that has `implements` for the port (for example, `DatabaseProjectsRepository`) of a `repositories/` interface
-- **Wiring**: the module puts the **concrete class** in its `providers`. The consumer injects the dependency **by class** (`@Inject(ProjectsDatabaseRepository)`, with `import type` for the port) and gives it the type of the **port**.
+- **Wiring**: the module puts the **concrete class** in its `providers`. The consumer injects the dependency **by class** (`@Inject(DatabaseProjectsRepository)`, with `import type` for the port) and gives it the type of the **port**.
 
 ## Transformers
 
@@ -25,7 +25,7 @@ A write endpoint validates its input with DTO classes. The global `ValidationPip
 
 ## HTTP and REST
 
-The global route prefix is `api/v1`. The listen port comes from `getOrThrow('PORT')` and has no default value in the code. CORS uses credentials and permits only the allowlist that is read from the necessary `CORS_ORIGIN` variable. A controller declares only the path of its resource (`@Controller('projects')`).
+The global route prefix is `api/v1`. The listen port comes from `getOrThrow('PORT')` and has no default value in the code. CORS uses credentials and permits only the allowlist that is read from the necessary `CORS_ORIGIN` variable. A controller declares only the path of its resource (`@Controller('services')`). A resource that never exists outside its parent nests its path instead: the `projects` controller declares `@Controller('namespaces/:namespaceId/projects')`, because a project belongs to exactly one namespace.
 
 | Method & path | Notes                                               |
 |---------------|-----------------------------------------------------|
@@ -35,7 +35,7 @@ The global route prefix is `api/v1`. The listen port comes from `getOrThrow('POR
 | `PUT /:id`    | `@Body()` update DTO; 404 when missing              |
 | `DELETE /:id` | `@HttpCode(204)`; 404 when missing                  |
 
-The `:id` segment connects with `@Param('id', ParseUUIDPipe)`. **The not-found condition is an HTTP concern**: a repository returns `null` and `delete()` returns a `boolean`, and the controller raises `NotFoundException`. The domain never throws an HTTP exception. The domain raises a domain error, and the UI edge changes it.
+The `:id` segment connects with `@Param('id', ParseUUIDPipe)`. **The canonical not-found pattern is a domain error thrown inside the use case**: the use case reads a `null` repository result, throws the feature's `<Entity>NotFoundError`, and the controller's `catch` block turns it into a `404` with `throw translateError(error)` (for example `projects/application/find-project-by-id.use-case.ts`). Two feature controllers still deviate from this pattern, as known drift: `namespaces` builds the domain error in the controller and passes it to `translateError` instead of throwing it from the use case, and `services` raises a raw `NotFoundException` in the controller, with no domain error at all. The domain never throws an HTTP exception; only the canonical pattern keeps that rule.
 
 ## File naming
 
@@ -46,6 +46,9 @@ All the backend files must obey a naming convention. The conventions are as foll
 - **Models**: `<name>.models.ts`, where `name` is always in kebab-case. Example: `user.models.ts`.
 - **Ports**: `<name>.port.ts`, where `name` is always in kebab-case. Example: `container-runtime.port.ts`.
 - **Repositories**: `<name>.repository.ts`, where `name` is always in kebab-case. Example: `users.repository.ts`.
+- **DTOs**: `<verb>-<name>.dto.ts`, where `verb` gives the operation (`create`, `update`) and `name` is always in kebab-case. Example: `create-project.dto.ts`.
+- **Errors**: `<name>.errors.ts`, where `name` is always in kebab-case and gives the feature or the entity the error classes belong to. Example: `project.errors.ts`.
+- **Constants**: `<stem>.constants.ts`, where `stem` is always in kebab-case. Example: `gitpaas-labels.constants.ts`.
 
 ### Application
 
@@ -55,7 +58,15 @@ All the backend files must obey a naming convention. The conventions are as foll
 
 - **Adapters**: `<technology>-<name>.adapter.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` is the type of integration that the port uses. Example: `docker-container-runtime.adapter.ts`.
 - **Repository implementations**: `<technology>-<name>.repository.ts`, where `<name>` and `<technology>` are always in kebab case, and `<technology>` is the type of integration that the repository uses. Example: `db-users.repository.ts`.
-- **Database entities**: `<db>-<name>.entity.ts`, where `<name>` is always lowercase. Example: `db-project.entity.ts`.
+- **Database entities**: `db-<name>.entity.ts`, where `name` is always the singular kebab-case name of the entity. Example: `db-project.entity.ts`.
+- **Transformers**: `<stem>.transformer.ts`, where `stem` names the persistence or vendor shape the file converts. Example: `db-projects.transformer.ts`.
+
+### UI
+
+- **Controllers**: `<name>.controller.ts`, where `name` is always in kebab-case and gives the resource. Example: `projects.controller.ts`.
+- **Services**: `<name>.service.ts`, where `name` is always in kebab-case and gives the feature. Example: `projects.service.ts`.
+- **Guards**: `<name>.guard.ts`, where `name` is always in kebab-case. Example: `roles.guard.ts`.
+- **Decorators**: `<name>.decorator.ts`, where `name` is always in kebab-case. Example: `current-user.decorator.ts`.
 
 ## Class and function naming
 
@@ -63,6 +74,8 @@ All the backend files must obey a naming convention. The conventions are as foll
 
 - **Ports**: the name is in `PascalCase`. Example: `ContainerRuntime`.
 - **Repositories**: the name is in `PascalCase`. It is the name of the entity plus `Repository`. Example: `UsersRepository`.
+- **DTOs**: the name is in `PascalCase`. It is the verb, plus the name of the entity, plus `Dto`. Example: `CreateProjectDto`.
+- **Errors**: the name is in `PascalCase`. It gives the condition and ends with `Error`. Example: `ProjectNotFoundError`.
 
 ### Application
 
@@ -73,6 +86,14 @@ All the backend files must obey a naming convention. The conventions are as foll
 - **Adapters**: the name is in `PascalCase`. It is the name of the technology, plus the name of the entity, plus `Adapter`. Example: `DockerContainerRuntimeAdapter`.
 - **Repository implementations**: the name is in `PascalCase`. It is the name of the technology, plus the name of the entity, plus `Repository`. Example: `DatabaseUsersRepository`.
 - **Database entities**: the name is in `PascalCase`. It always starts with `Db`, then it gives the name of the entity, and it ends with `Entity`. Example: `DbProjectEntity`.
+- **Transformers**: the file exports plain functions, not a class. Each function is in `camelCase` and starts with `to`, followed by the name of the shape it builds. Example: `toProject`.
+
+### UI
+
+- **Controllers**: the name is in `PascalCase`. It is the name of the resource plus `Controller`. Example: `ProjectsController`.
+- **Services**: the name is in `PascalCase`. It is the name of the feature plus `Service`. Example: `ProjectsService`.
+- **Guards**: the name is in `PascalCase`. It gives the check and ends with `Guard`. Example: `RolesGuard`.
+- **Decorators**: the name is a function in `PascalCase`, because it is used as a decorator. Example: `CurrentUser`.
 
 ## Imports
 

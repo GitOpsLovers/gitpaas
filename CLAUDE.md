@@ -114,7 +114,7 @@ If the agent needs information about the monorepo configuration, refer to the [m
 
 ### Backend
 
-If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md) or [backend-business document](./docs/backend-business.md) documents.
+If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md).
 
 ### Frontend
 

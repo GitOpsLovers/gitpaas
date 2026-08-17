@@ -20,7 +20,7 @@ queued ──(picked up)──► processing ──(ok)──► [row deleted]
                                                         deployment marked failed)
 ```
 
-A successful run deletes the row, because the deployment record holds the durable result. A failure records the error and queues the task again, up to three attempts. After the last attempt, the task goes to the dead-letter state **and** the deployment becomes `failed`, so no deployment stays `pending` for ever. At start-up, each unfinished task returns to `queued`, so work that a crash interrupted runs again.
+A successful run deletes the row, because the deployment record holds the durable result. A failure records the error and queues the task again, up to `MAX_ATTEMPTS` (`3`, in `features/deployments/domain/ports/deployment-queue.port.ts`) attempts. After the last attempt, the task goes to the dead-letter state **and** the deployment becomes `failed`, so no deployment stays `pending` for ever. At start-up, each unfinished task returns to `queued`, so work that a crash interrupted runs again.
 
 The caller sees only the fast part: the request validates its input, writes a `pending` record, queues a run task, and returns the record **with its id** immediately. The consumer runs the tasks in sequence **for each compose project**, but different projects run at the same time. Thus a slow build does not delay the other stacks, and two runs of one stack cannot mix.
 
@@ -59,6 +59,15 @@ docker output ──append──► Redis stream  logs:<deploymentId>
 ```
 
 - **Keys**: one stream key for each deployment (`logs:<deploymentId>`) and one companion lease key (`logs:<deploymentId>:producer`). Each entry is a flat field list: a line entry carries `type=line` and `content`, and the terminal entry carries `type=end` and `status`. A transformer makes and reads these fields, so no other file knows the shape.
+- **Tuning constants**: `features/logs/infrastructure/redis/redis-log-store.constants.ts` holds the values that the points below use:
+
+  | Constant                             | Value  | Purpose                                                                           |
+  |---------------------------------------|--------|-------------------------------------------------------------------------------------|
+  | `LOG_STREAM_BLOCK_MS`                 | `2000` | Longest time one blocking read waits for a new entry                                |
+  | `LOG_STREAM_READ_COUNT`               | `200`  | Entries one blocking read may return at once                                        |
+  | `LOG_STREAM_IDLE_ROUNDS_BEFORE_CLOSE` | `2`    | Idle rounds with no producer lease a reader tolerates before it closes the stream    |
+  | `LOG_STREAM_GRACE_SECONDS`            | `60`   | How long the archived stream stays in Redis after `complete()`                      |
+  | `LOG_STREAM_PRODUCER_LEASE_SECONDS`   | `300`  | How long the producer's lease survives without a refresh                            |
 - **Retention**: each append writes the entry with an approximate `MAXLEN` trim, from the necessary `LOGS_MAX_LINES` variable. Thus Redis holds a bounded quantity of lines for each deployment. A value of zero disables the trim.
 - **Read semantics**: one subscription uses one cursor. It starts at `0`, so the history arrives before the live tail on the same cursor, and there is no hand-off to bridge and nothing to remove twice. The reads block on a **dedicated blocking connection**, so a long read does not stall the other commands.
 - **End of the log**: the terminal entry closes the subscription. Because a run can die without one, the producer also holds a short-lived lease that each append refreshes. If a blocking read finds no new entry and the lease is gone for two rounds, the reader closes the subscription. Thus no client waits for ever.
@@ -68,12 +77,14 @@ docker output ──append──► Redis stream  logs:<deploymentId>
 
 ## Authentication
 
-A global guard protects all the routes by default. A metadata flag makes a route public — the login and the refresh operations, because the caller has no access token at that moment. The login endpoint is rate-limited.
+A global guard protects all the routes by default. A metadata flag makes a route public — the `@Public()` decorator. Five routes carry it today: `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh` and `POST /api/v1/auth/logout` (`authentication.controller.ts`), because the caller has no access token at login or has already given it up at refresh and logout; `GET /api/v1/server/readiness` (`server.controller.ts`), the dependency-aware readiness probe described in [Docker-facing capabilities](#docker-facing-capabilities); and `GET /api/v1/` (`app.controller.ts`), a trivial liveness check that answers `{ "status": "ok" }` with no dependency of its own. The login endpoint is rate-limited.
 
 - **Tokens**: at login, the application validates the email and the password (the passwords have an argon2 hash). On each protected request, it validates the Bearer token, finds the user again, and **rejects the accounts that are not active**. Thus a disabled account loses access immediately, and not at the expiry of its token. The two token types use different secrets and lifetimes.
 - **Rotation**: the refresh tokens stay in the database only as a hash, so a person who reads the table cannot make a token. A refresh operation verifies the signature, the expiry, the row and the hash, verifies again that the user is active, and then revokes the old row and gives a new pair. A row is revoked and never deleted, so a token that is sent two times is always rejected.
 
-> RBAC is not implemented yet. Each user has a role (`admin` or `user`) in the database, but no authorization guard uses it.
+### Roles
+
+Each user has a role (`admin` or `user`) in the database. Role-based access control is an **opt-in, per-route guard**, not a global rule: `RolesGuard` (`features/authentication/ui/guards/roles.guard.ts`) reads the roles that the `@Roles(...)` decorator declares on a handler or a controller, and lets an authenticated request through when its user role is not among them and no role is declared at all. A controller that wants the restriction adds `@UseGuards(RolesGuard)` and marks the routes it wants to close with `@Roles(UserRole.Admin)`. Today only the `providers` controller uses it: the read routes (`GET`, list repositories, list branches) stay open to each authenticated user, while `create`, `update`, `delete` and the credentials test route are admin-only.
 
 ## Docker-facing capabilities
 
@@ -95,6 +106,16 @@ GitPaaS uses the same daemon as the control plane and as the third-party stacks.
 | `io.gitpaas.project`         | service slug       | Which service's stack it belongs to        |
 | `com.docker.compose.project` | service slug       | Compose grouping (also set by the library) |
 | `com.docker.compose.service` | compose service    | Compose service (also set by the library)  |
+
+## Providers and encrypted credentials
+
+A `provider` row gives a service the credentials it needs to reach its Git host — today only a GitHub App. The domain port `ProviderClient` (`features/providers/domain/ports/provider-client.port.ts`) gives the business operations in provider-agnostic terms — list the reachable repositories, list the branches of a repository, resolve a ref to its head commit, download a source archive, and verify a set of credentials — and the GitHub adapter implements it over `@octokit/rest`, authenticated per call with `@octokit/auth-app`.
+
+- **Encryption at rest**: the private key of a provider never reaches the database in clear text. The domain port `SecretCipher` (`core/domain/ports/secret-cipher.port.ts`) gives `encryptSecret`/`decryptSecret`, and `SecretCipherAdapter` (`core/infrastructure/crypto/secret-cipher.adapter.ts`) implements it with AES-256-GCM, under the 32-byte key of the required `PROVIDERS_ENCRYPTION_KEY` environment variable, read fresh on every call. The stored payload carries the initialisation vector, the authentication tag and the cipher text, each in hexadecimal and separated by a colon, so a fresh vector on every call keeps the same secret from sealing to the same payload twice.
+- **No key leaves the server**: the read model of a provider (`Provider`) never carries the private key. It carries only its `keyFingerprint`, the first eight characters of the SHA-256 hash of the key in clear text, so an operator can tell two keys apart without exposing either of them.
+- **Credentials test**: `POST /api/v1/providers/:id/test` decrypts the stored key, calls `verifyCredentials` against the real provider, and answers `{ "success": boolean }` with no change to a stored record.
+- **Repository and branch discovery**: `GET /api/v1/providers/:providerId/repositories` and `GET /api/v1/providers/:providerId/repositories/:repositoryId/branches` decrypt the stored key on each call and list the repositories or the branches that the installation of the provider can reach. A service picks its source among these lists at creation time.
+- **Roles**: see [Roles](#roles). `create`, `update`, `delete` and the credentials test are admin-only; the four read routes (list, find by id, list repositories, list branches) stay open to each authenticated user.
 
 ## Error handling
 
@@ -128,7 +149,21 @@ Each feature declares its error classes in `domain/errors/`, in a file with the 
 
 ### The error envelope
 
-`core/ui/filters/all-exceptions.filter.ts` is a global filter (`APP_FILTER`) and gives the same JSON shape to each failed request.
+`core/ui/filters/all-exceptions.filter.ts` is a global filter (`APP_FILTER`) and gives the same JSON shape to each failed request:
+
+```jsonc
+{
+  "statusCode": 404,
+  "code": "PROJECT_NOT_FOUND",
+  "message": "Project 3ee8… not found",
+  "error": "Not Found",
+  "timestamp": "2026-02-11T09:14:22.481Z",
+  "path": "/api/v1/namespaces/…/projects/3ee8…",
+  "requestId": "9d1f…"
+}
+```
+
+`code` is the machine-readable identifier the client relies on. When the `HttpException` carries a mapped `DomainError` in `{ cause }`, `code` is that domain error's own code (for example `PROJECT_NOT_FOUND`); otherwise it falls back to one of two generic codes: `CLIENT_ERROR` for a 4xx with no domain error, and `SERVER_ERROR` for a 5xx or for an exception the filter did not expect at all. An optional `details` key carries a structured payload, for example the per-dependency breakdown of the readiness probe.
 
 An unexpected error never gives internal data: the message becomes `Internal server error`, and the stack stays in the telemetry event.
 
@@ -178,13 +213,13 @@ TelemetryMiddleware ─ seeds the event, opens the scope (runWithTelemetry)
 
 ### The event schema
 
-The keys are dotted and `snake_case`, and a field is present only when the work touches it: service identity (`service.name`, `service.version`, `service.env`, `host.name`, `process.pid`), correlation (`trace.id`, `request.id`, `task.id`, `parent.request_id`), `http.*` (the low-cardinality `route`, the `path`, the `query_keys` **names** only, `status_code`, `duration_ms`, `sse`, `client_aborted`), the actor (`user.*`, `auth.*`), the business identifiers (`project.*`, `service.id`, `deployment.*`, `docker.project`), `deps.*`, `error.*` and `sampling.*`.
+The keys are dotted and `snake_case`, and a field is present only when the work touches it: service identity (`service.name`, `service.version`, `service.env`, `host.name`, `process.pid`), correlation (`trace.id`, `request.id`, `task.id`, `parent.request_id`), `http.*` (the low-cardinality `route`, the `path`, the `query_keys` **names** only, `status_code`, `duration_ms`, `sse`, `client_aborted`), the actor (`user.*`, `auth.*`), the business identifiers (`project.*`, `service.id`, `deployment.*`, `docker.project`), `deps.*`, `error.*` and `sampling.*`. `TelemetryEvent` in `core/domain/models/telemetry.models.ts` is the authoritative schema: it declares every field the backend may write, and a field with no place in it must be added there first, per [the rule for contributors](#the-rule-for-contributors).
 
 ```json
 { "timestamp": "2026-02-11T09:14:22.481Z", "event.name": "http.request",
   "service.name": "gitpaas-backend", "service.version": "1.4.0", "service.env": "production",
   "trace.id": "9d1f…", "request.id": "9d1f…",
-  "http.method": "POST", "http.route": "/api/v1/deployments", "http.status_code": 202,
+  "http.method": "POST", "http.route": "/api/v1/deployments", "http.status_code": 201,
   "http.duration_ms": 143.7, "auth.outcome": "authenticated", "user.id": "5c0e…",
   "project.id": "a71c…", "deployment.id": "3ee8…", "deployment.branch": "main",
   "deps.postgres.calls": 6, "deps.postgres.duration_ms": 21.4,

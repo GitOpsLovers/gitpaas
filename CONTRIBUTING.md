@@ -5,7 +5,6 @@ Thanks for contributing to **GitPaaS**, a self-hostable PaaS platform for deploy
 For architecture and design context, start with the documentation and come back here for the day-to-day workflow:
 
 - [Backend architecture](./docs/backend-architecture.md)
-- [Backend business logic](./docs/backend-business.md)
 - [Frontend architecture](./docs/frontend-architecture.md)
 - [Infrastructure architecture](./docs/infrastructure-architecture.md)
 
