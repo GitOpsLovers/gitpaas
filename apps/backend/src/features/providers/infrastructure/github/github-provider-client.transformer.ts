@@ -1,3 +1,4 @@
+import { ProviderAppPermissions } from '../../domain/constants/provider-permissions.constants';
 import {
     ProviderAuthenticationError,
     ProviderRateLimitedError,
@@ -151,4 +152,20 @@ export function toGitBranch(branch: { name: string }): GitBranch {
  */
 export function toGitCommit(commit: { sha: string; commit: { message: string } }): GitCommit {
     return { sha: commit.sha, message: commit.commit.message };
+}
+
+/**
+ * Maps the permissions of a GitHub App payload into the domain model, dropping the
+ * permissions GitHub reports with no level.
+ *
+ * @param permissions Permissions of the GitHub App payload
+ *
+ * @returns Domain permissions of the application
+ */
+export function toProviderAppPermissions(permissions: Record<string, string | undefined> | undefined): ProviderAppPermissions {
+    return Object.fromEntries(
+        Object.entries(permissions ?? {}).filter(
+            (entry): entry is [string, string] => entry[1] !== undefined,
+        ),
+    );
 }

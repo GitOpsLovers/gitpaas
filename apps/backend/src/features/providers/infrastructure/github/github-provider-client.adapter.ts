@@ -9,10 +9,16 @@ import {
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
-import { ProviderCredentials } from '../../domain/models/provider.models';
+import { ProviderCredentials, ProviderCredentialsVerification } from '../../domain/models/provider.models';
 import { ProviderClient } from '../../domain/ports/provider-client.port';
 
-import { toGitBranch, toGitCommit, toGitRepository, toProviderClientError } from './github-provider-client.transformer';
+import {
+    toGitBranch,
+    toGitCommit,
+    toGitRepository,
+    toProviderAppPermissions,
+    toProviderClientError,
+} from './github-provider-client.transformer';
 
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -102,16 +108,16 @@ export class GithubProviderClientAdapter implements ProviderClient {
         });
     }
 
-    public async verifyCredentials(credentials: ProviderCredentials): Promise<boolean> {
+    public async verifyCredentials(credentials: ProviderCredentials): Promise<ProviderCredentialsVerification> {
         try {
             return await this.run(async () => {
-                await this.getClient(credentials).request('GET /app');
+                const { data: app } = await this.getClient(credentials).request('GET /app');
 
-                return true;
+                return { accepted: true, permissions: toProviderAppPermissions(app?.permissions) };
             });
         } catch (error) {
             if (error instanceof ProviderAuthenticationError || error instanceof ProviderNotConfiguredError) {
-                return false;
+                return { accepted: false, permissions: {} };
             }
 
             throw error;

@@ -308,7 +308,7 @@ describe('ProvidersController', () => {
 
     describe('testConnection', () => {
         it('delegates to the service with the received id', async () => {
-            mockProvidersService.testConnection.mockResolvedValue({ success: true });
+            mockProvidersService.testConnection.mockResolvedValue({ outcome: 'ok', missingPermissions: [] });
 
             await sut.testConnection(providerId);
 
@@ -316,20 +316,42 @@ describe('ProvidersController', () => {
             expect(mockProvidersService.testConnection).toHaveBeenCalledWith(providerId);
         });
 
-        it('reports a successful test', async () => {
-            mockProvidersService.testConnection.mockResolvedValue({ success: true });
+        it('reports the outcome ok with an empty list of missing permissions', async () => {
+            mockProvidersService.testConnection.mockResolvedValue({ outcome: 'ok', missingPermissions: [] });
 
             const result = await sut.testConnection(providerId);
 
-            expect(result).toEqual({ success: true });
+            expect(result).toEqual({ outcome: 'ok', missingPermissions: [] });
         });
 
-        it('reports a failed test when the provider refuses the credentials', async () => {
-            mockProvidersService.testConnection.mockResolvedValue({ success: false });
+        it('reports the outcome unauthorized when the provider refuses the credentials', async () => {
+            mockProvidersService.testConnection.mockResolvedValue({
+                outcome: 'unauthorized',
+                missingPermissions: [],
+            });
 
             const result = await sut.testConnection(providerId);
 
-            expect(result).toEqual({ success: false });
+            expect(result).toEqual({ outcome: 'unauthorized', missingPermissions: [] });
+        });
+
+        it('reports the outcome incomplete and names each missing permission', async () => {
+            mockProvidersService.testConnection.mockResolvedValue({
+                outcome: 'incomplete',
+                missingPermissions: ['contents'],
+            });
+
+            const result = await sut.testConnection(providerId);
+
+            expect(result).toEqual({ outcome: 'incomplete', missingPermissions: ['contents'] });
+        });
+
+        it('carries no single mark of success', async () => {
+            mockProvidersService.testConnection.mockResolvedValue({ outcome: 'ok', missingPermissions: [] });
+
+            const result = await sut.testConnection(providerId);
+
+            expect(result).not.toHaveProperty('success');
         });
 
         it('translates an unknown provider into a NotFoundException', async () => {
@@ -465,11 +487,11 @@ describe('ProvidersController', () => {
         });
 
         it('gives no key in the answer of a test of the connection', async () => {
-            mockProvidersService.testConnection.mockResolvedValue({ success: true });
+            mockProvidersService.testConnection.mockResolvedValue({ outcome: 'ok', missingPermissions: [] });
 
             const result = await sut.testConnection(providerId);
 
-            expect(Object.keys(result)).toEqual(['success']);
+            expect(Object.keys(result).sort()).toEqual(['missingPermissions', 'outcome']);
         });
     });
 
@@ -511,7 +533,7 @@ describe('ProvidersController', () => {
         });
 
         it('adds the provider id of a test of the connection', async () => {
-            mockProvidersService.testConnection.mockResolvedValue({ success: true });
+            mockProvidersService.testConnection.mockResolvedValue({ outcome: 'ok', missingPermissions: [] });
 
             const event = await runWithTelemetry({}, async () => {
                 await sut.testConnection(providerId);
