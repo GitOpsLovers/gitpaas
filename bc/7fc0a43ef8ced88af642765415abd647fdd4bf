@@ -1,0 +1,47 @@
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.adapter.spec.ts
+  s_7392530ac69488::t_d7708ce29ea2d9 148-151,153-156,160-169,174-177,180,183-186,190-198
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  s_7392530ac69488::t_381df68ca075da 311,319-320,324,327-350,354,490,494,536
+openspec/changes/provider-app-registration/tasks.md
+  s_7392530ac69488::t_68df4c42249ab5 9-13
+apps/backend/src/features/providers/application/test-provider-connection.use-case.ts
+  s_e4049210be5611::t_8af7b0466a50d4 1-30
+apps/backend/src/features/providers/domain/ports/provider-client.port.ts
+  s_e4049210be5611::t_26a364ba6ec12a 4,56,58
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.transformer.ts
+  s_e4049210be5611::t_ab166aa33fb78f 1,156-171
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.transformer.spec.ts
+  s_7392530ac69488::t_6d3164c90be522 9-13,77-100
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.adapter.ts
+  s_e4049210be5611::t_d8b5cf34726274 12,15-21,111,114,116,120
+apps/backend/src/features/providers/domain/models/provider.models.ts
+  s_e4049210be5611::t_9c43e6875ff0e4 1-2,27-28,30-39
+apps/backend/src/features/providers/application/__tests__/test-provider-connection.use-case.spec.ts
+  s_7392530ac69488::t_799c81dc82d998 1-95
+apps/backend/src/features/providers/ui/services/providers.service.ts
+  s_e4049210be5611::t_72b833c2f829b4 10,108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bc7fc0a43ef8ced88af642765415abd647fdd4bf",
+  "prompts": {},
+  "sessions": {
+    "s_7392530ac69488": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ade231b9956091c00",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e4049210be5611": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2ec2abdb34be1067",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
