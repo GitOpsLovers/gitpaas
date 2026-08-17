@@ -1,0 +1,33 @@
+apps/backend/src/features/providers/domain/constants/provider-permissions.constants.ts
+  s_1533587b0db5f9::t_a6d887de7244dd 1-22
+apps/backend/src/features/providers/application/__tests__/find-missing-provider-permissions.spec.ts
+  s_7cba976fd339fa::t_9b2dddb2c0bf7d 1-49
+apps/backend/src/features/providers/application/find-missing-provider-permissions.ts
+  s_7cba976fd339fa::t_338eb044011f65 1-33
+openspec/changes/provider-app-registration/tasks.md
+  s_1533587b0db5f9::t_ec0a93486ae43e 3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "430b02609f712e3e8683267bbc36208bf930750b",
+  "prompts": {},
+  "sessions": {
+    "s_1533587b0db5f9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64659837-feca-4759-affc-817073266403",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_7cba976fd339fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8b0e49050f024d60",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
