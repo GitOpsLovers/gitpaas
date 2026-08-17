@@ -1,8 +1,8 @@
 ## 1. The permissions that a provider needs
 
-- [ ] 1.1 Create a constant of the domain in `apps/backend/src/features/providers/domain/` that names the needed permissions: `contents: read` and `metadata: read`.
-- [ ] 1.2 Create the function that compares the permissions of an application against that constant, and that answers the missing ones. Order the levels `read`, `write` and `admin`, and count a higher level as enough.
-- [ ] 1.3 Write the unit tests of that comparison: the exact level, a higher level, an absent permission and an unknown level.
+- [x] 1.1 Create a constant of the domain in `apps/backend/src/features/providers/domain/` that names the needed permissions: `contents: read` and `metadata: read`.
+- [x] 1.2 Create the function that compares the permissions of an application against that constant, and that answers the missing ones. Order the levels `read`, `write` and `admin`, and count a higher level as enough.
+- [x] 1.3 Write the unit tests of that comparison: the exact level, a higher level, an absent permission and an unknown level.
 
 ## 2. The answer of the test of the connection
 

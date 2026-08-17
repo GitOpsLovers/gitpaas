@@ -23,6 +23,14 @@ An infrastructure repository must not return a raw ORM entity or a vendor shape.
 
 A write endpoint validates its input with DTO classes. The global `ValidationPipe` applies this validation. The DTOs stay in `domain/dtos/`. They are the only domain files that can import a framework and can use the `!` assertion, and they connect to the requests with `@Body()`. The pipe rejects unknown properties. Thus the DTO is the authoritative input contract. Nested payloads are validated with `@ValidateNested({ each: true })` and `@Type(() => Dto)`. Optional fields have the `@IsOptional()` decorator.
 
+## Single-responsibility principle
+
+In general, all files, classes, functions, and entities in the application must adhere to the Single-Responsibility Principle.
+
+This means that, normally, an entity will be placed in its own file and should contain nothing other than that entity. If that entity needs to perform complex operations or rely on additional functions, those functions should be extracted into new entities if necessary.
+
+Only in cases where the supporting functions are very simple and localized in nature will it be permitted to include more than one such function in a file.
+
 ## HTTP and REST
 
 The global route prefix is `api/v1`. The listen port comes from `getOrThrow('PORT')` and has no default value in the code. CORS uses credentials and permits only the allowlist that is read from the necessary `CORS_ORIGIN` variable. A controller declares only the path of its resource (`@Controller('services')`). A resource that never exists outside its parent nests its path instead: the `projects` controller declares `@Controller('namespaces/:namespaceId/projects')`, because a project belongs to exactly one namespace.
