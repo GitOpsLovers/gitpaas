@@ -1,0 +1,20 @@
+name: PR Labeler
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  label:
+    name: Apply kind label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label pull request from its branch type
+        uses: actions/labeler@v5
+        with:
+          sync-labels: true

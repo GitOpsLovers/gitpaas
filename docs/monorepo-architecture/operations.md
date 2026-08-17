@@ -10,7 +10,12 @@
 
 Today, no application has an implementation of `check-types`.
 
-| Workflow        | Trigger              | Does                                                                       |
-|-----------------|----------------------|----------------------------------------------------------------------------|
-| `pr-verify.yml` | PR to `main`         | `pnpm install --frozen-lockfile`, then `pnpm run lint` and `pnpm run test` |
-| `release.yml`   | `workflow_dispatch`  | semantic-release, then multi-arch image publish (see infrastructure doc)   |
+## Continuous Integration
+
+The repository has a series of configured CI/CD pipelines that perform various operations on it:
+
+| Workflow         | Purpose                                 | Trigger               | 
+-------------------|-----------------------------------------|-----------------------|
+| `pr-verify.yml`  | Lint and test every pull request        | On open pull requests |
+| `pr-labeler.yml` | Apply a `kind/` label to a pull request | On open pull requests |
+| `release.yml`    | Publish a new release                   | Manual trigger        |

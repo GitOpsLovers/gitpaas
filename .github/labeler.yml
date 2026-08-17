@@ -1,0 +1,15 @@
+kind/feature:
+  - head-branch:
+      - '^feat/'
+
+kind/fix:
+  - head-branch:
+      - '^fix/'
+
+kind/docs:
+  - head-branch:
+      - '^docs/'
+
+kind/chore:
+  - head-branch:
+      - '^chore/'
