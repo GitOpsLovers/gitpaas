@@ -1,0 +1,27 @@
+CLAUDE.md
+  s_6823f22cdfdcb1::t_0b57c35a354820 117
+docs/backend-architecture/conventions.md
+  s_6823f22cdfdcb1::t_5840ce8fd9a1fa 9,28,38,49-51,61-69,77-78,89-96
+docs/backend-architecture/key-flows.md
+  s_6823f22cdfdcb1::t_2c199283e9632b 23,62-70,80,85-87,110-119,152-166,216,222
+docs/backend-architecture/stack.md
+  s_6823f22cdfdcb1::t_96df7268273b61 9
+docs/backend-architecture/structure.md
+  s_6823f22cdfdcb1::t_9802bf7c49a0cc 5,12-16,19,21,70-72,77-79,84,86-88,96-99,105,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e86706277349ede80a8566e6afe7b26329120514",
+  "prompts": {},
+  "sessions": {
+    "s_6823f22cdfdcb1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9bbea5262f3d26f4",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
