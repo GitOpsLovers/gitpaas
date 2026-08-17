@@ -1,7 +1,7 @@
 import { GitBranch } from '../models/git-branch.models';
 import { GitCommit } from '../models/git-commit.models';
 import { GitRepository } from '../models/git-repository.models';
-import { ProviderCredentials } from '../models/provider.models';
+import { ProviderCredentials, ProviderCredentialsVerification } from '../models/provider.models';
 
 /**
  * Provider client port
@@ -53,7 +53,7 @@ export interface ProviderClient {
      *
      * @param credentials Credentials of the provider
      *
-     * @returns Whether the provider accepts the credentials
+     * @returns Whether the provider accepts the credentials, and the permissions the application carries
      */
-    verifyCredentials: (credentials: ProviderCredentials) => Promise<boolean>;
+    verifyCredentials: (credentials: ProviderCredentials) => Promise<ProviderCredentialsVerification>;
 }

@@ -6,7 +6,11 @@ import {
     ProviderUnavailableError,
 } from '../../../domain/errors/provider-client.errors';
 import {
-    toGitBranch, toGitCommit, toGitRepository, toProviderClientError,
+    toGitBranch,
+    toGitCommit,
+    toGitRepository,
+    toProviderAppPermissions,
+    toProviderClientError,
 } from '../github-provider-client.transformer';
 
 /**
@@ -67,6 +71,30 @@ describe('github-provider-client.transformer', () => {
                 sha: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
                 message: 'Add logs feature',
             });
+        });
+    });
+
+    describe('toProviderAppPermissions', () => {
+        it('maps the permissions of a GitHub App payload into the domain model', () => {
+            expect(toProviderAppPermissions({ contents: 'read', metadata: 'read' }))
+                .toEqual({ contents: 'read', metadata: 'read' });
+        });
+
+        it('keeps a level above the needed one, so the caller judges it', () => {
+            expect(toProviderAppPermissions({ contents: 'write' })).toEqual({ contents: 'write' });
+        });
+
+        it('drops each permission GitHub reports with no level', () => {
+            expect(toProviderAppPermissions({ contents: undefined, metadata: 'read' }))
+                .toEqual({ metadata: 'read' });
+        });
+
+        it('gives an empty set of permissions when the payload carries none', () => {
+            expect(toProviderAppPermissions({})).toEqual({});
+        });
+
+        it('gives an empty set of permissions when the payload names no permissions at all', () => {
+            expect(toProviderAppPermissions(undefined)).toEqual({});
         });
     });
 

@@ -7,6 +7,7 @@ import { getAllProvidersUseCase } from '../../application/get-all-providers.use-
 import { getProviderCredentialsUseCase } from '../../application/get-provider-credentials.use-case';
 import { listBranchesUseCase } from '../../application/list-branches.use-case';
 import { listRepositoriesUseCase } from '../../application/list-repositories.use-case';
+import { testProviderConnectionUseCase } from '../../application/test-provider-connection.use-case';
 import { updateProviderUseCase } from '../../application/update-provider.use-case';
 import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
 import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
@@ -104,7 +105,7 @@ export class ProvidersService {
     public async testConnection(id: string): Promise<ProviderConnectionTest> {
         const credentials = await getProviderCredentialsUseCase(this.repository, id);
 
-        return { success: await this.providerClient.verifyCredentials(credentials) };
+        return testProviderConnectionUseCase(this.providerClient, credentials);
     }
 
     /**

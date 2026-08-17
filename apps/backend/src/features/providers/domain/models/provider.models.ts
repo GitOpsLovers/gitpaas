@@ -1,3 +1,5 @@
+import { ProviderAppPermissions } from '../constants/provider-permissions.constants';
+
 /**
  * Kind of provider account a provider holds.
  */
@@ -7,9 +9,6 @@ export enum ProviderType {
 
 /**
  * A provider is a named provider account a service reaches its repository through.
- *
- * The read model never carries the private key: it carries its fingerprint, the
- * first eight characters of the SHA-256 of the PEM.
  */
 export interface Provider {
     id: string;
@@ -24,17 +23,24 @@ export interface Provider {
 
 /**
  * The outcome of a test of the credentials of a provider.
- *
- * The test changes no record: it only reports whether the provider answers.
  */
+export type ProviderConnectionOutcome = 'ok' | 'unauthorized' | 'incomplete';
+
 export interface ProviderConnectionTest {
-    success: boolean;
+    outcome: ProviderConnectionOutcome;
+    missingPermissions: string[];
+}
+
+/**
+ * The raw facts a provider reports about the credentials of a provider.
+ */
+export interface ProviderCredentialsVerification {
+    accepted: boolean;
+    permissions: ProviderAppPermissions;
 }
 
 /**
  * The credentials of a provider, as the provider client consumes them.
- *
- * The private key is in clear text here, so this value never leaves the server.
  */
 export interface ProviderCredentials {
     providerId: string;

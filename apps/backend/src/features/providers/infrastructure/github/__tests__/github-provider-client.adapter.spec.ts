@@ -145,26 +145,55 @@ describe('GithubProviderClientAdapter', () => {
             jest.spyOn(sut as unknown as { getClient: () => unknown }, 'getClient').mockReturnValue(mockClient);
         });
 
-        it('asks GitHub for the application and answers true when it answers', async () => {
-            mockClient.request.mockResolvedValue({ data: { id: 123 } });
+        it('asks GitHub for the application and gives the permissions it carries', async () => {
+            mockClient.request.mockResolvedValue({
+                data: { id: 123, permissions: { contents: 'read', metadata: 'read' } },
+            });
 
-            await expect(sut.verifyCredentials(credentials)).resolves.toBe(true);
+            await expect(sut.verifyCredentials(credentials)).resolves.toEqual({
+                accepted: true,
+                permissions: { contents: 'read', metadata: 'read' },
+            });
             expect(mockClient.request).toHaveBeenCalledWith('GET /app');
         });
 
-        it('answers false when GitHub rejects the credentials', async () => {
+        it('gives no permission when GitHub names none for the application', async () => {
+            mockClient.request.mockResolvedValue({ data: { id: 123 } });
+
+            await expect(sut.verifyCredentials(credentials)).resolves.toEqual({
+                accepted: true,
+                permissions: {},
+            });
+        });
+
+        it('answers accepted false with no permission when GitHub rejects the credentials', async () => {
             mockClient.request.mockRejectedValue(
                 Object.assign(new Error('bad credentials'), { status: 401, response: { headers: {} } }),
             );
 
-            await expect(sut.verifyCredentials(credentials)).resolves.toBe(false);
+            await expect(sut.verifyCredentials(credentials)).resolves.toEqual({
+                accepted: false,
+                permissions: {},
+            });
         });
 
-        it('answers false when the record holds no usable credentials', async () => {
+        it('answers accepted false when the record holds no usable credentials', async () => {
             const bare = new GithubProviderClientAdapter();
 
-            await expect(bare.verifyCredentials(createCredentials({ privateKey: '' }))).resolves.toBe(false);
+            await expect(bare.verifyCredentials(createCredentials({ privateKey: '' }))).resolves.toEqual({
+                accepted: false,
+                permissions: {},
+            });
             expect(OctokitMock).not.toHaveBeenCalled();
+        });
+
+        it('reports no missing permission of its own', async () => {
+            mockClient.request.mockResolvedValue({ data: { id: 123, permissions: {} } });
+
+            const result = await sut.verifyCredentials(credentials);
+
+            expect(result).not.toHaveProperty('missingPermissions');
+            expect(result).not.toHaveProperty('outcome');
         });
 
         it('lets a failure that is no authentication failure escape', async () => {

@@ -24,9 +24,7 @@
 
 ## 🌟 What it is
 
-Point GitPaaS at a Git repository and press **Deploy**. It resolves the branch to a commit, downloads the source, and brings the repository's Docker Compose stack up on your server — streaming the output to your browser as it goes.
-
-No managed cloud sits in the middle. GitPaaS and the apps it runs share one machine, which is yours.
+GitPaaS is a self-hosted platform that lets you easily manage and deploy all your applications on your own server. It is based on the GitOps philosophy and containerization technology.
 
 - 🔀 Deploy any repository your source provider can reach, at any branch
 - 📡 Live log streaming, archived afterwards so you can read it again

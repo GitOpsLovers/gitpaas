@@ -6,11 +6,11 @@
 
 ## 2. The answer of the test of the connection
 
-- [ ] 2.1 Change `ProviderConnectionTest` in `domain/models/provider.models.ts` to `{ outcome, missingPermissions }`, with the outcomes `ok`, `unauthorized` and `incomplete`.
-- [ ] 2.2 Change `verifyCredentials` in `domain/ports/provider-client.port.ts` so that it answers whether GitHub accepts the credentials together with the permissions of the application.
-- [ ] 2.3 Change `GithubProviderClientAdapter.verifyCredentials` so that it reads the `permissions` of the answer of `GET /app`, and gives them back.
-- [ ] 2.4 Change the use case of the test so that it compares the permissions with the function of 1.2, and that it builds the outcome.
-- [ ] 2.5 Update the existing tests of the adapter, of the use case and of the controller for the new shape.
+- [x] 2.1 Change `ProviderConnectionTest` in `domain/models/provider.models.ts` to `{ outcome, missingPermissions }`, with the outcomes `ok`, `unauthorized` and `incomplete`.
+- [x] 2.2 Change `verifyCredentials` in `domain/ports/provider-client.port.ts` so that it answers whether GitHub accepts the credentials together with the permissions of the application.
+- [x] 2.3 Change `GithubProviderClientAdapter.verifyCredentials` so that it reads the `permissions` of the answer of `GET /app`, and gives them back.
+- [x] 2.4 Change the use case of the test so that it compares the permissions with the function of 1.2, and that it builds the outcome.
+- [x] 2.5 Update the existing tests of the adapter, of the use case and of the controller for the new shape.
 
 ## 3. The record of the pending registration
 
