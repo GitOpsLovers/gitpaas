@@ -59,6 +59,12 @@ Before any delegation, the orchestrator decides whether the task needs an OpenSp
 
 **The override of `/opsx:apply`.** The command file tells the agent to implement the tasks itself. In this project the orchestrator does not implement. It reads the task list of the change, and it delegates each task to `implementer`, `refactorer` or `tester`. This local rule wins.
 
+### The change folder (every subagent must follow)
+
+When a prompt names `openspec/changes/<change-id>/`, read `proposal.md`, `design.md` and `tasks.md` before you start. These files carry the context, so the prompt stays short. If a file is absent, continue with the prompt alone, and say so in your report.
+
+After your checks pass, edit `tasks.md`. Change `- [ ]` into `- [x]` for your own completed tasks alone. A task that you completed in part keeps an empty box. Explain the remainder in your report.
+
 ### Routing
 
 Pick the subagent by the type of task requested:
@@ -91,6 +97,9 @@ Pick the subagent by the type of task requested:
 - Never run ESLint; this is the user's responsibility.
 - Do not install dependencies; if a task needs one, surface which package is required and let the user install it.
 - Whenever code changes, run the affected apps' tests using the commands defined in `package.json` — but never run E2E tests with Playwright.
+- A subagent never spawns another subagent.
+- A subagent never commits, never pushes and never opens a Pull Request, unless its prompt says to. Only `git-manager` runs these operations.
+- End every subagent run with a short summary. Name what you did, what you verified with the result, and the follow-ups, or "none". The final message is the only thing that returns to the caller, so write data and not chatter.
 
 ### Git & GitHub workflow
 
