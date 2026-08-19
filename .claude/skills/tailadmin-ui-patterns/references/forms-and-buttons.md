@@ -1,5 +1,11 @@
 # TailAdmin: Forms and Buttons
 
+> **Caution.** The markup below comes from an older generation of TailAdmin. Its
+> class names differ from the ones of this project. Copy the structure, and then
+> map each class onto a token of `apps/frontend/src/styles.css`. Read
+> `custom-configuration.md` for the map. A template under
+> `apps/frontend/src/app` gives a better example than this file.
+
 ## Forms
 
 ### Input Field
