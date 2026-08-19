@@ -174,11 +174,10 @@ per task duplicates the work.
       `tailadmin-ui-patterns`.
 - [x] Add the permission rule `Bash(rtk python3 *)` to `.claude/settings.json`,
       so that the snapshot script of `tailwind-4-docs` can run.
-- [ ] Initialize the snapshot of `tailwind-4-docs` with
+- [x] Initialize the snapshot of `tailwind-4-docs` with
       `scripts/sync_tailwind_docs.py --accept-docs-license`. The skill fails
       without it.
-      - Deferred: the user runs the script, because it clones a repository from
-        the internet.
+      - Done. See the section "The snapshot of the Tailwind documentation".
 - [x] Remove `nestjs-best-practices/AGENTS.md`, `README.md` and `scripts/`.
 - [x] Change line 130 of `nestjs-best-practices/SKILL.md`. It must point at
       `rules/<name>.md`, not at `AGENTS.md`.
@@ -258,11 +257,51 @@ different generation of TailAdmin than the one that the project uses.
   clone.
 - The five files of markup carry a caution at the top.
 
-**What stays open:**
+**The decision, and the repair:**
 
-- [ ] Replace the markup of the five files with the real markup of the project,
+- [x] Replace the markup of the five files with the real markup of the project,
       or delete the five files and trust the rule that sends the agent to
       `apps/frontend/src/app`. The caution is a guard, not a repair.
+
+**The five files are deleted.** `layout.md`, `tables.md`, `forms-and-buttons.md`,
+`cards-and-feedback.md` and `modal.md` held 22 KB of markup, and every class of
+that markup belongs to the older generation.
+
+The reason for the deletion, and not for a rewrite: a copy of the markup goes out
+of step with the frontend, and the frontend already holds the correct markup. A
+rewrite creates a second copy that needs its own maintenance. A deletion leaves
+one source.
+
+`SKILL.md` gains a table that says where to find each kind of component:
+
+| You build | Find an example among |
+|---|---|
+| A card or a stat box | the `*-card` components of each feature |
+| A list or a table | the `*-list` containers of each feature |
+| The page shell, the sidebar or the header | `apps/frontend/src/app/layout` |
+| A form, an input or a button | the containers that create or edit a record |
+
+Three reference files stay: `fetch-and-verify.md` gives the commands and the
+order of the sources, `custom-configuration.md` points at the `@theme` block, and
+`anti-patterns.md` gives the checklist. None of the three holds markup.
+
+### The snapshot of the Tailwind documentation
+
+The script ran, and the snapshot exists. It comes from the commit
+`bd868a3` of `tailwindcss.com`, dated 11 August 2026.
+
+The snapshot holds 5.0 MB, so `.gitignore` names it. The repository stays small,
+and each developer runs the script one time:
+
+```bash
+rtk python3 .claude/skills/tailwind-4-docs/scripts/sync_tailwind_docs.py --accept-docs-license
+```
+
+Three paths are ignored, because the script generates all three:
+`references/docs/`, `references/docs-index.tsx` and `references/docs-source.txt`.
+The last one was tracked before, and it is untracked now. It records the date and
+the commit of one machine, so a tracked copy tells a fresh clone that a snapshot
+exists when it does not.
 
 **A note on the origin of the skills.** The file `skills-lock.json` named the
 upstream repository of each skill, and it held a hash of each one. The user
@@ -433,11 +472,19 @@ plan changed two lines of frontmatter. Two subagent calls for that work would
 have cost two cold starts, and each one loads more text than the edit itself
 holds. The orchestrator did the edit directly.
 
-- [ ] Decide whether `CLAUDE.md` states a floor for the delegation. A proposal:
+- [x] Decide whether `CLAUDE.md` states a floor for the delegation. A proposal:
       the orchestrator may edit directly when the change is under about 10 lines,
       when it holds no judgment about the architecture, and when the orchestrator
       already read the file in the conversation. Everything else goes to a
       subagent.
+
+**The proposal is adopted.** `CLAUDE.md` states the floor in the section
+"Orchestration rules", after the rule "Direct handling is the exception". The
+three conditions apply together, not one at a time.
+
+The rule also gives an example on each side. A change of a `model` line, of a
+configuration value, or of a check box in a plan meets the three conditions. A
+change of prose that states a rule, or of any product code, does not.
 
 This item stays open, because Step 6 owns two rules, and this is a third one.
 
@@ -549,10 +596,34 @@ Every step is complete. The work ran in this order: 1, 2, 3, 4, 5, 6, 7, 8.
 
 ### What stays open
 
-- [ ] Replace the markup of the five files of `tailadmin-ui-patterns`, or delete
-      them. See the section "The generation problem".
-- [ ] Initialize the snapshot of `tailwind-4-docs`.
-- [ ] Decide whether `CLAUDE.md` states a floor for the delegation. See Step 6.
+Nothing. The three items that stayed open after Step 8 are closed:
+
+| Item | The decision |
+|---|---|
+| The markup of `tailadmin-ui-patterns` | The five files are deleted. The frontend is the one source. |
+| The snapshot of `tailwind-4-docs` | It exists, and `.gitignore` names its 5.0 MB. |
+| The floor of the delegation | Adopted in `CLAUDE.md`, with three conditions that apply together. |
+
+### The state of the skills at the end
+
+| Skill | `SKILL.md` | References |
+|---|---|---|
+| `angular-developer` | 9,700 B | 37 files |
+| `backend-unit-testing` | 2,426 B | 14 files |
+| `nestjs-best-practices` | 4,761 B | 42 rule files |
+| `tailadmin-ui-patterns` | 2,396 B | 3 files |
+| `tailwind-4-docs` | 4,760 B | 2 files, plus a local snapshot of 244 files |
+| `turborepo` | 4,997 B | 34 files |
+| `typescript-advanced-types` | 8,032 B | 1 file |
+| `vitest` | 3,713 B | 19 files |
+| `backend-feature` | 2,637 B | none |
+| `git-github-workflow` | 7,284 B | none |
+
+The ten `SKILL.md` files hold 50,706 bytes in total.
+
+Ten skills, from eighteen. Two of them, `typescript-advanced-types` and
+`git-github-workflow`, hold more than 7 KB in `SKILL.md`. A future step can split
+them the way Step 2 split the other three.
 
 ### How to measure the next change
 
