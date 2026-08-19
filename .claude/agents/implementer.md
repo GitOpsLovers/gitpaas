@@ -17,17 +17,18 @@ You are a focused implementation subagent for the **GitPaaS** project. You are i
 
 ## Before you write
 
-1. **Read first, mirror second.** Find the nearest existing example of what you're building (a sibling feature, controller, use case, container) and copy its structure. Consult `CLAUDE.md` and `docs/backend-architecture.md` / `docs/frontend-architecture.md` for the intended patterns.
+1. **Read first, mirror second.** Find the nearest existing example of what you're building (a sibling feature, controller, use case, container) and copy its structure. Consult `docs/backend-architecture.md` and `docs/frontend-architecture.md` for the intended patterns. Read `CLAUDE.md` for the project-wide constraints.
 2. **Trace call sites.** Grep for everything a new/changed symbol, DTO, model, or endpoint touches, and update all of them. A change that leaves callers broken is unfinished.
 
 ## Architecture you must follow
 
-- **Backend layering:** `domain/` (models, ports/interfaces, repositories) → `infrastructure/` (TypeORM entities & repositories, external clients) → `ui/` (controllers, services). Business steps are thin functions under `application/` (use cases). Cross-cutting code lives in `core/`.
-  - Depend inward only: `domain/` must not import `infrastructure/` or `ui/`; `core/` must never import a feature. Access data through the repository **port** interface, injected via DI (constructors + `@Inject`), not the concrete class where a port exists.
-  - Controllers live under `api/v1` (global prefix), validate input with `class-validator` DTOs, and use `ParseUUIDPipe` etc. as the existing controllers do.
-- **Frontend layering:** `domain/` (models) → `infrastructure/api` (API repositories) → `ui/` (smart `containers/` vs presentational `components/`).
-  - In API repositories, use `httpResource` for reads and `HttpClient` for mutations (per the project's Angular guide). Use signals/inputs/outputs; components are standalone; component files are `.component.ts` / `.component.html`. When an import path is wrong, fix the import — do not rename files. Use `@lucide/angular` per-icon components (`<svg lucideX>`), not the dynamic module.
-- **Aliases:** backend `@core/*`, `@features/*`; frontend `@features/*`, `@layout/*`, `@pages/*`, `@shared/*`.
+Read the layers of the backend in `docs/backend-architecture/structure.md`. Read the layers of the frontend in `docs/frontend-architecture/structure.md`. Read the backend path aliases in `docs/backend-architecture/conventions.md`, at the section "Imports". Read the frontend path aliases in `docs/frontend-architecture/conventions.md`, at the section "Path aliases".
+
+- **Depend inward only.** `domain/` must not import `infrastructure/` or `ui/`. `core/` must never import a feature.
+- **Backend:** get the data through the repository **port** interface. Inject the port through the constructor.
+- **Frontend:** use `httpResource` for a read. Use `HttpClient` for a mutation.
+- **Frontend:** use the per-icon components of `@lucide/angular` (`<svg lucideX>`). Do not use the dynamic module.
+- **Frontend:** component files are `.component.ts` / `.component.html`. Correct a wrong import path. Do not rename a file.
 
 ## Tests
 

@@ -34,7 +34,8 @@ Before writing backend tests, consult the repo's testing skills (`backend-testin
 - **Backend (Jest):** the testable seams are `application/` use cases (pure functions with mocked repository **ports**), `ui/` services and controllers, and `infrastructure/` repositories and transformers. Specs live in a sibling `__tests__/` directory named `*.spec.ts`, mirroring the existing layout. Mock at the port/dependency boundary; don't hit a real DB or external API.
 - **Frontend (Vitest):** run headless with `ng test --watch=false`. Follow the existing spec style if specs exist for the area; component files are `.component.ts` / `.component.html`.
 - **Assert on mapped output, not identity, where the code returns copies** — e.g. infrastructure repositories/transformers return domain models, so assert `toEqual(domainModel)`, reserving `toBe(...)` for the deliberate write-path exceptions the code documents.
-- Follow the paths & aliases in `CLAUDE.md` (backend `@core/*`, `@features/*`; frontend `@features/*`, `@layout/*`, `@pages/*`, `@shared/*`).
+- Read the backend path aliases in `docs/backend-architecture/conventions.md`, at the section "Imports". Read the frontend path aliases in `docs/frontend-architecture/conventions.md`, at the section "Path aliases". Use these aliases in the specs.
+- Read the layers in `docs/backend-architecture/structure.md` and in `docs/frontend-architecture/structure.md`. Depend inward only. `domain/` must not import `infrastructure/` or `ui/`. `core/` must never import a feature.
 
 ## Operating rules
 

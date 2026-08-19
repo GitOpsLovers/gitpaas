@@ -325,9 +325,45 @@ lose their base if `CLAUDE.md` ever stops loading into a subagent.
 
 ### Step 4 — Point at the documents
 
-- [ ] Replace the inline layer descriptions of the agent files with the paths
+- [x] Replace the inline layer descriptions of the agent files with the paths
       `docs/backend-architecture/structure.md` and
       `docs/frontend-architecture/structure.md`.
+
+**A correction to this step.** Section 1.6 listed this step under the token cost.
+That was wrong. `docs/backend-architecture/structure.md` holds 9,758 bytes, and
+the inline text that it replaces held approximately 400 bytes. An agent that
+follows the pointer reads more, not less. The measured result proves it: the six
+agent files grew from 25,725 bytes to 25,951 bytes.
+
+**The real value of this step is the removal of a stale rule.** The agent files
+gave a wrong list of the path aliases, and an agent that copies a wrong list
+writes an import that does not resolve.
+
+| Source | Backend | Frontend |
+|---|---|---|
+| `apps/backend/tsconfig.json` | `@core/*`, `@features/*`, `@shared/*` | — |
+| `apps/frontend/tsconfig.json` | — | `@environments/*`, `@features/*`, `@layout/*`, `@pages/*`, `@shared/*` |
+| The five agent files, before | Each one omitted `@shared/*` | Each one omitted `@environments/*` |
+
+`refactorer.md` was the worst. It named `@features/*` alone for the backend, so
+it omitted two of three.
+
+**Three false pointers were corrected.** `refactorer.md`, `tester.md` and
+`implementer.md` each told the reader to follow the aliases or the patterns of
+`CLAUDE.md`. `CLAUDE.md` holds neither. It holds the routing and the
+project-wide constraints. One true mention of `CLAUDE.md` survives, in
+`implementer.md`, and it cites the constraints alone.
+
+**What each file keeps inline.** One invariant, because it is short and it
+decides every import: depend inward only; `domain/` must not import
+`infrastructure/` or `ui/`; `core/` must never import a feature. Each file also
+keeps the rules that no page of `docs/` states, for example the port-and-DI rule
+of `implementer` and the testable seams of `tester`.
+
+**A correction that the work found.** The backend page has no section
+"Path aliases". It has a section "Imports", and the aliases sit inside it. The
+pointers name the real heading. The frontend page does have a true
+"Path aliases" section, with the complete table of five rows.
 
 ### Step 5 — Set the model of each agent
 
