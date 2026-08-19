@@ -210,12 +210,59 @@ The ten `SKILL.md` files now hold 50,275 bytes in total. Three of them held
 
 **Two tasks that Step 2 found:**
 
-- [ ] Add the `rtk` prefix to the shell snippets inside
+- [x] Add the `rtk` prefix to the shell snippets inside
       `tailadmin-ui-patterns/references/fetch-and-verify.md`. They call `git`,
-      `grep` and `cat` directly, and that breaks the rule of the project.
-- [ ] Decide whether an agent may clone the TailAdmin repository at all. The
-      frontend already holds TailAdmin markup, so the local code can serve as
-      the source instead of a clone from the internet.
+      `grep` and `cat` directly, and that breaks the rule of the project. The
+      same defect existed in `anti-patterns.md` and in `custom-configuration.md`,
+      and both are corrected.
+- [x] Decide whether an agent may clone the TailAdmin repository at all.
+      **The decision: the local frontend is the first source. The clone is the
+      last one.**
+
+### The generation problem of `tailadmin-ui-patterns`
+
+Step 2 found a defect that is larger than a missing prefix. The skill describes a
+different generation of TailAdmin than the one that the project uses.
+
+**The evidence:**
+
+- The project runs Tailwind v4. `apps/frontend/src/styles.css` declares every
+  token in an `@theme` block, from line 8 to line 166.
+- The skill described the palette of a `tailwind.config.js` file, which belongs
+  to Tailwind v3.
+- The class `boxdark` is central to the older template. It appears 0 times in
+  `apps/frontend/src`.
+- The five files of markup hold 84 class names of the older generation, and 0
+  names of the current one:
+
+| File | Older names | Current names |
+|---|---|---|
+| `layout.md` | 20 | 0 |
+| `tables.md` | 23 | 0 |
+| `forms-and-buttons.md` | 21 | 0 |
+| `cards-and-feedback.md` | 16 | 0 |
+| `modal.md` | 4 | 0 |
+
+- 23 template files under `apps/frontend/src/app` already use the current names
+  (`text-theme-sm`, `bg-brand-*`, `dark:bg-white/…`).
+
+**What Step 2 corrected:**
+
+- `SKILL.md` — the entry rule now says: copy the local markup first. It states
+  that the upstream repository holds an older generation.
+- `fetch-and-verify.md` — rewritten with an order of four sources. The frontend
+  comes first, and the clone comes last.
+- `custom-configuration.md` — rewritten. It points at the `@theme` block of
+  `styles.css`, and it gives a map from each old name to its state today.
+- `anti-patterns.md` — the verification commands search the project, not a
+  clone.
+- The five files of markup carry a caution at the top.
+
+**What stays open:**
+
+- [ ] Replace the markup of the five files with the real markup of the project,
+      or delete the five files and trust the rule that sends the agent to
+      `apps/frontend/src/app`. The caution is a guard, not a repair.
 
 **A note on the origin of the skills.** The file `skills-lock.json` named the
 upstream repository of each skill, and it held a hash of each one. The user

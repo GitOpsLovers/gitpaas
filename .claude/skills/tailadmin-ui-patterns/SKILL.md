@@ -1,6 +1,6 @@
 ---
 name: "tailadmin-ui-patterns"
-description: "TailAdmin dashboard UI framework patterns and Tailwind CSS classes. ALWAYS use this skill when: (1) Building any dashboard or admin panel interface, (2) Creating data tables, cards, charts, or metrics displays, (3) Implementing forms, buttons, alerts, or modals, (4) Building navigation (sidebar, header, breadcrumbs), (5) Any UI work that should follow TailAdmin design. This skill REQUIRES fetching from the official GitHub repository to ensure accurate class usage - NEVER invent classes."
+description: "TailAdmin dashboard UI patterns and Tailwind classes for the Angular frontend. Use it for a dashboard, an admin panel, a stat card, a data table, a form, a button, an alert, a modal, a sidebar or a header. Verify every class against the frontend and against styles.css. Never invent a class."
 ---
 
 # TailAdmin UI Patterns Skill
@@ -15,16 +15,23 @@ Invoke this skill for:
 - Navigation elements: sidebar, header and breadcrumbs.
 - Badges, alerts and modals.
 
-## Critical Rule: FETCH BEFORE IMPLEMENTING
+## Critical Rule: COPY THE LOCAL MARKUP FIRST
 
-Fetch the official TailAdmin source before you write any UI code. Read the exact
-markup from that source, then copy it. Read `references/fetch-and-verify.md` for
-the commands.
+The frontend of this project already holds the TailAdmin markup, converted to
+Angular. Find the nearest example under `apps/frontend/src/app`, and copy its
+structure. Read `references/fetch-and-verify.md` for the commands and for the
+order of the sources.
+
+Do not clone the upstream repository as a first step. It runs an older
+generation of TailAdmin, and its class names differ from the ones of this
+project.
 
 ## The Rule That Matters Most
 
-Never invent a class. Verify each class against the TailAdmin source before you
-use it.
+Never invent a class. Verify each class two ways: search
+`apps/frontend/src/styles.css` for the token, and search
+`apps/frontend/src/app` for a template that already uses it. If neither search
+finds the class, do not use it.
 
 ## Reference Files
 

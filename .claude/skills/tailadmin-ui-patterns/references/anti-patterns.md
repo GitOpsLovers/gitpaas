@@ -16,9 +16,9 @@
 
 **Verify ANY class before using:**
 ```bash
-# If this returns nothing, the class DOES NOT EXIST
-grep -r 'class-name' /tmp/tailadmin/src/
-grep 'class-name' /tmp/tailadmin/tailwind.config.js
+# If both searches return nothing, the class DOES NOT EXIST
+rtk grep -n 'class-name' apps/frontend/src/styles.css
+rtk grep -rn 'class-name' apps/frontend/src/app
 ```
 
 ### ❌ Wrong Color Names
@@ -56,24 +56,23 @@ grep 'class-name' /tmp/tailadmin/tailwind.config.js
 ```bash
 # BEFORE using any class:
 
-# 1. Clone repo (first time only)
-git clone --depth 1 https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template.git /tmp/tailadmin
+# 1. Search the theme file for the token
+rtk grep -n 'the-class-you-want' apps/frontend/src/styles.css
 
-# 2. Search for the class
-grep -r 'the-class-you-want' /tmp/tailadmin/src/
+# 2. Search the templates for a component that already uses it
+rtk grep -rn 'the-class-you-want' apps/frontend/src/app
 
-# 3. If found, copy the EXACT pattern from the source
+# 3. If found, copy the EXACT pattern from that template
 # 4. If NOT found, find an alternative that DOES exist
 ```
 
 ## Verification Checklist Before Any UI Code
 
 ```
-[ ] Cloned/updated TailAdmin repository to /tmp/tailadmin
-[ ] Found example of component type in src/*.html or src/partials/
-[ ] Verified ALL custom classes exist in tailwind.config.js
-[ ] Copied EXACT HTML structure from source
+[ ] Found an example of the component type under apps/frontend/src/app
+[ ] Verified ALL custom classes in apps/frontend/src/styles.css
+[ ] Copied the EXACT markup structure from that example
 [ ] Did NOT invent any new classes
-[ ] Did NOT modify class names from source
+[ ] Did NOT copy a class name from the older upstream template
 [ ] Tested dark mode classes (dark:*) are correct
 ```
