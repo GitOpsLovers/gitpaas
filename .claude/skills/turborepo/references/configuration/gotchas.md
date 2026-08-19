@@ -75,7 +75,25 @@ If the second command (`changeset publish`) depends on build outputs, the turbo 
 - Use `globalDependencies` only for truly global files (root `.env`)
 - Use task-level `inputs` for package-specific .env files with `$TURBO_DEFAULT$` to preserve default behavior
 
+`globalDependencies` feeds the **global hash**. A task cannot opt out of one of these files. A negation glob in `inputs` does not remove it.
+
 With `futureFlags.globalConfiguration`, this is less of a concern because `global.inputs` acts as implicit task inputs — tasks can opt out of specific files with negation globs. But keeping the list focused is still good practice.
+
+```json
+// BEST - global.inputs with per-task exclusion
+{
+  "futureFlags": { "globalConfiguration": true },
+  "global": {
+    "inputs": [".env"]
+  },
+  "tasks": {
+    "build": { "outputs": ["dist/**"] },
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$", "!$TURBO_ROOT$/.env"]
+    }
+  }
+}
+```
 
 ## #4 Repetitive Task Configuration
 
@@ -243,6 +261,84 @@ Some tasks can run in parallel (don't need built output from dependencies) but m
 ```
 
 No `outputs` key is fine for stdout-only tasks. For file-producing tasks, missing `outputs` means Turbo has nothing to cache.
+
+Common outputs by framework:
+
+- Next.js: `[".next/**", "!.next/cache/**", "!.next/dev/**"]`
+- Vite/Rollup: `["dist/**"]`
+- tsc: `["dist/**"]` or custom `outDir`
+
+**TypeScript `--noEmit` can still produce cache files:**
+
+When `incremental: true` in tsconfig.json, `tsc --noEmit` writes `.tsbuildinfo` files even without emitting JS. Check the tsconfig before assuming no outputs:
+
+```json
+// If tsconfig has incremental: true, tsc --noEmit produces cache files
+{
+  "tasks": {
+    "typecheck": {
+      "outputs": ["node_modules/.cache/tsbuildinfo.json"] // or wherever tsBuildInfoFile points
+    }
+  }
+}
+```
+
+To determine correct outputs for TypeScript tasks:
+
+1. Check if `incremental` or `composite` is enabled in tsconfig
+2. Check `tsBuildInfoFile` for custom cache location (default: alongside `outDir` or in project root)
+3. If no incremental mode, `tsc --noEmit` produces no files
+
+## `prebuild` Scripts That Manually Build Dependencies
+
+Scripts like `prebuild` that manually build other packages bypass Turborepo's dependency graph.
+
+```json
+// WRONG - manually building dependencies
+{
+  "scripts": {
+    "prebuild": "cd ../../packages/types && bun run build && cd ../utils && bun run build",
+    "build": "next build"
+  }
+}
+```
+
+**However, the fix depends on whether workspace dependencies are declared:**
+
+1. **If dependencies ARE declared** (e.g., `"@repo/types": "workspace:*"` in package.json), remove the `prebuild` script. Turbo's `dependsOn: ["^build"]` handles this automatically.
+
+2. **If dependencies are NOT declared**, the `prebuild` exists because `^build` won't trigger without a dependency relationship. The fix is to:
+   - Add the dependency to package.json: `"@repo/types": "workspace:*"`
+   - Then remove the `prebuild` script
+
+```json
+// CORRECT - declare dependency, let turbo handle build order
+// package.json
+{
+  "dependencies": {
+    "@repo/types": "workspace:*",
+    "@repo/utils": "workspace:*"
+  },
+  "scripts": {
+    "build": "next build"
+  }
+}
+
+// turbo.json
+{
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"]
+    }
+  }
+}
+```
+
+**Key insight:** `^build` only runs build in packages listed as dependencies. No dependency declaration = no automatic build ordering.
+
+## NOT a Gotcha: Large `env` Arrays
+
+A large `env` array (even 50+ variables) is **not** a problem. It usually means the user was thorough about declaring their build's environment dependencies. Do not flag this as an issue.
 
 ## Forgetting ^ in dependsOn
 
