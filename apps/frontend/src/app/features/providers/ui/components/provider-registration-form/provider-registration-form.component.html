@@ -1,0 +1,74 @@
+<app-component-card
+    title="The GitHub App GitPaaS creates"
+    desc="GitPaaS writes the manifest, and GitHub then asks you to create the App and to install it."
+>
+    <form (submit)="onSubmit($event)" class="space-y-6">
+        <div>
+            <app-label for="registration-name">Name</app-label>
+            <app-input-field
+                id="registration-name"
+                name="registration-name"
+                placeholder="acme-github"
+                [value]="name()"
+                (valueChange)="onNameChange($event)"
+            />
+            <p class="mt-1.5 text-xs text-gray-500">
+                GitPaaS names the provider and the App with this value. GitHub may ask you for another name of the App.
+            </p>
+        </div>
+
+        <div>
+            <app-label>Owner of the App</app-label>
+            <div class="flex flex-wrap gap-4">
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400">
+                    <input
+                        type="radio"
+                        name="registration-owner-type"
+                        value="personal"
+                        class="h-4 w-4 accent-brand-500"
+                        [checked]="!organization()"
+                        (change)="onOwnerTypeChange('personal')"
+                    />
+                    My personal account
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400">
+                    <input
+                        type="radio"
+                        name="registration-owner-type"
+                        value="organization"
+                        class="h-4 w-4 accent-brand-500"
+                        [checked]="organization()"
+                        (change)="onOwnerTypeChange('organization')"
+                    />
+                    An organization
+                </label>
+            </div>
+        </div>
+
+        @if (organization()) {
+            <div>
+                <app-label for="registration-owner-login">Organization</app-label>
+                <app-input-field
+                    id="registration-owner-login"
+                    name="registration-owner-login"
+                    placeholder="acme"
+                    [value]="ownerLogin()"
+                    (valueChange)="onOwnerLoginChange($event)"
+                />
+                <p class="mt-1.5 text-xs text-gray-500">
+                    GitHub refuses the creation when you administer no App of this organization.
+                </p>
+            </div>
+        }
+
+        <div class="flex gap-3">
+            <app-button type="submit" [disabled]="submitting() || !valid()">Continue on GitHub</app-button>
+            <a
+                routerLink="/providers"
+                class="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3.5 text-sm transition bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300"
+            >
+                Cancel
+            </a>
+        </div>
+    </form>
+</app-component-card>

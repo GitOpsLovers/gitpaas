@@ -1,22 +1,25 @@
 import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { REQUIRED_PROVIDER_PERMISSIONS } from '../../../domain/constants/provider-permissions.constants';
+
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 
-/** Help text shown under the key when an empty value keeps the stored key. */
+/**
+ * Help text shown under the key when an empty value keeps the stored key.
+ * */
 const OPTIONAL_KEY_HINT = 'Leave this field empty to keep the stored private key.';
 
-/** Help text shown under the key when the key is obligatory. */
+/**
+ * Help text shown under the key when the key is obligatory.
+ * */
 const REQUIRED_KEY_HINT = 'Paste the contents of the PEM file the GitHub App gave you.';
 
 /**
  * Values a provider form submits.
- *
- * The private key is empty whenever the user gives none, and the container then
- * keeps the stored key.
  */
 export interface ProviderFormValue {
     name: string;
@@ -33,21 +36,16 @@ export interface ProviderFormValue {
 
 /**
  * Provider form component
- *
- * Holds the name, the identifier of the application, the identifier of the
- * installation and the PEM of the private key. The type of the provider is
- * `github_app`, the one kind of today, so the form does not ask for it.
  */
 export class ProviderFormComponent {
+    protected readonly requiredPermissions = REQUIRED_PROVIDER_PERMISSIONS;
+
     public readonly initialName = input('');
 
     public readonly initialAppId = input('');
 
     public readonly initialInstallationId = input('');
 
-    /**
-     * Whether an empty private key is allowed, as the change of a provider does.
-     */
     public readonly keyOptional = input(false);
 
     public readonly submitting = input(false);
@@ -62,9 +60,6 @@ export class ProviderFormComponent {
 
     protected readonly installationId = linkedSignal(() => this.initialInstallationId());
 
-    /**
-     * The PEM starts empty always, because the API never gives a stored key back.
-     */
     protected readonly privateKey = signal('');
 
     protected readonly keyHint = computed(() => (this.keyOptional() ? OPTIONAL_KEY_HINT : REQUIRED_KEY_HINT));

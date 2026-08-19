@@ -2,38 +2,53 @@
     title="Provider details"
     desc="Register the GitHub App the services of this installation deploy through."
 >
+    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="text-sm font-medium text-gray-800 dark:text-white/90">The App must carry these permissions</p>
+        <ul class="mt-2 space-y-1">
+            @for (permission of requiredPermissions; track permission.name) {
+                <li class="text-sm text-gray-500 dark:text-gray-400">
+                    <span class="font-mono text-gray-700 dark:text-gray-300">{{ permission.name }}:</span>
+                    {{ permission.level }}
+                </li>
+            }
+        </ul>
+        <p class="mt-2 text-xs text-gray-500">You grant them on GitHub. This form asks for no permission.</p>
+    </div>
+
     <form (submit)="onSubmit($event)" class="space-y-6">
-        <div>
-            <app-label for="provider-name">Name</app-label>
-            <app-input-field
-                id="provider-name"
-                name="provider-name"
-                placeholder="acme-github"
-                [value]="name()"
-                (valueChange)="onNameChange($event)"
-            />
-        </div>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div>
+                <app-label for="provider-name">Name</app-label>
+                <app-input-field
+                    id="provider-name"
+                    name="provider-name"
+                    placeholder="acme-github"
+                    [value]="name()"
+                    (valueChange)="onNameChange($event)"
+                />
+            </div>
 
-        <div>
-            <app-label for="provider-app-id">App ID</app-label>
-            <app-input-field
-                id="provider-app-id"
-                name="provider-app-id"
-                placeholder="123456"
-                [value]="appId()"
-                (valueChange)="onAppIdChange($event)"
-            />
-        </div>
+            <div>
+                <app-label for="provider-app-id">App ID</app-label>
+                <app-input-field
+                    id="provider-app-id"
+                    name="provider-app-id"
+                    placeholder="123456"
+                    [value]="appId()"
+                    (valueChange)="onAppIdChange($event)"
+                />
+            </div>
 
-        <div>
-            <app-label for="provider-installation-id">Installation ID</app-label>
-            <app-input-field
-                id="provider-installation-id"
-                name="provider-installation-id"
-                placeholder="98765432"
-                [value]="installationId()"
-                (valueChange)="onInstallationIdChange($event)"
-            />
+            <div>
+                <app-label for="provider-installation-id">Installation ID</app-label>
+                <app-input-field
+                    id="provider-installation-id"
+                    name="provider-installation-id"
+                    placeholder="98765432"
+                    [value]="installationId()"
+                    (valueChange)="onInstallationIdChange($event)"
+                />
+            </div>
         </div>
 
         <div>

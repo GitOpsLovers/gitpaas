@@ -1,3 +1,9 @@
 <app-breadcrumb [items]="breadcrumb" />
 
-<app-provider-add />
+<app-provider-path-choice [selected]="path()" (choose)="choose($event)" />
+
+@if (path() === 'gitpaas') {
+    <app-provider-registration-start />
+} @else if (path() === 'operator') {
+    <app-provider-add />
+}

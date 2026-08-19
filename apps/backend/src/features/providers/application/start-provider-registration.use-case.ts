@@ -23,15 +23,18 @@ import { ProvidersRepository } from '../domain/repositories/providers.repository
  *
  * @param ownerType Kind of account the application belongs to
  * @param ownerLogin Login of the organization, or `null` for a personal account
+ * @param state State of the registration
  *
  * @returns The address of the form of GitHub
  */
-function buildGithubUrl(ownerType: ProviderAppOwnerType, ownerLogin: string | null): string {
+function buildGithubUrl(ownerType: ProviderAppOwnerType, ownerLogin: string | null, state: string): string {
+    const query = `?state=${encodeURIComponent(state)}`;
+
     if (ownerType === ProviderAppOwnerType.Organization && ownerLogin) {
-        return GITHUB_ORGANIZATION_APP_CREATION_URL_TEMPLATE.replace('{login}', encodeURIComponent(ownerLogin));
+        return `${GITHUB_ORGANIZATION_APP_CREATION_URL_TEMPLATE.replace('{login}', encodeURIComponent(ownerLogin))}${query}`;
     }
 
-    return GITHUB_PERSONAL_APP_CREATION_URL;
+    return `${GITHUB_PERSONAL_APP_CREATION_URL}${query}`;
 }
 
 /**
@@ -93,6 +96,6 @@ export async function startProviderRegistrationUseCase(
     return {
         state: registration.state,
         manifest: buildManifest(request.name, urls),
-        githubUrl: buildGithubUrl(request.ownerType, request.ownerLogin),
+        githubUrl: buildGithubUrl(request.ownerType, request.ownerLogin, registration.state),
     };
 }
