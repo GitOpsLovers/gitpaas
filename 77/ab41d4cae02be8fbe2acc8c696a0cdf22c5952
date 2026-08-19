@@ -1,0 +1,37 @@
+.claude/agents/architecture-analyst.md
+  s_286bb2e3160697::t_e860705641c41c 22-28,30
+.claude/agents/documenter.md
+  s_286bb2e3160697::t_e7a5ea38f8d796 21,23-25
+.claude/agents/implementer.md
+  s_286bb2e3160697::t_41acac2f7cc0b0 20,25-31
+.claude/agents/refactorer.md
+  s_286bb2e3160697::t_028e58d0b768b1 24-27
+.claude/agents/tester.md
+  s_286bb2e3160697::t_5ea58915a106e6 37-38
+docs/TODO.md
+  s_58ec17cd7e3891::t_a6cd78de4b646f 328,332-367
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "77ab41d4cae02be8fbe2acc8c696a0cdf22c5952",
+  "prompts": {},
+  "sessions": {
+    "s_286bb2e3160697": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a96da15dfa0293912",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_58ec17cd7e3891": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ae5de7c-34a6-4187-8ce6-f9c25f93f11a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
