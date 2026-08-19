@@ -1,0 +1,27 @@
+.claude/settings.json
+  s_58ec17cd7e3891::t_24f02bf9c19fe3 24
+.claude/skills/nestjs-best-practices/SKILL.md
+  s_58ec17cd7e3891::t_9e62bed7614975 128,130-132
+.claude/skills/tailwind-4-docs/SKILL.md
+  s_58ec17cd7e3891::t_94aeca1872eed0 3
+.claude/skills/typescript-advanced-types/SKILL.md
+  s_58ec17cd7e3891::t_b15c03b459148a 3
+docs/TODO.md
+  s_58ec17cd7e3891::t_9709c25a3e6299 1-264
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "092bbaa5d89a54c7539ee12744892b865f381ba7",
+  "prompts": {},
+  "sessions": {
+    "s_58ec17cd7e3891": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ae5de7c-34a6-4187-8ce6-f9c25f93f11a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
