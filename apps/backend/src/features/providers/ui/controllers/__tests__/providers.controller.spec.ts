@@ -73,7 +73,7 @@ const startedRegistration: StartedProviderRegistration = {
         default_permissions: { contents: 'read', metadata: 'read' },
         default_events: [],
     },
-    githubUrl: 'https://github.com/settings/apps/new',
+    githubUrl: `https://github.com/settings/apps/new?state=${registrationState}`,
 };
 
 describe('ProvidersController', () => {
@@ -507,13 +507,39 @@ describe('ProvidersController', () => {
             };
             mockProvidersService.startRegistration.mockResolvedValue({
                 ...startedRegistration,
-                githubUrl: 'https://github.com/organizations/acme/settings/apps/new',
+                githubUrl: `https://github.com/organizations/acme/settings/apps/new?state=${registrationState}`,
             });
 
             const result = await sut.startRegistration(organizationDto);
 
             expect(mockProvidersService.startRegistration).toHaveBeenCalledWith(organizationDto);
-            expect(result.githubUrl).toBe('https://github.com/organizations/acme/settings/apps/new');
+            expect(result.githubUrl).toBe(
+                `https://github.com/organizations/acme/settings/apps/new?state=${registrationState}`,
+            );
+        });
+
+        it('answers with an address that carries the state for a personal account', async () => {
+            mockProvidersService.startRegistration.mockResolvedValue(startedRegistration);
+
+            const result = await sut.startRegistration(startDto);
+
+            expect(new URL(result.githubUrl).searchParams.get('state')).toBe(result.state);
+        });
+
+        it('answers with an address that carries the state for an organization', async () => {
+            const organizationDto = {
+                name: 'default',
+                ownerType: ProviderAppOwnerType.Organization,
+                ownerLogin: 'acme',
+            };
+            mockProvidersService.startRegistration.mockResolvedValue({
+                ...startedRegistration,
+                githubUrl: `https://github.com/organizations/acme/settings/apps/new?state=${registrationState}`,
+            });
+
+            const result = await sut.startRegistration(organizationDto);
+
+            expect(new URL(result.githubUrl).searchParams.get('state')).toBe(result.state);
         });
 
         it('translates a taken name into a ConflictException', async () => {

@@ -2,10 +2,14 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { CompleteProviderRegistrationDto } from '../../domain/dtos/complete-provider-registration.dto';
+import { ConvertProviderRegistrationDto } from '../../domain/dtos/convert-provider-registration.dto';
 import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
+import { StartProviderRegistrationDto } from '../../domain/dtos/start-provider-registration.dto';
 import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
 import { GitBranch } from '../../domain/models/git-branch.model';
 import { GitRepository } from '../../domain/models/git-repository.model';
+import { ConvertedProviderRegistration, StartedProviderRegistration } from '../../domain/models/provider-registration.model';
 import { Provider, ProviderConnectionTest } from '../../domain/models/provider.model';
 
 import { environment } from '@environments/environment';
@@ -64,6 +68,41 @@ export class ProvidersApiRepository {
      */
     public create(dto: CreateProviderDto): Observable<Provider> {
         return this.http.post<Provider>(this.url, dto);
+    }
+
+    /**
+     * Starts the registration of a GitHub App the platform creates
+     *
+     * @param dto Name and owner of the application
+     *
+     * @returns The state of the registration, the manifest and the address of GitHub
+     */
+    public startRegistration(dto: StartProviderRegistrationDto): Observable<StartedProviderRegistration> {
+        return this.http.post<StartedProviderRegistration>(`${this.url}/registrations`, dto);
+    }
+
+    /**
+     * Converts the temporary code GitHub handed back after the creation
+     *
+     * @param state State of the registration
+     * @param dto Temporary code of the manifest
+     *
+     * @returns The state of the registration and the short name of the application
+     */
+    public convertRegistration(state: string, dto: ConvertProviderRegistrationDto): Observable<ConvertedProviderRegistration> {
+        return this.http.post<ConvertedProviderRegistration>(`${this.url}/registrations/${state}/conversion`, dto);
+    }
+
+    /**
+     * Ends a registration, and gives the provider it wrote
+     *
+     * @param state State of the registration
+     * @param dto Identifier of the installation GitHub handed back
+     *
+     * @returns Created provider
+     */
+    public completeRegistration(state: string, dto: CompleteProviderRegistrationDto): Observable<Provider> {
+        return this.http.post<Provider>(`${this.url}/registrations/${state}/completion`, dto);
     }
 
     /**

@@ -65,6 +65,25 @@ describe('ProviderFormComponent', () => {
         expect(textarea()).not.toBeNull();
     });
 
+    test('states the two permissions the App must carry, above the fields', () => {
+        create();
+
+        const statement = fixture.nativeElement.querySelector('ul') as HTMLUListElement;
+        const items = [...statement.querySelectorAll('li')].map((item) => item.textContent?.replace(/\s+/gu, ' ').trim());
+
+        expect(items).toEqual(['contents: Read', 'metadata: Read']);
+        // eslint-disable-next-line no-bitwise
+        expect(statement.compareDocumentPosition(inputOf('provider-name')) & Node.DOCUMENT_POSITION_FOLLOWING)
+            .toBeGreaterThan(0);
+    });
+
+    test('asks for no permission of its own', () => {
+        create();
+
+        expect(fixture.nativeElement.textContent).toContain('This form asks for no permission.');
+        expect(fixture.nativeElement.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
+    });
+
     test('seeds the three fields of text from the initial values and follows later changes', () => {
         create();
 

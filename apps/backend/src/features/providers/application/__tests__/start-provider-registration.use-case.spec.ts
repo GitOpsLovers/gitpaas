@@ -160,18 +160,42 @@ describe('startProviderRegistrationUseCase', () => {
 
     describe('the address of GitHub', () => {
         it('is the personal form for a personal account', async () => {
-            const { githubUrl } = await run();
+            const { githubUrl, state } = await run();
 
-            expect(githubUrl).toBe(GITHUB_PERSONAL_APP_CREATION_URL);
+            expect(githubUrl).toBe(`${GITHUB_PERSONAL_APP_CREATION_URL}?state=${state}`);
         });
 
         it('is the form of the organization, with its login, for an organization', async () => {
-            const { githubUrl } = await run({
+            const { githubUrl, state } = await run({
                 ownerType: ProviderAppOwnerType.Organization,
                 ownerLogin: 'acme',
             });
 
-            expect(githubUrl).toBe('https://github.com/organizations/acme/settings/apps/new');
+            expect(githubUrl).toBe(`https://github.com/organizations/acme/settings/apps/new?state=${state}`);
+        });
+
+        it('carries the state of the registration for a personal account', async () => {
+            const { githubUrl, state } = await run();
+
+            expect(new URL(githubUrl).searchParams.get('state')).toBe(state);
+        });
+
+        it('carries the state of the registration for an organization', async () => {
+            const { githubUrl, state } = await run({
+                ownerType: ProviderAppOwnerType.Organization,
+                ownerLogin: 'acme',
+            });
+
+            expect(new URL(githubUrl).searchParams.get('state')).toBe(state);
+        });
+
+        it('escapes the login of the organization and leaves the state readable', async () => {
+            const { githubUrl, state } = await run({
+                ownerType: ProviderAppOwnerType.Organization,
+                ownerLogin: 'acme corp',
+            });
+
+            expect(githubUrl).toBe(`https://github.com/organizations/acme%20corp/settings/apps/new?state=${state}`);
         });
     });
 

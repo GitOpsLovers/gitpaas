@@ -1,0 +1,50 @@
+<div class="mb-6">
+    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">How do you want to register the provider?</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose one path. The fields appear after your choice.</p>
+
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <button
+            type="button"
+            name="provider-path-gitpaas"
+            [class]="classesOf('gitpaas')"
+            [attr.aria-pressed]="selected() === 'gitpaas'"
+            (click)="choose.emit('gitpaas')"
+        >
+            <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/10"
+            >
+                <svg lucideSparkles class="h-5 w-5"></svg>
+            </span>
+            <span>
+                <span class="block text-sm font-medium text-gray-800 dark:text-white/90">
+                    Create a GitHub App for me
+                </span>
+                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
+                    GitPaaS writes the manifest with the permissions it needs, and GitHub asks you only to confirm.
+                </span>
+            </span>
+        </button>
+
+        <button
+            type="button"
+            name="provider-path-operator"
+            [class]="classesOf('operator')"
+            [attr.aria-pressed]="selected() === 'operator'"
+            (click)="choose.emit('operator')"
+        >
+            <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/10"
+            >
+                <svg lucideKeyRound class="h-5 w-5"></svg>
+            </span>
+            <span>
+                <span class="block text-sm font-medium text-gray-800 dark:text-white/90">
+                    I already own a GitHub App
+                </span>
+                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
+                    Give the identifiers and the private key of the App you created on GitHub yourself.
+                </span>
+            </span>
+        </button>
+    </div>
+</div>

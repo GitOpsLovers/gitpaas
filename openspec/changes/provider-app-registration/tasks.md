@@ -59,12 +59,12 @@
 
 ## 8. The two paths on the screen of the creation
 
-- [ ] 8.1 Add the choice of the two paths to `pages/providers/add/`, above the form. Show no field before the user chooses.
-- [ ] 8.2 Add the statement of the two permissions above the fields of `provider-form.component`, and add no control to that form.
-- [ ] 8.3 Create the component that asks the name and the owner, with the field of the login that appears only for an organization.
-- [ ] 8.4 Add to `providers-api.repository.ts` the three calls of the registration.
-- [ ] 8.5 Submit the manifest to GitHub with a form that the browser sends, whose one field is the manifest, and whose action is the address that the API gave.
-- [ ] 8.6 Write the tests of the choice of the path, of the field of the login and of the statement of the permissions.
+- [x] 8.1 Add the choice of the two paths to `pages/providers/add/`, above the form. Show no field before the user chooses.
+- [x] 8.2 Add the statement of the two permissions above the fields of `provider-form.component`, and add no control to that form.
+- [x] 8.3 Create the component that asks the name and the owner, with the field of the login that appears only for an organization.
+- [x] 8.4 Add to `providers-api.repository.ts` the three calls of the registration.
+- [x] 8.5 Submit the manifest to GitHub with a form that the browser sends, whose one field is the manifest, and whose action is the address that the API gave.
+- [x] 8.6 Write the tests of the choice of the path, of the field of the login and of the statement of the permissions.
 
 ## 9. The screens that receive the returns of GitHub
 
