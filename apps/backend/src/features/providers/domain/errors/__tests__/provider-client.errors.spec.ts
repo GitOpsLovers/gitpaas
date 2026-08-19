@@ -1,5 +1,6 @@
 import {
     ProviderAuthenticationError,
+    ProviderManifestCodeRejectedError,
     ProviderNotConfiguredError,
     ProviderRateLimitedError,
     ProviderResourceNotFoundError,
@@ -129,5 +130,30 @@ describe('ProviderUnavailableError', () => {
         const original = new Error('ECONNREFUSED');
 
         expect(new ProviderUnavailableError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('ProviderManifestCodeRejectedError', () => {
+    it('is a DomainError', () => {
+        expect(new ProviderManifestCodeRejectedError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to ProviderManifestCodeRejectedError', () => {
+        expect(new ProviderManifestCodeRejectedError().name).toBe('ProviderManifestCodeRejectedError');
+    });
+
+    it('carries the PROVIDER_MANIFEST_CODE_REJECTED code', () => {
+        expect(new ProviderManifestCodeRejectedError().code).toBe('PROVIDER_MANIFEST_CODE_REJECTED');
+    });
+
+    it('states that the code serves one time and dies after one hour', () => {
+        expect(new ProviderManifestCodeRejectedError().message)
+            .toBe('GitHub refused the temporary code of the manifest. A code serves one time only, and it dies after one hour. Start the registration again.');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('404');
+
+        expect(new ProviderManifestCodeRejectedError({ cause: original }).cause).toBe(original);
     });
 });

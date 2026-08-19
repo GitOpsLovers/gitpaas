@@ -1,6 +1,7 @@
 import { GitBranch } from '../models/git-branch.models';
 import { GitCommit } from '../models/git-commit.models';
 import { GitRepository } from '../models/git-repository.models';
+import { ProviderRegistrationConversion } from '../models/provider-registration.models';
 import { ProviderCredentials, ProviderCredentialsVerification } from '../models/provider.models';
 
 /**
@@ -56,4 +57,13 @@ export interface ProviderClient {
      * @returns Whether the provider accepts the credentials, and the permissions the application carries
      */
     verifyCredentials: (credentials: ProviderCredentials) => Promise<ProviderCredentialsVerification>;
+
+    /**
+     * Convert the temporary code of a manifest into the configuration of a new application
+     *
+     * @param code Temporary code the provider handed back with the creation of the application
+     *
+     * @returns The identifier of the application, its short name and its private key
+     */
+    convertAppManifest: (code: string) => Promise<ProviderRegistrationConversion>;
 }

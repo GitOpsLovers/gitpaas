@@ -1,5 +1,7 @@
+/* eslint-disable no-secrets/no-secrets */
 import {
     ProviderAuthenticationError,
+    ProviderManifestCodeRejectedError,
     ProviderNotConfiguredError,
     ProviderRateLimitedError,
     ProviderResourceNotFoundError,
@@ -9,8 +11,10 @@ import {
     toGitBranch,
     toGitCommit,
     toGitRepository,
+    toManifestConversionError,
     toProviderAppPermissions,
     toProviderClientError,
+    toProviderRegistrationConversion,
 } from '../github-provider-client.transformer';
 
 /**
@@ -177,6 +181,81 @@ describe('github-provider-client.transformer', () => {
 
         it('returns null untouched', () => {
             expect(toProviderClientError(null)).toBeNull();
+        });
+    });
+
+    describe('toProviderRegistrationConversion', () => {
+        /** Payload of a converted GitHub App, as GitHub answers the conversion of a manifest. */
+        const application = {
+            id: 987,
+            slug: 'gitpaas-acme',
+            pem: '-----BEGIN RSA PRIVATE KEY-----\nKEY\n-----END RSA PRIVATE KEY-----',
+            client_id: 'Iv1.abc',
+            client_secret: 'the-client-secret',
+            webhook_secret: 'the-webhook-secret',
+        };
+
+        it('maps the payload of a converted application into the domain model', () => {
+            expect(toProviderRegistrationConversion(application)).toEqual({
+                appId: '987',
+                appSlug: 'gitpaas-acme',
+                privateKey: '-----BEGIN RSA PRIVATE KEY-----\nKEY\n-----END RSA PRIVATE KEY-----',
+            });
+        });
+
+        it('gives the identifier of the application as text', () => {
+            expect(toProviderRegistrationConversion(application).appId).toBe('987');
+        });
+
+        it('gives back neither the client secret nor the secret of the webhook', () => {
+            const result = toProviderRegistrationConversion(application);
+
+            expect(result).not.toHaveProperty('clientSecret');
+            expect(result).not.toHaveProperty('client_secret');
+            expect(result).not.toHaveProperty('webhookSecret');
+            expect(result).not.toHaveProperty('webhook_secret');
+            expect(JSON.stringify(result)).not.toContain('secret');
+        });
+
+        it('gives an empty short name when the payload names none', () => {
+            expect(toProviderRegistrationConversion({ ...application, slug: null }).appSlug).toBe('');
+        });
+    });
+
+    describe('toManifestConversionError', () => {
+        it('reads a refused code out of a resource that GitHub does not find', () => {
+            const error = new ProviderResourceNotFoundError();
+
+            expect(toManifestConversionError(error)).toBeInstanceOf(ProviderManifestCodeRejectedError);
+        });
+
+        it('reads a refused code out of a 422 that no rule classified', () => {
+            expect(toManifestConversionError(requestError(422)))
+                .toBeInstanceOf(ProviderManifestCodeRejectedError);
+        });
+
+        it('chains the classified failure as the cause', () => {
+            const original = new ProviderResourceNotFoundError();
+
+            expect((toManifestConversionError(original) as Error).cause).toBe(original);
+        });
+
+        it('leaves an outage of GitHub untouched', () => {
+            const error = new ProviderUnavailableError();
+
+            expect(toManifestConversionError(error)).toBe(error);
+        });
+
+        it('leaves an exhausted quota untouched', () => {
+            const error = new ProviderRateLimitedError();
+
+            expect(toManifestConversionError(error)).toBe(error);
+        });
+
+        it('leaves an unclassifiable failure untouched', () => {
+            const error = new Error('boom');
+
+            expect(toManifestConversionError(error)).toBe(error);
         });
     });
 });

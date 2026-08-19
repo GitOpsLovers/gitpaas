@@ -2,6 +2,7 @@ import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 
 import {
+    ProviderManifestCodeRejectedError,
     ProviderNotConfiguredError,
     ProviderRateLimitedError,
     ProviderResourceNotFoundError,
@@ -332,6 +333,106 @@ describe('GithubProviderClientAdapter', () => {
 
             expect(OctokitMock).toHaveBeenCalledTimes(1);
             expect(getClient.getClient(credentials)).toBe(OctokitMock.mock.results[0].value);
+        });
+    });
+
+    // --- Layer C: the conversion of a manifest (anonymous client isolated via a spied getter) ---
+    describe('conversion of a manifest', () => {
+        let sut: GithubProviderClientAdapter;
+        let mockClient: FakeClient;
+
+        /** Stand-in for an Octokit `RequestError` carrying an HTTP status. */
+        const requestError = (status: number): Error =>
+            Object.assign(new Error('secret octokit detail'), { status, response: { headers: {} } });
+
+        beforeEach(() => {
+            sut = new GithubProviderClientAdapter();
+            mockClient = { paginate: jest.fn(), request: jest.fn() };
+
+            // `getAnonymousClient()` is private, so cast through `unknown` to spy on it.
+            jest.spyOn(
+                sut as unknown as { getAnonymousClient: () => unknown },
+                'getAnonymousClient',
+            ).mockReturnValue(mockClient);
+        });
+
+        it('converts the code and maps the configuration of the application', async () => {
+            mockClient.request.mockResolvedValue({
+                data: {
+                    id: 987, slug: 'gitpaas-acme', pem: 'PEMKEY', client_secret: 'shh', webhook_secret: 'shh',
+                },
+            });
+
+            const result = await sut.convertAppManifest('temporary-code');
+
+            expect(mockClient.request).toHaveBeenCalledWith('POST /app-manifests/{code}/conversions', {
+                code: 'temporary-code',
+            });
+            expect(result).toEqual({ appId: '987', appSlug: 'gitpaas-acme', privateKey: 'PEMKEY' });
+        });
+
+        it('gives back no secret of the application beyond the private key', async () => {
+            mockClient.request.mockResolvedValue({
+                data: {
+                    id: 987, slug: 'gitpaas-acme', pem: 'PEMKEY', client_secret: 'shh', webhook_secret: 'shh',
+                },
+            });
+
+            const result = await sut.convertAppManifest('temporary-code');
+
+            expect(Object.keys(result)).toEqual(['appId', 'appSlug', 'privateKey']);
+        });
+
+        it('takes no credentials of a provider, so it builds no authenticated client', async () => {
+            mockClient.request.mockResolvedValue({ data: { id: 1, slug: 'app', pem: 'PEMKEY' } });
+
+            await sut.convertAppManifest('temporary-code');
+
+            expect(OctokitMock).not.toHaveBeenCalled();
+        });
+
+        it('reads a code that is already used as a refusal of the code', async () => {
+            mockClient.request.mockRejectedValue(requestError(404));
+
+            await expect(sut.convertAppManifest('used-code'))
+                .rejects.toBeInstanceOf(ProviderManifestCodeRejectedError);
+        });
+
+        it('reads a code that is too old as a refusal of the code', async () => {
+            mockClient.request.mockRejectedValue(requestError(422));
+
+            await expect(sut.convertAppManifest('stale-code'))
+                .rejects.toBeInstanceOf(ProviderManifestCodeRejectedError);
+        });
+
+        it('never lets the Octokit message escape the refusal of a code', async () => {
+            mockClient.request.mockRejectedValue(requestError(404));
+
+            await expect(sut.convertAppManifest('used-code')).rejects.not.toThrow('secret octokit detail');
+        });
+
+        it('translates an outage of GitHub with the translator of the adapter', async () => {
+            mockClient.request.mockRejectedValue(requestError(503));
+
+            await expect(sut.convertAppManifest('temporary-code'))
+                .rejects.toBeInstanceOf(ProviderUnavailableError);
+        });
+
+        it('translates an exhausted rate limit with the translator of the adapter', async () => {
+            mockClient.request.mockRejectedValue(requestError(429));
+
+            await expect(sut.convertAppManifest('temporary-code'))
+                .rejects.toBeInstanceOf(ProviderRateLimitedError);
+        });
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        it('builds the anonymous client with no authentication, once for every conversion', async () => {
+            const bare = new GithubProviderClientAdapter();
+            const anonymous = bare as unknown as { getAnonymousClient: () => unknown };
+
+            expect(anonymous.getAnonymousClient()).toBe(anonymous.getAnonymousClient());
+            expect(OctokitMock).toHaveBeenCalledTimes(1);
+            expect(OctokitMock).toHaveBeenCalledWith();
         });
     });
 });

@@ -139,6 +139,11 @@ describe('translateError', () => {
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 
+        it('maps PROVIDER_MANIFEST_CODE_REJECTED to a BadRequestException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_MANIFEST_CODE_REJECTED')))
+                .toBeInstanceOf(BadRequestException);
+        });
+
         it('maps PROVIDER_UNAVAILABLE to a ServiceUnavailableException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_UNAVAILABLE')))
                 .toBeInstanceOf(ServiceUnavailableException);

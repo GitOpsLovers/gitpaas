@@ -64,3 +64,16 @@ export class ProviderUnavailableError extends DomainError {
         );
     }
 }
+
+/**
+ * Raised when GitHub refuses the temporary code of a manifest, because it is already used or too old.
+ */
+export class ProviderManifestCodeRejectedError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super(
+            'PROVIDER_MANIFEST_CODE_REJECTED',
+            'GitHub refused the temporary code of the manifest. A code serves one time only, and it dies after one hour. Start the registration again.',
+            options,
+        );
+    }
+}

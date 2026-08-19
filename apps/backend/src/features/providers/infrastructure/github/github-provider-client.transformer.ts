@@ -1,6 +1,7 @@
 import { ProviderAppPermissions } from '../../domain/constants/provider-permissions.constants';
 import {
     ProviderAuthenticationError,
+    ProviderManifestCodeRejectedError,
     ProviderRateLimitedError,
     ProviderResourceNotFoundError,
     ProviderUnavailableError,
@@ -8,6 +9,7 @@ import {
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
+import { ProviderRegistrationConversion } from '../../domain/models/provider-registration.models';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -29,6 +31,11 @@ const NETWORK_ERROR_CODES = new Set([
  * HTTP status GitHub answers when the installation's quota is exhausted.
  */
 const TOO_MANY_REQUESTS = 429;
+
+/**
+ * HTTP status GitHub answers when it accepts the request but refuses its content.
+ */
+const UNPROCESSABLE_CONTENT = 422;
 
 /**
  * Reads the HTTP status carried by an Octokit `RequestError`.
@@ -168,4 +175,43 @@ export function toProviderAppPermissions(permissions: Record<string, string | un
             (entry): entry is [string, string] => entry[1] !== undefined,
         ),
     );
+}
+
+/**
+ * Maps a failure of the conversion of a manifest, already classified by `toProviderClientError`,
+ * into the domain error that describes it.
+ *
+ * @param error Error the conversion raised, as `toProviderClientError` left it
+ *
+ * @returns The domain error to throw, or the given error when the failure is no refusal of the code
+ */
+export function toManifestConversionError(error: unknown): unknown {
+    if (error instanceof ProviderResourceNotFoundError) {
+        return new ProviderManifestCodeRejectedError({ cause: error });
+    }
+
+    if (!(error instanceof DomainError) && readStatus(error) === UNPROCESSABLE_CONTENT) {
+        return new ProviderManifestCodeRejectedError({ cause: error });
+    }
+
+    return error;
+}
+
+/**
+ * Maps the payload GitHub answers the conversion of a manifest with into the domain model.
+ *
+ * @param application Payload of the converted GitHub App
+ *
+ * @returns Domain configuration of the application
+ */
+export function toProviderRegistrationConversion(application: {
+    id: number;
+    slug?: string | null;
+    pem: string;
+}): ProviderRegistrationConversion {
+    return {
+        appId: String(application.id),
+        appSlug: application.slug ?? '',
+        privateKey: application.pem,
+    };
 }
