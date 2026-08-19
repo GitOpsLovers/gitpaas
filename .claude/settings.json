@@ -28,5 +28,16 @@
       "WebFetch(domain:docs.nestjs.com)",
       "WebFetch(domain:openspec.dev)"
     ]
+  },
+  "enabledPlugins": {
+    "typescript-lsp@gitpaas": true
+  },
+  "extraKnownMarketplaces": {
+    "gitpaas": {
+      "source": {
+        "source": "directory",
+        "path": "./.claude/plugins"
+      }
+    }
   }
 }

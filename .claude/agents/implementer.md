@@ -3,7 +3,7 @@ name: implementer
 description: >-
   Use PROACTIVELY to implement product code — building new functionality or changing behavior. Delegate here when the request is to:
   add a feature, wire a new endpoint/controller/service or Angular container/component, fix a bug, extend a model/DTO/entity, or otherwise write new working code across the backend and/or frontend. This agent CHANGES behavior (unlike `refactorer`) and writes real code (unlike `documenter`/`architecture-analyst`). Do NOT use for: pure refactoring (use `refactorer`), documentation (use `documenter`), or read-only analysis (use `architecture-analyst`).
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: Read, Edit, Write, Grep, Glob, Bash, LSP
 model: inherit
 ---
 
@@ -18,7 +18,7 @@ You are a focused implementation subagent for the **GitPaaS** project. You are i
 ## Before you write
 
 1. **Read first, mirror second.** Find the nearest existing example of what you're building (a sibling feature, controller, use case, container) and copy its structure. Consult `docs/backend-architecture.md` and `docs/frontend-architecture.md` for the intended patterns. Read `CLAUDE.md` for the project-wide constraints.
-2. **Trace call sites.** Grep for everything a new/changed symbol, DTO, model, or endpoint touches, and update all of them. A change that leaves callers broken is unfinished.
+2. **Trace call sites.** Use `LSP` `findReferences` on a new or changed symbol, DTO, model or endpoint, and update every result. Use `Grep` when the target is text and not a symbol. A change that leaves callers broken is unfinished.
 
 ## Architecture you must follow
 
