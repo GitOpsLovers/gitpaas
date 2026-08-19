@@ -273,13 +273,55 @@ deleted.
 
 ### Step 3 — Make one shared rule set
 
-- [ ] Keep the RTK rule, the ESLint ban, the dependency ban and the report
+- [x] Keep the RTK rule, the ESLint ban, the dependency ban and the report
       format only in `CLAUDE.md`.
-- [ ] Cut each agent file to three parts: the role, the method and the report.
-- [ ] Delete the repeated sentence about the fresh context from the six
+- [x] Cut each agent file to three parts: the role, the method and the report.
+- [x] Delete the repeated sentence about the fresh context from the six
       descriptions.
 
 **Target:** a reduction of 30 to 40 percent per agent file.
+
+**The proof that the deletion is safe.** A probe subagent answered four questions
+with zero tool uses. It quoted the RTK rule and the ESLint rule of `CLAUDE.md`
+word for word, and it named the six subagents of the routing table. Claude Code
+loads `CLAUDE.md` into every subagent, so a copy inside an agent file gives
+nothing.
+
+**One correction to the method.** Text inside `CLAUDE.md` costs the same as text
+inside an agent file, because both load for every subagent. A move to
+`CLAUDE.md` saves nothing by itself. The test became:
+
+| Case | Action |
+|---|---|
+| `CLAUDE.md` already states the rule | Delete it from the agent file. |
+| The rule applies to all six agents | Move it into `CLAUDE.md` one time. |
+| The rule applies to one agent | Leave it where it is. |
+
+**The measured result:**
+
+| File | Before | After |
+|---|---|---|
+| `implementer.md` | 6,584 B | 4,335 B |
+| `refactorer.md` | 4,966 B | 2,849 B |
+| `tester.md` | 6,053 B | 4,279 B |
+| `documenter.md` | 6,123 B | 5,244 B |
+| `architecture-analyst.md` | 6,857 B | 6,372 B |
+| `git-manager.md` | 3,106 B | 2,646 B |
+| **Total** | **33,689 B** | **25,725 B** |
+
+`CLAUDE.md` grew from 10,320 B to 11,240 B. The net saving is 7,044 bytes, and
+the reduction of the agent files is 23.6 percent.
+
+**The target of 30 to 40 percent was not met, and the reason is sound.** The
+remainder of each file is the method of that agent alone: its architecture
+rules, its conventions, its house style and its verification steps. Those blocks
+carry the value of the agent, so the work left them in place. `documenter.md`
+and `architecture-analyst.md` gave the least, because most of their content is
+their own house style.
+
+**A risk to record.** `git-manager.md` and `documenter.md` now describe their
+report as a difference against the common shape in `CLAUDE.md`. The two files
+lose their base if `CLAUDE.md` ever stops loading into a subagent.
 
 ### Step 4 — Point at the documents
 
