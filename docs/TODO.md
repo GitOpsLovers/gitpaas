@@ -406,9 +406,40 @@ alone can differ.
 
 ### Step 6 — Change two orchestration rules of `CLAUDE.md`
 
-- [ ] Group the tasks of a change by agent type and by file area. Send one call
+- [x] Group the tasks of a change by agent type and by file area. Send one call
       per group, not one call per task.
-- [ ] Run `tester` one time, after the last code task of the change.
+- [x] Run `tester` one time, after the last code task of the change.
+
+**Why this step matters more than its size.** Step 1 to Step 5 cut the text that
+one agent loads. This step cuts the number of agents that load anything. A
+subagent starts cold: it loads `CLAUDE.md`, it loads its own file, and it reads
+the change folder again. Ten calls pay that price ten times.
+
+**The rule of the group.** Group by agent type **and** by file area. Split a
+group for a real reason alone: two groups touch the same file, or the second
+group needs the report of the first. Two groups that touch different areas run
+in parallel, in one message. Step 2 of this plan used that shape: three
+`refactorer` agents ran at the same time, one per skill, and no agent waited.
+
+**The rule of the tester.** The old rule launched `tester` after each code task.
+The `implementer` already writes the tests for the behavior that it changes, so
+that rule paid for a cold start to repeat work that existed. One run, after the
+last code task, gives the same result.
+
+**A third rule that this work found, and that Step 6 did not change.**
+
+The rule "Delegate; never do the work inline" has no lower limit. Step 5 of this
+plan changed two lines of frontmatter. Two subagent calls for that work would
+have cost two cold starts, and each one loads more text than the edit itself
+holds. The orchestrator did the edit directly.
+
+- [ ] Decide whether `CLAUDE.md` states a floor for the delegation. A proposal:
+      the orchestrator may edit directly when the change is under about 10 lines,
+      when it holds no judgment about the architecture, and when the orchestrator
+      already read the file in the conversation. Everything else goes to a
+      subagent.
+
+This item stays open, because Step 6 owns two rules, and this is a third one.
 
 ### Step 7 — Add a context budget rule to `CLAUDE.md`
 
