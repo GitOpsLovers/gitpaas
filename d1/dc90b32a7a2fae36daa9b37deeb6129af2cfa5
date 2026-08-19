@@ -1,0 +1,39 @@
+apps/backend/src/app.module.ts
+  s_369027dbd27566::t_280818740cb377 4,30
+apps/backend/src/features/providers/application/remove-expired-provider-registrations.use-case.ts
+  s_369027dbd27566::t_1c008afbe2c288 1-18
+apps/backend/src/features/providers/providers.module.ts
+  s_369027dbd27566::t_d0aac9984bd05e 10,28
+apps/backend/src/features/providers/ui/jobs/__tests__/remove-expired-provider-registrations.job.spec.ts
+  s_369027dbd27566::t_7482aae4c1a9bb 1-93
+apps/backend/src/features/providers/ui/jobs/remove-expired-provider-registrations.job.ts
+  s_369027dbd27566::t_b705abb9857163 1-43
+openspec/changes/provider-app-registration/tasks.md
+  s_369027dbd27566::t_9b06ee4b7e21fb 55-58
+apps/backend/src/features/providers/application/__tests__/remove-expired-provider-registrations.use-case.spec.ts
+  s_d5ba052337ea61::t_fd242006adf7e3 1-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d1dc90b32a7a2fae36daa9b37deeb6129af2cfa5",
+  "prompts": {},
+  "sessions": {
+    "s_369027dbd27566": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7413ec04-4777-4ece-a468-8e7ecb70cb7f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d5ba052337ea61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-afa4b566c9135508e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
