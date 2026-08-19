@@ -23,11 +23,11 @@
 
 ## 4. The conversion of a manifest at the port of the provider
 
-- [ ] 4.1 Add to `provider-client.port.ts` the operation that converts a temporary code into the configuration of an application. It takes no credentials of a provider.
-- [ ] 4.2 Implement that operation in the adapter of GitHub, with `POST /app-manifests/{code}/conversions` and an Octokit that carries no authentication.
-- [ ] 4.3 Give back the identifier of the application, its short name and its private key. Give back no client secret and no secret of a webhook.
-- [ ] 4.4 Classify a failure of the conversion with the translator that the adapter already uses, and answer `400` for a code that GitHub refuses.
-- [ ] 4.5 Write the unit tests of the conversion: the success, the code that is used, the code that is too old.
+- [x] 4.1 Add to `provider-client.port.ts` the operation that converts a temporary code into the configuration of an application. It takes no credentials of a provider.
+- [x] 4.2 Implement that operation in the adapter of GitHub, with `POST /app-manifests/{code}/conversions` and an Octokit that carries no authentication.
+- [x] 4.3 Give back the identifier of the application, its short name and its private key. Give back no client secret and no secret of a webhook.
+- [x] 4.4 Classify a failure of the conversion with the translator that the adapter already uses, and answer `400` for a code that GitHub refuses.
+- [x] 4.5 Write the unit tests of the conversion: the success, the code that is used, the code that is too old.
 
 ## 5. The three use cases of the registration
 

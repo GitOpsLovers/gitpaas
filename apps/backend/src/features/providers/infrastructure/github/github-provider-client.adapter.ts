@@ -9,6 +9,7 @@ import {
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitCommit } from '../../domain/models/git-commit.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
+import { ProviderRegistrationConversion } from '../../domain/models/provider-registration.models';
 import { ProviderCredentials, ProviderCredentialsVerification } from '../../domain/models/provider.models';
 import { ProviderClient } from '../../domain/ports/provider-client.port';
 
@@ -16,8 +17,10 @@ import {
     toGitBranch,
     toGitCommit,
     toGitRepository,
+    toManifestConversionError,
     toProviderAppPermissions,
     toProviderClientError,
+    toProviderRegistrationConversion,
 } from './github-provider-client.transformer';
 
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
@@ -29,6 +32,8 @@ import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.contex
 @Injectable()
 export class GithubProviderClientAdapter implements ProviderClient {
     private readonly clients = new Map<string, Octokit>();
+
+    private anonymousClient?: Octokit;
 
     public listRepositories(credentials: ProviderCredentials): Promise<GitRepository[]> {
         return this.run(async () => {
@@ -124,6 +129,21 @@ export class GithubProviderClientAdapter implements ProviderClient {
         }
     }
 
+    public async convertAppManifest(code: string): Promise<ProviderRegistrationConversion> {
+        try {
+            return await this.run(async () => {
+                const { data: application } = await this.getAnonymousClient().request(
+                    'POST /app-manifests/{code}/conversions',
+                    { code },
+                );
+
+                return toProviderRegistrationConversion(application);
+            });
+        } catch (error) {
+            throw toManifestConversionError(error);
+        }
+    }
+
     /**
      * Runs a GitHub operation, counting it on the telemetry.
      *
@@ -160,6 +180,18 @@ export class GithubProviderClientAdapter implements ProviderClient {
         this.clients.set(credentials.providerId, client);
 
         return client;
+    }
+
+    /**
+     * Lazily-created, reused Octokit client that carries no authentication. The conversion of a
+     * manifest runs before any application exists, so it holds no credentials to authenticate with.
+     *
+     * @returns Octokit client with no authentication
+     */
+    private getAnonymousClient(): Octokit {
+        this.anonymousClient ??= new Octokit();
+
+        return this.anonymousClient;
     }
 
     /**
