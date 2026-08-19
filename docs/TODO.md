@@ -376,8 +376,33 @@ pointers name the real heading. The frontend page does have a true
 | `documenter` | sonnet | sonnet |
 | `git-manager` | haiku | haiku |
 
-- [ ] Set `model: sonnet` in `refactorer.md`.
-- [ ] Set `model: sonnet` in `tester.md`.
+- [x] Set `model: sonnet` in `refactorer.md`.
+- [x] Set `model: sonnet` in `tester.md`.
+
+**The state after the change:** two agents on Opus (`implementer`,
+`architecture-analyst`), three on Sonnet (`refactorer`, `tester`, `documenter`),
+one on Haiku (`git-manager`).
+
+**A caution about `refactorer`.** The work of Step 1 to Step 4 used this agent
+for four tasks, and one of them was hard. The split of `turborepo` needed a
+judgment for each section: does a reference file already state this rule, or
+does the rule exist nowhere else? That agent used 77,959 tokens and 36 tool
+calls, and it placed every rule correctly. A mechanical rename does not need
+Opus, but that task came close to needing it.
+
+**How to judge the change.** Watch the next refactoring task of real size. Two
+signs say that Sonnet is too small for it:
+
+- The agent reports that it moved a rule, and the rule is absent from both
+  files.
+- The agent renames a symbol, and it leaves a call site behind.
+
+**How to revert.** Change one line back to `model: inherit` in
+`.claude/agents/refactorer.md`. The change needs no other edit.
+
+**A note on the scope of this step.** This step changes the cost of the work,
+and it changes no instruction. So no agent behaves differently, and the quality
+alone can differ.
 
 ### Step 6 — Change two orchestration rules of `CLAUDE.md`
 

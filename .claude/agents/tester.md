@@ -4,7 +4,7 @@ description: >-
   Use PROACTIVELY for test-focused work — writing, updating, or expanding automated tests without changing product behavior. Delegate here when the request is to:
   add missing test coverage, write unit specs for a use case/service/controller/repository/transformer, cover edge cases, update specs after a refactor, fix a failing/flaky test, or improve the test suite. This agent writes and changes TEST code only; it does NOT change product behavior (unlike `implementer`) and does NOT restructure product code (unlike `refactorer`). Do NOT use for: building features/fixing product bugs (use `implementer`), refactoring product code (use `refactorer`), documentation (use `documenter`), or read-only analysis (use `architecture-analyst`).
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: inherit
+model: sonnet
 ---
 
 # Testing specialist

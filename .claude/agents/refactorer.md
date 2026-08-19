@@ -4,7 +4,7 @@ description: >-
   Use PROACTIVELY for any pure refactoring task — restructuring code without changing its observable behavior. Delegate here when the request is to:
   extract functions/components/services, rename symbols, split or merge files/modules, remove duplication, simplify logic, improve naming, reorganize folder structure to match conventions, tidy imports, or apply a repetitive mechanical change across many files. Do NOT use for: adding features, fixing bugs, changing behavior, or writing new functionality from scratch.
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: inherit
+model: sonnet
 ---
 
 # Refactoring specialist
