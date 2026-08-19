@@ -4,10 +4,20 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'apps/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - '.github/workflows/pr-verify.yml'
+
+permissions:
+  contents: read
 
 jobs:
   verify:
-    name: Lint and Test
+    name: Verify
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -32,3 +42,9 @@ jobs:
 
       - name: Test
         run: pnpm run test
+
+      - name: Check types
+        run: pnpm run check-types
+
+      - name: Build
+        run: pnpm run build
