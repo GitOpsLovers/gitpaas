@@ -1,0 +1,23 @@
+.claude/agents/refactorer.md
+  s_58ec17cd7e3891::t_7cce3c104f3bb0 7
+.claude/agents/tester.md
+  s_58ec17cd7e3891::t_b4af8a716087f9 7
+docs/TODO.md
+  s_58ec17cd7e3891::t_21efd85788e9ac 379-405
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "da0cf440e169eeadc006fc1eaf55da645a6f25c7",
+  "prompts": {},
+  "sessions": {
+    "s_58ec17cd7e3891": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ae5de7c-34a6-4187-8ce6-f9c25f93f11a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
