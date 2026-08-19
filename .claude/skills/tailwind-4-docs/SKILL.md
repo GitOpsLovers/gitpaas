@@ -1,6 +1,6 @@
 ---
 name: tailwind-4-docs
-description: Comprehensive Tailwind CSS v4 documentation snapshot and workflow guidance. Use when answering Tailwind v4 questions, selecting utilities/variants, configuring Tailwind v4, or migrating projects from v3 to v4 with official docs and gotcha checks.
+description: Documentation snapshot of Tailwind CSS v4. Use it for the engine of Tailwind - the utilities, the variants and the @theme configuration - and to answer a question about v4 from the official docs. For the classes of the dashboard components, use tailadmin-ui-patterns instead.
 compatibility: Requires git, Python 3, and internet access to initialize the Tailwind docs snapshot from tailwindcss.com.
 ---
 
