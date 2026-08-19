@@ -1,0 +1,53 @@
+apps/backend/src/features/providers/application/start-provider-registration.use-case.ts
+  s_52e50316407ea9::t_98ec6efd341ed3 1-98
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-provider-registrations.repository.spec.ts
+  s_52e50316407ea9::t_40736a983953d8 8,12,15,315-395
+apps/backend/src/features/providers/application/get-active-provider-registration.use-case.ts
+  s_4749d73eaa3201::t_38b374946fbc25 1-37
+apps/backend/src/features/providers/application/convert-provider-registration.use-case.ts
+  s_52e50316407ea9::t_11132b5ab47340 1-49
+apps/backend/src/features/providers/domain/constants/provider-registration.constants.ts
+  s_52e50316407ea9::t_f2bfc999e0b491 1-20
+apps/backend/src/features/providers/infrastructure/database/db-provider-registrations.repository.ts
+  s_52e50316407ea9::t_f9049edd41010b 8,12,17-18,79-98
+apps/backend/src/features/providers/domain/errors/provider-registration.errors.ts
+  s_52e50316407ea9::t_656c8295a3e2ff 1-40
+apps/backend/src/features/providers/domain/models/provider-registration.models.ts
+  s_52e50316407ea9::t_e34b9d98f02a61 1-2,36-44,64-104
+apps/backend/src/features/providers/application/__tests__/convert-provider-registration.use-case.spec.ts
+  s_52e50316407ea9::t_f004fd41dd4ea5 1-173
+apps/backend/src/features/providers/application/__tests__/start-provider-registration.use-case.spec.ts
+  s_52e50316407ea9::t_592b1139d50b48 1-200
+apps/backend/src/features/providers/application/__tests__/complete-provider-registration.use-case.spec.ts
+  s_52e50316407ea9::t_5a00efccf736c9 1-172
+apps/backend/src/features/providers/application/complete-provider-registration.use-case.ts
+  s_52e50316407ea9::t_4b432298b9fbe5 1-72
+openspec/changes/provider-app-registration/tasks.md
+  s_52e50316407ea9::t_b5f5b9b3450b11 34-40
+apps/backend/src/features/providers/domain/repositories/provider-registrations.repository.ts
+  s_52e50316407ea9::t_9a38210482c27b 4,7,41-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ed82ac6d77e5b38996c725ad7ecdf1e68813235f",
+  "prompts": {},
+  "sessions": {
+    "s_4749d73eaa3201": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae3dcbef36d134005",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_52e50316407ea9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b1e912b7-3c45-4c88-86ae-bf2e23a56279",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
