@@ -15,6 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Label pull request from its branch type
-        uses: actions/labeler@v5
+        uses: actions/labeler@v7
         with:
           sync-labels: true
