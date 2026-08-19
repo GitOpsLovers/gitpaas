@@ -41,11 +41,14 @@
 
 ## 6. The endpoints of the registration
 
-- [ ] 6.1 Create the DTOs of the three calls, with the validation of the owner and of the login of the organization.
-- [ ] 6.2 Add the three routes under `providers/registrations` to `ProvidersController`, all of them marked with the role `admin`.
-- [ ] 6.3 Answer `409` for a name that another provider carries, `404` for a state that no row carries, and `409` for a step that does not agree.
-- [ ] 6.4 Enrich the telemetry with the state of the registration, and never with the private key.
-- [ ] 6.5 Write the tests of the controller for the three routes and for each answer of failure.
+- [x] 6.1 Create the DTOs of the three calls, with the validation of the owner and of the login of the organization.
+- [x] 6.2 Add the three routes under `providers/registrations` to `ProvidersController`, all of them marked with the role `admin`.
+- [x] 6.3 Answer `409` for a name that another provider carries, `404` for a state that no row carries, and `409` for a step that does not agree.
+- [x] 6.4 Enrich the telemetry with the state of the registration, and never with the private key.
+- [x] 6.5 Write the tests of the controller for the three routes and for each answer of failure.
+- [x] 6.6 Add `APP_BASE_URL` to `EnvironmentVariables` in `core/infrastructure/config/env-validation.config.ts`, and validate it as a URL.
+- [x] 6.7 Read that variable in `providers.service.ts` for the addresses of the manifest, and remove the local `resolveAppBaseUrl`, which reads the first entry of `CORS_ORIGIN`.
+- [x] 6.8 Add the variable to the files of the environment and of the infrastructure that declare the other variables, and update the tests of the validation of the environment.
 
 ## 7. The removal of the abandoned registrations
 

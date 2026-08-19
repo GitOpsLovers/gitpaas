@@ -13,7 +13,7 @@ describe('testProviderConnectionUseCase', () => {
     let mockProviderClient: jest.Mocked<Pick<ProviderClient, 'verifyCredentials'>>;
 
     /** Runs the use case with the mocked port. */
-    const run = (): Promise<ReturnType<typeof testProviderConnectionUseCase>> =>
+    const run = (): ReturnType<typeof testProviderConnectionUseCase> =>
         testProviderConnectionUseCase(mockProviderClient as unknown as ProviderClient, credentials);
 
     beforeEach(() => {

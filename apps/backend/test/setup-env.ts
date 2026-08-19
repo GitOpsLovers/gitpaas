@@ -28,6 +28,7 @@ const PLACEHOLDER_ENV: Record<string, string> = {
     PROVIDERS_ENCRYPTION_KEY: '0'.repeat(64),
 
     CORS_ORIGIN: 'http://localhost:4200',
+    APP_BASE_URL: 'http://localhost:4200',
 
     THROTTLE_TTL: '60000',
     THROTTLE_LIMIT: '100',

@@ -17,6 +17,7 @@ const validEnv = (): Record<string, unknown> => ({
     REDIS_PORT: '6379',
     PROVIDERS_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef',
     CORS_ORIGIN: 'http://localhost:4200',
+    APP_BASE_URL: 'http://localhost:4200',
     THROTTLE_TTL: '60000',
     THROTTLE_LIMIT: '100',
     THROTTLE_STREAM_TTL: '60000',
@@ -190,6 +191,23 @@ describe('validate', () => {
         });
 
         expect(result.CORS_ORIGIN).toBe('http://localhost:4200,https://app.example.com');
+    });
+
+    it('fails fast when the base address of the application is missing', () => {
+        const env = validEnv();
+        delete env.APP_BASE_URL;
+
+        expect(() => validate(env)).toThrow(/APP_BASE_URL/);
+    });
+
+    it('rejects a base address of the application that is not a URL', () => {
+        expect(() => validate({ ...validEnv(), APP_BASE_URL: 'not-a-url' }))
+            .toThrow(/APP_BASE_URL/);
+    });
+
+    it('keeps the configured base address of the application', () => {
+        expect(validate({ ...validEnv(), APP_BASE_URL: 'https://gitpaas.example.com' }).APP_BASE_URL)
+            .toBe('https://gitpaas.example.com');
     });
 
     it('rejects a non-numeric port', () => {

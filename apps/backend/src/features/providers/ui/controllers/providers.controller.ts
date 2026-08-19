@@ -13,11 +13,15 @@ import {
     UseGuards,
 } from '@nestjs/common';
 
+import { CompleteProviderRegistrationDto } from '../../domain/dtos/complete-provider-registration.dto';
+import { ConvertProviderRegistrationDto } from '../../domain/dtos/convert-provider-registration.dto';
 import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
+import { StartProviderRegistrationDto } from '../../domain/dtos/start-provider-registration.dto';
 import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
 import { ProviderNotFoundError } from '../../domain/errors/provider.errors';
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
+import { ConvertedProviderRegistration, StartedProviderRegistration } from '../../domain/models/provider-registration.models';
 import { Provider, ProviderConnectionTest } from '../../domain/models/provider.models';
 import { ProvidersService } from '../services/providers.service';
 
@@ -29,12 +33,6 @@ import { UserRole } from '@features/users/domain/models/user.models';
 
 /**
  * REST controller for the provider resource (`/api/v1/providers`).
- *
- * The read routes stay open to each authenticated user, because the form of a
- * service must offer the list. Only an administrator writes a provider.
- *
- * No answer of this controller carries a private key: the read model gives the
- * fingerprint of the key instead.
  */
 @Controller('providers')
 @UseGuards(RolesGuard)
@@ -71,6 +69,70 @@ export class ProvidersController {
     public async create(@Body() createDto: CreateProviderDto): Promise<Provider> {
         try {
             return await this.service.create(createDto);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Starts the registration of a GitHub App the platform creates.
+     *
+     * @param startDto Name and owner of the application
+     *
+     * @returns The state of the registration, the manifest and the address of GitHub
+     */
+    @Post('registrations')
+    @Roles(UserRole.Admin)
+    public async startRegistration(@Body() startDto: StartProviderRegistrationDto): Promise<StartedProviderRegistration> {
+        let registration: StartedProviderRegistration;
+
+        try {
+            registration = await this.service.startRegistration(startDto);
+        } catch (error) {
+            throw translateError(error);
+        }
+
+        enrichTelemetry({ 'provider.registration.state': registration.state });
+
+        return registration;
+    }
+
+    /**
+     * Converts the temporary code of a manifest.
+     *
+     * @param state State of the registration
+     * @param convertDto Temporary code GitHub handed back
+     *
+     * @returns The state of the registration and the short name of the application
+     */
+    @Post('registrations/:state/conversion')
+    @Roles(UserRole.Admin)
+    @HttpCode(200)
+    public async convertRegistration(@Param('state') state: string, @Body() convertDto: ConvertProviderRegistrationDto): Promise<ConvertedProviderRegistration> {
+        enrichTelemetry({ 'provider.registration.state': state });
+
+        try {
+            return await this.service.convertRegistration(state, convertDto);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Ends a registration.
+     *
+     * @param state State of the registration
+     * @param completeDto Identifier of the installation GitHub handed back
+     *
+     * @returns Created provider
+     */
+    @Post('registrations/:state/completion')
+    @Roles(UserRole.Admin)
+    public async completeRegistration(@Param('state') state: string, @Body() completeDto: CompleteProviderRegistrationDto): Promise<Provider> {
+        enrichTelemetry({ 'provider.registration.state': state });
+
+        try {
+            return await this.service.completeRegistration(state, completeDto);
         } catch (error) {
             throw translateError(error);
         }

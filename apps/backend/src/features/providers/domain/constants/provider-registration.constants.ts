@@ -18,3 +18,13 @@ export const GITHUB_PERSONAL_APP_CREATION_URL = 'https://github.com/settings/app
  * the organization takes the place of `{login}`.
  */
 export const GITHUB_ORGANIZATION_APP_CREATION_URL_TEMPLATE = 'https://github.com/organizations/{login}/settings/apps/new';
+
+/**
+ * Path of the screen GitHub sends the browser back to after the creation of the application.
+ */
+export const PROVIDER_REGISTRATION_REDIRECT_PATH = '/providers/registrations/created';
+
+/**
+ * Path of the screen GitHub sends the browser back to after the installation of the application.
+ */
+export const PROVIDER_REGISTRATION_SETUP_PATH = '/providers/registrations/installed';

@@ -18,7 +18,7 @@
 |-----------------|---------------------------------------------------------------------------------------------------------------------|
 | Image selection | `IMAGE_TAG` (tag of the published images the stack runs; `latest` if empty)                                         |
 | Host ports      | `BACKEND_PORT`, `FRONTEND_PORT`                                                                                     |
-| Backend runtime | `NODE_ENV`, `PORT`, `CORS_ORIGIN`, `THROTTLE_TTL`, `THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`, `THROTTLE_STREAM_LIMIT` |
+| Backend runtime | `NODE_ENV`, `PORT`, `CORS_ORIGIN`, `APP_BASE_URL`, `THROTTLE_TTL`, `THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`, `THROTTLE_STREAM_LIMIT` |
 | Deployment logs | `LOGS_MAX_LINES` (per-deployment line cap, example value `5000`)                                                    |
 | Redis           | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` (optional; empty when the server needs no authentication)              |
 | PostgreSQL      | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`      |
