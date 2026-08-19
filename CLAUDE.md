@@ -1,6 +1,17 @@
 # Guide for AI agents working on GitPaaS
 
-## Tech stack
+## Read the part that applies to you
+
+You are one of two kinds of agent. Find your kind, and read the sections that it names.
+
+| You are | You read |
+|---|---|
+| **The orchestrator** — the main agent, in conversation with the user | Everything. |
+| **A subagent** — you were launched with a prompt, and you have no conversation history | Section 1, section 4, section 5 and section 6. Skip section 2 and section 3, because you never delegate and you never choose an agent. |
+
+---
+
+## 1. The stack
 
 - **Monorepo:** Turborepo
 - **Package manager:** pNPM
@@ -14,124 +25,156 @@
 
 ---
 
-## Main instructions
+## 2. The workflow, from a request to a merge
 
-The main agent acts as an **orchestrator**. It does not implement, refactor, document, or analyze the codebase itself. For any task the user requests, it classifies the request and delegates to the specialized subagent best suited to it, passing the **minimum information necessary** to carry it out — because every subagent starts with no conversation history.
+The orchestrator does not implement, refactor, document or analyze the code. It classifies the request, it delegates, and it relays the result. These eight steps run in order.
 
-### The OpenSpec commands
+| Step | Who acts         | What happens                                      |
+|------|------------------|---------------------------------------------------|
+| 1    | The orchestrator | Classify the request.                             |
+| 2    | The orchestrator | Decide whether the request needs a specification. |
+| 3    | The user         | Run `/opsx:propose`, and approve the plan.        |
+| 4    | The orchestrator | Group the tasks, and delegate each group.         |
+| 5    | The subagents    | Build, and mark their own tasks.                  |
+| 6    | The orchestrator | Run `tester` one time.                            |
+| 7    | The orchestrator | Run `/opsx:sync`, then delegate to `git-manager`. |
+| 8    | The orchestrator | Run `/opsx:archive` after the merge.              |
 
-This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/` and in `.claude/skills/openspec-*/`. Do not write a local copy of any of them.
+### Step 1 — Classify the request
 
-| Command         | Purpose                                                                      | Who runs it      |
-|-----------------|------------------------------------------------------------------------------|------------------|
-| `/opsx:explore` | Investigate an idea, and clarify the requirements before any artifact exists | The user         |
-| `/opsx:propose` | Create the change folder and the planning artifacts in one step              | The user         |
-| `/opsx:update`  | Revise the artifacts of a change, and keep them coherent                     | The user         |
-| `/opsx:apply`   | Implement the tasks of the change                                            | The orchestrator |
-| `/opsx:sync`    | Merge the delta specifications into the main specifications                  | The orchestrator |
-| `/opsx:archive` | Archive a completed change                                                   | The orchestrator |
+Decide what kind of work the request asks for. Section 3 gives the agent for each kind.
 
-The map onto the local subagents:
+A request that is not a task needs no agent. A clarifying question, a short explanation, and a command that the user asked you to run all get a direct answer.
 
-- `/opsx:explore` and `/opsx:propose` run before any delegation. No subagent starts.
-- `/opsx:apply` does not implement alone. The orchestrator reads its task list, and it delegates each task to `implementer`, `refactorer` or `tester`.
-- `/opsx:sync` runs after the tests pass, and before `git-manager`.
-- `/opsx:archive` runs after the merge. It moves the change into `openspec/changes/archive/`.
+### Step 2 — Decide whether the request needs a specification
 
-**The precedence:** an `opsx` command owns the specification work. The six local subagents own the code work.
+**The rule.** If the request changes behavior, an OpenSpec change comes before any delegation. A new capability, a changed rule and a new user-visible flow all change behavior.
 
-**The expanded profile stays off.** The project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify` or `/opsx:bulk-archive`. The six commands above are the complete set.
-
-### The specification stage
-
-Before any delegation, the orchestrator decides whether the task needs an OpenSpec change.
-
-**The rule.** If a task changes behavior, the orchestrator creates or reads an OpenSpec change before it delegates. A new capability, a changed rule and a new user-visible flow all change behavior.
-
-**The exception.** These four kinds of task need no proposal:
+**The four exceptions.** These need no proposal, and they go straight to step 4:
 
 - A bug fix that restores the documented behavior.
 - A pure refactor that keeps the behavior.
 - A documentation edit.
 - A configuration edit.
 
-**The stop.** The orchestrator presents the proposal, and then it waits. **No subagent starts before the user approves the proposal.** The user runs `/opsx:propose`, reviews `proposal.md`, `design.md` and `tasks.md`, and states the approval. The orchestrator never approves its own proposal.
+### Step 3 — The plan, and the stop
 
-**The override of `/opsx:apply`.** The command file tells the agent to implement the tasks itself. In this project the orchestrator does not implement. It reads the task list of the change, and it delegates each task to `implementer`, `refactorer` or `tester`. This local rule wins.
+The user runs `/opsx:propose`. It writes four things into `openspec/changes/<change-id>/`:
 
-### The change folder (every subagent must follow)
+| File          | It holds                                                                                               |
+|---------------|--------------------------------------------------------------------------------------------------------|
+| `specs/`      | What the system must do: `### Requirement:` with `SHALL`, and `#### Scenario:` with `WHEN` and `THEN`. |
+| `proposal.md` | Why the change exists.                                                                                 |
+| `design.md`   | The technical decisions.                                                                               |
+| `tasks.md`    | The steps to build it.                                                                                 |
+
+**Then the orchestrator stops and waits.** No subagent starts before the user approves the plan. The orchestrator never approves its own proposal.
+
+### Step 4 — Group the tasks, and delegate
+
+`/opsx:apply` reads the task list. **In this project it does not implement.** The command file says the agent implements the tasks itself; this local rule wins, and the orchestrator delegates instead.
+
+`/opsx:propose` wrote `tasks.md` with no knowledge of these six subagents, so it grouped the tasks by feature area. The orchestrator regroups them for delegation. Section 4 gives the rules of the grouping and of the prompt.
+
+### Step 5 — The subagents build
+
+Each subagent works alone, and then it marks its own tasks. Section 5 gives its rules.
+
+### Step 6 — One test run
+
+After the last code task, `tester` runs one time, and before any commit. It derives its cases from the `#### Scenario:` lines of the specification.
+
+Skip this step when the change touches no product code.
+
+### Step 7 — Sync, then commit
+
+`/opsx:sync` runs after the tests pass, and it merges the delta specifications into the main specifications. Then `git-manager` creates the branch, the commit and the Pull Request.
+
+**`git-manager` runs by default when the task changed a file under `apps/`.** The orchestrator delegates to it as the final step, and it asks the user for no confirmation.
+
+### Step 8 — Archive
+
+`/opsx:archive` runs after the merge. It moves the change into `openspec/changes/archive/`.
+
+---
+
+## 3. Which agent takes the work
+
+The description of each subagent states its own triggers, and those descriptions load with this file. So pick by the type of the task, and read the description when the choice is close.
+
+| The task                                                              | The agent                                                 |
+|-----------------------------------------------------------------------|-----------------------------------------------------------|
+| A feature, a bug fix, a new endpoint or component; any change of behavior | `implementer`                                         |
+| A restructure that keeps the behavior                                     | `refactorer`                                          |
+| A test, when a test is the request itself                                 | `tester`                                              |
+| A document, a `docs/` page, a doc-comment                                 | `documenter`                                          |
+| An audit or a report. It reads, and it never writes code                  | `architecture-analyst`                                |
+| A branch, a commit, a push, a Pull Request                                | `git-manager`                                         |
+| A proposal, a specification delta, or an unclear idea                     | `/opsx:propose`, `/opsx:explore`. No subagent starts. |
+
+**The precedence.** An `opsx` command owns the specification work. The six subagents own the code work.
+
+---
+
+## 4. The rules of the orchestrator
+
+### How to group the tasks
+
+- **Group by agent type and by file area, and send one call per group.** A subagent starts cold: it loads this file, it loads its own file, and it reads the change folder again. Ten calls pay that price ten times. A change of ten tasks makes three or four calls.
+- **Split a group for a real reason alone.** Two groups touch the same file, or the second group needs the report of the first. Two groups that touch different areas run in parallel, in one message.
+- **A test task inside a numbered section stays in the group of that section.** A line such as "Write the unit tests of that comparison" belongs to the agent that builds the behavior of that section. Do not split a section to send one line to `tester`.
+- **Dedicated test work goes to `tester`.** Route to `tester` when a test is the request itself. The `implementer` still writes the tests for the behavior that it changes.
+- **When a request spans more than one type, split it, and order the parts.** Usually `implementer`, then `tester`, then `documenter`. Read each report before you launch the next part.
+
+### How to write the prompt
+
+- **Name the path; never paste the content.** Give file paths, symbol names and line numbers. Do not carry the text of a file, a diff or a log. A pasted file costs the tokens two times: one time in your prompt, and one time when the subagent reads the file anyway.
+- **Name the change folder.** If the task belongs to an OpenSpec change, the prompt names `openspec/changes/<change-id>/`. The subagent reads the three files itself, so the prompt stays short.
+- **Give the goal, the scope, the paths and the acceptance criteria, and nothing more.** A subagent never sees this conversation.
+
+### When you may act alone
+
+- **Delegate the work; do not do it inline.** Anything that reads or changes the codebase goes to a subagent.
+- **The floor of the delegation.** A cold start loads more text than a small edit holds. So you may edit directly when the change meets all three conditions: it is under about 10 lines; it holds no judgment about the architecture; and you already read the file in this conversation. A `model` line, a configuration value and a check box meet the three conditions. Prose that states a rule does not, and product code never does.
+- **Never run a `git` or `gh` command that changes state.** `git-manager` owns those.
+
+---
+
+## 5. The rules of every agent
+
+### The commands
+
+- **Prefix every shell command with `rtk`.** This includes `git`, `gh` and `openspec` (`rtk pnpm run test`, `rtk nest build`, `rtk git status`, `rtk openspec validate`). The files of `.claude/commands/opsx/` show the bare form; add the prefix before you run it. Never invoke a CLI tool directly.
+- **Never run ESLint.** That is the user's responsibility.
+- **Do not install dependencies.** Name the package that a task needs, and let the user install it.
+- **When code changes, run the tests of the affected app**, with the commands of `package.json`. Never run E2E tests, and never use Playwright.
+
+### The limits of a subagent
+
+- A subagent never spawns another subagent.
+- A subagent never commits, never pushes and never opens a Pull Request, unless its prompt says to. Only `git-manager` runs these operations.
+
+### The change folder
 
 When a prompt names `openspec/changes/<change-id>/`, read `proposal.md`, `design.md` and `tasks.md` before you start. These files carry the context, so the prompt stays short. If a file is absent, continue with the prompt alone, and say so in your report.
 
 After your checks pass, edit `tasks.md`. Change `- [ ]` into `- [x]` for your own completed tasks alone. A task that you completed in part keeps an empty box. Explain the remainder in your report.
 
-### Routing
+### The report
 
-Pick the subagent by the type of task requested:
-
-| Task requested                                                                                                       | Subagent or command           |
-|----------------------------------------------------------------------------------------------------------------------|-------------------------------|
-| Write a change proposal or a specification delta                                                                     | `/opsx:propose` — no subagent |
-| Explore an unclear idea                                                                                              | `/opsx:explore` — no subagent |
-| Build a feature, fix a bug, wire an endpoint/controller/service/component, or otherwise change behavior              | `implementer`                 |
-| Pure refactoring — restructure code without changing its behavior                                                    | `refactorer`                  |
-| Write, update, or expand automated tests (unit specs, coverage, fix failing tests) without changing product behavior | `tester`                      |
-| Write or update documentation, keep the `docs/` pages in sync, add doc-comments                                      | `documenter`                  |
-| Analyze/audit the architecture, report on its state, or suggest improvements (read-only)                             | `architecture-analyst`        |
-| Manage version control — create branches, commit, push, or open Pull Requests                                        | `git-manager`                 |
-
-### Orchestration rules
-
-- **Delegate; never do the work inline.** The orchestrator's job is to understand the request, choose the right subagent, hand it a tight, scoped prompt, and relay the result back to the user.
-- **Pass the minimum context each subagent needs and nothing more** — exact goal, scope, relevant file paths, and acceptance criteria. Never assume a subagent can see this conversation.
-- **Split multi-type requests.** If a task spans more than one type, break it up and delegate each part to the right subagent in a sensible order (e.g. `implementer` first, then `tester`, then `documenter`), reading each agent's report before launching the next.
-- **Group the tasks; do not send one call per task.** A subagent starts cold. It loads `CLAUDE.md`, it loads its own file, and it reads the change folder again. Ten calls pay that price ten times. So group the tasks of a change by agent type **and** by file area, and send one call per group. A change of ten tasks makes three or four calls. Split a group only for a real reason: two groups touch the same file, or the second group needs the report of the first. Two groups that touch different areas run in parallel, in one message.
-- **Dedicated test work goes to `tester`.** When a request is specifically about tests (adding coverage, writing specs, fixing failing tests), route it to `tester`. The `implementer` still writes tests for behavior it changes as part of its own task; hand off to `tester` when testing is the request itself.
-- **Run `tester` one time, after the last code task.** A change that alters product code needs one `tester` run, and it comes after the last code task and before the commit. Do not launch `tester` after each task. The `implementer` already writes the tests for the behavior that it changes, so a run per task repeats that work and pays another cold start. Read the reports of every code task, then hand `tester` one prompt that names all the changed files and the behavior to cover. Skip the run when the change touches no product code (a documentation edit or a configuration edit).
-- **Name the path; never paste the content.** A subagent prompt gives file paths, symbol names and line numbers. It does not carry the text of a file, a diff or a log. The subagent reads what it needs, and it reads only that. A pasted file costs the tokens two times: one time in the prompt of the orchestrator, and one time when the subagent reads the file anyway. State the acceptance criteria and the scope in your own words, and let the paths carry the rest.
-- **Name the change folder in every subagent prompt.** If the task belongs to an OpenSpec change, the prompt must name `openspec/changes/<change-id>/`. The subagent reads `proposal.md`, `design.md` and `tasks.md` from that folder, so the prompt stays short.
-- **Direct handling is the exception.** The orchestrator may answer directly only for things that are not tasks — clarifying questions, quick explanations, or running a command the user explicitly asked to run. Anything that reads or changes the codebase goes to a subagent.
-- **The floor of the delegation.** A subagent costs a cold start, and the start loads more text than a small edit holds. So the orchestrator may edit directly when the change meets all three conditions: it is under about 10 lines; it holds no judgment about the architecture; and the orchestrator already read the file in this conversation. Everything else goes to a subagent. A change of a `model` line, of a configuration value, or of a check box in a plan meets the three conditions. A change of prose that states a rule, or of any product code, does not.
-
-### Project-wide constraints (every agent must follow)
-
-- **Run every bash/CLI command through RTK.** Prefix all shell commands with `rtk` — this includes every `git` and `gh` invocation (e.g. `rtk pnpm run test`, `rtk nest build`, `rtk git status`, `rtk git push`, `rtk gh pr create`). Never invoke a CLI tool directly.
-- **Every `openspec` command carries the `rtk` prefix too** (e.g. `rtk openspec validate`, `rtk openspec status`, `rtk openspec archive`). The command files of `.claude/commands/opsx/` show the bare form; add the prefix before you run it.
-- Never run ESLint; this is the user's responsibility.
-- Do not install dependencies; if a task needs one, surface which package is required and let the user install it.
-- Whenever code changes, run the affected apps' tests using the commands defined in `package.json` — but never run E2E tests with Playwright.
-- A subagent never spawns another subagent.
-- A subagent never commits, never pushes and never opens a Pull Request, unless its prompt says to. Only `git-manager` runs these operations.
-- End every subagent run with a short summary. Name what you did, what you verified with the result, and the follow-ups, or "none". The final message is the only thing that returns to the caller, so write data and not chatter.
-
-### Git & GitHub workflow
-
-**All Git/GitHub operations are delegated to the `git-manager` subagent.** The orchestrator never runs `git`/`gh` state-changing commands itself — it hands `git-manager` a scoped prompt (branch type + description, a summary of the changes for the commit/PR, and any issue to reference).
-
-**`git-manager` only runs by default for app changes.** "App changes" means the task modified files under `apps/` (i.e. `apps/backend` or `apps/frontend`). In that case — and once the post-change `tester` run passes — the orchestrator automatically delegates to `git-manager` to create the branch, commit, and open the Pull Request as the final step, without asking the user for confirmation.
-
-**The commit includes the specification delta.** If the task belongs to an OpenSpec change, the prompt for `git-manager` names the change folder. The commit stages `openspec/changes/<change-id>/` together with the code, and the Pull Request body links the proposal. The specification and the code enter the repository in the same commit.
-
-The standard, complete workflow (branching strategy, conventional commits, creating pull requests, etc.) can be found in the **`git-github-workflow` skill** (`.claude/skills/git-github-workflow/SKILL.md`). It is the only reliable source of information; this section is for reference only.
+End with a short summary. Name what you did, what you verified with the result, and the follow-ups, or "none". Your final message is the only thing that returns to the caller, so write data and not chatter.
 
 ---
 
-## Project information
+## 6. Where to read more
 
-This section lists the various components that make up the GitPaaS project.
+| The subject | The document |
+|---|---|
+| The monorepo | [monorepo-architecture](./docs/monorepo-architecture.md) |
+| The backend | [backend-architecture](./docs/backend-architecture.md) |
+| The frontend | [frontend-architecture](./docs/frontend-architecture.md) |
+| The infrastructure | [infrastructure-architecture](./docs/infrastructure-architecture.md) |
+| The Git and GitHub workflow | The `git-github-workflow` skill (`.claude/skills/git-github-workflow/SKILL.md`). It is the authority; the steps above are the summary. |
+| The commit of a change | The commit stages `openspec/changes/<change-id>/` with the code, so the specification and the code enter the repository together. The Pull Request body links `proposal.md`. |
 
-### Monorepo
-
-If the agent needs information about the monorepo configuration, refer to the [monorepo-architecture](./docs/monorepo-architecture.md) document.
-
-### Backend
-
-If the agent needs information about the backend application, refer to the [backend-architecture document](./docs/backend-architecture.md).
-
-### Frontend
-
-If the agent needs information about the frontend application, refer to the [frontend-architecture document](./docs/frontend-architecture.md) document.
-
-### Infrastructure
-
-If the agent needs information about the infrastructure of the application, refer to the [infrastructure-architecture document](./docs/infrastructure-architecture.md) document.
+**OpenSpec.** This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/`, and you must not write a local copy of any of them. The expanded profile stays off: the project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify` or `/opsx:bulk-archive`.
