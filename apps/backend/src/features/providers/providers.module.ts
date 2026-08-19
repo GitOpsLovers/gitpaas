@@ -7,6 +7,7 @@ import { DbProviderEntity } from './infrastructure/database/db-provider.entity';
 import { DatabaseProvidersRepository } from './infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from './infrastructure/github/github-provider-client.adapter';
 import { ProvidersController } from './ui/controllers/providers.controller';
+import { RemoveExpiredProviderRegistrationsJob } from './ui/jobs/remove-expired-provider-registrations.job';
 import { ProvidersService } from './ui/services/providers.service';
 
 /**
@@ -24,6 +25,7 @@ import { ProvidersService } from './ui/services/providers.service';
         DatabaseProvidersRepository,
         DatabaseProviderRegistrationsRepository,
         GithubProviderClientAdapter,
+        RemoveExpiredProviderRegistrationsJob,
     ],
     exports: [
         DatabaseProvidersRepository,
