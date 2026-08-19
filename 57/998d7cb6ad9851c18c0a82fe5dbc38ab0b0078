@@ -1,0 +1,21 @@
+CLAUDE.md
+  s_58ec17cd7e3891::t_bfbad26fa9cbab 91
+docs/TODO.md
+  s_58ec17cd7e3891::t_86d2c5fb9d2326 446,449-456,459,462-493,513-567
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "57998d7cb6ad9851c18c0a82fe5dbc38ab0b0078",
+  "prompts": {},
+  "sessions": {
+    "s_58ec17cd7e3891": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ae5de7c-34a6-4187-8ce6-f9c25f93f11a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
