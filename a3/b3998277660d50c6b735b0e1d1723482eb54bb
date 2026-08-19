@@ -1,0 +1,78 @@
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_99912bcf7e5595::t_4d71f2aa1ddb55 147-161
+apps/backend/src/features/providers/domain/constants/provider-registration.constants.ts
+  s_99912bcf7e5595::t_99ee6c0626a45e 21-30
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  s_99912bcf7e5595::t_121363366ce6fc 2-7,12-17,25-29,63-78,91-93,110-112,482-672,717-745,804-843
+apps/backend/src/features/providers/ui/services/providers.service.ts
+  s_99912bcf7e5595::t_450d628d880a50 2,4-5,13,16-18,20,24-29,32,34,47-48,52-53,58-67,166-227
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_99912bcf7e5595::t_e07b7ce84c508d 33-35
+apps/backend/src/features/providers/domain/dtos/convert-provider-registration.dto.ts
+  s_99912bcf7e5595::t_c74480ba44fc9d 1-10
+apps/backend/src/features/providers/application/__tests__/test-provider-connection.use-case.spec.ts
+  s_c931562dff1f2b::t_f602c45b41abb8 16
+apps/backend/src/features/providers/domain/dtos/complete-provider-registration.dto.ts
+  s_99912bcf7e5595::t_aaf9c27e37c35a 1-10
+apps/backend/src/features/providers/domain/models/provider-registration.models.ts
+  s_99912bcf7e5595::t_8b17d1cb796b31 105-112
+apps/backend/src/features/providers/domain/dtos/start-provider-registration.dto.ts
+  s_99912bcf7e5595::t_50b76462733437 1-20
+openspec/changes/provider-app-registration/tasks.md
+  s_99912bcf7e5595::t_434664577db7f3 44-48
+  s_99912bcf7e5595::t_f50f18f18b9436 49-51
+apps/backend/src/core/domain/models/telemetry.models.ts
+  s_99912bcf7e5595::t_b0fe48340ded5d 80
+apps/backend/src/features/providers/ui/controllers/providers.controller.ts
+  s_99912bcf7e5595::t_fea02fa550a0c1 16-17,19,24,77-140
+apps/backend/.env.example
+  s_99912bcf7e5595::t_e744b51ee91270 4
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_99912bcf7e5595::t_48a9ab36df2b22 20,196-212
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_99912bcf7e5595::t_b7467ee62ba662 3,76-80
+apps/backend/test/setup-env.ts
+  s_99912bcf7e5595::t_cea989212dd2bc 31
+iac/production/.env.example
+  s_99912bcf7e5595::t_eb7b34a17956be 17
+scripts/install.sh
+  s_99912bcf7e5595::t_49bb641a74fc80 289,304
+turbo.json
+  s_99912bcf7e5595::t_df25b0f7257126 9
+CONTRIBUTING.md
+  s_5ff7e847504919::t_0b9af2d1fa5329 37
+docs/infrastructure-architecture/conventions.md
+  s_5ff7e847504919::t_c584768474c4ef 21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a3b3998277660d50c6b735b0e1d1723482eb54bb",
+  "prompts": {},
+  "sessions": {
+    "s_5ff7e847504919": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad14a48acb54a35b1",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_99912bcf7e5595": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51209d86-dfc7-4630-b967-5033f6824a08",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c931562dff1f2b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2d3ea10320ff3eba",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
