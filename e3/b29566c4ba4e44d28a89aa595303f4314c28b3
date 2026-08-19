@@ -1,0 +1,19 @@
+CLAUDE.md
+  s_7f8013f632b2d4::t_e2bf878db5bdd1 30-41,83,85,87,89,91,93-95,99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e3b29566c4ba4e44d28a89aa595303f4314c28b3",
+  "prompts": {},
+  "sessions": {
+    "s_7f8013f632b2d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92ab79ce-f280-435b-a5a5-339dfadb0c6e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
