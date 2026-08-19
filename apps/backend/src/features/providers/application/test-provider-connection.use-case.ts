@@ -21,7 +21,6 @@ export async function testProviderConnectionUseCase(
         return { outcome: 'unauthorized', missingPermissions: [] };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const missingPermissions = findMissingProviderPermissions(permissions);
 
     return missingPermissions.length === 0

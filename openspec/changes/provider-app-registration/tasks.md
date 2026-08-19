@@ -14,12 +14,12 @@
 
 ## 3. The record of the pending registration
 
-- [ ] 3.1 Create the domain model of the pending registration in `features/providers/domain/models/`, with the step `awaiting_creation` and the step `awaiting_installation`.
-- [ ] 3.2 Create the entity `DbProviderRegistrationEntity` in `infrastructure/database/`, with a unique index on the state.
-- [ ] 3.3 Create the SQL migration `iac/production/migrations/012_provider_registrations.sql`. Check the highest number in that folder first, because another change may already hold `012`.
-- [ ] 3.4 Create the port of the repository and its implementation, with the reads by state, the write, the change and the removal by date.
-- [ ] 3.5 Create the transformer between the entity and the model, and seal the private key with `core/infrastructure/crypto/secret-cipher.adapter.ts`.
-- [ ] 3.6 Write the unit tests of the repository and of the transformer, and verify that no clear key leaves them.
+- [x] 3.1 Create the domain model of the pending registration in `features/providers/domain/models/`, with the step `awaiting_creation` and the step `awaiting_installation`.
+- [x] 3.2 Create the entity `DbProviderRegistrationEntity` in `infrastructure/database/`, with a unique index on the state.
+- [x] 3.3 Create the SQL migration `iac/production/migrations/012_provider_registrations.sql`. Check the highest number in that folder first, because another change may already hold `012`.
+- [x] 3.4 Create the port of the repository and its implementation, with the reads by state, the write, the change and the removal by date.
+- [x] 3.5 Create the transformer between the entity and the model, and seal the private key with `core/infrastructure/crypto/secret-cipher.adapter.ts`.
+- [x] 3.6 Write the unit tests of the repository and of the transformer, and verify that no clear key leaves them.
 
 ## 4. The conversion of a manifest at the port of the provider
 
