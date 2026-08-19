@@ -1,0 +1,67 @@
+apps/frontend/src/app/features/providers/domain/constants/provider-permissions.constants.ts
+  s_930e63252fe364::t_0e413445ac64de 1-20
+apps/frontend/src/app/features/providers/domain/dtos/complete-provider-registration.dto.ts
+  s_930e63252fe364::t_06cb85d7e5822a 1-6
+apps/frontend/src/app/features/providers/domain/dtos/convert-provider-registration.dto.ts
+  s_930e63252fe364::t_e1aab7410a6035 1-6
+apps/frontend/src/app/features/providers/domain/dtos/start-provider-registration.dto.ts
+  s_930e63252fe364::t_a2fc0209e9140a 1-11
+apps/frontend/src/app/features/providers/domain/models/provider-registration.model.ts
+  s_930e63252fe364::t_a5d9750e8ba3f9 1-37
+apps/frontend/src/app/features/providers/infrastructure/api/providers-api.repository.spec.ts
+  s_930e63252fe364::t_f05d1d82dc73cd 1-209
+apps/frontend/src/app/features/providers/infrastructure/api/providers-api.repository.ts
+  s_930e63252fe364::t_c076ad0ee20931 5-6,8,12,73-107
+apps/frontend/src/app/features/providers/infrastructure/github/submit-provider-manifest.spec.ts
+  s_930e63252fe364::t_c94c57e4d8f5f7 1-75
+apps/frontend/src/app/features/providers/infrastructure/github/submit-provider-manifest.ts
+  s_930e63252fe364::t_075187cb0c779f 1-29
+apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.html
+  s_930e63252fe364::t_4dbf436c9bbe07 5-16
+apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.spec.ts
+  s_930e63252fe364::t_cf213c66476798 68-85
+apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.ts
+  s_930e63252fe364::t_89e4ecd4cd4646 4-5,44-49
+apps/frontend/src/app/features/providers/ui/components/provider-path-choice/provider-path-choice.component.html
+  s_930e63252fe364::t_3bd29c275ca8f7 1-42
+apps/frontend/src/app/features/providers/ui/components/provider-path-choice/provider-path-choice.component.spec.ts
+  s_930e63252fe364::t_cd7ca39b770ac0 1-62
+apps/frontend/src/app/features/providers/ui/components/provider-path-choice/provider-path-choice.component.ts
+  s_930e63252fe364::t_d36da976ae8296 1-36
+apps/frontend/src/app/features/providers/ui/components/provider-registration-form/provider-registration-form.component.html
+  s_930e63252fe364::t_d3b99a749d5fa8 1-76
+apps/frontend/src/app/features/providers/ui/components/provider-registration-form/provider-registration-form.component.spec.ts
+  s_930e63252fe364::t_5543167e091e5a 1-144
+apps/frontend/src/app/features/providers/ui/components/provider-registration-form/provider-registration-form.component.ts
+  s_930e63252fe364::t_7958dce06075b6 1-78
+apps/frontend/src/app/features/providers/ui/containers/provider-registration-start/provider-registration-start.component.html
+  s_930e63252fe364::t_7d3b25a53ecafe 1
+apps/frontend/src/app/features/providers/ui/containers/provider-registration-start/provider-registration-start.component.spec.ts
+  s_930e63252fe364::t_e5fbc9773b2b61 1-180
+apps/frontend/src/app/features/providers/ui/containers/provider-registration-start/provider-registration-start.component.ts
+  s_930e63252fe364::t_1aa6ae8cad8a13 1-60
+apps/frontend/src/app/pages/providers/add/provider-add.component.html
+  s_930e63252fe364::t_3dd22b1eac19ad 3-9
+apps/frontend/src/app/pages/providers/add/provider-add.component.spec.ts
+  s_930e63252fe364::t_ef904420655b1b 1-81
+apps/frontend/src/app/pages/providers/add/provider-add.component.ts
+  s_930e63252fe364::t_06b8aeff4298cf 1,3,5,11-16,21-23,30-35
+openspec/changes/provider-app-registration/tasks.md
+  s_930e63252fe364::t_560ac934e53b81 62-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "2e6f549cb0c42ac25e1f33898b6c26753b2056db",
+  "prompts": {},
+  "sessions": {
+    "s_930e63252fe364": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e189cc3d-21a3-426d-9b3e-cf3ed7c6fb88",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
