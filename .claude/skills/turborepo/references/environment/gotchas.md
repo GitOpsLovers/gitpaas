@@ -45,6 +45,39 @@ In strict mode, CI provider variables (GITHUB_TOKEN, GITLAB_CI, etc.) are filter
 }
 ```
 
+## Root `.env` File in a Monorepo
+
+A `.env` file at the repo root is an anti-pattern — even for small monorepos or starter templates. It creates implicit coupling between packages and makes it unclear which packages depend on which variables.
+
+```
+// WRONG - root .env affects all packages implicitly
+my-monorepo/
+├── .env              # Which packages use this?
+├── apps/
+│   ├── web/
+│   └── api/
+└── packages/
+
+// CORRECT - .env files in packages that need them
+my-monorepo/
+├── apps/
+│   ├── web/
+│   │   └── .env      # Clear: web needs DATABASE_URL
+│   └── api/
+│       └── .env      # Clear: api needs API_KEY
+└── packages/
+```
+
+**Problems with root `.env`:**
+
+- Unclear which packages consume which variables
+- All packages get all variables (even ones they don't need)
+- Cache invalidation is coarse-grained (root .env change invalidates everything)
+- Security risk: packages may accidentally access sensitive vars meant for others
+- Bad habits start small — starter templates should model correct patterns
+
+**If you must share variables**, use `globalEnv` to be explicit about what's shared, and document why.
+
 ## passThroughEnv Doesn't Affect Hash
 
 Variables in `passThroughEnv` are available at runtime but changes WON'T trigger rebuilds.

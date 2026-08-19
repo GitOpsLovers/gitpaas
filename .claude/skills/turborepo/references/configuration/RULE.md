@@ -152,6 +152,52 @@ The `"extends": ["//"]` is required - it references the root configuration.
 - Different caching rules for specific packages
 - Keeping framework config close to the framework code
 
+### Prefer Package Configurations over `package#task` Overrides
+
+Do not fill the root `turbo.json` with `package#task` overrides. Put the override in the package instead.
+
+```json
+// WRONG - root turbo.json with many package-specific overrides
+{
+  "tasks": {
+    "test": { "dependsOn": ["build"] },
+    "@repo/web#test": { "outputs": ["coverage/**"] },
+    "@repo/api#test": { "outputs": ["coverage/**"] },
+    "@repo/utils#test": { "outputs": [] },
+    "@repo/cli#test": { "outputs": [] },
+    "@repo/core#test": { "outputs": [] }
+  }
+}
+
+// CORRECT - use Package Configurations
+// Root turbo.json - base config only
+{
+  "tasks": {
+    "test": { "dependsOn": ["build"] }
+  }
+}
+
+// packages/web/turbo.json - package-specific override
+{
+  "extends": ["//"],
+  "tasks": {
+    "test": { "outputs": ["coverage/**"] }
+  }
+}
+```
+
+**Benefits of Package Configurations:**
+
+- Keeps configuration close to the code it affects
+- Root turbo.json stays clean and focused on base patterns
+- Easier to understand what's special about each package
+- Works with `$TURBO_EXTENDS$` to inherit + extend arrays
+
+**When to use `package#task` in root:**
+
+- Single package needs a unique dependency (e.g., `"deploy": { "dependsOn": ["web#build"] }`)
+- Temporary override while migrating
+
 ### Extending from Other Packages
 
 You can extend from config packages instead of just root:

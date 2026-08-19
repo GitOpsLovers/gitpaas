@@ -188,14 +188,41 @@ If that happens, add the folders to `.gitignore`.
 
 ### Step 2 — Split the large skills
 
-- [ ] Cut `backend-unit-testing/SKILL.md` to less than 5 KB. Move each section
+- [x] Cut `backend-unit-testing/SKILL.md` to less than 5 KB. Move each section
       into `references/`.
-- [ ] Cut `turborepo/SKILL.md` to less than 5 KB. Its `references/` folder
+- [x] Cut `turborepo/SKILL.md` to less than 5 KB. Its `references/` folder
       already exists.
-- [ ] Cut `tailadmin-ui-patterns/SKILL.md` to less than 5 KB.
+- [x] Cut `tailadmin-ui-patterns/SKILL.md` to less than 5 KB.
 
 Each new SKILL.md holds a table of contents with one line per reference file.
 The skill `angular-developer` already shows this shape.
+
+**The result of Step 2:**
+
+| Skill | Before | After |
+|---|---|---|
+| `backend-unit-testing` | 46,515 B | 2,426 B |
+| `tailadmin-ui-patterns` | 34,632 B | 1,965 B |
+| `turborepo` | 28,471 B | 4,997 B |
+
+The ten `SKILL.md` files now hold 50,275 bytes in total. Three of them held
+109,618 bytes alone before the split.
+
+**Two tasks that Step 2 found:**
+
+- [ ] Add the `rtk` prefix to the shell snippets inside
+      `tailadmin-ui-patterns/references/fetch-and-verify.md`. They call `git`,
+      `grep` and `cat` directly, and that breaks the rule of the project.
+- [ ] Decide whether an agent may clone the TailAdmin repository at all. The
+      frontend already holds TailAdmin markup, so the local code can serve as
+      the source instead of a clone from the internet.
+
+**A note on the origin of the skills.** The file `skills-lock.json` named the
+upstream repository of each skill, and it held a hash of each one. The user
+deleted that file. The skills are local files now, and no command re-installs
+them over the split. The entry for `tailadmin-ui-patterns` named the source
+`kaakati/rails-enterprise-dev`. That explains the Rails section that Step 1
+deleted.
 
 ### Step 3 — Make one shared rule set
 
