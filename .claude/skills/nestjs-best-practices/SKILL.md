@@ -125,6 +125,8 @@ Each rule file contains:
 - Correct code example with explanation
 - Additional context and references
 
-## Full Compiled Document
+## Read a rule
 
-For the complete guide with all rules expanded: `AGENTS.md`
+Each rule lives in its own file at `rules/<name>.md`. Read only the rules that
+your task needs. There is no compiled document, because one file with every rule
+costs too many tokens to load.

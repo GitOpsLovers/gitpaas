@@ -1,0 +1,264 @@
+# TODO — refinement of the agent architecture
+
+This document holds the plan that reduces the token cost of the agent
+architecture, and that raises its performance. It covers `CLAUDE.md`, the six
+subagents of `.claude/agents/`, the OpenSpec entry points and the project
+skills.
+
+The measurements come from the state of the repository on 19 August 2026.
+
+---
+
+## 1. The problems that were measured
+
+### 1.1 The OpenSpec profile is installed two times
+
+`.claude/commands/opsx/*.md` and `.claude/skills/openspec-*/SKILL.md` hold the
+same content. A diff of `apply.md` against `openspec-apply-change/SKILL.md`
+returns zero lines. Both sets appear in the prompt of every session.
+
+**Cost:** approximately 2,250 characters of descriptions in every session.
+**Risk:** an agent loads the copy that the project does not use.
+
+### 1.2 Three skills need a decision
+
+Their descriptions load in every session, and they can trigger a wrong match.
+
+**Decided: delete `nodejs-backend-patterns` and `nodejs-best-practices`.**
+
+The two skills teach the layer that NestJS hides. The evidence:
+
+- `nodejs-backend-patterns/references/details.md:292` writes authentication as a
+  raw `(req, res, next)` middleware. The project uses a Passport strategy and a
+  guard.
+- `nodejs-backend-patterns/references/advanced-patterns.md:5` writes a
+  hand-written DI container. NestJS provides the container.
+- `nodejs-best-practices/SKILL.md:29` holds a decision tree between Express and
+  Fastify. That decision is closed.
+
+The backend does use Express under NestJS (`@nestjs/platform-express@11.1.28`),
+but the surface is small. Only 9 files of 428 name Express, and each one imports
+a **type** alone (`import type { Request, Response }`). Every use sits inside a
+NestJS construct: a `NestMiddleware` class, an `ExceptionFilter`, a
+`CanActivate` guard or a parameter decorator. There is no `express()`
+application, and there is no hand-written router.
+
+The folder `nestjs-best-practices/rules/` already covers the same ground in the
+correct idiom (`error-use-exception-filters.md`, `security-use-guards.md`,
+`security-auth-jwt.md`, `di-prefer-constructor-injection.md`).
+
+**Decided: keep `typescript-advanced-types`, and narrow its description.**
+
+The project holds 858 TypeScript files, and it uses few of the type features
+that the skill teaches:
+
+| Concept (`SKILL.md`) | Files that use it |
+|---|---|
+| Generics (`SKILL.md:23`) | 1 declaration |
+| Conditional types (`SKILL.md:68`) | 0 |
+| Mapped types (`SKILL.md:122`) | 0 |
+| Template literal types (`SKILL.md:187`) | 0 |
+| Utility types (`SKILL.md:231`) | many |
+
+The searches for `keyof`, ` infer ` and `[K in ` each return zero lines. The one
+generic declaration that the project writes itself is `runWithTelemetry<T>` in
+`apps/backend/src/core/infrastructure/telemetry/telemetry.context.ts:18`. The
+rest is the built-in utilities: `Pick` in 90 files, `Record` in 55, `Partial` in
+38, `Readonly` in 4, `Omit` in 3.
+
+The skill stays because the frontend can need it later. A generic `resource<T>`
+wrapper or a typed form schema raises the count. A narrowed description keeps
+the material available, and it stops the automatic match. The risk that the
+narrow description removes: an agent adds a generic builder where the codebase
+writes a plain interface.
+
+**Decided: keep `tailwind-4-docs`, and narrow its description a little.**
+
+This skill is the strongest match of the three. The frontend uses Angular, but
+the design system is Tailwind, and the version agrees exactly:
+
+- `apps/frontend/package.json:31` pins `tailwindcss` at `4.3.3`, and line 27
+  pins `@tailwindcss/postcss` at the same version.
+- `apps/frontend/src/styles.css:4` writes `@import "tailwindcss"`, and line 8
+  opens a `@theme` block. Both belong to version 4 alone.
+- The file uses `@apply` in more than 20 rules.
+
+The size is correct already. `SKILL.md` holds 4,731 bytes, and the material
+sits in `references/`. Step 2 does not apply to it.
+
+The narrowing is light, and it differs from the narrowing of
+`typescript-advanced-types`. There, the narrow description stops a wrong match.
+Here, the automatic match is correct, so the trigger stays. Two clauses change:
+
+1. Delete "or migrating projects from v3 to v4" from the description. The
+   project runs version 4 already, so the clause is dead.
+2. Add the border with `tailadmin-ui-patterns`. This skill owns the engine of
+   Tailwind: the utilities, the variants, the `@theme` configuration. The other
+   skill owns the classes of the dashboard components.
+
+**Caution — the skill does not work today.**
+`references/docs-source.txt` says `Status: Not initialized` and
+`Snapshot-Date: (none)`. Section "Initialization (required once per install)" of
+`SKILL.md` tells the agent to run
+`scripts/sync_tailwind_docs.py --accept-docs-license`. That script needs git,
+Python 3 and access to `github.com/tailwindlabs/tailwindcss.com`. The permission
+list of `.claude/settings.json` holds no rule for it. An agent that loads this
+skill today stops in the middle of its task, or it asks for a permission.
+Initialize the snapshot before you rely on the skill.
+
+### 1.3 Four skill files are too large to load whole
+
+| File | Bytes | Approximate tokens |
+|---|---|---|
+| `nestjs-best-practices/AGENTS.md` | 163,058 | 40,000 |
+| `backend-unit-testing/SKILL.md` | 46,515 | 11,600 |
+| `tailadmin-ui-patterns/SKILL.md` | 34,632 | 8,600 |
+| `turborepo/SKILL.md` | 28,471 | 7,100 |
+
+`nestjs-best-practices/SKILL.md:130` points the agent at `AGENTS.md`. That one
+pointer can cost 40,000 tokens. The folder `rules/` already holds the same
+content in 40 small files.
+
+### 1.4 Each agent file repeats `CLAUDE.md`
+
+The six agent files restate the RTK rule, the ESLint ban, the dependency ban,
+the "do not spawn agents" rule, the layer model and the report format. Claude
+Code loads `CLAUDE.md` into every subagent, so each copy is dead weight.
+
+**Cost:** a subagent starts with approximately 4,000 tokens of instructions
+before it reads one line of code.
+
+### 1.5 The agent descriptions are too long
+
+Each description holds approximately 800 characters. All six end with the same
+sentence about the fresh context. That sentence belongs in the routing table of
+`CLAUDE.md`, because the description loads in every session.
+
+### 1.6 The layer rules exist in three places
+
+`CLAUDE.md`, the agent files and `docs/backend-architecture/structure.md` all
+describe the same layers. Three copies go out of step.
+
+### 1.7 Four agents run on Opus
+
+`implementer`, `refactorer`, `tester` and `architecture-analyst` use
+`model: inherit`. A test run and a mechanical rename do not need Opus. This is
+the largest single lever on cost.
+
+### 1.8 The orchestrator sends one task per subagent call
+
+`/opsx:apply` produces a task list. Each delegation restarts a cold context, and
+it reads `proposal.md`, `design.md` and `tasks.md` again. Ten tasks cost ten
+cold starts.
+
+### 1.9 The rule that runs `tester` after every code change fires per task
+
+The `implementer` already writes tests for its own change. A second full agent
+per task duplicates the work.
+
+---
+
+## 2. The plan
+
+### Step 1 — Delete the duplicates, and narrow the rest
+
+- [x] Remove the six folders `.claude/skills/openspec-*/`. Keep
+      `.claude/commands/opsx/`.
+- [x] Remove the skills `nodejs-backend-patterns` and `nodejs-best-practices`.
+- [x] Keep `typescript-advanced-types`. Narrow its `description` frontmatter, so
+      that the skill triggers on an explicit request alone. Name the trigger
+      words: a generic utility type, a conditional type, a mapped type or a
+      template literal type.
+- [x] Keep `tailwind-4-docs`. Delete the clause "or migrating projects from v3
+      to v4" from its `description`, and add the border with
+      `tailadmin-ui-patterns`.
+- [x] Add the permission rule `Bash(rtk python3 *)` to `.claude/settings.json`,
+      so that the snapshot script of `tailwind-4-docs` can run.
+- [ ] Initialize the snapshot of `tailwind-4-docs` with
+      `scripts/sync_tailwind_docs.py --accept-docs-license`. The skill fails
+      without it.
+      - Deferred: the user runs the script, because it clones a repository from
+        the internet.
+- [x] Remove `nestjs-best-practices/AGENTS.md`, `README.md` and `scripts/`.
+- [x] Change line 130 of `nestjs-best-practices/SKILL.md`. It must point at
+      `rules/<name>.md`, not at `AGENTS.md`.
+
+**Caution:** an `openspec update` command can restore the deleted skill folders.
+If that happens, add the folders to `.gitignore`.
+
+### Step 2 — Split the large skills
+
+- [ ] Cut `backend-unit-testing/SKILL.md` to less than 5 KB. Move each section
+      into `references/`.
+- [ ] Cut `turborepo/SKILL.md` to less than 5 KB. Its `references/` folder
+      already exists.
+- [ ] Cut `tailadmin-ui-patterns/SKILL.md` to less than 5 KB.
+
+Each new SKILL.md holds a table of contents with one line per reference file.
+The skill `angular-developer` already shows this shape.
+
+### Step 3 — Make one shared rule set
+
+- [ ] Keep the RTK rule, the ESLint ban, the dependency ban and the report
+      format only in `CLAUDE.md`.
+- [ ] Cut each agent file to three parts: the role, the method and the report.
+- [ ] Delete the repeated sentence about the fresh context from the six
+      descriptions.
+
+**Target:** a reduction of 30 to 40 percent per agent file.
+
+### Step 4 — Point at the documents
+
+- [ ] Replace the inline layer descriptions of the agent files with the paths
+      `docs/backend-architecture/structure.md` and
+      `docs/frontend-architecture/structure.md`.
+
+### Step 5 — Set the model of each agent
+
+| Agent | Now | Target |
+|---|---|---|
+| `implementer` | inherit | inherit |
+| `architecture-analyst` | inherit | inherit |
+| `refactorer` | inherit | sonnet |
+| `tester` | inherit | sonnet |
+| `documenter` | sonnet | sonnet |
+| `git-manager` | haiku | haiku |
+
+- [ ] Set `model: sonnet` in `refactorer.md`.
+- [ ] Set `model: sonnet` in `tester.md`.
+
+### Step 6 — Change two orchestration rules of `CLAUDE.md`
+
+- [ ] Group the tasks of a change by agent type and by file area. Send one call
+      per group, not one call per task.
+- [ ] Run `tester` one time, after the last code task of the change.
+
+### Step 7 — Add a context budget rule to `CLAUDE.md`
+
+- [ ] Write this rule: a subagent prompt names file paths. It never pastes file
+      contents.
+
+### Step 8 — Clean the permissions
+
+- [ ] Remove from `.claude/settings.local.json` every rule of the `artifactory`
+      project, and every rule that covers one command only.
+
+---
+
+## 3. The expected result
+
+- Every session starts with approximately 3,000 fewer tokens.
+- Every subagent starts with approximately 1,500 fewer tokens.
+- A change of ten tasks makes three or four subagent calls, not twenty.
+- The cheap agents move to Sonnet and to Haiku.
+
+---
+
+## 4. The order of the work
+
+1. Step 1 and Step 5 give the largest gain for the smallest effort. Do them
+   first.
+2. Step 3, Step 4, Step 6 and Step 7 change `CLAUDE.md` and the agent files
+   together. Do them in one pass.
+3. Step 2 needs the most work. Do it last.
+4. Step 8 is independent. Do it at any time.
