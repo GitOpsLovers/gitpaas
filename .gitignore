@@ -19,8 +19,8 @@ coverage
 .turbo
 
 # Build Outputs
-.next/
-out/
+.next
+out
 build
 dist
 
@@ -38,6 +38,3 @@ yarn-error.log*
 
 # Local dev environment state
 .dev
-
-# AI
-.claude/settings.local.json

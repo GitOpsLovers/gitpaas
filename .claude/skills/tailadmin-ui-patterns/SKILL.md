@@ -37,11 +37,21 @@ finds the class, do not use it.
 
 | File | Read it when |
 |------|--------------|
-| `references/fetch-and-verify.md` | You must fetch the source, or verify that a class exists. |
-| `references/custom-configuration.md` | You need the custom colors, spacing or shadows of TailAdmin. |
-| `references/layout.md` | You build the page shell, the sidebar or the header. |
-| `references/cards-and-feedback.md` | You build a card, a stat box, a badge or an alert. |
-| `references/tables.md` | You build a data table or a pagination control. |
-| `references/forms-and-buttons.md` | You build an input, a select, a toggle or a button. |
-| `references/modal.md` | You build a modal dialog. |
+| `references/fetch-and-verify.md` | You must find a pattern, or verify that a class exists. |
+| `references/custom-configuration.md` | You need a color, a size or a shadow of the theme. |
 | `references/anti-patterns.md` | You must avoid a known mistake, or run the final checklist. |
+
+## Where the markup lives
+
+This skill holds no markup, and that is deliberate. The frontend holds the real
+markup, and it stays correct as the frontend changes. Find the component that
+you need under `apps/frontend/src/app`, and copy its structure.
+
+| You build | Find an example among |
+|---|---|
+| A card or a stat box | the `*-card` components of each feature |
+| A list or a table | the `*-list` containers of each feature |
+| The page shell, the sidebar or the header | `apps/frontend/src/app/layout` |
+| A form, an input or a button | the containers that create or edit a record |
+
+Read `references/fetch-and-verify.md` for the commands that find an example.
