@@ -1,0 +1,25 @@
+.claude/skills/tailadmin-ui-patterns/SKILL.md
+  s_58ec17cd7e3891::t_074c4c3d47e699 40-41,43-57
+.gitignore
+  s_58ec17cd7e3891::t_d8558af2bf0ccc 44-51
+CLAUDE.md
+  s_58ec17cd7e3891::t_dad6405a4950b4 94
+docs/TODO.md
+  s_58ec17cd7e3891::t_77617e431c787c 177,180,260,262,266-305,475,481-488,599-626
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a84051a0fc3a882b8540d94a7d7209f88c330c53",
+  "prompts": {},
+  "sessions": {
+    "s_58ec17cd7e3891": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ae5de7c-34a6-4187-8ce6-f9c25f93f11a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
