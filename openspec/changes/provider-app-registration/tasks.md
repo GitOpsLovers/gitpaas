@@ -52,10 +52,10 @@
 
 ## 7. The removal of the abandoned registrations
 
-- [ ] 7.1 Register `ScheduleModule.forRoot()` in the module of the application. It is the first scheduled job of the backend.
-- [ ] 7.2 Create the job that removes the rows that passed their date, with a period of one hour.
-- [ ] 7.3 Call GitHub in no part of that job, and remove no GitHub App.
-- [ ] 7.4 Write the test of the job: it removes the rows that passed their date, and it keeps the others.
+- [x] 7.1 Register `ScheduleModule.forRoot()` in the module of the application. It is the first scheduled job of the backend.
+- [x] 7.2 Create the job that removes the rows that passed their date, with a period of one hour.
+- [x] 7.3 Call GitHub in no part of that job, and remove no GitHub App.
+- [x] 7.4 Write the test of the job: it removes the rows that passed their date, and it keeps the others.
 
 ## 8. The two paths on the screen of the creation
 
