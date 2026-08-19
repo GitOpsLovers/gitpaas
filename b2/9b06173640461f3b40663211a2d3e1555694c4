@@ -1,0 +1,23 @@
+.github/workflows/pr-openspec.yml
+  s_2d215b02b87d13::t_cbe047a8cc2797 1-38
+.github/workflows/pr-verify.yml
+  s_2d215b02b87d13::t_6689ef70c638f6 3-9,14-24,28,53-58
+.github/dependabot.yml
+  s_2d215b02b87d13::t_851df84f7b3152 1-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b29b06173640461f3b40663211a2d3e1555694c4",
+  "prompts": {},
+  "sessions": {
+    "s_2d215b02b87d13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a169d0f8-2343-442b-b5cc-70c660cd65cb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
