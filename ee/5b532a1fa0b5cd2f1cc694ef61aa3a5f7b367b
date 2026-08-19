@@ -1,0 +1,101 @@
+.claude/skills/backend-unit-testing/references/auth-constructs.md
+  s_58ec17cd7e3891::t_eaca9fad0329d6 1-32
+.claude/skills/backend-unit-testing/references/config-and-bootstrap.md
+  s_58ec17cd7e3891::t_f850f18d4eb67d 1-5
+.claude/skills/backend-unit-testing/references/controller.md
+  s_58ec17cd7e3891::t_f5b5caffda5394 1-38
+.claude/skills/backend-unit-testing/references/conventions.md
+  s_58ec17cd7e3891::t_6ff93d1bd831f5 1-52
+.claude/skills/backend-unit-testing/references/docker-adapter.md
+  s_58ec17cd7e3891::t_a667aa91b8ca99 1-99
+.claude/skills/backend-unit-testing/references/dto.md
+  s_58ec17cd7e3891::t_a4830dbc224e02 1-76
+.claude/skills/backend-unit-testing/references/external-api-provider.md
+  s_58ec17cd7e3891::t_3d2a98afdadb9e 1-16
+.claude/skills/backend-unit-testing/references/known-inconsistencies.md
+  s_58ec17cd7e3891::t_d658ab0ad3ad04 1-12
+.claude/skills/backend-unit-testing/references/repository.md
+  s_58ec17cd7e3891::t_8ae5611e215230 1-39
+.claude/skills/backend-unit-testing/references/running-the-suite.md
+  s_58ec17cd7e3891::t_00d64076692738 1-22
+.claude/skills/backend-unit-testing/references/stateful-adapter.md
+  s_58ec17cd7e3891::t_c3c24a01ae83e9 1-13
+.claude/skills/backend-unit-testing/references/transformer.md
+  s_58ec17cd7e3891::t_cc29314937214d 1-15
+.claude/skills/backend-unit-testing/references/ui-service.md
+  s_58ec17cd7e3891::t_b50d37552938ad 1-59
+.claude/skills/backend-unit-testing/references/use-case.md
+  s_58ec17cd7e3891::t_db24221dc605b4 1-44
+.claude/skills/tailadmin-ui-patterns/references/anti-patterns.md
+  s_58ec17cd7e3891::t_49c00b2403ac06 1-79
+.claude/skills/tailadmin-ui-patterns/references/cards-and-feedback.md
+  s_58ec17cd7e3891::t_1a3d56e74acb17 1-129
+.claude/skills/tailadmin-ui-patterns/references/custom-configuration.md
+  s_58ec17cd7e3891::t_3bc8662f892921 1-176
+.claude/skills/tailadmin-ui-patterns/references/fetch-and-verify.md
+  s_58ec17cd7e3891::t_50c661e22b6396 1-101
+.claude/skills/tailadmin-ui-patterns/references/forms-and-buttons.md
+  s_58ec17cd7e3891::t_cbb690ac5d216b 1-157
+.claude/skills/tailadmin-ui-patterns/references/layout.md
+  s_58ec17cd7e3891::t_07a7eff0bb3572 1-180
+.claude/skills/tailadmin-ui-patterns/references/modal.md
+  s_58ec17cd7e3891::t_cf61a5ed5dd6bd 1-29
+.claude/skills/tailadmin-ui-patterns/references/tables.md
+  s_58ec17cd7e3891::t_fe00a99911c248 1-144
+.claude/skills/turborepo/references/configuration/RULE.md
+  s_58ec17cd7e3891::t_f341843a3189be 155-200
+.claude/skills/backend-unit-testing/SKILL.md
+  s_abc14e628ad299::t_48fd06df30b651 8,10,20-39
+.claude/skills/tailadmin-ui-patterns/SKILL.md
+  s_b2e19c1b90adf2::t_b0428380288c2d 10,12-16,18,20-22,24,26-27,29,31-40
+.claude/skills/turborepo/SKILL.md
+  s_12bbe0b9d90c99::t_fc95703530c3a1 17,32-33,36-37,40,45,52,54,58,62-66,69-72,75-76,79-80,83-85,88-92,95-97,99-103,106-107,112-120
+.claude/skills/turborepo/references/configuration/gotchas.md
+  s_12bbe0b9d90c99::t_ad975beb3eb693 78-79,82-97,265-342
+.claude/skills/turborepo/references/configuration/recipes.md
+  s_12bbe0b9d90c99::t_de838a99f8608c 1-7,9-13,15-67,69-107,111
+.claude/skills/turborepo/references/environment/gotchas.md
+  s_12bbe0b9d90c99::t_31e5338690ab15 48-80
+docs/TODO.md
+  s_58ec17cd7e3891::t_d6ed6e830f1314 191,193,195,200-226
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ee5b532a1fa0b5cd2f1cc694ef61aa3a5f7b367b",
+  "prompts": {},
+  "sessions": {
+    "s_12bbe0b9d90c99": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-acecfb055d293e8b3",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_58ec17cd7e3891": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ae5de7c-34a6-4187-8ce6-f9c25f93f11a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_abc14e628ad299": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a79e7a30e7940fe68",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b2e19c1b90adf2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-affd8222ef65aa05b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
