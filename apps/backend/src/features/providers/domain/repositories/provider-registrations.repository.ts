@@ -1,8 +1,10 @@
 import {
     NewProviderRegistration,
     ProviderRegistration,
+    ProviderRegistrationCompletion,
     ProviderRegistrationConversion,
 } from '../models/provider-registration.models';
+import { Provider } from '../models/provider.models';
 
 /**
  * Provider registrations repository
@@ -35,6 +37,16 @@ export interface ProviderRegistrationsRepository {
      * @returns Updated pending registration, or `null` when no row carries the state
      */
     saveConversion: (state: string, conversion: ProviderRegistrationConversion) => Promise<ProviderRegistration | null>;
+
+    /**
+     * Writes one provider from a pending registration, and removes that registration.
+     *
+     * @param state State of the registration
+     * @param completion Data the provider is written from, with the key already sealed
+     *
+     * @returns Created provider
+     */
+    complete: (state: string, completion: ProviderRegistrationCompletion) => Promise<Provider>;
 
     /**
      * Removes every pending registration that passed the date of the end of its life

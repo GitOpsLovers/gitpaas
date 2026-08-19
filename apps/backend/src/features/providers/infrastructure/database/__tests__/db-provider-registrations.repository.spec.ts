@@ -5,11 +5,14 @@ import {
     NewProviderRegistration,
     ProviderAppOwnerType,
     ProviderRegistration,
+    ProviderRegistrationCompletion,
     ProviderRegistrationConversion,
     ProviderRegistrationStep,
 } from '../../../domain/models/provider-registration.models';
+import { ProviderType } from '../../../domain/models/provider.models';
 import { DbProviderRegistrationEntity } from '../db-provider-registration.entity';
 import { DatabaseProviderRegistrationsRepository } from '../db-provider-registrations.repository';
+import { DbProviderEntity } from '../db-provider.entity';
 
 import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 
@@ -306,6 +309,87 @@ describe('DatabaseProviderRegistrationsRepository', () => {
             expect(result).toBeNull();
             expect(mockRepository.merge).not.toHaveBeenCalled();
             expect(mockRepository.save).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('complete', () => {
+        const completion: ProviderRegistrationCompletion = {
+            name: 'acme',
+            appId: '123456',
+            installationId: '654321',
+            encryptedPrivateKey: cipher.encryptSecret(PEM),
+        };
+
+        const providerEntity: DbProviderEntity = {
+            id: '9c858901-8a57-4791-81fe-4c455b099bc9',
+            name: completion.name,
+            type: ProviderType.GithubApp,
+            appId: completion.appId,
+            installationId: completion.installationId,
+            encryptedPrivateKey: completion.encryptedPrivateKey,
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+        };
+
+        let mockProviders: { create: jest.Mock; save: jest.Mock };
+        let mockRegistrations: { delete: jest.Mock };
+        let mockTransaction: jest.Mock;
+
+        beforeEach(() => {
+            mockProviders = {
+                create: jest.fn().mockReturnValue(providerEntity),
+                save: jest.fn().mockResolvedValue(providerEntity),
+            };
+            mockRegistrations = { delete: jest.fn().mockResolvedValue({ affected: 1, raw: [] }) };
+
+            const manager = {
+                getRepository: jest.fn((entity: unknown) =>
+                    (entity === DbProviderEntity ? mockProviders : mockRegistrations)),
+            };
+
+            mockTransaction = jest.fn((run: (entityManager: unknown) => Promise<unknown>) => run(manager));
+
+            Object.assign(mockRepository, { manager: { ...manager, transaction: mockTransaction } });
+            sut = new DatabaseProviderRegistrationsRepository(
+                mockRepository as unknown as Repository<DbProviderRegistrationEntity>,
+                cipher,
+            );
+        });
+
+        it('writes the provider and removes the registration inside one transaction', async () => {
+            await sut.complete('f'.repeat(64), completion);
+
+            expect(mockTransaction).toHaveBeenCalledTimes(1);
+            expect(mockProviders.save).toHaveBeenCalledTimes(1);
+            expect(mockRegistrations.delete).toHaveBeenCalledWith({ state: 'f'.repeat(64) });
+        });
+
+        it('writes the provider from the registration and the identifier of the installation', async () => {
+            await sut.complete('f'.repeat(64), completion);
+
+            expect(mockProviders.create).toHaveBeenCalledWith({
+                name: completion.name,
+                type: ProviderType.GithubApp,
+                appId: completion.appId,
+                installationId: completion.installationId,
+                encryptedPrivateKey: completion.encryptedPrivateKey,
+            });
+        });
+
+        it('answers the domain provider, and carries no private key', async () => {
+            const result = await sut.complete('f'.repeat(64), completion);
+
+            expect(result.id).toBe(providerEntity.id);
+            expect(result).not.toHaveProperty('privateKey');
+            expect(JSON.stringify(result)).not.toContain('BEGIN RSA PRIVATE KEY');
+            expect(JSON.stringify(result)).not.toContain(PEM.split('\n')[1]);
+        });
+
+        it('propagates a failure of the transaction', async () => {
+            const error = new Error('deadlock detected');
+            mockTransaction.mockRejectedValue(error);
+
+            await expect(sut.complete('f'.repeat(64), completion)).rejects.toBe(error);
         });
     });
 

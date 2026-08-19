@@ -31,13 +31,13 @@
 
 ## 5. The three use cases of the registration
 
-- [ ] 5.1 Create the use case that starts a registration. It refuses a name that another provider carries, it generates the state of 32 random bytes, it writes the row with the date of the end of its life at twelve hours, and it answers with the state, the manifest and the address of GitHub.
-- [ ] 5.2 Build the manifest inside that use case, from the constant of 1.1 and from the addresses of the return. Declare no webhook and no event, and declare the application as not public.
-- [ ] 5.3 Choose the address of GitHub from the owner: the personal form, or the form of the organization with its login.
-- [ ] 5.4 Create the use case of the conversion. It reads the row by the state, it refuses a row that is not at the step `awaiting_creation`, it converts the code, it writes the identifier, the short name and the sealed key, and it moves the step.
-- [ ] 5.5 Create the use case that ends the registration. It reads the row by the state, it refuses a row that is not at the step `awaiting_installation`, and it writes the provider and removes the row in one transaction.
-- [ ] 5.6 Refuse an expired row in each of the three use cases.
-- [ ] 5.7 Write the unit tests of the three use cases, with every refusal that the spec names.
+- [x] 5.1 Create the use case that starts a registration. It refuses a name that another provider carries, it generates the state of 32 random bytes, it writes the row with the date of the end of its life at twelve hours, and it answers with the state, the manifest and the address of GitHub.
+- [x] 5.2 Build the manifest inside that use case, from the constant of 1.1 and from the addresses of the return. Declare no webhook and no event, and declare the application as not public.
+- [x] 5.3 Choose the address of GitHub from the owner: the personal form, or the form of the organization with its login.
+- [x] 5.4 Create the use case of the conversion. It reads the row by the state, it refuses a row that is not at the step `awaiting_creation`, it converts the code, it writes the identifier, the short name and the sealed key, and it moves the step.
+- [x] 5.5 Create the use case that ends the registration. It reads the row by the state, it refuses a row that is not at the step `awaiting_installation`, and it writes the provider and removes the row in one transaction.
+- [x] 5.6 Refuse an expired row in each of the three use cases.
+- [x] 5.7 Write the unit tests of the three use cases, with every refusal that the spec names.
 
 ## 6. The endpoints of the registration
 
