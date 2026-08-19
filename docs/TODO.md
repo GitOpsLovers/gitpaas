@@ -443,13 +443,53 @@ This item stays open, because Step 6 owns two rules, and this is a third one.
 
 ### Step 7 — Add a context budget rule to `CLAUDE.md`
 
-- [ ] Write this rule: a subagent prompt names file paths. It never pastes file
+- [x] Write this rule: a subagent prompt names file paths. It never pastes file
       contents.
+
+The rule sits in the section "Orchestration rules" of `CLAUDE.md`, and it reads:
+a subagent prompt gives file paths, symbol names and line numbers, and it never
+carries the text of a file, a diff or a log.
+
+**The reason.** A pasted file costs the tokens two times: one time in the prompt
+of the orchestrator, and one time when the subagent reads the file anyway. This
+step is the smallest of the plan, and it guards the gain of every other step.
 
 ### Step 8 — Clean the permissions
 
-- [ ] Remove from `.claude/settings.local.json` every rule of the `artifactory`
+- [x] Remove from `.claude/settings.local.json` every rule of the `artifactory`
       project, and every rule that covers one command only.
+
+**This change is local, and no Pull Request carries it.**
+`.claude/settings.local.json` is untracked, and `.gitignore` names it. The
+cleanup affects one machine.
+
+**The result:** 140 rules became 40. The file went from 11,801 bytes to 1,165
+bytes.
+
+| Reason for the removal | Rules |
+|---|---|
+| A one-off `echo` of an exit code | 33 |
+| A one-off inline script (`node -e`, `python3 -c`) | 12 |
+| A rule of the `artifactory` project | 10 |
+| A dead path (a scratchpad of a past session, an `_npx` cache) | 10 |
+| A one-off literal edit (`perl`, `sed`, `xargs`, `cp`) | 9 |
+| A one-off probe (`sh -n`, `shellcheck`, `command -v`) | 9 |
+| A rule that `Bash(git *)` already covers | 6 |
+| A one-off `find` with an absolute path | 5 |
+| A rule that `.claude/settings.json` already states | 4 |
+| **Total** | **98** |
+
+The 40 rules that stay are wildcards, for example `Bash(rtk perl *)` and
+`Bash(git *)`, plus the `WebFetch` domains and three `Skill` entries.
+
+**A backup exists** at the scratchpad of this session, as
+`settings.local.backup.json`. Restore it if a permission prompt returns for a
+command that you expect to run often.
+
+**A side effect that helps the project.** Many of the removed rules named a bare
+command, for example `find` or `sh`, with no `rtk` prefix. The project requires
+the prefix. Their removal makes the bare form prompt again, so the rule of the
+project gets enforced by the permission list.
 
 ---
 
@@ -470,3 +510,58 @@ This item stays open, because Step 6 owns two rules, and this is a third one.
    together. Do them in one pass.
 3. Step 2 needs the most work. Do it last.
 4. Step 8 is independent. Do it at any time.
+
+---
+
+## 5. The measured result
+
+Every step is complete. The work ran in this order: 1, 2, 3, 4, 5, 6, 7, 8.
+
+| Step | Pull Request | Effect |
+|---|---|---|
+| 1 | #81 | 8 skills deleted, and 163 KB of generated text removed. |
+| 2 | #82, #83 | Three skill files: 109,618 B to 9,388 B. |
+| 3 | #84 | The seven files of instructions: a net saving of 7,044 B. |
+| 4 | #85 | A cost of 226 B. It corrects a stale rule. |
+| 5 | #86 | Two agents moved from Opus to Sonnet. |
+| 6 | #87 | One call per group, and one `tester` run per change. |
+| 7 | #88 | One rule: name the path, and never paste the content. |
+| 8 | none, local | The permission rules: 140 to 40. |
+
+### What the plan promised, against what it gave
+
+| The promise of section 3 | The result |
+|---|---|
+| Approximately 3,000 fewer tokens per session | Met. The skills fell from 18 to 10, and three large files fell by 100,230 bytes. |
+| Approximately 1,500 fewer tokens per subagent | Met in part. Step 3 gave 7,964 bytes across the six files, and Step 4 gave 226 bytes back. |
+| Three or four calls for a change of ten tasks | The rule exists now. The first real change proves it, not this document. |
+| The cheap agents on Sonnet and on Haiku | Met. Two on Opus, three on Sonnet, one on Haiku. |
+
+### The two honest failures
+
+1. **Step 4 cost tokens.** Section 1.6 listed it under the token cost. A pointer
+   at a page of 9,758 bytes replaces 400 bytes of text, so an agent that follows
+   the pointer reads more. The step stays, because it removes a rule that
+   produced an import that does not resolve.
+2. **Step 3 gave 23.6 percent, and the target was 30 to 40 percent.** The
+   remainder of each agent file is the method of that agent alone. A deeper cut
+   removes the value of the agent, not its duplication.
+
+### What stays open
+
+- [ ] Replace the markup of the five files of `tailadmin-ui-patterns`, or delete
+      them. See the section "The generation problem".
+- [ ] Initialize the snapshot of `tailwind-4-docs`.
+- [ ] Decide whether `CLAUDE.md` states a floor for the delegation. See Step 6.
+
+### How to measure the next change
+
+The plan counted bytes, because a byte is easy to count. A byte is not the goal.
+Measure the next real change of a feature three ways:
+
+1. The number of subagent calls that the change needs.
+2. The tokens that each subagent reports.
+3. The number of times that an agent reads a file that its prompt already named.
+
+The third number tests Step 7. A number above zero says that the prompt gave the
+path, and the agent still needed more.
