@@ -1,0 +1,45 @@
+.claude/agents/architecture-analyst.md
+  s_7727e67de8c213::t_94fa7c615f06ea 8,38
+.claude/agents/documenter.md
+  s_7727e67de8c213::t_6bac0d5efd3d53 6,20
+.claude/agents/implementer.md
+  s_7727e67de8c213::t_5808b9bbecc9c8 6,21
+.claude/agents/refactorer.md
+  s_7727e67de8c213::t_a632a51636cefb 6,21,36
+.claude/agents/tester.md
+  s_7727e67de8c213::t_40329235387736 6
+.claude/output-styles/asd-ste100.md
+  s_b78972aef23c75::t_07bf3c86d9cbba 1-35
+.claude/plugins/.claude-plugin/marketplace.json
+  s_b78972aef23c75::t_b94932c9169766 1-18
+.claude/plugins/typescript-lsp/.claude-plugin/plugin.json
+  s_b78972aef23c75::t_ac286e3c38d4d5 1-40
+.claude/settings.json
+  s_b78972aef23c75::t_3b96de3dac5adb 31-41
+CLAUDE.md
+  s_7727e67de8c213::t_16ba635335b3b7 151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dfbc44f1317eec84c4b7696e13344eb8471ea4c9",
+  "prompts": {},
+  "sessions": {
+    "s_7727e67de8c213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "320c79d5-7fac-4565-8cbc-3a5813fd348d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b78972aef23c75": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f54fe4d8-accc-4c88-953d-d252c2a7d3ad",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
