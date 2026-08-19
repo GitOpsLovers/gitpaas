@@ -1,0 +1,38 @@
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.transformer.spec.ts
+  s_7f8013f632b2d4::t_c73ce98bd78afc 4,14,17,186-260
+  s_7f8013f632b2d4::t_a9bfc376b1974e 1
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_7f8013f632b2d4::t_3ff4e447062430 46
+openspec/changes/provider-app-registration/tasks.md
+  s_7f8013f632b2d4::t_a07c3d16bc3e2b 26-30
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.adapter.ts
+  s_7f8013f632b2d4::t_7c7046a1f73f91 12,20,23,36-37,132-146,185-196
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.transformer.ts
+  s_7f8013f632b2d4::t_a83e08e7653fef 4,12,35-39,179-217
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_7f8013f632b2d4::t_edb0c86281532b 142-146
+apps/backend/src/features/providers/domain/errors/__tests__/provider-client.errors.spec.ts
+  s_7f8013f632b2d4::t_5f58d8f8ec74b7 3,135-159
+apps/backend/src/features/providers/domain/ports/provider-client.port.ts
+  s_7f8013f632b2d4::t_1d31fd7a2a6582 4,60-68
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.adapter.spec.ts
+  s_7f8013f632b2d4::t_fdddb41a7cfcb8 5,338-437
+apps/backend/src/features/providers/domain/errors/provider-client.errors.ts
+  s_7f8013f632b2d4::t_12590cb033c9cf 67-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f8aff5ac9fda7c252bfcf4a97d960149015c946f",
+  "prompts": {},
+  "sessions": {
+    "s_7f8013f632b2d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92ab79ce-f280-435b-a5a5-339dfadb0c6e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
