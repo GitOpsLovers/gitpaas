@@ -27,18 +27,18 @@ You are one of two kinds of agent. Find your kind, and read the sections that it
 
 ## 2. The workflow, from a request to a merge
 
-The orchestrator does not implement, refactor, document or analyze the code. It classifies the request, it delegates, and it relays the result. These eight steps run in order.
+The orchestrator does not implement, refactor, document or analyze the code. It classifies the request, it delegates, and it relays the result. A change delivers one phase at a time, so these eight steps run in order, and steps 4 to 7 repeat, one time for each phase of the change.
 
-| Step | Who acts         | What happens                                      |
-|------|------------------|---------------------------------------------------|
-| 1    | The orchestrator | Classify the request.                             |
-| 2    | The orchestrator | Decide whether the request needs a specification. |
-| 3    | The user         | Run `/opsx:propose`, and approve the plan.        |
-| 4    | The orchestrator | Group the tasks, and delegate each group.         |
-| 5    | The subagents    | Build, and mark their own tasks.                  |
-| 6    | The orchestrator | Run `tester` one time.                            |
-| 7    | The orchestrator | Run `/opsx:sync`, then delegate to `git-manager`. |
-| 8    | The orchestrator | Run `/opsx:archive` after the merge.              |
+| Step | Who acts         | What happens                                                                                     |
+|------|------------------|--------------------------------------------------------------------------------------------------|
+| 1    | The orchestrator | Classify the request.                                                                            |
+| 2    | The orchestrator | Decide whether the request needs a specification.                                                |
+| 3    | The user         | Run `/opsx:propose`, and approve the plan.                                                       |
+| 4    | The orchestrator | Group the tasks of a phase, and delegate each group.                                             |
+| 5    | The subagents    | Build, and mark their own tasks.                                                                 |
+| 6    | The orchestrator | Run `tester` one time, for the phase.                                                            |
+| 7    | The orchestrator | Delegate to `git-manager` for the phase. Run `/opsx:sync` first, and only before the last phase. |
+| 8    | The orchestrator | Run `/opsx:archive` after the merge of the last phase.                                           |
 
 ### Step 1 — Classify the request
 
@@ -80,21 +80,23 @@ The user runs `/opsx:propose`. It writes four things into `openspec/changes/<cha
 
 Each subagent works alone, and then it marks its own tasks. Section 5 gives its rules.
 
-### Step 6 — One test run
+### Step 6 — One test run per phase
 
-After the last code task, `tester` runs one time, and before any commit. It derives its cases from the `#### Scenario:` lines of the specification.
+After the last code task of a phase, `tester` runs one time, and before the commit of that phase. It derives its cases from the `#### Scenario:` lines of the specification that the phase covers.
 
-Skip this step when the change touches no product code.
+Skip this step when the phase touches no product code.
 
-### Step 7 — Sync, then commit
+### Step 7 — Sync once, commit each phase
 
-`/opsx:sync` runs after the tests pass, and it merges the delta specifications into the main specifications. Then `git-manager` creates the branch, the commit and the Pull Request.
+A change delivers one phase at a time. After each phase that changed a file under `apps/`, and after the tests of that phase pass, `git-manager` creates the branch, the commit and the Pull Request of that phase. The orchestrator delegates to it as the final step of the phase, and it asks the user for no confirmation.
 
-**`git-manager` runs by default when the task changed a file under `apps/`.** The orchestrator delegates to it as the final step, and it asks the user for no confirmation.
+One phase gives one branch and one Pull Request. The body of the Pull Request states that the delivery is partial, and it names the sections that are complete.
+
+`/opsx:sync` runs one time alone, before the commit of the last phase, and it merges the delta specifications into the main specifications. It never runs for an intermediate phase.
 
 ### Step 8 — Archive
 
-`/opsx:archive` runs after the merge. It moves the change into `openspec/changes/archive/`.
+`/opsx:archive` runs after the merge of the last Pull Request. It moves the change into `openspec/changes/archive/`.
 
 ---
 
