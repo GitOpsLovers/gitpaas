@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import {
-    IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min, validateSync,
+    IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, Max, Min, validateSync,
 } from 'class-validator';
 
 import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '../../domain/constants/telemetry.constants';
@@ -72,6 +72,11 @@ export class EnvironmentVariables {
     @IsNotEmpty()
     @IsString()
     public CORS_ORIGIN!: string;
+
+    @IsDefined()
+    @IsNotEmpty()
+    @IsUrl({ protocols: ['http', 'https'], require_protocol: true, require_tld: false })
+    public APP_BASE_URL!: string;
 
     @IsDefined()
     @IsNumber()

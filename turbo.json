@@ -6,6 +6,7 @@
         "APP_VERSION",
         "PORT",
         "CORS_ORIGIN",
+        "APP_BASE_URL",
         "DB_HOST",
         "DB_PORT",
         "DB_USER",

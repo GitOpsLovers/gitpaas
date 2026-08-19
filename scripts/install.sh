@@ -286,6 +286,7 @@ generate_env() {
         default_env "REDIS_HOST" "redis"
         default_env "REDIS_PORT" "6379"
         default_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"
+        default_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
         return
     fi
 
@@ -300,6 +301,7 @@ generate_env() {
     set_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"
     set_env "NODE_ENV" "production"
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"
+    set_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
     upsert_env "DOCKER_GID" "$DOCKER_GID"
     upsert_env "IMAGE_TAG" "$IMAGE_TAG"
 

@@ -1,10 +1,20 @@
 /* eslint-disable no-secrets/no-secrets */
-import { ConflictException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import {
+    BadRequestException,
+    ConflictException,
+    NotFoundException,
+    ServiceUnavailableException,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { CreateProviderDto } from '../../../domain/dtos/create-provider.dto';
 import { UpdateProviderDto } from '../../../domain/dtos/update-provider.dto';
-import { ProviderAuthenticationError } from '../../../domain/errors/provider-client.errors';
+import { ProviderAuthenticationError, ProviderManifestCodeRejectedError } from '../../../domain/errors/provider-client.errors';
+import {
+    ProviderRegistrationExpiredError,
+    ProviderRegistrationNotFoundError,
+    ProviderRegistrationStepError,
+} from '../../../domain/errors/provider-registration.errors';
 import {
     ProviderInUseError,
     ProviderNameTakenError,
@@ -12,6 +22,11 @@ import {
 } from '../../../domain/errors/provider.errors';
 import { GitBranch } from '../../../domain/models/git-branch.models';
 import { GitRepository } from '../../../domain/models/git-repository.models';
+import {
+    ProviderAppOwnerType,
+    ProviderRegistrationStep,
+    StartedProviderRegistration,
+} from '../../../domain/models/provider-registration.models';
 import { Provider, ProviderType } from '../../../domain/models/provider.models';
 import { ProvidersService } from '../../services/providers.service';
 import { ProvidersController } from '../providers.controller';
@@ -45,6 +60,22 @@ const repositories: GitRepository[] = [
 
 const branches: GitBranch[] = [{ name: 'main' }];
 
+const registrationState = 'f1e2d3c4b5a60718293a4b5c6d7e8f901a2b3c4d5e6f708192a3b4c5d6e7f809';
+
+const startedRegistration: StartedProviderRegistration = {
+    state: registrationState,
+    manifest: {
+        name: 'default',
+        url: 'http://localhost:4200',
+        redirect_url: 'http://localhost:4200/providers/registrations/created',
+        setup_url: 'http://localhost:4200/providers/registrations/installed',
+        public: false,
+        default_permissions: { contents: 'read', metadata: 'read' },
+        default_events: [],
+    },
+    githubUrl: 'https://github.com/settings/apps/new',
+};
+
 describe('ProvidersController', () => {
     let mockProvidersService: jest.Mocked<
         Pick<
@@ -57,6 +88,9 @@ describe('ProvidersController', () => {
             | 'testConnection'
             | 'listRepositories'
             | 'listBranches'
+            | 'startRegistration'
+            | 'convertRegistration'
+            | 'completeRegistration'
         >
     >;
     let sut: ProvidersController;
@@ -73,6 +107,9 @@ describe('ProvidersController', () => {
             testConnection: jest.fn(),
             listRepositories: jest.fn(),
             listBranches: jest.fn(),
+            startRegistration: jest.fn(),
+            convertRegistration: jest.fn(),
+            completeRegistration: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -442,6 +479,197 @@ describe('ProvidersController', () => {
         });
     });
 
+    describe('startRegistration', () => {
+        const startDto = { name: 'default', ownerType: ProviderAppOwnerType.Personal };
+
+        it('delegates to the service with the received dto', async () => {
+            mockProvidersService.startRegistration.mockResolvedValue(startedRegistration);
+
+            await sut.startRegistration(startDto);
+
+            expect(mockProvidersService.startRegistration).toHaveBeenCalledTimes(1);
+            expect(mockProvidersService.startRegistration).toHaveBeenCalledWith(startDto);
+        });
+
+        it('answers with the state, the manifest and the address of GitHub', async () => {
+            mockProvidersService.startRegistration.mockResolvedValue(startedRegistration);
+
+            const result = await sut.startRegistration(startDto);
+
+            expect(result).toEqual(startedRegistration);
+        });
+
+        it('forwards the login of an organization to the service', async () => {
+            const organizationDto = {
+                name: 'default',
+                ownerType: ProviderAppOwnerType.Organization,
+                ownerLogin: 'acme',
+            };
+            mockProvidersService.startRegistration.mockResolvedValue({
+                ...startedRegistration,
+                githubUrl: 'https://github.com/organizations/acme/settings/apps/new',
+            });
+
+            const result = await sut.startRegistration(organizationDto);
+
+            expect(mockProvidersService.startRegistration).toHaveBeenCalledWith(organizationDto);
+            expect(result.githubUrl).toBe('https://github.com/organizations/acme/settings/apps/new');
+        });
+
+        it('translates a taken name into a ConflictException', async () => {
+            mockProvidersService.startRegistration.mockRejectedValue(new ProviderNameTakenError('default'));
+
+            await expect(sut.startRegistration(startDto)).rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('names the taken name in the conflict message', async () => {
+            mockProvidersService.startRegistration.mockRejectedValue(new ProviderNameTakenError('default'));
+
+            await expect(sut.startRegistration(startDto)).rejects.toThrow('Provider name default is already taken');
+        });
+
+        it('propagates errors raised by the service that no translation covers', async () => {
+            const error = new Error('db unreachable');
+            mockProvidersService.startRegistration.mockRejectedValue(error);
+
+            await expect(sut.startRegistration(startDto)).rejects.toBe(error);
+        });
+    });
+
+    describe('convertRegistration', () => {
+        const convertDto = { code: 'temporary-code' };
+
+        const converted = { state: registrationState, appSlug: 'gitpaas-default' };
+
+        it('delegates to the service with the state and the code', async () => {
+            mockProvidersService.convertRegistration.mockResolvedValue(converted);
+
+            await sut.convertRegistration(registrationState, convertDto);
+
+            expect(mockProvidersService.convertRegistration).toHaveBeenCalledTimes(1);
+            expect(mockProvidersService.convertRegistration).toHaveBeenCalledWith(registrationState, convertDto);
+        });
+
+        it('answers with the short name of the application', async () => {
+            mockProvidersService.convertRegistration.mockResolvedValue(converted);
+
+            const result = await sut.convertRegistration(registrationState, convertDto);
+
+            expect(result).toEqual(converted);
+        });
+
+        it('translates a state that no registration carries into a NotFoundException', async () => {
+            mockProvidersService.convertRegistration.mockRejectedValue(
+                new ProviderRegistrationNotFoundError(registrationState),
+            );
+
+            await expect(sut.convertRegistration(registrationState, convertDto))
+                .rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('translates a registration that passed its date into a NotFoundException', async () => {
+            mockProvidersService.convertRegistration.mockRejectedValue(
+                new ProviderRegistrationExpiredError(registrationState),
+            );
+
+            await expect(sut.convertRegistration(registrationState, convertDto))
+                .rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('translates a step that does not agree into a ConflictException', async () => {
+            mockProvidersService.convertRegistration.mockRejectedValue(
+                new ProviderRegistrationStepError(
+                    registrationState,
+                    ProviderRegistrationStep.AwaitingCreation,
+                    ProviderRegistrationStep.AwaitingInstallation,
+                ),
+            );
+
+            await expect(sut.convertRegistration(registrationState, convertDto))
+                .rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('translates a code that GitHub refuses into a BadRequestException', async () => {
+            mockProvidersService.convertRegistration.mockRejectedValue(new ProviderManifestCodeRejectedError());
+
+            await expect(sut.convertRegistration(registrationState, convertDto))
+                .rejects.toBeInstanceOf(BadRequestException);
+        });
+
+        it('propagates errors raised by the service that no translation covers', async () => {
+            const error = new Error('db unreachable');
+            mockProvidersService.convertRegistration.mockRejectedValue(error);
+
+            await expect(sut.convertRegistration(registrationState, convertDto)).rejects.toBe(error);
+        });
+    });
+
+    describe('completeRegistration', () => {
+        const completeDto = { installationId: '7891011' };
+
+        it('delegates to the service with the state and the identifier of the installation', async () => {
+            mockProvidersService.completeRegistration.mockResolvedValue(provider);
+
+            await sut.completeRegistration(registrationState, completeDto);
+
+            expect(mockProvidersService.completeRegistration).toHaveBeenCalledTimes(1);
+            expect(mockProvidersService.completeRegistration).toHaveBeenCalledWith(registrationState, completeDto);
+        });
+
+        it('answers with the created provider', async () => {
+            mockProvidersService.completeRegistration.mockResolvedValue(provider);
+
+            const result = await sut.completeRegistration(registrationState, completeDto);
+
+            expect(result).toBe(provider);
+        });
+
+        it('translates a state that no registration carries into a NotFoundException', async () => {
+            mockProvidersService.completeRegistration.mockRejectedValue(
+                new ProviderRegistrationNotFoundError(registrationState),
+            );
+
+            await expect(sut.completeRegistration(registrationState, completeDto))
+                .rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('translates a registration that passed its date into a NotFoundException', async () => {
+            mockProvidersService.completeRegistration.mockRejectedValue(
+                new ProviderRegistrationExpiredError(registrationState),
+            );
+
+            await expect(sut.completeRegistration(registrationState, completeDto))
+                .rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('translates a registration that did not pass the conversion into a ConflictException', async () => {
+            mockProvidersService.completeRegistration.mockRejectedValue(
+                new ProviderRegistrationStepError(
+                    registrationState,
+                    ProviderRegistrationStep.AwaitingInstallation,
+                    ProviderRegistrationStep.AwaitingCreation,
+                ),
+            );
+
+            await expect(sut.completeRegistration(registrationState, completeDto))
+                .rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('translates a name that another provider took into a ConflictException', async () => {
+            mockProvidersService.completeRegistration.mockRejectedValue(new ProviderNameTakenError('default'));
+
+            await expect(sut.completeRegistration(registrationState, completeDto))
+                .rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('propagates errors raised by the service that no translation covers', async () => {
+            const error = new Error('db unreachable');
+            mockProvidersService.completeRegistration.mockRejectedValue(error);
+
+            await expect(sut.completeRegistration(registrationState, completeDto)).rejects.toBe(error);
+        });
+    });
+
     describe('no answer carries a private key', () => {
         it('gives the fingerprint of the key, and no key, when a client reads one provider', async () => {
             mockProvidersService.findById.mockResolvedValue(provider);
@@ -481,6 +709,35 @@ describe('ProvidersController', () => {
             mockProvidersService.update.mockResolvedValue(provider);
 
             const result = await sut.update(providerId, { privateKey });
+
+            expect(result).not.toHaveProperty('privateKey');
+            expect(JSON.stringify(result)).not.toContain('PRIVATE KEY');
+        });
+
+        it('gives no key in the answer of the start of a registration', async () => {
+            mockProvidersService.startRegistration.mockResolvedValue(startedRegistration);
+
+            const result = await sut.startRegistration({ name: 'default', ownerType: ProviderAppOwnerType.Personal });
+
+            expect(JSON.stringify(result)).not.toContain('PRIVATE KEY');
+        });
+
+        it('gives no key in the answer of a conversion', async () => {
+            mockProvidersService.convertRegistration.mockResolvedValue({
+                state: registrationState,
+                appSlug: 'gitpaas-default',
+            });
+
+            const result = await sut.convertRegistration(registrationState, { code: 'temporary-code' });
+
+            expect(Object.keys(result).sort()).toEqual(['appSlug', 'state']);
+            expect(JSON.stringify(result)).not.toContain('PRIVATE KEY');
+        });
+
+        it('gives the fingerprint of the key, and no key, in the answer of the end of a registration', async () => {
+            mockProvidersService.completeRegistration.mockResolvedValue(provider);
+
+            const result = await sut.completeRegistration(registrationState, { installationId: '7891011' });
 
             expect(result).not.toHaveProperty('privateKey');
             expect(JSON.stringify(result)).not.toContain('PRIVATE KEY');
@@ -542,6 +799,46 @@ describe('ProvidersController', () => {
             });
 
             expect(event).toMatchObject({ 'provider.id': providerId });
+        });
+
+        it('adds the state of a registration that starts', async () => {
+            mockProvidersService.startRegistration.mockResolvedValue(startedRegistration);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.startRegistration({ name: 'default', ownerType: ProviderAppOwnerType.Personal });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'provider.registration.state': registrationState });
+        });
+
+        it('adds the state of a conversion, and no private key', async () => {
+            mockProvidersService.convertRegistration.mockResolvedValue({
+                state: registrationState,
+                appSlug: 'gitpaas-default',
+            });
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.convertRegistration(registrationState, { code: 'temporary-code' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'provider.registration.state': registrationState });
+            expect(JSON.stringify(event)).not.toContain('PRIVATE KEY');
+        });
+
+        it('adds the state of a registration that ends', async () => {
+            mockProvidersService.completeRegistration.mockResolvedValue(provider);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.completeRegistration(registrationState, { installationId: '7891011' });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'provider.registration.state': registrationState });
         });
 
         it('adds the provider id and the repository id of a list of the branches', async () => {

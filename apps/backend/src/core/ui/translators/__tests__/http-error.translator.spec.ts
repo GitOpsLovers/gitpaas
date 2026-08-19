@@ -144,6 +144,21 @@ describe('translateError', () => {
                 .toBeInstanceOf(BadRequestException);
         });
 
+        it('maps PROVIDER_REGISTRATION_NOT_FOUND to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_REGISTRATION_NOT_FOUND')))
+                .toBeInstanceOf(NotFoundException);
+        });
+
+        it('maps PROVIDER_REGISTRATION_EXPIRED to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_REGISTRATION_EXPIRED')))
+                .toBeInstanceOf(NotFoundException);
+        });
+
+        it('maps PROVIDER_REGISTRATION_STEP_CONFLICT to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('PROVIDER_REGISTRATION_STEP_CONFLICT')))
+                .toBeInstanceOf(ConflictException);
+        });
+
         it('maps PROVIDER_UNAVAILABLE to a ServiceUnavailableException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_UNAVAILABLE')))
                 .toBeInstanceOf(ServiceUnavailableException);

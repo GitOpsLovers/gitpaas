@@ -102,3 +102,11 @@ export interface StartedProviderRegistration {
     manifest: ProviderAppManifest;
     githubUrl: string;
 }
+
+/**
+ * What the conversion of the code answers with.
+ */
+export interface ConvertedProviderRegistration {
+    state: string;
+    appSlug: string | null;
+}

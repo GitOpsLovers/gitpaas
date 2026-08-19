@@ -34,7 +34,7 @@ cp apps/backend/.env.example apps/backend/.env
 The variables cover: 
 
 - Runtime: `NODE_ENV`, `PORT`
-- Security: `CORS_ORIGIN`, `THROTTLE_TTL`/`THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
+- Security: `CORS_ORIGIN`, `APP_BASE_URL`, `THROTTLE_TTL`/`THROTTLE_LIMIT`, `THROTTLE_STREAM_TTL`/ `THROTTLE_STREAM_LIMIT`
 - Deployment logs: `LOGS_MAX_LINES` (per-deployment cap, e.g. `5000`)
 - PostgreSQL: `DB_*`
 - GitHub App: `GITHUB_APP_*`, 

@@ -77,6 +77,7 @@ interface TelemetryEventFields {
     /* Business context */
     'namespace.id'?: string;
     'provider.id'?: string;
+    'provider.registration.state'?: string;
     'project.id'?: string;
     'service.id'?: string;
     'service.slug'?: string;
