@@ -4,11 +4,11 @@ This section delivers one pull request, and it needs no part of the package. It 
 user sees today: the window of the output treats every event that is no line as an event of the end, so an
 event of the error leaves the mark of the status without a value and hides the cause.
 
-- [ ] 0.1 Add the third kind, `error`, to the union `LogEvent` of `apps/frontend/src/app/features/logs/domain/models/log-event.model.ts`, with the fields `code` and `message`.
-- [ ] 0.2 Handle that kind in `apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts`, near line 82, so the window shows the code and the safe message, and so it does not set the final status from an event that carries none.
-- [ ] 0.3 Show the code and the message in `deployment-logs-modal.component.html`.
-- [ ] 0.4 Cover the three kinds in the spec of the component, one case for each.
-- [ ] 0.5 Verify that the suite of the frontend passes, headless.
+- [x] 0.1 Add the third kind, `error`, to the union `LogEvent` of `apps/frontend/src/app/features/logs/domain/models/log-event.model.ts`, with the fields `code` and `message`.
+- [x] 0.2 Handle that kind in `apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts`, near line 82, so the window shows the code and the safe message, and so it does not set the final status from an event that carries none.
+- [x] 0.3 Show the code and the message in `deployment-logs-modal.component.html`.
+- [x] 0.4 Cover the three kinds in the spec of the component, one case for each.
+- [x] 0.5 Verify that the suite of the frontend passes, headless.
 
 ## 1. The rails
 

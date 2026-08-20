@@ -10,7 +10,15 @@ import { ModalComponent } from '@shared/components/modal/modal.component';
 /**
  * Terminal or in-flight state of the log stream, used for the header badge.
  */
-type LogStreamStatus = 'running' | 'success' | 'failed';
+type LogStreamStatus = 'running' | 'success' | 'failed' | 'error';
+
+/**
+ * Code and safe message of a stream that could not be read to its end.
+ */
+interface LogStreamFailure {
+    code: string;
+    message: string;
+}
 
 @Component({
     selector: 'app-deployment-logs-modal',
@@ -19,11 +27,7 @@ type LogStreamStatus = 'running' | 'success' | 'failed';
 })
 
 /**
- * Smart modal that streams a deployment's real-time `docker-compose up` log.
- *
- * Opens a Server-Sent Events stream while `open` and a `deployment` are set,
- * replaying buffered output then tailing live lines, and tears the stream down
- * when closed.
+ * Modal that streams a deployment's log component.
  */
 export class DeploymentLogsModalComponent {
     private readonly repository = inject(DeploymentsApiRepository);
@@ -47,7 +51,12 @@ export class DeploymentLogsModalComponent {
 
     protected readonly streaming = signal(false);
 
-    protected readonly finalStatus = signal<Exclude<LogStreamStatus, 'running'> | null>(null);
+    protected readonly finalStatus = signal<'success' | 'failed' | null>(null);
+
+    /**
+     * Failure reported by an `error` event, or `null` while the stream is healthy.
+     */
+    protected readonly failure = signal<LogStreamFailure | null>(null);
 
     private readonly logBody = viewChild<ElementRef<HTMLElement>>('logBody');
 
@@ -68,18 +77,25 @@ export class DeploymentLogsModalComponent {
 
             this.lines.set([]);
             this.finalStatus.set(null);
+            this.failure.set(null);
             this.streaming.set(true);
 
             const subscription = this.repository.logs(deployment.id).subscribe({
                 next: (event) => {
-                    if (event.type === 'line') {
-                        this.lines.update((current) => [...current, event.data]);
+                    switch (event.type) {
+                        case 'line':
+                            this.lines.update((current) => [...current, event.data]);
 
-                        return;
+                            return;
+                        case 'end':
+                            this.finalStatus.set(event.status);
+                            this.streaming.set(false);
+
+                            return;
+                        case 'error':
+                            this.failure.set({ code: event.code, message: event.message });
+                            this.streaming.set(false);
                     }
-
-                    this.finalStatus.set(event.status);
-                    this.streaming.set(false);
                 },
                 error: () => { this.streaming.set(false); },
                 complete: () => { this.streaming.set(false); },
@@ -104,7 +120,7 @@ export class DeploymentLogsModalComponent {
      * Current status of the stream for the header badge.
      */
     protected status(): LogStreamStatus {
-        return this.finalStatus() ?? 'running';
+        return this.finalStatus() ?? (this.failure() ? 'error' : 'running');
     }
 
     /**
@@ -117,6 +133,7 @@ export class DeploymentLogsModalComponent {
             case 'running':
                 return 'bg-primary-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-500';
             case 'failed':
+            case 'error':
                 return 'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500';
             default:
                 return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
