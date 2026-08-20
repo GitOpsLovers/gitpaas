@@ -5,6 +5,7 @@ import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dt
 import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
+import { DeploymentResponse } from '../../transformers/deployment-response.transformer';
 import { DeploymentsController } from '../deployments.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -25,6 +26,20 @@ const deployment: Deployment = {
     error: null,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     finishedAt: new Date('2026-07-11T00:01:00.000Z'),
+};
+
+const deploymentResponse: DeploymentResponse = {
+    id: deploymentId,
+    serviceId,
+    status: 'success',
+    branch: 'main',
+    commit: 'abc123',
+    commitMessage: 'feat: something',
+    composerPath: 'docker-compose.yml',
+    triggeredBy: 'marc',
+    error: null,
+    createdAt: '2026-07-11T00:00:00.000Z',
+    finishedAt: '2026-07-11T00:01:00.000Z',
 };
 
 describe('DeploymentsController', () => {
@@ -66,7 +81,26 @@ describe('DeploymentsController', () => {
 
             const result = await sut.getAllByService(serviceId);
 
-            expect(result).toEqual([deployment]);
+            expect(result).toEqual([deploymentResponse]);
+        });
+
+        it('gives each timestamp of the answer as a text of the ISO form', async () => {
+            mockDeploymentsService.getAllByService.mockResolvedValue([deployment]);
+
+            const [first] = await sut.getAllByService(serviceId);
+
+            expect(typeof first.createdAt).toBe('string');
+            expect(typeof first.finishedAt).toBe('string');
+        });
+
+        it('gives null for the finish of a deployment that still runs', async () => {
+            mockDeploymentsService.getAllByService.mockResolvedValue([
+                { ...deployment, status: 'running', finishedAt: null },
+            ]);
+
+            const [first] = await sut.getAllByService(serviceId);
+
+            expect(first.finishedAt).toBeNull();
         });
 
         it('returns an empty list when the service has no deployments', async () => {
@@ -100,7 +134,7 @@ describe('DeploymentsController', () => {
 
             const result = await sut.findById(deploymentId);
 
-            expect(result).toBe(deployment);
+            expect(result).toEqual(deploymentResponse);
         });
 
         it('throws a NotFoundException when the deployment does not exist', async () => {
@@ -140,7 +174,7 @@ describe('DeploymentsController', () => {
 
             const result = await sut.create(triggerDto);
 
-            expect(result).toBe(deployment);
+            expect(result).toEqual(deploymentResponse);
         });
 
         it('propagates errors raised by the service', async () => {

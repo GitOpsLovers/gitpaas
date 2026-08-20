@@ -5,8 +5,8 @@ import {
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { map, Observable } from 'rxjs';
 
-import { LogEntry } from '../../domain/models/log-entry.models';
 import { LogsService } from '../services/logs.service';
+import { LogEntryResponse, toLogEntryResponse } from '../transformers/log-entry-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
@@ -25,10 +25,12 @@ export class LogsController {
      * @returns Ordered log entries of the deployment
      */
     @Get()
-    public getAllByDeployment(@Query('deploymentId', ParseUUIDPipe) deploymentId: string): Promise<LogEntry[]> {
+    public async getAllByDeployment(@Query('deploymentId', ParseUUIDPipe) deploymentId: string): Promise<LogEntryResponse[]> {
         enrichTelemetry({ 'deployment.id': deploymentId });
 
-        return this.service.getAllByDeployment(deploymentId);
+        const entries = await this.service.getAllByDeployment(deploymentId);
+
+        return entries.map(toLogEntryResponse);
     }
 
     /**

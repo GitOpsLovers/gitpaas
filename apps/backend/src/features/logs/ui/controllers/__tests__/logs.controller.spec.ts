@@ -6,13 +6,30 @@ import {
     LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
 } from '../../../domain/models/log-event.models';
 import { LogsService } from '../../services/logs.service';
+import { LogEntryResponse } from '../../transformers/log-entry-response.transformer';
 import { LogsController } from '../logs.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 const deploymentId = 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b';
 const logId = 'a1b2c3d4-0000-0000-0000-000000000000';
-const entry = { id: logId } as LogEntry;
+const createdAt = new Date('2026-07-11T00:00:00.000Z');
+const entry: LogEntry = {
+    id: logId,
+    deploymentId,
+    seq: 1,
+    createdAt,
+    type: 'line',
+    data: 'building…',
+};
+const entryResponse: LogEntryResponse = {
+    id: logId,
+    deploymentId,
+    seq: 1,
+    createdAt: createdAt.toISOString(),
+    type: 'line',
+    data: 'building…',
+};
 
 describe('LogsController', () => {
     let mockLogsService: jest.Mocked<Pick<LogsService, 'getAllByDeployment' | 'streamLogs'>>;
@@ -42,7 +59,48 @@ describe('LogsController', () => {
 
             expect(mockLogsService.getAllByDeployment).toHaveBeenCalledTimes(1);
             expect(mockLogsService.getAllByDeployment).toHaveBeenCalledWith(deploymentId);
-            expect(result).toEqual([entry]);
+            expect(result).toEqual([entryResponse]);
+        });
+
+        it('gives each timestamp of the answer as a text of the ISO form', async () => {
+            mockLogsService.getAllByDeployment.mockResolvedValue([entry]);
+
+            const [first] = await sut.getAllByDeployment(deploymentId);
+
+            expect(typeof first.createdAt).toBe('string');
+            expect(first.createdAt).toBe(createdAt.toISOString());
+        });
+
+        it('keeps the kind of the end of the union in the answer', async () => {
+            const endEntry: LogEntry = {
+                id: 'a1b2c3d4-0000-0000-0000-000000000001',
+                deploymentId,
+                seq: 2,
+                createdAt,
+                type: 'end',
+                status: 'failed',
+            };
+            mockLogsService.getAllByDeployment.mockResolvedValue([entry, endEntry]);
+
+            const result = await sut.getAllByDeployment(deploymentId);
+
+            expect(result).toEqual([
+                entryResponse,
+                {
+                    id: 'a1b2c3d4-0000-0000-0000-000000000001',
+                    deploymentId,
+                    seq: 2,
+                    createdAt: createdAt.toISOString(),
+                    type: 'end',
+                    status: 'failed',
+                },
+            ]);
+        });
+
+        it('returns an empty list when the deployment has no entry', async () => {
+            mockLogsService.getAllByDeployment.mockResolvedValue([]);
+
+            await expect(sut.getAllByDeployment(deploymentId)).resolves.toEqual([]);
         });
     });
 

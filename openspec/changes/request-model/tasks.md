@@ -47,12 +47,12 @@ event of the error leaves the mark of the status without a value and hides the c
 ## 3. The shape of a timestamp on the wire
 
 - [ ] 3.1 Model each timestamp as a text of the ISO form in the package, and keep the `Date` in the domain models of the backend.
-- [ ] 3.2 Create `apps/backend/src/features/deployments/ui/transformers/deployment-response.transformer.ts`.
-- [ ] 3.3 Create the equivalent transformers of the answer for the containers, the networks, the users, the entries of the log, the providers and the registrations of a provider. Nine models of the backend carry a `Date` today.
-- [ ] 3.4 Leave the refresh token out. It carries three `Date` fields, and no answer of the API gives that model.
+- [x] 3.2 Create `apps/backend/src/features/deployments/ui/transformers/deployment-response.transformer.ts`.
+- [x] 3.3 Create the equivalent transformers of the answer for the containers, the networks, the users, the entries of the log, the providers and the registrations of a provider. Nine models of the backend carry a `Date` today.
+- [x] 3.4 Leave the refresh token out. It carries three `Date` fields, and no answer of the API gives that model.
 - [ ] 3.5 Import the type of the contract with another name where the domain model carries the same name.
-- [ ] 3.6 Change the applicable controllers, so they give the transformed shape and declare the type of the contract.
-- [ ] 3.7 Verify that the compiler proves the conversion.
+- [x] 3.6 Change the applicable controllers, so they give the transformed shape and declare the type of the contract.
+- [x] 3.7 Verify that the compiler proves the conversion.
 
 ## 4. The remaining features, one pull request for each
 

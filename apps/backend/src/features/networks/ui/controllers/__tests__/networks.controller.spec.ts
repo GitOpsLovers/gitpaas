@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { Network } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
+import { NetworkResponse } from '../../transformers/network-response.transformer';
 import { NetworksController } from '../networks.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -19,6 +20,18 @@ const networks: Network[] = [
         internal: false,
         attachable: true,
         createdAt: new Date('2026-07-11T00:00:00.000Z'),
+    },
+];
+
+const networkResponses: NetworkResponse[] = [
+    {
+        id: 'net-a1b2c3d4',
+        name: 'web-frontend_default',
+        driver: 'bridge',
+        scope: 'local',
+        internal: false,
+        attachable: true,
+        createdAt: '2026-07-11T00:00:00.000Z',
     },
 ];
 
@@ -56,7 +69,16 @@ describe('NetworksController', () => {
 
             const result = await sut.getByService(serviceId);
 
-            expect(result).toBe(networks);
+            expect(result).toEqual(networkResponses);
+        });
+
+        it('gives the date of the creation of a network as a text of the ISO form', async () => {
+            mockNetworksService.getByService.mockResolvedValue(networks);
+
+            const [first] = await sut.getByService(serviceId);
+
+            expect(typeof first.createdAt).toBe('string');
+            expect(Object.values(first).some((value) => value instanceof Date)).toBe(false);
         });
 
         it('returns an empty list when the service reports no networks', async () => {

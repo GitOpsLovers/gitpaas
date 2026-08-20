@@ -188,6 +188,32 @@ describe('AuthenticationController', () => {
 
         expect(mockAuthenticationService.me).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.me).toHaveBeenCalledWith(user);
-        expect(result).toBe(view);
+        expect(result).toEqual({
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            isActive: user.isActive,
+            createdAt: user.createdAt.toISOString(),
+            updatedAt: user.updatedAt.toISOString(),
+        });
+    });
+
+    it('me never carries the hash of the password, even when the service hands the whole user', () => {
+        mockAuthenticationService.me.mockReturnValue(user);
+
+        const result = sut.me(user);
+
+        expect(result).not.toHaveProperty('passwordHash');
+        expect(Object.values(result)).not.toContain('secret-hash');
+    });
+
+    it('me gives each date of the profile as a text of the ISO form', () => {
+        mockAuthenticationService.me.mockReturnValue(user);
+
+        const result = sut.me(user);
+
+        expect(result.createdAt).toBe('2026-07-11T00:00:00.000Z');
+        expect(result.updatedAt).toBe('2026-07-11T00:00:00.000Z');
+        expect(Object.values(result).some((value) => value instanceof Date)).toBe(false);
     });
 });

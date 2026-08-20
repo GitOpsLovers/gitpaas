@@ -1,7 +1,7 @@
 import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
-import { Container } from '../../domain/models/container.models';
 import { ContainersService } from '../services/containers.service';
+import { ContainerResponse, toContainerResponse } from '../transformers/container-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -21,11 +21,13 @@ export class ContainersController {
      * @returns Containers of the service
      */
     @Get()
-    public async getByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<Container[]> {
+    public async getByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<ContainerResponse[]> {
         enrichTelemetry({ 'service.id': serviceId });
 
         try {
-            return await this.service.getByService(serviceId);
+            const service = await this.service.getByService(serviceId);
+
+            return service.map(toContainerResponse);
         } catch (error) {
             throw translateError(error, () => new ServiceUnavailableException(
                 'Could not reach the server Docker daemon. Verify the server is running and reachable.',
