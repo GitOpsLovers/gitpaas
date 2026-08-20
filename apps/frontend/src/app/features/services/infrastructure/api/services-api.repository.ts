@@ -1,10 +1,7 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
+import type { CreateServiceDto, Service, UpdateServiceDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
-
-import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
-import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
-import { Service } from '../../domain/models/service.model';
 
 import { environment } from '@environments/environment';
 

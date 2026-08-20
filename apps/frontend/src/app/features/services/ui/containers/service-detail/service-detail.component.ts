@@ -1,10 +1,9 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { Project } from '@gitpaas/contracts';
+import type { Project, Service } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
-import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
 import { ServiceDeployActionsComponent } from '../../components/service-deploy-actions/service-deploy-actions.component';
@@ -151,7 +150,11 @@ export class ServiceDetailComponent {
         this.savingProvider.set(true);
 
         try {
-            const updated = await lastValueFrom(this.repository.update(this.serviceId(), { name: current.name, ...settings }));
+            const updated = await lastValueFrom(this.repository.update(this.serviceId(), {
+                name: current.name,
+                ...settings,
+                providerId: settings.providerId || null,
+            }));
 
             this.service.value.set(updated);
             this.toast.success('Provider settings saved', `“${updated.name}” has been updated.`);

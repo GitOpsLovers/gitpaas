@@ -34,7 +34,7 @@ function readSqlConstraint(error: unknown): string | undefined {
  *
  * @returns The domain error to throw, or the original error when unclassifiable
  */
-export function toServicePersistenceError(error: unknown, projectId: string, providerId?: string): unknown {
+export function toServicePersistenceError(error: unknown, projectId: string, providerId?: string | null): unknown {
     if (readSqlState(error) !== FOREIGN_KEY_VIOLATION) {
         return error;
     }

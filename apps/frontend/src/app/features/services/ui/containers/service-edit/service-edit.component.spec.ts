@@ -1,10 +1,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
-import type { Project } from '@gitpaas/contracts';
+import type { Project, Service } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
-import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 
 import { ServiceEditComponent } from './service-edit.component';
@@ -27,7 +26,15 @@ const project: Project = {
     id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
 };
 
-const service: Service = { id: 'sv-1', name: 'web', projectId: 'pr-1' };
+const service: Service = {
+    id: 'sv-1',
+    name: 'web',
+    projectId: 'pr-1',
+    providerId: null,
+    repositoryId: '',
+    deploymentBranch: '',
+    composerPath: '',
+};
 
 const ROUTE_PARAMS = { namespaceId: 'ns-1', id: 'pr-1', serviceId: 'sv-1' };
 

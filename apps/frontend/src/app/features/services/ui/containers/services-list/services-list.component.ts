@@ -1,8 +1,8 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { Service } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
-import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceCardComponent } from '../../components/service-card/service-card.component';
 

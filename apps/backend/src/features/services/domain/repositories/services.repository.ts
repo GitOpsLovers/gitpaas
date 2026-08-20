@@ -1,5 +1,5 @@
-import { CreateServiceDto } from '../dtos/create-service.dto';
-import { UpdateServiceDto } from '../dtos/update-service.dto';
+import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+
 import { Service } from '../models/service.models';
 
 /**

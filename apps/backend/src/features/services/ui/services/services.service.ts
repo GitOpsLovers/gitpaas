@@ -1,3 +1,4 @@
+import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { createServiceUseCase } from '../../application/create-service.use-case';
@@ -5,8 +6,6 @@ import { deleteServiceUseCase } from '../../application/delete-service.use-case'
 import { findServiceByIdUseCase } from '../../application/find-service-by-id.use-case';
 import { getServicesByProjectUseCase } from '../../application/get-services-by-project.use-case';
 import { updateServiceUseCase } from '../../application/update-service.use-case';
-import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
-import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import type { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 import type { ServicesRepository } from '../../domain/repositories/services.repository';

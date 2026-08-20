@@ -1,4 +1,5 @@
-import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
+import type { UpdateServiceDto } from '@gitpaas/contracts';
+
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { updateServiceUseCase } from '../update-service.use-case';
