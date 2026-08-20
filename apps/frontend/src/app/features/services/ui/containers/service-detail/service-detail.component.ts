@@ -1,6 +1,7 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
@@ -19,7 +20,6 @@ import { DeploymentsApiRepository } from '@features/deployments/infrastructure/a
 import { Network } from '@features/networks/domain/models/network.model';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
-import { Project } from '@features/projects/domain/models/project.model';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { TabsComponent } from '@shared/components/tabs/tabs.component';

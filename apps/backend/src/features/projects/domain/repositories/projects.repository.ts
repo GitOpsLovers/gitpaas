@@ -1,5 +1,6 @@
+import type { UpdateProjectDto } from '@gitpaas/contracts';
+
 import { CreateProjectInNamespaceDto } from '../dtos/create-project-in-namespace.dto';
-import { UpdateProjectDto } from '../dtos/update-project.dto';
 import { Project } from '../models/project.models';
 
 /**

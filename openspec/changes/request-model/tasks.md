@@ -27,19 +27,22 @@ event of the error leaves the mark of the status without a value and hides the c
 
 ## 2. The reference slice: the projects
 
-- [ ] 2.1 Create `packages/contracts/src/projects/project.contract.ts` with the schemas of the project, of the creation and of the change, and the inferred types.
-- [ ] 2.2 Create `packages/contracts/src/projects/projects.endpoints.ts` with the descriptors of the five routes.
-- [ ] 2.3 Export the two new files from `packages/contracts/src/index.ts`.
-- [ ] 2.4 Add `"@gitpaas/contracts": "workspace:*"` to the two applications, and ask the user to link the workspace.
-- [ ] 2.5 Create `apps/backend/src/core/ui/pipes/zod-validation.pipe.ts` with the call of `safeParse` and the exception that carries an array of messages.
-- [ ] 2.6 Create the helper that gives one text for each issue of Zod.
-- [ ] 2.7 Create the spec of the pipe.
-- [ ] 2.8 Bind the schemas with the new pipe on each parameter of the body of the controller of the projects.
-- [ ] 2.9 Convert the two data transfer objects of the projects into re-exports of the types of the contract.
-- [ ] 2.10 Move the assertions of the specs of those two files to `safeParse`.
-- [ ] 2.11 Point the repository of the API, the containers and the components of the projects at the package.
-- [ ] 2.12 Delete the model and the data transfer objects of the projects in the frontend.
-- [ ] 2.13 Verify that the slice compiles and that the specs pass.
+- [x] 2.1 Create `packages/contracts/src/projects/project.contract.ts` with the schemas of the project, of the creation and of the change, and the inferred types.
+- [x] 2.2 Create `packages/contracts/src/projects/projects.endpoints.ts` with the descriptors of the five routes.
+- [x] 2.3 Export the two new files from `packages/contracts/src/index.ts`.
+- [x] 2.4 Add `"@gitpaas/contracts": "workspace:*"` to the two applications, and ask the user to link the workspace.
+- [x] 2.5 Create `apps/backend/src/core/ui/pipes/zod-validation.pipe.ts` with the call of `safeParse` and the exception that carries an array of messages.
+- [x] 2.6 Create the helper that gives one text for each issue of Zod.
+- [x] 2.7 Create the spec of the pipe.
+- [x] 2.8 Bind the schemas with the new pipe on each parameter of the body of the controller of the projects.
+- [x] 2.9 Delete the two data transfer objects of a body of the projects, and point their fourteen consumers at `@gitpaas/contracts` directly. Decision 11 of `design.md` gives the rule.
+- [ ] 2.10 Give `packages/contracts` a runner of tests, and write there the specs of the two schemas of the
+  projects. The two specs of `domain/dtos/__tests__/` were deleted with their files, because the package
+  declares only `build` and `check-types` today. Thirteen cases of the validation carry no test at this
+  moment. Ask the user to install the runner.
+- [x] 2.11 Point the repository of the API, the containers and the components of the projects at the package.
+- [x] 2.12 Delete the model and the data transfer objects of the projects in the frontend.
+- [x] 2.13 Verify that the slice compiles and that the specs pass.
 
 ## 3. The shape of a timestamp on the wire
 
@@ -52,6 +55,10 @@ event of the error leaves the mark of the status without a value and hides the c
 - [ ] 3.7 Verify that the compiler proves the conversion.
 
 ## 4. The remaining features, one pull request for each
+
+Each migration of this section applies the decision 11: it deletes the file of the data transfer object of
+a body, and it points every consumer at the package. A shape that only the backend has stays in
+`domain/dtos/`.
 
 - [ ] 4.1 Apply the evidence of the columns of `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`: `repositoryId`, `deploymentBranch` and `composerPath` carry `default: ''` and refuse an empty value, so the three are obligatory texts. `providerId` carries `nullable: true`, so it is a nullable text.
 - [ ] 4.2 Create `packages/contracts/src/services/` with the schemas, the map of the endpoints and that resolved optionality, and migrate the feature. Use `.nullable()` for `providerId`, and never `.optional()`.

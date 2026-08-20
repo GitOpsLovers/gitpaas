@@ -1,10 +1,7 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
+import type { CreateProjectDto, Project, UpdateProjectDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
-
-import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
-import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
-import { Project } from '../../domain/models/project.model';
 
 import { environment } from '@environments/environment';
 

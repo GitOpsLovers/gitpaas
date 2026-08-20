@@ -1,9 +1,9 @@
+import type { UpdateProjectDto } from '@gitpaas/contracts';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateProjectInNamespaceDto } from '../../domain/dtos/create-project-in-namespace.dto';
-import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';
 

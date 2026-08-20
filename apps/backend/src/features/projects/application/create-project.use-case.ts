@@ -1,4 +1,5 @@
-import { CreateProjectDto } from '../domain/dtos/create-project.dto';
+import type { CreateProjectDto } from '@gitpaas/contracts';
+
 import { Project } from '../domain/models/project.models';
 import { ProjectsRepository } from '../domain/repositories/projects.repository';
 

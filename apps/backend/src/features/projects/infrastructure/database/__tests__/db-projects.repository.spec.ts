@@ -1,7 +1,7 @@
+import type { UpdateProjectDto } from '@gitpaas/contracts';
 import { Repository } from 'typeorm';
 
 import { CreateProjectInNamespaceDto } from '../../../domain/dtos/create-project-in-namespace.dto';
-import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
 import { ProjectNameTakenError } from '../../../domain/errors/project.errors';
 import { Project } from '../../../domain/models/project.models';
 import { DbProjectEntity } from '../db-project.entity';

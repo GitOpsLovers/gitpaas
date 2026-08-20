@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
@@ -12,7 +13,6 @@ import { ServiceDetailComponent } from './service-detail.component';
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
-import { Project } from '@features/projects/domain/models/project.model';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -28,7 +28,9 @@ interface ServiceDetailInternals {
     deploy: () => Promise<void>;
 }
 
-const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
+const project: Project = {
+    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
+};
 
 const service: Service = { id: 'sv-1', name: 'web', projectId: 'pr-1' };
 

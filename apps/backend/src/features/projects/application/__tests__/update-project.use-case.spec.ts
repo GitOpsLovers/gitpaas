@@ -1,4 +1,5 @@
-import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
+import type { UpdateProjectDto } from '@gitpaas/contracts';
+
 import { ProjectNotFoundError } from '../../domain/errors/project.errors';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsRepository } from '../../domain/repositories/projects.repository';

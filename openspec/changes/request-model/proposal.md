@@ -55,8 +55,8 @@ a value that is not defined, and the user reads no cause.
 - **New:** a step of the check of the types in the workflow of the pull request. That workflow runs the
   lint, the tests and the build today, and none of the three finds a disagreement of the two applications.
 - **New:** a generated OpenAPI specification, which lives in Git, and an HTML reference that a reader opens.
-- **Changed:** the thirteen data transfer objects that a body binds become types that the package infers.
-  The file of the domain stays, and it re-exports.
+- **Changed:** the thirteen data transfer objects that a body binds go away. A consumer of any layer
+  imports the type of the package directly, because an alias in the domain decouples nothing.
 - **Changed:** `turbo.json`, which exists, receives the tasks `check-types`, `generate:openapi` and
   `generate:docs`, and the order that builds the package before the two applications.
 - **Changed:** each shape of the wire that the frontend declares goes away, and its consumers point at the
@@ -85,9 +85,10 @@ a value that is not defined, and the user reads no cause.
 **A new package.** `packages/contracts`, whose one dependency at run time is `zod`. The package imports
 nothing from `apps/`, so it can never pull NestJS into the frontend, or Angular into the backend.
 
-**The backend.** A new pipe under `core/ui/pipes/`. The thirteen data transfer objects of a body become
-re-exports. A new folder `ui/transformers/` in each feature that holds a timestamp; nine models of the
-backend carry a `Date` today. The global pipe goes away at the end. `class-validator` stays, because the
+**The backend.** A new pipe under `core/ui/pipes/`. The thirteen data transfer objects of a body are
+deleted, and each consumer imports the type of the package. `domain/dtos/` keeps the ten internal shapes.
+A new folder `ui/transformers/` in each feature that holds a timestamp; nine models of the backend carry a
+`Date` today. The global pipe goes away at the end. `class-validator` stays, because the
 validation of the environment uses it.
 
 **The frontend.** 35 files of the domain describe a shape of the wire today, over twelve features. Each one

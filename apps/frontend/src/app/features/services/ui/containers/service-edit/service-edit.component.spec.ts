@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { Service } from '../../../domain/models/service.model';
@@ -8,7 +9,6 @@ import { ServicesApiRepository } from '../../../infrastructure/api/services-api.
 
 import { ServiceEditComponent } from './service-edit.component';
 
-import { Project } from '@features/projects/domain/models/project.model';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -23,7 +23,9 @@ interface ServiceEditInternals {
     update: (name: string) => Promise<void>;
 }
 
-const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
+const project: Project = {
+    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
+};
 
 const service: Service = { id: 'sv-1', name: 'web', projectId: 'pr-1' };
 
