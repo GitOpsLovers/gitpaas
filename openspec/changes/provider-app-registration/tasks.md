@@ -68,13 +68,13 @@
 
 ## 9. The screens that receive the returns of GitHub
 
-- [ ] 9.1 Create the route of the return after the creation. It reads the code and the state, and it calls the conversion.
-- [ ] 9.2 Send the browser to `github.com/apps/{slug}/installations/new?state=…` after a conversion that succeeds.
-- [ ] 9.3 Create the route of the return after the installation. It reads the identifier of the installation and the state, it calls the end of the registration, and it opens `/providers` with the message of success.
-- [ ] 9.4 Send a user with no session to the sign-in, and keep the address of the return.
-- [ ] 9.5 Show a message of failure that names the step that failed, that states that the App may exist on GitHub, and that gives a link to `/providers`.
-- [ ] 9.6 Register the two routes in `app.routes.ts`, under the guard that the other screens of the providers use.
-- [ ] 9.7 Write the tests of the two screens: the success, the failure of the call and the absent session.
+- [x] 9.1 Create the route of the return after the creation. It reads the code and the state, and it calls the conversion.
+- [x] 9.2 Send the browser to `github.com/apps/{slug}/installations/new?state=…` after a conversion that succeeds.
+- [x] 9.3 Create the route of the return after the installation. It reads the identifier of the installation and the state, it calls the end of the registration, and it opens `/providers` with the message of success.
+- [x] 9.4 Send a user with no session to the sign-in, and keep the address of the return.
+- [x] 9.5 Show a message of failure that names the step that failed, that states that the App may exist on GitHub, and that gives a link to `/providers`.
+- [x] 9.6 Register the two routes in `app.routes.ts`, under the guard that the other screens of the providers use.
+- [x] 9.7 Write the tests of the two screens: the success, the failure of the call and the absent session.
 
 ## 10. The third state of the card
 

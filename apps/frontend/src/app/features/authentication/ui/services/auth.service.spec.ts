@@ -26,7 +26,7 @@ describe('AuthService', () => {
         store: ReturnType<typeof vi.fn>;
         clear: ReturnType<typeof vi.fn>;
     };
-    let router: { navigate: ReturnType<typeof vi.fn> };
+    let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
 
     beforeEach(() => {
         accessToken = signal<string | null>(null);
@@ -42,7 +42,7 @@ describe('AuthService', () => {
             store: vi.fn(),
             clear: vi.fn(),
         };
-        router = { navigate: vi.fn() };
+        router = { navigate: vi.fn(), navigateByUrl: vi.fn() };
 
         TestBed.configureTestingModule({
             providers: [
@@ -77,7 +77,23 @@ describe('AuthService', () => {
 
             expect(repository.login).toHaveBeenCalledWith(dto);
             expect(tokenStorage.store).toHaveBeenCalledWith(tokens, true);
-            expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+        });
+
+        test('opens the address of the return when the caller gives one', () => {
+            repository.login.mockReturnValue(of(tokens));
+
+            service.login({ email: 'user@example.com', password: 'secret' }, false, '/providers?added=1').subscribe();
+
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/providers?added=1');
+        });
+
+        test('refuses an address of another site, and opens the dashboard', () => {
+            repository.login.mockReturnValue(of(tokens));
+
+            service.login({ email: 'user@example.com', password: 'secret' }, false, '//evil.example.com').subscribe();
+
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
         });
 
         test('does not store tokens or navigate when login fails', () => {
@@ -86,7 +102,7 @@ describe('AuthService', () => {
             service.login({ email: 'a', password: 'b' }, false).subscribe({ error: () => {} });
 
             expect(tokenStorage.store).not.toHaveBeenCalled();
-            expect(router.navigate).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
         });
     });
 

@@ -48,6 +48,16 @@ export const routes: Routes = [
                         loadComponent: () => import('@pages/providers/edit/provider-edit.component').then((m) => m.ProvidersEditPage),
                         title: 'Edit provider | GitPaaS',
                     },
+                    {
+                        path: 'registrations/created',
+                        loadComponent: () => import('@pages/providers/registrations/created/provider-registration-created.component').then((m) => m.ProvidersRegistrationCreatedPage),
+                        title: 'Add provider | GitPaaS',
+                    },
+                    {
+                        path: 'registrations/installed',
+                        loadComponent: () => import('@pages/providers/registrations/installed/provider-registration-installed.component').then((m) => m.ProvidersRegistrationInstalledPage),
+                        title: 'Add provider | GitPaaS',
+                    },
                 ],
             },
             {
