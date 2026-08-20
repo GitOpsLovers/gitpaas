@@ -15,7 +15,7 @@ describe('auth guards', () => {
     let router: { createUrlTree: ReturnType<typeof vi.fn> };
 
     const route = {} as ActivatedRouteSnapshot;
-    const state = {} as RouterStateSnapshot;
+    const state = { url: '/providers/registrations/created?code=c1' } as RouterStateSnapshot;
 
     const run = (guard: typeof authGuard): boolean | UrlTree =>
         TestBed.runInInjectionContext(() => guard(route, state)) as boolean | UrlTree;
@@ -49,7 +49,10 @@ describe('auth guards', () => {
             accessToken.set(null);
 
             expect(run(authGuard)).toBe(signinUrlTree);
-            expect(router.createUrlTree).toHaveBeenCalledWith(['/signin']);
+            expect(router.createUrlTree).toHaveBeenCalledWith(
+                ['/signin'],
+                { queryParams: { returnUrl: '/providers/registrations/created?code=c1' } },
+            );
         });
     });
 

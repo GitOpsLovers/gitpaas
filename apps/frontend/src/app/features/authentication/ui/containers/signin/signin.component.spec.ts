@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { SigninComponent } from './signin.component';
@@ -19,6 +20,7 @@ interface SigninInternals {
 describe('SigninComponent', () => {
     let authService: { login: ReturnType<typeof vi.fn> };
     let toast: { error: ReturnType<typeof vi.fn> };
+    let returnUrl: string | null;
     let component: SigninInternals;
 
     const create = (): void => {
@@ -29,12 +31,17 @@ describe('SigninComponent', () => {
     beforeEach(() => {
         authService = { login: vi.fn() };
         toast = { error: vi.fn() };
+        returnUrl = null;
 
         TestBed.configureTestingModule({
             imports: [SigninComponent],
             providers: [
                 { provide: AuthService, useValue: authService },
                 { provide: ToastService, useValue: toast },
+                {
+                    provide: ActivatedRoute,
+                    useValue: { snapshot: { queryParamMap: { get: (): string | null => returnUrl } } },
+                },
             ],
         });
         TestBed.overrideComponent(SigninComponent, { set: { template: '' } });
@@ -52,8 +59,25 @@ describe('SigninComponent', () => {
         expect(authService.login).toHaveBeenCalledWith(
             { email: 'user@example.com', password: 'secret' },
             true,
+            null,
         );
         expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    test('carries the address of the return the guard kept', () => {
+        returnUrl = '/providers/registrations/created?code=c1&state=s1';
+        authService.login.mockReturnValue(of({ accessToken: 'a', refreshToken: 'b' }));
+        create();
+
+        component.email.set('user@example.com');
+        component.password.set('secret');
+        component.onSubmit();
+
+        expect(authService.login).toHaveBeenCalledWith(
+            { email: 'user@example.com', password: 'secret' },
+            false,
+            '/providers/registrations/created?code=c1&state=s1',
+        );
     });
 
     test('toggles the password visibility flag', () => {

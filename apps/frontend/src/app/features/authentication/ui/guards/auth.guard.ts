@@ -6,12 +6,12 @@ import { TokenStorageService } from '../../infrastructure/storage/token-storage.
 /**
  * Route guard protecting the authenticated app shell.
  *
- * Allows navigation when a session is active; otherwise redirects to the
- * sign-in page.
+ * @param _route Route being activated
+ * @param state State of the router, which carries the asked address
  *
  * @returns True when authenticated, or a redirect `UrlTree` to `/signin`
  */
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (_route, state) => {
     const tokenStorage = inject(TokenStorageService);
     const router = inject(Router);
 
@@ -19,14 +19,11 @@ export const authGuard: CanActivateFn = () => {
         return true;
     }
 
-    return router.createUrlTree(['/signin']);
+    return router.createUrlTree(['/signin'], { queryParams: { returnUrl: state.url } });
 };
 
 /**
  * Route guard for guest-only pages (e.g. sign-in).
- *
- * Allows navigation only when signed out; already-authenticated users are sent
- * to the dashboard.
  *
  * @returns True when signed out, or a redirect `UrlTree` to `/dashboard`
  */

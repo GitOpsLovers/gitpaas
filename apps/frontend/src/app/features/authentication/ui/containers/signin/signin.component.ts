@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { LucideEye, LucideEyeOff } from '@lucide/angular';
 
 import { environment } from '@environments/environment';
@@ -50,6 +51,8 @@ function describeSigninFailure(error: unknown): { title: string; detail: string 
 })
 export class SigninComponent {
     private readonly authService = inject(AuthService);
+
+    private readonly route = inject(ActivatedRoute);
 
     private readonly toast = inject(ToastService);
 
@@ -107,7 +110,9 @@ export class SigninComponent {
 
         this.submitting.set(true);
 
-        this.authService.login({ email, password }, this.rememberMe()).subscribe({
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+        this.authService.login({ email, password }, this.rememberMe(), returnUrl).subscribe({
             error: (error: unknown) => {
                 this.submitting.set(false);
 

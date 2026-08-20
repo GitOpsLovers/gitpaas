@@ -9,13 +9,28 @@ import { TokenStorageService } from '../../infrastructure/storage/token-storage.
 
 import { User } from '@features/users/domain/models/user.model';
 
+/** Address the sign-in opens when the user asked for none. */
+const DEFAULT_DESTINATION = '/dashboard';
+
+/**
+ * Keeps only an address of this application.
+ *
+ * @param returnUrl Address the caller asked to open after the sign-in
+ *
+ * @returns The asked address when it is safe, and the dashboard otherwise
+ */
+function safeDestination(returnUrl: string | null | undefined): string {
+    if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+        return DEFAULT_DESTINATION;
+    }
+
+    return returnUrl;
+}
+
 @Injectable({ providedIn: 'root' })
 
 /**
- * Authentication state service.
- *
- * Owns the reactive session state (derived from the persisted tokens) and the
- * login/logout flows, coordinating the API repository, token storage and router.
+ * Authentication service.
  */
 export class AuthService {
     private readonly repository = inject(AuthenticationApiRepository);
@@ -37,18 +52,19 @@ export class AuthService {
     public readonly currentUser = this.currentUserSignal.asReadonly();
 
     /**
-     * Authenticates the user, persists the tokens and navigates to the dashboard
+     * Authenticates the user, persists the tokens and opens the asked address
      *
      * @param dto Credentials to authenticate with
      * @param rememberMe When true persist the session across browser restarts
+     * @param returnUrl Address to open after the sign-in; the dashboard by default
      *
      * @returns Observable emitting the issued token pair
      */
-    public login(dto: LoginDto, rememberMe: boolean): Observable<AuthTokens> {
+    public login(dto: LoginDto, rememberMe: boolean, returnUrl?: string | null): Observable<AuthTokens> {
         return this.repository.login(dto).pipe(
             tap((tokens) => {
                 this.tokenStorage.store(tokens, rememberMe);
-                this.router.navigate(['/dashboard']);
+                this.router.navigateByUrl(safeDestination(returnUrl));
             }),
         );
     }
