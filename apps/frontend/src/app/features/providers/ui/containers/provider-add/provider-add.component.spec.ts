@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import type { Provider } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
-import { Provider } from '../../../domain/models/provider.model';
 import { ProvidersApiRepository } from '../../../infrastructure/api/providers-api.repository';
 import { ProviderFormValue } from '../../components/provider-form/provider-form.component';
 
@@ -29,6 +29,8 @@ const created: Provider = {
     appId: '123456',
     installationId: '98765432',
     keyFingerprint: 'a1b2c3d4',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-02T00:00:00.000Z',
 };
 
 describe('ProviderAddComponent', () => {

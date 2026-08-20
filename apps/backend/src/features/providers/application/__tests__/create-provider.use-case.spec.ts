@@ -1,5 +1,6 @@
 /* eslint-disable no-secrets/no-secrets */
-import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
+import type { CreateProviderDto } from '@gitpaas/contracts';
+
 import { ProviderNameTakenError } from '../../domain/errors/provider.errors';
 import { Provider, ProviderType } from '../../domain/models/provider.models';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';

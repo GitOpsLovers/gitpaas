@@ -1,4 +1,5 @@
-import { UpdateProviderDto } from '../domain/dtos/update-provider.dto';
+import type { UpdateProviderDto } from '@gitpaas/contracts';
+
 import { ProviderNameTakenError } from '../domain/errors/provider.errors';
 import { Provider } from '../domain/models/provider.models';
 import { ProvidersRepository } from '../domain/repositories/providers.repository';

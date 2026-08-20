@@ -1,3 +1,5 @@
+import type { ProviderType as ProviderTypeContract } from '@gitpaas/contracts';
+
 import { ProviderAppPermissions } from '../constants/provider-permissions.constants';
 
 /**
@@ -5,6 +7,25 @@ import { ProviderAppPermissions } from '../constants/provider-permissions.consta
  */
 export enum ProviderType {
     GithubApp = 'github_app',
+}
+
+/**
+ * The enum of the domain that each kind of the wire maps onto.
+ */
+export const PROVIDER_TYPES: Readonly<Record<ProviderTypeContract, ProviderType>> = {
+    github_app: ProviderType.GithubApp,
+};
+
+/**
+ * Converts the kind of a provider of the wire into the enum of the domain.
+ *
+ * @param type Kind of a provider, as a request of the API carries it
+ *
+ * @returns The matching kind of the domain
+ */
+export function toProviderType(type: ProviderTypeContract): ProviderType {
+    // eslint-disable-next-line security/detect-object-injection
+    return PROVIDER_TYPES[type];
 }
 
 /**

@@ -48,7 +48,7 @@ describe('toProviderRegistrationResponse', () => {
     it('never lets a date reach the answer', () => {
         const response = toProviderRegistrationResponse(registration());
 
-        expect(Object.values(response).some((value) => value instanceof Date)).toBe(false);
+        expect(Object.values(response as object).some((value) => value instanceof Date)).toBe(false);
     });
 
     it('converts each timestamp into a text of the ISO form', () => {

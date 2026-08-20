@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import type { UpdateProviderDto } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { describeProviderFailureUseCase } from '@features/providers/application/describe-provider-failure.use-case';
-import { UpdateProviderDto } from '@features/providers/domain/dtos/update-provider.dto';
 import { ProvidersApiRepository } from '@features/providers/infrastructure/api/providers-api.repository';
 import {
     ProviderFormComponent,

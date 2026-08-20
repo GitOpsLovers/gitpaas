@@ -1,3 +1,5 @@
+import type { ProviderAppOwnerType as ProviderAppOwnerTypeContract } from '@gitpaas/contracts';
+
 import { ProviderPermissionLevel } from '../constants/provider-permissions.constants';
 
 /**
@@ -6,6 +8,26 @@ import { ProviderPermissionLevel } from '../constants/provider-permissions.const
 export enum ProviderAppOwnerType {
     Personal = 'personal',
     Organization = 'organization',
+}
+
+/**
+ * The enum of the domain that each kind of owner of the wire maps onto.
+ */
+export const PROVIDER_APP_OWNER_TYPES: Readonly<Record<ProviderAppOwnerTypeContract, ProviderAppOwnerType>> = {
+    personal: ProviderAppOwnerType.Personal,
+    organization: ProviderAppOwnerType.Organization,
+};
+
+/**
+ * Converts the kind of owner of the wire into the enum of the domain.
+ *
+ * @param ownerType Kind of owner, as a request of the API carries it
+ *
+ * @returns The matching kind of the domain
+ */
+export function toProviderAppOwnerType(ownerType: ProviderAppOwnerTypeContract): ProviderAppOwnerType {
+    // eslint-disable-next-line security/detect-object-injection
+    return PROVIDER_APP_OWNER_TYPES[ownerType];
 }
 
 /**

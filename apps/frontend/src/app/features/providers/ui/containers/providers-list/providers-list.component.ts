@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { Provider, ProviderConnectionOutcome } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { describeProviderFailureUseCase } from '../../../application/describe-provider-failure.use-case';
-import { Provider, ProviderConnectionOutcome } from '../../../domain/models/provider.model';
 import { ProvidersApiRepository } from '../../../infrastructure/api/providers-api.repository';
 import { ProviderCardComponent, ProviderConnectionState } from '../../components/provider-card/provider-card.component';
 

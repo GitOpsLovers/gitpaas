@@ -1,9 +1,9 @@
 /* eslint-disable no-secrets/no-secrets */
 import { createHash } from 'node:crypto';
 
+import type { CreateProviderDto } from '@gitpaas/contracts';
 import { EntityManager, Repository } from 'typeorm';
 
-import { CreateProviderDto } from '../../../domain/dtos/create-provider.dto';
 import { Provider, ProviderCredentials, ProviderType } from '../../../domain/models/provider.models';
 import { DbProviderEntity } from '../db-provider.entity';
 import { DatabaseProvidersRepository } from '../db-providers.repository';

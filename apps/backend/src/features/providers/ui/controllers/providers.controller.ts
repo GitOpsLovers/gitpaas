@@ -1,4 +1,24 @@
 import {
+    completeProviderRegistrationSchema,
+    convertProviderRegistrationSchema,
+    createProviderSchema,
+    startProviderRegistrationSchema,
+    updateProviderSchema,
+} from '@gitpaas/contracts';
+import type {
+    CompleteProviderRegistrationDto,
+    ConvertProviderRegistrationDto,
+    ConvertedProviderRegistration,
+    CreateProviderDto,
+    GitBranch,
+    GitRepository,
+    Provider as ProviderResponse,
+    ProviderConnectionTest,
+    StartProviderRegistrationDto,
+    StartedProviderRegistration,
+    UpdateProviderDto,
+} from '@gitpaas/contracts';
+import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
     Controller,
@@ -13,20 +33,13 @@ import {
     UseGuards,
 } from '@nestjs/common';
 
-import { CompleteProviderRegistrationDto } from '../../domain/dtos/complete-provider-registration.dto';
-import { ConvertProviderRegistrationDto } from '../../domain/dtos/convert-provider-registration.dto';
-import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
-import { StartProviderRegistrationDto } from '../../domain/dtos/start-provider-registration.dto';
-import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
 import { ProviderNotFoundError } from '../../domain/errors/provider.errors';
-import { GitBranch } from '../../domain/models/git-branch.models';
-import { GitRepository } from '../../domain/models/git-repository.models';
-import { ConvertedProviderRegistration, StartedProviderRegistration } from '../../domain/models/provider-registration.models';
-import { Provider, ProviderConnectionTest } from '../../domain/models/provider.models';
+import { Provider } from '../../domain/models/provider.models';
 import { ProvidersService } from '../services/providers.service';
-import { ProviderResponse, toProviderResponse } from '../transformers/provider-response.transformer';
+import { toProviderResponse } from '../transformers/provider-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Roles } from '@features/authentication/ui/decorators/roles.decorator';
 import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
@@ -69,8 +82,9 @@ export class ProvidersController {
      */
     @Post()
     @Roles(UserRole.Admin)
-    public async create(@Body() createDto: CreateProviderDto): Promise<ProviderResponse> {
+    public async create(@Body(new ZodValidationPipe(createProviderSchema)) createDto: CreateProviderDto): Promise<ProviderResponse> {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const provider = await this.service.create(createDto);
 
             return toProviderResponse(provider);
@@ -88,10 +102,13 @@ export class ProvidersController {
      */
     @Post('registrations')
     @Roles(UserRole.Admin)
-    public async startRegistration(@Body() startDto: StartProviderRegistrationDto): Promise<StartedProviderRegistration> {
+    public async startRegistration(
+        @Body(new ZodValidationPipe(startProviderRegistrationSchema)) startDto: StartProviderRegistrationDto,
+    ): Promise<StartedProviderRegistration> {
         let registration: StartedProviderRegistration;
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             registration = await this.service.startRegistration(startDto);
         } catch (error) {
             throw translateError(error);
@@ -113,10 +130,11 @@ export class ProvidersController {
     @Post('registrations/:state/conversion')
     @Roles(UserRole.Admin)
     @HttpCode(200)
-    public async convertRegistration(@Param('state') state: string, @Body() convertDto: ConvertProviderRegistrationDto): Promise<ConvertedProviderRegistration> {
+    public async convertRegistration(@Param('state') state: string, @Body(new ZodValidationPipe(convertProviderRegistrationSchema)) convertDto: ConvertProviderRegistrationDto): Promise<ConvertedProviderRegistration> {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             return await this.service.convertRegistration(state, convertDto);
         } catch (error) {
             throw translateError(error);
@@ -133,10 +151,11 @@ export class ProvidersController {
      */
     @Post('registrations/:state/completion')
     @Roles(UserRole.Admin)
-    public async completeRegistration(@Param('state') state: string, @Body() completeDto: CompleteProviderRegistrationDto): Promise<ProviderResponse> {
+    public async completeRegistration(@Param('state') state: string, @Body(new ZodValidationPipe(completeProviderRegistrationSchema)) completeDto: CompleteProviderRegistrationDto): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const provider = await this.service.completeRegistration(state, completeDto);
 
             return toProviderResponse(provider);
@@ -157,13 +176,14 @@ export class ProvidersController {
     @Roles(UserRole.Admin)
     public async update(
         @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateDto: UpdateProviderDto,
+        @Body(new ZodValidationPipe(updateProviderSchema)) updateDto: UpdateProviderDto,
     ): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.id': id });
 
         let provider: Provider | null;
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             provider = await this.service.update(id, updateDto);
         } catch (error) {
             throw translateError(error);

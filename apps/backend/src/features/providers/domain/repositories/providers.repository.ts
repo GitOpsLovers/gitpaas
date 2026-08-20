@@ -1,5 +1,5 @@
-import { CreateProviderDto } from '../dtos/create-provider.dto';
-import { UpdateProviderDto } from '../dtos/update-provider.dto';
+import type { CreateProviderDto, UpdateProviderDto } from '@gitpaas/contracts';
+
 import { Provider, ProviderCredentials } from '../models/provider.models';
 
 /**

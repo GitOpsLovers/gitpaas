@@ -1,18 +1,6 @@
-import { Provider, ProviderType } from '../../domain/models/provider.models';
+import type { Provider as ProviderResponse } from '@gitpaas/contracts';
 
-/**
- * A provider as an answer of the API carries it: every timestamp is a text of the ISO form.
- */
-export interface ProviderResponse {
-    id: string;
-    name: string;
-    type: ProviderType;
-    appId: string;
-    installationId: string;
-    keyFingerprint: string;
-    createdAt: string;
-    updatedAt: string;
-}
+import { Provider } from '../../domain/models/provider.models';
 
 /**
  * Maps a domain provider into the shape an answer of the API carries.

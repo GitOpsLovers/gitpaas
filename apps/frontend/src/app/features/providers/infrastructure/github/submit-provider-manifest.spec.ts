@@ -1,4 +1,4 @@
-import { ProviderAppManifest } from '../../domain/models/provider-registration.model';
+import type { ProviderAppManifest } from '@gitpaas/contracts';
 
 import { submitProviderManifest } from './submit-provider-manifest';
 
