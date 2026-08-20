@@ -70,6 +70,20 @@
                     Connected
                 </span>
             }
+            @case ('incomplete') {
+                <div class="flex flex-col gap-1.5">
+                    <span
+                        class="inline-flex w-fit items-center rounded-full bg-warning-50 px-2.5 py-0.5 text-xs font-medium text-warning-600 dark:bg-warning-500/15 dark:text-warning-500"
+                    >
+                        Missing permissions
+                    </span>
+                    <ul class="list-inside list-disc text-xs text-gray-500 dark:text-gray-400">
+                        @for (permission of missingPermissions(); track permission) {
+                            <li>{{ permission }}</li>
+                        }
+                    </ul>
+                </div>
+            }
             @case ('failure') {
                 <span
                     class="inline-flex w-fit items-center rounded-full bg-error-50 px-2.5 py-0.5 text-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500"

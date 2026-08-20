@@ -12,6 +12,7 @@
             <app-provider-card
                 [provider]="provider"
                 [connection]="connectionOf(provider)"
+                [missingPermissions]="missingPermissionsOf(provider)"
                 (test)="test($event)"
                 (edit)="edit($event)"
                 (delete)="requestDelete($event)"
