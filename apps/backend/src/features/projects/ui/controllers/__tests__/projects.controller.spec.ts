@@ -1,15 +1,15 @@
+import type { CreateProjectDto, UpdateProjectDto } from '@gitpaas/contracts';
 import { ConflictException, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 
-import { CreateProjectDto } from '../../../domain/dtos/create-project.dto';
-import { UpdateProjectDto } from '../../../domain/dtos/update-project.dto';
 import { ProjectNameTakenError, ProjectNotFoundError } from '../../../domain/errors/project.errors';
 import { Project } from '../../../domain/models/project.models';
 import { ProjectsService } from '../../services/projects.service';
 import { ProjectsController } from '../projects.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 
 const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -46,6 +46,23 @@ const pipesFor = (handler: string, parameter: string): unknown[] => {
         >) ?? {};
 
     return Object.values(metadata).find((argument) => argument.data === parameter)?.pipes ?? [];
+};
+
+/**
+ * Reads the pipes the controller declares for the body of a handler.
+ *
+ * Every path parameter carries its name in `data`, so the body is the one bound
+ * argument that carries none.
+ */
+const bodyPipesFor = (handler: string): unknown[] => {
+    // eslint-disable-next-line operator-linebreak
+    const metadata =
+        (Reflect.getMetadata(ROUTE_ARGS_METADATA, ProjectsController, handler) as Record<
+            string,
+            RouteArgMetadata
+        >) ?? {};
+
+    return Object.values(metadata).find((argument) => argument.data === undefined)?.pipes ?? [];
 };
 
 describe('ProjectsController', () => {
@@ -91,6 +108,16 @@ describe('ProjectsController', () => {
         it('never declares an id path parameter on the collection handlers', () => {
             expect(pipesFor('getAll', 'id')).toEqual([]);
             expect(pipesFor('create', 'id')).toEqual([]);
+        });
+    });
+
+    describe('body validation', () => {
+        it.each(['create', 'update'])('validates the body of %s with a Zod pipe', (handler) => {
+            expect(bodyPipesFor(handler)).toEqual([expect.any(ZodValidationPipe)]);
+        });
+
+        it.each(['getAll', 'findById', 'delete'])('never binds a body on %s', (handler) => {
+            expect(bodyPipesFor(handler)).toEqual([]);
         });
     });
 

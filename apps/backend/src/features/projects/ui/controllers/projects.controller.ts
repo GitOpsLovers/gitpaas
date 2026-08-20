@@ -1,3 +1,5 @@
+import { createProjectSchema, updateProjectSchema } from '@gitpaas/contracts';
+import type { CreateProjectDto, UpdateProjectDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -11,12 +13,11 @@ import {
     Put,
 } from '@nestjs/common';
 
-import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
-import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import { ProjectsService } from '../services/projects.service';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -54,7 +55,7 @@ export class ProjectsController {
     @Post()
     public async create(
         @Param('namespaceId', ParseUUIDPipe) namespaceId: string,
-        @Body() createDto: CreateProjectDto,
+        @Body(new ZodValidationPipe(createProjectSchema)) createDto: CreateProjectDto,
     ): Promise<Project> {
         try {
             return await this.service.create(namespaceId, createDto);
@@ -67,7 +68,7 @@ export class ProjectsController {
     public async update(
         @Param('namespaceId', ParseUUIDPipe) namespaceId: string,
         @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateDto: UpdateProjectDto,
+        @Body(new ZodValidationPipe(updateProjectSchema)) updateDto: UpdateProjectDto,
     ): Promise<Project> {
         try {
             return await this.service.update(namespaceId, id, updateDto);

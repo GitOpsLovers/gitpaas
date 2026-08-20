@@ -1,8 +1,8 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
-import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 import { ProjectCardComponent } from '../../components/project-card/project-card.component';
 

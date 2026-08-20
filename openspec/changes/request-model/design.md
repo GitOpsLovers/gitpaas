@@ -113,6 +113,23 @@ converts a `Date`.
 
 Two features already drifted in this exact way, so this is a rule and not one repair.
 
+**11. A contract of the wire is imported from the package, and no file of the domain re-exports it.**
+The first plan kept the file of `domain/dtos/` as an alias of one line, so that a consumer went on importing
+from the domain layer. That alias decouples nothing. The type is the type of the package in both cases, and
+a change of the shape breaks every consumer in the same way. The alias buys one import path, and it costs a
+hop for the reader and two files for each feature.
+
+So the file goes away, and the use case, the port, the repository and the controller import from
+`@gitpaas/contracts` directly.
+
+The rule of the layers still holds. `docs/backend-architecture/structure.md` says that a use case knows only
+the elements of the domain layer, and that rule speaks of a vendor type. The package is no vendor: it
+depends on `zod` alone, and it imports nothing from `apps/`, so it pulls no framework into a layer. The two
+pages of `docs/backend-architecture/` record the exception.
+
+A shape that only the backend has stays in `domain/dtos/`, and `create-project-in-namespace.dto.ts` is the
+first example. The rule is applicable to a shape of the wire alone.
+
 ## Risks / Trade-offs
 
 **1. A shared package couples the two applications.** Today the two can be changed and released alone. After

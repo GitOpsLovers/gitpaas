@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
-import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
 import { ProjectsListComponent } from './projects-list.component';

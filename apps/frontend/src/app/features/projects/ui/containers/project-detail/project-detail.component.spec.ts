@@ -3,8 +3,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 
-import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
 import { ProjectDetailComponent } from './project-detail.component';
@@ -15,7 +15,9 @@ interface ProjectDetailInternals {
     breadcrumb: () => BreadcrumbItem[];
 }
 
-const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
+const project: Project = {
+    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
+};
 
 describe('ProjectDetailComponent', () => {
     let value: ReturnType<typeof signal<Project | undefined>>;

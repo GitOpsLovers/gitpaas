@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import type { Project } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
-import { Project } from '../../../domain/models/project.model';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
 import { ProjectEditComponent } from './project-edit.component';
@@ -17,7 +17,9 @@ interface ProjectEditInternals {
     update: (name: string) => Promise<void>;
 }
 
-const project: Project = { id: 'pr-1', name: 'api', namespaceId: 'ns-1' };
+const project: Project = {
+    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
+};
 
 describe('ProjectEditComponent', () => {
     let value: ReturnType<typeof signal<Project | undefined>>;

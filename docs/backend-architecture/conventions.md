@@ -21,7 +21,13 @@ An infrastructure repository must not return a raw ORM entity or a vendor shape.
 
 ## Validation
 
-A write endpoint validates its input with DTO classes. The global `ValidationPipe` applies this validation. The DTOs stay in `domain/dtos/`. They are the only domain files that can import a framework and can use the `!` assertion, and they connect to the requests with `@Body()`. The pipe rejects unknown properties. Thus the DTO is the authoritative input contract. Nested payloads are validated with `@ValidateNested({ each: true })` and `@Type(() => Dto)`. Optional fields have the `@IsOptional()` decorator.
+A schema of `@gitpaas/contracts` is the authoritative input contract of a body. `ZodValidationPipe` (`core/ui/pipes/zod-validation.pipe.ts`) binds the schema to the parameter, for example `@Body(new ZodValidationPipe(createProjectSchema))`. `z.strictObject` refuses a property that the schema does not declare, which is the behaviour that the global pipe gave before. The pipe raises the bad request with an array of messages, so the envelope of the error does not change.
+
+The migration runs feature by feature. `projects` is migrated: its controller binds a schema of the package directly, and no file of `domain/dtos/` re-exports the type of a body. The two systems of validation live together during the migration: the global `ValidationPipe` still validates a parameter whose type is a class, and it goes away only when the last class of a body goes away (see decision 4 of `openspec/changes/request-model/design.md`). Where a feature is not migrated yet, its endpoint keeps a DTO class and the global pipe, in the same shape as before.
+
+`domain/dtos/` keeps the internal shapes that pass between the layers, and it holds no shape of the wire. `create-project-in-namespace.dto.ts` is an example: a repository port reads it, and no controller binds it to a request. `class-validator` stays in the backend, for the validation of the environment.
+
+A value of a path keeps its own pipe: `ParseUUIDPipe` and `ParseIntPipe` bind one identifier, and a schema of the package validates only a body or a query with more than one field.
 
 ## Single-responsibility principle
 

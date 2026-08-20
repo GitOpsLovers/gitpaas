@@ -2,8 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-
-import { Project } from '../../domain/models/project.model';
+import type { Project } from '@gitpaas/contracts';
 
 import { ProjectsApiRepository } from './projects-api.repository';
 

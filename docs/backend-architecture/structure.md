@@ -30,7 +30,7 @@ This layer holds the models, the repository and port interfaces, the DTOs, the e
 
 **Application Layer**
 
-This layer holds all the business use cases. Each use case has its own file and obeys the _single responsibility principle_. A use case is a pure function that receives all its dependencies as parameters. Thus a use case knows only the elements of the domain layer.
+This layer holds all the business use cases. Each use case has its own file and obeys the _single responsibility principle_. A use case is a pure function that receives all its dependencies as parameters. Thus a use case knows only the elements of the domain layer. A contract of the wire is the one exception: a use case may import a type of `@gitpaas/contracts` directly, because that package is no vendor type. The package depends on `zod` alone, and it imports nothing from `apps/`, so it pulls no framework into the layer.
 
 **Infrastructure Layer**
 
@@ -107,5 +107,5 @@ Some behaviours apply to all the application. Thus they are configured one time 
 - **Security headers**: `helmet()` sets the secure HTTP headers at bootstrap.
 - **Environment validation**: a `class-validator` schema validates each variable when the application starts. If a variable is missing or incorrect, the application stops immediately.
 - **Request correlation id**: a global middleware gives an id to each request. It uses the inbound `X-Request-Id` header or makes a new id, and it returns the id in the `X-Request-Id` response header.
-- **Error envelope**: a global exception filter returns the same shape for all the errors. It keeps the message arrays that the `ValidationPipe` makes, and it changes an unexpected error into a generic 500.
+- **Error envelope**: a global exception filter returns the same shape for all the errors. It keeps the message arrays that the global `ValidationPipe` and `ZodValidationPipe` make, and it changes an unexpected error into a generic 500.
 - **Telemetry**: a global middleware opens a telemetry scope for each request, every layer adds fields to it, and one JSON event goes to stdout when the response finishes.

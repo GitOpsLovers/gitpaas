@@ -1,3 +1,4 @@
+import type { CreateProjectDto, UpdateProjectDto } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { createProjectUseCase } from '../../application/create-project.use-case';
@@ -5,8 +6,6 @@ import { deleteProjectUseCase } from '../../application/delete-project.use-case'
 import { findProjectByIdUseCase } from '../../application/find-project-by-id.use-case';
 import { getAllProjectsUseCase } from '../../application/get-all-projects.use-case';
 import { updateProjectUseCase } from '../../application/update-project.use-case';
-import { CreateProjectDto } from '../../domain/dtos/create-project.dto';
-import { UpdateProjectDto } from '../../domain/dtos/update-project.dto';
 import { Project } from '../../domain/models/project.models';
 import type { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { DatabaseProjectsRepository } from '../../infrastructure/database/db-projects.repository';
