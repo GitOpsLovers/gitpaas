@@ -1,3 +1,23 @@
+## [1.4.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.3.0...v1.4.0) (2026-08-20)
+
+### Features
+
+* **providers:** add convertAppManifest to provider client port (phase 4) ([#95](https://github.com/GitOpsLovers/gitpaas/issues/95)) ([ec85705](https://github.com/GitOpsLovers/gitpaas/commit/ec857054c705f493620d4c02e7d7a962028526b0))
+* **providers:** add GitHub App registration endpoints (phase 6 - partial) ([#103](https://github.com/GitOpsLovers/gitpaas/issues/103)) ([d8a4bc6](https://github.com/GitOpsLovers/gitpaas/commit/d8a4bc6bfd159b0ad49f6c00bedcf7071ac4320e))
+* **providers:** add GitHub App registration use cases and operations ([#102](https://github.com/GitOpsLovers/gitpaas/issues/102)) ([3962def](https://github.com/GitOpsLovers/gitpaas/commit/3962defe947e33704e6c0b18783a940463b63079))
+* **providers:** add incomplete state to provider card ([#108](https://github.com/GitOpsLovers/gitpaas/issues/108)) ([356a1f7](https://github.com/GitOpsLovers/gitpaas/commit/356a1f774031e5392ce5db44d9c847fe1ca551cf))
+* **providers:** add permissions checking for provider apps ([#77](https://github.com/GitOpsLovers/gitpaas/issues/77)) ([476ca23](https://github.com/GitOpsLovers/gitpaas/commit/476ca23ae54dedbff08667c93013075d0bfa7051))
+* **providers:** add scheduled job to remove expired registrations ([#104](https://github.com/GitOpsLovers/gitpaas/issues/104)) ([7e52e01](https://github.com/GitOpsLovers/gitpaas/commit/7e52e01cfa9a2ce6e182a89acb9dd1e5c9e2e9f9))
+* **providers:** add screens for GitHub registration returns ([#107](https://github.com/GitOpsLovers/gitpaas/issues/107)) ([388e780](https://github.com/GitOpsLovers/gitpaas/commit/388e7801032ec64be8d290d7a33112909c3ec0f6))
+* **providers:** add the two paths of the provider creation screen ([#105](https://github.com/GitOpsLovers/gitpaas/issues/105)) ([f297fc8](https://github.com/GitOpsLovers/gitpaas/commit/f297fc82c815cb3c29408751e652510e6cec87f5))
+* **providers:** persist provider registration state between GitHub visits ([#80](https://github.com/GitOpsLovers/gitpaas/issues/80)) ([9f49921](https://github.com/GitOpsLovers/gitpaas/commit/9f499213257524f1fc9d63d483c3bd3b645bec68))
+* **providers:** provider test answers outcome ([#78](https://github.com/GitOpsLovers/gitpaas/issues/78)) ([32f8c7d](https://github.com/GitOpsLovers/gitpaas/commit/32f8c7dabdfac833db2f911b42378556403ec320))
+
+### Bug Fixes
+
+* **agents:** remove stale aliases and reference canonical docs ([#85](https://github.com/GitOpsLovers/gitpaas/issues/85)) ([4f9b139](https://github.com/GitOpsLovers/gitpaas/commit/4f9b13977f0ad49c4b325bbe16d5bb3a7e9f8163))
+* **tailadmin-ui-patterns:** correct source of truth of TailAdmin skill ([#83](https://github.com/GitOpsLovers/gitpaas/issues/83)) ([e9ecf99](https://github.com/GitOpsLovers/gitpaas/commit/e9ecf9911e6bdbdfcebaf70a2d3685d30cc02e8f))
+
 ## [1.3.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.2.0...v1.3.0) (2026-08-16)
 
 ### Features
