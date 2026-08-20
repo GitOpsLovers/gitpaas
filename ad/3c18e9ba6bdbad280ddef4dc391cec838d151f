@@ -1,0 +1,65 @@
+apps/backend/src/features/services/application/__tests__/create-service.use-case.spec.ts
+  s_05e6c2c580883e::t_9c0beabd024f8f 1-2
+apps/backend/src/features/services/application/__tests__/update-service.use-case.spec.ts
+  s_05e6c2c580883e::t_1e4daff17560b3 1-2
+apps/backend/src/features/services/application/create-service.use-case.ts
+  s_05e6c2c580883e::t_08abb8c327547f 1-2
+apps/backend/src/features/services/application/update-service.use-case.ts
+  s_05e6c2c580883e::t_71d78ba3fa2388 1-2
+apps/backend/src/features/services/domain/repositories/services.repository.ts
+  s_05e6c2c580883e::t_ef1b194e7d36be 1-2
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_05e6c2c580883e::t_1c4c3feed67652 1
+apps/backend/src/features/services/infrastructure/database/db-services.repository.ts
+  s_05e6c2c580883e::t_e94a0292c3952b 1
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_05e6c2c580883e::t_684e93ac9555d5 37
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_05e6c2c580883e::t_8c38abf1240f6c 1-3,11,29-58,86-106
+apps/backend/src/features/services/ui/controllers/services.controller.ts
+  s_05e6c2c580883e::t_52151b1228c1f6 1-2,22,60,71
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_05e6c2c580883e::t_26729536cf7243 1
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_05e6c2c580883e::t_7bb277e7918e8e 1
+apps/frontend/src/app/features/services/infrastructure/api/services-api.repository.ts
+  s_05e6c2c580883e::t_42bccbb7d8ddd6 3
+apps/frontend/src/app/features/services/ui/components/service-card/service-card.component.ts
+  s_05e6c2c580883e::t_27c5d4aa4e65da 2
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.spec.ts
+  s_05e6c2c580883e::t_9c637339bede72 4,27-35
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_05e6c2c580883e::t_9354fd2136f001 4,34-42
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_05e6c2c580883e::t_c92fea5e097955 4,153-158
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.spec.ts
+  s_05e6c2c580883e::t_5d3c820234c540 4,29-37
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.spec.ts
+  s_05e6c2c580883e::t_ecb1f5097a2371 4,24-32
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.ts
+  s_05e6c2c580883e::t_9e42e0053325ed 3
+openspec/changes/request-model/tasks.md
+  s_05e6c2c580883e::t_2b8c51a7e11312 63-64
+packages/contracts/src/index.ts
+  s_05e6c2c580883e::t_8239b6984f23cb 6-9
+packages/contracts/src/services/service.contract.ts
+  s_05e6c2c580883e::t_a66bfc5ae7d501 1-59
+packages/contracts/src/services/services.endpoints.ts
+  s_05e6c2c580883e::t_892cb4fd1cb41c 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ad3c18e9ba6bdbad280ddef4dc391cec838d151f",
+  "prompts": {},
+  "sessions": {
+    "s_05e6c2c580883e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "965ae461-2cfc-45db-b861-9086947a9868",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
