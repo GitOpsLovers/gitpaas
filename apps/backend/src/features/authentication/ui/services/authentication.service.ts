@@ -15,12 +15,6 @@ import type { UsersRepository } from '@features/users/domain/repositories/users.
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 
 /**
- * Public projection of a user, exposed by `GET /auth/me` — never carries the
- * password hash.
- */
-export type AuthenticatedUser = Omit<User, 'passwordHash'>;
-
-/**
  * Authentication service
  */
 @Injectable()
@@ -100,7 +94,7 @@ export class AuthenticationService {
      *
      * @returns The user without its password hash
      */
-    public me(user: User): AuthenticatedUser {
+    public me(user: User): Omit<User, 'passwordHash'> {
         const { passwordHash: _passwordHash, ...view } = user;
 
         return view;

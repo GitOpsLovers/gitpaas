@@ -1,11 +1,10 @@
+import type { LoginDto, RefreshDto } from '@gitpaas/contracts';
 import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { LoginDto } from '../../../domain/dtos/login.dto';
-import { RefreshDto } from '../../../domain/dtos/refresh.dto';
 import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../../domain/models/auth-tokens.models';
-import { AuthenticatedUser, AuthenticationService } from '../../services/authentication.service';
+import { AuthenticationService } from '../../services/authentication.service';
 import { AuthenticationController } from '../authentication.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -174,7 +173,7 @@ describe('AuthenticationController', () => {
     });
 
     it('me returns the public projection produced by the service', () => {
-        const view: AuthenticatedUser = {
+        const view: Omit<User, 'passwordHash'> = {
             id: user.id,
             email: user.email,
             role: user.role,
@@ -214,6 +213,6 @@ describe('AuthenticationController', () => {
 
         expect(result.createdAt).toBe('2026-07-11T00:00:00.000Z');
         expect(result.updatedAt).toBe('2026-07-11T00:00:00.000Z');
-        expect(Object.values(result).some((value) => value instanceof Date)).toBe(false);
+        expect(Object.values<unknown>(result).some((value) => value instanceof Date)).toBe(false);
     });
 });

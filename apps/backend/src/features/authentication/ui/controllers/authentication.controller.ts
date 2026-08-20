@@ -1,20 +1,19 @@
+import { loginSchema, refreshSchema } from '@gitpaas/contracts';
+import type { AuthTokens, LoginDto, RefreshDto, User as UserResponse } from '@gitpaas/contracts';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 
-import { LoginDto } from '../../domain/dtos/login.dto';
-import { RefreshDto } from '../../domain/dtos/refresh.dto';
-import { AuthTokens } from '../../domain/models/auth-tokens.models';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthenticationService } from '../services/authentication.service';
 import { enrichWithActor } from '../telemetry/enrich-with-actor';
 
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import type { User } from '@features/users/domain/models/user.models';
 import { toUserResponse } from '@features/users/ui/transformers/user-response.transformer';
-import type { UserResponse } from '@features/users/ui/transformers/user-response.transformer';
 
 /**
  * Authentication controller
@@ -26,10 +25,6 @@ export class AuthenticationController {
     /**
      * Authenticate with email + password and receive an access/refresh token pair.
      *
-     * Guarded by the local strategy (which validates the credentials) and rate
-     * limited to blunt brute-force attempts. The `@Body` binding drives DTO
-     * validation; the guard reads the same fields.
-     *
      * @param user The user resolved and attached by the local strategy
      *
      * @returns Access + refresh token pair
@@ -39,7 +34,10 @@ export class AuthenticationController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     @HttpCode(200)
-    public login(@Body() _loginDto: LoginDto, @CurrentUser() user: User): Promise<AuthTokens> {
+    public login(
+        @Body(new ZodValidationPipe(loginSchema)) _loginDto: LoginDto,
+        @CurrentUser() user: User,
+    ): Promise<AuthTokens> {
         enrichWithActor(user);
 
         return this.service.login(user);
@@ -55,7 +53,7 @@ export class AuthenticationController {
     @Public()
     @Post('refresh')
     @HttpCode(200)
-    public async refresh(@Body() refreshDto: RefreshDto): Promise<AuthTokens> {
+    public async refresh(@Body(new ZodValidationPipe(refreshSchema)) refreshDto: RefreshDto): Promise<AuthTokens> {
         try {
             return await this.service.refresh(refreshDto.refreshToken);
         } catch (error) {
@@ -71,7 +69,7 @@ export class AuthenticationController {
     @Public()
     @Post('logout')
     @HttpCode(204)
-    public logout(@Body() refreshDto: RefreshDto): Promise<void> {
+    public logout(@Body(new ZodValidationPipe(refreshSchema)) refreshDto: RefreshDto): Promise<void> {
         return this.service.logout(refreshDto.refreshToken);
     }
 
