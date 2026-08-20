@@ -11,3 +11,9 @@ export { serviceParamsSchema, servicesEndpoints, servicesQuerySchema } from './s
 export { deploymentSchema, deploymentStatusSchema, triggerDeploymentSchema } from './deployments/deployment.contract';
 export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deployments/deployment.contract';
 export { deploymentParamsSchema, deploymentsEndpoints, deploymentsQuerySchema } from './deployments/deployments.endpoints';
+
+export { authTokensSchema, loginSchema, refreshSchema } from './authentication/authentication.contract';
+export type { AuthTokens, LoginDto, RefreshDto } from './authentication/authentication.contract';
+export { userRoleSchema, userSchema } from './authentication/user.contract';
+export type { User, UserRole } from './authentication/user.contract';
+export { authenticationEndpoints } from './authentication/authentication.endpoints';

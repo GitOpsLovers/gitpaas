@@ -1,13 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
+import type { AuthTokens, User } from '@gitpaas/contracts';
 
 import { AuthenticationApiRepository } from './authentication-api.repository';
 
 import { environment } from '@environments/environment';
-import { User } from '@features/users/domain/models/user.model';
 
 const BASE_URL = `${environment.apiBaseUrl}/auth`;
 

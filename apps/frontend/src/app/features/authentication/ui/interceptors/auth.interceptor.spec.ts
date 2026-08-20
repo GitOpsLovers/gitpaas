@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import type { AuthTokens } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
 

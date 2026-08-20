@@ -1,15 +1,14 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import type { AuthTokens, LoginDto, User } from '@gitpaas/contracts';
 import { finalize, Observable, tap } from 'rxjs';
 
-import { LoginDto } from '../../domain/dtos/login.dto';
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
 
-import { User } from '@features/users/domain/models/user.model';
-
-/** Address the sign-in opens when the user asked for none. */
+/**
+ * Address the sign-in opens when the user asked for none.
+ */
 const DEFAULT_DESTINATION = '/dashboard';
 
 /**

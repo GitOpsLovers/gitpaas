@@ -1,16 +1,6 @@
-import { User, UserRole } from '../../domain/models/user.models';
+import type { User as UserResponse } from '@gitpaas/contracts';
 
-/**
- * A user as an answer of the API carries it.
- */
-export interface UserResponse {
-    id: string;
-    email: string;
-    role: UserRole;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
+import { User } from '../../domain/models/user.models';
 
 /**
  * Maps a domain user into the shape an answer of the API carries.

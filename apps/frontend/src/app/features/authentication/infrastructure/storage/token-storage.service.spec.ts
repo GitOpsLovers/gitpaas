@@ -1,4 +1,4 @@
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
+import type { AuthTokens } from '@gitpaas/contracts';
 
 import { TokenStorageService } from './token-storage.service';
 

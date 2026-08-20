@@ -59,7 +59,7 @@ describe('toUserResponse', () => {
     it('never lets a date reach the answer', () => {
         const response = toUserResponse(user());
 
-        expect(Object.values(response).some((value) => value instanceof Date)).toBe(false);
+        expect(Object.values<unknown>(response).some((value) => value instanceof Date)).toBe(false);
     });
 
     it('preserves the role and the deactivation of an account', () => {

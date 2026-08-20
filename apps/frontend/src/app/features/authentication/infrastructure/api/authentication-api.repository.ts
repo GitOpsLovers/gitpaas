@@ -1,12 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import type { AuthTokens, LoginDto, User } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
-import { LoginDto } from '../../domain/dtos/login.dto';
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
-
 import { environment } from '@environments/environment';
-import { User } from '@features/users/domain/models/user.model';
 
 @Injectable({ providedIn: 'root' })
 

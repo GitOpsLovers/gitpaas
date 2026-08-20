@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-
-import { AuthTokens } from '../../domain/models/auth-tokens.model';
+import type { AuthTokens } from '@gitpaas/contracts';
 
 /**
  * Storage key under which the access token is persisted.

@@ -63,9 +63,9 @@ a body, and it points every consumer at the package. A shape that only the backe
 - [x] 4.1 Apply the evidence of the columns of `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`: `repositoryId`, `deploymentBranch` and `composerPath` carry `default: ''` and refuse an empty value, so the three are obligatory texts. `providerId` carries `nullable: true`, so it is a nullable text.
 - [x] 4.2 Create `packages/contracts/src/services/` with the schemas, the map of the endpoints and that resolved optionality, and migrate the feature. Use `.nullable()` for `providerId`, and never `.optional()`.
 - [x] 4.3 Create `packages/contracts/src/deployments/` and migrate the feature.
-- [ ] 4.4 Create `packages/contracts/src/authentication/` and migrate the features of the authentication and of the users.
-- [ ] 4.5 Resolve the three names of the user in one schema, with no hash of the password in a shape of an answer.
-- [ ] 4.6 Move the type `AuthenticatedUser` out of `apps/backend/src/features/authentication/ui/services/authentication.service.ts` into the package.
+- [x] 4.4 Create `packages/contracts/src/authentication/` and migrate the features of the authentication and of the users.
+- [x] 4.5 Resolve the three names of the user in one schema, with no hash of the password in a shape of an answer.
+- [x] 4.6 Move the type `AuthenticatedUser` out of `apps/backend/src/features/authentication/ui/services/authentication.service.ts` into the package.
 - [ ] 4.7 Create `packages/contracts/src/providers/` and migrate the feature. Declare `ProviderType` as one `z.enum`, add `createdAt` and `updatedAt` as texts of the ISO form, and keep `privateKey` out of every shape of an answer.
 - [ ] 4.8 Point the nine shapes of the frontend of `features/providers/` at the package, and delete the ones that describe the wire.
 - [ ] 4.9 Create `packages/contracts/src/server/` with the shape of the readiness and the shape of the state of the daemon, and delete the copy of the frontend, which holds the same text as the file of the backend.
