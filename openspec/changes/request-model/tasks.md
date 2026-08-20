@@ -12,25 +12,25 @@ event of the error leaves the mark of the status without a value and hides the c
 
 ## 1. The rails
 
-- [ ] 1.1 Ask the user to install `zod` (version 4) in `packages/contracts` as a dependency of the run time.
-- [ ] 1.2 Create `packages/contracts/package.json` with the name `@gitopslovers/contracts`.
-- [ ] 1.3 Create `packages/contracts/tsconfig.json`, which emits the declarations to `packages/contracts/dist/`.
-- [ ] 1.4 Create `packages/contracts/src/index.ts` as the public barrel of the package.
-- [ ] 1.5 Create `packages/contracts/src/shared/endpoint.contract.ts` with the types `EndpointDescriptor` and `EndpointMap`.
-- [ ] 1.6 Add the tasks `check-types`, `generate:openapi` and `generate:docs` to the `turbo.json` of the root, beside the nine tasks that it declares today.
-- [ ] 1.7 Add the rule `dependsOn: ["^build"]` to the new task `check-types`. The tasks `build` and `test` already carry it, so leave them as they are.
-- [ ] 1.8 Add a script `check-types` to `apps/backend/package.json`, with the body `tsc -p tsconfig.json --noEmit`.
-- [ ] 1.9 Add a script `check-types` to `apps/frontend/package.json` with a build of Angular, because only the compiler of Angular checks a template.
-- [ ] 1.10 Add a step `check-types` to the job `verify` of `.github/workflows/pr-verify.yml`, before the step of the lint. The workflow runs the lint, the tests and the build today.
-- [ ] 1.11 Add `packages/**` to the filter `paths` of that workflow, so a change of the package runs the job.
-- [ ] 1.12 Verify that the pipeline builds the package and checks the two applications.
+- [x] 1.1 Ask the user to install `zod` (version 4) in `packages/contracts` as a dependency of the run time.
+- [x] 1.2 Create `packages/contracts/package.json` with the name `@gitpaas/contracts`.
+- [x] 1.3 Create `packages/contracts/tsconfig.json`, which emits the declarations to `packages/contracts/dist/`.
+- [x] 1.4 Create `packages/contracts/src/index.ts` as the public barrel of the package.
+- [x] 1.5 Create `packages/contracts/src/shared/endpoint.contract.ts` with the types `EndpointDescriptor` and `EndpointMap`.
+- [x] 1.6 Add the tasks `check-types`, `generate:openapi` and `generate:docs` to the `turbo.json` of the root, beside the nine tasks that it declares today.
+- [x] 1.7 Add the rule `dependsOn: ["^build"]` to the new task `check-types`. The tasks `build` and `test` already carry it, so leave them as they are.
+- [x] 1.8 Add a script `check-types` to `apps/backend/package.json`, with the body `tsc -p tsconfig.json --noEmit`.
+- [x] 1.9 Add a script `check-types` to `apps/frontend/package.json` with a build of Angular, because only the compiler of Angular checks a template.
+- [x] 1.10 Add a step `check-types` to the job `verify` of `.github/workflows/pr-verify.yml`, before the step of the lint. The workflow runs the lint, the tests and the build today.
+- [x] 1.11 Add `packages/**` to the filter `paths` of that workflow, so a change of the package runs the job.
+- [x] 1.12 Verify that the pipeline builds the package and checks the two applications.
 
 ## 2. The reference slice: the projects
 
 - [ ] 2.1 Create `packages/contracts/src/projects/project.contract.ts` with the schemas of the project, of the creation and of the change, and the inferred types.
 - [ ] 2.2 Create `packages/contracts/src/projects/projects.endpoints.ts` with the descriptors of the five routes.
 - [ ] 2.3 Export the two new files from `packages/contracts/src/index.ts`.
-- [ ] 2.4 Add `"@gitopslovers/contracts": "workspace:*"` to the two applications, and ask the user to link the workspace.
+- [ ] 2.4 Add `"@gitpaas/contracts": "workspace:*"` to the two applications, and ask the user to link the workspace.
 - [ ] 2.5 Create `apps/backend/src/core/ui/pipes/zod-validation.pipe.ts` with the call of `safeParse` and the exception that carries an array of messages.
 - [ ] 2.6 Create the helper that gives one text for each issue of Zod.
 - [ ] 2.7 Create the spec of the pipe.
@@ -109,10 +109,10 @@ them.
 - [ ] 8.4 Decide how the paths of the endpoints are used, because the repositories of the frontend build their addresses from the environment with texts of the template.
 - [ ] 8.5 Decide which tool builds the HTML reference, and if `docs/api/` lives in Git (needed by 6.1).
 - [ ] 8.6 Decide if the shape of the archive of the logs belongs in the package, because it has no consumer in the frontend today.
-- [ ] 8.7 Decide the final name of the package, between `@gitopslovers/contracts` and `@gitopslovers/gitpaas-contracts` (needed by 1.2).
+- [x] 8.7 The name of the package is **answered**: `@gitpaas/contracts`. The user chose the scope `@gitpaas/` for the whole workspace, so `apps/backend` is `@gitpaas/backend` and `apps/frontend` is `@gitpaas/frontend`. The root manifest keeps the name `@gitopslovers/gitpaas`.
 
 ## 9. The records that the change leaves behind
 
-- [ ] 9.1 Record in `docs/monorepo-architecture.md` that the names of the workspace hold two slashes and are no valid names of a package, and that the package of the contracts therefore holds one.
-- [ ] 9.2 Record in `docs/monorepo-architecture.md` the three tasks that `turbo.json` receives, and the order that they need.
+- [x] 9.1 Record in `docs/monorepo-architecture/conventions.md` that the scope of the workspace is `@gitpaas/`, that each application and the package of the contracts carry it, and that the root manifest keeps `@gitopslovers/gitpaas`.
+- [ ] 9.2 Record in `docs/monorepo-architecture/` the three tasks that `turbo.json` receives, and the order that they need.
 - [ ] 9.3 Record that `apps/frontend/src/app/features/source-control/` is dead code: it holds five shapes of the wire, no file outside it imports it, and the feature `providers` replaced it. A separate change deletes it.

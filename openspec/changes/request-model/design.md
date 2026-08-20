@@ -85,11 +85,14 @@ an object of the query with more than one field, and not for one identifier.
 A reviewer sees the change of the wire in the difference of the pull request, and the workflow can prove
 that the file is current.
 
-**8. The name of the package holds one slash.**
-The names of the workspace are `@gitopslovers/gitpaas/<app>`, which hold **two** slashes and are no valid
-name of a package. The applications get away with it, because nothing depends on them by the name. The
-package of the contracts **is** a dependency by the name, so it must hold one slash. This deviation must
-enter `docs/monorepo-architecture.md`.
+**8. The scope of the workspace is `@gitpaas/`.**
+The names of the workspace were `@gitopslovers/gitpaas/<app>`, which hold **two** slashes and are no valid
+name of a package. The applications got away with it, because nothing depends on them by the name. The
+package of the contracts **is** a dependency by the name, so it must hold one slash. Rather than give the
+package a scope of its own, this change renames the whole workspace to `@gitpaas/<name>`:
+`@gitpaas/backend`, `@gitpaas/frontend` and `@gitpaas/contracts`. The root manifest keeps the name
+`@gitopslovers/gitpaas`, because nothing depends on the root by the name. The new rule must enter
+`docs/monorepo-architecture/conventions.md`.
 
 **9. A value that is empty is `null` on the wire, and the key is never absent.**
 A column that accepts no value gives `null` in JSON. It does not remove the key. So the contract declares

@@ -1,9 +1,10 @@
 {
-  "name": "@gitopslovers/gitpaas/frontend",
+  "name": "@gitpaas/frontend",
   "scripts": {
     "dev": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "check-types": "ng build --configuration development --output-path dist/check-types",
     "test": "ng test --watch=false",
     "lint": "eslint ."
   },

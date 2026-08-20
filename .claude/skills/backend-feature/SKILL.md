@@ -28,8 +28,8 @@ How to scaffold a feature in `apps/backend`. This file is a **procedure**, not a
 
 ## Constraints
 
-- Prefix every shell command with `rtk` (e.g. `rtk pnpm --filter @gitopslovers/gitpaas/backend build`).
-- Build and test with the scripts declared in `apps/backend/package.json` (`build`, `test`), run through the workspace filter `@gitopslovers/gitpaas/backend`.
+- Prefix every shell command with `rtk` (e.g. `rtk pnpm --filter @gitpaas/backend build`).
+- Build and test with the scripts declared in `apps/backend/package.json` (`build`, `test`), run through the workspace filter `@gitpaas/backend`.
 - **Never run E2E tests** (`test:e2e` / Playwright).
 - **Never run ESLint** — that is the user's responsibility.
 - **Never install dependencies.** If the feature needs a new package, stop and report which one.
