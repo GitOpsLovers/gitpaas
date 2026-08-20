@@ -85,5 +85,5 @@
 ## 11. The end
 
 - [ ] 11.1 Run the tests of the backend and of the frontend with the commands of `package.json`. Run no test of Playwright.
-- [ ] 11.2 Update `docs/backend-architecture.md` and `docs/frontend-architecture.md` for the registration.
-- [ ] 11.3 Run `rtk openspec validate provider-app-registration --strict`.
+- [x] 11.2 Update `docs/backend-architecture.md` and `docs/frontend-architecture.md` for the registration.
+- [x] 11.3 Run `rtk openspec validate provider-app-registration --strict`.

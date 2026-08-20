@@ -109,13 +109,27 @@ GitPaaS uses the same daemon as the control plane and as the third-party stacks.
 
 ## Providers and encrypted credentials
 
-A `provider` row gives a service the credentials it needs to reach its Git host — today only a GitHub App. The domain port `ProviderClient` (`features/providers/domain/ports/provider-client.port.ts`) gives the business operations in provider-agnostic terms — list the reachable repositories, list the branches of a repository, resolve a ref to its head commit, download a source archive, and verify a set of credentials — and the GitHub adapter implements it over `@octokit/rest`, authenticated per call with `@octokit/auth-app`.
+A `provider` row gives a service the credentials it needs to reach its Git host — today only a GitHub App. The domain port `ProviderClient` (`features/providers/domain/ports/provider-client.port.ts`) gives the business operations in provider-agnostic terms — list the reachable repositories, list the branches of a repository, resolve a ref to its head commit, download a source archive, verify a set of credentials, and convert a manifest's temporary code into the configuration of a new application — and the GitHub adapter implements it over `@octokit/rest`, authenticated per call with `@octokit/auth-app`. The conversion takes no credentials of a provider, because the application does not exist yet when it runs.
 
 - **Encryption at rest**: the private key of a provider never reaches the database in clear text. The domain port `SecretCipher` (`core/domain/ports/secret-cipher.port.ts`) gives `encryptSecret`/`decryptSecret`, and `SecretCipherAdapter` (`core/infrastructure/crypto/secret-cipher.adapter.ts`) implements it with AES-256-GCM, under the 32-byte key of the required `PROVIDERS_ENCRYPTION_KEY` environment variable, read fresh on every call. The stored payload carries the initialisation vector, the authentication tag and the cipher text, each in hexadecimal and separated by a colon, so a fresh vector on every call keeps the same secret from sealing to the same payload twice.
 - **No key leaves the server**: the read model of a provider (`Provider`) never carries the private key. It carries only its `keyFingerprint`, the first eight characters of the SHA-256 hash of the key in clear text, so an operator can tell two keys apart without exposing either of them.
-- **Credentials test**: `POST /api/v1/providers/:id/test` decrypts the stored key, calls `verifyCredentials` against the real provider, and answers `{ "success": boolean }` with no change to a stored record.
+- **Credentials test**: `POST /api/v1/providers/:id/test` decrypts the stored key, calls `verifyCredentials` against the real provider, and answers `{ outcome, missingPermissions }`, with `outcome` one of `ok`, `unauthorized` or `incomplete`. GitHub can accept the credentials and still lack a needed permission, so a single mark of success would hide that case; the use case compares the permissions GitHub reports against the constant of the needed ones, and the call changes no stored record.
 - **Repository and branch discovery**: `GET /api/v1/providers/:providerId/repositories` and `GET /api/v1/providers/:providerId/repositories/:repositoryId/branches` decrypt the stored key on each call and list the repositories or the branches that the installation of the provider can reach. A service picks its source among these lists at creation time.
 - **Roles**: see [Roles](#roles). `create`, `update`, `delete` and the credentials test are admin-only; the four read routes (list, find by id, list repositories, list branches) stay open to each authenticated user.
+
+### Registering an App from a manifest
+
+GitHub's manifest flow needs two visits to `github.com` and hands back its credentials in two separate steps, so the feature keeps a **pending registration** — its own table, `provider_registrations`, unique on `state` — between them. A row holds the `state`, the requested `name` and owner, a `step` (`awaiting_creation` then `awaiting_installation`), and, once GitHub answers, the application id, its short name and the sealed private key. A separate table keeps `providers` meaning "a provider that operates"; a row that never finishes describes no working provider.
+
+Three use cases in `features/providers/application/` carry the flow, each reached through `POST /api/v1/providers/registrations`, `POST /api/v1/providers/registrations/:state/conversion` and `POST /api/v1/providers/registrations/:state/completion`, all admin-only:
+
+1. **Start** refuses a taken name, writes the row at `awaiting_creation`, and answers with the manifest and the address of GitHub.
+2. **Conversion** reads the row by `state`, refuses one that is not at `awaiting_creation`, converts GitHub's code through `ProviderClient`, seals the returned key, and moves the row to `awaiting_installation`.
+3. **Completion** reads the row by `state`, refuses one that is not at `awaiting_installation`, and writes the `Provider` together with the installation id GitHub gave — in one transaction with the removal of the pending row, so a failure of either act leaves neither done.
+
+A wrong `state` answers `404`; a step that disagrees with the call, or a name already taken, answers `409`.
+
+An operator can abandon the flow at any point, leaving a key with no provider. `RemoveExpiredProviderRegistrationsJob` is the backend's first scheduled job (`@Cron`, registered through `ScheduleModule.forRoot()`): it runs every hour and deletes every row past its twelve-hour `expiresAt`, never calling GitHub and never removing the App itself.
 
 ## Error handling
 
