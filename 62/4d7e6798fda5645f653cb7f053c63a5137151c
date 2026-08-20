@@ -1,0 +1,33 @@
+apps/frontend/src/app/features/providers/ui/components/provider-card/provider-card.component.html
+  s_13ec5fd6e5cb3b::t_7f5025113b34b1 73-86
+openspec/changes/provider-app-registration/tasks.md
+  s_13ec5fd6e5cb3b::t_eebfeb3b5a3c55 81-83
+apps/frontend/src/app/features/providers/ui/components/provider-card/provider-card.component.ts
+  s_13ec5fd6e5cb3b::t_5084f18dfa821f 10,19,26-27
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.spec.ts
+  s_13ec5fd6e5cb3b::t_4ccc276eb7e05d 20,122,135-136,142,145-146,152-164,174,180
+apps/frontend/src/app/features/providers/domain/models/provider.model.ts
+  s_13ec5fd6e5cb3b::t_bf368579ad427e 21-25,27-28
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.ts
+  s_13ec5fd6e5cb3b::t_41f3198a884be2 6,13-29,38,54,56,73-84,102,154,156-161
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.html
+  s_13ec5fd6e5cb3b::t_7e82297b0fbd6d 15
+apps/frontend/src/app/features/providers/ui/components/provider-card/provider-card.component.spec.ts
+  s_13ec5fd6e5cb3b::t_055e5f4b7a0748 1-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "624d7e6798fda5645f653cb7f053c63a5137151c",
+  "prompts": {},
+  "sessions": {
+    "s_13ec5fd6e5cb3b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f8ea34f-bb34-4e32-ac5d-8cc4b1411743",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
