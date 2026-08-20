@@ -1,0 +1,51 @@
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts
+  s_05e6c2c580883e::t_fb3c1dab9b0ef5 4
+packages/contracts/src/deployments/deployment.contract.ts
+  s_05e6c2c580883e::t_33b0a8bb6af949 1-45
+apps/frontend/src/app/features/services/ui/components/service-deployments/service-deployments.component.ts
+  s_05e6c2c580883e::t_88ec89926ad1cf 3
+apps/backend/src/features/deployments/ui/controllers/deployments.controller.ts
+  s_05e6c2c580883e::t_802932f636938a 1-2,9,12,66
+apps/backend/src/features/deployments/ui/controllers/__tests__/deployments.controller.spec.ts
+  s_05e6c2c580883e::t_d82b8e160a48c6 1
+packages/contracts/src/index.ts
+  s_05e6c2c580883e::t_107de59b576f2a 10-13
+apps/backend/src/features/deployments/ui/transformers/deployment-response.transformer.ts
+  s_05e6c2c580883e::t_7a4a30a88ad7e0 1,3
+openspec/changes/request-model/tasks.md
+  s_05e6c2c580883e::t_2d9109e561f2b0 65
+apps/backend/src/features/deployments/application/create-deployment.use-case.ts
+  s_05e6c2c580883e::t_54e561e62428ad 1-2
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_05e6c2c580883e::t_009070728de6e7 2-3
+apps/backend/src/features/deployments/ui/services/deployments.service.ts
+  s_05e6c2c580883e::t_32c596d6e252ff 1
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_05e6c2c580883e::t_51eb1858951559 4
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.spec.ts
+  s_05e6c2c580883e::t_4ce904882b4819 2
+apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts
+  s_05e6c2c580883e::t_c8f1eb4eb88f9e 3,47-49
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_05e6c2c580883e::t_cf6738834d3e09 1
+apps/backend/src/features/deployments/ui/transformers/__tests__/deployment-response.transformer.spec.ts
+  s_05e6c2c580883e::t_cee0bbb3707dfe 47
+packages/contracts/src/deployments/deployments.endpoints.ts
+  s_05e6c2c580883e::t_637d79f3005b07 1-13,15,17-19,22,24-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "250e2072051951083951c6cb324ad9d7b1e73dc6",
+  "prompts": {},
+  "sessions": {
+    "s_05e6c2c580883e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "965ae461-2cfc-45db-b861-9086947a9868",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
