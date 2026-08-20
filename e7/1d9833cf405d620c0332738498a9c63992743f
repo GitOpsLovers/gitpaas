@@ -1,0 +1,21 @@
+.claude/agents/git-manager.md
+  s_4610773759da87::t_57e44473c10324 5,12,14,16,18,20,22,24-27
+CLAUDE.md
+  s_4610773759da87::t_371b4acb1aebee 93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e71d9833cf405d620c0332738498a9c63992743f",
+  "prompts": {},
+  "sessions": {
+    "s_4610773759da87": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "72334d44-c74a-4461-a73f-4bf84adf1d21",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
