@@ -45,18 +45,18 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/backend/package.json apps/backend/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter @gitopslovers/gitpaas/backend...
+    pnpm install --frozen-lockfile --filter @gitpaas/backend...
 
 # Compile the backend to apps/backend/dist.
 COPY apps/backend apps/backend
-RUN pnpm --filter @gitopslovers/gitpaas/backend build
+RUN pnpm --filter @gitpaas/backend build
 
 # Produce a portable bundle: prod-only deps with a real node_modules directory
 # (pnpm deploy de-symlinks the store), ready to copy into the runtime stage.
 # --legacy: there are no injected workspace deps, so use the classic deploy path
 # (pnpm v10+ otherwise requires inject-workspace-packages).
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm --filter @gitopslovers/gitpaas/backend --prod --legacy deploy /prod/backend
+    pnpm --filter @gitpaas/backend --prod --legacy deploy /prod/backend
 
 # Stamp the version of the ROOT manifest so the runtime stage publishes it as
 # `service.version` without carrying the workspace manifest along.

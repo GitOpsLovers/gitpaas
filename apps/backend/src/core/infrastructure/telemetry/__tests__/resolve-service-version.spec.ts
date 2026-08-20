@@ -138,7 +138,7 @@ describe('resolveServiceVersion', () => {
 
     it('falls back to the unknown version when no manifest up to the filesystem root is the root one', () => {
         delete process.env.APP_VERSION;
-        mockReadFileSync.mockReturnValue(JSON.stringify({ name: '@gitopslovers/gitpaas/backend', version: '1.4.2' }));
+        mockReadFileSync.mockReturnValue(JSON.stringify({ name: '@gitpaas/backend', version: '1.4.2' }));
 
         expect(resolveServiceVersion()).toBe('unknown');
     });

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'apps/**'
+      - 'packages/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -36,6 +37,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Check types
+        run: pnpm run check-types
 
       - name: Lint
         run: pnpm run lint

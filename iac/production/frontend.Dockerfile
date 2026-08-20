@@ -37,12 +37,12 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/frontend/package.json apps/frontend/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter @gitopslovers/gitpaas/frontend...
+    pnpm install --frozen-lockfile --filter @gitpaas/frontend...
 
 # Build the production bundle (Angular's `application` builder emits to
 # apps/frontend/dist/frontend/browser).
 COPY apps/frontend apps/frontend
-RUN pnpm --filter @gitopslovers/gitpaas/frontend build
+RUN pnpm --filter @gitpaas/frontend build
 
 # ---------------------------------------------------------------------------
 # runtime: non-root nginx serving the static files
