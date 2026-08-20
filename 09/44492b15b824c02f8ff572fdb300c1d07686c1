@@ -1,0 +1,33 @@
+docs/backend-architecture/key-flows.md
+  s_4895453a4120c4::t_a3fea5f7da270e 112,116,120-133
+docs/frontend-architecture/key-flows.md
+  s_4895453a4120c4::t_f07e65a11676e4 50-51,53-59,63-69
+openspec/specs/providers/spec.md
+  s_4895453a4120c4::t_39c5a147471501 94-104,108-109,114-119,180,184-187,196-201,322-324,328,333,336-340,361-370,379-381,385-386,510-735
+openspec/changes/provider-app-registration/tasks.md
+  s_2c420fce823b4c::t_0d971f5f832db2 88-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0944492b15b824c02f8ff572fdb300c1d07686c1",
+  "prompts": {},
+  "sessions": {
+    "s_2c420fce823b4c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a665623e41afad2a5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_4895453a4120c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a31290a-82e2-4e40-aabf-cf7e52ccb484",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
