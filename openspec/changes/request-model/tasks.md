@@ -1,3 +1,15 @@
+## 0. The event of the error of the stream
+
+This section delivers one pull request, and it needs no part of the package. It closes a defect that the
+user sees today: the window of the output treats every event that is no line as an event of the end, so an
+event of the error leaves the mark of the status without a value and hides the cause.
+
+- [ ] 0.1 Add the third kind, `error`, to the union `LogEvent` of `apps/frontend/src/app/features/logs/domain/models/log-event.model.ts`, with the fields `code` and `message`.
+- [ ] 0.2 Handle that kind in `apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts`, near line 82, so the window shows the code and the safe message, and so it does not set the final status from an event that carries none.
+- [ ] 0.3 Show the code and the message in `deployment-logs-modal.component.html`.
+- [ ] 0.4 Cover the three kinds in the spec of the component, one case for each.
+- [ ] 0.5 Verify that the suite of the frontend passes, headless.
+
 ## 1. The rails
 
 - [ ] 1.1 Ask the user to install `zod` (version 4) in `packages/contracts` as a dependency of the run time.
@@ -5,12 +17,13 @@
 - [ ] 1.3 Create `packages/contracts/tsconfig.json`, which emits the declarations to `packages/contracts/dist/`.
 - [ ] 1.4 Create `packages/contracts/src/index.ts` as the public barrel of the package.
 - [ ] 1.5 Create `packages/contracts/src/shared/endpoint.contract.ts` with the types `EndpointDescriptor` and `EndpointMap`.
-- [ ] 1.6 Create `turbo.json` with the tasks `build`, `check-types`, `test`, `lint`, `generate:openapi`, `generate:docs` and `dev`.
-- [ ] 1.7 Add the rule `dependsOn: ["^build"]` to the tasks `build`, `check-types` and `test`, so `packages/contracts` builds first.
+- [ ] 1.6 Add the tasks `check-types`, `generate:openapi` and `generate:docs` to the `turbo.json` of the root, beside the nine tasks that it declares today.
+- [ ] 1.7 Add the rule `dependsOn: ["^build"]` to the new task `check-types`. The tasks `build` and `test` already carry it, so leave them as they are.
 - [ ] 1.8 Add a script `check-types` to `apps/backend/package.json`, with the body `tsc -p tsconfig.json --noEmit`.
 - [ ] 1.9 Add a script `check-types` to `apps/frontend/package.json` with a build of Angular, because only the compiler of Angular checks a template.
-- [ ] 1.10 Add a step of `check-types` to `.github/workflows/pr-verify.yml`, before the steps of the lint and of the tests.
-- [ ] 1.11 Verify that the pipeline builds the package and checks the two applications.
+- [ ] 1.10 Add a step `check-types` to the job `verify` of `.github/workflows/pr-verify.yml`, before the step of the lint. The workflow runs the lint, the tests and the build today.
+- [ ] 1.11 Add `packages/**` to the filter `paths` of that workflow, so a change of the package runs the job.
+- [ ] 1.12 Verify that the pipeline builds the package and checks the two applications.
 
 ## 2. The reference slice: the projects
 
@@ -32,37 +45,39 @@
 
 - [ ] 3.1 Model each timestamp as a text of the ISO form in the package, and keep the `Date` in the domain models of the backend.
 - [ ] 3.2 Create `apps/backend/src/features/deployments/ui/transformers/deployment-response.transformer.ts`.
-- [ ] 3.3 Create the equivalent transformers of the answer for the containers, the networks, the users and the entries of the log.
-- [ ] 3.4 Import the type of the contract with another name where the domain model carries the same name.
-- [ ] 3.5 Change the applicable controllers, so they give the transformed shape and declare the type of the contract.
-- [ ] 3.6 Verify that the compiler proves the conversion.
+- [ ] 3.3 Create the equivalent transformers of the answer for the containers, the networks, the users, the entries of the log, the providers and the registrations of a provider. Nine models of the backend carry a `Date` today.
+- [ ] 3.4 Leave the refresh token out. It carries three `Date` fields, and no answer of the API gives that model.
+- [ ] 3.5 Import the type of the contract with another name where the domain model carries the same name.
+- [ ] 3.6 Change the applicable controllers, so they give the transformed shape and declare the type of the contract.
+- [ ] 3.7 Verify that the compiler proves the conversion.
 
 ## 4. The remaining features, one pull request for each
 
-- [ ] 4.1 Read the definitions of the columns in `apps/backend/src/features/services/infrastructure/`, and record the true optionality of `repositoryId`, `deploymentBranch` and `composerPath`.
-- [ ] 4.2 Create `packages/contracts/src/services/` with the schemas, the map of the endpoints and the resolved optionality, and migrate the feature.
+- [ ] 4.1 Apply the evidence of the columns of `apps/backend/src/features/services/infrastructure/database/db-service.entity.ts`: `repositoryId`, `deploymentBranch` and `composerPath` carry `default: ''` and refuse an empty value, so the three are obligatory texts. `providerId` carries `nullable: true`, so it is a nullable text.
+- [ ] 4.2 Create `packages/contracts/src/services/` with the schemas, the map of the endpoints and that resolved optionality, and migrate the feature. Use `.nullable()` for `providerId`, and never `.optional()`.
 - [ ] 4.3 Create `packages/contracts/src/deployments/` and migrate the feature.
 - [ ] 4.4 Create `packages/contracts/src/authentication/` and migrate the features of the authentication and of the users.
 - [ ] 4.5 Resolve the three names of the user in one schema, with no hash of the password in a shape of an answer.
-- [ ] 4.6 Move the type of the profile out of the service of the authentication into the package.
-- [ ] 4.7 Create `packages/contracts/src/source-control/` and migrate the feature.
-- [ ] 4.8 Create `packages/contracts/src/server/` with the shape of the readiness and the shape of the state, which are written inside the controller today.
-- [ ] 4.9 Create `packages/contracts/src/containers/` and `packages/contracts/src/networks/`, and migrate the two features.
-- [ ] 4.10 Delete each file of the frontend that describes a shape of the wire, and keep the shapes that only the client has.
-- [ ] 4.11 Keep the bindings of `ParseUUIDPipe` and of `ParseIntPipe`.
-- [ ] 4.12 Verify each feature before its pull request.
+- [ ] 4.6 Move the type `AuthenticatedUser` out of `apps/backend/src/features/authentication/ui/services/authentication.service.ts` into the package.
+- [ ] 4.7 Create `packages/contracts/src/providers/` and migrate the feature. Declare `ProviderType` as one `z.enum`, add `createdAt` and `updatedAt` as texts of the ISO form, and keep `privateKey` out of every shape of an answer.
+- [ ] 4.8 Point the nine shapes of the frontend of `features/providers/` at the package, and delete the ones that describe the wire.
+- [ ] 4.9 Create `packages/contracts/src/server/` with the shape of the readiness and the shape of the state of the daemon, and delete the copy of the frontend, which holds the same text as the file of the backend.
+- [ ] 4.10 Create `packages/contracts/src/namespaces/`, `packages/contracts/src/containers/` and `packages/contracts/src/networks/`, and migrate the three features.
+- [ ] 4.11 Delete each remaining file of the frontend that describes a shape of the wire, and keep the shapes that only the client has. 35 files of the domain describe a shape today, over twelve features.
+- [ ] 4.12 Keep the bindings of `ParseUUIDPipe` and of `ParseIntPipe`.
+- [ ] 4.13 Verify each feature before its pull request.
 
 ## 5. The shapes that only one side has
 
-- [ ] 5.1 Create `packages/contracts/src/shared/error-envelope.contract.ts` from the interface that the filter of the exceptions does not export.
+- [ ] 5.1 Create `packages/contracts/src/shared/error-envelope.contract.ts` from the interface at `apps/backend/src/core/ui/filters/all-exceptions.filter.ts:25`, which the filter does not export.
 - [ ] 5.2 Import that contract in the filter, and remove the local interface.
-- [ ] 5.3 Create `packages/contracts/src/logs/log-event.contract.ts` with the **three** kinds of the union.
-- [ ] 5.4 Replace the cast of `parseSseEvent` with a parse against the schema, in the repository of the API of the deployments.
-- [ ] 5.5 Handle the kind `error` in the window of the output, so it shows the code and the safe message. **This step closes a live defect.**
+- [ ] 5.3 Create `packages/contracts/src/logs/log-event.contract.ts` with the **three** kinds of the union, which the section 0 already added to the frontend.
+- [ ] 5.4 Replace the cast `as LogEvent` of `parseSseEvent` with a parse against the schema, at `apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts:181`.
+- [ ] 5.5 Report the failure of a parse to the subscriber, in place of giving an event whose shape is wrong.
 - [ ] 5.6 Delete the model of the event of the log in the frontend, and point its consumers at the package.
 - [ ] 5.7 Read the `code` of the envelope, in place of the number of the status, in the interceptor and in the containers that show a failure.
 - [ ] 5.8 Add the option of the parse to the reads where a wrong shape gives a silent failure.
-- [ ] 5.9 Verify that the window of the output cannot compile without the kind `error`.
+- [ ] 5.9 Verify that the window of the output cannot compile if a kind of the union has no case.
 
 ## 6. The generated artifacts
 
@@ -78,17 +93,17 @@
 
 ## 7. The removal of the old machinery
 
-- [ ] 7.1 Verify that no parameter of a body in `apps/backend/src` is a class.
-- [ ] 7.2 Remove the call of the global pipe of validation from `apps/backend/src/bootstrap.ts`.
+- [ ] 7.1 Verify that no parameter of a body in `apps/backend/src` is a class. There are 14 bindings of a body today, over 13 classes.
+- [ ] 7.2 Remove the call of the global pipe of validation from `apps/backend/src/bootstrap.ts`, near line 37.
 - [ ] 7.3 Keep `class-validator` as a dependency, for the validation of the environment.
 - [ ] 7.4 Verify that a failure of the validation still gives an array of messages in the envelope of the error.
 
 ## 8. The decisions that the user must make
 
-These block no phase, and two of them shape a schema. Ask the user at the start of the phase that needs
+These block no phase, and one of them shapes a schema. Ask the user at the start of the phase that needs
 them.
 
-- [ ] 8.1 Decide the true optionality of the three fields of the service, from the evidence of the columns (needed by 4.1).
+- [x] 8.1 The true optionality of the fields of the service is **answered** by the columns: the three fields of the deployment are obligatory texts, and `providerId` is a nullable text. Task 4.1 records the evidence.
 - [ ] 8.2 Decide if the server checks its own answers at run time, and if the parse runs only outside the production.
 - [ ] 8.3 Decide if the validation of the environment moves to Zod, which removes the last consumer of `class-validator`.
 - [ ] 8.4 Decide how the paths of the endpoints are used, because the repositories of the frontend build their addresses from the environment with texts of the template.
@@ -99,4 +114,5 @@ them.
 ## 9. The records that the change leaves behind
 
 - [ ] 9.1 Record in `docs/monorepo-architecture.md` that the names of the workspace hold two slashes and are no valid names of a package, and that the package of the contracts therefore holds one.
-- [ ] 9.2 Record in `docs/monorepo-architecture.md` the new file `turbo.json` and the order of its tasks.
+- [ ] 9.2 Record in `docs/monorepo-architecture.md` the three tasks that `turbo.json` receives, and the order that they need.
+- [ ] 9.3 Record that `apps/frontend/src/app/features/source-control/` is dead code: it holds five shapes of the wire, no file outside it imports it, and the feature `providers` replaced it. A separate change deletes it.

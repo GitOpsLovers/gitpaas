@@ -10,8 +10,11 @@ The frontend gives the shape of the wire as a type argument that a developer wri
 believes it, and the browser accepts whatever arrives. Thus a change of the shape in the backend gives no
 failure of the compilation and no failure at run time. It gives a value that is not defined, in a template.
 
-`pnpm-workspace.yaml` already declares `packages/*`, so the directory only has to exist. There is no
-`turbo.json` at the root today, so `turbo run` operates with no order of the tasks and no cache.
+`pnpm-workspace.yaml` already declares `packages/*`, so the directory only has to exist. `turbo.json`
+exists at the root, and it declares nine tasks: `build`, `test`, `lint`, `dev`, `watch`, `start`,
+`start:debug` and `start:prod`. The tasks `build` and `test` already carry `dependsOn: ["^build"]`, so a
+package of the workspace builds before the applications that read it. No task checks the types, and no task
+generates an artifact.
 
 ## Goals / Non-Goals
 
@@ -21,7 +24,6 @@ failure of the compilation and no failure at run time. It gives a value that is 
 - A change of the shape that breaks a consumer fails the pull request, and not the browser.
 - The specification of the API is a generated artifact of that one source, and never a document that a human
   keeps equal.
-- The window of the output handles the event of the error, which it drops today.
 
 **Non-Goals:**
 
@@ -31,8 +33,10 @@ failure of the compilation and no failure at run time. It gives a value that is 
   decision.
 - The check of its own answers by the server at run time. The compiler proves the shape, and a parse for
   each answer costs time in the hot path. An open question keeps a check for the development only.
-- The internal data transfer objects. Seven of them never bind a body. They are shapes between the layers,
-  and no contract of the wire. They stay.
+- The internal data transfer objects. The backend holds 23 files of a data transfer object, and 13 of them
+  bind a body. The other ten are shapes between the layers, and no contract of the wire. They stay.
+- The deletion of `apps/frontend/src/app/features/source-control/`. The folder is dead, and no file outside
+  it imports it, but its removal changes no behavior and needs no contract. A separate change deletes it.
 
 ## Decisions
 
@@ -56,7 +60,8 @@ the specification must be the generated artifact.
 
 **2. The package describes the wire, and not the database and not the domain.**
 A timestamp is a text of the ISO form. A domain model of the backend keeps its `Date`, and the layer of the
-UI converts. A secret never enters a shape of an answer, so the hash of the password is not in the package.
+UI converts. A secret never enters a shape of an answer, so the hash of the password is not in the package,
+and the private key of a provider is not in it either.
 
 **3. The package imports nothing from `apps/`.**
 Its one dependency at run time is `zod`. This is the rule that keeps NestJS out of the frontend and Angular
@@ -86,6 +91,25 @@ name of a package. The applications get away with it, because nothing depends on
 package of the contracts **is** a dependency by the name, so it must hold one slash. This deviation must
 enter `docs/monorepo-architecture.md`.
 
+**9. A value that is empty is `null` on the wire, and the key is never absent.**
+A column that accepts no value gives `null` in JSON. It does not remove the key. So the contract declares
+such a field with `.nullable()`, and never with `.optional()`. The two are different shapes, and a consumer
+that tests `if (value)` passes both while a consumer that tests `'key' in object` does not.
+
+`providerId` of a service is the first subject. Its column carries `nullable: true`, so the answer holds
+`"providerId": null`, and the description of the frontend, `providerId?: string`, is wrong in two ways at
+one time: the wrong type, and the wrong kind of absence.
+
+Use `.optional()` for a field of a **request** that the caller may leave out, which is a different thing.
+
+**10. An enum of the backend becomes one set of values in the contract.**
+`UserRole` and `ProviderType` are enums of TypeScript in the backend, and unions of texts in the frontend.
+The contract declares one `z.enum`, and the two applications derive from it. The domain of the backend keeps
+its `enum` where the code reads better with it, and the layer of the UI converts, in the same way that it
+converts a `Date`.
+
+Two features already drifted in this exact way, so this is a rule and not one repair.
+
 ## Risks / Trade-offs
 
 **1. A shared package couples the two applications.** Today the two can be changed and released alone. After
@@ -105,7 +129,12 @@ changes that the repository needs today. And it cannot be half done.
 **4. The order of the migration matters.** The phase of the timestamp must run before the features that hold
 one move, or the shapes of the wire enter the package with a `Date` that JSON does not carry.
 
-**5. The three open questions block no phase, and two of them shape a schema.** The true optionality of the
-three fields of `Service` must come from the definitions of the columns, and not from either of the two
-opinions of today. The place of the paths of the endpoints, and the shape of the archive of the logs, can
-wait.
+**5. The size of the change.** The change covers twelve features of the frontend and eleven of the backend,
+and the feature `providers` joined after the first plan. The delivery therefore runs one phase per pull
+request, and the first phase is the event of the error of the stream, which needs no part of the package. If
+the method fails, the repository learns it from one small pull request, and not from the whole migration.
+
+**6. The open questions block no phase, and one of them is now answered.** The true optionality of the three
+fields of `Service` came from the definitions of the columns: each one carries `default: ''` and refuses an
+empty value, so the three are obligatory texts and the backend is right. The place of the paths of the
+endpoints, and the shape of the archive of the logs, can wait.
