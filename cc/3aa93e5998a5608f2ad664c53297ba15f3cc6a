@@ -1,0 +1,51 @@
+apps/backend/src/features/authentication/ui/controllers/authentication.controller.ts
+  s_05e6c2c580883e::t_8f6c1b47e55102 1-2,13,37-40,56,72
+apps/frontend/src/app/features/authentication/infrastructure/api/authentication-api.repository.spec.ts
+  s_05e6c2c580883e::t_45e02ef1ddf39c 4
+apps/frontend/src/app/features/authentication/infrastructure/storage/token-storage.service.spec.ts
+  s_05e6c2c580883e::t_fab577c5d871ae 1
+apps/backend/src/features/authentication/ui/services/authentication.service.ts
+  s_05e6c2c580883e::t_db327fbfae6579 97
+apps/frontend/src/app/features/authentication/ui/interceptors/auth.interceptor.spec.ts
+  s_05e6c2c580883e::t_5876bc8e9ea256 6
+apps/frontend/src/app/features/authentication/infrastructure/storage/token-storage.service.ts
+  s_05e6c2c580883e::t_ead0afdbf4172a 2
+apps/backend/src/features/users/ui/transformers/user-response.transformer.ts
+  s_05e6c2c580883e::t_fa5dd4c504a505 1,3
+packages/contracts/src/index.ts
+  s_05e6c2c580883e::t_9d4fe54bfe6927 14-19
+packages/contracts/src/authentication/authentication.contract.ts
+  s_05e6c2c580883e::t_7141e0b59ff4d5 1-39
+apps/frontend/src/app/features/authentication/ui/services/auth.service.spec.ts
+  s_05e6c2c580883e::t_c4fa3e0275a8ec 4
+apps/frontend/src/app/features/authentication/infrastructure/api/authentication-api.repository.ts
+  s_05e6c2c580883e::t_8972e15d09bb57 3
+apps/frontend/src/app/features/authentication/ui/services/auth.service.ts
+  s_05e6c2c580883e::t_98525ae2205023 3
+apps/backend/src/features/users/ui/transformers/__tests__/user-response.transformer.spec.ts
+  s_05e6c2c580883e::t_18fe410d2b1877 62
+packages/contracts/src/authentication/authentication.endpoints.ts
+  s_05e6c2c580883e::t_81d628ac0ae728 1-6,9,11-35
+openspec/changes/request-model/tasks.md
+  s_05e6c2c580883e::t_34ad74a191b6f7 66-68
+apps/backend/src/features/authentication/ui/controllers/__tests__/authentication.controller.spec.ts
+  s_05e6c2c580883e::t_0a9fae2f3f6c2a 1,7,176,216
+packages/contracts/src/authentication/user.contract.ts
+  s_05e6c2c580883e::t_8abb954653f4a0 1-19,21,23,26,28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cc3aa93e5998a5608f2ad664c53297ba15f3cc6a",
+  "prompts": {},
+  "sessions": {
+    "s_05e6c2c580883e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "965ae461-2cfc-45db-b861-9086947a9868",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
