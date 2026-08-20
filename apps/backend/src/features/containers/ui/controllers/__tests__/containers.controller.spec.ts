@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
+import { ContainerResponse } from '../../transformers/container-response.transformer';
 import { ContainersController } from '../containers.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -18,6 +19,18 @@ const containers: Container[] = [
         state: 'running',
         status: 'Up 2 hours',
         createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        ports: [{ privatePort: 80, publicPort: 8080, type: 'tcp' }],
+    },
+];
+
+const containerResponses: ContainerResponse[] = [
+    {
+        id: 'abc123',
+        name: 'web',
+        image: 'nginx:latest',
+        state: 'running',
+        status: 'Up 2 hours',
+        createdAt: '2026-01-01T00:00:00.000Z',
         ports: [{ privatePort: 80, publicPort: 8080, type: 'tcp' }],
     },
 ];
@@ -56,7 +69,16 @@ describe('ContainersController', () => {
 
             const result = await sut.getByService(serviceId);
 
-            expect(result).toBe(containers);
+            expect(result).toEqual(containerResponses);
+        });
+
+        it('gives the date of the creation of a container as a text of the ISO form', async () => {
+            mockContainersService.getByService.mockResolvedValue(containers);
+
+            const [first] = await sut.getByService(serviceId);
+
+            expect(typeof first.createdAt).toBe('string');
+            expect(Object.values(first).some((value) => value instanceof Date)).toBe(false);
         });
 
         it('returns an empty list when the service reports no containers', async () => {

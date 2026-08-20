@@ -29,6 +29,7 @@ import {
 } from '../../../domain/models/provider-registration.models';
 import { Provider, ProviderType } from '../../../domain/models/provider.models';
 import { ProvidersService } from '../../services/providers.service';
+import { ProviderResponse } from '../../transformers/provider-response.transformer';
 import { ProvidersController } from '../providers.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -51,6 +52,21 @@ const providerFixture = (overrides: Partial<Provider> = {}): Provider => ({
 });
 
 const provider = providerFixture();
+
+/** Builds the answer fixture of a provider, overriding only the fields under test. */
+const providerResponseFixture = (overrides: Partial<ProviderResponse> = {}): ProviderResponse => ({
+    id: providerId,
+    name: 'default',
+    type: ProviderType.GithubApp,
+    appId: '123456',
+    installationId: '7891011',
+    keyFingerprint: 'a1b2c3d4',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-02T00:00:00.000Z',
+    ...overrides,
+});
+
+const providerResponse = providerResponseFixture();
 
 const repositories: GitRepository[] = [
     {
@@ -135,7 +151,27 @@ describe('ProvidersController', () => {
 
             const result = await sut.getAll();
 
-            expect(result).toEqual([provider]);
+            expect(result).toEqual([providerResponse]);
+        });
+
+        it('gives each date of a provider as a text of the ISO form', async () => {
+            mockProvidersService.getAll.mockResolvedValue([provider]);
+
+            const [first] = await sut.getAll();
+
+            expect(first.createdAt).toBe('2026-01-01T00:00:00.000Z');
+            expect(first.updatedAt).toBe('2026-01-02T00:00:00.000Z');
+            expect(Object.values(first).some((value) => value instanceof Date)).toBe(false);
+        });
+
+        it('never carries the private key of a provider in the list', async () => {
+            const leaking = { ...provider, privateKey: '-----BEGIN RSA PRIVATE KEY-----' } as Provider;
+            mockProvidersService.getAll.mockResolvedValue([leaking]);
+
+            const [first] = await sut.getAll();
+
+            expect(first).not.toHaveProperty('privateKey');
+            expect(Object.values(first)).not.toContain('-----BEGIN RSA PRIVATE KEY-----');
         });
 
         it('returns an empty list when no provider exists', async () => {
@@ -169,7 +205,17 @@ describe('ProvidersController', () => {
 
             const result = await sut.findById(providerId);
 
-            expect(result).toBe(provider);
+            expect(result).toEqual(providerResponse);
+        });
+
+        it('never carries the private key of the provider it reads', async () => {
+            const leaking = { ...provider, privateKey: '-----BEGIN RSA PRIVATE KEY-----' } as Provider;
+            mockProvidersService.findById.mockResolvedValue(leaking);
+
+            const result = await sut.findById(providerId);
+
+            expect(result).not.toHaveProperty('privateKey');
+            expect(result.keyFingerprint).toBe('a1b2c3d4');
         });
 
         it('throws a NotFoundException when the provider does not exist', async () => {
@@ -215,7 +261,7 @@ describe('ProvidersController', () => {
 
             const result = await sut.create(createDto);
 
-            expect(result).toBe(provider);
+            expect(result).toEqual(providerResponse);
         });
 
         it('translates a taken name into a ConflictException', async () => {
@@ -256,7 +302,7 @@ describe('ProvidersController', () => {
 
             const result = await sut.update(providerId, updateDto);
 
-            expect(result).toBe(updated);
+            expect(result).toEqual(providerResponseFixture({ name: 'renamed' }));
         });
 
         it('forwards a change that carries no private key untouched', async () => {
@@ -647,7 +693,7 @@ describe('ProvidersController', () => {
 
             const result = await sut.completeRegistration(registrationState, completeDto);
 
-            expect(result).toBe(provider);
+            expect(result).toEqual(providerResponse);
         });
 
         it('translates a state that no registration carries into a NotFoundException', async () => {

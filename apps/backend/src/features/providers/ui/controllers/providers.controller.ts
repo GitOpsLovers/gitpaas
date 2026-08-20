@@ -24,6 +24,7 @@ import { GitRepository } from '../../domain/models/git-repository.models';
 import { ConvertedProviderRegistration, StartedProviderRegistration } from '../../domain/models/provider-registration.models';
 import { Provider, ProviderConnectionTest } from '../../domain/models/provider.models';
 import { ProvidersService } from '../services/providers.service';
+import { ProviderResponse, toProviderResponse } from '../transformers/provider-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -40,12 +41,14 @@ export class ProvidersController {
     constructor(private readonly service: ProvidersService) {}
 
     @Get()
-    public getAll(): Promise<Provider[]> {
-        return this.service.getAll();
+    public async getAll(): Promise<ProviderResponse[]> {
+        const providers = await this.service.getAll();
+
+        return providers.map(toProviderResponse);
     }
 
     @Get(':id')
-    public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Provider> {
+    public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.id': id });
 
         const provider = await this.service.findById(id);
@@ -54,7 +57,7 @@ export class ProvidersController {
             throw translateError(new ProviderNotFoundError(id));
         }
 
-        return provider;
+        return toProviderResponse(provider);
     }
 
     /**
@@ -66,9 +69,11 @@ export class ProvidersController {
      */
     @Post()
     @Roles(UserRole.Admin)
-    public async create(@Body() createDto: CreateProviderDto): Promise<Provider> {
+    public async create(@Body() createDto: CreateProviderDto): Promise<ProviderResponse> {
         try {
-            return await this.service.create(createDto);
+            const provider = await this.service.create(createDto);
+
+            return toProviderResponse(provider);
         } catch (error) {
             throw translateError(error);
         }
@@ -128,11 +133,13 @@ export class ProvidersController {
      */
     @Post('registrations/:state/completion')
     @Roles(UserRole.Admin)
-    public async completeRegistration(@Param('state') state: string, @Body() completeDto: CompleteProviderRegistrationDto): Promise<Provider> {
+    public async completeRegistration(@Param('state') state: string, @Body() completeDto: CompleteProviderRegistrationDto): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {
-            return await this.service.completeRegistration(state, completeDto);
+            const provider = await this.service.completeRegistration(state, completeDto);
+
+            return toProviderResponse(provider);
         } catch (error) {
             throw translateError(error);
         }
@@ -151,7 +158,7 @@ export class ProvidersController {
     public async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateDto: UpdateProviderDto,
-    ): Promise<Provider> {
+    ): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.id': id });
 
         let provider: Provider | null;
@@ -166,7 +173,7 @@ export class ProvidersController {
             throw translateError(new ProviderNotFoundError(id));
         }
 
-        return provider;
+        return toProviderResponse(provider);
     }
 
     /**

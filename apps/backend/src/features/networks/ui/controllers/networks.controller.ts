@@ -1,7 +1,7 @@
 import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
-import { Network } from '../../domain/models/network.models';
 import { NetworksService } from '../services/networks.service';
+import { NetworkResponse, toNetworkResponse } from '../transformers/network-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -21,11 +21,13 @@ export class NetworksController {
      * @returns Networks of the service
      */
     @Get()
-    public async getByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<Network[]> {
+    public async getByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<NetworkResponse[]> {
         enrichTelemetry({ 'service.id': serviceId });
 
         try {
-            return await this.service.getByService(serviceId);
+            const networks = await this.service.getByService(serviceId);
+
+            return networks.map(toNetworkResponse);
         } catch (error) {
             throw translateError(error, () => new ServiceUnavailableException(
                 'Could not reach the server Docker daemon. Verify the server is running and reachable',

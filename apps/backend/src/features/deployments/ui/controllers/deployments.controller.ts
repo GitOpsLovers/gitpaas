@@ -4,8 +4,8 @@ import {
 } from '@nestjs/common';
 
 import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
-import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsService } from '../services/deployments.service';
+import { DeploymentResponse, toDeploymentResponse } from '../transformers/deployment-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -25,10 +25,12 @@ export class DeploymentsController {
      * @returns List of deployments for the service
      */
     @Get()
-    public getAllByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<Deployment[]> {
+    public async getAllByService(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<DeploymentResponse[]> {
         enrichTelemetry({ 'service.id': serviceId });
 
-        return this.service.getAllByService(serviceId);
+        const deployments = await this.service.getAllByService(serviceId);
+
+        return deployments.map(toDeploymentResponse);
     }
 
     /**
@@ -39,7 +41,7 @@ export class DeploymentsController {
      * @returns Deployment record
      */
     @Get(':id')
-    public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Deployment> {
+    public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<DeploymentResponse> {
         enrichTelemetry({ 'deployment.id': id });
 
         const deployment = await this.service.findById(id);
@@ -48,7 +50,7 @@ export class DeploymentsController {
             throw new NotFoundException(`Deployment ${id} not found`);
         }
 
-        return deployment;
+        return toDeploymentResponse(deployment);
     }
 
     /**
@@ -59,11 +61,13 @@ export class DeploymentsController {
      * @returns The created deployment record
      */
     @Post()
-    public async create(@Body() triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+    public async create(@Body() triggerDto: TriggerDeploymentDto): Promise<DeploymentResponse> {
         enrichTelemetry({ 'service.id': triggerDto.serviceId });
 
         try {
-            return await this.service.create(triggerDto);
+            const deployment = await this.service.create(triggerDto);
+
+            return toDeploymentResponse(deployment);
         } catch (error) {
             throw translateError(error);
         }
