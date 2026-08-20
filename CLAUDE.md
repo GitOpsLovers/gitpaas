@@ -178,6 +178,7 @@ End with a short summary. Name what you did, what you verified with the result, 
 | The backend | [backend-architecture](./docs/backend-architecture.md) |
 | The frontend | [frontend-architecture](./docs/frontend-architecture.md) |
 | The infrastructure | [infrastructure-architecture](./docs/infrastructure-architecture.md) |
+| The documentation itself | The `project-documentation` skill (`.claude/skills/project-documentation/SKILL.md`). It gives the map of `docs/` and the page that receives each kind of content. |
 | The Git and GitHub workflow | The `git-github-workflow` skill (`.claude/skills/git-github-workflow/SKILL.md`). It is the authority; the steps above are the summary. |
 
 **OpenSpec.** This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/`, and you must not write a local copy of any of them. The expanded profile stays off: the project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify` or `/opsx:bulk-archive`.
