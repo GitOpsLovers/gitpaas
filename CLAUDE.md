@@ -90,7 +90,7 @@ Skip this step when the phase touches no product code.
 
 A change delivers one phase at a time. After each phase that changed a file under `apps/`, and after the tests of that phase pass, `git-manager` creates the branch, the commit and the Pull Request of that phase. The orchestrator delegates to it as the final step of the phase, and it asks the user for no confirmation.
 
-One phase gives one branch and one Pull Request. The body of the Pull Request states that the delivery is partial, and it names the sections that are complete.
+One phase gives one branch and one Pull Request. The Pull Request carries a title alone, so the subject of the commit states which phase the delivery covers.
 
 `/opsx:sync` runs one time alone, before the commit of the last phase, and it merges the delta specifications into the main specifications. It never runs for an intermediate phase.
 
@@ -179,6 +179,5 @@ End with a short summary. Name what you did, what you verified with the result, 
 | The frontend | [frontend-architecture](./docs/frontend-architecture.md) |
 | The infrastructure | [infrastructure-architecture](./docs/infrastructure-architecture.md) |
 | The Git and GitHub workflow | The `git-github-workflow` skill (`.claude/skills/git-github-workflow/SKILL.md`). It is the authority; the steps above are the summary. |
-| The commit of a change | The commit stages `openspec/changes/<change-id>/` with the code, so the specification and the code enter the repository together. The Pull Request body links `proposal.md`. |
 
 **OpenSpec.** This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/`, and you must not write a local copy of any of them. The expanded profile stays off: the project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify` or `/opsx:bulk-archive`.

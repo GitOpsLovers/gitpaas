@@ -5,105 +5,48 @@ description: Use this skill when you need to perform Git-related tasks on this p
 
 # Git & GitHub workflow skill
 
-This skill is the single source of truth for how the **GitPaaS** monorepo performs version control. All Git/GitHub operations are executed by the `git-manager` subagent, which follows this procedure exactly.
+This skill is the single source of truth for version control in the **GitPaaS** monorepo. The `git-manager` subagent executes it. The repository is `GitOpsLovers/gitpaas`.
 
-## Branch strategy & naming
+Every command runs through `rtk`, as section 5 of `CLAUDE.md` requires: `rtk git status`, `rtk gh pr create`.
 
-- **Trunk-based on `main`. Never commit directly to `main`.** Every task starts by branching from the latest `main`. If already on a suitable non-`main` feature branch
-  for the current task, reuse it; otherwise `git checkout main`, pull the latest (with `--rebase`), then `git checkout -b <type>/<description>`.
-- **Branch naming:**
-  - `feat/<short-description>`  — new features
-  - `fix/<short-description>`   — fixes
-  - `chore/<short-description>` — maintenance
-  - `docs/<short-description>`  — documentation
+## Naming
 
-## Commit messages
+| The item           | The rule                                                                                                        |
+|--------------------|-----------------------------------------------------------------------------------------------------------------|
+| Branch             | `<type>/<short-description>`, with `type` one of `feat`, `fix`, `chore`, `docs`.                                |
+| Commit subject     | `type(scope): subject`, in [Conventional Commits](https://www.conventionalcommits.org/). 72 characters maximum. |
+| Pull Request title | The same subject, 60 characters maximum, so GitHub shows it in full.                                            |
 
-[Conventional Commits](https://www.conventionalcommits.org/) — `type(scope): short description` (types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`). Subject line ≤ 72 characters.
+Write the subject in the imperative and in lower case, and add no final period. If the subject does not fit, shorten the words, and move the detail into the body of the commit.
 
-## Specification delta
+## The procedure
 
-This project uses [OpenSpec](https://openspec.dev/). A task that changes behavior carries a change folder at `openspec/changes/<change-id>/`. If the prompt names one, apply the five rules below. If the prompt names no change folder, skip this section.
-
-1. **Name the branch after the change identifier.** Take the identifier, and add the branch type. The change `add-remember-me` gives the branch `feat/add-remember-me`. Keep the identifier unaltered, so the branch, the change folder and the Pull Request stay easy to match. Pick the type by the kind of work (`feat`, `fix`, `chore`, `docs`).
-2. **Stage the change folder in the first commit of the branch.** `rtk git add openspec/changes/<change-id>/` runs together with the `git add` of the code. The specification and the code enter the repository in the same commit. Later commits stage the folder again only if the artifacts changed.
-3. **Stage the main specifications too.** The `/opsx:sync` command edits `openspec/specs/`. If those files changed, stage them with the rest.
-4. **Name the change folder in the Pull Request body.** See the template below.
-5. **Archive after the merge.** See the archive step below.
-
-### The Pull Request body
-
-Add a `## Change` section above `## Summary`:
-
-```
-## Change
-
-`openspec/changes/<change-id>/` — see [proposal.md](openspec/changes/<change-id>/proposal.md).
-
-Specification deltas:
-- `<capability>/spec.md`
-
-## Summary
-...
-
-## Test plan
-...
-
-Closes #N
-```
-
-List one line per file under `openspec/changes/<change-id>/specs/`. Write "none" if the change adds no delta.
-
-### The archive step
-
-After the merge, the change moves into `openspec/changes/archive/`. Use the `/opsx:archive` command, or run `rtk openspec archive <change-id>`. Do not move the folder by hand, because the command also updates the state that OpenSpec keeps. This step runs on `main`, after the pull of the merge commit.
-
-## RTK rule
-
-**Run every bash/CLI command through RTK.** Prefix all shell commands — including every `git` and `gh` invocation — with `rtk` (e.g. `rtk git checkout -b feat/x`, `rtk git status`, `rtk git push -u origin <branch>`, `rtk gh pr create`, `rtk pnpm run test`). Never invoke a CLI tool directly.
-
-## Standard sequence
-
-1. **Branch from latest `main`.** If already on a suitable non-`main` feature branch for this task, reuse it; otherwise `rtk git checkout main`, pull the latest, then
-   `rtk git checkout -b <type>/<description>`.
-2. **Stage intended files only.** Run `rtk git status` and `rtk git diff` to confirm exactly which files should be committed, then `rtk git add <paths>`. Never blind `rtk git add -A` when unrelated changes are present. Report anything unexpected instead of including it. If the task carries a change folder, stage `openspec/changes/<change-id>/` too — see the *Specification delta* section.
-3. **Commit** with a Conventional-Commit message: `rtk git commit -m "type(scope): subject"`.
-4. **Push:** `rtk git push -u origin <branch>`.
-5. **Open the PR:** `rtk gh pr create --base main --head <branch> --title "type(scope): subject"`, with the usual `## Change` (only for an OpenSpec change) / `## Summary` / `## Test plan` / `Closes #N`. **Keep PR titles ≤ 60 characters** (including the `type(scope):` prefix) so they read fully in GitHub lists without truncation — tighter than the ≤ 72-char commit subject. Keep the same imperative, lowercase, no-trailing-period Conventional-Commit style; if the summary doesn't fit, shorten the wording.
-6. **Never merge.** The PR is left pending human review.
-
-## Committing & opening the PR
-
-Commits and PRs are made with plain `git` + `gh`, authenticated as the developer via their existing local git/gh configuration — no tokens, credentials files, or identity overrides. The repo is `GitOpsLovers/gitpaas`. Run everything through `rtk`:
-
-1. **Branch** from the latest `main` per the branch-strategy section above.
-2. **Stage** only the intended files (`rtk git add <paths>`); do not blind-add unrelated changes.
-3. **Commit** with a Conventional-Commit message, using the developer's ambient git config for author/committer:
-
-   ```
-   rtk git commit -m "type(scope): subject"
-   ```
-
-4. **Push** the branch to the remote:
-
-   ```
-   rtk git push -u origin <branch>
-   ```
-5. **Open the PR**, including the usual `## Change` (only for an OpenSpec change) / `## Summary` / `## Test plan` / `Closes #N`:
+1. **Branch from the latest `main`.** If the current branch fits the task and is not `main`, reuse it. If not, run `rtk git checkout main`, `rtk git pull --rebase`, then `rtk git checkout -b <type>/<description>`.
+2. **Read the working tree.** Run `rtk git status --short` and `rtk git diff --stat` in one call.
+3. **Stage the intended paths alone.** Run `rtk git add <paths>`. Never run `git add -A` when the tree holds an unrelated change. Report the unexpected file instead of staging it.
+4. **Commit.** Run `rtk git commit -m "type(scope): subject" -m "<body>"`. The ambient Git configuration of the developer gives the author.
+5. **Push.** Run `rtk git push -u origin <branch>`.
+6. **Open the Pull Request.** The Pull Request carries a title alone, and no body:
 
    ```
    rtk gh pr create --base main --head <branch> --title "type(scope): subject"
    ```
 
-   Keep the PR title concise — **≤ 60 characters**, including the `type(scope):` prefix — so it isn't truncated in GitHub lists (tighter than the ≤ 72-char commit subject in the "Commit messages" section). Use the same imperative, lowercase, no-trailing-period style. If the summary doesn't fit, shorten the wording and move the detail into the PR body rather than the title.
-6. **Never merge.** Leave the PR pending human review.
+7. **Stop.** Never merge the Pull Request. A human reviews it.
 
-## Confirmation & safety rules
+## The OpenSpec change
 
-1. **Branch, commit, push, and open the PR by default.** These are the normal steps of the workflow — carry them out without asking the caller to confirm, including `rtk git push`. The one hard stop is merging.
-2. **Never merge automatically**, force-push, rewrite published history, or delete branches unless the prompt explicitly instructs it.
-3. **Run every bash/CLI command through RTK.** Prefix all shell commands — including every `git` and `gh` invocation — with `rtk`. Never invoke a CLI tool directly.
-4. **Never run ESLint** — that is the user's responsibility.
-5. **Do not install dependencies** and **do not spawn other agents.**
-6. **Do not author product code, tests, or docs.** Version control only. If the diff needed for the commit isn't present, report that back instead of creating it. **Never edit a file of the change folder.** Read it, stage it, and cite it — nothing more.
-7. **Follow the project's commit conventions.** Use the Conventional-Commit format and branch-naming rules above; commit under the developer's own git identity via plain `git`/`gh`. Do not force-push, rewrite published history, or merge without explicit instruction.
+A task that changes behavior carries a change folder at `openspec/changes/<change-id>/`. If the prompt names one, add these three rules to the procedure. If the prompt names none, skip this section.
+
+1. **Step 1 — name the branch after the change identifier.** The change `add-remember-me` gives the branch `feat/add-remember-me`. Keep the identifier unaltered, and pick the type by the kind of work.
+2. **Step 3 — stage the change folder with the code.** Add `openspec/changes/<change-id>/`, so the specification and the code enter the repository in the same commit. A later commit stages the folder again only if an artifact changed. If `/opsx:sync` edited `openspec/specs/`, stage those files too.
+3. **Step 4 — read `tasks.md` for the body of the commit.** Read it; never edit it. The body names the change identifier and the specification deltas, because the Pull Request carries no body.
+
+The orchestrator archives the change after the merge, with `/opsx:archive`. The `git-manager` agent never archives, and it never moves the folder by hand.
+
+## The limits
+
+1. **Branch, commit, push and open the Pull Request without a confirmation.** These are the normal steps. Merging is the one hard stop.
+2. **Never merge, never force-push, never rewrite published history, and never delete a branch**, unless the prompt gives the instruction.
+3. **Author no product code, no test and no document.** If the commit needs a change that the tree does not hold, report the absence, and write nothing.
+4. **Edit no file of the change folder.** Read it, stage it, and cite it.
