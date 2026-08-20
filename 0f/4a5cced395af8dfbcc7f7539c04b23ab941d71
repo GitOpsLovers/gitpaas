@@ -1,0 +1,21 @@
+.claude/agents/implementer.md
+  s_af5ad61360b271::t_90eca3dda8540e 23-39
+.claude/agents/refactorer.md
+  s_af5ad61360b271::t_6636436ce694f6 23-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0f4a5cced395af8dfbcc7f7539c04b23ab941d71",
+  "prompts": {},
+  "sessions": {
+    "s_af5ad61360b271": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac9e140196e12948d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
