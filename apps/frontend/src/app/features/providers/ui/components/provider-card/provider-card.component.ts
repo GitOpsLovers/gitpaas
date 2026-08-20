@@ -7,7 +7,7 @@ import { DropdownComponent } from '@shared/components/dropdown/dropdown.componen
 /**
  * State of the test of the credentials of the provider the card shows.
  */
-export type ProviderConnectionState = 'idle' | 'testing' | 'success' | 'failure';
+export type ProviderConnectionState = 'idle' | 'testing' | 'success' | 'failure' | 'incomplete';
 
 @Component({
     selector: 'app-provider-card',
@@ -16,16 +16,14 @@ export type ProviderConnectionState = 'idle' | 'testing' | 'success' | 'failure'
 })
 
 /**
- * Provider card component
- *
- * Shows the name, the mark of the type, the identifier of the application, the
- * fingerprint of the key and the state of the connection. The card never shows a
- * private key, because the API never gives one.
+ * Provider card component.
  */
 export class ProviderCardComponent {
     public readonly provider = input.required<Provider>();
 
     public readonly connection = input<ProviderConnectionState>('idle');
+
+    public readonly missingPermissions = input<readonly string[]>([]);
 
     public readonly test = output<Provider>();
 

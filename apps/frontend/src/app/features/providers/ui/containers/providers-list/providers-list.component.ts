@@ -3,12 +3,29 @@ import { Router, RouterLink } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { describeProviderFailureUseCase } from '../../../application/describe-provider-failure.use-case';
-import { Provider } from '../../../domain/models/provider.model';
+import { Provider, ProviderConnectionOutcome } from '../../../domain/models/provider.model';
 import { ProvidersApiRepository } from '../../../infrastructure/api/providers-api.repository';
 import { ProviderCardComponent, ProviderConnectionState } from '../../components/provider-card/provider-card.component';
 
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { ToastService } from '@shared/services/toast.service';
+
+/**
+ * State of the card each outcome of the test of the connection shows.
+ */
+const OUTCOME_STATES: Record<ProviderConnectionOutcome, ProviderConnectionState> = {
+    ok: 'success',
+    unauthorized: 'failure',
+    incomplete: 'incomplete',
+};
+
+/**
+ * Result of the last test of the connection of one provider.
+ */
+interface ProviderConnectionResult {
+    state: ProviderConnectionState;
+    missingPermissions: readonly string[];
+}
 
 @Component({
     selector: 'app-providers-list',
@@ -18,7 +35,7 @@ import { ToastService } from '@shared/services/toast.service';
 })
 
 /**
- * Providers list container component
+ * Providers list container component.
  */
 export class ProvidersListComponent {
     private readonly repository = inject(ProvidersApiRepository);
@@ -34,9 +51,9 @@ export class ProvidersListComponent {
     protected readonly deleting = signal(false);
 
     /**
-     * State of the test of the connection, by the identifier of the provider.
+     * Result of the test of the connection, by the identifier of the provider.
      */
-    protected readonly connections = signal<Record<string, ProviderConnectionState>>({});
+    protected readonly connections = signal<Record<string, ProviderConnectionResult>>({});
 
     /**
      * Confirmation message naming the provider pending deletion.
@@ -53,7 +70,18 @@ export class ProvidersListComponent {
      * @returns State of its last test
      */
     protected connectionOf(provider: Provider): ProviderConnectionState {
-        return this.connections()[provider.id] ?? 'idle';
+        return this.connections()[provider.id]?.state ?? 'idle';
+    }
+
+    /**
+     * Reads the permissions the App of a provider does not carry.
+     *
+     * @param provider Provider shown on a card
+     *
+     * @returns Names of the missing permissions of its last test
+     */
+    protected missingPermissionsOf(provider: Provider): readonly string[] {
+        return this.connections()[provider.id]?.missingPermissions ?? [];
     }
 
     protected edit(provider: Provider): void {
@@ -71,7 +99,7 @@ export class ProvidersListComponent {
         try {
             const result = await lastValueFrom(this.repository.testConnection(provider.id));
 
-            this.setConnection(provider.id, result.success ? 'success' : 'failure');
+            this.setConnection(provider.id, OUTCOME_STATES[result.outcome], result.missingPermissions);
         } catch {
             this.setConnection(provider.id, 'failure');
         }
@@ -123,8 +151,13 @@ export class ProvidersListComponent {
      *
      * @param providerId Provider identifier
      * @param state State of its test
+     * @param missingPermissions Permissions its App does not carry
      */
-    private setConnection(providerId: string, state: ProviderConnectionState): void {
-        this.connections.update((states) => ({ ...states, [providerId]: state }));
+    private setConnection(
+        providerId: string,
+        state: ProviderConnectionState,
+        missingPermissions: readonly string[] = [],
+    ): void {
+        this.connections.update((results) => ({ ...results, [providerId]: { state, missingPermissions } }));
     }
 }

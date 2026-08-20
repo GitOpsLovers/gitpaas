@@ -17,6 +17,7 @@ interface ProvidersListInternals {
     deleting: () => boolean;
     deleteMessage: () => string;
     connectionOf: (provider: Provider) => ProviderConnectionState;
+    missingPermissionsOf: (provider: Provider) => readonly string[];
     edit: (provider: Provider) => void;
     test: (provider: Provider) => Promise<void>;
     requestDelete: (provider: Provider) => void;
@@ -118,6 +119,7 @@ describe('ProvidersListComponent', () => {
             create();
 
             expect(component.connectionOf(provider)).toBe('idle');
+            expect(component.missingPermissionsOf(provider)).toEqual([]);
         });
 
         test('marks the card as testing while the test runs', () => {
@@ -130,22 +132,36 @@ describe('ProvidersListComponent', () => {
             expect(component.connectionOf(provider)).toBe('testing');
         });
 
-        test('marks the card as connected when the credentials operate', async () => {
-            repository.testConnection.mockReturnValue(of({ success: true }));
+        test('marks the card as connected when the outcome is ok', async () => {
+            repository.testConnection.mockReturnValue(of({ outcome: 'ok', missingPermissions: [] }));
             create();
 
             await component.test(provider);
 
             expect(component.connectionOf(provider)).toBe('success');
+            expect(component.missingPermissionsOf(provider)).toEqual([]);
         });
 
-        test('marks the card as failed when the credentials do not operate', async () => {
-            repository.testConnection.mockReturnValue(of({ success: false }));
+        test('marks the card as failed when the outcome is unauthorized', async () => {
+            repository.testConnection.mockReturnValue(of({ outcome: 'unauthorized', missingPermissions: [] }));
             create();
 
             await component.test(provider);
 
             expect(component.connectionOf(provider)).toBe('failure');
+            expect(component.missingPermissionsOf(provider)).toEqual([]);
+        });
+
+        test('marks the card as incomplete, and keeps the missing permissions, when a permission is absent', async () => {
+            repository.testConnection.mockReturnValue(
+                of({ outcome: 'incomplete', missingPermissions: ['contents', 'metadata'] }),
+            );
+            create();
+
+            await component.test(provider);
+
+            expect(component.connectionOf(provider)).toBe('incomplete');
+            expect(component.missingPermissionsOf(provider)).toEqual(['contents', 'metadata']);
         });
 
         test('marks the card as failed when the test call itself fails', async () => {
@@ -155,12 +171,13 @@ describe('ProvidersListComponent', () => {
             await component.test(provider);
 
             expect(component.connectionOf(provider)).toBe('failure');
+            expect(component.missingPermissionsOf(provider)).toEqual([]);
         });
 
         test('keeps the state of each provider apart', async () => {
             const other: Provider = { ...provider, id: 'pv-2', name: 'other-github' };
 
-            repository.testConnection.mockReturnValue(of({ success: true }));
+            repository.testConnection.mockReturnValue(of({ outcome: 'ok', missingPermissions: [] }));
             create();
 
             await component.test(provider);

@@ -78,9 +78,9 @@
 
 ## 10. The third state of the card
 
-- [ ] 10.1 Change the model of the frontend for the new shape of the answer of the test.
-- [ ] 10.2 Show a state of warning on the card for the outcome `incomplete`, and name each missing permission.
-- [ ] 10.3 Update the tests of the card for the three outcomes.
+- [x] 10.1 Change the model of the frontend for the new shape of the answer of the test.
+- [x] 10.2 Show a state of warning on the card for the outcome `incomplete`, and name each missing permission.
+- [x] 10.3 Update the tests of the card for the three outcomes.
 
 ## 11. The end
 
