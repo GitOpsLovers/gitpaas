@@ -1,8 +1,7 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import type { Deployment, TriggerDeploymentDto } from '@gitpaas/contracts';
 import { Observable, Subscriber } from 'rxjs';
-
-import { Deployment } from '../../domain/models/deployment.model';
 
 import { environment } from '@environments/environment';
 import { TokenStorageService } from '@features/authentication/infrastructure/storage/token-storage.service';
@@ -45,7 +44,9 @@ export class DeploymentsApiRepository {
      * @returns The created deployment
      */
     public deploy(serviceId: string): Observable<Deployment> {
-        return this.http.post<Deployment>(this.url, { serviceId });
+        const body: TriggerDeploymentDto = { serviceId };
+
+        return this.http.post<Deployment>(this.url, body);
     }
 
     /**

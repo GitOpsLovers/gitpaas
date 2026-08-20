@@ -1,11 +1,10 @@
+import type { Deployment as DeploymentResponse, TriggerDeploymentDto } from '@gitpaas/contracts';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
-import { DeploymentResponse } from '../../transformers/deployment-response.transformer';
 import { DeploymentsController } from '../deployments.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';

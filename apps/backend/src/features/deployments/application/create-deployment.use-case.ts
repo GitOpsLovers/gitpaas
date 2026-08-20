@@ -1,5 +1,6 @@
+import type { TriggerDeploymentDto } from '@gitpaas/contracts';
+
 import { CreateDeploymentDto } from '../domain/dtos/create-deployment.dto';
-import { TriggerDeploymentDto } from '../domain/dtos/trigger-deployment.dto';
 import { ProviderRepositoryUnreachableError, ServiceNotDeployableError } from '../domain/errors/deployment.errors';
 import { Deployment } from '../domain/models/deployment.models';
 import { DeploymentQueue } from '../domain/ports/deployment-queue.port';

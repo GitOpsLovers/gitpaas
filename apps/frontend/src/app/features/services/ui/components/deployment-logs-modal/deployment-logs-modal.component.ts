@@ -1,9 +1,9 @@
 import {
     afterRenderEffect, Component, effect, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
+import type { Deployment } from '@gitpaas/contracts';
 import { LucideCheck, LucideCopy, LucideLoaderCircle, LucideX } from '@lucide/angular';
 
-import { Deployment } from '@features/deployments/domain/models/deployment.model';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 

@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { Deployment } from '@gitpaas/contracts';
 import { Subject } from 'rxjs';
 
 import { DeploymentLogsModalComponent } from './deployment-logs-modal.component';
 
-import { Deployment } from '@features/deployments/domain/models/deployment.model';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { LogEvent } from '@features/logs/domain/models/log-event.model';
 
