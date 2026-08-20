@@ -1,0 +1,21 @@
+.claude/agents/documenter.md
+  s_4895453a4120c4::t_c2b9c7ee465716 14-19,27,51,62,64
+CLAUDE.md
+  s_4895453a4120c4::t_8086a40c5ddf7b 181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "87933a6f9f63f40e2369ca418fa48fc1fabcdb31",
+  "prompts": {},
+  "sessions": {
+    "s_4895453a4120c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a31290a-82e2-4e40-aabf-cf7e52ccb484",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
