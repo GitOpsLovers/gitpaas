@@ -1,0 +1,45 @@
+.claude/skills/frontend-unit-testing/SKILL.md
+  s_18b3f72b435ed2::t_7408f39ed5cd61 1-38
+.claude/skills/frontend-unit-testing/references/api-repository.md
+  s_18b3f72b435ed2::t_e86a5fa3dacd9e 1-84
+.claude/skills/frontend-unit-testing/references/browser-adapter.md
+  s_18b3f72b435ed2::t_360ff74a897dc9 1-42
+.claude/skills/frontend-unit-testing/references/container-component.md
+  s_18b3f72b435ed2::t_ff2b6a51538178 1-58
+.claude/skills/frontend-unit-testing/references/conventions.md
+  s_18b3f72b435ed2::t_dc0455239bf476 1-64
+.claude/skills/frontend-unit-testing/references/guard-and-interceptor.md
+  s_18b3f72b435ed2::t_88aca8cbbaa686 1-64
+.claude/skills/frontend-unit-testing/references/known-inconsistencies.md
+  s_18b3f72b435ed2::t_a6ff1c7b4c4ee2 1-14
+.claude/skills/frontend-unit-testing/references/page.md
+  s_18b3f72b435ed2::t_6420d8d32ad50e 1-33
+.claude/skills/frontend-unit-testing/references/presentational-component.md
+  s_18b3f72b435ed2::t_ac53dd644e702e 1-57
+.claude/skills/frontend-unit-testing/references/running-the-suite.md
+  s_18b3f72b435ed2::t_d5d83cee20db1c 1-26
+.claude/skills/frontend-unit-testing/references/signals-and-streams.md
+  s_18b3f72b435ed2::t_dcc8f110c987e9 1-94
+.claude/skills/frontend-unit-testing/references/storage-service.md
+  s_18b3f72b435ed2::t_a64267ef7d23bb 1-55
+.claude/skills/frontend-unit-testing/references/ui-service.md
+  s_18b3f72b435ed2::t_bab91d0a4e0141 1-54
+.claude/skills/frontend-unit-testing/references/use-case.md
+  s_18b3f72b435ed2::t_305fa9f1b5cda2 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "84ed559fc14e4bd98e0f4072757ee435514a6162",
+  "prompts": {},
+  "sessions": {
+    "s_18b3f72b435ed2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4baad648-c26a-4832-ad3d-bfb36050bcbc",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
