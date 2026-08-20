@@ -1,3 +1,5 @@
+import { createServiceSchema, updateServiceSchema } from '@gitpaas/contracts';
+import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -13,12 +15,11 @@ import {
     Query,
 } from '@nestjs/common';
 
-import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
-import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import { ServicesService } from '../services/services.service';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -56,7 +57,7 @@ export class ServicesController {
      * @returns Created service
      */
     @Post()
-    public async create(@Body() createDto: CreateServiceDto): Promise<Service> {
+    public async create(@Body(new ZodValidationPipe(createServiceSchema)) createDto: CreateServiceDto): Promise<Service> {
         try {
             return await this.service.create(createDto);
         } catch (error) {
@@ -67,7 +68,7 @@ export class ServicesController {
     @Put(':id')
     public async update(
         @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateDto: UpdateServiceDto,
+        @Body(new ZodValidationPipe(updateServiceSchema)) updateDto: UpdateServiceDto,
     ): Promise<Service> {
         enrichTelemetry({ 'service.id': id });
 

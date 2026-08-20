@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import type { Service } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
-import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 
 import { ServicesListComponent } from './services-list.component';
@@ -21,7 +21,15 @@ interface ServicesListInternals {
     confirmDelete: () => Promise<void>;
 }
 
-const service: Service = { id: 'sv-1', name: 'api', projectId: 'pr-1' };
+const service: Service = {
+    id: 'sv-1',
+    name: 'api',
+    projectId: 'pr-1',
+    providerId: null,
+    repositoryId: '',
+    deploymentBranch: '',
+    composerPath: '',
+};
 
 describe('ServicesListComponent', () => {
     let repository: {

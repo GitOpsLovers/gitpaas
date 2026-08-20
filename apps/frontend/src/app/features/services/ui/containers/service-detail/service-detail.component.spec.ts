@@ -1,10 +1,9 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import type { Project } from '@gitpaas/contracts';
+import type { Project, Service } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
-import { Service } from '../../../domain/models/service.model';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
 
@@ -32,7 +31,15 @@ const project: Project = {
     id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
 };
 
-const service: Service = { id: 'sv-1', name: 'web', projectId: 'pr-1' };
+const service: Service = {
+    id: 'sv-1',
+    name: 'web',
+    projectId: 'pr-1',
+    providerId: null,
+    repositoryId: '',
+    deploymentBranch: '',
+    composerPath: '',
+};
 
 describe('ServiceDetailComponent', () => {
     let projectValue: ReturnType<typeof signal<Project | undefined>>;

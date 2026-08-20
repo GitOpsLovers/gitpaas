@@ -1,13 +1,14 @@
-import { NotFoundException } from '@nestjs/common';
+import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
+import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 
-import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
-import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { Service } from '../../../domain/models/service.models';
 import { ServicesService } from '../../services/services.service';
 import { ServicesController } from '../services.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
 import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
 
@@ -23,6 +24,36 @@ const service: Service = {
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
+};
+
+/**
+ * Shape of a single entry of the route-argument metadata NestJS stores per handler.
+ */
+interface RouteArgMetadata {
+    index: number;
+    data: unknown;
+    pipes: unknown[];
+}
+
+/**
+ * Reads the pipes the controller declares for one bound argument of a handler.
+ *
+ * The pipes themselves are framework mechanics that the unit specs never run, so
+ * this reads the declaration instead: dropping a pipe would let an unchecked
+ * value reach the service, and must fail a test.
+ *
+ * Every path parameter and every query parameter carries its name in `data`, so
+ * the body is the one bound argument that carries none.
+ */
+const pipesFor = (handler: string, parameter?: string): unknown[] => {
+    // eslint-disable-next-line operator-linebreak
+    const metadata =
+        (Reflect.getMetadata(ROUTE_ARGS_METADATA, ServicesController, handler) as Record<
+            string,
+            RouteArgMetadata
+        >) ?? {};
+
+    return Object.values(metadata).find((argument) => argument.data === parameter)?.pipes ?? [];
 };
 
 describe('ServicesController', () => {
@@ -50,6 +81,27 @@ describe('ServicesController', () => {
         }).compile();
 
         sut = moduleRef.get(ServicesController);
+    });
+
+    describe('parameter validation', () => {
+        it.each(['findById', 'update', 'delete'])(
+            'validates the id path parameter of %s as a UUID',
+            (handler) => {
+                expect(pipesFor(handler, 'id')).toContain(ParseUUIDPipe);
+            },
+        );
+
+        it('validates the projectId query parameter of getAllByProject as a UUID', () => {
+            expect(pipesFor('getAllByProject', 'projectId')).toContain(ParseUUIDPipe);
+        });
+
+        it.each(['create', 'update'])('validates the body of %s with a Zod pipe', (handler) => {
+            expect(pipesFor(handler)).toEqual([expect.any(ZodValidationPipe)]);
+        });
+
+        it.each(['getAllByProject', 'findById', 'delete'])('never binds a body on %s', (handler) => {
+            expect(pipesFor(handler)).toEqual([]);
+        });
     });
 
     describe('getAllByProject', () => {

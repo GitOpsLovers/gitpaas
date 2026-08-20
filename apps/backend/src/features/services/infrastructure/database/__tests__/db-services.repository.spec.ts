@@ -1,7 +1,6 @@
+import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
 import { Repository } from 'typeorm';
 
-import { CreateServiceDto } from '../../../domain/dtos/create-service.dto';
-import { UpdateServiceDto } from '../../../domain/dtos/update-service.dto';
 import { DbServiceEntity } from '../db-service.entity';
 import { DatabaseServicesRepository } from '../db-services.repository';
 

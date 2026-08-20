@@ -1,9 +1,8 @@
+import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateServiceDto } from '../../domain/dtos/create-service.dto';
-import { UpdateServiceDto } from '../../domain/dtos/update-service.dto';
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
