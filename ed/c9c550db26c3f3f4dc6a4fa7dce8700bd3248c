@@ -1,0 +1,43 @@
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts
+  s_fc7fca2f35351d::t_33a27401e7c112 13-21,30,54-59,80,85-97,123,136
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.html
+  s_fc7fca2f35351d::t_62741f70f246cd 55-61
+apps/frontend/src/app/features/logs/domain/models/log-event.model.ts
+  s_fc7fca2f35351d::t_cb2bc7a1b97b29 6,10-11
+openspec/changes/request-model/tasks.md
+  s_0568681a4978fb::t_e09641b5d972ae 7-11
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.spec.ts
+  s_cc667e717af0f2::t_4a07c5f3e4c96d 1-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "edc9c550db26c3f3f4dc6a4fa7dce8700bd3248c",
+  "prompts": {},
+  "sessions": {
+    "s_0568681a4978fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed9e6f31-e5c9-436e-a193-714184dc58e6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cc667e717af0f2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8cb399b3f64eb3fe",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_fc7fca2f35351d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a37166de4004a2e2c",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
