@@ -1,13 +1,15 @@
+import { triggerDeploymentSchema } from '@gitpaas/contracts';
+import type { Deployment as DeploymentResponse, TriggerDeploymentDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
 } from '@nestjs/common';
 
-import { TriggerDeploymentDto } from '../../domain/dtos/trigger-deployment.dto';
 import { DeploymentsService } from '../services/deployments.service';
-import { DeploymentResponse, toDeploymentResponse } from '../transformers/deployment-response.transformer';
+import { toDeploymentResponse } from '../transformers/deployment-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -61,7 +63,7 @@ export class DeploymentsController {
      * @returns The created deployment record
      */
     @Post()
-    public async create(@Body() triggerDto: TriggerDeploymentDto): Promise<DeploymentResponse> {
+    public async create(@Body(new ZodValidationPipe(triggerDeploymentSchema)) triggerDto: TriggerDeploymentDto): Promise<DeploymentResponse> {
         enrichTelemetry({ 'service.id': triggerDto.serviceId });
 
         try {

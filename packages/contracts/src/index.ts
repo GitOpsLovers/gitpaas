@@ -7,3 +7,7 @@ export { projectParamsSchema, projectsEndpoints, projectsNamespaceParamsSchema }
 export { createServiceSchema, serviceSchema, updateServiceSchema } from './services/service.contract';
 export type { CreateServiceDto, Service, UpdateServiceDto } from './services/service.contract';
 export { serviceParamsSchema, servicesEndpoints, servicesQuerySchema } from './services/services.endpoints';
+
+export { deploymentSchema, deploymentStatusSchema, triggerDeploymentSchema } from './deployments/deployment.contract';
+export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deployments/deployment.contract';
+export { deploymentParamsSchema, deploymentsEndpoints, deploymentsQuerySchema } from './deployments/deployments.endpoints';

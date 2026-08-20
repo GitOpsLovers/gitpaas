@@ -1,21 +1,6 @@
-import { Deployment, DeploymentStatus } from '../../domain/models/deployment.models';
+import type { Deployment as DeploymentResponse } from '@gitpaas/contracts';
 
-/**
- * A deployment as an answer of the API carries it: every timestamp is a text of the ISO form.
- */
-export interface DeploymentResponse {
-    id: string;
-    serviceId: string;
-    status: DeploymentStatus;
-    branch: string;
-    commit: string | null;
-    commitMessage: string | null;
-    composerPath: string;
-    triggeredBy: string;
-    error: string | null;
-    createdAt: string;
-    finishedAt: string | null;
-}
+import { Deployment } from '../../domain/models/deployment.models';
 
 /**
  * Maps a domain deployment into the shape an answer of the API carries.

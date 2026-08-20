@@ -1,10 +1,10 @@
+import type { TriggerDeploymentDto } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
 import { createDeploymentUseCase } from '../../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../../application/find-deployment-by-id.use-case';
 import { getDeploymentsByServiceUseCase } from '../../../application/get-deployments-by-service.use-case';
-import { TriggerDeploymentDto } from '../../../domain/dtos/trigger-deployment.dto';
 import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';

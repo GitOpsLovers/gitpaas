@@ -44,7 +44,7 @@ describe('toDeploymentResponse', () => {
     it('never lets a date reach the answer', () => {
         const response = toDeploymentResponse(deployment());
 
-        expect(Object.values(response).some((value) => value instanceof Date)).toBe(false);
+        expect((Object.values(response) as unknown[]).some((value) => value instanceof Date)).toBe(false);
     });
 
     it('keeps a finish that has not happened as null', () => {

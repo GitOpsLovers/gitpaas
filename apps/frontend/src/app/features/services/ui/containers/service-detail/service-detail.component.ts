@@ -1,7 +1,7 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { Project, Service } from '@gitpaas/contracts';
+import type { Deployment, Project, Service } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -14,7 +14,6 @@ import { ServiceProviderComponent, ServiceProviderSettings } from '../../compone
 import { Container } from '@features/containers/domain/models/container.model';
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { ServiceContainersComponent } from '@features/containers/ui/components/service-containers/service-containers.component';
-import { Deployment } from '@features/deployments/domain/models/deployment.model';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { Network } from '@features/networks/domain/models/network.model';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';

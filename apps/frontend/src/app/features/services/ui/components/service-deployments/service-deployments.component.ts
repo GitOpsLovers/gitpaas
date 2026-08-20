@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
+import type { Deployment, DeploymentStatus } from '@gitpaas/contracts';
 import { LucideCalendar, LucideClock, LucideEye, LucideGitBranch, LucideGitCommitHorizontal, LucideTrash2 } from '@lucide/angular';
 
-import { Deployment, DeploymentStatus } from '@features/deployments/domain/models/deployment.model';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 
