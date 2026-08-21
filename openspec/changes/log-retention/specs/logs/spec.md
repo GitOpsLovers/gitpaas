@@ -4,8 +4,9 @@
 
 The system SHALL remove an archived row of a log when that row passes an age that the operator sets.
 
-The age is measured from the creation of the row. A variable of the environment carries it, and that
-variable holds a value by default, so an installation that sets nothing still removes its old rows.
+The age is measured from the creation of the row. The settings of the server carry it, and the operator
+sets it on the screen. The system holds a value by default, so an installation whose operator changed
+nothing still removes its old rows.
 
 The system SHALL NOT remove the record of the deployment. The history of what ran stays complete, and only
 the output goes away.
@@ -20,10 +21,15 @@ the output goes away.
 - **WHEN** an archived row is not older than the age
 - **THEN** the system keeps it
 
-#### Scenario: The operator sets no age
+#### Scenario: The operator changed no age
 
-- **WHEN** the installation sets no value for the age
+- **WHEN** the settings hold no value for the age
 - **THEN** the system uses the value by default, and it removes the rows that pass it
+
+#### Scenario: The operator changes the age
+
+- **WHEN** the operator writes a new age into the settings of the server
+- **THEN** the next run of the task uses the new value, and the server needs no restart
 
 ### Requirement: The removal runs on a schedule and in batches
 
