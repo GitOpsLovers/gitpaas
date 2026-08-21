@@ -18,7 +18,7 @@ export interface EndpointDescriptor<
     readonly response: TResponse;
 }
 
-/** 
- * The descriptors of one feature, keyed by the name of the operation. 
+/**
+ * The descriptors of one feature, keyed by the name of the operation.
  */
 export type EndpointMap = Readonly<Record<string, EndpointDescriptor>>;

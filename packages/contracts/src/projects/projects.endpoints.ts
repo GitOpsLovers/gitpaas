@@ -4,15 +4,15 @@ import type { EndpointMap } from '../shared/endpoint.contract';
 
 import { createProjectSchema, projectSchema, updateProjectSchema } from './project.contract';
 
-/** 
- * The path parameters that scope a request to one namespace. 
+/**
+ * The path parameters that scope a request to one namespace.
  */
 export const projectsNamespaceParamsSchema = z.object({
     namespaceId: z.uuid(),
 });
 
-/** 
- * The path parameters that address one project of one namespace. 
+/**
+ * The path parameters that address one project of one namespace.
  */
 export const projectParamsSchema = z.object({
     namespaceId: z.uuid(),
