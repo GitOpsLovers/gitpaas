@@ -1,0 +1,63 @@
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_c82e78c064c680::t_4db951e83160ec 147-151
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_c82e78c064c680::t_0fdcbe6cd7bc0d 52
+apps/backend/src/features/server/application/__tests__/get-platform-settings.use-case.spec.ts
+  s_c82e78c064c680::t_d9c41abd3d9953 1-58
+apps/backend/src/features/server/application/__tests__/update-platform-settings.use-case.spec.ts
+  s_c82e78c064c680::t_4b77b2a9879149 1-81
+apps/backend/src/features/server/application/get-platform-settings.use-case.ts
+  s_c82e78c064c680::t_ab397701791c29 1-20
+apps/backend/src/features/server/application/update-platform-settings.use-case.ts
+  s_c82e78c064c680::t_fec99ee0e1d3fc 1-33
+apps/backend/src/features/server/domain/constants/platform-settings.constants.ts
+  s_c82e78c064c680::t_846505098c1833 1-4
+apps/backend/src/features/server/domain/errors/__tests__/server.errors.spec.ts
+  s_c82e78c064c680::t_f1684868a70a22 1,28-52
+apps/backend/src/features/server/domain/errors/server.errors.ts
+  s_c82e78c064c680::t_c54d059966e989 1-2,17-29
+apps/backend/src/features/server/domain/repositories/platform-settings.repository.ts
+  s_c82e78c064c680::t_9c56e800e687f1 1-22
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-settings.repository.spec.ts
+  s_c82e78c064c680::t_1f1cb57b7ef221 1-66
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-settings.transformer.spec.ts
+  s_c82e78c064c680::t_4a3b9e28f7847d 1-20
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.entity.ts
+  s_c82e78c064c680::t_74a99dc9cdfd3b 1-24
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.repository.ts
+  s_c82e78c064c680::t_dff237faa5893d 1-44
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.transformer.ts
+  s_c82e78c064c680::t_d644634646fd82 1-15
+apps/backend/src/features/server/server.module.ts
+  s_c82e78c064c680::t_8951e02b4196f6 2,4-5,19,27
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_c82e78c064c680::t_1e70cab46c07ab 1-14,18,24,37,85-86,101-102,535-600
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_c82e78c064c680::t_a37a396fabf58f 1-19,24,114-145
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_c82e78c064c680::t_48b5f6ee664b86 1,5,11-13,30-31,49-54,67,83,95,106,360-408
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_c82e78c064c680::t_f90a6679697bc3 1-7,11,17,20-21,50-51,108-128
+openspec/changes/log-retention/tasks.md
+  s_c82e78c064c680::t_2a0b82c607e659 3-9
+packages/contracts/src/index.ts
+  s_c82e78c064c680::t_c9c8c15144c427 78-84
+packages/contracts/src/server/platform-settings.contract.ts
+  s_c82e78c064c680::t_e7c0eaacb49be7 1-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d31262d0b70ef945a612d766b432b1e519864b54",
+  "prompts": {},
+  "sessions": {
+    "s_c82e78c064c680": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a3be1a77-9d7a-4045-81d8-eff7e2c5b07f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
