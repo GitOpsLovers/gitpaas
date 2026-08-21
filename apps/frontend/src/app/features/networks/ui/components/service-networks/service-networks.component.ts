@@ -1,7 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, input } from '@angular/core';
-
-import { Network } from '../../../domain/models/network.model';
+import type { Network } from '@gitpaas/contracts';
 
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 

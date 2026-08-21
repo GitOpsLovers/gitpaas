@@ -1,17 +1,6 @@
-import { Container, ContainerPort } from '../../domain/models/container.models';
+import type { Container as ContainerResponse } from '@gitpaas/contracts';
 
-/**
- * A container as an answer of the API carries it: every timestamp is a text of the ISO form.
- */
-export interface ContainerResponse {
-    id: string;
-    name: string;
-    image: string;
-    state: string;
-    status: string;
-    createdAt: string;
-    ports: ContainerPort[];
-}
+import { Container } from '../../domain/models/container.models';
 
 /**
  * Maps a domain container into the shape an answer of the API carries.

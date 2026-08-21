@@ -1,7 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-
-import { Container } from '../../domain/models/container.model';
+import type { Container } from '@gitpaas/contracts';
 
 import { environment } from '@environments/environment';
 

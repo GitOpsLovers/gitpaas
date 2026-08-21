@@ -2,8 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-
-import { Namespace } from '../../domain/models/namespace.model';
+import type { Namespace } from '@gitpaas/contracts';
 
 import { NamespacesApiRepository } from './namespaces-api.repository';
 

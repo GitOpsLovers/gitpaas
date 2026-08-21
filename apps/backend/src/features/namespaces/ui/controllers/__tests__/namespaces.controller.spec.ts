@@ -1,8 +1,7 @@
+import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { CreateNamespaceDto } from '../../../domain/dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../../../domain/dtos/update-namespace.dto';
 import { NamespaceNotEmptyError } from '../../../domain/errors/namespace.errors';
 import { Namespace } from '../../../domain/models/namespace.models';
 import { NamespacesService } from '../../services/namespaces.service';

@@ -1,10 +1,7 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import type { CreateNamespaceDto, Namespace, UpdateNamespaceDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
-
-import { CreateNamespaceDto } from '../../domain/dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../../domain/dtos/update-namespace.dto';
-import { Namespace } from '../../domain/models/namespace.model';
 
 import { environment } from '@environments/environment';
 

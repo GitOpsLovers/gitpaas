@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import type { Namespace } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
-import { Namespace } from '../../../domain/models/namespace.model';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
 
 import { NamespacesListComponent } from './namespaces-list.component';

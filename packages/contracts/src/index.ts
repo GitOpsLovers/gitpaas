@@ -4,6 +4,10 @@ export { createProjectSchema, projectSchema, updateProjectSchema } from './proje
 export type { CreateProjectDto, Project, UpdateProjectDto } from './projects/project.contract';
 export { projectParamsSchema, projectsEndpoints, projectsNamespaceParamsSchema } from './projects/projects.endpoints';
 
+export { createNamespaceSchema, namespaceSchema, updateNamespaceSchema } from './namespaces/namespace.contract';
+export type { CreateNamespaceDto, Namespace, UpdateNamespaceDto } from './namespaces/namespace.contract';
+export { namespaceParamsSchema, namespacesEndpoints } from './namespaces/namespaces.endpoints';
+
 export { createServiceSchema, serviceSchema, updateServiceSchema } from './services/service.contract';
 export type { CreateServiceDto, Service, UpdateServiceDto } from './services/service.contract';
 export { serviceParamsSchema, servicesEndpoints, servicesQuerySchema } from './services/services.endpoints';
@@ -82,3 +86,11 @@ export type { ServerStatus } from './server/server-status.contract';
 export { orphanRemovalResultSchema, pruneResultSchema } from './server/maintenance.contract';
 export type { OrphanRemovalResult, PruneResult } from './server/maintenance.contract';
 export { serverEndpoints } from './server/server.endpoints';
+
+export { containerPortSchema, containerSchema } from './containers/container.contract';
+export type { Container, ContainerPort } from './containers/container.contract';
+export { containersEndpoints, containersQuerySchema } from './containers/containers.endpoints';
+
+export { networkSchema } from './networks/network.contract';
+export type { Network } from './networks/network.contract';
+export { networksEndpoints, networksQuerySchema } from './networks/networks.endpoints';

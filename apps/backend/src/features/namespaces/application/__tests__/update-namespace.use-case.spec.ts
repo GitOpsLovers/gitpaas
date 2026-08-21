@@ -1,4 +1,5 @@
-import { UpdateNamespaceDto } from '../../domain/dtos/update-namespace.dto';
+import type { UpdateNamespaceDto } from '@gitpaas/contracts';
+
 import { Namespace } from '../../domain/models/namespace.models';
 import { NamespacesRepository } from '../../domain/repositories/namespaces.repository';
 import { updateNamespaceUseCase } from '../update-namespace.use-case';

@@ -1,7 +1,8 @@
+import type { Container as ContainerResponse } from '@gitpaas/contracts';
 import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
 import { ContainersService } from '../services/containers.service';
-import { ContainerResponse, toContainerResponse } from '../transformers/container-response.transformer';
+import { toContainerResponse } from '../transformers/container-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';

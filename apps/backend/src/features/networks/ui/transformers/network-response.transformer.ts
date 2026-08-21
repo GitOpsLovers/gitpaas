@@ -1,17 +1,6 @@
-import { Network } from '../../domain/models/network.models';
+import type { Network as NetworkResponse } from '@gitpaas/contracts';
 
-/**
- * A network as an answer of the API carries it: every timestamp is a text of the ISO form.
- */
-export interface NetworkResponse {
-    id: string;
-    name: string;
-    driver: string;
-    scope: string;
-    internal: boolean;
-    attachable: boolean;
-    createdAt: string;
-}
+import { Network } from '../../domain/models/network.models';
 
 /**
  * Maps a domain network into the shape an answer of the API carries.

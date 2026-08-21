@@ -1,9 +1,9 @@
+import type { Container as ContainerResponse } from '@gitpaas/contracts';
 import { ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
-import { ContainerResponse } from '../../transformers/container-response.transformer';
 import { ContainersController } from '../containers.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';

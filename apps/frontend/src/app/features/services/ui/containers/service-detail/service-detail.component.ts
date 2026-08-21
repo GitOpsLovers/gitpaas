@@ -1,7 +1,7 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { Deployment, Project, Service } from '@gitpaas/contracts';
+import type { Container, Deployment, Network, Project, Service } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -11,11 +11,9 @@ import { ServiceDeploymentsComponent } from '../../components/service-deployment
 import { ServiceLogsComponent } from '../../components/service-logs/service-logs.component';
 import { ServiceProviderComponent, ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
 
-import { Container } from '@features/containers/domain/models/container.model';
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { ServiceContainersComponent } from '@features/containers/ui/components/service-containers/service-containers.component';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
-import { Network } from '@features/networks/domain/models/network.model';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
