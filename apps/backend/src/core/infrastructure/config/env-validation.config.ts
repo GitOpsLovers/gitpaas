@@ -1,9 +1,7 @@
-import { plainToInstance } from 'class-transformer';
-import {
-    IsDefined, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, Max, Min, validateSync,
-} from 'class-validator';
+import { z } from 'zod';
 
 import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '../../domain/constants/telemetry.constants';
+import { formatZodIssue } from '../../ui/pipes/zod-issue.formatter';
 
 /**
  * Runtime environment the application boots into
@@ -15,119 +13,49 @@ enum Environment {
 }
 
 /**
+ * A text variable the boot cannot do without
+ */
+const requiredText = z.string().min(1);
+
+/**
+ * A numeric variable, which arrives from the environment as a text
+ */
+const requiredNumber = z.coerce.number();
+
+/**
  * Shape and constraints of the environment variables the backend understands
  */
-export class EnvironmentVariables {
-    @IsDefined()
-    @IsEnum(Environment)
-    public NODE_ENV!: Environment;
+const environmentSchema = z.object({
+    NODE_ENV: z.enum(Environment),
+    PORT: requiredNumber,
+    DB_HOST: requiredText,
+    DB_PORT: requiredNumber,
+    DB_USER: requiredText,
+    DB_PASSWORD: requiredText,
+    DB_NAME: requiredText,
+    REDIS_HOST: requiredText,
+    REDIS_PORT: requiredNumber,
+    REDIS_PASSWORD: z.string().optional(),
+    PROVIDERS_ENCRYPTION_KEY: requiredText,
+    CORS_ORIGIN: requiredText,
+    APP_BASE_URL: z.url({ protocol: /^https?$/ }),
+    THROTTLE_TTL: requiredNumber,
+    THROTTLE_LIMIT: requiredNumber,
+    THROTTLE_STREAM_TTL: requiredNumber,
+    THROTTLE_STREAM_LIMIT: requiredNumber,
+    LOGS_MAX_LINES: requiredNumber,
+    TELEMETRY_SLOW_MS: requiredNumber.default(TELEMETRY_DEFAULT_SLOW_MS),
+    TELEMETRY_SAMPLE_RATE: requiredNumber.min(0).max(1).default(TELEMETRY_DEFAULT_SAMPLE_RATE),
+    JWT_ACCESS_SECRET: requiredText,
+    JWT_ACCESS_EXPIRES_IN: requiredText,
+    JWT_REFRESH_SECRET: requiredText,
+    JWT_REFRESH_EXPIRES_IN: requiredText,
+});
 
-    @IsDefined()
-    @IsNumber()
-    public PORT!: number;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public DB_HOST!: string;
-
-    @IsDefined()
-    @IsNumber()
-    public DB_PORT!: number;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public DB_USER!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public DB_PASSWORD!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public DB_NAME!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public REDIS_HOST!: string;
-
-    @IsDefined()
-    @IsNumber()
-    public REDIS_PORT!: number;
-
-    @IsOptional()
-    @IsString()
-    public REDIS_PASSWORD?: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public PROVIDERS_ENCRYPTION_KEY!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public CORS_ORIGIN!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsUrl({ protocols: ['http', 'https'], require_protocol: true, require_tld: false })
-    public APP_BASE_URL!: string;
-
-    @IsDefined()
-    @IsNumber()
-    public THROTTLE_TTL!: number;
-
-    @IsDefined()
-    @IsNumber()
-    public THROTTLE_LIMIT!: number;
-
-    @IsDefined()
-    @IsNumber()
-    public THROTTLE_STREAM_TTL!: number;
-
-    @IsDefined()
-    @IsNumber()
-    public THROTTLE_STREAM_LIMIT!: number;
-
-    @IsDefined()
-    @IsNumber()
-    public LOGS_MAX_LINES!: number;
-
-    @IsOptional()
-    @IsNumber()
-    public TELEMETRY_SLOW_MS: number = TELEMETRY_DEFAULT_SLOW_MS;
-
-    @IsOptional()
-    @IsNumber()
-    @Min(0)
-    @Max(1)
-    public TELEMETRY_SAMPLE_RATE: number = TELEMETRY_DEFAULT_SAMPLE_RATE;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public JWT_ACCESS_SECRET!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public JWT_ACCESS_EXPIRES_IN!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public JWT_REFRESH_SECRET!: string;
-
-    @IsDefined()
-    @IsNotEmpty()
-    @IsString()
-    public JWT_REFRESH_EXPIRES_IN!: string;
-}
+/**
+ * Shape of the environment the rest of the backend reads
+ */
+export type EnvironmentVariables = z.infer<typeof environmentSchema>;
 
 /**
  * Validates the raw environment at boot
@@ -135,24 +63,17 @@ export class EnvironmentVariables {
  * @param config Raw environment record
  *
  * @returns The validated, type-coerced configuration
+ *
+ * @throws Error When one variable or more does not satisfy the schema
  */
 export function validate(config: Record<string, unknown>): EnvironmentVariables {
-    const validatedConfig = plainToInstance(EnvironmentVariables, config, {
-        enableImplicitConversion: true,
-    });
+    const result = environmentSchema.safeParse(config);
 
-    const errors = validateSync(validatedConfig, {
-        skipMissingProperties: false,
-        forbidUnknownValues: false,
-    });
-
-    if (errors.length > 0) {
-        const details = errors
-            .map((error) => Object.values(error.constraints ?? {}).join(', '))
-            .join('; ');
+    if (!result.success) {
+        const details = result.error.issues.map(formatZodIssue).join('; ');
 
         throw new Error(`Invalid environment configuration: ${details}`);
     }
 
-    return validatedConfig;
+    return result.data;
 }

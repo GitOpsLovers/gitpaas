@@ -36,21 +36,21 @@ event of the error leaves the mark of the status without a value and hides the c
 - [x] 2.7 Create the spec of the pipe.
 - [x] 2.8 Bind the schemas with the new pipe on each parameter of the body of the controller of the projects.
 - [x] 2.9 Delete the two data transfer objects of a body of the projects, and point their fourteen consumers at `@gitpaas/contracts` directly. Decision 11 of `design.md` gives the rule.
-- [ ] 2.10 Give `packages/contracts` a runner of tests, and write there the specs of the two schemas of the
-  projects. The two specs of `domain/dtos/__tests__/` were deleted with their files, because the package
-  declares only `build` and `check-types` today. Thirteen cases of the validation carry no test at this
-  moment. Ask the user to install the runner.
+- [x] 2.10 The package runs Vitest. It carries `vitest.config.ts`, a script `test`, and a `tsconfig.build.json`
+  that keeps a spec out of `dist/`, after the pattern of `apps/backend`. The specs of
+  `src/projects/__tests__/project.contract.spec.ts` cover the three schemas of the projects with 20 cases.
+  The task `test` of `turbo.json` needed no change, because it carries no filter of the paths.
 - [x] 2.11 Point the repository of the API, the containers and the components of the projects at the package.
 - [x] 2.12 Delete the model and the data transfer objects of the projects in the frontend.
 - [x] 2.13 Verify that the slice compiles and that the specs pass.
 
 ## 3. The shape of a timestamp on the wire
 
-- [ ] 3.1 Model each timestamp as a text of the ISO form in the package, and keep the `Date` in the domain models of the backend.
+- [x] 3.1 Model each timestamp as a text of the ISO form in the package, and keep the `Date` in the domain models of the backend.
 - [x] 3.2 Create `apps/backend/src/features/deployments/ui/transformers/deployment-response.transformer.ts`.
 - [x] 3.3 Create the equivalent transformers of the answer for the containers, the networks, the users, the entries of the log, the providers and the registrations of a provider. Nine models of the backend carry a `Date` today.
 - [x] 3.4 Leave the refresh token out. It carries three `Date` fields, and no answer of the API gives that model.
-- [ ] 3.5 Import the type of the contract with another name where the domain model carries the same name.
+- [x] 3.5 Import the type of the contract with another name where the domain model carries the same name.
 - [x] 3.6 Change the applicable controllers, so they give the transformed shape and declare the type of the contract.
 - [x] 3.7 Verify that the compiler proves the conversion.
 
@@ -99,9 +99,9 @@ comes out by an edit.
 - [x] 6.5 Remove the scripts `generate:openapi`, `generate:docs` and `lint:openapi` from `packages/contracts/package.json`, and the two scripts that delegate from the manifest of the root.
 - [x] 6.6 Remove the tasks `generate:openapi`, `generate:docs` and `lint:openapi` from `turbo.json`. The task `check-types` stays.
 - [x] 6.7 Delete `.github/workflows/pr-api.yml`, and remove `.oasdiff` from `.gitignore`.
-- [ ] 6.8 Ask the user to remove `@redocly/cli` from the manifest of the root.
+- [x] 6.8 `@redocly/cli` is **absent** from the manifest of the root. A search of `package.json` and of `pnpm-lock.yaml` gives no result.
 - [x] 6.9 Verify that `rtk pnpm run build` and `rtk pnpm run check-types` pass, and that `pr-verify.yml` keeps the gate of the types.
-- [ ] 6.10 Close the pull request 123, which delivers the layer that this section removes.
+- [x] 6.10 The pull request 123 was **merged**, not closed. So the layer came out by the edits of the tasks 6.1 to 6.7, as the header of this section states. Nothing remains to close.
 
 ## 7. The removal of the old machinery
 
@@ -116,15 +116,15 @@ These block no phase, and one of them shapes a schema. Ask the user at the start
 them.
 
 - [x] 8.1 The true optionality of the fields of the service is **answered** by the columns: the three fields of the deployment are obligatory texts, and `providerId` is a nullable text. Task 4.1 records the evidence.
-- [ ] 8.2 Decide if the server checks its own answers at run time, and if the parse runs only outside the production.
-- [ ] 8.3 Decide if the validation of the environment moves to Zod, which removes the last consumer of `class-validator`.
-- [ ] 8.4 Decide how the paths of the endpoints are used, because the repositories of the frontend build their addresses from the environment with texts of the template.
+- [x] 8.2 The server checks its own answers at run time: **no**. The user chose no parse. The compiler proves the shape of each answer, because every transformer declares the type of the contract. A parse at run time costs work and finds nothing that the build does not find.
+- [x] 8.3 The validation of the environment moves to Zod: **yes**, and the removal is complete. The environment was one of 14 consumers, not the last one. So `env-validation.config.ts` became a schema of Zod that reuses `formatZodIssue`, nine internal data transfer objects lost their inert decorators and became interfaces, nine specs of those decorators were deleted, and `class-validator` and `class-transformer` left `apps/backend/package.json`.
+- [x] 8.4 The paths of the endpoints are **answered**: the change deletes the maps. They had no consumer, because they served the generation of OpenAPI that section 6 removed. The ten files of the descriptors left `packages/contracts`, and the barrel dropped their exports. The repositories of the frontend keep their texts of the template.
 - [x] 8.5 The tools of the reference are **answered**, and the answer is that the change builds none. It generates no document of OpenAPI, and no reference for a reader. Decision 7 of `design.md` gives the three reasons: the compiler carries the guarantee, the only consumer of the API lives in this repository, and the schemas rebuild the artifact on the day that a consumer outside it appears. `@redocly/cli` leaves the manifest of the root, and the action `oasdiff` leaves the workflow. Section 6 removes the code.
-- [ ] 8.6 Decide if the shape of the archive of the logs belongs in the package, because it has no consumer in the frontend today.
+- [x] 8.6 The shape of the archive of the logs belongs in the package: **no**. The user chose to keep it in the backend. It lives in `apps/backend/src/features/logs/infrastructure/redis/` alone, it never crosses the wire, and the frontend has no consumer for it.
 - [x] 8.7 The name of the package is **answered**: `@gitpaas/contracts`. The user chose the scope `@gitpaas/` for the whole workspace, so `apps/backend` is `@gitpaas/backend` and `apps/frontend` is `@gitpaas/frontend`. The root manifest keeps the name `@gitopslovers/gitpaas`.
 
 ## 9. The records that the change leaves behind
 
 - [x] 9.1 Record in `docs/monorepo-architecture/conventions.md` that the scope of the workspace is `@gitpaas/`, that each application and the package of the contracts carry it, and that the root manifest keeps `@gitopslovers/gitpaas`.
-- [ ] 9.2 Record in `docs/monorepo-architecture/` the task `check-types` that `turbo.json` receives, and the order that it needs.
-- [ ] 9.3 Record that `apps/frontend/src/app/features/source-control/` is dead code: it holds five shapes of the wire, no file outside it imports it, and the feature `providers` replaced it. A separate change deletes it.
+- [x] 9.2 Recorded in `docs/monorepo-architecture/operations.md`: the body of the script in each workspace, the reason that the frontend needs a build of Angular and not `tsc` alone, the reason for `dependsOn: ["^build"]`, and the step of the job `verify` before the lint. The same edit corrected two stale statements of the table of the integration.
+- [x] 9.3 Recorded in `docs/frontend-architecture/structure.md`. **The claim of this task was wrong in one point.** Three files of `apps/frontend/src/app/pages/source-control/` do import `@features/source-control/`. But no route of `app.routes.ts` reaches that folder of the pages either, so the dead code is a chain of two folders, and not a folder with no importer. The record states the corrected fact. A separate change deletes both folders.
