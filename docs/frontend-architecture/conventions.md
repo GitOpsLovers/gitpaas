@@ -18,6 +18,12 @@ A feature repository is **not** `providedIn: 'root'`. The smart container gives 
 
 Reference: [`projects-api.repository.ts`](../../apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.ts).
 
+### The shape of the wire
+
+A repository types its `httpResource` and its `HttpClient` calls with the shapes that `@gitpaas/contracts` exports. A feature declares no copy of a shape the wire already gives; a shape that lives on the client alone, and never crosses the wire, stays in `domain/models/`.
+
+`httpResource` and `HttpClient` trust the declared generic and run no check of their own. A read that a wrong answer could silently corrupt must check the answer itself, and it uses the schema of the package to do it, never a cast.
+
 ## Containers
 
 Each screen has one container. A list container reads a resource and controls the states in its own template (`@if (x.isLoading())` / `@else if (x.error())` / `@else if (x.hasValue())`, plus a branch for the empty condition). A command container owns a `submitting` signal, which it changes around the awaited call. It contains a presentational form, and it awaits the mutation in a `try/catch` block. If the mutation is successful, the container shows a toast and goes to a different route. A container that stays on the screen sets the flag again in `finally`. A container that goes to a different route can keep the flag set. A container can write to the `value` signal of a resource, to put a saved record into a detail view (`this.service.value.set(updated)`).

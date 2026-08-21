@@ -5,10 +5,10 @@
 All the requests move through the layers in the same sequence, from the HTTP edge to the persistence and back:
 
 ```text
-HTTP → Controller (ZodValidationPipe on the parameter, or the global ValidationPipe) → Service → Use Case → Repository port ◄ adapter → PostgreSQL
+HTTP → Controller (ZodValidationPipe on the body, from a schema of @gitpaas/contracts) → Service → Use Case → Repository port ◄ adapter → PostgreSQL
 ```
 
-The migration runs feature by feature: a migrated feature such as `projects` binds `ZodValidationPipe` on the body parameter, inside the controller, and a feature that is not migrated yet still meets the global `ValidationPipe` before the controller.
+Every controller binds `ZodValidationPipe` on its body parameter, with a schema of `@gitpaas/contracts`.
 
 ## Durable queue (background work)
 

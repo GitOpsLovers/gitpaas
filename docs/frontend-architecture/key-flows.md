@@ -44,6 +44,10 @@ sequenceDiagram
     Note over I,T: refresh fails → clear() + redirect /signin
 ```
 
+## Error handling
+
+The backend answers every failed request with one JSON envelope, and its `code` field, not its HTTP status, tells the client what went wrong. `readErrorPayloadUseCase` reads an `HttpErrorResponse` and gives back its status, its parsed `code` and its raw body; it checks the body against `errorEnvelopeSchema.pick({ code: true })` of `@gitpaas/contracts` before it trusts the field, so a body that carries no envelope gives a `null` code instead of a wrong read.
+
 ## Providers
 
 The `providers` feature manages the accounts a service reaches its source code through (today, one GitHub App

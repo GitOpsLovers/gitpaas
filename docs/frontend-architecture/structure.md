@@ -22,7 +22,6 @@ The three layers are always there in some form. A sub-folder is there only if th
 features/<feature>/
   domain/
     models/         — domain model interfaces, <entity>.model.ts
-    dtos/           — create/update/request payload interfaces
   infrastructure/
     api/            — API data access, <feature>-api.repository.ts
     storage/        — browser persistence (e.g. token storage)
