@@ -105,10 +105,10 @@ comes out by an edit.
 
 ## 7. The removal of the old machinery
 
-- [ ] 7.1 Verify that no parameter of a body in `apps/backend/src` is a class. There are 14 bindings of a body today, over 13 classes.
-- [ ] 7.2 Remove the call of the global pipe of validation from `apps/backend/src/bootstrap.ts`, near line 37.
-- [ ] 7.3 Keep `class-validator` as a dependency, for the validation of the environment.
-- [ ] 7.4 Verify that a failure of the validation still gives an array of messages in the envelope of the error.
+- [x] 7.1 Verify that no parameter of a body in `apps/backend/src` is a class. There are 14 bindings of a body today, over 13 classes.
+- [x] 7.2 Remove the call of the global pipe of validation from `apps/backend/src/bootstrap.ts`, near line 37.
+- [x] 7.3 Keep `class-validator` as a dependency, for the validation of the environment.
+- [x] 7.4 Verify that a failure of the validation still gives an array of messages in the envelope of the error.
 
 ## 8. The decisions that the user must make
 

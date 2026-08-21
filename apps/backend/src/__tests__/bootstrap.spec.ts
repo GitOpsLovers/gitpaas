@@ -1,4 +1,3 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 
@@ -140,17 +139,13 @@ describe('bootstrap (bootstrap.ts)', () => {
             expect(app.use.mock.calls.flat()).toEqual([HELMET_MIDDLEWARE]);
         });
 
-        it('registers a global ValidationPipe', async () => {
+        it('registers no global pipe, since each body binds its schema with ZodValidationPipe', async () => {
             const { app } = buildApp(env);
             mockNestFactoryCreate.mockResolvedValue(app);
 
             await bootstrap();
 
-            expect(app.useGlobalPipes).toHaveBeenCalledTimes(1);
-
-            const pipe = app.useGlobalPipes.mock.calls[0][0];
-
-            expect(pipe).toBeInstanceOf(ValidationPipe);
+            expect(app.useGlobalPipes).not.toHaveBeenCalled();
         });
 
         it('enables the shutdown hooks before listening', async () => {
