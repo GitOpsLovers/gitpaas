@@ -3,13 +3,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
 import { getLogsByDeploymentUseCase } from '../../application/get-logs-by-deployment.use-case';
-import { LogEntry } from '../../domain/models/log-entry.models';
+import { LogArchive } from '../../domain/models/log-entry.models';
 import type { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { DatabaseLogsRepository } from '../../infrastructure/database/db-logs.repository';
 import { RedisLogStoreAdapter } from '../../infrastructure/redis/redis-log-store.adapter';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
+import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 
 /**
  * Logs service
@@ -21,21 +23,23 @@ export class LogsService {
         private readonly repository: LogsRepository,
         @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
+        @Inject(DatabaseDeploymentsRepository)
+        private readonly deploymentsRepository: DeploymentsRepository,
     ) {}
 
     /**
-     * Get every log entry of a deployment, oldest first
+     * Get the archived output of a deployment, oldest first, with the reason an empty list is empty
      *
      * @param deploymentId Deployment identifier
      *
-     * @returns Ordered log entries of the deployment
+     * @returns Ordered log entries of the deployment, and the state of its archive
      */
-    public async getAllByDeployment(deploymentId: string): Promise<LogEntry[]> {
-        const entries = await getLogsByDeploymentUseCase(this.repository, deploymentId);
+    public async getAllByDeployment(deploymentId: string): Promise<LogArchive> {
+        const archive = await getLogsByDeploymentUseCase(this.repository, this.deploymentsRepository, deploymentId);
 
-        enrichTelemetry({ 'deployment.log_lines': entries.length });
+        enrichTelemetry({ 'deployment.log_lines': archive.entries.length });
 
-        return entries;
+        return archive;
     }
 
     /**

@@ -90,6 +90,12 @@ export { networkSchema } from './networks/network.contract';
 export type { Network } from './networks/network.contract';
 
 export {
+    archivedLogEntrySchema,
+    deploymentLogArchiveSchema,
+    logArchiveStateSchema,
+} from './logs/log-archive.contract';
+export type { ArchivedLogEntry, DeploymentLogArchive, LogArchiveState } from './logs/log-archive.contract';
+export {
     logEndEventSchema,
     logErrorEventSchema,
     logEventSchema,
