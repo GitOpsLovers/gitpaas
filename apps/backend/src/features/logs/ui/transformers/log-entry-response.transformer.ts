@@ -1,5 +1,6 @@
+import type { StoredLogEvent } from '@gitpaas/contracts';
+
 import { LogEntry } from '../../domain/models/log-entry.models';
-import { StoredLogEvent } from '../../domain/models/log-event.models';
 
 /**
  * A log entry as an answer of the API carries it: every timestamp is a text of the ISO form.

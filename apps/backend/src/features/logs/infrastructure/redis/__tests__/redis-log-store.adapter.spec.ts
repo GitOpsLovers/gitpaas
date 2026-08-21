@@ -1,8 +1,8 @@
+import type { LogEvent } from '@gitpaas/contracts';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, toArray } from 'rxjs';
 
 import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
-import { LogEvent } from '../../../domain/models/log-event.models';
 import type { LogsRepository } from '../../../domain/repositories/logs.repository';
 import { RedisLogStoreAdapter } from '../redis-log-store.adapter';
 

@@ -1,8 +1,8 @@
+import type { LogEvent, LogStatus, StoredLogEvent } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 
-import { LogEvent, LogStatus, StoredLogEvent } from '../../domain/models/log-event.models';
 import { LogStore } from '../../domain/ports/log-store.port';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { DatabaseLogsRepository } from '../database/db-logs.repository';

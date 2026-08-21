@@ -1,11 +1,15 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { Deployment, TriggerDeploymentDto } from '@gitpaas/contracts';
+import { type Deployment, type LogEvent, type TriggerDeploymentDto, logEventSchema } from '@gitpaas/contracts';
 import { Observable, Subscriber } from 'rxjs';
 
 import { environment } from '@environments/environment';
 import { TokenStorageService } from '@features/authentication/infrastructure/storage/token-storage.service';
-import { LogEvent } from '@features/logs/domain/models/log-event.model';
+
+/**
+ * Message of the failure the subscriber receives when a message of the stream agrees with no kind of the union.
+ */
+const SCHEMA_FAILURE_MESSAGE = 'Log stream message did not match the log event schema';
 
 @Injectable()
 
@@ -61,12 +65,6 @@ export class DeploymentsApiRepository {
     /**
      * Streams a deployment's real-time log over Server-Sent Events.
      *
-     * Buffered output is replayed first, then live lines; the stream completes
-     * when the run ends. Uses `fetch` with a `ReadableStream` reader (rather than
-     * the native `EventSource`, which cannot set headers) so the current access
-     * token can be attached as `Authorization: Bearer <token>` to satisfy the
-     * auth-by-default guard. The connection is aborted on unsubscribe.
-     *
      * @param deploymentId Identifier of the deployment to stream
      *
      * @returns Log events for the deployment
@@ -82,8 +80,7 @@ export class DeploymentsApiRepository {
     }
 
     /**
-     * Opens the SSE stream over `fetch`, parses `data:` frames and forwards the
-     * decoded log events to the subscriber.
+     * Opens the SSE stream over `fetch`, parses `data:` frames and forwards the decoded log events to the subscriber.
      *
      * @param deploymentId Identifier of the deployment to stream
      * @param signal Abort signal wired to the subscription teardown
@@ -161,13 +158,11 @@ export class DeploymentsApiRepository {
     /**
      * Parses one raw SSE event block into a `LogEvent`.
      *
-     * Collects the `data:` field lines (stripping the optional single leading
-     * space per the SSE spec), joins multi-line payloads with a newline and
-     * decodes the JSON. Non-data blocks (comments, heartbeats) yield null.
-     *
      * @param rawEvent Raw text of a single SSE event, without the trailing blank line
      *
-     * @returns The decoded log event, or null when the block carries no data
+     * @throws Error When the payload is no JSON, or when it agrees with no kind of the union
+     *
+     * @returns The parsed log event, or null when the block carries no data
      */
     private parseSseEvent(rawEvent: string): LogEvent | null {
         const dataLines = rawEvent
@@ -179,6 +174,29 @@ export class DeploymentsApiRepository {
             return null;
         }
 
-        return JSON.parse(dataLines.join('\n')) as LogEvent;
+        const parsed = logEventSchema.safeParse(this.decodeJson(dataLines.join('\n')));
+
+        if (!parsed.success) {
+            throw new Error(SCHEMA_FAILURE_MESSAGE);
+        }
+
+        return parsed.data;
+    }
+
+    /**
+     * Decodes the JSON payload of one SSE event.
+     *
+     * @param payload Raw JSON text of the `data:` field lines
+     *
+     * @throws Error When the payload is no JSON
+     *
+     * @returns The decoded value, which still has to agree with the schema
+     */
+    private decodeJson(payload: string): unknown {
+        try {
+            return JSON.parse(payload);
+        } catch {
+            throw new Error(SCHEMA_FAILURE_MESSAGE);
+        }
     }
 }

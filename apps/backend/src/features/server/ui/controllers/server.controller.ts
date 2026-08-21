@@ -1,6 +1,7 @@
 import type { OrphanRemovalResult, PruneResult, ReadinessResult, ServerStatus } from '@gitpaas/contracts';
 import { Controller, Get, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
+import { DaemonUnreachableError } from '../../domain/errors/server.errors';
 import { ServerService } from '../services/server.service';
 
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -43,7 +44,7 @@ export class ServerController {
         } catch (error) {
             throw translateError(error, () => new ServiceUnavailableException(
                 'Could not reach the server Docker daemon. Verify the server is running and reachable.',
-                { cause: error },
+                { cause: new DaemonUnreachableError({ cause: error }) },
             ));
         }
     }
@@ -107,7 +108,7 @@ export class ServerController {
         } catch (error) {
             throw translateError(error, () => new ServiceUnavailableException(
                 `Could not prune ${resource}. Verify the server is running and reachable.`,
-                { cause: error },
+                { cause: new DaemonUnreachableError({ cause: error }) },
             ));
         }
     }

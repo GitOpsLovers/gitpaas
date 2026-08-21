@@ -19,6 +19,23 @@ const EXTERNAL_URL = 'https://example.com/data';
 
 const freshTokens: AuthTokens = { accessToken: 'new-access', refreshToken: 'new-refresh' };
 
+/**
+ * Body of a failed request as the API sends it: the envelope of the error, whose `code` names the cause.
+ */
+const envelope = (code: string): Record<string, unknown> => ({
+    statusCode: 401,
+    code,
+    message: 'Unauthorized',
+    error: 'Unauthorized',
+    timestamp: '2026-01-01T00:00:00.000Z',
+    path: '/deployments',
+    requestId: 'req-1',
+});
+
+const unauthenticated = (): Record<string, unknown> => envelope('UNAUTHENTICATED');
+
+const UNAUTHORIZED = { status: 401, statusText: 'Unauthorized' };
+
 describe('authInterceptor', () => {
     let http: HttpClient;
     let httpMock: HttpTestingController;
@@ -99,7 +116,7 @@ describe('authInterceptor', () => {
         });
     });
 
-    describe('401 handling', () => {
+    describe('UNAUTHENTICATED handling', () => {
         test('refreshes once and retries the original request with the new access token', () => {
             tokenStorage.accessToken.set('old-access');
             tokenStorage.refreshToken.set('old-refresh');
@@ -110,7 +127,7 @@ describe('authInterceptor', () => {
 
             const first = httpMock.expectOne(API_URL);
             expect(first.request.headers.get('Authorization')).toBe('Bearer old-access');
-            first.flush(null, { status: 401, statusText: 'Unauthorized' });
+            first.flush(unauthenticated(), UNAUTHORIZED);
 
             expect(authRepository.refresh).toHaveBeenCalledTimes(1);
             expect(authRepository.refresh).toHaveBeenCalledWith('old-refresh');
@@ -134,7 +151,7 @@ describe('authInterceptor', () => {
             let errored = false;
             http.get(API_URL).subscribe({ error: () => { errored = true; } });
 
-            httpMock.expectOne(API_URL).flush(null, { status: 401, statusText: 'Unauthorized' });
+            httpMock.expectOne(API_URL).flush(unauthenticated(), UNAUTHORIZED);
 
             expect(authRepository.refresh).toHaveBeenCalledTimes(1);
             expect(tokenStorage.update).not.toHaveBeenCalled();
@@ -150,7 +167,7 @@ describe('authInterceptor', () => {
             let errored = false;
             http.get(API_URL).subscribe({ error: () => { errored = true; } });
 
-            httpMock.expectOne(API_URL).flush(null, { status: 401, statusText: 'Unauthorized' });
+            httpMock.expectOne(API_URL).flush(unauthenticated(), UNAUTHORIZED);
 
             expect(authRepository.refresh).not.toHaveBeenCalled();
             expect(tokenStorage.clear).toHaveBeenCalledTimes(1);
@@ -166,13 +183,44 @@ describe('authInterceptor', () => {
             let errored = false;
             http.get(API_URL).subscribe({ error: () => { errored = true; } });
 
-            httpMock.expectOne(API_URL).flush(null, { status: 401, statusText: 'Unauthorized' });
+            httpMock.expectOne(API_URL).flush(unauthenticated(), UNAUTHORIZED);
 
             const retry = httpMock.expectOne(API_URL);
-            retry.flush(null, { status: 401, statusText: 'Unauthorized' });
+            retry.flush(unauthenticated(), UNAUTHORIZED);
 
             expect(authRepository.refresh).toHaveBeenCalledTimes(1);
             expect(errored).toBe(true);
+        });
+
+        test('does not refresh when a 401 carries another code', () => {
+            tokenStorage.accessToken.set('access-1');
+            tokenStorage.refreshToken.set('old-refresh');
+
+            let code: string | undefined;
+            http.get(API_URL).subscribe({
+                error: (error: { error: { code: string } }) => { code = error.error.code; },
+            });
+
+            httpMock.expectOne(API_URL).flush(envelope('INVALID_REFRESH_TOKEN'), UNAUTHORIZED);
+
+            expect(authRepository.refresh).not.toHaveBeenCalled();
+            expect(tokenStorage.clear).not.toHaveBeenCalled();
+            expect(code).toBe('INVALID_REFRESH_TOKEN');
+        });
+
+        test('does not refresh for the 401 of a failed login', () => {
+            tokenStorage.refreshToken.set('old-refresh');
+
+            let code: string | undefined;
+            http.post(LOGIN_URL, {}).subscribe({
+                error: (error: { error: { code: string } }) => { code = error.error.code; },
+            });
+
+            httpMock.expectOne(LOGIN_URL).flush(envelope('INVALID_CREDENTIALS'), UNAUTHORIZED);
+
+            expect(authRepository.refresh).not.toHaveBeenCalled();
+            expect(tokenStorage.clear).not.toHaveBeenCalled();
+            expect(code).toBe('INVALID_CREDENTIALS');
         });
 
         test('propagates non-401 errors without attempting a refresh', () => {

@@ -1,6 +1,5 @@
+import type { LogStatus, StoredLogEvent } from '@gitpaas/contracts';
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-
-import type { LogStatus, StoredLogEvent } from '../../domain/models/log-event.models';
 
 import { DbDeploymentEntity } from '@features/deployments/infrastructure/database/db-deployment.entity';
 

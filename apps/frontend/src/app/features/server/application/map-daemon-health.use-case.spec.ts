@@ -16,6 +16,12 @@ const status: ServerStatus = {
 
 const httpError = (statusCode: number, body: unknown): unknown => ({ status: statusCode, error: body });
 
+const envelope = (code: string, message?: string): Record<string, unknown> => ({
+    statusCode: 503,
+    code,
+    message: message ?? 'The Docker daemon did not answer.',
+});
+
 describe('mapDaemonHealthUseCase', () => {
     test('The daemon answers', () => {
         expect(mapDaemonHealthUseCase(status, undefined)).toEqual({
@@ -26,20 +32,32 @@ describe('mapDaemonHealthUseCase', () => {
     });
 
     test('The daemon does not answer', () => {
-        expect(mapDaemonHealthUseCase(undefined, httpError(503, null))).toEqual({
+        const error = httpError(503, { statusCode: 503, code: 'DAEMON_UNREACHABLE' });
+
+        expect(mapDaemonHealthUseCase(undefined, error)).toEqual({
             state: 'unreachable',
             info: null,
             message: UNREACHABLE_MESSAGE,
         });
     });
 
-    test('shows the message the body of the 503 carries', () => {
-        const error = httpError(503, { statusCode: 503, message: 'The Docker daemon did not answer.' });
+    test('shows the message the envelope of DAEMON_UNREACHABLE carries', () => {
+        const error = httpError(503, envelope('DAEMON_UNREACHABLE'));
 
         expect(mapDaemonHealthUseCase(undefined, error)).toEqual({
             state: 'unreachable',
             info: null,
             message: 'The Docker daemon did not answer.',
+        });
+    });
+
+    test('reads the code of the envelope and not the number of the status', () => {
+        const error = httpError(500, envelope('DAEMON_UNREACHABLE', 'It went away.'));
+
+        expect(mapDaemonHealthUseCase(undefined, error)).toEqual({
+            state: 'unreachable',
+            info: null,
+            message: 'It went away.',
         });
     });
 
@@ -51,6 +69,16 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
+    test('does not read the information out of a body that carries only a part of the shape', () => {
+        const partial = { serverVersion: '25.0.3', operatingSystem: 'Debian GNU/Linux 12' };
+
+        expect(mapDaemonHealthUseCase(undefined, httpError(503, partial))).toEqual({
+            state: 'unreadable',
+            info: null,
+            message: UNREADABLE_MESSAGE,
+        });
+    });
+
     test('reports that the state could not be read when the call itself fails', () => {
         expect(mapDaemonHealthUseCase(undefined, httpError(0, null))).toEqual({
             state: 'unreadable',
@@ -59,8 +87,10 @@ describe('mapDaemonHealthUseCase', () => {
         });
     });
 
-    test('reports that the state could not be read when the answer is not a 503', () => {
-        expect(mapDaemonHealthUseCase(undefined, httpError(500, { message: 'Internal Server Error' }))).toEqual({
+    test('reports that the state could not be read when the code is another one', () => {
+        const error = httpError(503, { statusCode: 503, code: 'SERVER_ERROR', message: 'Internal Server Error' });
+
+        expect(mapDaemonHealthUseCase(undefined, error)).toEqual({
             state: 'unreadable',
             info: null,
             message: UNREADABLE_MESSAGE,

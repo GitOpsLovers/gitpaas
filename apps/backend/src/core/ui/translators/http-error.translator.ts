@@ -48,6 +48,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PROVIDER_RATE_LIMITED', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['PROVIDER_MANIFEST_CODE_REJECTED', (error) => new BadRequestException(error.message, { cause: error })],
     ['PROVIDER_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['DAEMON_UNREACHABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
 ]);
 
 /**

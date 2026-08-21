@@ -26,3 +26,12 @@ export class InvalidRefreshTokenError extends DomainError {
         super('INVALID_REFRESH_TOKEN', 'Invalid refresh token', options);
     }
 }
+
+/**
+ * Raised when a request carries no access token, or one that is expired, invalid or bound to a user the guard cannot accept.
+ */
+export class UnauthenticatedError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super('UNAUTHENTICATED', 'Authentication required', options);
+    }
+}

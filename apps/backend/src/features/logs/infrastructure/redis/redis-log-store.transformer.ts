@@ -1,5 +1,6 @@
+import type { LogStatus, StoredLogEvent } from '@gitpaas/contracts';
+
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
-import { LogStatus, StoredLogEvent } from '../../domain/models/log-event.models';
 import { toCreateLogDto } from '../database/db-log-store.transformer';
 
 import { LOG_STREAM_KEY_PREFIX, LOG_STREAM_PRODUCER_KEY_SUFFIX } from './redis-log-store.constants';

@@ -1,6 +1,7 @@
+import type { StoredLogEvent } from '@gitpaas/contracts';
+
 import { CreateLogDto } from '../../domain/dtos/create-log.dto';
 import { LogEntry } from '../../domain/models/log-entry.models';
-import { StoredLogEvent } from '../../domain/models/log-event.models';
 
 /**
  * A log event carrying the monotonic sequence it was assigned on the write path.

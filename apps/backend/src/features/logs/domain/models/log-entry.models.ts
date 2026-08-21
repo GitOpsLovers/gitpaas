@@ -1,4 +1,4 @@
-import { StoredLogEvent } from './log-event.models';
+import type { StoredLogEvent } from '@gitpaas/contracts';
 
 /**
  * A single persisted entry of a deployment's log stream.

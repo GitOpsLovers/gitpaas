@@ -1,3 +1,4 @@
+import type { ErrorEnvelope } from '@gitpaas/contracts';
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -18,20 +19,6 @@ const GENERIC_CLIENT_ERROR_CODE = 'CLIENT_ERROR';
  * Code published when a failure the server caused carries no domain code
  */
 const GENERIC_SERVER_ERROR_CODE = 'SERVER_ERROR';
-
-/**
- * Consistent JSON error envelope returned for every failed request.
- */
-interface ErrorEnvelope {
-    statusCode: number;
-    code: string;
-    message: string | string[];
-    error: string;
-    details?: object;
-    timestamp: string;
-    path: string;
-    requestId: string;
-}
 
 /**
  * Global exception filter that shapes every error into a consistent JSON.
@@ -125,7 +112,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
      *
      * @returns The structured payload, or `undefined` when there is none to keep
      */
-    private extractDetails(body: string | object): object | undefined {
+    private extractDetails(body: string | object): Record<string, unknown> | undefined {
         if (typeof body !== 'object' || Array.isArray(body)) {
             return undefined;
         }
@@ -136,7 +123,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
             return undefined;
         }
 
-        return body;
+        return body as Record<string, unknown>;
     }
 
     /**

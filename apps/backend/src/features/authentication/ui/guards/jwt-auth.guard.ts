@@ -1,7 +1,8 @@
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 
+import { UnauthenticatedError } from '../../domain/errors/authentication.errors';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -41,7 +42,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     /**
-     * Record the outcome of the strategy before the base guard turns a missing user into an `UnauthorizedException`.
+     * Record the outcome of the strategy, and reject a request that resolved no user with the `UNAUTHENTICATED` cause.
      *
      * @param error Error raised by the strategy, if any
      * @param user User resolved by the strategy, if any
@@ -60,16 +61,22 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     ): TUser {
         const authenticated = user as User | false | null | undefined;
 
-        if (error || !authenticated) {
-            enrichTelemetry({ 'auth.outcome': 'rejected' });
-        } else {
+        if (!error && authenticated) {
             enrichTelemetry({
                 'auth.outcome': 'authenticated',
                 'user.id': authenticated.id,
                 'user.role': authenticated.role,
             });
+
+            return super.handleRequest(error, user, info, context, status);
         }
 
-        return super.handleRequest(error, user, info, context, status);
+        enrichTelemetry({ 'auth.outcome': 'rejected' });
+
+        if (error) {
+            return super.handleRequest(error, user, info, context, status);
+        }
+
+        throw new UnauthorizedException(undefined, { cause: new UnauthenticatedError() });
     }
 }

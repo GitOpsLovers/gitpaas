@@ -76,15 +76,15 @@ a body, and it points every consumer at the package. A shape that only the backe
 
 ## 5. The shapes that only one side has
 
-- [ ] 5.1 Create `packages/contracts/src/shared/error-envelope.contract.ts` from the interface at `apps/backend/src/core/ui/filters/all-exceptions.filter.ts:25`, which the filter does not export.
-- [ ] 5.2 Import that contract in the filter, and remove the local interface.
-- [ ] 5.3 Create `packages/contracts/src/logs/log-event.contract.ts` with the **three** kinds of the union, which the section 0 already added to the frontend.
-- [ ] 5.4 Replace the cast `as LogEvent` of `parseSseEvent` with a parse against the schema, at `apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts:181`.
-- [ ] 5.5 Report the failure of a parse to the subscriber, in place of giving an event whose shape is wrong.
-- [ ] 5.6 Delete the model of the event of the log in the frontend, and point its consumers at the package.
-- [ ] 5.7 Read the `code` of the envelope, in place of the number of the status, in the interceptor and in the containers that show a failure.
-- [ ] 5.8 Add the option of the parse to the reads where a wrong shape gives a silent failure.
-- [ ] 5.9 Verify that the window of the output cannot compile if a kind of the union has no case.
+- [x] 5.1 Create `packages/contracts/src/shared/error-envelope.contract.ts` from the interface at `apps/backend/src/core/ui/filters/all-exceptions.filter.ts:25`, which the filter does not export.
+- [x] 5.2 Import that contract in the filter, and remove the local interface.
+- [x] 5.3 Create `packages/contracts/src/logs/log-event.contract.ts` with the **three** kinds of the union, which the section 0 already added to the frontend.
+- [x] 5.4 Replace the cast `as LogEvent` of `parseSseEvent` with a parse against the schema, at `apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts:181`.
+- [x] 5.5 Report the failure of a parse to the subscriber, in place of giving an event whose shape is wrong.
+- [x] 5.6 Delete the model of the event of the log in the frontend, and point its consumers at the package.
+- [x] 5.7 Read the `code` of the envelope, in place of the number of the status, in the interceptor and in the containers that show a failure.
+- [x] 5.8 Add the option of the parse to the reads where a wrong shape gives a silent failure.
+- [x] 5.9 Verify that the window of the output cannot compile if a kind of the union has no case.
 
 ## 6. The generated artifacts
 
