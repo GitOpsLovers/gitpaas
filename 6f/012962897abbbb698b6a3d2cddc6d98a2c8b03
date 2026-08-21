@@ -1,0 +1,75 @@
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_05e6c2c580883e::t_edfed617999012 1
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.ts
+  s_05e6c2c580883e::t_872a217d197eb7 2
+packages/contracts/src/server/readiness.contract.ts
+  s_05e6c2c580883e::t_8b92d47fc8eda4 1-47
+packages/contracts/src/server/maintenance.contract.ts
+  s_05e6c2c580883e::t_9077e63899cee0 1-2,4,6-9,12,14-17,20,22,25,27
+apps/backend/src/features/server/application/prune-containers.use-case.ts
+  s_05e6c2c580883e::t_a9632ed014945a 1-2
+apps/backend/src/features/server/infrastructure/docker/__tests__/docker-server-pruner.adapter.spec.ts
+  s_05e6c2c580883e::t_a50a118f4e56e2 1-2
+apps/backend/src/features/server/application/prune-images.use-case.ts
+  s_05e6c2c580883e::t_4bc0486d4cfc80 1-2
+apps/backend/src/features/server/domain/ports/server-pruner.port.ts
+  s_05e6c2c580883e::t_2a556bbe05d3ef 1
+apps/backend/src/features/server/application/prune-volumes.use-case.ts
+  s_05e6c2c580883e::t_553e3a795bb80f 1-2
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.ts
+  s_05e6c2c580883e::t_4b90f535b5611b 3
+apps/backend/src/features/server/application/check-readiness.use-case.ts
+  s_05e6c2c580883e::t_8045cd2aaffa95 1-2
+apps/frontend/src/app/features/server/application/map-daemon-health.use-case.spec.ts
+  s_05e6c2c580883e::t_2c3d95a18412cb 1
+apps/backend/src/features/server/application/remove-orphaned-containers.use-case.ts
+  s_05e6c2c580883e::t_0d96cbfe5e514f 1-2
+openspec/changes/request-model/tasks.md
+  s_05e6c2c580883e::t_e3d6e4f8f2fae1 71
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.ts
+  s_05e6c2c580883e::t_d39df7f9f7cdb8 1-2
+packages/contracts/src/server/server-status.contract.ts
+  s_05e6c2c580883e::t_d35602141eb20b 1,4,6-12,15,17
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_05e6c2c580883e::t_7d01c9a6483659 1
+packages/contracts/src/server/server.endpoints.ts
+  s_05e6c2c580883e::t_f6ff90ea8d72c0 1-41
+apps/backend/src/features/server/infrastructure/docker/docker-orphan-containers.adapter.ts
+  s_05e6c2c580883e::t_3543ab69da8b34 1
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.spec.ts
+  s_05e6c2c580883e::t_f6583fac899b18 1
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_05e6c2c580883e::t_51f85f56acb488 1
+apps/backend/src/features/server/infrastructure/docker/docker-server-pruner.transformer.ts
+  s_05e6c2c580883e::t_11dce9b4bf5db6 1
+apps/frontend/src/app/features/server/domain/models/server-health.model.ts
+  s_05e6c2c580883e::t_43049068978be0 1
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_05e6c2c580883e::t_8394c0e2238ab9 1,35
+apps/backend/src/features/server/infrastructure/docker/docker-server-pruner.adapter.ts
+  s_05e6c2c580883e::t_35e4f8d99c1cb0 1
+apps/frontend/src/app/features/server/application/map-daemon-health.use-case.ts
+  s_05e6c2c580883e::t_70fb68d44a2754 1-2
+apps/backend/src/features/server/domain/ports/orphan-containers.port.ts
+  s_05e6c2c580883e::t_82c0104cd4b9e5 1
+packages/contracts/src/index.ts
+  s_05e6c2c580883e::t_fece45d5936c4b 67-84
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_05e6c2c580883e::t_b14d569427f99a 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6f012962897abbbb698b6a3d2cddc6d98a2c8b03",
+  "prompts": {},
+  "sessions": {
+    "s_05e6c2c580883e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "965ae461-2cfc-45db-b861-9086947a9868",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
