@@ -2,8 +2,7 @@
 
 GitPaaS has one producer of the HTTP contract (the NestJS API) and one consumer (the Angular application),
 in the same repository. The two applications describe the same shapes of the wire **two times**, in two sets
-of hand-written files that no tool compares. There is no OpenAPI specification, because `@nestjs/swagger` is
-no dependency of the backend.
+of hand-written files that no tool compares.
 
 Today a human keeps the two sides equal, in one pull request. That method has already failed. Five
 disagreements sit in `main` at this moment:
@@ -54,11 +53,10 @@ a value that is not defined, and the user reads no cause.
 - **New:** a small pipe of validation in the backend, which binds a schema to a parameter of the body.
 - **New:** a step of the check of the types in the workflow of the pull request. That workflow runs the
   lint, the tests and the build today, and none of the three finds a disagreement of the two applications.
-- **New:** a generated OpenAPI specification, which lives in Git, and an HTML reference that a reader opens.
 - **Changed:** the thirteen data transfer objects that a body binds go away. A consumer of any layer
   imports the type of the package directly, because an alias in the domain decouples nothing.
-- **Changed:** `turbo.json`, which exists, receives the tasks `check-types`, `generate:openapi` and
-  `generate:docs`, and the order that builds the package before the two applications.
+- **Changed:** `turbo.json`, which exists, receives the task `check-types`, and the order that builds the
+  package before the two applications.
 - **Changed:** each shape of the wire that the frontend declares goes away, and its consumers point at the
   package.
 - **Changed:** a timestamp becomes a text of the ISO form in the contract. The domain of the backend keeps
@@ -95,13 +93,12 @@ validation of the environment uses it.
 that describes the wire goes away. The folder `domain/` stays, for a shape that only the client has. The
 parse of the stream replaces a cast, and the window of the output handles the third kind of event.
 
-**The build.** `turbo.json` receives three tasks and the order that they need. A script `check-types` in the
-two applications. Three new gates in `.github/workflows/pr-verify.yml`: the check of the types, the proof
-that the specification is current, and a report of the changes that break a consumer.
+**The build.** `turbo.json` receives the task `check-types` and the order that it needs. A script
+`check-types` in the two applications. One new gate in `.github/workflows/pr-verify.yml`: the check of the
+types.
 
-**The dependencies.** `zod` (version 4) in the package. A generator of OpenAPI and a builder of the HTML
-reference, at the time of the phase that needs them. Nothing is installed yet. The rules of the project
-forbid an agent to install a dependency, so the user installs each one.
+**The dependencies.** `zod` (version 4) in the package, and nothing else. The rules of the project forbid
+an agent to install a dependency, so the user installs it.
 
 **No client is generated.** The consumer is Angular, and it must use `HttpClient` and `httpResource` to keep
 the interceptor, the rotation of the token and the signals of the resource. A generated client of `fetch`

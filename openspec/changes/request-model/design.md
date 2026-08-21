@@ -13,8 +13,7 @@ failure of the compilation and no failure at run time. It gives a value that is 
 `pnpm-workspace.yaml` already declares `packages/*`, so the directory only has to exist. `turbo.json`
 exists at the root, and it declares nine tasks: `build`, `test`, `lint`, `dev`, `watch`, `start`,
 `start:debug` and `start:prod`. The tasks `build` and `test` already carry `dependsOn: ["^build"]`, so a
-package of the workspace builds before the applications that read it. No task checks the types, and no task
-generates an artifact.
+package of the workspace builds before the applications that read it. No task checks the types.
 
 ## Goals / Non-Goals
 
@@ -22,11 +21,10 @@ generates an artifact.
 
 - One artifact describes each shape of the wire, and the compiler of the two applications reads it.
 - A change of the shape that breaks a consumer fails the pull request, and not the browser.
-- The specification of the API is a generated artifact of that one source, and never a document that a human
-  keeps equal.
 
 **Non-Goals:**
 
+- A specification of OpenAPI, and a reference that a reader opens. Decision 7 gives the reason.
 - A generated client of HTTP. The consumer must keep `HttpClient` and `httpResource`.
 - A step of RPC. GitPaaS has no traffic between services to convert.
 - The move of the validation of the environment to Zod. It is no contract of the wire, and it is a separate
@@ -56,7 +54,7 @@ generates an artifact.
 **Alternative that the change does not take:** `@nestjs/swagger` over the classes of today. It gives a
 specification, and the contract stays inside the backend. The frontend still copies the shapes by hand, or a
 second chain of tools makes a client from the specification. The source of the truth must be the schema, and
-the specification must be the generated artifact.
+not a decorator of the backend.
 
 **2. The package describes the wire, and not the database and not the domain.**
 A timestamp is a text of the ISO form. A domain model of the backend keeps its `Date`, and the layer of the
@@ -81,9 +79,23 @@ client reads does not change at all. No change of the frontend is necessary for 
 `ParseUUIDPipe` and `ParseIntPipe` are one line, and they do the work of a schema. Use the pipe of Zod for
 an object of the query with more than one field, and not for one identifier.
 
-**7. The specification lives in Git.**
-A reviewer sees the change of the wire in the difference of the pull request, and the workflow can prove
-that the file is current.
+**7. The change generates no specification of OpenAPI, and no reference.**
+The guarantee of this change is the compiler. One package holds the schema, the two applications import it,
+and the task `check-types` fails the pull request when a shape breaks a consumer. A generated specification
+adds nothing to that guarantee.
+
+It answers a different need: a consumer that lives outside this repository. GitPaaS has none. The one caller
+of the API is the Angular application of this monorepo, and the compiler already proves that the two sides
+agree. A report of the changes that break such a consumer therefore repeats what the difference of the
+schema already shows.
+
+The artifact also costs. It needs a generator that the repository writes and maintains, a file that changes
+with each change of the wire, and a gate that fails a pull request for a byte that no hand wrote.
+
+The decision is safe, because the source stays in Git. The schemas of Zod and the maps of the endpoints hold
+every shape and every route. On the day that a consumer outside the repository appears, a generator writes
+the specification again from that source, or the repository adopts a library such as `ts-rest`, which brings
+one. The change defers a small job, and it loses no information.
 
 **8. The scope of the workspace is `@gitpaas/`.**
 The names of the workspace were `@gitopslovers/gitpaas/<app>`, which hold **two** slashes and are no valid

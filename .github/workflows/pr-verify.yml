@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
@@ -39,13 +41,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check types
-        run: pnpm run check-types
+        run: pnpm exec turbo run check-types --affected
 
       - name: Lint
-        run: pnpm run lint
+        run: pnpm exec turbo run lint --affected
 
       - name: Test
-        run: pnpm run test
+        run: pnpm exec turbo run test --affected
 
       - name: Build
-        run: pnpm run build
+        run: pnpm exec turbo run build --affected
