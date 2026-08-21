@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { DbPlatformSettingsEntity } from './infrastructure/database/db-platform-settings.entity';
+import { DatabasePlatformSettingsRepository } from './infrastructure/database/db-platform-settings.repository';
 import { DockerOrphanContainersAdapter } from './infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from './infrastructure/docker/docker-server-pruner.adapter';
 import { DockerHealthProbeAdapter } from './infrastructure/health/docker-health-probe.adapter';
@@ -13,7 +16,7 @@ import { ServicesModule } from '@features/services/services.module';
  * Server module
  */
 @Module({
-    imports: [ServicesModule],
+    imports: [ServicesModule, TypeOrmModule.forFeature([DbPlatformSettingsEntity])],
     controllers: [ServerController],
     providers: [
         ServerService,
@@ -21,6 +24,7 @@ import { ServicesModule } from '@features/services/services.module';
         DockerOrphanContainersAdapter,
         PostgresHealthProbeAdapter,
         DockerHealthProbeAdapter,
+        DatabasePlatformSettingsRepository,
     ],
 })
 export class ServerModule {}

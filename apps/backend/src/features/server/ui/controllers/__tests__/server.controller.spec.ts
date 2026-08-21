@@ -1,14 +1,27 @@
-import type { ErrorEnvelope, OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
-import { ArgumentsHost, ForbiddenException, ServiceUnavailableException } from '@nestjs/common';
+import type {
+    ErrorEnvelope,
+    OrphanRemovalResult,
+    PlatformSettings,
+    PruneResult,
+    ReadinessResult,
+} from '@gitpaas/contracts';
+import { updatePlatformSettingsSchema } from '@gitpaas/contracts';
+import {
+    ArgumentsHost,
+    BadRequestException,
+    ForbiddenException,
+    ServiceUnavailableException,
+} from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 
-import { DaemonUnreachableError } from '../../../domain/errors/server.errors';
+import { DaemonUnreachableError, InvalidLogRetentionError } from '../../../domain/errors/server.errors';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -21,6 +34,7 @@ const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
+const platformSettings: PlatformSettings = { logRetentionDays: 45 };
 const readyResult: ReadinessResult = {
     status: 'ok',
     dependencies: [
@@ -68,6 +82,8 @@ describe('ServerController', () => {
             | 'removeOrphanedContainers'
             | 'checkReadiness'
             | 'getStatus'
+            | 'getSettings'
+            | 'updateSettings'
         >
     >;
     let sut: ServerController;
@@ -82,6 +98,8 @@ describe('ServerController', () => {
             removeOrphanedContainers: jest.fn(),
             checkReadiness: jest.fn(),
             getStatus: jest.fn(),
+            getSettings: jest.fn(),
+            updateSettings: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -512,6 +530,72 @@ describe('ServerController', () => {
             mockServerService.removeOrphanedContainers.mockRejectedValue('boom');
 
             await expect(sut.removeOrphanedContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+    });
+
+    describe('getSettings', () => {
+        it('delegates the read of the parameters to the service', async () => {
+            mockServerService.getSettings.mockResolvedValue(platformSettings);
+
+            const result = await sut.getSettings();
+
+            expect(mockServerService.getSettings).toHaveBeenCalledTimes(1);
+            expect(result).toBe(platformSettings);
+        });
+
+        it('propagates an unexpected failure of the read untranslated', async () => {
+            const original = new Error('connection terminated');
+            mockServerService.getSettings.mockRejectedValue(original);
+
+            await expect(sut.getSettings()).rejects.toBe(original);
+        });
+    });
+
+    describe('updateSettings', () => {
+        it('delegates the write of the parameters to the service with the body', async () => {
+            mockServerService.updateSettings.mockResolvedValue(platformSettings);
+
+            const result = await sut.updateSettings({ logRetentionDays: 45 });
+
+            expect(mockServerService.updateSettings).toHaveBeenCalledTimes(1);
+            expect(mockServerService.updateSettings).toHaveBeenCalledWith({ logRetentionDays: 45 });
+            expect(result).toBe(platformSettings);
+        });
+
+        it('translates an age outside the limits into a BadRequestException', async () => {
+            mockServerService.updateSettings.mockRejectedValue(new InvalidLogRetentionError());
+
+            await expect(sut.updateSettings({ logRetentionDays: 0 })).rejects.toBeInstanceOf(BadRequestException);
+        });
+
+        it('answers 400 in the envelope the client receives for an age outside the limits', async () => {
+            mockServerService.updateSettings.mockRejectedValue(new InvalidLogRetentionError());
+
+            const rejection = await sut.updateSettings({ logRetentionDays: 400 }).catch((error: unknown) => error);
+
+            expect(envelopeOf(rejection).statusCode).toBe(400);
+        });
+    });
+
+    describe('the validation of the body of the write', () => {
+        /** Runs the body of the write through the pipe the controller binds to it. */
+        const validate = (body: unknown): unknown =>
+            new ZodValidationPipe(updatePlatformSettingsSchema).transform(body);
+
+        it('accepts an age inside the limits', () => {
+            expect(validate({ logRetentionDays: 30 })).toEqual({ logRetentionDays: 30 });
+        });
+
+        it('rejects an age below one day with a BadRequestException', () => {
+            expect(() => validate({ logRetentionDays: 0 })).toThrow(BadRequestException);
+        });
+
+        it('rejects an age above 365 days with a BadRequestException', () => {
+            expect(() => validate({ logRetentionDays: 366 })).toThrow(BadRequestException);
+        });
+
+        it('rejects an age that is no whole number with a BadRequestException', () => {
+            expect(() => validate({ logRetentionDays: 7.5 })).toThrow(BadRequestException);
         });
     });
 });

@@ -1,4 +1,4 @@
-import { DaemonUnreachableError } from '../server.errors';
+import { DaemonUnreachableError, InvalidLogRetentionError } from '../server.errors';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -23,5 +23,30 @@ describe('DaemonUnreachableError', () => {
         const original = new Error('ECONNREFUSED');
 
         expect(new DaemonUnreachableError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('InvalidLogRetentionError', () => {
+    it('is a DomainError', () => {
+        expect(new InvalidLogRetentionError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to InvalidLogRetentionError', () => {
+        expect(new InvalidLogRetentionError().name).toBe('InvalidLogRetentionError');
+    });
+
+    it('carries the INVALID_LOG_RETENTION code', () => {
+        expect(new InvalidLogRetentionError().code).toBe('INVALID_LOG_RETENTION');
+    });
+
+    it('states the limits of the age of a log in its message', () => {
+        expect(new InvalidLogRetentionError().message)
+            .toBe('The age of a log must be a whole number of days between 1 and 365');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('out of range');
+
+        expect(new InvalidLogRetentionError({ cause: original }).cause).toBe(original);
     });
 });

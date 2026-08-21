@@ -1,9 +1,27 @@
-import type { OrphanRemovalResult, PruneResult, ReadinessResult, ServerStatus } from '@gitpaas/contracts';
-import { Controller, Get, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
+import type {
+    OrphanRemovalResult,
+    PlatformSettings,
+    PruneResult,
+    ReadinessResult,
+    ServerStatus,
+    UpdatePlatformSettingsDto,
+} from '@gitpaas/contracts';
+import { updatePlatformSettingsSchema } from '@gitpaas/contracts';
+import {
+    // eslint-disable-next-line @typescript-eslint/no-redeclare
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    Post,
+    Put,
+    ServiceUnavailableException,
+} from '@nestjs/common';
 
 import { DaemonUnreachableError } from '../../domain/errors/server.errors';
 import { ServerService } from '../services/server.service';
 
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
 
@@ -94,8 +112,39 @@ export class ServerController {
     }
 
     /**
-     * Runs a prune action, translating daemon connectivity failures into a
-     * 503 that asks the operator to verify the server is running and reachable.
+     * Reads the parameters of the deployment system that the operator sets.
+     *
+     * @returns Parameters of the deployment system
+     */
+    @Get('settings')
+    public async getSettings(): Promise<PlatformSettings> {
+        try {
+            return await this.service.getSettings();
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Writes the parameters of the deployment system.
+     *
+     * @param updateDto Parameters to keep
+     *
+     * @returns Parameters the system keeps
+     */
+    @Put('settings')
+    public async updateSettings(
+        @Body(new ZodValidationPipe(updatePlatformSettingsSchema)) updateDto: UpdatePlatformSettingsDto,
+    ): Promise<PlatformSettings> {
+        try {
+            return await this.service.updateSettings(updateDto);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Runs a prune action.
      *
      * @param resource Human-readable resource name used in the error message
      * @param action Prune action to execute

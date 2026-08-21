@@ -1,12 +1,12 @@
 ## 1. The settings of the server
 
-- [ ] 1.1 **Decision needed.** Choose the value by default of the age, measured in days. `design.md` argues for weeks and not years, and the exact number is a product judgment.
-- [ ] 1.2 Create in the feature `server` the entity of the settings of the platform: one row, and one typed column for the age in days.
-- [ ] 1.3 Hold the value by default in the code, and give it for every read that finds no row.
-- [ ] 1.4 Create the use case that reads the settings, and the use case that writes them.
-- [ ] 1.5 Refuse in the write a value below 1 day and above 365 days, and answer `400`.
-- [ ] 1.6 Add the endpoint that reads the settings and the endpoint that writes them, both behind an access token.
-- [ ] 1.7 Create the specs of the two use cases: the read with no row, the read with a row, a value inside the bounds, and a value outside them.
+- [x] 1.1 **Decided: 30 days.** The value by default of the age is 30 days.
+- [x] 1.2 Create in the feature `server` the entity of the settings of the platform: one row, and one typed column for the age in days.
+- [x] 1.3 Hold the value by default in the code, and give it for every read that finds no row.
+- [x] 1.4 Create the use case that reads the settings, and the use case that writes them.
+- [x] 1.5 Refuse in the write a value below 1 day and above 365 days, and answer `400`.
+- [x] 1.6 Add the endpoint that reads the settings and the endpoint that writes them, both behind an access token.
+- [x] 1.7 Create the specs of the two use cases: the read with no row, the read with a row, a value inside the bounds, and a value outside them.
 
 ## 2. The removal
 

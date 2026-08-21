@@ -49,6 +49,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PROVIDER_MANIFEST_CODE_REJECTED', (error) => new BadRequestException(error.message, { cause: error })],
     ['PROVIDER_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['DAEMON_UNREACHABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['INVALID_LOG_RETENTION', (error) => new BadRequestException(error.message, { cause: error })],
 ]);
 
 /**
