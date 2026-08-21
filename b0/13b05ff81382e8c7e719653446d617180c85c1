@@ -1,0 +1,45 @@
+openspec/changes/log-retention/tasks.md
+  s_cd4c0011a77ddc::t_3a8fc056d2917c 13-18
+apps/backend/src/features/logs/application/__tests__/remove-expired-logs.use-case.spec.ts
+  s_e431f8c557a0fc::t_196f030892a8f5 1-172
+apps/backend/src/features/logs/logs.module.ts
+  s_cd4c0011a77ddc::t_d05467603e7cf6 8,11-13,18,23,25
+apps/backend/src/features/logs/ui/jobs/remove-expired-logs.job.ts
+  s_cd4c0011a77ddc::t_4c3f9ccba5ea37 1-47
+apps/backend/src/features/logs/domain/constants/log-retention.constants.ts
+  s_cd4c0011a77ddc::t_6e92718403d359 1-9
+apps/backend/src/features/logs/application/remove-expired-logs.use-case.ts
+  s_cd4c0011a77ddc::t_42b942296a6b16 1-35
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-logs.repository.spec.ts
+  s_cd4c0011a77ddc::t_c06f9f07116055 1,117-155
+apps/backend/src/features/logs/infrastructure/database/db-logs.repository.ts
+  s_cd4c0011a77ddc::t_c5a11736df6367 3,34-50
+apps/backend/src/features/logs/domain/repositories/logs.repository.ts
+  s_cd4c0011a77ddc::t_99e47dfc40eed6 30-39
+apps/backend/src/features/logs/ui/jobs/__tests__/remove-expired-logs.job.spec.ts
+  s_cd4c0011a77ddc::t_8c304426ed4dab 1-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b013b05ff81382e8c7e719653446d617180c85c1",
+  "prompts": {},
+  "sessions": {
+    "s_cd4c0011a77ddc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c81b557-566f-4665-a966-6352fd2bf61c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e431f8c557a0fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa76dd4589bce7e58",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
