@@ -16,7 +16,10 @@ describe('RedisLogStoreAdapter', () => {
     let client: FakeRedis;
     let connection: FakeRedisConnection;
     let mockRepository: jest.Mocked<
-        Pick<LogsRepository, 'createMany' | 'getAllByDeployment' | 'deleteByDeployment'>
+        Pick<
+            LogsRepository,
+            'createMany' | 'getAllByDeployment' | 'deleteByDeployment' | 'deleteCreatedBefore'
+        >
     >;
     let mockLogger: jest.Mocked<Pick<NestLoggerAdapter, 'error'>>;
     let sut: RedisLogStoreAdapter;
@@ -42,6 +45,7 @@ describe('RedisLogStoreAdapter', () => {
             createMany: jest.fn(),
             getAllByDeployment: jest.fn().mockResolvedValue([]),
             deleteByDeployment: jest.fn(),
+            deleteCreatedBefore: jest.fn(),
         };
         mockLogger = { error: jest.fn() };
         sut = createStore();

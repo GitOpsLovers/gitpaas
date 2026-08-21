@@ -27,4 +27,14 @@ export interface LogsRepository {
      * @param deploymentId Deployment identifier
      */
     deleteByDeployment: (deploymentId: string) => Promise<void>;
+
+    /**
+     * Delete the log entries created before a moment, up to a bounded count
+     *
+     * @param threshold Moment a log entry has to be older than to be removed
+     * @param limit Largest number of log entries the removal touches
+     *
+     * @returns Number of log entries that were removed
+     */
+    deleteCreatedBefore: (threshold: Date, limit: number) => Promise<number>;
 }

@@ -10,12 +10,12 @@
 
 ## 2. The removal
 
-- [ ] 2.1 Add to the repository of the logs the operation that removes the rows older than a date, with a bounded count.
-- [ ] 2.2 Add the index on the date of the creation of a log row, if none exists, so the read of each batch stays cheap.
-- [ ] 2.3 Create the use case that removes the rows that passed the age, and that runs again until it removes none. It reads the age from the settings on every run.
-- [ ] 2.4 Create the task that runs the use case on a schedule, with `@nestjs/schedule`, which `package.json` already holds.
-- [ ] 2.5 Catch every failure of the task, write it into the log of the application, and let the next run try again.
-- [ ] 2.6 Create the specs of the use case: many rows, no row, a changed age, and a removal that fails.
+- [x] 2.1 Add to the repository of the logs the operation that removes the rows older than a date, with a bounded count.
+- [x] 2.2 Add the index on the date of the creation of a log row, if none exists, so the read of each batch stays cheap.
+- [x] 2.3 Create the use case that removes the rows that passed the age, and that runs again until it removes none. It reads the age from the settings on every run.
+- [x] 2.4 Create the task that runs the use case on a schedule, with `@nestjs/schedule`, which `package.json` already holds.
+- [x] 2.5 Catch every failure of the task, write it into the log of the application, and let the next run try again.
+- [x] 2.6 Create the specs of the use case: many rows, no row, a changed age, and a removal that fails.
 
 ## 3. The three cases of the durable list
 

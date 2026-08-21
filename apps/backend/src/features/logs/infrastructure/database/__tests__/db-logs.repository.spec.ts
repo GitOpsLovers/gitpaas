@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 
 import { CreateLogDto } from '../../../domain/dtos/create-log.dto';
 import { DbLogEntity } from '../db-log.entity';
@@ -112,6 +112,45 @@ describe('DatabaseLogsRepository', () => {
             await sut.deleteByDeployment('deployment-1');
 
             expect(mockRepository.delete).toHaveBeenCalledWith({ deploymentId: 'deployment-1' });
+        });
+    });
+
+    describe('deleteCreatedBefore', () => {
+        const threshold = new Date('2026-08-21T12:00:00.000Z');
+
+        it('reads the oldest expired entries up to the bounded count, and deletes them by id', async () => {
+            const expired = [logEntity({ id: 'log-1' }), logEntity({ id: 'log-2' })];
+            mockRepository.find.mockResolvedValue(expired);
+            (mockRepository.delete as jest.Mock).mockResolvedValue({ affected: 2, raw: [] });
+
+            const result = await sut.deleteCreatedBefore(threshold, 500);
+
+            expect(mockRepository.find).toHaveBeenCalledWith({
+                select: { id: true },
+                where: { createdAt: LessThan(threshold) },
+                order: { createdAt: 'ASC' },
+                take: 500,
+            });
+            expect(mockRepository.delete).toHaveBeenCalledWith({ id: In(['log-1', 'log-2']) });
+            expect(result).toBe(2);
+        });
+
+        it('deletes nothing when no entry passed the moment', async () => {
+            mockRepository.find.mockResolvedValue([]);
+
+            const result = await sut.deleteCreatedBefore(threshold, 500);
+
+            expect(mockRepository.delete).not.toHaveBeenCalled();
+            expect(result).toBe(0);
+        });
+
+        it('counts the entries it read when the driver reports no affected row', async () => {
+            mockRepository.find.mockResolvedValue([logEntity({ id: 'log-1' })]);
+            (mockRepository.delete as jest.Mock).mockResolvedValue({ affected: null, raw: [] });
+
+            const result = await sut.deleteCreatedBefore(threshold, 500);
+
+            expect(result).toBe(1);
         });
     });
 });
