@@ -17,7 +17,7 @@ event of the error leaves the mark of the status without a value and hides the c
 - [x] 1.3 Create `packages/contracts/tsconfig.json`, which emits the declarations to `packages/contracts/dist/`.
 - [x] 1.4 Create `packages/contracts/src/index.ts` as the public barrel of the package.
 - [x] 1.5 Create `packages/contracts/src/shared/endpoint.contract.ts` with the types `EndpointDescriptor` and `EndpointMap`.
-- [x] 1.6 Add the tasks `check-types`, `generate:openapi` and `generate:docs` to the `turbo.json` of the root, beside the nine tasks that it declares today.
+- [x] 1.6 Add the task `check-types` to the `turbo.json` of the root, beside the nine tasks that it declares today.
 - [x] 1.7 Add the rule `dependsOn: ["^build"]` to the new task `check-types`. The tasks `build` and `test` already carry it, so leave them as they are.
 - [x] 1.8 Add a script `check-types` to `apps/backend/package.json`, with the body `tsc -p tsconfig.json --noEmit`.
 - [x] 1.9 Add a script `check-types` to `apps/frontend/package.json` with a build of Angular, because only the compiler of Angular checks a template.
@@ -86,17 +86,22 @@ a body, and it points every consumer at the package. A shape that only the backe
 - [x] 5.8 Add the option of the parse to the reads where a wrong shape gives a silent failure.
 - [x] 5.9 Verify that the window of the output cannot compile if a kind of the union has no case.
 
-## 6. The generated artifacts
+## 6. The removal of the layer of the generation
 
-- [ ] 6.1 Ask the user to install a generator of OpenAPI for Zod in the package, and a builder of the HTML reference at the root.
-- [ ] 6.2 Create `packages/contracts/src/scripts/generate-openapi.ts`, which walks the maps of the endpoints and converts each schema.
-- [ ] 6.3 Add the script `generate:openapi`, which runs the compiled output.
-- [ ] 6.4 Add the script `generate:docs`, which builds the HTML reference from the specification.
-- [ ] 6.5 Commit the generated `packages/contracts/openapi/openapi.json`.
-- [ ] 6.6 Add the generated `docs/api/`, and a link to it from `README.md`.
-- [ ] 6.7 Add the second gate to the workflow: run the generation, then prove that the difference is empty.
-- [ ] 6.8 Add the third gate: compare the specification of the branch with the one of `main`, and publish the report in the pull request.
-- [ ] 6.9 Run the tasks of the workflow with the filter of the changed packages.
+The change delivered this layer, and then it dropped it. Decision 7 of `design.md` gives the reason. The
+code sits on the branch `feat/request-model`, and the commit `9f2aec8` carries a part of it, so the layer
+comes out by an edit.
+
+- [x] 6.1 Delete `packages/contracts/src/scripts/`, which holds `generate-openapi.ts`, `generate-markdown.ts`, `endpoint-shapes.ts` and `node-builtins.d.ts`.
+- [x] 6.2 Delete `packages/contracts/openapi/` and `packages/contracts/redocly.yaml`.
+- [x] 6.3 Delete `docs/api/`, and the row of the table of `README.md` that links its index.
+- [x] 6.4 Delete the `.gitattributes` of the root, which marks the two generated artifacts alone.
+- [x] 6.5 Remove the scripts `generate:openapi`, `generate:docs` and `lint:openapi` from `packages/contracts/package.json`, and the two scripts that delegate from the manifest of the root.
+- [x] 6.6 Remove the tasks `generate:openapi`, `generate:docs` and `lint:openapi` from `turbo.json`. The task `check-types` stays.
+- [x] 6.7 Delete `.github/workflows/pr-api.yml`, and remove `.oasdiff` from `.gitignore`.
+- [ ] 6.8 Ask the user to remove `@redocly/cli` from the manifest of the root.
+- [x] 6.9 Verify that `rtk pnpm run build` and `rtk pnpm run check-types` pass, and that `pr-verify.yml` keeps the gate of the types.
+- [ ] 6.10 Close the pull request 123, which delivers the layer that this section removes.
 
 ## 7. The removal of the old machinery
 
@@ -114,12 +119,12 @@ them.
 - [ ] 8.2 Decide if the server checks its own answers at run time, and if the parse runs only outside the production.
 - [ ] 8.3 Decide if the validation of the environment moves to Zod, which removes the last consumer of `class-validator`.
 - [ ] 8.4 Decide how the paths of the endpoints are used, because the repositories of the frontend build their addresses from the environment with texts of the template.
-- [ ] 8.5 Decide which tool builds the HTML reference, and if `docs/api/` lives in Git (needed by 6.1).
+- [x] 8.5 The tools of the reference are **answered**, and the answer is that the change builds none. It generates no document of OpenAPI, and no reference for a reader. Decision 7 of `design.md` gives the three reasons: the compiler carries the guarantee, the only consumer of the API lives in this repository, and the schemas rebuild the artifact on the day that a consumer outside it appears. `@redocly/cli` leaves the manifest of the root, and the action `oasdiff` leaves the workflow. Section 6 removes the code.
 - [ ] 8.6 Decide if the shape of the archive of the logs belongs in the package, because it has no consumer in the frontend today.
 - [x] 8.7 The name of the package is **answered**: `@gitpaas/contracts`. The user chose the scope `@gitpaas/` for the whole workspace, so `apps/backend` is `@gitpaas/backend` and `apps/frontend` is `@gitpaas/frontend`. The root manifest keeps the name `@gitopslovers/gitpaas`.
 
 ## 9. The records that the change leaves behind
 
 - [x] 9.1 Record in `docs/monorepo-architecture/conventions.md` that the scope of the workspace is `@gitpaas/`, that each application and the package of the contracts carry it, and that the root manifest keeps `@gitopslovers/gitpaas`.
-- [ ] 9.2 Record in `docs/monorepo-architecture/` the three tasks that `turbo.json` receives, and the order that they need.
+- [ ] 9.2 Record in `docs/monorepo-architecture/` the task `check-types` that `turbo.json` receives, and the order that it needs.
 - [ ] 9.3 Record that `apps/frontend/src/app/features/source-control/` is dead code: it holds five shapes of the wire, no file outside it imports it, and the feature `providers` replaced it. A separate change deletes it.
