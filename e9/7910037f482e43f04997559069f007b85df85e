@@ -1,0 +1,27 @@
+openspec/changes/log-retention/design.md
+  s_552c44cebb1cac::t_f5b9ce530d11b3 7-8,14-15,23-24,38-42,46-60,66-68,72-74,78-81
+openspec/changes/log-retention/proposal.md
+  s_552c44cebb1cac::t_159620fc9a8392 7-8,11-12,14,22,26,28,30,32
+openspec/changes/log-retention/specs/logs/spec.md
+  s_552c44cebb1cac::t_34e1e1b7b8648f 7-9,24,26,29-33
+openspec/changes/log-retention/specs/server/spec.md
+  s_552c44cebb1cac::t_961bc8d697d015 1-174
+openspec/changes/log-retention/tasks.md
+  s_552c44cebb1cac::t_812352563eb801 1,4-9,15,18,26,28-33,35,37-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e97910037f482e43f04997559069f007b85df85e",
+  "prompts": {},
+  "sessions": {
+    "s_552c44cebb1cac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cae6ba2c-a545-4ab4-a1c7-9839a6c86674",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
