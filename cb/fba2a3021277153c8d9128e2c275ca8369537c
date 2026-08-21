@@ -1,0 +1,79 @@
+apps/backend/src/core/domain/dtos/remove-container.dto.ts
+  s_e8ccddcf6c8e00::t_d6cd4f0facf127 4-6
+apps/backend/src/features/projects/domain/dtos/create-project-in-namespace.dto.ts
+  s_e8ccddcf6c8e00::t_dfb234b3f8164f 4-6
+apps/backend/src/features/users/domain/dtos/seed-admin.dto.ts
+  s_e8ccddcf6c8e00::t_c687f5a9d764be 4-6
+apps/backend/src/features/deployments/domain/dtos/update-deployment.dto.ts
+  s_e8ccddcf6c8e00::t_25ac4fd4d97e0b 6-8
+apps/backend/src/core/domain/dtos/remove-image.dto.ts
+  s_e8ccddcf6c8e00::t_66ae0c74988d0b 4-5
+apps/backend/src/features/logs/domain/dtos/create-log.dto.ts
+  s_e8ccddcf6c8e00::t_ec290c9986551d 6-11
+pnpm-lock.yaml
+  s_4859e5abe4dec5::t_bf58c18ec5193c 55,58,61,64,67,70,73,76,79,140,281-283,8760,8799,9558,9570,9572,9578,9580,9589,9591,9593,9597,9599,9602,9604-9605,9614,9616-9617,9646,9648-9649,9652,9654,9656-9657,9660,9662-9663,9921,12058
+openspec/specs/logs/spec.md
+  s_e8ccddcf6c8e00::t_be074ab381dfea 155-177,184-194,205,208-212
+apps/backend/src/features/deployments/domain/dtos/create-deployment.dto.ts
+  s_e8ccddcf6c8e00::t_1071e4e4cdc7dc 4-10
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_e8ccddcf6c8e00::t_fed72b7708ec61 1,4,16,18,20-23,25-53,55-58,66-67,70,72-73,78
+openspec/specs/providers/spec.md
+  s_e8ccddcf6c8e00::t_1ebaa83d2b5b6f 17-20,24-50,83-86,92-96
+apps/backend/src/features/authentication/domain/dtos/create-refresh-token.dto.ts
+  s_e8ccddcf6c8e00::t_70ee760b45647f 4-8
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_4859e5abe4dec5::t_19959c85acae2d 75-109,263-272,302,311,313
+apps/backend/src/features/users/domain/dtos/create-user.dto.ts
+  s_e8ccddcf6c8e00::t_e5e4712bbd5023 1,6-10
+openspec/changes/request-model/tasks.md
+  s_e8ccddcf6c8e00::t_5dcce04216874c 39-42,49,53,102,104,119-121,123,129-130
+openspec/specs/services/spec.md
+  s_e8ccddcf6c8e00::t_ee6f06a7f70588 13-17,24-53
+openspec/specs/auth/spec.md
+  s_e8ccddcf6c8e00::t_39650ef5436224 156-159,163-168
+docs/frontend-architecture/structure.md
+  s_6f6792349c10f5::t_4b1667edbef1ce 39-40
+packages/contracts/package.json
+  s_6f6792349c10f5::t_1a8324e50b4f62 7-9,11,13-14,23-24
+packages/contracts/src/projects/__tests__/project.contract.spec.ts
+  s_6f6792349c10f5::t_212521636691da 1,3-7,9-11,13-14,18-20,23-28,30,33-40,42-44,48-49,51-54,57-64,66-68,71-72,74,77-78,80,83-84,86,89-90,92,95-105,107-108,111-112
+packages/contracts/tsconfig.build.json
+  s_6f6792349c10f5::t_171d11c9e0a997 1-7
+packages/contracts/tsconfig.json
+  s_6f6792349c10f5::t_2835585e130560 7
+packages/contracts/vitest.config.ts
+  s_6f6792349c10f5::t_64b1aaea3edc6f 1,3-7,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cbfba2a3021277153c8d9128e2c275ca8369537c",
+  "prompts": {},
+  "sessions": {
+    "s_4859e5abe4dec5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a72119fadb2d18b96",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_6f6792349c10f5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a406d885359ff048d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e8ccddcf6c8e00": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "56a747d4-fb84-40ee-96fb-7e6e37bb2dab",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
