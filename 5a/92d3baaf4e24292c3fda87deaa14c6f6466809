@@ -1,0 +1,119 @@
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_ea325301bea684::t_5b606254804c95 1-3,6,11,39-60,210-218,224-242,319-326
+apps/frontend/src/app/features/server/application/read-error-payload.use-case.ts
+  s_e1a1bcccd319e8::t_d6c0fa41c74c0b 1-7,9,14-15,21,25,29,34-35,38
+apps/frontend/src/app/features/authentication/ui/interceptors/auth.interceptor.spec.ts
+  s_ea325301bea684::t_9eb790550e749c 22-38,119,130,154,170,186,189,195-225
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_ea325301bea684::t_c061aa086fd366 142-146
+apps/backend/src/features/authentication/ui/guards/jwt-auth.guard.ts
+  s_ea325301bea684::t_2f7618b3884492 1,5,45,64,70-77,80
+apps/backend/src/features/logs/ui/transformers/__tests__/log-entry-response.transformer.spec.ts
+  s_ea325301bea684::t_953f7a2c59e9f4 86
+apps/frontend/src/app/features/server/application/map-daemon-health.use-case.spec.ts
+  s_ea325301bea684::t_19ab01b4135ceb 19-24,35-37,44-45,54-63,72-81,90-93
+apps/backend/src/features/authentication/infrastructure/passport/__tests__/jwt.strategy.spec.ts
+  s_ea325301bea684::t_e7641d409ad0ee 5-9,72-88
+apps/frontend/src/app/features/authentication/ui/interceptors/auth.interceptor.ts
+  s_ea325301bea684::t_5d93b0a6780e7b 12,20-25,44,108
+apps/backend/src/features/logs/infrastructure/database/db-log.entity.ts
+  s_ea325301bea684::t_ddd31220cda631 1
+packages/contracts/src/shared/error-envelope.contract.ts
+  s_ea325301bea684::t_d10b7271eb2ec3 1-20
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.ts
+  s_ea325301bea684::t_91554035ba8cfd 1,13,15,27-30,33,35,37
+  s_c7dde436e5025d::t_b82b5c438da909 36
+apps/backend/src/features/logs/domain/dtos/create-log.dto.ts
+  s_ea325301bea684::t_1f681d80ca7e64 1
+packages/contracts/src/logs/log-event.contract.ts
+  s_ea325301bea684::t_6845acf05e3977 1-75
+apps/backend/src/features/logs/ui/services/__tests__/logs.service.spec.ts
+  s_ea325301bea684::t_084f66666998da 1
+apps/backend/src/features/server/domain/errors/server.errors.ts
+  s_ea325301bea684::t_b1a2ab2276111c 1-2,4,6-14
+apps/backend/src/features/authentication/domain/errors/authentication.errors.ts
+  s_ea325301bea684::t_bc0fd8c29ddace 29-37
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_ea325301bea684::t_9d75e61c8e9b4a 4,47,111
+apps/backend/src/features/authentication/infrastructure/passport/jwt.strategy.ts
+  s_ea325301bea684::t_efd76e58bcaa16 7,45-47
+apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts
+  s_ea325301bea684::t_813d4ae36bbb51 3,8-12,83,163-165,177-200
+apps/backend/src/features/logs/ui/services/logs.service.ts
+  s_ea325301bea684::t_792b7e1466ff2b 1
+apps/backend/src/features/server/domain/errors/__tests__/server.errors.spec.ts
+  s_ea325301bea684::t_6aa5b4b164af67 1-27
+apps/frontend/src/app/features/server/application/map-daemon-health.use-case.ts
+  s_ea325301bea684::t_d3014ea60ee974 1,8,10,23,25,32,35-37,41,57-59,61-62,65
+apps/backend/src/features/logs/infrastructure/redis/redis-log-store.adapter.ts
+  s_ea325301bea684::t_c255c7ba36e6e6 1
+apps/backend/src/features/logs/infrastructure/redis/__tests__/redis-log-reader.spec.ts
+  s_ea325301bea684::t_b5535a45245cee 1,7
+apps/backend/src/features/logs/infrastructure/redis/redis-log-store.transformer.ts
+  s_ea325301bea684::t_3b75534a418df2 1-2
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts
+  s_ea325301bea684::t_9a7be25289f994 4,54,98-104
+openspec/changes/request-model/tasks.md
+  s_ea325301bea684::t_58a88a7e49ff41 79-87
+apps/backend/src/features/logs/domain/models/log-entry.models.ts
+  s_ea325301bea684::t_18056624af31d8 1
+apps/backend/src/features/logs/ui/transformers/log-entry-response.transformer.ts
+  s_ea325301bea684::t_c98b02dacad03b 1-2
+packages/contracts/src/index.ts
+  s_ea325301bea684::t_855277315e3e57 2-3,99-115
+apps/backend/src/features/logs/infrastructure/redis/__tests__/redis-log-store.adapter.spec.ts
+  s_ea325301bea684::t_df11569e151cdc 1
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.spec.ts
+  s_ea325301bea684::t_924df77eee3fb2 2
+apps/frontend/src/app/features/server/application/read-error-payload.use-case.spec.ts
+  s_e1a1bcccd319e8::t_d32598fbbe123f 14,19-31,33-37,41,45-47,53
+apps/backend/src/features/logs/ui/controllers/__tests__/logs.controller.spec.ts
+  s_ea325301bea684::t_5569355e63980d 1,7
+apps/backend/src/features/logs/infrastructure/redis/redis-log-reader.ts
+  s_ea325301bea684::t_cfe10490174551 1,4
+apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.spec.ts
+  s_ea325301bea684::t_4ed0cb7df28c47 5,13,189-224
+apps/backend/src/features/logs/domain/ports/log-store.port.ts
+  s_ea325301bea684::t_4818bbe8e3f50d 1
+apps/backend/src/core/ui/filters/all-exceptions.filter.ts
+  s_ea325301bea684::t_f61334cc124bb9 115,126
+  s_ea325301bea684::t_e9b01cd12c4b73 1
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_ea325301bea684::t_c036ed854cc687 51
+apps/backend/src/features/logs/infrastructure/database/db-log-store.transformer.ts
+  s_ea325301bea684::t_7133fe70fa7ee4 1-2
+apps/backend/src/features/authentication/ui/guards/__tests__/jwt-auth.guard.spec.ts
+  s_ea325301bea684::t_3c5cdbcdc13079 1,4,143-145,153-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5a92d3baaf4e24292c3fda87deaa14c6f6466809",
+  "prompts": {},
+  "sessions": {
+    "s_c7dde436e5025d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9d6f9878350fd4ce",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e1a1bcccd319e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4ae1b8120f6542f8",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ea325301bea684": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be6449f6-c2ed-4e7e-9deb-f939c8d8dd9d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
