@@ -1,7 +1,4 @@
 /* eslint-disable no-secrets/no-secrets */
-// eslint-disable-next-line import/no-unassigned-import
-import 'reflect-metadata';
-
 import { validate } from '../env-validation.config';
 
 /** A complete, valid environment covering every mandatory variable. */
@@ -73,6 +70,41 @@ describe('validate', () => {
 
     it('rejects an empty string for a required string variable', () => {
         expect(() => validate({ ...validEnv(), DB_HOST: '' })).toThrow(/DB_HOST/);
+    });
+
+    it('fails fast when the database name is missing', () => {
+        const env = validEnv();
+        delete env.DB_NAME;
+
+        expect(() => validate(env)).toThrow(/DB_NAME/);
+    });
+
+    it('fails fast when the access token secret is missing', () => {
+        const env = validEnv();
+        delete env.JWT_ACCESS_SECRET;
+
+        expect(() => validate(env)).toThrow(/JWT_ACCESS_SECRET/);
+    });
+
+    it('fails fast when the access token expiry is missing', () => {
+        const env = validEnv();
+        delete env.JWT_ACCESS_EXPIRES_IN;
+
+        expect(() => validate(env)).toThrow(/JWT_ACCESS_EXPIRES_IN/);
+    });
+
+    it('fails fast when the refresh token secret is missing', () => {
+        const env = validEnv();
+        delete env.JWT_REFRESH_SECRET;
+
+        expect(() => validate(env)).toThrow(/JWT_REFRESH_SECRET/);
+    });
+
+    it('fails fast when the refresh token expiry is missing', () => {
+        const env = validEnv();
+        delete env.JWT_REFRESH_EXPIRES_IN;
+
+        expect(() => validate(env)).toThrow(/JWT_REFRESH_EXPIRES_IN/);
     });
 
     it('coerces numeric ports to numbers', () => {
@@ -228,6 +260,16 @@ describe('validate', () => {
         expect(() => validate({ ...validEnv(), PATH: '/usr/bin', HOME: '/root' })).not.toThrow();
     });
 
+    it('names the offending variable in the aggregated error', () => {
+        expect(() => validate({ ...validEnv(), DB_PORT: 'not-a-number' }))
+            .toThrow(/Invalid environment configuration: DB_PORT/);
+    });
+
+    it('rejects a base address that carries no protocol of the web', () => {
+        expect(() => validate({ ...validEnv(), APP_BASE_URL: 'ftp://files.example.com' }))
+            .toThrow(/APP_BASE_URL/);
+    });
+
     describe('local Docker daemon', () => {
         it('validates with no Docker variables present at all', () => {
             const env = validEnv();
@@ -257,7 +299,7 @@ describe('validate', () => {
             expect(message).not.toContain('DOCKER');
         });
 
-        it('tolerates leftover remote-daemon variables as unvalidated extras', () => {
+        it('tolerates leftover remote-daemon variables as unknown keys', () => {
             const env = {
                 ...validEnv(),
                 SERVER_DOCKER_HOST: '10.0.0.7',
@@ -266,8 +308,9 @@ describe('validate', () => {
             };
 
             // They are no longer part of the schema, so even a nonsense value cannot
-            // break the boot; they are simply carried through like any unknown key.
+            // break the boot; the schema simply drops them.
             expect(() => validate(env)).not.toThrow();
+            expect(validate(env)).not.toHaveProperty('SERVER_DOCKER_HOST');
         });
     });
 });
