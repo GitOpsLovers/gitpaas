@@ -1,6 +1,6 @@
+import type { OrphanRemovalResult } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
 import { OrphanContainers } from '../../domain/ports/orphan-containers.port';
 
 import { GITPAAS_CONTROL_PLANE_PROJECTS } from '@core/domain/constants/gitpaas-labels.constants';

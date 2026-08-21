@@ -68,7 +68,7 @@ a body, and it points every consumer at the package. A shape that only the backe
 - [x] 4.6 Move the type `AuthenticatedUser` out of `apps/backend/src/features/authentication/ui/services/authentication.service.ts` into the package.
 - [x] 4.7 Create `packages/contracts/src/providers/` and migrate the feature. Declare `ProviderType` as one `z.enum`, add `createdAt` and `updatedAt` as texts of the ISO form, and keep `privateKey` out of every shape of an answer.
 - [x] 4.8 Point the nine shapes of the frontend of `features/providers/` at the package, and delete the ones that describe the wire.
-- [ ] 4.9 Create `packages/contracts/src/server/` with the shape of the readiness and the shape of the state of the daemon, and delete the copy of the frontend, which holds the same text as the file of the backend.
+- [x] 4.9 Create `packages/contracts/src/server/` with the shape of the readiness and the shape of the state of the daemon, and delete the copy of the frontend, which holds the same text as the file of the backend.
 - [ ] 4.10 Create `packages/contracts/src/namespaces/`, `packages/contracts/src/containers/` and `packages/contracts/src/networks/`, and migrate the three features.
 - [ ] 4.11 Delete each remaining file of the frontend that describes a shape of the wire, and keep the shapes that only the client has. 35 files of the domain describe a shape today, over twelve features.
 - [ ] 4.12 Keep the bindings of `ParseUUIDPipe` and of `ParseIntPipe`.

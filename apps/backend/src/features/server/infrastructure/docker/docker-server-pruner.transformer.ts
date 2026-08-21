@@ -1,4 +1,4 @@
-import { PruneResult } from '../../domain/models/prune-result.models';
+import type { PruneResult } from '@gitpaas/contracts';
 
 import type { RuntimePruneReport } from '@core/domain/models/container-runtime.models';
 

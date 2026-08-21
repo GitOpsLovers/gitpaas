@@ -84,7 +84,6 @@ export class ProvidersController {
     @Roles(UserRole.Admin)
     public async create(@Body(new ZodValidationPipe(createProviderSchema)) createDto: CreateProviderDto): Promise<ProviderResponse> {
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const provider = await this.service.create(createDto);
 
             return toProviderResponse(provider);
@@ -108,7 +107,6 @@ export class ProvidersController {
         let registration: StartedProviderRegistration;
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             registration = await this.service.startRegistration(startDto);
         } catch (error) {
             throw translateError(error);
@@ -134,7 +132,6 @@ export class ProvidersController {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             return await this.service.convertRegistration(state, convertDto);
         } catch (error) {
             throw translateError(error);
@@ -155,7 +152,6 @@ export class ProvidersController {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const provider = await this.service.completeRegistration(state, completeDto);
 
             return toProviderResponse(provider);
@@ -183,7 +179,6 @@ export class ProvidersController {
         let provider: Provider | null;
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             provider = await this.service.update(id, updateDto);
         } catch (error) {
             throw translateError(error);

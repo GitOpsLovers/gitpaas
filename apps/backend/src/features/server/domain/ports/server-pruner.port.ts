@@ -1,4 +1,4 @@
-import { PruneResult } from '../models/prune-result.models';
+import type { PruneResult } from '@gitpaas/contracts';
 
 /**
  * Server pruner port

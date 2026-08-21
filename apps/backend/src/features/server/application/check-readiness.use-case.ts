@@ -1,4 +1,5 @@
-import { DependencyStatus, ReadinessResult } from '../domain/models/readiness-result.models';
+import type { DependencyStatus, ReadinessResult } from '@gitpaas/contracts';
+
 import { HealthProbe } from '../domain/ports/health-probe.port';
 
 /**

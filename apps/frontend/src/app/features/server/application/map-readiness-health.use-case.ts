@@ -1,4 +1,5 @@
-import { DependencyStatus, ReadinessResult } from '../domain/models/readiness-result.model';
+import type { DependencyStatus, ReadinessResult } from '@gitpaas/contracts';
+
 import { ReadinessHealth } from '../domain/models/server-health.model';
 
 import { readErrorPayloadUseCase } from './read-error-payload.use-case';

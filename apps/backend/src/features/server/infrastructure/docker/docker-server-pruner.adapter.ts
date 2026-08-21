@@ -1,6 +1,6 @@
+import type { PruneResult } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
-import { PruneResult } from '../../domain/models/prune-result.models';
 import { ServerPruner } from '../../domain/ports/server-pruner.port';
 
 import { toPruneResult } from './docker-server-pruner.transformer';

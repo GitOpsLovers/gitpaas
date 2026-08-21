@@ -1,3 +1,4 @@
+import type { OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
 import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
@@ -6,9 +7,6 @@ import { pruneContainersUseCase } from '../../../application/prune-containers.us
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../../application/remove-orphaned-containers.use-case';
-import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.models';
-import { PruneResult } from '../../../domain/models/prune-result.models';
-import { ReadinessResult } from '../../../domain/models/readiness-result.models';
 import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
 import { DockerHealthProbeAdapter } from '../../../infrastructure/health/docker-health-probe.adapter';

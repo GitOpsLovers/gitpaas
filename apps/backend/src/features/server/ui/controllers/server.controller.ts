@@ -1,11 +1,8 @@
+import type { OrphanRemovalResult, PruneResult, ReadinessResult, ServerStatus } from '@gitpaas/contracts';
 import { Controller, Get, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
-import { PruneResult } from '../../domain/models/prune-result.models';
-import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import { ServerService } from '../services/server.service';
 
-import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
 
@@ -35,7 +32,7 @@ export class ServerController {
      * Health check for the connection to the server's Docker daemon.
      */
     @Get('status')
-    public async getStatus(): Promise<ContainerRuntimeInfo & { connected: boolean }> {
+    public async getStatus(): Promise<ServerStatus> {
         try {
             const info = await this.service.getStatus();
 
