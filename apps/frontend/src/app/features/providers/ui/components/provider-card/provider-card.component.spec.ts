@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { Provider } from '../../../domain/models/provider.model';
+import type { Provider } from '@gitpaas/contracts';
 
 import { ProviderCardComponent, ProviderConnectionState } from './provider-card.component';
 
@@ -11,6 +10,8 @@ const provider: Provider = {
     appId: '123456',
     installationId: '98765432',
     keyFingerprint: 'a1b2c3d4',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-02T00:00:00.000Z',
 };
 
 describe('ProviderCardComponent', () => {

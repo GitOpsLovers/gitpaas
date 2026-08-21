@@ -1,6 +1,5 @@
 import { Component, input, output } from '@angular/core';
-
-import { Provider } from '../../../domain/models/provider.model';
+import type { Provider } from '@gitpaas/contracts';
 
 import { DropdownComponent } from '@shared/components/dropdown/dropdown.component';
 

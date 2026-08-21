@@ -1,4 +1,4 @@
-import { ProviderAppManifest } from '../../domain/models/provider-registration.model';
+import type { ProviderAppManifest } from '@gitpaas/contracts';
 
 /**
  * Hands the manifest to GitHub with a form the browser sends.

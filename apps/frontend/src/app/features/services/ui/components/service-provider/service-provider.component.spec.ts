@@ -2,12 +2,10 @@ import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import type { GitBranch, GitRepository, Provider } from '@gitpaas/contracts';
 
 import { ServiceProviderComponent, ServiceProviderSettings } from './service-provider.component';
 
-import { GitBranch } from '@features/providers/domain/models/git-branch.model';
-import { GitRepository } from '@features/providers/domain/models/git-repository.model';
-import { Provider } from '@features/providers/domain/models/provider.model';
 import { ProvidersApiRepository } from '@features/providers/infrastructure/api/providers-api.repository';
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
 
@@ -26,10 +24,24 @@ interface ResourceStub<T> {
 
 const providers: Provider[] = [
     {
-        id: 'pv-1', name: 'acme-github', type: 'github_app', appId: '123456', installationId: '9876', keyFingerprint: 'a1b2c3d4',
+        id: 'pv-1',
+        name: 'acme-github',
+        type: 'github_app',
+        appId: '123456',
+        installationId: '9876',
+        keyFingerprint: 'a1b2c3d4',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-02T00:00:00.000Z',
     },
     {
-        id: 'pv-2', name: 'other-github', type: 'github_app', appId: '654321', installationId: '6789', keyFingerprint: 'd4c3b2a1',
+        id: 'pv-2',
+        name: 'other-github',
+        type: 'github_app',
+        appId: '654321',
+        installationId: '6789',
+        keyFingerprint: 'd4c3b2a1',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-02T00:00:00.000Z',
     },
 ];
 

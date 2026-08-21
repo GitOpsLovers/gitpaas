@@ -1,16 +1,19 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import type {
+    CompleteProviderRegistrationDto,
+    ConvertProviderRegistrationDto,
+    ConvertedProviderRegistration,
+    CreateProviderDto,
+    GitBranch,
+    GitRepository,
+    Provider,
+    ProviderConnectionTest,
+    StartProviderRegistrationDto,
+    StartedProviderRegistration,
+    UpdateProviderDto,
+} from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
-
-import { CompleteProviderRegistrationDto } from '../../domain/dtos/complete-provider-registration.dto';
-import { ConvertProviderRegistrationDto } from '../../domain/dtos/convert-provider-registration.dto';
-import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
-import { StartProviderRegistrationDto } from '../../domain/dtos/start-provider-registration.dto';
-import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
-import { GitBranch } from '../../domain/models/git-branch.model';
-import { GitRepository } from '../../domain/models/git-repository.model';
-import { ConvertedProviderRegistration, StartedProviderRegistration } from '../../domain/models/provider-registration.model';
-import { Provider, ProviderConnectionTest } from '../../domain/models/provider.model';
 
 import { environment } from '@environments/environment';
 

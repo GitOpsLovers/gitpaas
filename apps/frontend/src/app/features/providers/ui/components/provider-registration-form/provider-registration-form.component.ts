@@ -1,7 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-
-import { ProviderAppOwnerType } from '../../../domain/models/provider-registration.model';
+import type { ProviderAppOwnerType } from '@gitpaas/contracts';
 
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';

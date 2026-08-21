@@ -1,24 +1,6 @@
-import {
-    ProviderAppOwnerType,
-    ProviderRegistration,
-    ProviderRegistrationStep,
-} from '../../domain/models/provider-registration.models';
+import type { ProviderRegistration as ProviderRegistrationResponse } from '@gitpaas/contracts';
 
-/**
- * A registration of a provider as an answer of the API carries it.
- */
-export interface ProviderRegistrationResponse {
-    id: string;
-    state: string;
-    name: string;
-    ownerType: ProviderAppOwnerType;
-    ownerLogin: string | null;
-    step: ProviderRegistrationStep;
-    appId: string | null;
-    appSlug: string | null;
-    createdAt: string;
-    expiresAt: string;
-}
+import { ProviderRegistration } from '../../domain/models/provider-registration.models';
 
 /**
  * Maps a domain registration of a provider into the shape an answer of the API carries.

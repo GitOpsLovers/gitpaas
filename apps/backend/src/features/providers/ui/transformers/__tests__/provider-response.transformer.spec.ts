@@ -55,6 +55,6 @@ describe('toProviderResponse', () => {
     it('never lets a date reach the answer', () => {
         const response = toProviderResponse(provider());
 
-        expect(Object.values(response).some((value) => value instanceof Date)).toBe(false);
+        expect(Object.values(response as object).some((value) => value instanceof Date)).toBe(false);
     });
 });

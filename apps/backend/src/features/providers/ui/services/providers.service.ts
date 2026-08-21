@@ -1,3 +1,10 @@
+import type {
+    CompleteProviderRegistrationDto,
+    ConvertProviderRegistrationDto,
+    CreateProviderDto,
+    StartProviderRegistrationDto,
+    UpdateProviderDto,
+} from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -14,11 +21,6 @@ import { startProviderRegistrationUseCase } from '../../application/start-provid
 import { testProviderConnectionUseCase } from '../../application/test-provider-connection.use-case';
 import { updateProviderUseCase } from '../../application/update-provider.use-case';
 import { PROVIDER_REGISTRATION_REDIRECT_PATH, PROVIDER_REGISTRATION_SETUP_PATH } from '../../domain/constants/provider-registration.constants';
-import { CompleteProviderRegistrationDto } from '../../domain/dtos/complete-provider-registration.dto';
-import { ConvertProviderRegistrationDto } from '../../domain/dtos/convert-provider-registration.dto';
-import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
-import { StartProviderRegistrationDto } from '../../domain/dtos/start-provider-registration.dto';
-import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
 import { GitBranch } from '../../domain/models/git-branch.models';
 import { GitRepository } from '../../domain/models/git-repository.models';
 import {
@@ -26,6 +28,7 @@ import {
     ProviderAppManifestUrls,
     ProviderAppOwnerType,
     StartedProviderRegistration,
+    toProviderAppOwnerType,
 } from '../../domain/models/provider-registration.models';
 import { Provider, ProviderConnectionTest } from '../../domain/models/provider.models';
 import type { ProviderClient } from '../../domain/ports/provider-client.port';
@@ -172,13 +175,15 @@ export class ProvidersService {
      * @returns The state of the registration, the manifest and the address of GitHub
      */
     public startRegistration(startDto: StartProviderRegistrationDto): Promise<StartedProviderRegistration> {
+        const ownerType = toProviderAppOwnerType(startDto.ownerType);
+
         return startProviderRegistrationUseCase(
             this.repository,
             this.registrationsRepository,
             {
                 name: startDto.name,
-                ownerType: startDto.ownerType,
-                ownerLogin: startDto.ownerType === ProviderAppOwnerType.Organization
+                ownerType,
+                ownerLogin: ownerType === ProviderAppOwnerType.Organization
                     ? startDto.ownerLogin ?? null
                     : null,
             },

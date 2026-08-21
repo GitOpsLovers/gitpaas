@@ -1,10 +1,9 @@
+import type { CreateProviderDto, UpdateProviderDto } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateProviderDto } from '../../domain/dtos/create-provider.dto';
-import { UpdateProviderDto } from '../../domain/dtos/update-provider.dto';
-import { Provider, ProviderCredentials, ProviderType } from '../../domain/models/provider.models';
+import { Provider, ProviderCredentials, ProviderType, toProviderType } from '../../domain/models/provider.models';
 import { ProvidersRepository } from '../../domain/repositories/providers.repository';
 
 import { DbProviderEntity } from './db-provider.entity';
@@ -61,7 +60,7 @@ export class DatabaseProvidersRepository implements ProvidersRepository {
     public async create(createDto: CreateProviderDto, encryptedPrivateKey: string): Promise<Provider> {
         const provider = this.repository.create({
             name: createDto.name,
-            type: createDto.type ?? ProviderType.GithubApp,
+            type: createDto.type ? toProviderType(createDto.type) : ProviderType.GithubApp,
             appId: createDto.appId,
             installationId: createDto.installationId,
             encryptedPrivateKey,
@@ -85,7 +84,7 @@ export class DatabaseProvidersRepository implements ProvidersRepository {
 
         this.repository.merge(provider, {
             ...(updateDto.name === undefined ? {} : { name: updateDto.name }),
-            ...(updateDto.type === undefined ? {} : { type: updateDto.type }),
+            ...(updateDto.type === undefined ? {} : { type: toProviderType(updateDto.type) }),
             ...(updateDto.appId === undefined ? {} : { appId: updateDto.appId }),
             ...(updateDto.installationId === undefined ? {} : { installationId: updateDto.installationId }),
             ...(encryptedPrivateKey === undefined ? {} : { encryptedPrivateKey }),

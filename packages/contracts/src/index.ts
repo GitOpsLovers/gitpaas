@@ -17,3 +17,50 @@ export type { AuthTokens, LoginDto, RefreshDto } from './authentication/authenti
 export { userRoleSchema, userSchema } from './authentication/user.contract';
 export type { User, UserRole } from './authentication/user.contract';
 export { authenticationEndpoints } from './authentication/authentication.endpoints';
+
+export {
+    createProviderSchema,
+    providerConnectionOutcomeSchema,
+    providerConnectionTestSchema,
+    providerSchema,
+    providerTypeSchema,
+    updateProviderSchema,
+} from './providers/provider.contract';
+export type {
+    CreateProviderDto,
+    Provider,
+    ProviderConnectionOutcome,
+    ProviderConnectionTest,
+    ProviderType,
+    UpdateProviderDto,
+} from './providers/provider.contract';
+export {
+    completeProviderRegistrationSchema,
+    convertedProviderRegistrationSchema,
+    convertProviderRegistrationSchema,
+    providerAppManifestSchema,
+    providerAppOwnerTypeSchema,
+    providerRegistrationSchema,
+    providerRegistrationStepSchema,
+    startedProviderRegistrationSchema,
+    startProviderRegistrationSchema,
+} from './providers/provider-registration.contract';
+export type {
+    CompleteProviderRegistrationDto,
+    ConvertedProviderRegistration,
+    ConvertProviderRegistrationDto,
+    ProviderAppManifest,
+    ProviderAppOwnerType,
+    ProviderRegistration,
+    ProviderRegistrationStep,
+    StartedProviderRegistration,
+    StartProviderRegistrationDto,
+} from './providers/provider-registration.contract';
+export { gitBranchSchema, gitRepositorySchema } from './providers/git.contract';
+export type { GitBranch, GitRepository } from './providers/git.contract';
+export {
+    providerParamsSchema,
+    providerRegistrationParamsSchema,
+    providerRepositoryParamsSchema,
+    providersEndpoints,
+} from './providers/providers.endpoints';

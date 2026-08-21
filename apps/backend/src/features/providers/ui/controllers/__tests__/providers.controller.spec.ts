@@ -1,14 +1,16 @@
 /* eslint-disable no-secrets/no-secrets */
+import type { CreateProviderDto, Provider as ProviderResponse, UpdateProviderDto } from '@gitpaas/contracts';
 import {
     BadRequestException,
     ConflictException,
     NotFoundException,
+    ParseIntPipe,
+    ParseUUIDPipe,
     ServiceUnavailableException,
 } from '@nestjs/common';
+import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 
-import { CreateProviderDto } from '../../../domain/dtos/create-provider.dto';
-import { UpdateProviderDto } from '../../../domain/dtos/update-provider.dto';
 import { ProviderAuthenticationError, ProviderManifestCodeRejectedError } from '../../../domain/errors/provider-client.errors';
 import {
     ProviderRegistrationExpiredError,
@@ -29,10 +31,10 @@ import {
 } from '../../../domain/models/provider-registration.models';
 import { Provider, ProviderType } from '../../../domain/models/provider.models';
 import { ProvidersService } from '../../services/providers.service';
-import { ProviderResponse } from '../../transformers/provider-response.transformer';
 import { ProvidersController } from '../providers.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 
 const providerId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 
@@ -92,6 +94,36 @@ const startedRegistration: StartedProviderRegistration = {
     githubUrl: `https://github.com/settings/apps/new?state=${registrationState}`,
 };
 
+/**
+ * Shape of a single entry of the route-argument metadata NestJS stores per handler.
+ */
+interface RouteArgMetadata {
+    index: number;
+    data: unknown;
+    pipes: unknown[];
+}
+
+/**
+ * Reads the pipes the controller declares for one bound argument of a handler.
+ *
+ * The pipes themselves are framework mechanics that the unit specs never run, so
+ * this reads the declaration instead: dropping a pipe would let an unchecked
+ * value reach the service, and must fail a test.
+ *
+ * Every path parameter carries its name in `data`, so the body is the one bound
+ * argument that carries none.
+ */
+const pipesFor = (handler: string, parameter?: string): unknown[] => {
+    // eslint-disable-next-line operator-linebreak
+    const metadata =
+        (Reflect.getMetadata(ROUTE_ARGS_METADATA, ProvidersController, handler) as Record<
+            string,
+            RouteArgMetadata
+        >) ?? {};
+
+    return Object.values(metadata).find((argument) => argument.data === parameter)?.pipes ?? [];
+};
+
 describe('ProvidersController', () => {
     let mockProvidersService: jest.Mocked<
         Pick<
@@ -136,6 +168,40 @@ describe('ProvidersController', () => {
         sut = moduleRef.get(ProvidersController);
     });
 
+    describe('parameter validation', () => {
+        it.each(['findById', 'update', 'delete', 'testConnection'])(
+            'validates the id path parameter of %s as a UUID',
+            (handler) => {
+                expect(pipesFor(handler, 'id')).toContain(ParseUUIDPipe);
+            },
+        );
+
+        it.each(['listRepositories', 'listBranches'])(
+            'validates the providerId path parameter of %s as a UUID',
+            (handler) => {
+                expect(pipesFor(handler, 'providerId')).toContain(ParseUUIDPipe);
+            },
+        );
+
+        it('validates the repositoryId path parameter of listBranches as an integer', () => {
+            expect(pipesFor('listBranches', 'repositoryId')).toContain(ParseIntPipe);
+        });
+
+        it.each(['create', 'update', 'startRegistration', 'convertRegistration', 'completeRegistration'])(
+            'validates the body of %s with a Zod pipe',
+            (handler) => {
+                expect(pipesFor(handler)).toEqual([expect.any(ZodValidationPipe)]);
+            },
+        );
+
+        it.each(['getAll', 'findById', 'delete', 'testConnection', 'listRepositories', 'listBranches'])(
+            'never binds a body on %s',
+            (handler) => {
+                expect(pipesFor(handler)).toEqual([]);
+            },
+        );
+    });
+
     describe('getAll', () => {
         it('delegates to the service', async () => {
             mockProvidersService.getAll.mockResolvedValue([provider]);
@@ -161,7 +227,7 @@ describe('ProvidersController', () => {
 
             expect(first.createdAt).toBe('2026-01-01T00:00:00.000Z');
             expect(first.updatedAt).toBe('2026-01-02T00:00:00.000Z');
-            expect(Object.values(first).some((value) => value instanceof Date)).toBe(false);
+            expect(Object.values(first as object).some((value) => value instanceof Date)).toBe(false);
         });
 
         it('never carries the private key of a provider in the list', async () => {
