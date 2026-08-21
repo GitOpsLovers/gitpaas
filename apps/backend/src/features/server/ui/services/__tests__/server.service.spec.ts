@@ -1,12 +1,16 @@
-import type { OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
+import type { OrphanRemovalResult, PlatformSettings, PruneResult, ReadinessResult } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
 import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
+import { getPlatformSettingsUseCase } from '../../../application/get-platform-settings.use-case';
 import { getServerStatusUseCase } from '../../../application/get-server-status.use-case';
 import { pruneContainersUseCase } from '../../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../../application/remove-orphaned-containers.use-case';
+import { updatePlatformSettingsUseCase } from '../../../application/update-platform-settings.use-case';
+import { InvalidLogRetentionError } from '../../../domain/errors/server.errors';
+import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
 import { DockerHealthProbeAdapter } from '../../../infrastructure/health/docker-health-probe.adapter';
@@ -23,6 +27,8 @@ jest.mock('../../../application/prune-containers.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
 jest.mock('../../../application/check-readiness.use-case');
 jest.mock('../../../application/get-server-status.use-case');
+jest.mock('../../../application/get-platform-settings.use-case');
+jest.mock('../../../application/update-platform-settings.use-case');
 
 const mockGetServerStatusUseCase = getServerStatusUseCase as jest.MockedFunction<
     typeof getServerStatusUseCase
@@ -40,6 +46,12 @@ const mockPruneContainersUseCase = pruneContainersUseCase as jest.MockedFunction
 const mockRemoveOrphanedContainersUseCase = removeOrphanedContainersUseCase as jest.MockedFunction<
     typeof removeOrphanedContainersUseCase
 >;
+const mockGetPlatformSettingsUseCase = getPlatformSettingsUseCase as jest.MockedFunction<
+    typeof getPlatformSettingsUseCase
+>;
+const mockUpdatePlatformSettingsUseCase = updatePlatformSettingsUseCase as jest.MockedFunction<
+    typeof updatePlatformSettingsUseCase
+>;
 
 const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 };
 const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
@@ -52,6 +64,7 @@ const runtimeInfo: ContainerRuntimeInfo = {
     containers: 4,
     images: 12,
 };
+const platformSettings: PlatformSettings = { logRetentionDays: 45 };
 const readinessResult: ReadinessResult = {
     status: 'ok',
     dependencies: [
@@ -67,6 +80,7 @@ describe('ServerService', () => {
     let mockPostgresProbe: jest.Mocked<PostgresHealthProbeAdapter>;
     let mockDockerProbe: jest.Mocked<DockerHealthProbeAdapter>;
     let mockContainerRuntime: jest.Mocked<DockerContainerRuntimeAdapter>;
+    let mockPlatformSettings: jest.Mocked<DatabasePlatformSettingsRepository>;
     let sut: ServerService;
 
     beforeEach(async () => {
@@ -78,6 +92,7 @@ describe('ServerService', () => {
         mockPostgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbeAdapter>;
         mockDockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbeAdapter>;
         mockContainerRuntime = {} as jest.Mocked<DockerContainerRuntimeAdapter>;
+        mockPlatformSettings = {} as jest.Mocked<DatabasePlatformSettingsRepository>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -88,6 +103,7 @@ describe('ServerService', () => {
                 { provide: PostgresHealthProbeAdapter, useValue: mockPostgresProbe },
                 { provide: DockerHealthProbeAdapter, useValue: mockDockerProbe },
                 { provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime },
+                { provide: DatabasePlatformSettingsRepository, useValue: mockPlatformSettings },
             ],
         }).compile();
 
@@ -339,6 +355,55 @@ describe('ServerService', () => {
             mockGetServerStatusUseCase.mockRejectedValue(error);
 
             await expect(sut.getStatus()).rejects.toThrow(error);
+        });
+    });
+
+    describe('getSettings', () => {
+        it('delegates to the get platform settings use case with the settings repository', async () => {
+            mockGetPlatformSettingsUseCase.mockResolvedValue(platformSettings);
+
+            await sut.getSettings();
+
+            expect(mockGetPlatformSettingsUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetPlatformSettingsUseCase).toHaveBeenCalledWith(mockPlatformSettings);
+        });
+
+        it('returns the parameters produced by the use case', async () => {
+            mockGetPlatformSettingsUseCase.mockResolvedValue(platformSettings);
+
+            expect(await sut.getSettings()).toBe(platformSettings);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('connection terminated');
+            mockGetPlatformSettingsUseCase.mockRejectedValue(error);
+
+            await expect(sut.getSettings()).rejects.toThrow(error);
+        });
+    });
+
+    describe('updateSettings', () => {
+        it('delegates to the update platform settings use case with the repository and the body', async () => {
+            mockUpdatePlatformSettingsUseCase.mockResolvedValue(platformSettings);
+
+            await sut.updateSettings({ logRetentionDays: 45 });
+
+            expect(mockUpdatePlatformSettingsUseCase).toHaveBeenCalledTimes(1);
+            expect(mockUpdatePlatformSettingsUseCase)
+                .toHaveBeenCalledWith(mockPlatformSettings, { logRetentionDays: 45 });
+        });
+
+        it('returns the parameters produced by the use case', async () => {
+            mockUpdatePlatformSettingsUseCase.mockResolvedValue(platformSettings);
+
+            expect(await sut.updateSettings({ logRetentionDays: 45 })).toBe(platformSettings);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new InvalidLogRetentionError();
+            mockUpdatePlatformSettingsUseCase.mockRejectedValue(error);
+
+            await expect(sut.updateSettings({ logRetentionDays: 0 })).rejects.toThrow(error);
         });
     });
 });

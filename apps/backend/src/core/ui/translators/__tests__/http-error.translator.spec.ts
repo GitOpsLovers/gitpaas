@@ -144,6 +144,11 @@ describe('translateError', () => {
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 
+        it('maps INVALID_LOG_RETENTION to a BadRequestException', () => {
+            expect(translateError(new CodedDomainError('INVALID_LOG_RETENTION')))
+                .toBeInstanceOf(BadRequestException);
+        });
+
         it('maps PROVIDER_MANIFEST_CODE_REJECTED to a BadRequestException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_MANIFEST_CODE_REJECTED')))
                 .toBeInstanceOf(BadRequestException);

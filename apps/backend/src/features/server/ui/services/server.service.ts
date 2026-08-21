@@ -1,14 +1,24 @@
-import type { OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
+import type {
+    OrphanRemovalResult,
+    PlatformSettings,
+    PruneResult,
+    ReadinessResult,
+    UpdatePlatformSettingsDto,
+} from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
+import { getPlatformSettingsUseCase } from '../../application/get-platform-settings.use-case';
 import { getServerStatusUseCase } from '../../application/get-server-status.use-case';
 import { pruneContainersUseCase } from '../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
+import { updatePlatformSettingsUseCase } from '../../application/update-platform-settings.use-case';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
 import type { OrphanContainers } from '../../domain/ports/orphan-containers.port';
+import type { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
+import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
 import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
 import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-health-probe.adapter';
@@ -37,6 +47,8 @@ export class ServerService {
         private readonly dockerProbe: HealthProbe,
         @Inject(DockerContainerRuntimeAdapter)
         private readonly containerRuntime: ContainerRuntime,
+        @Inject(DatabasePlatformSettingsRepository)
+        private readonly settings: PlatformSettingsRepository,
     ) {}
 
     /**
@@ -76,8 +88,7 @@ export class ServerService {
     }
 
     /**
-     * Probes the server's critical dependencies (PostgreSQL, Docker) and
-     * reports each one's reachability alongside an aggregate status.
+     * Probes the server's critical dependencies and reports each one's reachability alongside an aggregate status.
      *
      * @returns Overall readiness status and a per-dependency breakdown
      */
@@ -92,5 +103,25 @@ export class ServerService {
      */
     public getStatus(): Promise<ContainerRuntimeInfo> {
         return getServerStatusUseCase(this.containerRuntime);
+    }
+
+    /**
+     * Reads the parameters of the deployment system.
+     *
+     * @returns Parameters of the deployment system
+     */
+    public getSettings(): Promise<PlatformSettings> {
+        return getPlatformSettingsUseCase(this.settings);
+    }
+
+    /**
+     * Writes the parameters of the deployment system
+     *
+     * @param updateDto Parameters to keep
+     *
+     * @returns Parameters the system keeps
+     */
+    public updateSettings(updateDto: UpdatePlatformSettingsDto): Promise<PlatformSettings> {
+        return updatePlatformSettingsUseCase(this.settings, updateDto);
     }
 }
