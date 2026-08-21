@@ -1,0 +1,21 @@
+apps/backend/src/__tests__/bootstrap.spec.ts
+  s_fc1a1269931167::t_476653a2fa5ee9 142,148
+openspec/changes/request-model/tasks.md
+  s_fc1a1269931167::t_eeed776ea6049e 108-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d33b8e8a3e298f0ea9625dc450f6252085fcea70",
+  "prompts": {},
+  "sessions": {
+    "s_fc1a1269931167": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8ceef0e0-18bc-4e02-ab0a-750f0165a657",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
