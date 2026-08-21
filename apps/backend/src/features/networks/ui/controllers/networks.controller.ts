@@ -1,7 +1,8 @@
+import type { Network as NetworkResponse } from '@gitpaas/contracts';
 import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } from '@nestjs/common';
 
 import { NetworksService } from '../services/networks.service';
-import { NetworkResponse, toNetworkResponse } from '../transformers/network-response.transformer';
+import { toNetworkResponse } from '../transformers/network-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';

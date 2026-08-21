@@ -1,6 +1,5 @@
 import { Component, input, output } from '@angular/core';
-
-import { Namespace } from '../../../domain/models/namespace.model';
+import type { Namespace } from '@gitpaas/contracts';
 
 import { DropdownComponent } from '@shared/components/dropdown/dropdown.component';
 

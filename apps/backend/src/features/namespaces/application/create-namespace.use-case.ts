@@ -1,4 +1,5 @@
-import { CreateNamespaceDto } from '../domain/dtos/create-namespace.dto';
+import type { CreateNamespaceDto } from '@gitpaas/contracts';
+
 import { Namespace } from '../domain/models/namespace.models';
 import { NamespacesRepository } from '../domain/repositories/namespaces.repository';
 

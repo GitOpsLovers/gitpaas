@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import type { Namespace } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
-import { Namespace } from '../../../domain/models/namespace.model';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
 
 import { NamespaceEditComponent } from './namespace-edit.component';

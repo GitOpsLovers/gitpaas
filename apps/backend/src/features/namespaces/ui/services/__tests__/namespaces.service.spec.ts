@@ -1,3 +1,4 @@
+import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
 import { createNamespaceUseCase } from '../../../application/create-namespace.use-case';
@@ -5,8 +6,6 @@ import { deleteNamespaceUseCase } from '../../../application/delete-namespace.us
 import { findNamespaceByIdUseCase } from '../../../application/find-namespace-by-id.use-case';
 import { getAllNamespacesUseCase } from '../../../application/get-all-namespaces.use-case';
 import { updateNamespaceUseCase } from '../../../application/update-namespace.use-case';
-import { CreateNamespaceDto } from '../../../domain/dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../../../domain/dtos/update-namespace.dto';
 import { NamespaceNotEmptyError } from '../../../domain/errors/namespace.errors';
 import { Namespace } from '../../../domain/models/namespace.models';
 import { DatabaseNamespacesRepository } from '../../../infrastructure/database/db-namespaces.repository';

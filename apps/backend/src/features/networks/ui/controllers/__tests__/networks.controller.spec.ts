@@ -1,9 +1,9 @@
+import type { Network as NetworkResponse } from '@gitpaas/contracts';
 import { ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { Network } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
-import { NetworkResponse } from '../../transformers/network-response.transformer';
 import { NetworksController } from '../networks.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -77,8 +77,10 @@ describe('NetworksController', () => {
 
             const [first] = await sut.getByService(serviceId);
 
+            const values: unknown[] = Object.values(first);
+
             expect(typeof first.createdAt).toBe('string');
-            expect(Object.values(first).some((value) => value instanceof Date)).toBe(false);
+            expect(values.some((value) => value instanceof Date)).toBe(false);
         });
 
         it('returns an empty list when the service reports no networks', async () => {

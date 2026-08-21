@@ -31,9 +31,9 @@ describe('toNetworkResponse', () => {
     });
 
     it('never lets a date reach the answer', () => {
-        const response = toNetworkResponse(network());
+        const values: unknown[] = Object.values(toNetworkResponse(network()));
 
-        expect(Object.values(response).some((value) => value instanceof Date)).toBe(false);
+        expect(values.some((value) => value instanceof Date)).toBe(false);
     });
 
     it('preserves the flags of an internal network that no container may attach to', () => {

@@ -1,3 +1,5 @@
+import { createNamespaceSchema, updateNamespaceSchema } from '@gitpaas/contracts';
+import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -11,13 +13,12 @@ import {
     Put,
 } from '@nestjs/common';
 
-import { CreateNamespaceDto } from '../../domain/dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../../domain/dtos/update-namespace.dto';
 import { NamespaceNotFoundError } from '../../domain/errors/namespace.errors';
 import { Namespace } from '../../domain/models/namespace.models';
 import { NamespacesService } from '../services/namespaces.service';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
 /**
@@ -46,14 +47,14 @@ export class NamespacesController {
     }
 
     @Post()
-    public create(@Body() createDto: CreateNamespaceDto): Promise<Namespace> {
+    public create(@Body(new ZodValidationPipe(createNamespaceSchema)) createDto: CreateNamespaceDto): Promise<Namespace> {
         return this.service.create(createDto);
     }
 
     @Put(':id')
     public async update(
         @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateDto: UpdateNamespaceDto,
+        @Body(new ZodValidationPipe(updateNamespaceSchema)) updateDto: UpdateNamespaceDto,
     ): Promise<Namespace> {
         enrichTelemetry({ 'namespace.id': id });
 

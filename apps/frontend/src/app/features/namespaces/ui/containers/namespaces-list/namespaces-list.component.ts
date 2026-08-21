@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { Namespace } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
-import { Namespace } from '../../../domain/models/namespace.model';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
 import { NamespaceCardComponent } from '../../components/namespace-card/namespace-card.component';
 

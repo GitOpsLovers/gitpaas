@@ -1,7 +1,6 @@
+import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
 import { EntityManager, Repository } from 'typeorm';
 
-import { CreateNamespaceDto } from '../../../domain/dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../../../domain/dtos/update-namespace.dto';
 import { Namespace } from '../../../domain/models/namespace.models';
 import { DbNamespaceEntity } from '../db-namespace.entity';
 import { DatabaseNamespacesRepository } from '../db-namespaces.repository';

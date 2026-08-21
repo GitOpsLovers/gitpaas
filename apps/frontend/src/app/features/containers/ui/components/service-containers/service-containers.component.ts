@@ -1,7 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, input } from '@angular/core';
-
-import { Container, ContainerPort } from '../../../domain/models/container.model';
+import type { Container, ContainerPort } from '@gitpaas/contracts';
 
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 

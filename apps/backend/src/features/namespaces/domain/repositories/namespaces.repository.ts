@@ -1,5 +1,5 @@
-import { CreateNamespaceDto } from '../dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../dtos/update-namespace.dto';
+import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
+
 import { Namespace } from '../models/namespace.models';
 
 /**

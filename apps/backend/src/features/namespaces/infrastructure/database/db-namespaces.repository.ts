@@ -1,9 +1,8 @@
+import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateNamespaceDto } from '../../domain/dtos/create-namespace.dto';
-import { UpdateNamespaceDto } from '../../domain/dtos/update-namespace.dto';
 import { Namespace } from '../../domain/models/namespace.models';
 import { NamespacesRepository } from '../../domain/repositories/namespaces.repository';
 
