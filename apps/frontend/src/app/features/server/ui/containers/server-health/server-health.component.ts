@@ -1,11 +1,10 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, inject } from '@angular/core';
+import type { ReadinessResult, ServerStatus } from '@gitpaas/contracts';
 
 import { mapDaemonHealthUseCase } from '../../../application/map-daemon-health.use-case';
 import { mapReadinessHealthUseCase } from '../../../application/map-readiness-health.use-case';
-import { ReadinessResult } from '../../../domain/models/readiness-result.model';
 import { DaemonHealth, ReadinessHealth } from '../../../domain/models/server-health.model';
-import { ServerStatus } from '../../../domain/models/server-status.model';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 import { ServerHealthPanelComponent } from '../../components/server-health-panel/server-health-panel.component';
 

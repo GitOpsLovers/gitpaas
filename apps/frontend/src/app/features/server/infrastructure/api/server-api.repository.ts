@@ -1,11 +1,7 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import type { OrphanRemovalResult, PruneResult, ReadinessResult, ServerStatus } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
-
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.model';
-import { PruneResult } from '../../domain/models/prune-result.model';
-import { ReadinessResult } from '../../domain/models/readiness-result.model';
-import { ServerStatus } from '../../domain/models/server-status.model';
 
 import { environment } from '@environments/environment';
 

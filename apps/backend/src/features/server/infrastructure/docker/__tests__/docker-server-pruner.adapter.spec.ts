@@ -1,4 +1,5 @@
-import { PruneResult } from '../../../domain/models/prune-result.models';
+import type { PruneResult } from '@gitpaas/contracts';
+
 import { DockerServerPrunerAdapter } from '../docker-server-pruner.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';

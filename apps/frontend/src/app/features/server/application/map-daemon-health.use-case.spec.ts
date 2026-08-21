@@ -1,4 +1,4 @@
-import { ServerStatus } from '../domain/models/server-status.model';
+import type { ServerStatus } from '@gitpaas/contracts';
 
 import { mapDaemonHealthUseCase } from './map-daemon-health.use-case';
 

@@ -1,5 +1,6 @@
+import type { ServerStatus } from '@gitpaas/contracts';
+
 import { DaemonHealth } from '../domain/models/server-health.model';
-import { ServerStatus } from '../domain/models/server-status.model';
 
 import { readErrorPayloadUseCase } from './read-error-payload.use-case';
 

@@ -1,3 +1,4 @@
+import type { OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
@@ -6,9 +7,6 @@ import { pruneContainersUseCase } from '../../application/prune-containers.use-c
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
-import { OrphanRemovalResult } from '../../domain/models/orphan-removal-result.models';
-import { PruneResult } from '../../domain/models/prune-result.models';
-import { ReadinessResult } from '../../domain/models/readiness-result.models';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
 import type { OrphanContainers } from '../../domain/ports/orphan-containers.port';
 import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';

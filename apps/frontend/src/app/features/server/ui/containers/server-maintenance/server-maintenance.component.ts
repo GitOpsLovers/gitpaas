@@ -1,9 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import type { OrphanRemovalResult, PruneResult } from '@gitpaas/contracts';
 import { LucideBox, LucideDatabase, LucideLayers, LucideUnplug } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
-import { OrphanRemovalResult } from '../../../domain/models/orphan-removal-result.model';
-import { PruneResult } from '../../../domain/models/prune-result.model';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 
 import { ButtonComponent } from '@shared/components/button/button.component';

@@ -1,5 +1,4 @@
-import { DependencyStatus } from './readiness-result.model';
-import { ServerStatus } from './server-status.model';
+import type { DependencyStatus, ServerStatus } from '@gitpaas/contracts';
 
 /**
  * Health of the server as the panel shows it, whether the API answered `200`,

@@ -1,4 +1,5 @@
-import { OrphanRemovalResult } from '../domain/models/orphan-removal-result.models';
+import type { OrphanRemovalResult } from '@gitpaas/contracts';
+
 import { OrphanContainers } from '../domain/ports/orphan-containers.port';
 
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';

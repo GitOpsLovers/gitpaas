@@ -1,4 +1,4 @@
-import { OrphanRemovalResult } from '../models/orphan-removal-result.models';
+import type { OrphanRemovalResult } from '@gitpaas/contracts';
 
 /**
  * Orphan containers port

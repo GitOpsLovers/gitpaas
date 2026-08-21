@@ -1,4 +1,4 @@
-import { ReadinessResult } from '../domain/models/readiness-result.model';
+import type { ReadinessResult } from '@gitpaas/contracts';
 
 import { mapReadinessHealthUseCase } from './map-readiness-health.use-case';
 
