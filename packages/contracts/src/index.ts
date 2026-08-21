@@ -1,4 +1,6 @@
 export type { EndpointDescriptor, EndpointMap, HttpMethod } from './shared/endpoint.contract';
+export { errorEnvelopeSchema } from './shared/error-envelope.contract';
+export type { ErrorEnvelope } from './shared/error-envelope.contract';
 
 export { createProjectSchema, projectSchema, updateProjectSchema } from './projects/project.contract';
 export type { CreateProjectDto, Project, UpdateProjectDto } from './projects/project.contract';
@@ -94,3 +96,20 @@ export { containersEndpoints, containersQuerySchema } from './containers/contain
 export { networkSchema } from './networks/network.contract';
 export type { Network } from './networks/network.contract';
 export { networksEndpoints, networksQuerySchema } from './networks/networks.endpoints';
+
+export {
+    logEndEventSchema,
+    logErrorEventSchema,
+    logEventSchema,
+    logLineEventSchema,
+    logStatusSchema,
+    storedLogEventSchema,
+} from './logs/log-event.contract';
+export type {
+    LogEndEvent,
+    LogErrorEvent,
+    LogEvent,
+    LogLineEvent,
+    LogStatus,
+    StoredLogEvent,
+} from './logs/log-event.contract';

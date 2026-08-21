@@ -1,6 +1,7 @@
-import { ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+import { UnauthenticatedError } from '../../../domain/errors/authentication.errors';
 import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 
@@ -139,12 +140,27 @@ describe('JwtAuthGuard', () => {
 
         it('records a rejected request when no user was resolved', () => {
             const event = runWithTelemetry({}, () => {
-                sut.handleRequest(null, false, undefined, contextFor());
+                expect(() => sut.handleRequest(null, false, undefined, contextFor())).toThrow(
+                    UnauthorizedException,
+                );
 
                 return getTelemetry();
             });
 
             expect(event).toEqual({ 'auth.outcome': 'rejected' });
+        });
+
+        it('rejects a request that resolved no user with the UNAUTHENTICATED cause', () => {
+            expect.assertions(2);
+
+            try {
+                sut.handleRequest(null, false, undefined, contextFor());
+            } catch (error) {
+                // eslint-disable-next-line jest/no-conditional-expect
+                expect(error).toBeInstanceOf(UnauthorizedException);
+                // eslint-disable-next-line jest/no-conditional-expect
+                expect((error as UnauthorizedException).cause).toEqual(new UnauthenticatedError());
+            }
         });
 
         it('records a rejected request when the strategy failed', () => {

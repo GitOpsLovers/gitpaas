@@ -1,6 +1,5 @@
+import type { LogEvent, LogStatus } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
-
-import { LogEvent, LogStatus } from '../models/log-event.models';
 
 /**
  * Store for real-time log streams.

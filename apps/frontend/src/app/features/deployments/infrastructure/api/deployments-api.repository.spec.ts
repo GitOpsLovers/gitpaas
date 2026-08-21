@@ -2,14 +2,15 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import type { LogEvent } from '@gitpaas/contracts';
 
 import { DeploymentsApiRepository } from './deployments-api.repository';
 
 import { environment } from '@environments/environment';
 import { TokenStorageService } from '@features/authentication/infrastructure/storage/token-storage.service';
-import { LogEvent } from '@features/logs/domain/models/log-event.model';
 
 const DEPLOYMENT_ID = 'dep-1';
+const SCHEMA_FAILURE_MESSAGE = 'Log stream message did not match the log event schema';
 const STREAM_URL = `${environment.apiBaseUrl}/logs/${DEPLOYMENT_ID}/stream`;
 
 /**
@@ -183,6 +184,42 @@ describe('DeploymentsApiRepository', () => {
             expect(outcome.completed).toBeUndefined();
             expect(outcome.error).toBeInstanceOf(Error);
             expect((outcome.error as Error).message).toBe('Log stream connection closed');
+        });
+
+        test('reports the failure when a message agrees with no kind of the union', async () => {
+            fetchMock.mockReturnValue(Promise.resolve(streamResponse([
+                'data: {"type":"line","data":"kept"}\n\n',
+                // A fourth kind the schema does not declare.
+                'data: {"type":"progress","percent":42}\n\n',
+                'data: {"type":"end","status":"success"}\n\n',
+            ])));
+
+            const outcome = await collectLogs(repository, DEPLOYMENT_ID);
+
+            expect(outcome.events).toEqual([{ type: 'line', data: 'kept' }]);
+            expect(outcome.completed).toBeUndefined();
+            expect(outcome.error).toBeInstanceOf(Error);
+            expect((outcome.error as Error).message).toBe(SCHEMA_FAILURE_MESSAGE);
+        });
+
+        test('reports the failure when a message of a known kind carries a wrong field', async () => {
+            fetchMock.mockReturnValue(Promise.resolve(streamResponse([
+                'data: {"type":"end","status":"cancelled"}\n\n',
+            ])));
+
+            const outcome = await collectLogs(repository, DEPLOYMENT_ID);
+
+            expect(outcome.events).toEqual([]);
+            expect((outcome.error as Error).message).toBe(SCHEMA_FAILURE_MESSAGE);
+        });
+
+        test('reports the failure when the payload of a message is no JSON', async () => {
+            fetchMock.mockReturnValue(Promise.resolve(streamResponse(['data: not-json\n\n'])));
+
+            const outcome = await collectLogs(repository, DEPLOYMENT_ID);
+
+            expect(outcome.events).toEqual([]);
+            expect((outcome.error as Error).message).toBe(SCHEMA_FAILURE_MESSAGE);
         });
 
         test('errors when fetch resolves a non-OK response', async () => {

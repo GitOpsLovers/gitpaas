@@ -1,11 +1,14 @@
-import type { OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
-import { ForbiddenException, ServiceUnavailableException } from '@nestjs/common';
+import type { ErrorEnvelope, OrphanRemovalResult, PruneResult, ReadinessResult } from '@gitpaas/contracts';
+import { ArgumentsHost, ForbiddenException, ServiceUnavailableException } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 
+import { DaemonUnreachableError } from '../../../domain/errors/server.errors';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
+import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -31,6 +34,28 @@ const notReadyResult: ReadinessResult = {
         { name: 'postgres', status: 'up' },
         { name: 'docker', status: 'down' },
     ],
+};
+
+/**
+ * Runs the thrown value through the global exception filter, so the specs assert the
+ * envelope the client actually receives and not only the shape of the exception.
+ */
+const envelopeOf = (exception: unknown): ErrorEnvelope => {
+    const mockReply = jest.fn();
+    const httpAdapter = {
+        getRequestUrl: jest.fn().mockReturnValue('/api/v1/server/status'),
+        reply: mockReply,
+    };
+    const host = {
+        switchToHttp: jest.fn().mockReturnValue({
+            getRequest: jest.fn().mockReturnValue({ url: '/api/v1/server/status', headers: {} }),
+            getResponse: jest.fn().mockReturnValue({}),
+        }),
+    } as unknown as ArgumentsHost;
+
+    new AllExceptionsFilter({ httpAdapter } as unknown as HttpAdapterHost).catch(exception, host);
+
+    return mockReply.mock.calls[0][1] as ErrorEnvelope;
 };
 
 describe('ServerController', () => {
@@ -182,13 +207,39 @@ describe('ServerController', () => {
             await expect(sut.getStatus()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
-        it('chains the original failure as the cause, which the global filter logs', async () => {
+        it('chains a DaemonUnreachableError as the cause, which the global filter reads', async () => {
+            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            const error = await sut.getStatus().catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBeInstanceOf(DaemonUnreachableError);
+        });
+
+        it('keeps the original failure behind the domain error, which the global filter logs', async () => {
             const original = new Error('ECONNREFUSED');
             mockServerService.getStatus.mockRejectedValue(original);
 
             const error = await sut.getStatus().catch((caught: unknown) => caught);
 
-            expect((error as Error).cause).toBe(original);
+            expect(((error as Error).cause as Error).cause).toBe(original);
+        });
+
+        it('publishes the DAEMON_UNREACHABLE code in the envelope the client receives', async () => {
+            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            const error = await sut.getStatus().catch((caught: unknown) => caught);
+
+            expect(envelopeOf(error).code).toBe('DAEMON_UNREACHABLE');
+        });
+
+        it('keeps the remediation message of the endpoint in that envelope', async () => {
+            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            const error = await sut.getStatus().catch((caught: unknown) => caught);
+
+            expect(envelopeOf(error).message).toBe(
+                'Could not reach the server Docker daemon. Verify the server is running and reachable.',
+            );
         });
     });
 
@@ -264,6 +315,14 @@ describe('ServerController', () => {
             mockServerService.pruneImages.mockRejectedValue('boom');
 
             await expect(sut.pruneImages()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('chains a DaemonUnreachableError as the cause, so the envelope carries its code', async () => {
+            mockServerService.pruneImages.mockRejectedValue(new Error('ECONNREFUSED'));
+
+            const error = await sut.pruneImages().catch((caught: unknown) => caught);
+
+            expect(envelopeOf(error).code).toBe('DAEMON_UNREACHABLE');
         });
     });
 

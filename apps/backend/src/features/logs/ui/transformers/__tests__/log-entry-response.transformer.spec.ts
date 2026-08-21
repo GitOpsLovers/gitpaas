@@ -83,6 +83,6 @@ describe('toLogEntryResponse', () => {
     it('never lets a date reach the answer', () => {
         const response = toLogEntryResponse(lineEntry());
 
-        expect(Object.values(response).some((value) => value instanceof Date)).toBe(false);
+        expect((Object.values(response) as unknown[]).some((value) => value instanceof Date)).toBe(false);
     });
 });

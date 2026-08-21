@@ -1,6 +1,7 @@
+import type { LogEvent } from '@gitpaas/contracts';
 import { Subscriber } from 'rxjs';
 
-import { LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent } from '../../domain/models/log-event.models';
+import { LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE } from '../../domain/models/log-event.models';
 import type { LogsRepository } from '../../domain/repositories/logs.repository';
 import { toLogEventFromEntry } from '../database/db-log-store.transformer';
 

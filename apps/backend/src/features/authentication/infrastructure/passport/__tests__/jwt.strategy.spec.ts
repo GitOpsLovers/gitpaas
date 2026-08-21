@@ -2,7 +2,11 @@ import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { validateJwtUserUseCase } from '../../../application/validate-jwt-user.use-case';
-import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
+import {
+    InvalidCredentialsError,
+    UnauthenticatedError,
+    UserInactiveError,
+} from '../../../domain/errors/authentication.errors';
 import { AccessTokenPayload } from '../../../domain/models/token-payloads.models';
 import { JwtStrategy } from '../jwt.strategy';
 
@@ -63,6 +67,23 @@ describe('JwtStrategy', () => {
         validateJwtUserUseCaseMock.mockRejectedValue(new UserInactiveError());
 
         await expect(strategy.validate(payload)).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('carries the UNAUTHENTICATED cause so the envelope publishes that code', async () => {
+        expect.assertions(2);
+
+        validateJwtUserUseCaseMock.mockRejectedValue(new UserInactiveError());
+
+        try {
+            await strategy.validate(payload);
+        } catch (error) {
+            const cause = (error as UnauthorizedException).cause;
+
+            // eslint-disable-next-line jest/no-conditional-expect
+            expect(cause).toBeInstanceOf(UnauthenticatedError);
+            // eslint-disable-next-line jest/no-conditional-expect
+            expect((cause as UnauthenticatedError).code).toBe('UNAUTHENTICATED');
+        }
     });
 
     it('rethrows unexpected errors unchanged', async () => {

@@ -1,6 +1,5 @@
+import type { LogStatus, StoredLogEvent } from '@gitpaas/contracts';
 import { IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
-
-import type { LogStatus, StoredLogEvent } from '../models/log-event.models';
 
 /**
  * Allowed log entry types, used to validate the create DTO.

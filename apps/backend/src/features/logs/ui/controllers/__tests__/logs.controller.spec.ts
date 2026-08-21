@@ -1,9 +1,10 @@
+import type { LogEvent } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 import { EMPTY, firstValueFrom, of, toArray } from 'rxjs';
 
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import {
-    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
+    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE,
 } from '../../../domain/models/log-event.models';
 import { LogsService } from '../../services/logs.service';
 import { LogEntryResponse } from '../../transformers/log-entry-response.transformer';

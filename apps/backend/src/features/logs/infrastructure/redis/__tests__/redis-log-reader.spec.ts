@@ -1,9 +1,10 @@
+import type { LogEvent } from '@gitpaas/contracts';
 import { firstValueFrom, Observable, Subscription, toArray } from 'rxjs';
 
 import { FakeRedis, FakeRedisConnection } from '../../../../../../test/fakes/fake-redis';
 import { LogEntry } from '../../../domain/models/log-entry.models';
 import {
-    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE, LogEvent,
+    LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE,
 } from '../../../domain/models/log-event.models';
 import type { LogsRepository } from '../../../domain/repositories/logs.repository';
 import { readLogStream } from '../redis-log-reader';

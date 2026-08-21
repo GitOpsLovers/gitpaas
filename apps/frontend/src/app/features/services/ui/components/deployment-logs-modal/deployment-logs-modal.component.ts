@@ -1,7 +1,7 @@
 import {
     afterRenderEffect, Component, effect, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
-import type { Deployment } from '@gitpaas/contracts';
+import type { Deployment, LogStatus } from '@gitpaas/contracts';
 import { LucideCheck, LucideCopy, LucideLoaderCircle, LucideX } from '@lucide/angular';
 
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
@@ -51,7 +51,7 @@ export class DeploymentLogsModalComponent {
 
     protected readonly streaming = signal(false);
 
-    protected readonly finalStatus = signal<'success' | 'failed' | null>(null);
+    protected readonly finalStatus = signal<LogStatus | null>(null);
 
     /**
      * Failure reported by an `error` event, or `null` while the stream is healthy.
@@ -95,6 +95,13 @@ export class DeploymentLogsModalComponent {
                         case 'error':
                             this.failure.set({ code: event.code, message: event.message });
                             this.streaming.set(false);
+
+                            return;
+                        default: {
+                            const unhandled: never = event;
+
+                            throw new Error(`Unhandled log event: ${JSON.stringify(unhandled)}`);
+                        }
                     }
                 },
                 error: () => { this.streaming.set(false); },

@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { validateJwtUserUseCase } from '../../application/validate-jwt-user.use-case';
-import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
+import { InvalidCredentialsError, UnauthenticatedError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { AccessTokenPayload } from '../../domain/models/token-payloads.models';
 
 import { User } from '@features/users/domain/models/user.models';
@@ -42,7 +42,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             return await validateJwtUserUseCase(this.usersRepository, payload.sub);
         } catch (error) {
             if (error instanceof InvalidCredentialsError || error instanceof UserInactiveError) {
-                throw new UnauthorizedException(error.message);
+                throw new UnauthorizedException(error.message, {
+                    cause: new UnauthenticatedError({ cause: error }),
+                });
             }
 
             throw error;

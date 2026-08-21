@@ -9,6 +9,7 @@ import { AuthenticationApiRepository } from '../../infrastructure/api/authentica
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
 
 import { environment } from '@environments/environment';
+import { readErrorPayloadUseCase } from '@features/server/application/read-error-payload.use-case';
 
 /**
  * Base URL of the backend API. Only requests to it carry the Bearer token.
@@ -16,8 +17,12 @@ import { environment } from '@environments/environment';
 const API_BASE_URL = environment.apiBaseUrl;
 
 /**
- * Prefix of the public authentication endpoints (login/refresh/logout), which
- * must never receive a Bearer header nor trigger a refresh-retry.
+ * Code the envelope of the API carries when the access token is missing, expired or invalid.
+ */
+const UNAUTHENTICATED_CODE = 'UNAUTHENTICATED';
+
+/**
+ * Prefix of the public authentication endpoints.
  */
 const AUTH_ENDPOINT_PREFIX = `${API_BASE_URL}/auth/`;
 
@@ -36,7 +41,7 @@ function withBearer(req: HttpRequest<unknown>, accessToken: string): HttpRequest
 /**
  * Attempts a single token refresh and retries the original request on success
  *
- * @param req Original (already authorised) request that received the 401
+ * @param req Original (already authorised) request whose answer carried `UNAUTHENTICATED`
  * @param next Next handler in the chain
  * @param tokenStorage Token storage service
  * @param authRepository Authentication API repository
@@ -78,11 +83,6 @@ function handleUnauthorised(
 /**
  * Functional HTTP interceptor handling authentication.
  *
- * Attaches `Authorization: Bearer <accessToken>` to API requests (except the
- * public auth endpoints). On a `401` for a protected request it attempts a
- * single token refresh and, on success, retries the original request with the
- * new token; on refresh failure it clears the session and redirects to sign-in.
- *
  * @param req Outgoing request
  * @param next Next handler in the chain
  *
@@ -96,7 +96,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const isApiRequest = req.url.startsWith(API_BASE_URL);
     const isAuthEndpoint = req.url.startsWith(AUTH_ENDPOINT_PREFIX);
 
-    // Auth endpoints and non-API traffic pass through untouched.
     if (!isApiRequest || isAuthEndpoint) {
         return next(req);
     }
@@ -106,7 +105,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
     return next(authorisedReq).pipe(
         catchError((error) => {
-            if (error instanceof HttpErrorResponse && error.status === 401) {
+            if (readErrorPayloadUseCase(error).code === UNAUTHENTICATED_CODE) {
                 return handleUnauthorised(authorisedReq, next, tokenStorage, authRepository, router);
             }
 
