@@ -1,0 +1,41 @@
+.claude/agents/architecture-analyst.md
+  s_6408eaec1b07a0::t_e17575e9877680 3,18-22
+.claude/agents/documenter.md
+  s_6408eaec1b07a0::t_8a2fffe4e380dd 3,26
+.claude/agents/git-manager.md
+  s_6408eaec1b07a0::t_564987845e1f15 3,20
+.claude/agents/implementer.md
+  s_6408eaec1b07a0::t_a8de89d631bdc1 3,18,40
+.claude/agents/refactorer.md
+  s_6408eaec1b07a0::t_fbbee5ed55db82 3,22
+.claude/agents/tester.md
+  s_6408eaec1b07a0::t_c910771489bd7b 3,40
+.claude/skills/agent-orchestration/SKILL.md
+  s_6408eaec1b07a0::t_88189437fc297c 1-124
+.claude/skills/git-github-workflow/SKILL.md
+  s_6408eaec1b07a0::t_9eee2d2ff2ff30 10
+.claude/skills/project-documentation/SKILL.md
+  s_6408eaec1b07a0::t_fe56ba91cdff17 10
+CLAUDE.md
+  s_6408eaec1b07a0::t_62a7dc907a5956 9-10,28,56,60,66
+docs/agent-rules.md
+  s_6408eaec1b07a0::t_0f5737efc1df25 1-76
+docs/improve-agents.md
+  s_6408eaec1b07a0::t_ceecca4e858b2c 46,51,54-56,59,62,64-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ae6e66142bd850cf182756b28c141286dbc268c3",
+  "prompts": {},
+  "sessions": {
+    "s_6408eaec1b07a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b1e7b6fe-7307-4e38-abf6-a45e2d20e317",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
