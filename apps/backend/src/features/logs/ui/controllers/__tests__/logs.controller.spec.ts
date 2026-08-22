@@ -1,13 +1,14 @@
-import type { LogEvent } from '@gitpaas/contracts';
+import type { ArchivedLogEntry, LogEvent } from '@gitpaas/contracts';
+import { ParseUUIDPipe } from '@nestjs/common';
+import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 import { EMPTY, firstValueFrom, of, toArray } from 'rxjs';
 
-import { LogEntry } from '../../../domain/models/log-entry.models';
+import { LogArchive, LogEntry } from '../../../domain/models/log-entry.models';
 import {
     LOG_STREAM_UNAVAILABLE_CODE, LOG_STREAM_UNAVAILABLE_MESSAGE,
 } from '../../../domain/models/log-event.models';
 import { LogsService } from '../../services/logs.service';
-import { LogEntryResponse } from '../../transformers/log-entry-response.transformer';
 import { LogsController } from '../logs.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -23,13 +24,41 @@ const entry: LogEntry = {
     type: 'line',
     data: 'building…',
 };
-const entryResponse: LogEntryResponse = {
+const entryResponse: ArchivedLogEntry = {
     id: logId,
     deploymentId,
     seq: 1,
     createdAt: createdAt.toISOString(),
     type: 'line',
     data: 'building…',
+};
+const archive = (state: LogArchive['state'], entries: LogEntry[]): LogArchive => ({ state, entries });
+
+/**
+ * Shape of a single entry of the route-argument metadata NestJS stores per handler.
+ */
+interface RouteArgMetadata {
+    index: number;
+    data: unknown;
+    pipes: unknown[];
+}
+
+/**
+ * Reads the pipes the controller declares for one bound argument of a handler.
+ *
+ * The pipes themselves are framework mechanics that the unit specs never run, so
+ * this reads the declaration instead: dropping a pipe would let an unchecked
+ * value reach the service, and must fail a test.
+ */
+const pipesFor = (handler: string, parameter?: string): unknown[] => {
+    // eslint-disable-next-line operator-linebreak
+    const metadata =
+        (Reflect.getMetadata(ROUTE_ARGS_METADATA, LogsController, handler) as Record<
+            string,
+            RouteArgMetadata
+        >) ?? {};
+
+    return Object.values(metadata).find((argument) => argument.data === parameter)?.pipes ?? [];
 };
 
 describe('LogsController', () => {
@@ -52,21 +81,27 @@ describe('LogsController', () => {
         sut = moduleRef.get(LogsController);
     });
 
+    describe('parameter validation', () => {
+        it('validates the deploymentId query parameter of getAllByDeployment as a UUID', () => {
+            expect(pipesFor('getAllByDeployment', 'deploymentId')).toContain(ParseUUIDPipe);
+        });
+    });
+
     describe('getAllByDeployment', () => {
         it('delegates to the service with the received deployment id', async () => {
-            mockLogsService.getAllByDeployment.mockResolvedValue([entry]);
+            mockLogsService.getAllByDeployment.mockResolvedValue(archive('available', [entry]));
 
             const result = await sut.getAllByDeployment(deploymentId);
 
             expect(mockLogsService.getAllByDeployment).toHaveBeenCalledTimes(1);
             expect(mockLogsService.getAllByDeployment).toHaveBeenCalledWith(deploymentId);
-            expect(result).toEqual([entryResponse]);
+            expect(result).toEqual({ state: 'available', entries: [entryResponse] });
         });
 
         it('gives each timestamp of the answer as a text of the ISO form', async () => {
-            mockLogsService.getAllByDeployment.mockResolvedValue([entry]);
+            mockLogsService.getAllByDeployment.mockResolvedValue(archive('available', [entry]));
 
-            const [first] = await sut.getAllByDeployment(deploymentId);
+            const [first] = (await sut.getAllByDeployment(deploymentId)).entries;
 
             expect(typeof first.createdAt).toBe('string');
             expect(first.createdAt).toBe(createdAt.toISOString());
@@ -81,11 +116,11 @@ describe('LogsController', () => {
                 type: 'end',
                 status: 'failed',
             };
-            mockLogsService.getAllByDeployment.mockResolvedValue([entry, endEntry]);
+            mockLogsService.getAllByDeployment.mockResolvedValue(archive('available', [entry, endEntry]));
 
             const result = await sut.getAllByDeployment(deploymentId);
 
-            expect(result).toEqual([
+            expect(result.entries).toEqual([
                 entryResponse,
                 {
                     id: 'a1b2c3d4-0000-0000-0000-000000000001',
@@ -98,10 +133,16 @@ describe('LogsController', () => {
             ]);
         });
 
-        it('returns an empty list when the deployment has no entry', async () => {
-            mockLogsService.getAllByDeployment.mockResolvedValue([]);
+        it('says the run has not ended yet for a deployment that still runs', async () => {
+            mockLogsService.getAllByDeployment.mockResolvedValue(archive('running', []));
 
-            await expect(sut.getAllByDeployment(deploymentId)).resolves.toEqual([]);
+            await expect(sut.getAllByDeployment(deploymentId)).resolves.toEqual({ state: 'running', entries: [] });
+        });
+
+        it('says the output went away for a deployment whose run ended before the age', async () => {
+            mockLogsService.getAllByDeployment.mockResolvedValue(archive('expired', []));
+
+            await expect(sut.getAllByDeployment(deploymentId)).resolves.toEqual({ state: 'expired', entries: [] });
         });
     });
 
@@ -152,7 +193,7 @@ describe('LogsController', () => {
 
     describe('telemetry event enrichment', () => {
         it('adds the deployment id of a listing', async () => {
-            mockLogsService.getAllByDeployment.mockResolvedValue([entry]);
+            mockLogsService.getAllByDeployment.mockResolvedValue(archive('available', [entry]));
 
             const event = await runWithTelemetry({}, async () => {
                 await sut.getAllByDeployment(deploymentId);

@@ -19,9 +19,9 @@
 
 ## 3. The three cases of the durable list
 
-- [ ] 3.1 Separate the three cases in the answer of `GET /api/v1/logs`: the output is available, the run has not ended, and the output went away because of its age.
-- [ ] 3.2 Read the state and the date of the end of the deployment to tell the second case from the third.
-- [ ] 3.3 Update the spec of the endpoint for the three cases.
+- [x] 3.1 Separate the three cases in the answer of `GET /api/v1/logs`: the output is available, the run has not ended, and the output went away because of its age.
+- [x] 3.2 Read the state and the date of the end of the deployment to tell the second case from the third.
+- [x] 3.3 Update the spec of the endpoint for the three cases.
 
 ## 4. The screen of the server
 

@@ -1,5 +1,5 @@
-import { LogEntry } from '../../../domain/models/log-entry.models';
-import { toLogEntryResponse } from '../log-entry-response.transformer';
+import { LogArchive, LogEntry } from '../../../domain/models/log-entry.models';
+import { toLogArchiveResponse, toLogEntryResponse } from '../log-entry-response.transformer';
 
 const createdAt = new Date('2026-07-11T00:00:00.000Z');
 
@@ -84,5 +84,31 @@ describe('toLogEntryResponse', () => {
         const response = toLogEntryResponse(lineEntry());
 
         expect((Object.values(response) as unknown[]).some((value) => value instanceof Date)).toBe(false);
+    });
+});
+
+describe('toLogArchiveResponse', () => {
+    const archive = (state: LogArchive['state'], entries: LogEntry[]): LogArchive => ({ state, entries });
+
+    it('maps every entry of an archive that holds output', () => {
+        expect(toLogArchiveResponse(archive('available', [lineEntry()]))).toEqual({
+            state: 'available',
+            entries: [{
+                id: 'a1b2c3d4-0000-0000-0000-000000000000',
+                deploymentId: 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b',
+                seq: 1,
+                createdAt: '2026-07-11T00:00:00.000Z',
+                type: 'line',
+                data: 'building…',
+            }],
+        });
+    });
+
+    it('keeps the state of a run that has not ended, with an empty list', () => {
+        expect(toLogArchiveResponse(archive('running', []))).toEqual({ state: 'running', entries: [] });
+    });
+
+    it('keeps the state of an output that went away, with an empty list', () => {
+        expect(toLogArchiveResponse(archive('expired', []))).toEqual({ state: 'expired', entries: [] });
     });
 });

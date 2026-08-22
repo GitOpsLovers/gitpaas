@@ -1,3 +1,4 @@
+import type { DeploymentLogArchive } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Controller, Get, MessageEvent, Param, ParseUUIDPipe, Query, Sse,
@@ -6,7 +7,7 @@ import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { map, Observable } from 'rxjs';
 
 import { LogsService } from '../services/logs.service';
-import { LogEntryResponse, toLogEntryResponse } from '../transformers/log-entry-response.transformer';
+import { toLogArchiveResponse } from '../transformers/log-entry-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
@@ -18,19 +19,19 @@ export class LogsController {
     constructor(private readonly service: LogsService) {}
 
     /**
-     * Get every persisted log entry of a deployment
+     * Get every persisted log entry of a deployment, with the reason an empty list is empty
      *
      * @param deploymentId Deployment identifier
      *
-     * @returns Ordered log entries of the deployment
+     * @returns Ordered log entries of the deployment, and the state of its archive
      */
     @Get()
-    public async getAllByDeployment(@Query('deploymentId', ParseUUIDPipe) deploymentId: string): Promise<LogEntryResponse[]> {
+    public async getAllByDeployment(@Query('deploymentId', ParseUUIDPipe) deploymentId: string): Promise<DeploymentLogArchive> {
         enrichTelemetry({ 'deployment.id': deploymentId });
 
-        const entries = await this.service.getAllByDeployment(deploymentId);
+        const archive = await this.service.getAllByDeployment(deploymentId);
 
-        return entries.map(toLogEntryResponse);
+        return toLogArchiveResponse(archive);
     }
 
     /**
