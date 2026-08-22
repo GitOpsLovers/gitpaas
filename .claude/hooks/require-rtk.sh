@@ -19,7 +19,8 @@ wrapped='git|gh|glab|pnpm|npm|npx|node|nest|ng|turbo|tsc|jest|vitest|playwright|
 offender=""
 # Read each segment of a compound command.
 while IFS= read -r segment || [ -n "$segment" ]; do
-  # Drop the leading blanks, the environment assignments and the `sudo`.
+  # A command substitution opens its own segment, so `x=$(rtk git ...)` reads as `rtk git ...`.
+  # Drop the leading blanks, the assignments and the `sudo`.
   segment=$(printf '%s' "$segment" | sed -E 's/^[[:space:]]+//; s/^([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]+[[:space:]]+)+//; s/^sudo[[:space:]]+//')
   first=${segment%%[[:space:]]*}
   case "$first" in
@@ -29,7 +30,7 @@ while IFS= read -r segment || [ -n "$segment" ]; do
     offender="$first"
     break
   fi
-done < <(printf '%s' "$cmd" | tr '\n;|&' '\n\n\n\n')
+done < <(printf '%s' "$cmd" | sed -E 's/\$\(/\n/g; s/`/\n/g' | tr '\n;|&' '\n\n\n\n')
 
 [ -z "$offender" ] && exit 0
 
