@@ -1,0 +1,14 @@
+openspec/changes/log-retention/tasks.md
+  h_e4f33aa49027b9 53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "86247c52c705d24f4db2fa8f8645a3b33e77c56a",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
