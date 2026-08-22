@@ -1,6 +1,13 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { OrphanRemovalResult, PruneResult, ReadinessResult, ServerStatus } from '@gitpaas/contracts';
+import type {
+    OrphanRemovalResult,
+    PlatformSettings,
+    PruneResult,
+    ReadinessResult,
+    ServerStatus,
+    UpdatePlatformSettingsDto,
+} from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -73,5 +80,25 @@ export class ServerApiRepository {
      */
     public removeOrphanedContainers(): Observable<OrphanRemovalResult> {
         return this.http.post<OrphanRemovalResult>(`${this.url}/containers/orphaned`, {});
+    }
+
+    /**
+     * Resource with the parameters of the deployment system that the operator sets.
+     *
+     * @returns Resource that resolves to the parameters of the platform
+     */
+    public settings() {
+        return httpResource<PlatformSettings>(() => `${this.url}/settings`);
+    }
+
+    /**
+     * Writes the parameters of the deployment system.
+     *
+     * @param updateDto Parameters to keep
+     *
+     * @returns Parameters the system keeps
+     */
+    public updateSettings(updateDto: UpdatePlatformSettingsDto): Observable<PlatformSettings> {
+        return this.http.put<PlatformSettings>(`${this.url}/settings`, updateDto);
     }
 }

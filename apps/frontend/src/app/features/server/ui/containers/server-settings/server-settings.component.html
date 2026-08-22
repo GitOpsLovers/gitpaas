@@ -1,0 +1,35 @@
+<app-component-card
+    title="Settings"
+    desc="Parameters of the deployment system. A change applies to the next run of the cleanup."
+>
+    @if (loadFailed()) {
+        <p class="text-sm text-error-500">Could not load the settings. Is the backend running?</p>
+    } @else if (settings.isLoading()) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+    } @else {
+        <form class="space-y-6" (submit)="save($event)">
+            <div class="max-w-xs">
+                <app-label for="log-retention-days">Log retention (days)</app-label>
+                <app-input-field
+                    id="log-retention-days"
+                    name="log-retention-days"
+                    type="number"
+                    [min]="minDays.toString()"
+                    [max]="maxDays.toString()"
+                    [step]="1"
+                    [value]="logRetentionDays() ?? ''"
+                    [error]="boundsError() !== null"
+                    [hint]="boundsError() ?? 'Between ' + minDays + ' and ' + maxDays + ' days.'"
+                    (valueChange)="onLogRetentionDaysChange($event)"
+                />
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    The output of a deployment goes away once it passes this age. It does not come back.
+                </p>
+            </div>
+
+            <app-button type="submit" [disabled]="saving() || boundsError() !== null">
+                {{ saving() ? 'Saving…' : 'Save' }}
+            </app-button>
+        </form>
+    }
+</app-component-card>
