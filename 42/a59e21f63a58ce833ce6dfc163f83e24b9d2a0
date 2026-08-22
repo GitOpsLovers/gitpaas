@@ -1,0 +1,62 @@
+apps/backend/src/features/logs/ui/services/__tests__/logs.service.spec.ts
+  s_1db4863ee1985d::t_709060e0554667 6,12,28,32,40,47,56-57,62-67,70-71,73-77,79,113,125,161,163
+apps/backend/src/features/logs/ui/controllers/__tests__/logs.controller.spec.ts
+  s_17b799f77823f2::t_507118b8c8c36c 1-3,7,27,35-62,84-89,92,98,102,104,119,123,136-143,145,196
+apps/backend/src/features/logs/ui/services/logs.service.ts
+  s_1db4863ee1985d::t_88e0ad88d7a158 6,13-14,26-27,31,35,37-38,40,42
+apps/backend/src/features/logs/application/get-logs-by-deployment.use-case.ts
+  s_ef890338302b96::t_bc518fc7094586 1,4-7,9-11,13-27,30,32-45
+apps/backend/src/features/logs/ui/controllers/logs.controller.ts
+  s_1db4863ee1985d::t_cefb4d11e63d63 1,10,22,26,29,32,34
+apps/backend/src/features/logs/ui/transformers/__tests__/log-entry-response.transformer.spec.ts
+  s_1db4863ee1985d::t_296f7473c9d997 1-2,89-114
+apps/backend/src/features/logs/application/__tests__/get-logs-by-deployment.use-case.spec.ts
+  s_ef890338302b96::t_401b32dc64bb31 5-7,10-33,36-42,49-51,54-55,57,59,63-129,133-141
+packages/contracts/src/logs/__tests__/log-archive.contract.spec.ts
+  s_17b799f77823f2::t_90735bbf285b60 2-98
+  s_17b799f77823f2::t_7da1080e636ba3 1
+packages/contracts/src/logs/log-archive.contract.ts
+  s_ef890338302b96::t_e5eb46a7b8f7df 1-49
+packages/contracts/src/index.ts
+  s_1db4863ee1985d::t_078a11c9b13a0a 92-97
+apps/backend/src/features/logs/logs.module.ts
+  s_1db4863ee1985d::t_ee0d7fd9bfa73e 11-12,20,25
+apps/backend/src/features/logs/domain/models/log-entry.models.ts
+  s_1db4863ee1985d::t_19255fd5dfe290 1,12-19
+openspec/changes/log-retention/tasks.md
+  s_1db4863ee1985d::t_4a88922adb9b80 22-24
+apps/backend/src/features/logs/ui/transformers/log-entry-response.transformer.ts
+  s_ef890338302b96::t_026b029a6e44a1 1-4,6,27-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "42a59e21f63a58ce833ce6dfc163f83e24b9d2a0",
+  "prompts": {},
+  "sessions": {
+    "s_17b799f77823f2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7e7e7660fca65e6d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_1db4863ee1985d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "56b9af56-5f58-496a-8d2b-99f9ef711c97",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ef890338302b96": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4c7c1768ee05b441",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
