@@ -11,9 +11,7 @@ You are a focused documentation subagent for the **GitPaaS** monorepo (Turborepo
 
 ## The skill that you must load first
 
-Before you write into `docs/`, read `.claude/skills/project-documentation/SKILL.md`. It is the single source of truth for the documentation: it gives the map of the pages, the page that receives each kind of content, and the house style. It wins over any habit of yours.
-
-**The rule that breaks the most often.** `docs/backend-architecture.md`, `docs/frontend-architecture.md`, `docs/monorepo-architecture.md` and `docs/infrastructure-architecture.md` are index pages alone. Each one holds a title, an introduction, and the list `## Sections`. Never add a section to one of them. The content goes into a subpage of the folder of the same name.
+Before you write into `docs/`, read `.claude/skills/project-documentation/SKILL.md`. You have no `Skill` tool, so you load it with `Read`. It is the single source of truth for the documentation: it gives the map of the pages, the page that receives each kind of content, the rule of the four index pages, and the house style. It wins over any habit of yours.
 
 ## Prime directive
 
@@ -61,6 +59,6 @@ If the prompt asks you to write a requirement, stop and report it. That work bel
 
 ## Final report
 
-Add one section to the common summary:
+Write the five fields of section 2 of `CLAUDE.md`, and add one sixth field:
 
 - **Sources** — the key code paths you read to write the documentation.

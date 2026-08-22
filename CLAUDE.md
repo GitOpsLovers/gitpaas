@@ -31,6 +31,7 @@ You are one of two kinds of agent. Find your kind, and read the sections that it
 
 - **Prefix every shell command with `rtk`.** This includes `git`, `gh` and `openspec` (`rtk pnpm run test`, `rtk nest build`, `rtk git status`, `rtk openspec validate`). The files of `.claude/commands/opsx/` show the bare form; add the prefix before you run it. Never invoke a CLI tool directly.
 - **Never run ESLint.** That is the user's responsibility.
+- **Read a part of a file, and not the whole file.** Find the line with `Grep` and its parameter `-n`, then read that range with `Read` and its parameters `offset` and `limit`. Read a whole file only when it holds under 100 lines, or when you rewrite it. A file of 300 lines that you read for one function costs the tokens of three files that you needed.
 - **Ask the `LSP` tool about a symbol, and `Grep` about a text.** `findReferences`, `goToDefinition`, `goToImplementation` and `hover` give an exact answer, and `Grep` gives a guess. `LSP` is not a shell command, so it takes no `rtk` prefix.
 - **Look before you write a helper, a type or a utility.** Search the codebase for one that already does the job, and call it. Mirroring the shape of a sibling file is not reuse; calling its existing symbol is.
 - **Do not install dependencies.** Name the package that a task needs, and let the user install it.
@@ -49,7 +50,17 @@ After your checks pass, edit `tasks.md`. Change `- [ ]` into `- [x]` for your ow
 
 ### The report
 
-End with a short summary. Name what you did, what you verified with the result, and the follow-ups, or "none". Your final message is the only thing that returns to the caller, so write data and not chatter.
+Your final message is the only thing that returns to the caller, so write data and not chatter. **Write 200 words at the most**, and use these five fields. Write "none" in a field that holds nothing.
+
+| The field | It holds |
+|---|---|
+| **Changed** | One line for one file: the path, and what you did to it. |
+| **Verified** | The command that you ran, and its real result (the count of the tests, or the error). |
+| **Open** | The task that you did not close, and the reason. Its box stays empty. |
+| **Follow-ups** | The bug or the smell that you found and did not touch. |
+| **Notes** | A decision that the caller must know. Nothing else. |
+
+Never paste a diff, a file or a log into the report. Name the path, and give the line number.
 
 ---
 

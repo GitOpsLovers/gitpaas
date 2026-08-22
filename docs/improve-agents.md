@@ -97,33 +97,38 @@ three or four times.
 
 ## D. Make the delegation exact
 
-- [ ] **D1. Write the template of the prompt of a delegation.** Section 4 of `CLAUDE.md` gives the
+- [x] **D1. Write the template of the prompt of a delegation.** Section 4 of `CLAUDE.md` gives the
       four parts of a prompt: the goal, the scope, the paths and the acceptance criteria. Add the
       template itself, so every call has the same shape.
-- [ ] **D2. Give a budget to the report of a subagent.** The report is the only thing that returns to
+- [x] **D2. Give a budget to the report of a subagent.** The report is the only thing that returns to
       the orchestrator. Set the limit at 200 words, and give the five fields: what changed, the paths,
       the result of the checks, the tasks that stay open, and the follow-ups.
-- [ ] **D3. Separate the test work of `implementer` from the work of `tester`.** Step 6 runs `tester`
+- [x] **D3. Separate the test work of `implementer` from the work of `tester`.** Step 6 runs `tester`
       one time for the phase, and `implementer` already writes the tests of its own section. Write
       which cases belong to each, so the two agents write no test two times.
-- [ ] **D4. Add the rule of the failed delegation.** Today no rule says what the orchestrator does
+- [x] **D4. Add the rule of the failed delegation.** Today no rule says what the orchestrator does
       when a subagent reports a block. Write it: read the report, and delegate the remainder; never
       repeat the same prompt.
 
 ## E. Cut the cost of the work of an agent
 
-- [ ] **E1. Add a rule about how to read a file.** An agent reads a whole file too often. Write the
+- [x] **E1. Add a rule about how to read a file.** An agent reads a whole file too often. Write the
       rule: find the line with `Grep -n`, then read that range with `Read` and its parameters
       `offset` and `limit`. Read a whole file only if it holds under 100 lines.
-- [ ] **E2. Add a hook that checks the `rtk` prefix.** A `PreToolUse` hook on `Bash` refuses a command
+- [x] **E2. Add a hook that checks the `rtk` prefix.** A `PreToolUse` hook on `Bash` refuses a command
       with no prefix. The agent then loses no turn on the correction. Use the skill `update-config`
-      to write it in `.claude/settings.json`.
-- [ ] **E3. Reduce the prompts for a permission.** Run the skill `fewer-permission-prompts`, and merge
+      to write it in `.claude/settings.json`. **Done:** `.claude/hooks/require-rtk.sh` denies a bare
+      call of one of 25 wrapped tools, and it stays silent for a plain file utility. It fires; a bare
+      `git status` returns the message of the refusal.
+- [x] **E3. Reduce the prompts for a permission.** Run the skill `fewer-permission-prompts`, and merge
       the result of `.claude/settings.local.json` into `.claude/settings.json`. Each prompt costs a
-      turn.
-- [ ] **E4. Give `architecture-analyst` a scope by default.** The agent reads two applications when
+      turn. **Done:** the scan of 50 transcripts showed that the project allowlist already covers the
+      frequent calls (`rtk git *`, `rtk pnpm *`, `rtk openspec *`). I added 12 read-only entries.
+      I promoted no entry that mutates (`rtk rm`, `rtk mv`, `rtk mkdir`), and no bare `git`, because
+      the hook of E2 refuses it.
+- [x] **E4. Give `architecture-analyst` a scope by default.** The agent reads two applications when
       the prompt names no scope. Ask for one application, or for one feature, in every call.
-- [ ] **E5. State the limit of `documenter` on the four index pages.** The file already holds the rule.
+- [x] **E5. State the limit of `documenter` on the four index pages.** The file already holds the rule.
       Move it into the skill `project-documentation`, so one file holds it.
 
 ## F. Measure the result

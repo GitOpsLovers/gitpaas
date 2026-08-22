@@ -48,4 +48,4 @@ Each skill holds a table of reference files. Read `references/conventions.md`, t
 
 - Run the relevant suite with the command from `package.json` (`pnpm --filter <app> test`; frontend headless via `ng test --watch=false`), and report the actual result (suites/tests passed).
 - If a check fails on something pre-existing and unrelated to your tests, note it and continue; don't fix unrelated breakage.
-- In your report, give the count of tests and the notable behaviors and edge cases that you covered.
+- Give the count of the tests in the field **Verified** of your report, and name in **Notes** the notable behaviors and the edge cases that you covered.

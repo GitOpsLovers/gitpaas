@@ -111,6 +111,7 @@ The description of each subagent states its own triggers, and those descriptions
 - **Split a group for a real reason alone.** Two groups touch the same file, or the second group needs the report of the first. Two groups that touch different areas run in parallel, in one message.
 - **A test task inside a numbered section stays in the group of that section.** A line such as "Write the unit tests of that comparison" belongs to the agent that builds the behavior of that section. Do not split a section to send one line to `tester`.
 - **Dedicated test work goes to `tester`.** Route to `tester` when a test is the request itself. The `implementer` still writes the tests for the behavior that it changes.
+- **The border between the two.** `implementer` writes the test of the unit that it builds: the use case, the service, the controller, the repository. It runs that suite, and it reports the count. `tester` writes the test of the scenario of the specification: it reads the `#### Scenario:` lines of the delta, and it covers a case that no unit test of the phase covers. Name that border in both prompts, so the two agents write no test two times. If a scenario already has its test from the phase, `tester` says so in its report, and it writes none.
 - **When a request spans more than one type, split it, and order the parts.** Usually `implementer`, then `tester`, then `documenter`. Read each report before you launch the next part.
 
 ### How to write the prompt
@@ -119,8 +120,51 @@ The description of each subagent states its own triggers, and those descriptions
 - **Name the change folder.** If the task belongs to an OpenSpec change, the prompt names `openspec/changes/<change-id>/`. The subagent reads the three files itself, so the prompt stays short.
 - **Give the goal, the scope, the paths and the acceptance criteria, and nothing more.** A subagent never sees this conversation.
 
+**The template.** Every prompt takes this shape. Leave out a line that holds nothing; add no line.
+
+```text
+Change: openspec/changes/<change-id>/          (leave out if the task carries no change)
+Phase:  <n> — <the subject of the section>     (leave out if the task carries no phase)
+
+Goal
+<One sentence. What the code must do after your work.>
+
+Tasks
+<n>.1 <the line of tasks.md, copied>
+<n>.2 <the line of tasks.md, copied>
+
+Paths
+<the files or the folders that you may change>
+
+Out of scope
+<the neighbouring area that you must not touch, if one exists>
+
+Done when
+- <the check that proves the work, with the command that runs it>
+- You marked your own boxes in tasks.md.
+```
+
+The lines of the tasks are the one thing that you copy. Everything else in the change folder stays a
+path, because the subagent reads the folder itself.
+
 ### When you may act alone
 
 - **Delegate the work; do not do it inline.** Anything that reads or changes the codebase goes to a subagent.
 - **The floor of the delegation.** A cold start loads more text than a small edit holds. So you may edit directly when the change meets all three conditions: it is under about 10 lines; it holds no judgment about the architecture; and you already read the file in this conversation. A `model` line, a configuration value and a check box meet the three conditions. Prose that states a rule does not, and product code never does.
 - **Never run a `git` or `gh` command that changes state.** `git-manager` owns those.
+
+### When a subagent reports a block
+
+A subagent stops and reports. It does not guess. Read the report, and take one of these four roads.
+**Never send the same prompt again.** A cold start with the same text gives the same block, and it
+costs the same tokens.
+
+| The report says | You do |
+|---|---|
+| A task is unclear, or it holds two readings | Ask the user the one question. Then delegate again, with the answer inside the prompt. |
+| A task needs a decision about the architecture | Ask the user. If the decision changes the plan, run `/opsx:update` before you delegate again. |
+| The specification and the code disagree | Stop the phase. The plan is wrong, and the code is not. Run `/opsx:update`. |
+| A package is missing | Name the package to the user, and wait. No agent installs a dependency. |
+
+A task that stays open keeps an empty box in `tasks.md`. Deliver every other task of the phase, and
+name the open box to the user. Never mark a box that a subagent did not close.
