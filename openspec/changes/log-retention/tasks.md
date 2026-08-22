@@ -37,12 +37,12 @@ Paths: apps/backend/src/features/logs/, packages/contracts/
 Agent: implementer
 Paths: apps/frontend/src/app/features/server/, apps/frontend/src/app/pages/server/
 
-- [ ] 4.1 Change the route of the page: `/server` sends the browser to `/server/health`, and `/server/:tab` serves the page.
-- [ ] 4.2 Show the three tabs with the component `@shared/components/tabs`: Health, Maintenance and Settings. An unknown tab reads as Health.
-- [ ] 4.3 Move the panel of the health into the tab Health, and the four actions of Docker into the tab Maintenance.
-- [ ] 4.4 Build the tab Settings: the form of the age in days, its limits next to the field, and the message of the result of the save.
-- [ ] 4.5 Read the settings when the tab opens, and write them when the user saves.
-- [ ] 4.6 Create the specs of the container of the settings and of the choice of the tab.
+- [x] 4.1 Change the route of the page: `/server` sends the browser to `/server/health`, and `/server/:tab` serves the page.
+- [x] 4.2 Show the three tabs with the component `@shared/components/tabs`: Health, Maintenance and Settings. An unknown tab reads as Health.
+- [x] 4.3 Move the panel of the health into the tab Health, and the four actions of Docker into the tab Maintenance.
+- [x] 4.4 Build the tab Settings: the form of the age in days, its limits next to the field, and the message of the result of the save.
+- [x] 4.5 Read the settings when the tab opens, and write them when the user saves.
+- [x] 4.6 Create the specs of the container of the settings and of the choice of the tab.
 
 ## 5. Phase 5 — The window of the output
 

@@ -1,0 +1,19 @@
+<app-breadcrumb [items]="breadcrumb" />
+
+<app-tabs [tabs]="tabs" [activeId]="activeTab()" (activeIdChange)="changeTab($any($event))" />
+
+<div class="mt-6">
+    @switch (activeTab()) {
+        @case ('health') {
+            <app-server-health />
+        }
+
+        @case ('maintenance') {
+            <app-server-maintenance />
+        }
+
+        @case ('settings') {
+            <app-server-settings />
+        }
+    }
+</div>

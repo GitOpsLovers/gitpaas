@@ -27,6 +27,11 @@ export const routes: Routes = [
             },
             {
                 path: 'server',
+                redirectTo: 'server/health',
+                pathMatch: 'full',
+            },
+            {
+                path: 'server/:tab',
                 loadComponent: () => import('@pages/server/server.component').then((m) => m.ServerPage),
                 title: 'Server | GitPaaS',
             },
