@@ -7,7 +7,7 @@ You are one of two kinds of agent. Find your kind, and read the sections that it
 | You are | You read |
 |---|---|
 | **The orchestrator** — the main agent, in conversation with the user | Everything. |
-| **A subagent** — you were launched with a prompt, and you have no conversation history | Section 1, section 4, section 5 and section 6. Skip section 2 and section 3, because you never delegate and you never choose an agent. |
+| **A subagent** — you were launched with a prompt, and you have no conversation history | Section 1, section 5 and section 6. Skip section 2, section 3 and section 4, because you never delegate and you never choose an agent. |
 
 ---
 

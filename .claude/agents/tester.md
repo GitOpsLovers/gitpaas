@@ -27,12 +27,17 @@ If the prompt names no change folder, skip this section, and derive the cases fr
 
 ## Use the project's testing skills
 
-Before writing backend tests, consult the repo's testing skills (`backend-testing` / `backend-unit-testing`) so your specs match the established conventions for file placement, structure, mocking, and assertions. Always read one or two existing sibling specs first and mirror them.
+You have no `Skill` tool, so you load a skill with `Read`. Before you write a spec, read the skill of the application that you test:
+
+- Backend: `.claude/skills/backend-unit-testing/SKILL.md`
+- Frontend: `.claude/skills/frontend-unit-testing/SKILL.md`
+
+Each skill holds a table of reference files. Read `references/conventions.md`, then read the one reference file for your type of subject. Do not read the whole folder. Always read one or two existing sibling specs first, and mirror them.
 
 ## Conventions you must follow
 
 - **Backend (Jest):** the testable seams are `application/` use cases (pure functions with mocked repository **ports**), `ui/` services and controllers, and `infrastructure/` repositories and transformers. Specs live in a sibling `__tests__/` directory named `*.spec.ts`, mirroring the existing layout. Mock at the port/dependency boundary; don't hit a real DB or external API.
-- **Frontend (Vitest):** run headless with `ng test --watch=false`. Follow the existing spec style if specs exist for the area; component files are `.component.ts` / `.component.html`.
+- **Frontend (Vitest):** the Angular builder `@angular/build:unit-test` drives Vitest in a `jsdom` environment. Run it headless with `ng test --watch=false`. Follow the existing spec style if specs exist for the area; component files are `.component.ts` / `.component.html`.
 - **Assert on mapped output, not identity, where the code returns copies** — e.g. infrastructure repositories/transformers return domain models, so assert `toEqual(domainModel)`, reserving `toBe(...)` for the deliberate write-path exceptions the code documents.
 - Read the backend path aliases in `docs/backend-architecture/conventions.md`, at the section "Imports". Read the frontend path aliases in `docs/frontend-architecture/conventions.md`, at the section "Path aliases". Use these aliases in the specs.
 - Read the layers in `docs/backend-architecture/structure.md` and in `docs/frontend-architecture/structure.md`. Depend inward only. `domain/` must not import `infrastructure/` or `ui/`. `core/` must never import a feature.

@@ -49,7 +49,7 @@ Read the layers of the backend in `docs/backend-architecture/structure.md`. Read
 
 ## Tests
 
-- Whenever you change behavior, add or update tests for the affected app, following the existing style. Backend uses **Jest**; the testable seam is the `application/` use cases (pure functions with mocked repository ports) plus services/controllers — mirror the existing `__tests__` specs.
+- Whenever you change behavior, add or update tests for the affected app, following the existing style. The backend uses **Jest**, and the frontend uses **Vitest**. On the backend the testable seam is the `application/` use cases (pure functions with mocked repository ports) plus services/controllers — mirror the existing `__tests__` specs.
 - If the frontend area has no specs (it currently may not), rely on the build/type-check for that part and say so.
 
 ## Verifying your change
@@ -57,7 +57,7 @@ Read the layers of the backend in `docs/backend-architecture/structure.md`. Read
 Run the cheapest sufficient checks for what you touched, and report the actual result:
 
 - Type-check / build the affected app (`nest build` for backend, `ng build` for frontend), and
-- Run the relevant tests (`pnpm --filter <app> test`; frontend Jest/Vitest runs headless with `ng test --watch=false`).
+- Run the relevant tests (`pnpm --filter <app> test`; the frontend runs Vitest headless with `ng test --watch=false`).
 
 If a check fails on something pre-existing and unrelated to your change, note it and continue; don't fix unrelated breakage.
 
