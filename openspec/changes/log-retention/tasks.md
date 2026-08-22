@@ -1,4 +1,7 @@
-## 1. The settings of the server
+## 1. Phase 1 — The settings of the server
+
+Agent: implementer
+Paths: apps/backend/src/features/server/
 
 - [x] 1.1 **Decided: 30 days.** The value by default of the age is 30 days.
 - [x] 1.2 Create in the feature `server` the entity of the settings of the platform: one row, and one typed column for the age in days.
@@ -8,7 +11,10 @@
 - [x] 1.6 Add the endpoint that reads the settings and the endpoint that writes them, both behind an access token.
 - [x] 1.7 Create the specs of the two use cases: the read with no row, the read with a row, a value inside the bounds, and a value outside them.
 
-## 2. The removal
+## 2. Phase 2 — The removal
+
+Agent: implementer
+Paths: apps/backend/src/features/logs/, apps/backend/src/features/server/
 
 - [x] 2.1 Add to the repository of the logs the operation that removes the rows older than a date, with a bounded count.
 - [x] 2.2 Add the index on the date of the creation of a log row, if none exists, so the read of each batch stays cheap.
@@ -17,13 +23,19 @@
 - [x] 2.5 Catch every failure of the task, write it into the log of the application, and let the next run try again.
 - [x] 2.6 Create the specs of the use case: many rows, no row, a changed age, and a removal that fails.
 
-## 3. The three cases of the durable list
+## 3. Phase 3 — The three cases of the durable list
+
+Agent: implementer
+Paths: apps/backend/src/features/logs/, packages/contracts/
 
 - [x] 3.1 Separate the three cases in the answer of `GET /api/v1/logs`: the output is available, the run has not ended, and the output went away because of its age.
 - [x] 3.2 Read the state and the date of the end of the deployment to tell the second case from the third.
 - [x] 3.3 Update the spec of the endpoint for the three cases.
 
-## 4. The screen of the server
+## 4. Phase 4 — The screen of the server
+
+Agent: implementer
+Paths: apps/frontend/src/app/features/server/, apps/frontend/src/app/pages/server/
 
 - [ ] 4.1 Change the route of the page: `/server` sends the browser to `/server/health`, and `/server/:tab` serves the page.
 - [ ] 4.2 Show the three tabs with the component `@shared/components/tabs`: Health, Maintenance and Settings. An unknown tab reads as Health.
@@ -32,11 +44,18 @@
 - [ ] 4.5 Read the settings when the tab opens, and write them when the user saves.
 - [ ] 4.6 Create the specs of the container of the settings and of the choice of the tab.
 
-## 5. The window of the output
+## 5. Phase 5 — The window of the output
+
+Agent: implementer
+Paths: apps/frontend/src/app/features/deployments/
 
 - [ ] 5.1 Say in the window of the output why a list is empty, with the reason that the API gives.
 - [ ] 5.2 Create the spec of that message.
 
-## 6. What this change does not close
+## 6. Phase 6 — What this change does not close
+
+Agent: documenter
+Paths: docs/TODO.md
+This is the last phase.
 
 - [ ] 6.1 Record that the leak of the hot store stays open. `docs/TODO.md` holds it: nothing recovers the streams of Redis that an interrupted deployment leaves behind. This change removes rows of the archive, and it touches no key of the hot store.

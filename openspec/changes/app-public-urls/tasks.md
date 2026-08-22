@@ -1,4 +1,7 @@
-## 1. The proxy in the runtime
+## 1. Phase 1 — The proxy in the runtime
+
+Agent: implementer
+Paths: iac/production/, scripts/install.sh
 
 - [ ] 1.1 Add the reverse proxy to `iac/production/docker-compose.yml`, holding the ports `80` and `443` of the server.
 - [ ] 1.2 Give the proxy read access to the socket of the Docker daemon, so it reads the labels of the stacks.
@@ -8,7 +11,10 @@
 - [ ] 1.6 Make the installer check that the ports `80` and `443` are free, and stop with a message that names the process that holds one.
 - [ ] 1.7 State in the release notes that the proxy also reads the socket of the daemon, which gives it the equivalent of root on the host.
 
-## 2. The domain record
+## 2. Phase 2 — The domain record
+
+Agent: implementer
+Paths: apps/backend/src/features/domains/, iac/production/migrations/
 
 - [ ] 2.1 Create the feature `apps/backend/src/features/domains/`, with the division that `namespaces` uses.
 - [ ] 2.2 Create the domain model of a domain, with the state of the certificate and its reason.
@@ -21,21 +27,30 @@
 - [ ] 2.9 Create the controller and the service of the feature, under the path of the service that owns the domain.
 - [ ] 2.10 Create the specs of the use cases, of the repository and of the controller.
 
-## 3. The port of the proxy
+## 3. Phase 3 — The port of the proxy
+
+Agent: implementer
+Paths: apps/backend/src/features/domains/
 
 - [ ] 3.1 Create the port `ReverseProxy` with the operations that write the routing of a service, remove it, and report the state of a certificate.
 - [ ] 3.2 Create the adapter of Traefik, which builds the labels of the stack from the records of the domains.
 - [ ] 3.3 Read the state of the certificate of each domain from the proxy, and write it onto the record.
 - [ ] 3.4 Create the specs of the adapter, with a service that holds no domain, one domain and several domains.
 
-## 4. The routing at the deployment
+## 4. Phase 4 — The routing at the deployment
+
+Agent: implementer
+Paths: apps/backend/src/features/deployments/, apps/backend/src/features/services/
 
 - [ ] 4.1 Read the domains of the service in the run of the deployment, before the executor starts the stack.
 - [ ] 4.2 Give the routing to the executor, so the new stack carries the labels of each domain.
 - [ ] 4.3 Remove the routing of a service when that service goes away, beside the removal of its containers and its networks.
 - [ ] 4.4 Update the specs of the run for a service with domains and for a service without them.
 
-## 5. The tab of the domains
+## 5. Phase 5 — The tab of the domains
+
+Agent: implementer
+Paths: apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/services/
 
 - [ ] 5.1 Create the model and the repository of the API of the domains in the frontend.
 - [ ] 5.2 Add the tab `domains` to the detail of a service, between `provider` and `deployments`.
@@ -45,7 +60,11 @@
 - [ ] 5.6 Show the message of the domain that another service holds, when the API answers `409`.
 - [ ] 5.7 Create the specs of the tab, one per scenario of the delta of `services`.
 
-## 6. The documentation
+## 6. Phase 6 — The documentation
+
+Agent: documenter
+Paths: docs/infrastructure-architecture/, README.md
+This is the last phase.
 
 - [ ] 6.1 Add the proxy and the ports to `docs/infrastructure-architecture.md`.
 - [ ] 6.2 Add the step of the domain to the section of the installation of `README.md`.

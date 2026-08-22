@@ -1,11 +1,17 @@
-## 1. The origin of a deployment
+## 1. Phase 1 — The origin of a deployment
+
+Agent: implementer
+Paths: apps/backend/src/features/deployments/, iac/production/migrations/
 
 - [ ] 1.1 Add the origin to the domain model of a deployment and to its entity, with the values `user`, `push` and `repeat`.
 - [ ] 1.2 Write the origin `user` in the use case that a person triggers.
 - [ ] 1.3 Create the migration that adds the column, and fill every row that exists with `user`.
 - [ ] 1.4 Update the specs of the trigger for the origin.
 
-## 2. The webhook
+## 2. Phase 2 — The webhook
+
+Agent: implementer
+Paths: apps/backend/src/features/webhooks/, apps/backend/src/features/services/, iac/production/migrations/
 
 - [ ] 2.1 Create the feature `apps/backend/src/features/webhooks/`, with the division that the other features use.
 - [ ] 2.2 Add the secret of the webhook to the service, encrypted at rest with the helper of `core/infrastructure/crypto/`.
@@ -21,7 +27,10 @@
 - [ ] 2.12 Give no secret in any answer of the API.
 - [ ] 2.13 Create the specs of the check of the signature, of the decision of the branch, and of the endpoint.
 
-## 3. The repeat of a deployment
+## 3. Phase 3 — The repeat of a deployment
+
+Agent: implementer
+Paths: apps/backend/src/features/deployments/
 
 - [ ] 3.1 Create the use case that writes a new deployment from the commit of an earlier one, with the origin `repeat`.
 - [ ] 3.2 Take the commit of the earlier record, and do not resolve the head of the branch.
@@ -29,7 +38,10 @@
 - [ ] 3.4 Change no earlier record, and remove no deployment that came after.
 - [ ] 3.5 Create the endpoint of the repeat, and its spec.
 
-## 4. The strategy that builds
+## 4. Phase 4 — The strategy that builds
+
+Agent: implementer
+Paths: apps/backend/src/features/deployments/
 
 - [ ] 4.1 Create the port `BuildStrategy`, which decides how a repository becomes a running stack.
 - [ ] 4.2 Move the behavior of today behind that port, as the strategy of the compose file, and verify that no service that runs now changes its behavior.
@@ -39,7 +51,10 @@
 - [ ] 4.6 Fail the deployment with a clear message when no strategy can build the repository.
 - [ ] 4.7 Create the specs of the choice of the strategy and of each strategy.
 
-## 5. The frontend
+## 5. Phase 5 — The frontend
+
+Agent: implementer
+Paths: apps/frontend/src/app/features/deployments/, apps/frontend/src/app/features/providers/
 
 - [ ] 5.1 Show the origin of each entry of the history of the deployments.
 - [ ] 5.2 Add the action that deploys the commit of an entry again, and hide it on an entry that holds no commit.
@@ -47,7 +62,11 @@
 - [ ] 5.4 Hide the action that turns the webhook on when the service is not deployable.
 - [ ] 5.5 Create the specs of the tab, one per scenario of the deltas of `deployments` and of `providers`.
 
-## 6. The gaps that this change leaves
+## 6. Phase 6 — The gaps that this change leaves
+
+Agent: documenter
+Paths: docs/backend-business/
+This is the last phase.
 
 - [ ] 6.1 Record that a deployment that a push starts and that fails notifies nobody. A notification is a separate change.
 - [ ] 6.2 Add to the plan of the rollback the step that removes the registrations of the webhooks, so a repository does not call an address that answers `404`.

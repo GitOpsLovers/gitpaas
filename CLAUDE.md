@@ -65,4 +65,10 @@ End with a short summary. Name what you did, what you verified with the result, 
 | The documentation itself | The `project-documentation` skill (`.claude/skills/project-documentation/SKILL.md`). It gives the map of `docs/` and the page that receives each kind of content. |
 | The Git and GitHub workflow | The `git-github-workflow` skill (`.claude/skills/git-github-workflow/SKILL.md`). It is the authority for the branch, the commit and the Pull Request. |
 
-**OpenSpec.** This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/`, and you must not write a local copy of any of them. The expanded profile stays off: the project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify` or `/opsx:bulk-archive`.
+**OpenSpec.** This project adopts the core `opsx` profile of [OpenSpec](https://openspec.dev/). The commands live in `.claude/commands/opsx/`. Three decisions are closed; do not reopen one of them.
+
+1. **Never write a local copy of an `opsx` command.** An upgrade of OpenSpec would leave the copy behind. The project shapes the commands from `openspec/config.yaml`, which holds the context, the rules of each artifact and the guidance of each operation.
+2. **Never run `/opsx:apply`.** The orchestrator reads `tasks.md` and delegates, so the command has no work to do here. The four commands that stay in the workflow are `/opsx:propose`, `/opsx:update`, `/opsx:sync` and `/opsx:archive`.
+3. **Ignore every block about a "store".** A store is a standalone OpenSpec repository, registered on the machine. This project registers none, and `openspec store list` gives an empty list. So never pass `--store`, and read the specifications of `openspec/` of this repository.
+
+The expanded profile stays off: the project does not enable `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:verify` or `/opsx:bulk-archive`.

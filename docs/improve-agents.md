@@ -67,30 +67,33 @@ three or four times.
 
 ## C. Cut the cost of the OpenSpec cycle
 
-- [ ] **C1. Stop the call to `/opsx:apply`.** The command file holds 8 kB, and section 4 of
+- [x] **C1. Stop the call to `/opsx:apply`.** The command file holds 8 kB, and section 4 of
       `CLAUDE.md` then cancels its main instruction: in this project it must not implement. The
       orchestrator reads `openspec/changes/<change-id>/tasks.md` directly, and it delegates. Delete
       the mention of `/opsx:apply` from step 4, and write the direct rule instead.
-- [ ] **C2. Fill the `context` block of `openspec/config.yaml`.** The file holds comments alone today.
+- [x] **C2. Fill the `context` block of `openspec/config.yaml`.** The file holds comments alone today.
       Write the stack, the layers, the `rtk` prefix, and the rule of one phase for one Pull Request.
       Every `opsx` command then receives this context from the CLI, and the orchestrator repeats
       less of it in each prompt.
-- [ ] **C3. Add the rules of the artifact `tasks` to `openspec/config.yaml`.** Ask `/opsx:propose` for
+- [x] **C3. Add the rules of the artifact `tasks` to `openspec/config.yaml`.** Ask `/opsx:propose` for
       three things:
       1. One numbered section for one phase, and one phase for one Pull Request.
       2. A line at the head of each section that names the agent: `implementer`, `refactorer`,
          `tester` or `documenter`.
       3. A line that names the paths that the section touches.
       The orchestrator then delegates with no regrouping, and it reads no code to build the prompt.
-- [ ] **C4. Mark the phase in `tasks.md`.** The current file `openspec/changes/log-retention/tasks.md`
+- [x] **C4. Mark the phase in `tasks.md`.** The current file `openspec/changes/log-retention/tasks.md`
       shows six numbered sections and no phase. The commits name the phase, and the file does not.
-      Write the phase number in the title of the section.
-- [ ] **C5. State the last phase in `tasks.md`.** `/opsx:sync` runs one time, before the commit of the
+      Write the phase number in the title of the section. **Applied to the four active changes.**
+- [x] **C5. State the last phase in `tasks.md`.** `/opsx:sync` runs one time, before the commit of the
       last phase. Today the orchestrator must count the sections to find that moment. A mark in the
       file removes the count.
-- [ ] **C6. Record the decision about the local copy of a command.** `CLAUDE.md` forbids a local copy
+- [x] **C6. Record the decision about the local copy of a command.** `CLAUDE.md` forbids a local copy
       of an `opsx` command. The commands carry a long block about a "store", and this project uses
       no store. Confirm the rule, or write the exception, so no agent reopens the question.
+      **Decision: section 3 of `CLAUDE.md` holds the three closed decisions.** No local copy of a
+      command; no call to `/opsx:apply`; no `--store` flag, because `openspec store list` gives an
+      empty list.
 
 ## D. Make the delegation exact
 

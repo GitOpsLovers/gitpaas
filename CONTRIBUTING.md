@@ -106,24 +106,74 @@ If you have questions about the project, read the documentation files in `docs`.
 
 ## Agent workflow
 
-GitPaaS follows the [OpenSpec](https://openspec.dev/) standard. The behavior of the system lives in `openspec/specs/`, and the work that is planned lives in `openspec/changes/`. An AI agent working on this repository reads a change folder instead of a long prompt.
+GitPaaS is built with AI agents, and the repository is arranged for them. This section describes a
+work session, so you know what to expect when you open one, and what stays your decision.
 
-**When a change needs a proposal.** A task that changes behavior gets one first — a new capability, a changed rule, a new flow that the user sees. Four kinds of task need none: a bug fix that restores the documented behavior, a pure refactor, a documentation edit and a configuration edit.
+### The two kinds of agent
 
-**The loop.**
+**The orchestrator** is the agent that you talk to. It writes no product code. It classifies your
+request, it splits the work, it hands each part to a subagent, and it reports the result back to you.
 
-| Step                                                | Command         | Who runs it                |
-|-----------------------------------------------------|-----------------|----------------------------|
-| 1. Investigate an unclear idea                      | `/opsx:explore` | You                        |
-| 2. Write the proposal, the design and the task list | `/opsx:propose` | You                        |
-| 3. Revise those artifacts                           | `/opsx:update`  | You                        |
-| 4. Implement the task list                          | `/opsx:apply`   | The agent                  |
-| 5. Merge the difference into the specifications     | `/opsx:sync`    | The agent                  |
-| 6. Archive the change                               | `/opsx:archive` | The agent, after the merge |
+**A subagent** is a fresh agent with one job and no memory of your conversation. Six of them live in
+`.claude/agents/`:
 
-**The two stops.** No agent starts to write code before you approve the proposal. And no agent merges a Pull Request. Everything between those two points runs without a further question.
+| The agent | Its job |
+|---|---|
+| `implementer` | Build a feature, wire an endpoint or a component, fix a bug |
+| `refactorer` | Restructure code, and keep the behavior |
+| `tester` | Write or repair a test, and change no product code |
+| `documenter` | Write a page of `docs/`, or a doc-comment |
+| `architecture-analyst` | Audit the structure, and report. It never writes code |
+| `git-manager` | Branch, commit, push, and open the Pull Request. It is the only agent that runs a `git` or `gh` command that changes state |
 
-**What a change folder holds.**
+The orchestrator follows the skill `.claude/skills/agent-orchestration/SKILL.md`. Every agent follows
+`CLAUDE.md`. Read those two files if you want the exact rules.
+
+### When a change needs a proposal
+
+A task that changes behavior gets one first — a new capability, a changed rule, a new flow that the
+user sees. Four kinds of task need none: a bug fix that restores the documented behavior, a pure
+refactor, a documentation edit and a configuration edit. Those go straight to the code.
+
+### What a session looks like
+
+1. **You describe the work.** If the idea is unclear, run `/opsx:explore` first.
+2. **You run `/opsx:propose`.** It writes the four artifacts of the change folder. It writes no code.
+3. **You read the plan, and you approve it.** This is the first stop. No agent starts before it.
+   Run `/opsx:update` if you want the plan changed.
+4. **The orchestrator delivers one phase.** It reads `tasks.md`, it takes the next phase, and it
+   hands each group of tasks to a subagent. Two groups that touch different areas run at the same
+   time.
+5. **The orchestrator runs `tester` one time for the phase**, and it derives the cases from the
+   scenarios of the specification.
+6. **`git-manager` opens the Pull Request of the phase.** One phase gives one branch, one commit and
+   one Pull Request.
+7. **You review the Pull Request, and you merge it.** This is the second stop. No agent merges.
+8. **Steps 4 to 7 repeat, one time for each phase.** Before the commit of the last phase, and one
+   time alone, `/opsx:sync` merges the delta into `openspec/specs/`.
+9. **`/opsx:archive` runs after the last merge**, and it moves the change into
+   `openspec/changes/archive/`.
+
+Between the two stops, the agents work without a further question.
+
+### One phase, one Pull Request
+
+A change is delivered in phases, and never in one large Pull Request. A phase is the smallest set of
+tasks that leaves the two applications in a state that builds and that passes the tests.
+`tasks.md` names the phase, the agent and the paths at the head of each section:
+
+```markdown
+## 2. Phase 2 — The removal
+
+Agent: implementer
+Paths: apps/backend/src/features/logs/, apps/backend/src/features/server/
+
+- [ ] 2.1 ...
+```
+
+The subagent that finishes a task marks its own box. So the file shows you the real progress.
+
+### What a change folder holds
 
 ```text
 openspec/changes/<change-id>/
@@ -133,9 +183,25 @@ openspec/changes/<change-id>/
   specs/        the difference that the change makes to openspec/specs/
 ```
 
-**The commit carries the specification.** The first commit of a branch stages `openspec/changes/<change-id>/` together with the code, and the body of the Pull Request links the proposal. The branch takes its name from the change: the change `add-remember-me` gives the branch `feat/add-remember-me`.
+The commit stages `openspec/changes/<change-id>/` together with the code, so the specification and
+the code enter the repository at the same time. The Pull Request carries a title alone, so the body
+of the commit names the change and the phase. The branch takes its name from the change: the change
+`add-remember-me` gives the branch `feat/add-remember-me`.
 
-**Useful commands.**
+### The commands
+
+| The command | What it does | Who runs it |
+|---|---|---|
+| `/opsx:explore` | Investigate an unclear idea | You |
+| `/opsx:propose` | Write the proposal, the design, the specs and the task list | You |
+| `/opsx:update` | Revise those artifacts | You |
+| `/opsx:sync` | Merge the delta into the main specifications | The orchestrator, before the last phase |
+| `/opsx:archive` | Archive the change | The orchestrator, after the last merge |
+
+`/opsx:apply` is **not** used in this repository. It implements the task list itself, and here the
+orchestrator delegates instead. The project also keeps the expanded OpenSpec profile off.
+
+Read the state of the work with the CLI:
 
 ```bash
 openspec list                        # the capabilities and the active changes
@@ -145,6 +211,10 @@ openspec validate --all              # check every file
 ```
 
 Install the CLI with `npm install -g @fission-ai/openspec@latest`.
+
+`openspec/config.yaml` holds the context of the project and the rules of each artifact. The CLI gives
+them to every command, so a proposal comes out in the shape that this repository delegates from. Edit
+that file when a convention changes, and not the command files of `.claude/commands/opsx/`.
 
 ## Commit & PR conventions
 

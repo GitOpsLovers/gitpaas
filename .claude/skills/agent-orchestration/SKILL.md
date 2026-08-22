@@ -55,9 +55,11 @@ The user runs `/opsx:propose`. It writes four things into `openspec/changes/<cha
 
 ### Step 4 — Group the tasks, and delegate
 
-`/opsx:apply` reads the task list. **In this project it does not implement.** The command file says the agent implements the tasks itself; this local rule wins, and the orchestrator delegates instead.
+**Never run `/opsx:apply`.** The command tells the agent to implement the tasks itself, and in this project the orchestrator implements nothing. The command file holds 8 kB, and this rule then cancels its main instruction, so the call is a pure loss.
 
-`/opsx:propose` wrote `tasks.md` with no knowledge of these six subagents, so it grouped the tasks by feature area. The orchestrator regroups them for delegation. Section 3 of this skill gives the rules of the grouping and of the prompt.
+Read `openspec/changes/<change-id>/tasks.md` directly, and delegate. Each numbered section is one phase, and its first line names the agent and the paths, because `openspec/config.yaml` asks `/opsx:propose` for that shape. If the head of a section names no agent, group the tasks yourself with the rules of section 3 of this skill.
+
+The other four `opsx` commands stay in the workflow: `/opsx:propose`, `/opsx:update`, `/opsx:sync` and `/opsx:archive`.
 
 ### Step 5 — The subagents build
 

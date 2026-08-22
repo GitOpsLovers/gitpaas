@@ -1,32 +1,50 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Project context
+# The CLI gives this text to every `openspec instructions` call, so each artifact
+# is written with these facts. Keep it short; the long form lives in `docs/`.
+context: |
+  GitPaaS is a Turborepo monorepo, with pnpm as the package manager and TypeScript
+  as the language. `apps/backend` is a NestJS v11 application over PostgreSQL, with
+  TypeORM. `apps/frontend` is an Angular v22 application, with Tailwind CSS v4.
+  `packages/contracts` holds the shapes of the wire, and it depends on zod alone.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  The backend feature holds four layers: `domain/`, `application/`, `infrastructure/`
+  and `ui/`. The frontend feature holds three: `domain/`, `infrastructure/` and `ui/`.
+  Depend inward only. A use case of the backend is a pure function, and it receives
+  each collaborator as a parameter. `docs/agent-rules.md` holds the short form of
+  these rules.
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+  Six subagents build the code: `implementer`, `refactorer`, `tester`, `documenter`,
+  `architecture-analyst` and `git-manager`. The orchestrator implements nothing; it
+  reads `tasks.md`, and it delegates one group to one subagent.
+
+  A change delivers one phase at a time. One phase gives one branch, one commit and
+  one Pull Request. The Pull Request carries a title alone, so the subject of the
+  commit names the phase.
+
+  Every shell command carries the prefix `rtk`. No agent runs ESLint, and no agent
+  installs a dependency.
+
+# Per-artifact rules
+# The CLI gives these entries to `openspec instructions <artifact>`, so the
+# artifact is written to the shape that this project delegates from.
+rules:
+  tasks:
+    - Write one numbered section for one phase, and one phase for one Pull Request. A phase is the smallest set of tasks that leaves the two applications in a state that builds and that passes the tests.
+    - Title each section with the number of the phase, the word Phase, the same number, and the subject. The number of the section and the number of the phase are always the same value.
+    - Write two lines below the title of a section, before the first task. The first line names the agent, and it holds one of implementer, refactorer, tester or documenter. The second line names the paths that the section touches, separated by commas.
+    - Split a section when it needs two kinds of agent. Never mix a task of the backend and a task of the frontend in one section, because the two go to two calls.
+    - Mark the last phase. Write the sentence "This is the last phase." below the line of the paths of that one section, and of no other section.
+    - Keep a task of a test inside the section of the behavior that it covers. The agent of that section writes that test.
+    - Write a task that an agent can verify. Name the file, the symbol or the endpoint. Never write the word improve or the word review alone.
+  proposal:
+    - Keep the proposal under 400 words.
+  design:
+    - Record the decision, and record the option that you refused. Never repeat the content of docs/; link the page instead.
+
+# Per-operation guidance
+operations:
+  apply:
+    guidance:
+      - This project never runs the apply workflow. The orchestrator reads tasks.md, and it delegates each phase to a subagent. If you are the orchestrator, stop, and follow the skill agent-orchestration.
