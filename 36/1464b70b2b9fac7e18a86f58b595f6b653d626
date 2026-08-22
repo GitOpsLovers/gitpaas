@@ -1,0 +1,25 @@
+.claude/agents/implementer.md
+  s_6408eaec1b07a0::t_d7aabaabb18c3e 52,60
+.claude/agents/tester.md
+  s_6408eaec1b07a0::t_ec94d0fbcf3d67 30-35,40
+CLAUDE.md
+  s_6408eaec1b07a0::t_7dc10e6e4bdf26 10
+docs/improve-agents.md
+  s_6408eaec1b07a0::t_a227fcb9fe71a7 1-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "361464b70b2b9fac7e18a86f58b595f6b653d626",
+  "prompts": {},
+  "sessions": {
+    "s_6408eaec1b07a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b1e7b6fe-7307-4e38-abf6-a45e2d20e317",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
