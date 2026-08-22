@@ -1,0 +1,41 @@
+apps/frontend/src/app/app.routes.ts
+  s_2bfbe41dc5f43a::t_02a15e48689943 30-34
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_2bfbe41dc5f43a::t_b6e586955c3a7c 3-10,84-103
+apps/frontend/src/app/features/server/ui/containers/server-overview/server-overview.component.html
+  s_2bfbe41dc5f43a::t_873f3e42b6f16c 1-19
+apps/frontend/src/app/features/server/ui/containers/server-overview/server-overview.component.spec.ts
+  s_2bfbe41dc5f43a::t_321e838c246a0f 1-100
+apps/frontend/src/app/features/server/ui/containers/server-overview/server-overview.component.ts
+  s_2bfbe41dc5f43a::t_a23e46edcde1d3 1-62
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.html
+  s_2bfbe41dc5f43a::t_85e86613feb8fe 1-35
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.spec.ts
+  s_2bfbe41dc5f43a::t_6d19dffec338f5 1-210
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.ts
+  s_2bfbe41dc5f43a::t_59536af68c562d 1-102
+apps/frontend/src/app/layout/ui/components/sidebar/sidebar.component.ts
+  s_2bfbe41dc5f43a::t_de950f956da8a7 133
+apps/frontend/src/app/pages/server/server.component.html
+  s_2bfbe41dc5f43a::t_d7786603c3faf0 1
+apps/frontend/src/app/pages/server/server.component.ts
+  s_2bfbe41dc5f43a::t_36963c1185b052 1,3,8,15
+openspec/changes/log-retention/tasks.md
+  s_2bfbe41dc5f43a::t_af10aea696dba0 40-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8d65235bb7d6024458102f07b4254d32d622eea8",
+  "prompts": {},
+  "sessions": {
+    "s_2bfbe41dc5f43a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "04ab0b79-0e51-4166-ab0a-e84c61e72967",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
