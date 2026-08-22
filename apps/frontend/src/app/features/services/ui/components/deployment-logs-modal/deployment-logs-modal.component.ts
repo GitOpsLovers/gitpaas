@@ -1,5 +1,5 @@
 import {
-    afterRenderEffect, Component, effect, ElementRef, inject, input, output, signal, viewChild,
+    afterRenderEffect, Component, computed, effect, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
 import type { Deployment, LogStatus } from '@gitpaas/contracts';
 import { LucideCheck, LucideCopy, LucideLoaderCircle, LucideX } from '@lucide/angular';
@@ -19,6 +19,17 @@ interface LogStreamFailure {
     code: string;
     message: string;
 }
+
+/**
+ * Message shown for each reason the output of a deployment holds no line.
+ */
+const EMPTY_MESSAGES = {
+    waiting: 'Waiting for output…',
+    checking: 'Looking for the stored output…',
+    running: 'This deployment has not finished yet. Its output appears once the run ends.',
+    expired: 'The stored output of this deployment was removed because it passed the age the server keeps it for.',
+    none: 'No log output available for this deployment.',
+} as const;
 
 @Component({
     selector: 'app-deployment-logs-modal',
@@ -58,6 +69,39 @@ export class DeploymentLogsModalComponent {
      */
     protected readonly failure = signal<LogStreamFailure | null>(null);
 
+    /**
+     * Deployment whose durable archive is read, or `undefined` while the archive is not needed.
+     */
+    private readonly archivedDeploymentId = signal<string | undefined>(undefined);
+
+    /**
+     * Durable archive of the output, read only when the stream settled with no line.
+     */
+    protected readonly archive = this.repository.logArchive(() => this.archivedDeploymentId());
+
+    /**
+     * Why the output holds no line, in the words of the state the API gives.
+     */
+    protected readonly emptyMessage = computed(() => {
+        if (this.streaming()) {
+            return EMPTY_MESSAGES.waiting;
+        }
+
+        if (this.archivedDeploymentId() && this.archive.isLoading()) {
+            return EMPTY_MESSAGES.checking;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+        switch (this.archive.value()?.state) {
+            case 'running':
+                return EMPTY_MESSAGES.running;
+            case 'expired':
+                return EMPTY_MESSAGES.expired;
+            default:
+                return EMPTY_MESSAGES.none;
+        }
+    });
+
     private readonly logBody = viewChild<ElementRef<HTMLElement>>('logBody');
 
     /**
@@ -78,6 +122,7 @@ export class DeploymentLogsModalComponent {
             this.lines.set([]);
             this.finalStatus.set(null);
             this.failure.set(null);
+            this.archivedDeploymentId.set(undefined);
             this.streaming.set(true);
 
             const subscription = this.repository.logs(deployment.id).subscribe({
@@ -104,8 +149,8 @@ export class DeploymentLogsModalComponent {
                         }
                     }
                 },
-                error: () => { this.streaming.set(false); },
-                complete: () => { this.streaming.set(false); },
+                error: () => { this.settle(deployment.id); },
+                complete: () => { this.settle(deployment.id); },
             });
 
             onCleanup(() => { subscription.unsubscribe(); });
@@ -121,6 +166,19 @@ export class DeploymentLogsModalComponent {
                 element.scrollTop = element.scrollHeight;
             }
         });
+    }
+
+    /**
+     * Ends the stream and, when it gave no line, asks the API why the output is empty.
+     *
+     * @param deploymentId Identifier of the deployment whose stream settled
+     */
+    private settle(deploymentId: string): void {
+        this.streaming.set(false);
+
+        if (this.lines().length === 0 && !this.failure()) {
+            this.archivedDeploymentId.set(deploymentId);
+        }
     }
 
     /**

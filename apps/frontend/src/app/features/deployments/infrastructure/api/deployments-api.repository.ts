@@ -1,6 +1,12 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { type Deployment, type LogEvent, type TriggerDeploymentDto, logEventSchema } from '@gitpaas/contracts';
+import {
+    type Deployment,
+    type DeploymentLogArchive,
+    type LogEvent,
+    type TriggerDeploymentDto,
+    logEventSchema,
+} from '@gitpaas/contracts';
 import { Observable, Subscriber } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -37,6 +43,21 @@ export class DeploymentsApiRepository {
             const id = serviceId();
 
             return id ? `${this.url}?serviceId=${id}` : undefined;
+        });
+    }
+
+    /**
+     * Resource with the durable archive of the output of a deployment
+     *
+     * @param deploymentId Accessor returning the deployment identifier, or undefined to stay idle
+     *
+     * @returns Resource that resolves to the archived entries and the state of the archive
+     */
+    public logArchive(deploymentId: () => string | undefined) {
+        return httpResource<DeploymentLogArchive>(() => {
+            const id = deploymentId();
+
+            return id ? `${this.logsUrl}?deploymentId=${id}` : undefined;
         });
     }
 

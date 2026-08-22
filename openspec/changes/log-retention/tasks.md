@@ -49,5 +49,5 @@ Paths: apps/frontend/src/app/features/server/, apps/frontend/src/app/pages/serve
 Agent: implementer
 Paths: apps/frontend/src/app/features/deployments/
 
-- [ ] 5.1 Say in the window of the output why a list is empty, with the reason that the API gives.
-- [ ] 5.2 Create the spec of that message.
+- [x] 5.1 Say in the window of the output why a list is empty, with the reason that the API gives.
+- [x] 5.2 Create the spec of that message.
