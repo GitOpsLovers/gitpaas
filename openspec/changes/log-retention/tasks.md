@@ -51,11 +51,3 @@ Paths: apps/frontend/src/app/features/deployments/
 
 - [ ] 5.1 Say in the window of the output why a list is empty, with the reason that the API gives.
 - [ ] 5.2 Create the spec of that message.
-
-## 6. Phase 6 — What this change does not close
-
-Agent: documenter
-Paths: docs/TODO.md
-This is the last phase.
-
-- [ ] 6.1 Record that the leak of the hot store stays open. `docs/TODO.md` holds it: nothing recovers the streams of Redis that an interrupted deployment leaves behind. This change removes rows of the archive, and it touches no key of the hot store.
