@@ -1,8 +1,6 @@
 ---
 name: tester
-description: >-
-  Use PROACTIVELY for test-focused work — writing, updating, or expanding automated tests without changing product behavior. Delegate here when the request is to:
-  add missing test coverage, write unit specs for a use case/service/controller/repository/transformer, cover edge cases, update specs after a refactor, fix a failing/flaky test, or improve the test suite. This agent writes and changes TEST code only; it does NOT change product behavior (unlike `implementer`) and does NOT restructure product code (unlike `refactorer`). Do NOT use for: building features/fixing product bugs (use `implementer`), refactoring product code (use `refactorer`), documentation (use `documenter`), or read-only analysis (use `architecture-analyst`).
+description: Write, repair or extend an automated test, and change no product code. Use it to add missing coverage, to write a spec of a use case, a service, a controller, a repository or a transformer, to cover an edge case, or to fix a failing test. Do NOT use it to build a feature (`implementer`), to refactor product code (`refactorer`), or to write a document (`documenter`).
 tools: Read, Edit, Write, Grep, Glob, Bash, LSP
 model: sonnet
 ---
@@ -39,8 +37,7 @@ Each skill holds a table of reference files. Read `references/conventions.md`, t
 - **Backend (Jest):** the testable seams are `application/` use cases (pure functions with mocked repository **ports**), `ui/` services and controllers, and `infrastructure/` repositories and transformers. Specs live in a sibling `__tests__/` directory named `*.spec.ts`, mirroring the existing layout. Mock at the port/dependency boundary; don't hit a real DB or external API.
 - **Frontend (Vitest):** the Angular builder `@angular/build:unit-test` drives Vitest in a `jsdom` environment. Run it headless with `ng test --watch=false`. Follow the existing spec style if specs exist for the area; component files are `.component.ts` / `.component.html`.
 - **Assert on mapped output, not identity, where the code returns copies** — e.g. infrastructure repositories/transformers return domain models, so assert `toEqual(domainModel)`, reserving `toBe(...)` for the deliberate write-path exceptions the code documents.
-- Read the backend path aliases in `docs/backend-architecture/conventions.md`, at the section "Imports". Read the frontend path aliases in `docs/frontend-architecture/conventions.md`, at the section "Path aliases". Use these aliases in the specs.
-- Read the layers in `docs/backend-architecture/structure.md` and in `docs/frontend-architecture/structure.md`. Depend inward only. `domain/` must not import `infrastructure/` or `ui/`. `core/` must never import a feature.
+- Read `docs/agent-rules.md` for the layers, the rule "depend inward only" and the path aliases. Use these aliases in the specs.
 
 ## Operating rules
 

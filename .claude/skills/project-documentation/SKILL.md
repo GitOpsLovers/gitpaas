@@ -7,7 +7,7 @@ description: Use this skill when you write or update a page of `docs/` in this p
 
 This skill is the single source of truth for the pages under `docs/`. The `documenter` subagent executes it.
 
-Every command runs through `rtk`, as section 5 of `CLAUDE.md` requires.
+Every command runs through `rtk`, as section 2 of `CLAUDE.md` requires.
 
 ## The rule that breaks the most often
 

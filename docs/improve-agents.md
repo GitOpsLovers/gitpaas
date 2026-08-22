@@ -43,24 +43,27 @@ These are errors. They make an agent read the wrong file, or read no file.
 Every subagent loads `CLAUDE.md` (13 kB) plus its own file. A change of ten tasks pays this price
 three or four times.
 
-- [ ] **B1. Move sections 2, 3 and 4 of `CLAUDE.md` out of `CLAUDE.md`.** These three sections hold
+- [x] **B1. Move sections 2, 3 and 4 of `CLAUDE.md` out of `CLAUDE.md`.** These three sections hold
       the workflow and the rules of the orchestrator, and no subagent uses them. Put them in
       `.claude/skills/agent-orchestration/SKILL.md`, and let the orchestrator load that skill. Keep
       in `CLAUDE.md` the stack, the rules of every agent, and the map of the documents. This removes
       about 7 kB from every subagent call.
-- [ ] **B2. Write one card of the architecture rules.** Four agent files repeat the same paragraph:
+- [x] **B2. Write one card of the architecture rules.** Four agent files repeat the same paragraph:
       the four pages to read, the two lists of path aliases, and the rule "depend inward only".
       Create `docs/agent-rules.md` with the layers, the aliases and that rule, in under 60 lines.
-      Then each agent reads one short page, and not four pages of about 350 lines.
-- [ ] **B3. Point every agent file at that card.** Replace the repeated paragraph in
+      Then each agent reads one short page, and not four pages of about 350 lines. **The card holds
+      76 lines.**
+- [x] **B3. Point every agent file at that card.** Replace the repeated paragraph in
       `implementer.md`, `refactorer.md`, `tester.md`, `documenter.md` and `architecture-analyst.md`
       with one line that names `docs/agent-rules.md`.
-- [ ] **B4. Shorten the `description` of each agent.** The description of `architecture-analyst` holds
+- [x] **B4. Shorten the `description` of each agent.** The description of `architecture-analyst` holds
       about 800 characters, and the six descriptions load in every session. Keep the trigger list and
       the "Do NOT use for" line, and remove the prose. Target 400 characters each.
-- [ ] **B5. Review the model of each agent.** `git-manager` uses Haiku, and `refactorer`, `tester` and
+- [x] **B5. Review the model of each agent.** `git-manager` uses Haiku, and `refactorer`, `tester` and
       `documenter` use Sonnet. Confirm that `implementer` and `architecture-analyst` need
-      `inherit`, and set an explicit model if they do not.
+      `inherit`, and set an explicit model if they do not. **Decision: the two agents keep `inherit`.**
+      `implementer` writes product code, and `architecture-analyst` judges the structure of two
+      applications. Both need the model of the orchestrator. The other four keep Sonnet and Haiku.
 
 ## C. Cut the cost of the OpenSpec cycle
 

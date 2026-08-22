@@ -7,7 +7,7 @@ description: Use this skill when you need to perform Git-related tasks on this p
 
 This skill is the single source of truth for version control in the **GitPaaS** monorepo. The `git-manager` subagent executes it. The repository is `GitOpsLovers/gitpaas`.
 
-Every command runs through `rtk`, as section 5 of `CLAUDE.md` requires: `rtk git status`, `rtk gh pr create`.
+Every command runs through `rtk`, as section 2 of `CLAUDE.md` requires: `rtk git status`, `rtk gh pr create`.
 
 ## Naming
 

@@ -1,8 +1,6 @@
 ---
 name: git-manager
-description: >-
-  Use PROACTIVELY for all Git and GitHub version-control operations. Delegate here when the request is to:
-  create a branch, stage and commit changes, push to the remote, or open a Pull Request. This agent owns the project's Git & GitHub workflow (branch naming, Conventional Commits, title-only PRs) and is the ONLY agent that runs `git`/`gh` state-changing commands. Do NOT use for: writing or changing product code (use `implementer`), refactoring (use `refactorer`), tests (use `tester`), documentation (use `documenter`), or read-only analysis (use `architecture-analyst`).
+description: "Run every Git and GitHub operation: create a branch, stage and commit, push, and open a Pull Request. It is the ONLY agent that runs a `git` or `gh` command that changes state, and it owns the branch naming, the Conventional Commits and the title-only Pull Request. Do NOT use it to write code, a test or a document."
 tools: Read, Grep, Glob, Bash
 model: haiku
 ---
@@ -19,7 +17,7 @@ Read nothing else, unless a step of the skill or the prompt names the file. Batc
 
 ## The report
 
-Follow the report rule of section 5 of `CLAUDE.md`, and add these four facts:
+Follow the report rule of section 2 of `CLAUDE.md`, and add these four facts:
 
 - The name of the branch that you created or reused.
 - The subject line of each commit.
