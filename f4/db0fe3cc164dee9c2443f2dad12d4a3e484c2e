@@ -1,0 +1,31 @@
+docs/agent-changelog-plan.md
+  s_f29f53f827f04e::t_90fdb0f8dc301f 97,99-100,115,134-136,165
+docs/monorepo-architecture/operations.md
+  s_f29f53f827f04e::t_49719accfdf21b 20-66
+AGENTS-CHANGELOG.md
+  s_b51b965206c0ac::t_5932abd57a5a35 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f4db0fe3cc164dee9c2443f2dad12d4a3e484c2e",
+  "prompts": {},
+  "sessions": {
+    "s_b51b965206c0ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5f784a0fa49a3969",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f29f53f827f04e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77319723-d328-4360-9e24-550511c87e1d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
