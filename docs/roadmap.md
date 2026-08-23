@@ -11,9 +11,8 @@ docs/roadmap/<feature>/
 
 A folder starts with `TODO.md` alone. The orchestrator writes `research.md` and then `plan.md` during the cycle, and the user approves each one. When the last phase of the feature merges, `documenter` writes the new behavior into `docs/business/`, and the folder of the feature goes away. So this area holds the future alone, and `docs/business.md` holds the present.
 
-The skill `.claude/skills/agent-orchestration/SKILL.md` holds the cycle. The skill `.claude/skills/project-documentation/SKILL.md` holds the shape of each of the three files.
-
 ## The features
 
 - [service-environment](./roadmap/service-environment/TODO.md): the variables and the secrets of a service.
 - [domains](./roadmap/domains/TODO.md): the public address of a service, and its certificate.
+- [agent-layer](./roadmap/agent-layer/TODO.md): the optimization of the configuration of the agents.
