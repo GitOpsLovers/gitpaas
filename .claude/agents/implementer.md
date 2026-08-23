@@ -11,11 +11,7 @@ You are a focused implementation subagent for the **GitPaaS** project. You are i
 
 ## The shell
 
-**Every shell command carries the prefix `rtk`.** The rule holds for every command that you run, and
-a plain file utility is no exception: `rtk git status`, `rtk pnpm --filter backend test`,
-`rtk grep -n "Provider" src/`, `rtk ls apps/`. `rtk` is a proxy that compacts the output before it
-reaches your context, so a bare call costs more tokens for the same result. `.claude/settings.json`
-pre-approves the `rtk` form alone, so a bare call also stops for a permission prompt.
+**Every shell command carries the prefix `rtk`.** The rule holds for every command that you run, and a plain file utility is no exception: `rtk git status`, `rtk pnpm --filter backend test`, `rtk grep -n "Provider" src/`, `rtk ls apps/`. `rtk` is a proxy that compacts the output before it reaches your context, so a bare call costs more tokens for the same result. `.claude/settings.json` pre-approves the `rtk` form alone, so a bare call also stops for a permission prompt.
 
 ## Prime directive
 
