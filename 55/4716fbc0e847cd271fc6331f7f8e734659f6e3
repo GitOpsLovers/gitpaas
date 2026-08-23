@@ -1,0 +1,23 @@
+openspec/changes/service-env-secrets/proposal.md
+  s_1148b6882cd5d9::t_466a862199e399 17,32,45
+openspec/changes/service-env-secrets/specs/services/spec.md
+  s_1148b6882cd5d9::t_d526e17a12049d 5,31,33
+openspec/changes/service-env-secrets/tasks.md
+  s_1148b6882cd5d9::t_5bda74160dffdf 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "554716fbc0e847cd271fc6331f7f8e734659f6e3",
+  "prompts": {},
+  "sessions": {
+    "s_1148b6882cd5d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6802ba12-31fd-4058-9239-f23e6460fcf9",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
