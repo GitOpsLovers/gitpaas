@@ -98,7 +98,7 @@ describe('createProviderUseCase', () => {
         });
 
         it('propagates a failure of the cipher, and writes no row', async () => {
-            const error = new Error('PROVIDERS_ENCRYPTION_KEY is not set');
+            const error = new Error('SECRETS_ENCRYPTION_KEY is not set');
             mockEncryptSecret.mockImplementation(() => {
                 throw error;
             });

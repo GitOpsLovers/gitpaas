@@ -2,7 +2,7 @@
 
 ### Requirement: The six tabs of the screen
 
-The system SHALL show seven tabs, in this order: `general`, `provider`, `environment`, `deployments`,
+The system SHALL show seven tabs, in this order: `general`, `provider`, `configuration`, `deployments`,
 `containers`, `network` and `logs`.
 
 The path holds the tab. A path that names no tab opens `general`. A path that names an unknown tab also
@@ -28,9 +28,9 @@ always names the tab that the screen shows.
 
 ## ADDED Requirements
 
-### Requirement: The tab "Environment" manages the variables
+### Requirement: The tab "Configuration" manages the variables
 
-The tab `environment` SHALL list the variables of the service, and it SHALL give the actions that set, change
+The tab `configuration` SHALL list the variables of the service, and it SHALL give the actions that set, change
 and remove one.
 
 Each line holds the name, the mark that says if the value is a secret, and the value. For a secret the tab

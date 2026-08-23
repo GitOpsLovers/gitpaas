@@ -11,7 +11,7 @@
 #   2. Resolves the version to install (the latest published release by default, or
 #      the release tag you pass) and fetches iac/production/ at that version.
 #   3. Writes iac/production/.env with secure random secrets (DB password, JWT
-#      secrets and the PROVIDERS_ENCRYPTION_KEY that protects provider keys), the
+#      secrets and the SECRETS_ENCRYPTION_KEY that protects every stored secret), the
 #      host's docker group id (DOCKER_GID, so the non-root backend container can
 #      use the mounted Docker socket) and the image tag to pull. The operator
 #      registers their GitHub App later, from the Providers screen of the frontend.
@@ -285,7 +285,7 @@ generate_env() {
         upsert_env "IMAGE_TAG"  "$IMAGE_TAG"
         default_env "REDIS_HOST" "redis"
         default_env "REDIS_PORT" "6379"
-        default_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"
+        default_env "SECRETS_ENCRYPTION_KEY" "$(rand_secret)"
         default_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
         return
     fi
@@ -298,7 +298,7 @@ generate_env() {
     set_env "DB_PASSWORD" "$db_password"
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
-    set_env "PROVIDERS_ENCRYPTION_KEY" "$(rand_secret)"
+    set_env "SECRETS_ENCRYPTION_KEY" "$(rand_secret)"
     set_env "NODE_ENV" "production"
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"
     set_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"

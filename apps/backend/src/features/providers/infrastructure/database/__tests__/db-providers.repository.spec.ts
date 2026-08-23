@@ -18,7 +18,7 @@ const cipher = new SecretCipherAdapter();
 /**
  * Name of the environment variable that carries the key of the encryption.
  */
-const KEY_VARIABLE = 'PROVIDERS_ENCRYPTION_KEY';
+const KEY_VARIABLE = 'SECRETS_ENCRYPTION_KEY';
 
 /**
  * A key of 32 bytes in the hexadecimal form, as the environment must hold it.

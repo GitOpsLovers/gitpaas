@@ -14,7 +14,7 @@ A service holds a set of variables. Each variable carries a name and a value, an
 value or as a secret. The system encrypts a secret at rest and never gives it back to a client.
 
 - **New:** the variables of a service, with the difference between a plain value and a secret.
-- **New:** a tab `environment` of the detail of a service manages those variables.
+- **New:** a tab `configuration` of the detail of a service manages those variables.
 - **Changed:** a deployment injects the variables into the stack when it starts it.
 - **Changed:** the answer of the API gives the value of a plain variable, and it gives no value for a
   secret. It gives only the fact that a value is set.
@@ -23,17 +23,19 @@ value or as a secret. The system encrypts a secret at rest and never gives it ba
 
 ### New Capabilities
 
-- `service-config`: the variables of a service, the encryption of a secret at rest, and the rule that no
+- `service-environment`: the variables of a service, the encryption of a secret at rest, and the rule that no
   answer of the API carries the value of a secret.
 
 ### Modified Capabilities
 
 - `deployments`: the run injects the variables of the service into the stack that it starts.
-- `services`: the tab "Environment" manages the variables of the service.
+- `services`: the tab "Configuration" manages the variables of the service.
+- `providers`: the key of the encryption of the private key comes from `SECRETS_ENCRYPTION_KEY`, which
+  serves every secret of the server.
 
 ## Impact
 
-**The backend.** A new feature `service-config`. It uses the helper of the encryption that the change
+**The backend.** A new feature `service-environment`. It uses the helper of the encryption that the change
 `source-control-providers` adds under `core/infrastructure/crypto/`, and the same environment variable that
 holds its key. If that change has not landed, this one creates the helper instead.
 
@@ -42,7 +44,7 @@ removal in cascade.
 
 **The executor.** The step that starts the stack receives the variables and gives them to the compose run.
 
-**The frontend.** The tab "Environment" in the detail of a service, where a secret shows that it is set and
+**The frontend.** The tab "Configuration" in the detail of a service, where a secret shows that it is set and
 never its value.
 
 **The security.** A secret enters the database encrypted, and it leaves the server only inside a container
