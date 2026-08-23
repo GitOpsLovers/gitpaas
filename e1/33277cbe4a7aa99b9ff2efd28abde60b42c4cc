@@ -1,0 +1,14 @@
+README.md
+  h_e4f33aa49027b9 60,62-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e133277cbe4a7aa99b9ff2efd28abde60b42c4cc",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
