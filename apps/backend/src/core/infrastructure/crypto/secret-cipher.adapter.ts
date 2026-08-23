@@ -27,7 +27,7 @@ const PART_SEPARATOR = ':';
 /**
  * Name of the environment variable that carries the key of the encryption.
  */
-const KEY_VARIABLE = 'PROVIDERS_ENCRYPTION_KEY';
+const KEY_VARIABLE = 'SECRETS_ENCRYPTION_KEY';
 
 /**
  * Reads the key of the encryption from the environment.

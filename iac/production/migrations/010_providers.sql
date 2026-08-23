@@ -1,7 +1,7 @@
 -- `providers` — the named source control accounts.
 --
 -- A provider is a GitHub App an operator registers from the browser. The private
--- key is stored sealed by AES-256-GCM under `PROVIDERS_ENCRYPTION_KEY`, so no
+-- key is stored sealed by AES-256-GCM under `SECRETS_ENCRYPTION_KEY`, so no
 -- clear copy of it ever reaches this table. The name is unique across the
 -- installation, and `type` prepares the next kind of provider without a change of
 -- the schema. Migration `011_services_provider.sql` points every service at one

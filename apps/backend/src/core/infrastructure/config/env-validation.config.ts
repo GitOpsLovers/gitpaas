@@ -36,7 +36,7 @@ const environmentSchema = z.object({
     REDIS_HOST: requiredText,
     REDIS_PORT: requiredNumber,
     REDIS_PASSWORD: z.string().optional(),
-    PROVIDERS_ENCRYPTION_KEY: requiredText,
+    SECRETS_ENCRYPTION_KEY: requiredText,
     CORS_ORIGIN: requiredText,
     APP_BASE_URL: z.url({ protocol: /^https?$/ }),
     THROTTLE_TTL: requiredNumber,

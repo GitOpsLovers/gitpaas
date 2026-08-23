@@ -12,7 +12,7 @@ const validEnv = (): Record<string, unknown> => ({
     DB_NAME: 'gitpaas_db',
     REDIS_HOST: 'localhost',
     REDIS_PORT: '6379',
-    PROVIDERS_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef',
+    SECRETS_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef',
     CORS_ORIGIN: 'http://localhost:4200',
     APP_BASE_URL: 'http://localhost:4200',
     THROTTLE_TTL: '60000',
@@ -196,18 +196,18 @@ describe('validate', () => {
 
     it('fails fast when the providers encryption key is missing', () => {
         const env = validEnv();
-        delete env.PROVIDERS_ENCRYPTION_KEY;
+        delete env.SECRETS_ENCRYPTION_KEY;
 
-        expect(() => validate(env)).toThrow(/PROVIDERS_ENCRYPTION_KEY/);
+        expect(() => validate(env)).toThrow(/SECRETS_ENCRYPTION_KEY/);
     });
 
     it('rejects an empty providers encryption key', () => {
-        expect(() => validate({ ...validEnv(), PROVIDERS_ENCRYPTION_KEY: '' }))
-            .toThrow(/PROVIDERS_ENCRYPTION_KEY/);
+        expect(() => validate({ ...validEnv(), SECRETS_ENCRYPTION_KEY: '' }))
+            .toThrow(/SECRETS_ENCRYPTION_KEY/);
     });
 
     it('keeps the configured providers encryption key', () => {
-        expect(validate(validEnv()).PROVIDERS_ENCRYPTION_KEY)
+        expect(validate(validEnv()).SECRETS_ENCRYPTION_KEY)
             .toBe('0123456789abcdef0123456789abcdef');
     });
 

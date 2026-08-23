@@ -3,7 +3,7 @@
 -- One row lives from the moment an operator starts a registration until the App is
 -- installed, at most twelve hours. Between the conversion of the manifest and the
 -- installation the row holds the private key of a real GitHub App, sealed by
--- AES-256-GCM under `PROVIDERS_ENCRYPTION_KEY`, exactly as the `providers` table of
+-- AES-256-GCM under `SECRETS_ENCRYPTION_KEY`, exactly as the `providers` table of
 -- `010_providers.sql` holds it. A scheduled job removes every row that passed
 -- `expiresAt`, so no key of an abandoned registration stays. The column `state`
 -- carries a unique index, because every call after the first one finds the row by it.

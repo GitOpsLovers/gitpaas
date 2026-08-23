@@ -25,7 +25,7 @@ const PLACEHOLDER_ENV: Record<string, string> = {
     REDIS_HOST: 'localhost',
     REDIS_PORT: '6379',
 
-    PROVIDERS_ENCRYPTION_KEY: '0'.repeat(64),
+    SECRETS_ENCRYPTION_KEY: '0'.repeat(64),
 
     CORS_ORIGIN: 'http://localhost:4200',
     APP_BASE_URL: 'http://localhost:4200',

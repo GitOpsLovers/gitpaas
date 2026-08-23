@@ -3,17 +3,17 @@
 Agent: implementer
 Paths: apps/backend/src/core/infrastructure/crypto/, iac/production/, scripts/install.sh
 
-- [ ] 1.1 Check if `apps/backend/src/core/infrastructure/crypto/secret-cipher.ts` exists. The change `source-control-providers` creates it. If it exists, use it and create nothing.
+- [x] 1.1 Check if `apps/backend/src/core/infrastructure/crypto/secret-cipher.ts` exists. The change `source-control-providers` creates it. If it exists, use it and create nothing.
 - [ ] 1.2 If it does not exist, create it with the exported functions that encrypt and decrypt with AES-256-GCM, and its spec.
-- [ ] 1.3 Name the variable of the environment `SECRETS_ENCRYPTION_KEY`, so it serves every secret of the server, and keep the change of the providers reading it.
-- [ ] 1.4 Add that variable as required to the validation of the environment, to `iac/production/.env.example` and to `scripts/install.sh`.
+- [x] 1.3 Name the variable of the environment `SECRETS_ENCRYPTION_KEY`, so it serves every secret of the server, and keep the change of the providers reading it.
+- [x] 1.4 Add that variable as required to the validation of the environment, to `iac/production/.env.example` and to `scripts/install.sh`.
 
 ## 2. Phase 2 — The variable record
 
 Agent: implementer
-Paths: apps/backend/src/features/service-config/, iac/production/migrations/
+Paths: apps/backend/src/features/service-environment/, iac/production/migrations/
 
-- [ ] 2.1 Create the feature `apps/backend/src/features/service-config/`, with the division that `namespaces` uses.
+- [ ] 2.1 Create the feature `apps/backend/src/features/service-environment/`, with the division that `namespaces` uses.
 - [ ] 2.2 Create the domain model of a variable, with the mark that says if the value is a secret.
 - [ ] 2.3 Create the data transfer objects of the setting and of the change, and check the name against the rule of an environment variable.
 - [ ] 2.4 Create the errors `VARIABLE_NOT_FOUND` and `VARIABLE_NAME_TAKEN`, and register them in the translator with `404` and `409`.
@@ -42,7 +42,7 @@ Agent: implementer
 Paths: apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/services/
 
 - [ ] 4.1 Create the model and the repository of the API of the variables in the frontend.
-- [ ] 4.2 Add the tab `environment`, with the label "Environment", to the detail of a service, between `provider` and `deployments`.
+- [ ] 4.2 Add the tab `configuration`, with the label "Configuration", to the detail of a service, between `provider` and `deployments`.
 - [ ] 4.3 List each variable with its name, and show the value of a plain variable only.
 - [ ] 4.4 Show that a secret holds a value, and keep its field empty on a change.
 - [ ] 4.5 Give the actions that set, change and remove a variable.
@@ -53,11 +53,12 @@ Paths: apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/ser
 ## 5. Phase 5 — The documentation and the release
 
 Agent: documenter
-Paths: docs/backend-architecture/, scripts/install.sh
+Paths: docs/backend-architecture/, docs/infrastructure-architecture/, scripts/install.sh
 
 - [ ] 5.1 State in the summary of the installer that a lost `SECRETS_ENCRYPTION_KEY` makes every stored secret unreadable.
 - [ ] 5.2 State in the release notes that a compose file of a repository can print its own values into the log, and that the platform cannot stop it.
 - [ ] 5.3 Add the variables of a service to `docs/backend-architecture/key-flows.md`.
+- [ ] 5.4 Rename `PROVIDERS_ENCRYPTION_KEY` to `SECRETS_ENCRYPTION_KEY` in `docs/backend-architecture/key-flows.md` (line 136), in `docs/infrastructure-architecture/conventions.md` (line 25) and in `docs/infrastructure-architecture/installation.md` (lines 43, 45, 71 and 73).
 
 ## 6. Phase 6 — The order against the other change
 

@@ -1,6 +1,6 @@
 ## Purpose
 
-This capability holds the configuration of a service: the environment variables that its containers read,
+This capability holds the environment of a service: the variables that its containers read,
 and the secrets among them, which the system encrypts at rest and never gives back to a client.
 
 ## ADDED Requirements
