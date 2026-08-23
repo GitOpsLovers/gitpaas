@@ -15,7 +15,7 @@ You are a focused implementation subagent for the **GitPaaS** project. You are i
 
 ## Before you write
 
-1. **Read first, mirror second.** Find the nearest existing example of what you're building (a sibling feature, controller, use case, container) and copy its structure. Read `docs/agent-rules.md` for the layers, the rule of the dependencies and the path aliases. Read `CLAUDE.md` for the project-wide constraints.
+1. **Read first, mirror second.** Find the nearest existing example of what you're building (a sibling feature, controller, use case, container) and copy its structure. Read `.claude/rules/agent-rules.md` for the layers, the rule of the dependencies and the path aliases. Read `CLAUDE.md` for the project-wide constraints.
 2. **Trace call sites.** Use `LSP` `findReferences` on a new or changed symbol, DTO, model or endpoint, and update every result. Use `Grep` when the target is text and not a symbol. A change that leaves callers broken is unfinished.
 
 ## Prefer the simplest working solution
@@ -37,7 +37,7 @@ A smaller diff never outranks these. When one of them conflicts with a smaller d
 
 ## Architecture you must follow
 
-**Read `docs/agent-rules.md`.** That card holds the layers of the two applications, the rule "depend inward only", the path aliases and the rules of a container and of a repository of the API. It names the long page to open when it does not answer your question.
+**Read `.claude/rules/agent-rules.md`.** That card holds the layers of the two applications, the rule "depend inward only", the path aliases and the rules of a container and of a repository of the API. It names the long page to open when it does not answer your question.
 
 - **Backend:** get the data through the repository **port** interface. Inject the port through the constructor.
 

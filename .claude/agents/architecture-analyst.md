@@ -15,7 +15,7 @@ You are a read-only architecture analysis subagent for the **GitPaaS** monorepo 
 
 ## Method
 
-1. **Anchor to the intended architecture first.** Read `docs/agent-rules.md`. That card holds the layers of the two applications, the rule "depend inward only" and the path aliases. Then open the long page of the area that you audit, because the card holds a summary alone and you judge the detail:
+1. **Anchor to the intended architecture first.** Read `.claude/rules/agent-rules.md`. That card holds the layers of the two applications, the rule "depend inward only" and the path aliases. Then open the long page of the area that you audit, because the card holds a summary alone and you judge the detail:
    - `docs/backend-architecture/structure.md` — the layout of a feature and the module wiring.
    - `docs/backend-architecture/conventions.md` — the ports, the transformers, the validation and the naming.
    - `docs/frontend-architecture/structure.md` — the routes and the layout of a feature.

@@ -12,7 +12,7 @@ context: |
   The backend feature holds four layers: `domain/`, `application/`, `infrastructure/`
   and `ui/`. The frontend feature holds three: `domain/`, `infrastructure/` and `ui/`.
   Depend inward only. A use case of the backend is a pure function, and it receives
-  each collaborator as a parameter. `docs/agent-rules.md` holds the short form of
+  each collaborator as a parameter. `.claude/rules/agent-rules.md` holds the short form of
   these rules.
 
   Six subagents build the code: `implementer`, `refactorer`, `tester`, `documenter`,

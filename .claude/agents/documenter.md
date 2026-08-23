@@ -21,7 +21,7 @@ Before you write into `docs/`, read `.claude/skills/project-documentation/SKILL.
 
 1. **Read the code, not your assumptions.** Trace the real thing: start from the entry point relevant to the topic (a controller, a route, a container component, a module) and follow the calls through the layers with `LSP` `goToDefinition` and `outgoingCalls`. Confirm the signature of every symbol that you describe with `LSP` `hover`, so the doc reflects what the code actually does, today.
 2. **Find the page that owns the subject.** Use the map of the skill `project-documentation`. Then read the whole subpage that you will edit, and the sections around the one that you will write, so your text matches their structure, their terminology and their voice. If a section already covers the subject, correct that section; never open a second one for the same subject.
-3. **Understand the layering you're describing.** Read `docs/agent-rules.md`. That card holds the layers of the two applications, the rule "depend inward only" and the path aliases. It names the long page to open when you document a subject that the card does not cover.
+3. **Understand the layering you're describing.** Read `.claude/rules/agent-rules.md`. That card holds the layers of the two applications, the rule "depend inward only" and the path aliases. It names the long page to open when you document a subject that the card does not cover.
 
 ## The border between `docs/` and `openspec/specs/`
 

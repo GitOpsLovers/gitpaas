@@ -37,7 +37,7 @@ Each skill holds a table of reference files. Read `references/conventions.md`, t
 - **Backend (Jest):** the testable seams are `application/` use cases (pure functions with mocked repository **ports**), `ui/` services and controllers, and `infrastructure/` repositories and transformers. Specs live in a sibling `__tests__/` directory named `*.spec.ts`, mirroring the existing layout. Mock at the port/dependency boundary; don't hit a real DB or external API.
 - **Frontend (Vitest):** the Angular builder `@angular/build:unit-test` drives Vitest in a `jsdom` environment. Run it headless with `ng test --watch=false`. Follow the existing spec style if specs exist for the area; component files are `.component.ts` / `.component.html`.
 - **Assert on mapped output, not identity, where the code returns copies** — e.g. infrastructure repositories/transformers return domain models, so assert `toEqual(domainModel)`, reserving `toBe(...)` for the deliberate write-path exceptions the code documents.
-- Read `docs/agent-rules.md` for the layers, the rule "depend inward only" and the path aliases. Use these aliases in the specs.
+- Read `.claude/rules/agent-rules.md` for the layers, the rule "depend inward only" and the path aliases. Use these aliases in the specs.
 
 ## Operating rules
 

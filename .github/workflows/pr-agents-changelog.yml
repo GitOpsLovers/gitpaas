@@ -1,0 +1,54 @@
+name: PR Agents Changelog
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'CLAUDE.md'
+      - '.claude/**'
+      - 'openspec/config.yaml'
+      - '.github/workflows/pr-agents-changelog.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    name: Require an entry in AGENTS-CHANGELOG.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check the entry of the changelog
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
+          changed="$(git diff --name-only "$base" "$HEAD_SHA")"
+          echo "The files of this Pull Request:"
+          echo "$changed"
+
+          if printf '%s\n' "$changed" | grep -qx 'AGENTS-CHANGELOG.md'; then
+            echo "AGENTS-CHANGELOG.md holds a change of this Pull Request. The check passes."
+            exit 0
+          fi
+
+          config="$(printf '%s\n' "$changed" \
+            | grep -E '^(CLAUDE\.md|openspec/config\.yaml)$|^\.claude/' || true)"
+
+          if [ -z "$config" ]; then
+            echo "This Pull Request changes no configuration of the AI. The check passes."
+            exit 0
+          fi
+
+          echo "The files of the configuration of the AI that this Pull Request changes:"
+          echo "$config"
+          echo "::error::This Pull Request changes the configuration of the AI, and it leaves AGENTS-CHANGELOG.md untouched. Add an entry to AGENTS-CHANGELOG.md, under '## [Unreleased]'. The section 'The metrics of the configuration of the agents' of docs/agents-architecture/operations.md states the shape of an entry, and the script that gives its numbers."
+          exit 1

@@ -7,10 +7,10 @@ Read a long page only if this card does not answer your question:
 
 | The subject | The page |
 |---|---|
-| The layout of a feature of the backend, the module wiring, the cross-cutting concerns | [backend structure](./backend-architecture/structure.md) |
-| The ports, the transformers, the validation, the naming of a file and of a class | [backend conventions](./backend-architecture/conventions.md) |
-| The routes, the layout of a feature of the frontend, the shared folder | [frontend structure](./frontend-architecture/structure.md) |
-| The containers, the repositories of the API, the presentational components, the state | [frontend conventions](./frontend-architecture/conventions.md) |
+| The layout of a feature of the backend, the module wiring, the cross-cutting concerns | [backend structure](../../docs/backend-architecture/structure.md) |
+| The ports, the transformers, the validation, the naming of a file and of a class | [backend conventions](../../docs/backend-architecture/conventions.md) |
+| The routes, the layout of a feature of the frontend, the shared folder | [frontend structure](../../docs/frontend-architecture/structure.md) |
+| The containers, the repositories of the API, the presentational components, the state | [frontend conventions](../../docs/frontend-architecture/conventions.md) |
 
 ## The one rule
 

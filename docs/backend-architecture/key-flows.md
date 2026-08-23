@@ -1,5 +1,9 @@
 # Key flows
 
+## Domain model
+
+A **namespace** is a group of **projects**. A **project** is a group of **services**. A **service** is a unit that you can deploy: it names a source repository, a compose file path and a deployment branch. A **deployment** is one attempt to start the Docker Compose stack of a service on the server. A **provider** is the account that gives a service access to its Git host. A **user** is an operator who authenticates to use the API. Each of these names is a feature of `src/features/`, and the sections below use the same words.
+
 ## Request
 
 All the requests move through the layers in the same sequence, from the HTTP edge to the persistence and back:
@@ -33,6 +37,20 @@ mark processing → fetch repo archive → docker deploy
 ```
 
 An expected failure becomes a `failed` status, and the task ends correctly; the retry path is the last safety net, for an unexpected error only. Because delivery is at-least-once, a run can occur two times. The deploy operation tolerates this, because it always stops the old stack first.
+
+## Deployments
+
+`POST /api/v1/deployments` carries only a `serviceId`. The server calculates the rest, so the request means "deploy the head of the branch of this service, now". The create-deployment use case validates the request before it writes a row:
+
+- The service must exist. If not, the use case throws `ServiceNotFoundError`.
+- The service must be deployable. If it names no provider, no repository or no branch, the use case throws `ServiceNotDeployableError`.
+- The use case resolves the head commit of the branch through the `ProviderClient` of the provider of the service. Thus the record points at an exact commit, and at the first line of its message.
+
+Then the use case writes a record with the status `pending`, which holds that commit, the branch, the compose path and the trigger, queues the run task, and returns the record. The answer arrives before any Docker work, because a wait of some minutes gives the client no data about the progress and can time out a proxy. The **`id`** of the record is the part that matters: the client subscribes to the live log stream with it.
+
+The life cycle holds four states: `pending → running → success | failed`. [Durable queue](#durable-queue-background-work) gives the run, and [Deployment log store](#deployment-log-store) gives the output.
+
+> **`GET /api/v1/logs?deploymentId=…` gives no history while a deployment runs.** The archive is written one time, at the completion of the run. Thus this endpoint gives an empty list until the deployment ends. Use the SSE route to read the output of a run that operates.
 
 ## Server-Sent Events (live streams)
 
@@ -81,6 +99,8 @@ docker output ──append──► Redis stream  logs:<deploymentId>
 
 A global guard protects all the routes by default. A metadata flag makes a route public — the `@Public()` decorator. Five routes carry it today: `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh` and `POST /api/v1/auth/logout` (`authentication.controller.ts`), because the caller has no access token at login or has already given it up at refresh and logout; `GET /api/v1/server/readiness` (`server.controller.ts`), the dependency-aware readiness probe described in [Docker-facing capabilities](#docker-facing-capabilities); and `GET /api/v1/` (`app.controller.ts`), a trivial liveness check that answers `{ "status": "ok" }` with no dependency of its own. The login endpoint is rate-limited.
 
+The API has **no public sign-up**, and it gives no route that creates a user; an administrator writes that row with another tool. `POST /api/v1/auth/logout` revokes one refresh token and is idempotent, and `GET /api/v1/auth/me` gives the public profile of the caller.
+
 - **Tokens**: at login, the application validates the email and the password (the passwords have an argon2 hash). On each protected request, it validates the Bearer token, finds the user again, and **rejects the accounts that are not active**. Thus a disabled account loses access immediately, and not at the expiry of its token. The two token types use different secrets and lifetimes.
 - **Rotation**: the refresh tokens stay in the database only as a hash, so a person who reads the table cannot make a token. A refresh operation verifies the signature, the expiry, the row and the hash, verifies again that the user is active, and then revokes the old row and gives a new pair. A row is revoked and never deleted, so a token that is sent two times is always rejected.
 
@@ -94,7 +114,7 @@ The features that touch Docker use the same arrangement: a domain port gives the
 
 - **Deploy**: the operation extracts the source archive, builds the services that need a build, pulls the other images, stops the old stack, labels each new resource, starts the stack, and captures a limited quantity of start-up output. It reports each line while it operates, so the run is visible in the live log.
 - **Logs**: one port gives the write, the read, the end and the removal of the output of a deployment. See [Deployment log store](#deployment-log-store).
-- **Cleanup**: the database cascade removes the deployments and the logs of a service, and the delete operation also removes the containers, the networks and the images that GitPaaS built. It keeps the images that it pulled, because other stacks can use them, and it is best-effort: a daemon failure does not stop the delete operation in the database.
+- **Cleanup**: the delete operation of a deployment removes the log rows of that deployment, and the database cascade removes the rest. The delete operation of a service removes the log rows of each of its deployments; the database cascade removes the deployments and the logs of a service, and the delete operation also removes the containers, the networks and the images that GitPaaS built. It keeps the images that it pulled, because other stacks can use them, and it is best-effort: a daemon failure does not stop the delete operation in the database.
 - **Server**: the maintenance operations remove the unused resources and the containers that belong to no service. They select only the resources that have the GitPaaS labels, so they never touch the control plane. The readiness endpoint is public: it examines the database and the daemon at the same time, counts an error as "down", and returns `200` with the condition of each one, or `503` with that same breakdown in the `details` key of the [error envelope](#the-error-envelope).
 - **Read-only**: some features only read from Docker or from GitHub, and use no database table.
 
@@ -113,11 +133,26 @@ GitPaaS uses the same daemon as the control plane and as the third-party stacks.
 
 A `provider` row gives a service the credentials it needs to reach its Git host — today only a GitHub App. The domain port `ProviderClient` (`features/providers/domain/ports/provider-client.port.ts`) gives the business operations in provider-agnostic terms — list the reachable repositories, list the branches of a repository, resolve a ref to its head commit, download a source archive, verify a set of credentials, and convert a manifest's temporary code into the configuration of a new application — and the GitHub adapter implements it over `@octokit/rest`, authenticated per call with `@octokit/auth-app`. The conversion takes no credentials of a provider, because the application does not exist yet when it runs.
 
-- **Encryption at rest**: the private key of a provider never reaches the database in clear text. The domain port `SecretCipher` (`core/domain/ports/secret-cipher.port.ts`) gives `encryptSecret`/`decryptSecret`, and `SecretCipherAdapter` (`core/infrastructure/crypto/secret-cipher.adapter.ts`) implements it with AES-256-GCM, under the 32-byte key of the required `PROVIDERS_ENCRYPTION_KEY` environment variable, read fresh on every call. The stored payload carries the initialisation vector, the authentication tag and the cipher text, each in hexadecimal and separated by a colon, so a fresh vector on every call keeps the same secret from sealing to the same payload twice.
+- **Encryption at rest**: the private key of a provider never reaches the database in clear text. The domain port `SecretCipher` (`core/domain/ports/secret-cipher.port.ts`) gives `encryptSecret`/`decryptSecret`, and `SecretCipherAdapter` (`core/infrastructure/crypto/secret-cipher.adapter.ts`) implements it with AES-256-GCM, under the 32-byte key of the required `PROVIDERS_ENCRYPTION_KEY` environment variable, read fresh on every call. The stored payload carries the initialisation vector, the authentication tag and the cipher text, each in hexadecimal and separated by a colon, so a fresh vector on every call keeps the same secret from sealing to the same payload twice. An update of a provider that gives no new key keeps the sealed key of the row, so an operator changes the name or the identifiers without the PEM. A lost `PROVIDERS_ENCRYPTION_KEY` makes every stored key unreadable, and the only recovery is to register the GitHub Apps again.
 - **No key leaves the server**: the read model of a provider (`Provider`) never carries the private key. It carries only its `keyFingerprint`, the first eight characters of the SHA-256 hash of the key in clear text, so an operator can tell two keys apart without exposing either of them.
 - **Credentials test**: `POST /api/v1/providers/:id/test` decrypts the stored key, calls `verifyCredentials` against the real provider, and answers `{ outcome, missingPermissions }`, with `outcome` one of `ok`, `unauthorized` or `incomplete`. GitHub can accept the credentials and still lack a needed permission, so a single mark of success would hide that case; the use case compares the permissions GitHub reports against the constant of the needed ones, and the call changes no stored record.
 - **Repository and branch discovery**: `GET /api/v1/providers/:providerId/repositories` and `GET /api/v1/providers/:providerId/repositories/:repositoryId/branches` decrypt the stored key on each call and list the repositories or the branches that the installation of the provider can reach. A service picks its source among these lists at creation time.
 - **Roles**: see [Roles](#roles). `create`, `update`, `delete` and the credentials test are admin-only; the four read routes (list, find by id, list repositories, list branches) stay open to each authenticated user.
+
+### The errors of a provider
+
+The domain declares one error for each way a request on a provider fails:
+
+| The error | The condition |
+|---|---|
+| `ProviderNotFoundError` | The identified provider does not exist. |
+| `ProviderNameTakenError` | Another provider already carries the requested name. |
+| `ProviderInUseError` | A service still points at the provider, so the delete operation is refused. |
+| `ProviderCredentialsInvalidError` | The provider refuses the stored credentials. |
+
+### The binding of a service to a provider
+
+The table `services` carries an optional `providerId`, which points at one row of `providers` with `ON DELETE RESTRICT`. Thus a provider that a service still names cannot be removed, and the use case answers `ProviderInUseError`. A service becomes deployable only when it names a provider, a repository and a branch together, in the tab "Provider" of its detail page. A deployment loads the credentials of the named provider before it reads the repository, and it refuses a service that names no provider, with the same error that it gives for a missing repository or a missing branch.
 
 ### Registering an App from a manifest
 

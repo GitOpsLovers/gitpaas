@@ -36,6 +36,7 @@ You are one of two kinds of agent. Find your kind, and read the sections that it
 - **Look before you write a helper, a type or a utility.** Search the codebase for one that already does the job, and call it. Mirroring the shape of a sibling file is not reuse; calling its existing symbol is.
 - **Do not install dependencies.** Name the package that a task needs, and let the user install it.
 - **When code changes, run the tests of the affected app**, with the commands of `package.json`. Never run E2E tests, and never use Playwright.
+- **A change of `CLAUDE.md`, of `.claude/` or of `openspec/config.yaml` carries an entry in `AGENTS-CHANGELOG.md`.** The page [operations](./docs/agents-architecture/operations.md) gives the shape of the entry and the script of its numbers. A check of GitHub fails the Pull Request that forgets the entry.
 
 ### The limits of a subagent
 
@@ -68,7 +69,7 @@ Never paste a diff, a file or a log into the report. Name the path, and give the
 
 | The subject | The document |
 |---|---|
-| The layers, the one rule of the dependencies and the path aliases | [agent-rules](./docs/agent-rules.md). Read this card first; it is short. |
+| The layers, the one rule of the dependencies and the path aliases | [agent-rules](./.claude/rules/agent-rules.md). Read this card first; it is short. |
 | The monorepo | [monorepo-architecture](./docs/monorepo-architecture.md) |
 | The backend | [backend-architecture](./docs/backend-architecture.md) |
 | The frontend | [frontend-architecture](./docs/frontend-architecture.md) |

@@ -53,11 +53,11 @@ Paths: apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/ser
 ## 5. Phase 5 — The documentation and the release
 
 Agent: documenter
-Paths: docs/backend-business/, scripts/install.sh
+Paths: docs/backend-architecture/, scripts/install.sh
 
 - [ ] 5.1 State in the summary of the installer that a lost `SECRETS_ENCRYPTION_KEY` makes every stored secret unreadable.
 - [ ] 5.2 State in the release notes that a compose file of a repository can print its own values into the log, and that the platform cannot stop it.
-- [ ] 5.3 Add the variables of a service to `docs/backend-business.md`.
+- [ ] 5.3 Add the variables of a service to `docs/backend-architecture/key-flows.md`.
 
 ## 6. Phase 6 — The order against the other change
 

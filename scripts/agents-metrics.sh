@@ -292,6 +292,13 @@ collect_on_demand_sources() {
         add_source "$manifest" "skill $name (body)" "$SCRATCH/tmp_body"
     done < "$SCRATCH/skills.list"
 
+    find "$REPO_ROOT/.claude/rules" -type f -name '*.md' 2>/dev/null | sort > "$SCRATCH/rules.list" || true
+    while IFS= read -r path; do
+        [ -n "$path" ] || continue
+        label="${path#"$REPO_ROOT"/}"
+        add_source "$manifest" "$label" "$path"
+    done < "$SCRATCH/rules.list"
+
     find "$REPO_ROOT/docs" -type f -name '*.md' 2>/dev/null | sort > "$SCRATCH/docs.list" || true
     while IFS= read -r path; do
         [ -n "$path" ] || continue

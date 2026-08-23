@@ -65,9 +65,9 @@ Paths: apps/frontend/src/app/features/deployments/, apps/frontend/src/app/featur
 ## 6. Phase 6 — The gaps that this change leaves
 
 Agent: documenter
-Paths: docs/backend-business/
+Paths: docs/backend-architecture/
 This is the last phase.
 
 - [ ] 6.1 Record that a deployment that a push starts and that fails notifies nobody. A notification is a separate change.
 - [ ] 6.2 Add to the plan of the rollback the step that removes the registrations of the webhooks, so a repository does not call an address that answers `404`.
-- [ ] 6.3 Add the webhook and the strategy of the build to `docs/backend-business.md`.
+- [ ] 6.3 Add the webhook and the strategy of the build to `docs/backend-architecture/key-flows.md`.

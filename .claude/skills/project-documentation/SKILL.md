@@ -39,7 +39,9 @@ Each of the five architecture documents owns a folder of the same name. The fold
 | `operations.md`     | The action that an operator runs on the application.                                              |
 | `installation.md`   | The installer. It exists for the infrastructure alone.                                            |
 
-`docs/backend-business/` is a sixth folder, and it carries no index page. It holds the business, and not the architecture: the domain model, the workflow of a deployment, the access, the cleanup and the maintenance of the server. Send a rule of the business there, and send the mechanism of the code to `key-flows.md`.
+`docs/` holds the documentation of a person, and it holds no working file of an agent. The card `.claude/rules/agent-rules.md` is the short form of `structure.md` and of `conventions.md` of the two applications. If you change one of those four pages, read the card, and correct it in the same commit.
+
+There is no separate folder for the business. A rule of the business goes to the `key-flows.md` of the applicable area, beside the mechanism that carries it. The domain model, the deployment, the access, the cleanup and the maintenance of the server all live in `docs/backend-architecture/key-flows.md`.
 
 `docs/agents-architecture/` holds the configuration of the AI, and not the application: the configuration of the agents and the skills, the workflow that they follow, and the metrics of the tokens that a session or a change of that configuration costs.
 
