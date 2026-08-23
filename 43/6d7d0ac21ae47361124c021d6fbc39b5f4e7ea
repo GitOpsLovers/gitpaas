@@ -1,0 +1,21 @@
+docs/agent-changelog-plan.md
+  s_f29f53f827f04e::t_0d46d75838fd7b 1-177
+scripts/agents-metrics/index.mjs
+  s_f29f53f827f04e::t_bfc746b29561b3 1-423
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "436d7d0ac21ae47361124c021d6fbc39b5f4e7ea",
+  "prompts": {},
+  "sessions": {
+    "s_f29f53f827f04e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77319723-d328-4360-9e24-550511c87e1d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
