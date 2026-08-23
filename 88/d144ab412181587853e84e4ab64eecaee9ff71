@@ -1,0 +1,75 @@
+CLAUDE.md
+  s_3069993dd58fe4::t_94c7b2118a2ad0 46-52
+apps/backend/src/app.module.ts
+  s_3069993dd58fe4::t_24f20c0cbece6f 21,55
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_3069993dd58fe4::t_e1024a7337a056 53-54
+apps/backend/src/features/service-environment/application/get-service-variables-by-service.use-case.ts
+  s_3069993dd58fe4::t_a6afb2e0842a3e 1-17
+apps/backend/src/features/service-environment/application/remove-service-variable.use-case.ts
+  s_3069993dd58fe4::t_d826f09d0f2650 1-31
+apps/backend/src/features/service-environment/application/set-service-variable.use-case.ts
+  s_3069993dd58fe4::t_17d3b3da9c9cde 1-38
+apps/backend/src/features/service-environment/application/update-service-variable.use-case.ts
+  s_3069993dd58fe4::t_65b7d2101d9bcc 1-85
+apps/backend/src/features/service-environment/domain/errors/service-variable.errors.ts
+  s_3069993dd58fe4::t_54174bae0a4f0b 1-19
+apps/backend/src/features/service-environment/domain/models/service-variable.models.ts
+  s_3069993dd58fe4::t_bdde53df077571 1-16
+apps/backend/src/features/service-environment/domain/repositories/service-variables.repository.ts
+  s_3069993dd58fe4::t_2cef3c9773e789 1-75
+apps/backend/src/features/service-environment/infrastructure/database/db-service-variable.entity.ts
+  s_3069993dd58fe4::t_8748dfe46ec634 1-33
+apps/backend/src/features/service-environment/infrastructure/database/db-service-variables.repository.ts
+  s_3069993dd58fe4::t_272f556341e5e6 1-94
+apps/backend/src/features/service-environment/infrastructure/database/db-service-variables.transformer.ts
+  s_3069993dd58fe4::t_2655cef05b4cbd 1-24
+apps/backend/src/features/service-environment/service-environment.module.ts
+  s_3069993dd58fe4::t_22133067616f3a 1-25
+apps/backend/src/features/service-environment/ui/controllers/service-variables.controller.ts
+  s_3069993dd58fe4::t_ed602aad98253f 1-89
+apps/backend/src/features/service-environment/ui/services/service-variables.service.ts
+  s_3069993dd58fe4::t_501934452b1f6d 1-46
+iac/production/migrations/013_service_variables.sql
+  s_3069993dd58fe4::t_3ac7fb6aa70caf 1-13
+openspec/changes/service-env-secrets/tasks.md
+  s_3069993dd58fe4::t_a85574f37c74a0 16-26
+packages/contracts/src/index.ts
+  s_3069993dd58fe4::t_379d2752f62794 13-26
+packages/contracts/src/service-environment/service-variable.contract.ts
+  s_3069993dd58fe4::t_57e748fee45782 1-78
+.claude/skills/agent-orchestration/SKILL.md
+  s_3069993dd58fe4::t_2cb21e3484e08a 23,43-44,76-78,80,158
+AGENTS-CHANGELOG.md
+  s_3069993dd58fe4::t_eb9feac9060005 10-17
+apps/backend/src/features/service-environment/application/__tests__/get-service-variables-by-service.use-case.spec.ts
+  s_3069993dd58fe4::t_6d4a96dc49060e 1-86
+apps/backend/src/features/service-environment/application/__tests__/remove-service-variable.use-case.spec.ts
+  s_3069993dd58fe4::t_1048187c84a7ba 1-100
+apps/backend/src/features/service-environment/application/__tests__/set-service-variable.use-case.spec.ts
+  s_3069993dd58fe4::t_ab7bf7b06a2cc6 1-173
+apps/backend/src/features/service-environment/application/__tests__/update-service-variable.use-case.spec.ts
+  s_3069993dd58fe4::t_990f5861390434 1-182
+apps/backend/src/features/service-environment/domain/errors/__tests__/service-variable.errors.spec.ts
+  s_3069993dd58fe4::t_7b5f2c5ede4272 1-76
+apps/backend/src/features/service-environment/infrastructure/database/__tests__/db-service-variables.repository.spec.ts
+  s_3069993dd58fe4::t_4e82395df28249 1-291
+apps/backend/src/features/service-environment/infrastructure/database/__tests__/db-service-variables.transformer.spec.ts
+  s_3069993dd58fe4::t_5c3407844107a1 1-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "88d144ab412181587853e84e4ab64eecaee9ff71",
+  "prompts": {},
+  "sessions": {
+    "s_3069993dd58fe4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3700e0ff-519c-4778-b38b-564e391c6173",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
