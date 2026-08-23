@@ -59,11 +59,11 @@ Each repository needs its own `docker-compose.yml`. GitPaaS runs that file; it d
 
 | Doc | What's inside |
 |---|---|
-| 🧩 [Backend Architecture](./docs/backend-architecture.md) | The NestJS API's hexagonal layout, ports and adapters, persistence |
-| 🎨 [Frontend Architecture](./docs/frontend-architecture.md) | The Angular SPA's feature folders, layering and conventions |
-| 🏗️ [Infrastructure Architecture](./docs/infrastructure-architecture.md) | The single-server model, dev vs. production, image publishing |
+| 🧩 [Backend Architecture](./docs/architecture/backend.md) | The NestJS API's hexagonal layout, ports and adapters, persistence |
+| 🎨 [Frontend Architecture](./docs/architecture/frontend.md) | The Angular SPA's feature folders, layering and conventions |
+| 🏗️ [Infrastructure Architecture](./docs/architecture/infrastructure.md) | The single-server model, dev vs. production, image publishing |
 
-Behaviour is specified in [`openspec/specs/`](./openspec/specs/) and planned work in [`openspec/changes/`](./openspec/changes/), following the [OpenSpec](https://openspec.dev/) standard. The `docs/` pages explain how the system is built; the specifications state what it must do.
+The behaviour that GitPaaS carries today is stated in [`docs/business/`](./docs/business.md), and the feature that it does not carry yet is stated in [`docs/roadmap/`](./docs/roadmap.md). The pages of [`docs/architecture/`](./docs/architecture.md) explain how the system is built; `docs/business/` states what it must do.
 
 
 ## 🤝 Contributing

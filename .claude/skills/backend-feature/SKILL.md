@@ -9,10 +9,10 @@ How to scaffold a feature in `apps/backend`. This file is a **procedure**, not a
 
 ## Read the architecture first
 
-**Read `docs/backend-architecture.md` before writing anything.** It is the single definitive source of truth for the backend's architecture: layers and their responsibilities, folder shape, file and class naming, ports and adapters, DI, transformers, persistence, validation, HTTP conventions and cross-cutting concerns.
+**Read `docs/architecture/backend.md` before writing anything.** It is the single definitive source of truth for the backend's architecture: layers and their responsibilities, folder shape, file and class naming, ports and adapters, DI, transformers, persistence, validation, HTTP conventions and cross-cutting concerns.
 
 - Look every architectural rule up there. Do not assume one, and do not infer one from this file.
-- If this skill and `docs/backend-architecture.md` ever disagree, **the architecture doc wins** — follow it and report the discrepancy.
+- If this skill and `docs/architecture/backend.md` ever disagree, **the architecture doc wins** — follow it and report the discrepancy.
 
 ## Procedure
 

@@ -34,15 +34,13 @@ Write the subject in the imperative and in lower case, and add no final period. 
 
 7. **Stop.** Never merge the Pull Request. A human reviews it.
 
-## The OpenSpec change
+## The feature of the roadmap
 
-A task that changes behavior carries a change folder at `openspec/changes/<change-id>/`. If the prompt names one, add these three rules to the procedure. If the prompt names none, skip this section.
+A task that changes behavior carries a folder at `docs/roadmap/<feature>/`. If the prompt names one, add these three rules to the procedure. If the prompt names none, skip this section.
 
-1. **Step 1 — name the branch after the change identifier.** The change `add-remember-me` gives the branch `feat/add-remember-me`. Keep the identifier unaltered, and pick the type by the kind of work.
-2. **Step 3 — stage the change folder with the code.** Add `openspec/changes/<change-id>/`, so the specification and the code enter the repository in the same commit. A later commit stages the folder again only if an artifact changed. If `/opsx:sync` edited `openspec/specs/`, stage those files too.
-3. **Step 4 — read `tasks.md` for the body of the commit.** Read it; never edit it. The body names the change identifier and the specification deltas, because the Pull Request carries no body.
-
-The orchestrator archives the change after the merge, with `/opsx:archive`. The `git-manager` agent never archives, and it never moves the folder by hand.
+1. **Step 1 — name the branch after the feature.** The feature `add-remember-me` gives the branch `feat/add-remember-me`. Keep the name unaltered, and pick the type by the kind of work. One phase gives one branch, so the subject of the commit names the phase.
+2. **Step 3 — stage the folder of the feature with the code.** Add `docs/roadmap/<feature>/`, so the plan and the code enter the repository in the same commit. A later commit stages the folder again only if a file of it changed. The last phase deletes that folder and writes `docs/business/`; stage the deletion and the new page together.
+3. **Step 4 — read `plan.md` for the body of the commit.** Read it; never edit it. The body names the feature and the phase, because the Pull Request carries no body.
 
 ## The limits
 

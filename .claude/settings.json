@@ -20,13 +20,11 @@
       "Bash(rtk tail *)",
       "Bash(rtk xargs *)",
       "Bash(rtk cp *)",
-      "Bash(rtk openspec *)",
       "Bash(rtk python3 *)",
       "WebFetch(domain:angular-demo.tailadmin.com)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:angular.dev)",
       "WebFetch(domain:docs.nestjs.com)",
-      "WebFetch(domain:openspec.dev)",
       "Bash(rtk rg *)",
       "Bash(rtk curl *)",
       "Bash(rtk which *)",
@@ -51,19 +49,5 @@
         "path": "./.claude/plugins"
       }
     }
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-rtk.sh\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
   }
 }
