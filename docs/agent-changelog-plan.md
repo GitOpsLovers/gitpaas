@@ -94,9 +94,10 @@ shape:
 **Risk:** the `refactorer` may take a task of the `implementer`.
 ```
 
-### 4.2 The script `scripts/agents-metrics/index.mjs`
+### 4.2 The script `scripts/agents-metrics.sh`
 
-The script runs on Node 26, and it needs no new dependency. It offers three commands.
+The script is a POSIX shell script, beside `scripts/install.sh`. It uses `curl` and `jq`, and
+it installs no dependency. It offers three commands.
 
 | The command | Its result |
 |---|---|
@@ -111,8 +112,7 @@ The script counts the tokens with the endpoint `count_tokens` of the API of Anth
 minute at the tier Start. One run of the command `static` sends about 25 requests, one request for
 one file. So the limit constrains nothing.
 
-The script calls the endpoint over HTTPS, with the client `fetch` of Node. It installs no
-dependency.
+The script calls the endpoint over HTTPS, with `curl`, and it reads the answer with `jq`.
 
 > **Caution.** The endpoint is free, but it needs an account with credit. A key of an organization
 > with a balance of zero answers `400 invalid_request_error`, with the message "Your credit balance
@@ -131,9 +131,9 @@ The key lives in `.dev/.env`, at the root of the repository:
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-The script loads that file with `process.loadEnvFile()`, a function of Node. The function needs no
-dependency, and it never overrides a variable that the shell already exports. So a key of the shell
-wins over the key of the file, and the file fills the gap.
+The script reads the variable of the environment first. If that variable is empty, the script reads
+the file. So a key of the shell wins over the key of the file, and the file fills the gap. The
+script resolves the path of the file from its own location, so it runs from any folder.
 
 The file stays out of Git. Two rules of `.gitignore` cover it: the rule `.env` of line 8, and the
 rule `.dev` of line 40. The command **rtk git check-ignore** confirms the second rule.
@@ -162,7 +162,7 @@ One phase gives one branch, one commit and one Pull Request.
 
 | Phase | The work | The agent | The paths |
 |---|---|---|---|
-| 1 | Write the script of the metrics, and record the baseline of today. | `implementer` | `scripts/agents-metrics/` |
+| 1 | Write the script of the metrics, and record the baseline of today. | `implementer` | `scripts/agents-metrics.sh` |
 | 2 | Create `AGENTS-CHANGELOG.md` with its first entry, and document the workflow. | `documenter` | `AGENTS-CHANGELOG.md`, `docs/monorepo-architecture/operations.md` |
 | 3 | Add the rule to `CLAUDE.md`, and add the job to the workflow. | `implementer` | `CLAUDE.md`, `.github/workflows/pr-verify.yml` |
 

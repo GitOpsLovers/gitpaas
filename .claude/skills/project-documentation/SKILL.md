@@ -11,14 +11,15 @@ Every command runs through `rtk`, as section 2 of `CLAUDE.md` requires.
 
 ## The rule that breaks the most often
 
-**An index page holds no content.** These four files are indexes alone:
+**An index page holds no content.** These five files are indexes alone:
 
 - `docs/monorepo-architecture.md`
 - `docs/backend-architecture.md`
 - `docs/frontend-architecture.md`
 - `docs/infrastructure-architecture.md`
+- `docs/agents-architecture.md`
 
-Each one holds a title, one or two paragraphs of introduction, and the list `## Sections`. It holds no other section. If you want to add a section to one of these four files, you chose the wrong file. Find the subpage in the map below.
+Each one holds a title, one or two paragraphs of introduction, and the list `## Sections`. It holds no other section. If you want to add a section to one of these five files, you chose the wrong file. Find the subpage in the map below.
 
 You edit an index page for two reasons alone:
 
@@ -27,7 +28,7 @@ You edit an index page for two reasons alone:
 
 ## The map
 
-Each of the four architecture documents owns a folder of the same name. The folder holds the subpages.
+Each of the five architecture documents owns a folder of the same name. The folder holds the subpages.
 
 | The subpage         | It receives                                                                                       |
 |---------------------|---------------------------------------------------------------------------------------------------|
@@ -38,7 +39,9 @@ Each of the four architecture documents owns a folder of the same name. The fold
 | `operations.md`     | The action that an operator runs on the application.                                              |
 | `installation.md`   | The installer. It exists for the infrastructure alone.                                            |
 
-`docs/backend-business/` is a fifth folder, and it carries no index page. It holds the business, and not the architecture: the domain model, the workflow of a deployment, the access, the cleanup and the maintenance of the server. Send a rule of the business there, and send the mechanism of the code to `key-flows.md`.
+`docs/backend-business/` is a sixth folder, and it carries no index page. It holds the business, and not the architecture: the domain model, the workflow of a deployment, the access, the cleanup and the maintenance of the server. Send a rule of the business there, and send the mechanism of the code to `key-flows.md`.
+
+`docs/agents-architecture/` holds the configuration of the AI, and not the application: the configuration of the agents and the skills, the workflow that they follow, and the metrics of the tokens that a session or a change of that configuration costs.
 
 ## Where a new subject goes
 
@@ -46,7 +49,7 @@ Each of the four architecture documents owns a folder of the same name. The fold
 2. **If the section exists, correct it, and do not append to it.** A change makes a statement false. Search the page for the old statement, and rewrite it. A page that carries the new text and the old text is worse than a page that carries neither.
 3. **Use a heading of level 3 for a subject inside a section.** The pages of `key-flows.md` already use `##` for the subject and `###` for the part of it.
 4. **Create a new subpage only when no section fits and the subject is large.** Then add its line to the list `## Sections` of the index page in the same edit.
-5. **Create no new top-level folder.** Report the need instead.
+5. **Create no new top-level folder.** Report the need instead. The area `docs/agents-architecture/` already exists for the configuration of the AI, the workflow of the agents and the metrics of the tokens; a subject of that kind goes there, and not into a new folder.
 
 ## The border with `openspec/`
 

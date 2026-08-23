@@ -73,6 +73,7 @@ Never paste a diff, a file or a log into the report. Name the path, and give the
 | The backend | [backend-architecture](./docs/backend-architecture.md) |
 | The frontend | [frontend-architecture](./docs/frontend-architecture.md) |
 | The infrastructure | [infrastructure-architecture](./docs/infrastructure-architecture.md) |
+| The configuration of the AI, the workflow of the agents and the metrics of the tokens | [agents-architecture](./docs/agents-architecture.md) |
 | The documentation itself | The `project-documentation` skill (`.claude/skills/project-documentation/SKILL.md`). It gives the map of `docs/` and the page that receives each kind of content. |
 | The Git and GitHub workflow | The `git-github-workflow` skill (`.claude/skills/git-github-workflow/SKILL.md`). It is the authority for the branch, the commit and the Pull Request. |
 
