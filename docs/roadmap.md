@@ -1,8 +1,6 @@
 # Roadmap
 
-This document holds the work that GitPaaS has not built yet. One folder holds one future feature,
-and that folder is the unit of the cycle of the specification-driven development. It carries every
-artifact of that cycle.
+This document holds the work that GitPaaS has not built yet. One folder holds one future feature, and that folder is the unit of the cycle of the specification-driven development. It carries every artifact of that cycle.
 
 ```text
 docs/roadmap/<feature>/
@@ -11,13 +9,9 @@ docs/roadmap/<feature>/
     plan.md        the decisions, the rules that the feature adds, and the phases with their tasks
 ```
 
-A folder starts with `TODO.md` alone. The orchestrator writes `research.md` and then `plan.md`
-during the cycle, and the user approves each one. When the last phase of the feature merges,
-`documenter` writes the new behavior into `docs/business/`, and the folder of the feature goes away.
-So this area holds the future alone, and `docs/business.md` holds the present.
+A folder starts with `TODO.md` alone. The orchestrator writes `research.md` and then `plan.md` during the cycle, and the user approves each one. When the last phase of the feature merges, `documenter` writes the new behavior into `docs/business/`, and the folder of the feature goes away. So this area holds the future alone, and `docs/business.md` holds the present.
 
-The skill `.claude/skills/agent-orchestration/SKILL.md` holds the cycle. The skill
-`.claude/skills/project-documentation/SKILL.md` holds the shape of each of the three files.
+The skill `.claude/skills/agent-orchestration/SKILL.md` holds the cycle. The skill `.claude/skills/project-documentation/SKILL.md` holds the shape of each of the three files.
 
 ## The features
 
