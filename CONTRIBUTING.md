@@ -113,7 +113,7 @@ A request takes one of two roads. The direct road covers a question, a document,
 
 ### Who owns each step of the cycle
 
-| The step | Who owns it |
+| The step                                                                               | Who owns it                                        |
 |----------------------------------------------------------------------------------------|----------------------------------------------------|
 | Describe the work, and write or approve `docs/roadmap/<feature>/TODO.md`               | The person                                         |
 | Research: `researcher` writes `research.md`                                            | The agent                                          |
