@@ -1,0 +1,24 @@
+.claude/agents/git-manager.md
+  h_e4f33aa49027b9 14
+.claude/agents/implementer.md
+  h_e4f33aa49027b9 14
+.claude/agents/refactorer.md
+  h_e4f33aa49027b9 14
+.claude/agents/researcher.md
+  h_e4f33aa49027b9 14
+.claude/agents/tester.md
+  h_e4f33aa49027b9 14
+.claude/rules/agent-rules.md
+  h_e4f33aa49027b9 3,7-11,16,23,25-30,34-35,39,41,43,45,50,52-61,65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "61ded110958fcde1bfbeb7cf05f1fb41fdcf7c34",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
