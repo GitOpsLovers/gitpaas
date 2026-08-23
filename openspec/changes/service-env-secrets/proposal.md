@@ -14,7 +14,7 @@ A service holds a set of variables. Each variable carries a name and a value, an
 value or as a secret. The system encrypts a secret at rest and never gives it back to a client.
 
 - **New:** the variables of a service, with the difference between a plain value and a secret.
-- **New:** a tab of the detail of a service manages those variables.
+- **New:** a tab `environment` of the detail of a service manages those variables.
 - **Changed:** a deployment injects the variables into the stack when it starts it.
 - **Changed:** the answer of the API gives the value of a plain variable, and it gives no value for a
   secret. It gives only the fact that a value is set.
@@ -29,7 +29,7 @@ value or as a secret. The system encrypts a secret at rest and never gives it ba
 ### Modified Capabilities
 
 - `deployments`: the run injects the variables of the service into the stack that it starts.
-- `services`: a tab manages the variables of the service.
+- `services`: the tab "Environment" manages the variables of the service.
 
 ## Impact
 
@@ -42,7 +42,7 @@ removal in cascade.
 
 **The executor.** The step that starts the stack receives the variables and gives them to the compose run.
 
-**The frontend.** A tab of the variables in the detail of a service, where a secret shows that it is set and
+**The frontend.** The tab "Environment" in the detail of a service, where a secret shows that it is set and
 never its value.
 
 **The security.** A secret enters the database encrypted, and it leaves the server only inside a container

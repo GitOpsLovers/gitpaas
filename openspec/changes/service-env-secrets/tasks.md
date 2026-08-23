@@ -42,7 +42,7 @@ Agent: implementer
 Paths: apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/services/
 
 - [ ] 4.1 Create the model and the repository of the API of the variables in the frontend.
-- [ ] 4.2 Add the tab `variables` to the detail of a service, between `provider` and `deployments`.
+- [ ] 4.2 Add the tab `environment`, with the label "Environment", to the detail of a service, between `provider` and `deployments`.
 - [ ] 4.3 List each variable with its name, and show the value of a plain variable only.
 - [ ] 4.4 Show that a secret holds a value, and keep its field empty on a change.
 - [ ] 4.5 Give the actions that set, change and remove a variable.
