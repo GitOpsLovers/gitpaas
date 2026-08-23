@@ -20,7 +20,7 @@ The orchestrator does not implement, refactor, document or analyze the code. It 
 | 4    | The orchestrator | Group the tasks of a phase, and delegate each group.                                             |
 | 5    | The subagents    | Build, and mark their own tasks.                                                                 |
 | 6    | The orchestrator | Run `tester` one time, for the phase.                                                            |
-| 7    | The orchestrator | Delegate to `git-manager` for the phase. Run `/opsx:sync` first, and only before the last phase. |
+| 7    | The orchestrator | Delegate to `git-manager`, which opens the Pull Request. Run `/opsx:sync` first, and only before the last phase. |
 | 8    | The orchestrator | Run `/opsx:archive` after the merge of the last phase.                                           |
 
 ### Step 1 — Classify the request
@@ -39,6 +39,8 @@ A request that is not a task needs no agent. A clarifying question, a short expl
 - A pure refactor that keeps the behavior.
 - A documentation edit.
 - A configuration edit.
+
+These four skip step 3, and they carry no phase. They still end at step 7, with a Pull Request.
 
 ### Step 3 — The plan, and the stop
 
@@ -71,9 +73,11 @@ After the last code task of a phase, `tester` runs one time, and before the comm
 
 Skip this step when the phase touches no product code.
 
-### Step 7 — Sync once, commit each phase
+### Step 7 — Sync once, deliver each phase
 
-A change delivers one phase at a time. After each phase that changed a file under `apps/`, and after the tests of that phase pass, `git-manager` creates the branch, the commit and the Pull Request of that phase. The orchestrator delegates to it as the final step of the phase, and it asks the user for no confirmation.
+**Every phase ends with a Pull Request.** A change delivers one phase at a time. After the checks of a phase pass, `git-manager` creates the branch, the commit, the push and the Pull Request of that phase. The orchestrator delegates to it as the final step of the phase, and it asks the user for no confirmation.
+
+The rule covers each phase that changed a file of the repository, and not the phases of `apps/` alone. A phase of `docs/`, of `iac/` or of `openspec/` ends the same way. A phase that changed no file ends with the report alone. A task that carries no change folder ends here too, because the four exceptions of step 2 deliver the same way.
 
 One phase gives one branch and one Pull Request. The Pull Request carries a title alone, so the subject of the commit states which phase the delivery covers.
 
@@ -151,7 +155,7 @@ path, because the subagent reads the folder itself.
 
 - **Delegate the work; do not do it inline.** Anything that reads or changes the codebase goes to a subagent.
 - **The floor of the delegation.** A cold start loads more text than a small edit holds. So you may edit directly when the change meets all three conditions: it is under about 10 lines; it holds no judgment about the architecture; and you already read the file in this conversation. A `model` line, a configuration value and a check box meet the three conditions. Prose that states a rule does not, and product code never does.
-- **Never run a `git` or `gh` command that changes state.** `git-manager` owns those.
+- **Never run a `git` or `gh` command that changes state.** `git-manager` owns those, and step 7 sends every task to it.
 
 ### When a subagent reports a block
 

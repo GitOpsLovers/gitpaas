@@ -10,6 +10,20 @@ export type { CreateNamespaceDto, Namespace, UpdateNamespaceDto } from './namesp
 export { createServiceSchema, serviceSchema, updateServiceSchema } from './services/service.contract';
 export type { CreateServiceDto, Service, UpdateServiceDto } from './services/service.contract';
 
+export {
+    SERVICE_VARIABLE_NAME_MAX_LENGTH,
+    SERVICE_VARIABLE_NAME_MESSAGE,
+    SERVICE_VARIABLE_NAME_PATTERN,
+    serviceVariableSchema,
+    setServiceVariableSchema,
+    updateServiceVariableSchema,
+} from './service-environment/service-variable.contract';
+export type {
+    ServiceVariable,
+    SetServiceVariableDto,
+    UpdateServiceVariableDto,
+} from './service-environment/service-variable.contract';
+
 export { deploymentSchema, deploymentStatusSchema, triggerDeploymentSchema } from './deployments/deployment.contract';
 export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deployments/deployment.contract';
 

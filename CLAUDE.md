@@ -43,6 +43,13 @@ You are one of two kinds of agent. Find your kind, and read the sections that it
 - A subagent never spawns another subagent.
 - A subagent never commits, never pushes and never opens a Pull Request, unless its prompt says to. Only `git-manager` runs these operations.
 
+### The end of a task
+
+**Every task ends with a Pull Request.** After the checks of a task or of a phase pass, the orchestrator
+delegates to `git-manager` as the last step, and it asks the user for no confirmation. `git-manager`
+creates the branch, the commit, the push and the Pull Request, and it never merges, because a person
+reviews it. A task that changes no file of the repository ends with the report alone.
+
 ### The change folder
 
 When a prompt names `openspec/changes/<change-id>/`, read `proposal.md`, `design.md` and `tasks.md` before you start. These files carry the context, so the prompt stays short. If a file is absent, continue with the prompt alone, and say so in your report.

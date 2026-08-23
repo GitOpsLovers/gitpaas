@@ -18,6 +18,7 @@ import { NetworksModule } from '@features/networks/networks.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ProvidersModule } from '@features/providers/providers.module';
 import { ServerModule } from '@features/server/server.module';
+import { ServiceEnvironmentModule } from '@features/service-environment/service-environment.module';
 import { ServicesModule } from '@features/services/services.module';
 import { UsersModule } from '@features/users/users.module';
 
@@ -51,6 +52,7 @@ import { UsersModule } from '@features/users/users.module';
         ProjectsModule,
         ProvidersModule,
         ServicesModule,
+        ServiceEnvironmentModule,
         DeploymentsModule,
         LogsModule,
         ContainersModule,

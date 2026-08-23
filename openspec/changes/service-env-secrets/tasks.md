@@ -13,17 +13,17 @@ Paths: apps/backend/src/core/infrastructure/crypto/, iac/production/, scripts/in
 Agent: implementer
 Paths: apps/backend/src/features/service-environment/, iac/production/migrations/
 
-- [ ] 2.1 Create the feature `apps/backend/src/features/service-environment/`, with the division that `namespaces` uses.
-- [ ] 2.2 Create the domain model of a variable, with the mark that says if the value is a secret.
-- [ ] 2.3 Create the data transfer objects of the setting and of the change, and check the name against the rule of an environment variable.
-- [ ] 2.4 Create the errors `VARIABLE_NOT_FOUND` and `VARIABLE_NAME_TAKEN`, and register them in the translator with `404` and `409`.
-- [ ] 2.5 Create the repository, the entity and the transformer, with the rule that a name is unique inside one service.
-- [ ] 2.6 Encrypt the value of a secret in the use case that writes it, and keep the stored value when the body carries an empty value.
-- [ ] 2.7 Make the transformer give the value of a plain variable, and a mark instead of the value of a secret.
-- [ ] 2.8 Create the use cases: set, change, remove, and list by service.
-- [ ] 2.9 Create the migration that adds the table, with the foreign key to the service and the removal in cascade.
-- [ ] 2.10 Create the controller and the service of the feature, under the path of the service that owns the variables.
-- [ ] 2.11 Create the specs, with an assertion that no body of an answer carries the value of a secret.
+- [x] 2.1 Create the feature `apps/backend/src/features/service-environment/`, with the division that `namespaces` uses.
+- [x] 2.2 Create the domain model of a variable, with the mark that says if the value is a secret.
+- [x] 2.3 Create the data transfer objects of the setting and of the change, and check the name against the rule of an environment variable.
+- [x] 2.4 Create the errors `VARIABLE_NOT_FOUND` and `VARIABLE_NAME_TAKEN`, and register them in the translator with `404` and `409`.
+- [x] 2.5 Create the repository, the entity and the transformer, with the rule that a name is unique inside one service.
+- [x] 2.6 Encrypt the value of a secret in the use case that writes it, and keep the stored value when the body carries an empty value.
+- [x] 2.7 Make the transformer give the value of a plain variable, and a mark instead of the value of a secret.
+- [x] 2.8 Create the use cases: set, change, remove, and list by service.
+- [x] 2.9 Create the migration that adds the table, with the foreign key to the service and the removal in cascade.
+- [x] 2.10 Create the controller and the service of the feature, under the path of the service that owns the variables.
+- [x] 2.11 Create the specs, with an assertion that no body of an answer carries the value of a secret.
 
 ## 3. Phase 3 — The injection at the deployment
 
