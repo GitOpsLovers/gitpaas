@@ -302,6 +302,13 @@ layer(base);
     display: none;
     -webkit-appearance: none;
   }
+
+  /* For Remove Number Spinner */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    display: none;
+    -webkit-appearance: none;
+  }
 }
 
 .tableCheckbox:checked ~ span span {
