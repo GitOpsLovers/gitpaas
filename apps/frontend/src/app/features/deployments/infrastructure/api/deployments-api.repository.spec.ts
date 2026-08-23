@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import type { LogEvent } from '@gitpaas/contracts';
+import type { DeploymentLogArchive, LogEvent } from '@gitpaas/contracts';
 
 import { DeploymentsApiRepository } from './deployments-api.repository';
 
@@ -12,6 +12,7 @@ import { TokenStorageService } from '@features/authentication/infrastructure/sto
 const DEPLOYMENT_ID = 'dep-1';
 const SCHEMA_FAILURE_MESSAGE = 'Log stream message did not match the log event schema';
 const STREAM_URL = `${environment.apiBaseUrl}/logs/${DEPLOYMENT_ID}/stream`;
+const LOGS_URL = `${environment.apiBaseUrl}/logs?deploymentId=${DEPLOYMENT_ID}`;
 
 /**
  * Builds a fake `fetch` `Response` whose body streams the given text chunks.
@@ -62,8 +63,17 @@ function flush(): Promise<void> {
     return new Promise((resolve) => { setTimeout(resolve, 0); });
 }
 
+/**
+ * Yields to the macrotask queue and flushes effects so resource signals settle.
+ */
+async function settle(): Promise<void> {
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+    TestBed.tick();
+}
+
 describe('DeploymentsApiRepository', () => {
     let repository: DeploymentsApiRepository;
+    let httpMock: HttpTestingController;
     let tokenStorage: { accessToken: ReturnType<typeof signal<string | null>> };
     let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -82,10 +92,12 @@ describe('DeploymentsApiRepository', () => {
         });
 
         repository = TestBed.inject(DeploymentsApiRepository);
+        httpMock = TestBed.inject(HttpTestingController);
     });
 
     afterEach(() => {
         vi.unstubAllGlobals();
+        httpMock.verify();
     });
 
     describe('logs authorization headers', () => {
@@ -260,6 +272,54 @@ describe('DeploymentsApiRepository', () => {
             expect(capturedSignal?.aborted).toBe(true);
             expect(errorSpy).not.toHaveBeenCalled();
             expect(nextSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('logArchive', () => {
+        test('GETs the logs URL for the deployment id and exposes every archived entry, oldest first', async () => {
+            const resource = TestBed.runInInjectionContext(
+                () => repository.logArchive(() => DEPLOYMENT_ID),
+            );
+            TestBed.tick();
+
+            const req = httpMock.expectOne(LOGS_URL);
+            expect(req.request.method).toBe('GET');
+
+            const archive: DeploymentLogArchive = {
+                state: 'available',
+                entries: [
+                    {
+                        id: '9c858901-8a57-4791-81fe-4c455b099bc9',
+                        deploymentId: DEPLOYMENT_ID,
+                        seq: 1,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                        type: 'line',
+                        data: 'building the image',
+                    },
+                    {
+                        id: 'e6a2f2f4-9f1a-4b3a-8f0a-1a5b7e1e2c3d',
+                        deploymentId: DEPLOYMENT_ID,
+                        seq: 2,
+                        createdAt: '2026-01-01T00:00:01.000Z',
+                        type: 'line',
+                        data: 'starting the container',
+                    },
+                ],
+            };
+
+            req.flush(archive);
+            await settle();
+
+            expect(resource.value()).toEqual(archive);
+        });
+
+        test('issues no request while the deployment id is undefined', () => {
+            const id = signal<string | undefined>(undefined);
+            const resource = TestBed.runInInjectionContext(() => repository.logArchive(() => id()));
+            TestBed.tick();
+
+            httpMock.expectNone(() => true);
+            expect(resource.value()).toBeUndefined();
         });
     });
 });
