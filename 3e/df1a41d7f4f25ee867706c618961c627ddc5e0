@@ -1,0 +1,41 @@
+openspec/specs/server/spec.md
+  s_160389d014b91b::t_0a528254b5f6ad 95,106,165,215,219,230-341
+openspec/changes/log-retention/tasks.md
+  s_160389d014b91b::t_33bfd3892b64bb 52-53
+openspec/specs/logs/spec.md
+  s_160389d014b91b::t_a4f450f230e217 118-119,122,128,135-139,162-210
+apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.spec.ts
+  s_c59d19b8b5af62::t_39a8f6d4d1292f 2,5,15,66-73,76,95,100,277-324
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts
+  s_160389d014b91b::t_b0a1cbd0e1654a 2,23-33,72-104,125,152-153,171-183
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.spec.ts
+  s_160389d014b91b::t_684a878ae310b0 1,3,16,37,53-59,168-266
+apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts
+  s_160389d014b91b::t_e644a5b226e941 3-9,49-63
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.html
+  s_160389d014b91b::t_fc93eaf54f9eb0 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3edf1a41d7f4f25ee867706c618961c627ddc5e0",
+  "prompts": {},
+  "sessions": {
+    "s_160389d014b91b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8c913ed-d624-45e9-b292-9496736c743b",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c59d19b8b5af62": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5a6ccfbc31d756d2",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
