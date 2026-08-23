@@ -248,7 +248,7 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ createComposeProject });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, onLog);
 
             expect(onLog.mock.calls.map((call) => call[0])).toEqual([
                 '▶ Extracting repository…',
@@ -288,7 +288,7 @@ describe('DockerExecutorAdapter', () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
             const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, jest.fn());
 
             const gitpaas = { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'test-project' };
             expect(stampedAtUp).toEqual({
@@ -304,6 +304,30 @@ describe('DockerExecutorAdapter', () => {
             });
         });
 
+        it('has the variables of the service in every service environment by the time the stack is created', async () => {
+            const web = { image: 'nginx', environment: ['PORT=8080'] } as { image: string; environment?: unknown };
+            let environmentAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                environmentAtUp = web.environment;
+
+                return Promise.resolve({ services: [] });
+            });
+            mockCompose.instance = { recipe: { services: { web } }, down: jest.fn().mockResolvedValue(undefined), up: composeUp };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
+
+            await sut.up(
+                Buffer.from('archive'),
+                'docker-compose.yml',
+                'test-project',
+                { DATABASE_URL: 'postgres://db' },
+                jest.fn(),
+            );
+
+            expect(environmentAtUp).toEqual(['PORT=8080', 'DATABASE_URL=postgres://db']);
+        });
+
         it('still cleans up the temp dir when an early step throws', async () => {
             mockCompose.instance = {
                 recipe: { services: {} },
@@ -317,7 +341,7 @@ describe('DockerExecutorAdapter', () => {
 
             const sut = executorWithRuntime({ createComposeProject });
 
-            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project')).rejects.toThrow('extract failed');
+            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {})).rejects.toThrow('extract failed');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
         });
     });

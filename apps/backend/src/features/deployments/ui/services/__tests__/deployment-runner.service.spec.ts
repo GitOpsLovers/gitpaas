@@ -15,6 +15,7 @@ import { TELEMETRY_MAX_STACK_LENGTH } from '@core/domain/constants/telemetry.con
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { TelemetryWriter } from '@core/domain/ports/telemetry-writer.port';
+import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { resetServiceVersionCache } from '@core/infrastructure/telemetry/resolve-service-version';
 import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
@@ -22,6 +23,7 @@ import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-d
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
+import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/run-deployment.use-case');
@@ -79,7 +81,9 @@ describe('DeploymentRunnerService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServicesRepository: jest.Mocked<DatabaseServicesRepository>;
     let mockProvidersRepository: jest.Mocked<DatabaseProvidersRepository>;
+    let mockServiceVariablesRepository: jest.Mocked<DatabaseServiceVariablesRepository>;
     let mockProviderClient: jest.Mocked<GithubProviderClientAdapter>;
+    let mockSecretCipher: jest.Mocked<SecretCipherAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
@@ -107,7 +111,9 @@ describe('DeploymentRunnerService', () => {
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServicesRepository = {} as jest.Mocked<DatabaseServicesRepository>;
         mockProvidersRepository = {} as jest.Mocked<DatabaseProvidersRepository>;
+        mockServiceVariablesRepository = {} as jest.Mocked<DatabaseServiceVariablesRepository>;
         mockProviderClient = {} as jest.Mocked<GithubProviderClientAdapter>;
+        mockSecretCipher = {} as jest.Mocked<SecretCipherAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
@@ -128,7 +134,9 @@ describe('DeploymentRunnerService', () => {
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DatabaseProvidersRepository, useValue: mockProvidersRepository },
+                { provide: DatabaseServiceVariablesRepository, useValue: mockServiceVariablesRepository },
                 { provide: GithubProviderClientAdapter, useValue: mockProviderClient },
+                { provide: SecretCipherAdapter, useValue: mockSecretCipher },
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
@@ -166,9 +174,11 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
+            mockServiceVariablesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
+            mockSecretCipher,
             task,
         );
     });
@@ -482,9 +492,11 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
+            mockServiceVariablesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
+            mockSecretCipher,
             taskA,
         );
 
@@ -497,9 +509,11 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
+            mockServiceVariablesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
+            mockSecretCipher,
             taskB,
         );
 
@@ -529,9 +543,11 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
+            mockServiceVariablesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
+            mockSecretCipher,
             taskA,
         );
         expect(mockRunDeploymentUseCase).toHaveBeenNthCalledWith(
@@ -539,9 +555,11 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
+            mockServiceVariablesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
+            mockSecretCipher,
             taskB,
         );
 
@@ -580,9 +598,11 @@ describe('DeploymentRunnerService', () => {
             mockDeploymentsRepository,
             mockServicesRepository,
             mockProvidersRepository,
+            mockServiceVariablesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockLogStore,
+            mockSecretCipher,
             taskB,
         );
 

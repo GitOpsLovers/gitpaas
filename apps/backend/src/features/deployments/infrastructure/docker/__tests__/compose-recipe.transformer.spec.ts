@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 
 import {
-    normalizeBuildArgs, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, toNanoseconds,
+    injectEnvironment, normalizeBuildArgs, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, toNanoseconds,
 } from '../compose-recipe.transformer';
 
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
@@ -178,6 +178,42 @@ describe('compose-recipe.transformer', () => {
         it('does nothing when the recipe declares no services, volumes or networks', () => {
             expect(() => { stampLabels(asCompose({ recipe: {} }), 'my-project'); }).not.toThrow();
             expect(() => { stampLabels(asCompose({}), 'my-project'); }).not.toThrow();
+        });
+    });
+    describe('injectEnvironment', () => {
+        it('merges the variables into every service, in the KEY=value list form', () => {
+            const web = { image: 'nginx' } as { image: string; environment?: unknown };
+            const worker = { image: 'node', environment: { KEEP: 'me' } } as { image: string; environment?: unknown };
+            const compose = { recipe: { services: { web, worker } } };
+
+            injectEnvironment(asCompose(compose), { DATABASE_URL: 'postgres://db', API_TOKEN: 'the-token' });
+
+            expect(web.environment).toEqual(['DATABASE_URL=postgres://db', 'API_TOKEN=the-token']);
+            expect(worker.environment).toEqual([
+                'KEEP=me',
+                'DATABASE_URL=postgres://db',
+                'API_TOKEN=the-token',
+            ]);
+        });
+
+        it('lets a variable of the service override the value the compose file declares', () => {
+            const compose = { recipe: { services: { web: { environment: ['PORT=8080'] } } } };
+
+            injectEnvironment(asCompose(compose), { PORT: '9090' });
+
+            expect(compose.recipe.services.web.environment).toEqual(['PORT=9090']);
+        });
+
+        it('leaves the recipe untouched when the service holds no variable', () => {
+            const compose = { recipe: { services: { web: { image: 'nginx' } } } };
+
+            injectEnvironment(asCompose(compose), {});
+
+            expect(compose.recipe.services.web).toEqual({ image: 'nginx' });
+        });
+
+        it('does nothing when the recipe declares no service', () => {
+            expect(() => { injectEnvironment(asCompose({}), { A: 'b' }); }).not.toThrow();
         });
     });
 });

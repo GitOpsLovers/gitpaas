@@ -40,6 +40,37 @@ describe('DatabaseServiceVariablesRepository', () => {
         );
     });
 
+    describe('getStoredByService', () => {
+        it('reads the variables of the service ordered by name', async () => {
+            mockRepository.find.mockResolvedValue([variableEntity()]);
+
+            await sut.getStoredByService(serviceId);
+
+            expect(mockRepository.find).toHaveBeenCalledWith({
+                where: { serviceId },
+                order: { name: 'ASC' },
+            });
+        });
+
+        it('maps every row into its stored form, keeping the sealed value of a secret', async () => {
+            mockRepository.find.mockResolvedValue([
+                variableEntity(),
+                variableEntity({ name: 'API_KEY', secret: true, value: 'iv:tag:cipher' }),
+            ]);
+
+            expect(await sut.getStoredByService(serviceId)).toEqual([
+                { name: 'DATABASE_URL', secret: false, storedValue: 'postgres://localhost:5432/app' },
+                { name: 'API_KEY', secret: true, storedValue: 'iv:tag:cipher' },
+            ]);
+        });
+
+        it('gives an empty list when the service holds no variable', async () => {
+            mockRepository.find.mockResolvedValue([]);
+
+            expect(await sut.getStoredByService(serviceId)).toEqual([]);
+        });
+    });
+
     describe('getByService', () => {
         it('reads the variables of the service ordered by name', async () => {
             mockRepository.find.mockResolvedValue([variableEntity()]);

@@ -10,7 +10,7 @@ import * as tar from 'tar';
 import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import {
-    normalizeHealthchecks, recipeServices, resolveBuild, stampLabels,
+    injectEnvironment, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
@@ -49,7 +49,13 @@ export class DockerExecutorAdapter implements DockerExecutor {
         private readonly logger: AppLogger,
     ) {}
 
-    public async up(archive: Buffer, composePath: string, projectName: string, onLog?: DockerLogListener): Promise<void> {
+    public async up(
+        archive: Buffer,
+        composePath: string,
+        projectName: string,
+        environment: Record<string, string>,
+        onLog?: DockerLogListener,
+    ): Promise<void> {
         const emit = (line: string): void => onLog?.(line);
         const directory = await mkdtemp(join(tmpdir(), 'gitpaas-deploy-'));
 
@@ -71,14 +77,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
             emit('▶ Removing previous containers…');
             await this.run(() => compose.down());
 
-            // dockerode-compose crashes on a healthcheck with a missing duration and
-            // mis-parses second-based durations; pre-normalize them to numeric
-            // nanoseconds, which it forwards to the daemon untouched.
             normalizeHealthchecks(compose);
-
-            // Stamp the GitPaaS ownership marker on every resource the stack creates,
-            // so later maintenance operations can be scoped to what GitPaaS owns.
             stampLabels(compose, projectName);
+            injectEnvironment(compose, environment);
 
             emit('▶ Creating and starting containers…');
 

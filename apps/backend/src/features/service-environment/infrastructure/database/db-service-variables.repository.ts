@@ -3,11 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { ServiceVariable } from '../../domain/models/service-variable.models';
+import { ServiceVariable, StoredServiceVariable } from '../../domain/models/service-variable.models';
 import { ServiceVariablesRepository } from '../../domain/repositories/service-variables.repository';
 
 import { DbServiceVariableEntity } from './db-service-variable.entity';
-import { toServiceVariable } from './db-service-variables.transformer';
+import { toServiceVariable, toStoredServiceVariable } from './db-service-variables.transformer';
 
 /**
  * Service variables database repository
@@ -26,6 +26,15 @@ export class DatabaseServiceVariablesRepository implements ServiceVariablesRepos
         });
 
         return variables.map(toServiceVariable);
+    }
+
+    public async getStoredByService(serviceId: string): Promise<StoredServiceVariable[]> {
+        const variables = await this.repository.find({
+            where: { serviceId },
+            order: { name: 'ASC' },
+        });
+
+        return variables.map(toStoredServiceVariable);
     }
 
     public async findById(id: string): Promise<ServiceVariable | null> {

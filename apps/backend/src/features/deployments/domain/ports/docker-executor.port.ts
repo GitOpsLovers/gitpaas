@@ -15,7 +15,14 @@ export interface DockerExecutor {
      * @param archive Gzipped tarball of the repository source
      * @param composePath Path to the compose file within the repository
      * @param projectName Compose project name used to group the stack's resources
+     * @param environment Variables of the service, which the containers of the stack read
      * @param onLog Optional listener receiving real-time output as the stack comes up
      */
-    up: (archive: Buffer, composePath: string, projectName: string, onLog?: DockerLogListener) => Promise<void>;
+    up: (
+        archive: Buffer,
+        composePath: string,
+        projectName: string,
+        environment: Record<string, string>,
+        onLog?: DockerLogListener,
+    ) => Promise<void>;
 }

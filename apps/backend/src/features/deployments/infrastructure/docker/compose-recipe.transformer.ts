@@ -4,33 +4,56 @@ import type { RuntimeComposeProject } from '@core/domain/models/container-runtim
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
-/** A service's `build` block, in either the shorthand (string) or long (object) form. */
+/**
+ * A service's `build` block, in either the shorthand (string) or long (object) form.
+ */
 type ComposeBuild = string | { context?: string; dockerfile?: string; args?: string[] | Record<string, unknown>; target?: string };
 
-/** A service's `healthcheck` block (only the duration fields we normalize). */
+/**
+ * A service's `healthcheck` block (only the duration fields we normalize).
+ */
 interface ComposeHealthcheck {
     interval?: string | number;
     timeout?: string | number;
     start_period?: string | number;
 }
 
-/** A compose `labels` block, in either the list (`KEY=value`) or map form. */
-type ComposeLabels = string[] | Record<string, unknown>;
+/**
+ * A block of `KEY=value` entries, in either the list or the map form.
+ */
+type ComposeEntries = string[] | Record<string, unknown>;
 
-/** The subset of a compose service the executor reads/rewrites. */
+/**
+ * A compose `labels` block, in either the list (`KEY=value`) or map form.
+ */
+type ComposeLabels = ComposeEntries;
+
+/**
+ * A compose `environment` block, in either the list (`KEY=value`) or map form.
+ */
+type ComposeEnvironment = ComposeEntries;
+
+/**
+ * The subset of a compose service the executor reads/rewrites.
+ */
 interface ComposeService {
     image?: string;
     build?: ComposeBuild;
     healthcheck?: ComposeHealthcheck;
     labels?: ComposeLabels;
+    environment?: ComposeEnvironment;
 }
 
-/** The subset of a top-level compose volume/network the executor rewrites. */
+/**
+ * The subset of a top-level compose volume/network the executor rewrites.
+ */
 interface ComposeResource {
     labels?: ComposeLabels;
 }
 
-/** The parsed compose recipe exposed by `dockerode-compose`. */
+/**
+ * The parsed compose recipe exposed by `dockerode-compose`.
+ */
 interface ComposeRecipe {
     services?: Record<string, ComposeService>;
     volumes?: Record<string, ComposeResource | null>;
@@ -38,19 +61,19 @@ interface ComposeRecipe {
 }
 
 /**
- * Normalises a compose `labels` block (list or map form) into a label map.
+ * Normalises a block of entries (list or map form) into a `{ key: value }` map.
  *
- * @param labels Compose labels block, if any
+ * @param entries Compose labels or environment block, if any
  *
- * @returns Labels as a `{ key: value }` map
+ * @returns Entries as a `{ key: value }` map
  */
-function toLabelMap(labels?: ComposeLabels): Record<string, string> {
-    if (!labels) {
+function toEntryMap(entries?: ComposeEntries): Record<string, string> {
+    if (!entries) {
         return {};
     }
 
-    if (Array.isArray(labels)) {
-        return Object.fromEntries(labels.map((entry) => {
+    if (Array.isArray(entries)) {
+        return Object.fromEntries(entries.map((entry) => {
             const separator = entry.indexOf('=');
 
             return separator === -1
@@ -59,23 +82,22 @@ function toLabelMap(labels?: ComposeLabels): Record<string, string> {
         }));
     }
 
-    return Object.fromEntries(Object.entries(labels).map(([key, value]) => [key, String(value)]));
+    return Object.fromEntries(Object.entries(entries).map(([key, value]) => [key, String(value)]));
 }
 
 /**
- * Renders a label map as the `KEY=value` list form `dockerode-compose` parses.
+ * Renders a `{ key: value }` map as the `KEY=value` list form `dockerode-compose` parses.
  *
- * @param labels Label map
+ * @param entries Entry map
  *
- * @returns Labels as a `KEY=value` list
+ * @returns Entries as a `KEY=value` list
  */
-function toLabelList(labels: Record<string, string>): string[] {
-    return Object.entries(labels).map(([key, value]) => `${key}=${value}`);
+function toEntryList(entries: Record<string, string>): string[] {
+    return Object.entries(entries).map(([key, value]) => `${key}=${value}`);
 }
 
 /**
- * Returns every top-level volume and network declared by a compose recipe,
- * materialising the `null` shorthand (`volumes: { data: }`) into an object.
+ * Returns every top-level volume and network declared by a compose recipe.
  *
  * @param compose Compose project driven by the container runtime
  *
@@ -102,7 +124,9 @@ function recipeResources(compose: RuntimeComposeProject): ComposeResource[] {
     return resources;
 }
 
-/** A resolved build definition ready to hand to the runtime's image build. */
+/**
+ * A resolved build definition ready to hand to the runtime's image build.
+ */
 export interface ResolvedBuild {
     contextPath: string;
     dockerfile: string;
@@ -156,8 +180,7 @@ export function toNanoseconds(value: string | number | undefined): number {
 }
 
 /**
- * Normalises compose build args (list `KEY=value` or map form) into the
- * `{ key: value }` object the Docker API expects.
+ * Normalises compose build args (list `KEY=value` or map form) into the `{ key: value }` object the Docker API expects.
  *
  * @param args Compose build args
  *
@@ -182,8 +205,7 @@ export function normalizeBuildArgs(args?: string[] | Record<string, unknown>): R
 }
 
 /**
- * Resolves a compose `build` block into an absolute context path, dockerfile and
- * build args relative to the compose file's directory.
+ * Resolves a compose `build` block into an absolute context path, dockerfile and build args relative to the compose file's directory.
  *
  * @param build Compose build block (string shorthand or object form)
  * @param baseDir Directory containing the compose file
@@ -206,11 +228,6 @@ export function resolveBuild(build: ComposeBuild, baseDir: string): ResolvedBuil
 /**
  * Rewrites every service's healthcheck durations into numeric nanoseconds.
  *
- * `dockerode-compose` throws on a healthcheck whose `interval`, `timeout` or
- * `start_period` is omitted (it calls `.includes()` on `undefined`) and
- * mis-parses second-based strings like `5s` into `NaN`. Numeric values are
- * passed straight through to the daemon, so converting here fixes both.
- *
  * @param compose Compose project driven by the container runtime
  */
 export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
@@ -228,16 +245,7 @@ export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
 }
 
 /**
- * Stamps the GitPaaS ownership labels on every resource the stack will create:
- * each service's containers plus the top-level volumes and networks.
- *
- * `dockerode-compose` **overwrites** a container's labels with the service's
- * own `labels` block whenever one is declared, discarding the compose
- * project/service labels it had set — and it only understands the list form
- * (`KEY=value`). Both the GitPaaS labels and the compose labels are therefore
- * merged into a normalised list form here, preserving user-declared labels.
- * Volumes and networks are safe to merge as a map, since the library spreads
- * their `labels` object.
+ * Stamps the GitPaaS ownership labels on every resource the stack will create.
  *
  * @param compose Compose project driven by the container runtime
  * @param projectName Compose project name the stack is grouped under
@@ -246,8 +254,8 @@ export function stampLabels(compose: RuntimeComposeProject, projectName: string)
     const gitpaas = getGitpaasLabels(projectName);
 
     for (const [name, service] of Object.entries(recipeServices(compose))) {
-        service.labels = toLabelList({
-            ...toLabelMap(service.labels),
+        service.labels = toEntryList({
+            ...toEntryMap(service.labels),
             ...gitpaas,
             [COMPOSE_PROJECT_LABEL]: projectName,
             [COMPOSE_SERVICE_LABEL]: name,
@@ -255,6 +263,25 @@ export function stampLabels(compose: RuntimeComposeProject, projectName: string)
     }
 
     for (const resource of recipeResources(compose)) {
-        resource.labels = { ...toLabelMap(resource.labels), ...gitpaas };
+        resource.labels = { ...toEntryMap(resource.labels), ...gitpaas };
+    }
+}
+
+/**
+ * Merges the variables of the service into the environment of every container of the stack.
+ *
+ * @param compose Compose project driven by the container runtime
+ * @param environment Variables of the service, keyed by name
+ */
+export function injectEnvironment(compose: RuntimeComposeProject, environment: Record<string, string>): void {
+    if (Object.keys(environment).length === 0) {
+        return;
+    }
+
+    for (const service of Object.values(recipeServices(compose))) {
+        service.environment = toEntryList({
+            ...toEntryMap(service.environment),
+            ...environment,
+        });
     }
 }
