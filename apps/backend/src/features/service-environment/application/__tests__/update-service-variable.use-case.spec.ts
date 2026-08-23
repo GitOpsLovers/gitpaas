@@ -27,7 +27,9 @@ const variable = (overrides: Partial<ServiceVariable> = {}): ServiceVariable => 
 
 /** Builds a secret variable fixture, which never carries a value. */
 const secretVariable = (overrides: Partial<ServiceVariable> = {}): ServiceVariable =>
-    variable({ name: 'API_KEY', secret: true, value: null, ...overrides });
+    variable({
+        name: 'API_KEY', secret: true, value: null, ...overrides,
+    });
 
 describe('updateServiceVariableUseCase', () => {
     let mockServiceVariablesRepository: jest.Mocked<

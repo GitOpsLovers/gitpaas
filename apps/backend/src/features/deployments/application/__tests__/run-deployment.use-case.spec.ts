@@ -5,10 +5,13 @@ import { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { runDeploymentUseCase } from '../run-deployment.use-case';
 
+import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import type { StoredServiceVariable } from '@features/service-environment/domain/models/service-variable.models';
+import { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
@@ -46,7 +49,9 @@ describe('runDeploymentUseCase', () => {
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
     let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCredentials'>>;
     let mockProviderClient: jest.Mocked<Pick<ProviderClient, 'getRepositoryArchive'>>;
+    let mockServiceVariablesRepository: jest.Mocked<Pick<ServiceVariablesRepository, 'getStoredByService'>>;
     let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
+    let mockSecretCipher: jest.Mocked<SecretCipher>;
     let mockLogStore: jest.Mocked<Pick<LogStore, 'append' | 'complete'>>;
 
     const run = (): Promise<void> => {
@@ -54,9 +59,11 @@ describe('runDeploymentUseCase', () => {
             mockDeploymentsRepository as unknown as DeploymentsRepository,
             mockServicesRepository as unknown as ServicesRepository,
             mockProvidersRepository as unknown as ProvidersRepository,
+            mockServiceVariablesRepository as unknown as ServiceVariablesRepository,
             mockProviderClient as unknown as ProviderClient,
             mockDockerExecutor,
             mockLogStore as unknown as LogStore,
+            mockSecretCipher,
             payload,
         );
     };
@@ -76,8 +83,15 @@ describe('runDeploymentUseCase', () => {
         mockProviderClient = {
             getRepositoryArchive: jest.fn(),
         };
+        mockServiceVariablesRepository = {
+            getStoredByService: jest.fn().mockResolvedValue([]),
+        };
         mockDockerExecutor = {
             up: jest.fn(),
+        };
+        mockSecretCipher = {
+            encryptSecret: jest.fn(),
+            decryptSecret: jest.fn().mockReturnValue('opened'),
         };
         mockLogStore = {
             append: jest.fn().mockResolvedValue(undefined),
@@ -145,12 +159,12 @@ describe('runDeploymentUseCase', () => {
 
         await run();
 
-        expect(mockDockerExecutor.up).toHaveBeenCalledWith(archive, payload.composerPath, payload.projectName, expect.any(Function));
+        expect(mockDockerExecutor.up).toHaveBeenCalledWith(archive, payload.composerPath, payload.projectName, {}, expect.any(Function));
     });
 
     it('fans executor output out live through the log store', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, onLog) => {
             onLog?.('building service');
 
             return Promise.resolve();
@@ -164,7 +178,7 @@ describe('runDeploymentUseCase', () => {
     it('absorbs a failing log append instead of leaving an unhandled rejection', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
         mockLogStore.append.mockRejectedValue(new Error('log store unavailable'));
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, onLog) => {
             onLog?.('building service');
 
             return Promise.resolve();
@@ -179,7 +193,7 @@ describe('runDeploymentUseCase', () => {
 
     it('marks the deployment successful and completes the log when the stack comes up', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, onLog) => {
             onLog?.('building service');
             onLog?.('stack up');
 
@@ -201,6 +215,83 @@ describe('runDeploymentUseCase', () => {
         expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'build failed' });
         expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, '✖ Deployment failed: build failed');
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
+    });
+
+    it('gives the variables of the service to the executor, with the secrets among them opened', async () => {
+        const variables: StoredServiceVariable[] = [
+            { name: 'DATABASE_URL', secret: false, storedValue: 'postgres://db' },
+            { name: 'API_TOKEN', secret: true, storedValue: 'sealed-payload' },
+        ];
+
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue(variables);
+        mockSecretCipher.decryptSecret.mockReturnValue('the-token');
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        expect(mockServiceVariablesRepository.getStoredByService).toHaveBeenCalledWith(service.id);
+        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-payload');
+        expect(mockDockerExecutor.up).toHaveBeenCalledWith(
+            archive,
+            payload.composerPath,
+            payload.projectName,
+            { DATABASE_URL: 'postgres://db', API_TOKEN: 'the-token' },
+            expect.any(Function),
+        );
+    });
+
+    it('brings the stack up with an empty environment when the service holds no variable', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([]);
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        expect(mockSecretCipher.decryptSecret).not.toHaveBeenCalled();
+        expect(mockDockerExecutor.up).toHaveBeenCalledWith(
+            archive,
+            payload.composerPath,
+            payload.projectName,
+            {},
+            expect.any(Function),
+        );
+    });
+
+    it('fails the run with a message that names the variable when a secret cannot be decrypted, and starts no stack', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
+            { name: 'API_TOKEN', secret: true, storedValue: 'sealed-payload' },
+        ]);
+        mockSecretCipher.decryptSecret.mockImplementation(() => {
+            throw new Error('Unsupported state or unable to authenticate data');
+        });
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+
+        await run();
+
+        expect(mockDockerExecutor.up).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: 'The secret API_TOKEN cannot be decrypted',
+        });
+        expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, '✖ Deployment failed: The secret API_TOKEN cannot be decrypted');
+        expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
+    });
+
+    it('never writes the value of a secret to the log store', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
+            { name: 'API_TOKEN', secret: true, storedValue: 'sealed-payload' },
+        ]);
+        mockSecretCipher.decryptSecret.mockReturnValue('the-token');
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        const written = mockLogStore.append.mock.calls.map(([, line]) => line).join('\n');
+
+        expect(written).not.toContain('the-token');
+        expect(written).not.toContain('sealed-payload');
     });
 
     it('marks the deployment as failed when downloading the archive throws', async () => {

@@ -60,7 +60,9 @@ describe('getServiceVariablesByServiceUseCase', () => {
 
     it('never carries the value of a secret, because the repository gives none', async () => {
         mockServiceVariablesRepository.getByService.mockResolvedValue([
-            variable({ name: 'API_KEY', secret: true, value: null, valueSet: true }),
+            variable({
+                name: 'API_KEY', secret: true, value: null, valueSet: true,
+            }),
         ]);
 
         const result = await getServiceVariablesByServiceUseCase(

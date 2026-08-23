@@ -12,6 +12,7 @@ import { DeploymentsService } from './ui/services/deployments.service';
 
 import { LogsModule } from '@features/logs/logs.module';
 import { ProvidersModule } from '@features/providers/providers.module';
+import { ServiceEnvironmentModule } from '@features/service-environment/service-environment.module';
 import { ServicesModule } from '@features/services/services.module';
 
 /**
@@ -22,6 +23,7 @@ import { ServicesModule } from '@features/services/services.module';
         TypeOrmModule.forFeature([DbDeploymentEntity, DbDeploymentQueueTaskEntity]),
         forwardRef(() => ServicesModule),
         ProvidersModule,
+        ServiceEnvironmentModule,
         LogsModule,
     ],
     controllers: [DeploymentsController],

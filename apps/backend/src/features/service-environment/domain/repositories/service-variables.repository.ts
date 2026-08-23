@@ -1,6 +1,6 @@
 import type { SetServiceVariableDto, UpdateServiceVariableDto } from '@gitpaas/contracts';
 
-import { ServiceVariable } from '../models/service-variable.models';
+import { ServiceVariable, StoredServiceVariable } from '../models/service-variable.models';
 
 /**
  * Service variables repository
@@ -14,6 +14,15 @@ export interface ServiceVariablesRepository {
      * @returns Variables of the service
      */
     getByService: (serviceId: string) => Promise<ServiceVariable[]>;
+
+    /**
+     * Gets every variable of a service as the rows store it, ordered by name
+     *
+     * @param serviceId Service id
+     *
+     * @returns Stored variables of the service
+     */
+    getStoredByService: (serviceId: string) => Promise<StoredServiceVariable[]>;
 
     /**
      * Gets a single variable by id

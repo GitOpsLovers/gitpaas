@@ -1,4 +1,8 @@
-import { ServiceVariableNameTakenError, ServiceVariableNotFoundError } from '../service-variable.errors';
+import {
+    ServiceVariableNameTakenError,
+    ServiceVariableNotDecryptableError,
+    ServiceVariableNotFoundError,
+} from '../service-variable.errors';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -72,5 +76,21 @@ describe('ServiceVariableNameTakenError', () => {
 
         expect(new ServiceVariableNameTakenError('API_KEY', serviceId, { cause: original }).cause)
             .toBe(original);
+    });
+});
+
+describe('ServiceVariableNotDecryptableError', () => {
+    it('carries the code of a secret that the key does not open', () => {
+        expect(new ServiceVariableNotDecryptableError('API_KEY').code).toBe('VARIABLE_NOT_DECRYPTABLE');
+    });
+
+    it('builds a message that names the variable, and never its value', () => {
+        expect(new ServiceVariableNotDecryptableError('API_KEY').message).toBe('The secret API_KEY cannot be decrypted');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('unable to authenticate data');
+
+        expect(new ServiceVariableNotDecryptableError('API_KEY', { cause: original }).cause).toBe(original);
     });
 });

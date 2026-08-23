@@ -114,7 +114,9 @@ describe('setServiceVariableUseCase', () => {
     it('seals no empty value of a secret, so the record holds no value', async () => {
         mockServiceVariablesRepository.findByName.mockResolvedValue(null);
         mockServiceVariablesRepository.create.mockResolvedValue(
-            variable({ name: 'API_KEY', secret: true, value: null, valueSet: false }),
+            variable({
+                name: 'API_KEY', secret: true, value: null, valueSet: false,
+            }),
         );
 
         await run({ name: 'API_KEY', value: '', secret: true });

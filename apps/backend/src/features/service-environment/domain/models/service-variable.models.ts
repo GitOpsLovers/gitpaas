@@ -9,3 +9,12 @@ export interface ServiceVariable {
     value: string | null;
     valueSet: boolean;
 }
+
+/**
+ * A variable of a service as the row stores it: the value of a secret is still sealed.
+ */
+export interface StoredServiceVariable {
+    name: string;
+    secret: boolean;
+    storedValue: string;
+}

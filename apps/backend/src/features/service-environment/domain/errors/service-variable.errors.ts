@@ -17,3 +17,12 @@ export class ServiceVariableNameTakenError extends DomainError {
         super('VARIABLE_NAME_TAKEN', `Variable ${name} already exists in service ${serviceId}`, options);
     }
 }
+
+/**
+ * Raised whenever the value of a secret cannot be opened with the key of the encryption.
+ */
+export class ServiceVariableNotDecryptableError extends DomainError {
+    constructor(name: string, options?: ErrorOptions) {
+        super('VARIABLE_NOT_DECRYPTABLE', `The secret ${name} cannot be decrypted`, options);
+    }
+}

@@ -357,11 +357,11 @@ defect.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/
 
-- [ ] 1.1 Read the variables of the service in the run of the deployment, and decrypt the secrets among them.
-- [ ] 1.2 Give the values to the executor, so the compose run puts them into the environment of the containers.
-- [ ] 1.3 Fail the run with a message that names the variable when a secret cannot be decrypted, and start no stack with a value that is missing.
-- [ ] 1.4 Verify that no value of a secret reaches the write port of the logs.
-- [ ] 1.5 Update the specs of the run for a service with variables, for one without them, and for a secret that cannot be decrypted.
+- [x] 1.1 Read the variables of the service in the run of the deployment, and decrypt the secrets among them.
+- [x] 1.2 Give the values to the executor, so the compose run puts them into the environment of the containers.
+- [x] 1.3 Fail the run with a message that names the variable when a secret cannot be decrypted, and start no stack with a value that is missing.
+- [x] 1.4 Verify that no value of a secret reaches the write port of the logs.
+- [x] 1.5 Update the specs of the run for a service with variables, for one without them, and for a secret that cannot be decrypted.
 
 ### Phase 2 — The tab of the variables
 

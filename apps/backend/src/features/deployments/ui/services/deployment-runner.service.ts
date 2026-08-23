@@ -18,7 +18,9 @@ import { TELEMETRY_DEFAULT_SAMPLE_RATE, TELEMETRY_DEFAULT_SLOW_MS } from '@core/
 import { DomainError } from '@core/domain/errors/domain.error';
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import type { TelemetryWriter } from '@core/domain/ports/telemetry-writer.port';
+import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { enrichTelemetry, getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -28,6 +30,8 @@ import type { ProviderClient } from '@features/providers/domain/ports/provider-c
 import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
+import type { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
+import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
@@ -54,12 +58,16 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly servicesRepository: ServicesRepository,
         @Inject(DatabaseProvidersRepository)
         private readonly providersRepository: ProvidersRepository,
+        @Inject(DatabaseServiceVariablesRepository)
+        private readonly serviceVariablesRepository: ServiceVariablesRepository,
         @Inject(GithubProviderClientAdapter)
         private readonly providerClient: ProviderClient,
         @Inject(DockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
         @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
+        @Inject(SecretCipherAdapter)
+        private readonly secretCipher: SecretCipher,
         @Inject(DatabaseDeploymentQueueAdapter)
         private readonly deploymentQueue: DeploymentQueue,
         @Inject(NestLoggerAdapter)
@@ -126,9 +134,11 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.deploymentsRepository,
                     this.servicesRepository,
                     this.providersRepository,
+                    this.serviceVariablesRepository,
                     this.providerClient,
                     this.dockerExecutor,
                     this.logStore,
+                    this.secretCipher,
                     task,
                 );
 
