@@ -1,0 +1,57 @@
+apps/backend/.env.example
+  s_5abe1544b597fd::t_1c42ca6bcaa6ca 24
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_5abe1544b597fd::t_294ce4a53cbc83 15,199,201,205-206,210
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_5abe1544b597fd::t_5f60ceaaa11a6b 39
+apps/backend/src/core/infrastructure/crypto/__tests__/secret-cipher.adapter.spec.ts
+  s_5abe1544b597fd::t_9d981d41dc5545 7
+apps/backend/src/core/infrastructure/crypto/secret-cipher.adapter.ts
+  s_5abe1544b597fd::t_ec6ff1961e1cd0 30
+apps/backend/src/features/providers/application/__tests__/create-provider.use-case.spec.ts
+  s_5abe1544b597fd::t_242be4513d7db2 101
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-provider-registrations.repository.spec.ts
+  s_5abe1544b597fd::t_ca2df7a863f310 27
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-provider-registrations.transformer.spec.ts
+  s_5abe1544b597fd::t_aa488a378d3b10 25
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.repository.spec.ts
+  s_5abe1544b597fd::t_acd92f89344a84 21
+apps/backend/src/features/providers/infrastructure/database/__tests__/db-providers.transformer.spec.ts
+  s_5abe1544b597fd::t_d4b478c94627b0 18
+apps/backend/test/setup-env.ts
+  s_5abe1544b597fd::t_d5c7239fa9bf11 28
+iac/production/.env.example
+  s_5abe1544b597fd::t_035e337fa33fa5 39-40
+iac/production/migrations/010_providers.sql
+  s_5abe1544b597fd::t_137c050784564c 4
+iac/production/migrations/012_provider_registrations.sql
+  s_5abe1544b597fd::t_a578f621f7d42e 6
+openspec/changes/service-env-secrets/proposal.md
+  s_5abe1544b597fd::t_28a64536bf174b 17,26,32-34,38,47
+openspec/changes/service-env-secrets/specs/providers/spec.md
+  s_5abe1544b597fd::t_e4f1b362a4c865 1-17
+openspec/changes/service-env-secrets/specs/service-environment/spec.md
+  s_5abe1544b597fd::t_c900b0f51cb9e6 3
+openspec/changes/service-env-secrets/specs/services/spec.md
+  s_5abe1544b597fd::t_a7eb66f54561c3 5,31,33
+openspec/changes/service-env-secrets/tasks.md
+  s_5abe1544b597fd::t_73c49671b2d4d5 6,8-9,14,16,45,56,61
+scripts/install.sh
+  s_5abe1544b597fd::t_f93de2d332c80c 14,288,301
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c118ebdfdb5fb693cf9618f9791b4b1725303c1b",
+  "prompts": {},
+  "sessions": {
+    "s_5abe1544b597fd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "323fb76c-8ce4-4ca4-b2e9-c4961d55173c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
