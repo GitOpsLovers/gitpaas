@@ -50,6 +50,8 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PROVIDER_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['DAEMON_UNREACHABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['INVALID_LOG_RETENTION', (error) => new BadRequestException(error.message, { cause: error })],
+    ['VARIABLE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['VARIABLE_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
 ]);
 
 /**
