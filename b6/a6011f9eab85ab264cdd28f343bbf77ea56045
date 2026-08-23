@@ -1,0 +1,14 @@
+CONTRIBUTING.md
+  h_e4f33aa49027b9 5,7-11,38,95,99,101-108,110,112,114,116-127,129,155-156,172,174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b6a6011f9eab85ab264cdd28f343bbf77ea56045",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
