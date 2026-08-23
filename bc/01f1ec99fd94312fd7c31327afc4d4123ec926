@@ -1,0 +1,21 @@
+docs/roadmap/agent-layer/TODO.md
+  s_9941853587f69f::t_1ee00b204bf99c 1-34
+docs/roadmap/agent-layer/plan.md
+  s_9941853587f69f::t_f5cd73c027594b 1-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bc01f1ec99fd94312fd7c31327afc4d4123ec926",
+  "prompts": {},
+  "sessions": {
+    "s_9941853587f69f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eda574df-5ca5-4e35-b572-6487d2c55686",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
