@@ -1,0 +1,29 @@
+.claude/agents/implementer.md
+  s_7c3d67e41dd03b::t_565d0a49589dd1 20
+.claude/skills/backend-architecture/SKILL.md
+  s_7c3d67e41dd03b::t_ce34f1faaf9782 3,6,8,10,12-17,31-84,89
+.claude/skills/backend-architecture/references/api-use-pipes.md
+  s_7c3d67e41dd03b::t_bc752e4bf6af67 10-11
+CLAUDE.md
+  s_7c3d67e41dd03b::t_05eed2a4a0f803 43
+docs/architecture/agents/conventions.md
+  s_7c3d67e41dd03b::t_d6e762e0e26d12 24
+docs/architecture/agents/structure.md
+  s_7c3d67e41dd03b::t_bb0175e0f317de 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0d8870e474d8d523f928abf73f6f75d236edd401",
+  "prompts": {},
+  "sessions": {
+    "s_7c3d67e41dd03b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f6ada7ab-9c2d-4740-bfbd-bc72949a5796",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
