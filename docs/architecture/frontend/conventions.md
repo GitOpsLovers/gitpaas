@@ -34,19 +34,16 @@ Each screen has one container. A list container reads a resource and controls th
 
 A presentational component only shows data and emits events. It never injects a service. It uses **only signal inputs and signal outputs** (`input()`, `input.required()`, `output()`), and no `@Input()` decorators. A shared primitive also obeys these rules:
 
-- The selector is `app-<name>`, the class name ends with `…Component`, and there is one flat folder `shared/components/<name>/<name>.component.{ts,html}`.
-- **Name an `output()` with a bare verb** (`set`, `remove`, `view`, `save`, `deploy`), and never with the name of a native DOM event (`change`, `input`, `select`, `submit`, `focus`, `blur`, `close`, `toggle`). A template that binds `(change)` to such an output reads the native event of the host instead, and the handler receives an `Event`, not the payload.
 - **Do not use `CommonModule` or `ngClass`.** Make the dynamic classes with `[class]` bindings or with a `get …Classes()` accessor.
 - **Extend the style with a `className` input**, which is added to the Tailwind classes of the component. Thus a caller can change the spacing and does not make a new component.
 - Put a third-party widget behind the in-house contract (for example, the select control contains `@ng-select/ng-select`).
-- **The name of the file is `<name>.component.ts` and `<name>.component.html`.** If an import path is wrong, correct the import. Never rename the file.
 - **Use the per-icon components of `@lucide/angular`** (`<svg lucideX>`). Do not use the dynamic module.
 
 The Tailwind design tokens (`brand-*`, `error-*`, `success-*`, …) are defined in the `@theme` block of the global stylesheet. They come from TailAdmin.
 
 ## State
 
-New state uses signals. The one recorded exception is `SidebarService` of the shell, which uses RxJS. It keeps the expanded, hovered and mobile-open state in a `BehaviorSubject`, and the templates read it with the `async` pipe. This is an intentional holdover from the TailAdmin port.
+New state uses signals.
 
 ## Path aliases
 

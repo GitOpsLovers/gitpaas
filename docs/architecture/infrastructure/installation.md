@@ -8,11 +8,11 @@ One command changes a new server into a GitPaaS control plane that operates:
 curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
 ```
 
-The installer (`scripts/install.sh`) is a POSIX `/bin/sh` script with no dependencies. It stops at the first error (`set -e`), it uses `sudo` if the user is not root, and you can run it again safely: it keeps an available `.env`, it does not apply a migration two times, and the admin seeding is idempotent. The host must have `curl`, `openssl` (for the generation of the secrets) and `tar`.
+The installer (`scripts/install.sh`) is a POSIX `/bin/sh` script with no dependencies. It stops at the first error (`set -e`) and uses `sudo` if the user is not root. It is safe to run again: it keeps an existing `.env`, it never applies a migration twice, and the admin seeding is idempotent. The host must have `curl`, `openssl` (to generate the secrets) and `tar`.
 
 ### Version selection
 
-By default, the installer installs `latest`. It finds this version from the **latest release** tag on GitHub. If there is no release, it uses the newest tag. If there is no tag, or if the API is not available or has a rate limit, the installer **stops with an error** and tells the operator to run it again with a released version. There is no fallback to a branch. To select a specified version, use a flag or an environment variable:
+By default, the installer installs `latest`: it finds that version from the **latest release** tag on GitHub, or the newest tag when there is no release. If there is no tag, or the GitHub API is unavailable or rate-limited, the installer **stops with an error** and tells the operator to run it again with a released version — there is no fallback to a branch. To pick a version, use a flag or an environment variable:
 
 ```sh
 # Flag form
@@ -22,7 +22,7 @@ curl -fsSL …/install.sh | sh -s -- --version v1.0.0
 GITPAAS_VERSION=v1.0.0 sh -c "$(curl -fsSL …/install.sh)"
 ```
 
-The source comes from the `codeload` tarball endpoint of GitHub, but `--version` accepts **only a released version tag** — `v1.2.3` or `1.2.3`. The `assert_version_tag` check applies this rule before the installer touches the host, and it refuses a branch name such as `main`. The reason is that the application images are published for each release: a branch would run release images against a source tree that is different from them.
+The source comes from the `codeload` tarball endpoint of GitHub, but `--version` accepts **only a released version tag** — `v1.2.3` or `1.2.3`, never a branch such as `main`. The `assert_version_tag` check enforces this before the installer touches the host. The reason: the application images are published one per release, so a branch would run release images against a source tree that does not match them.
 
 ### Options
 
@@ -39,14 +39,20 @@ Each option is a flag and has an equivalent environment variable:
 The script does seven steps in sequence:
 
 1. **Make sure that Docker is available.** If Docker or the compose plugin is missing, the script installs the two parts with the official `get.docker.com` convenience script and enables the daemon.
-2. **Find the version and get the source.** The script finds the version tag (see above) and downloads the tarball of the repository from `codeload.github.com` into `/tmp`. From that archive it extracts **only** `*/iac/production/*` into the install directory, and then it deletes the tarball. Thus the install directory holds the production stack alone: no `apps/`, no `scripts/`, and no root manifests. If there is an installation already (a directory that has `iac/production/docker-compose.yml`), the script uses it and does not download the source again.
-3. **Write `.env`.** On a **fresh** install, the script copies `iac/production/.env.example` to `.env` and puts secure random secrets in it: one value for `POSTGRES_PASSWORD` and `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `SECRETS_ENCRYPTION_KEY`. It sets `NODE_ENV=production` and points `CORS_ORIGIN` to the address of the host on port `8080`. It also writes `DOCKER_GID` and `IMAGE_TAG`. `DOCKER_GID` is the docker group id of the host, which the script finds with `getent group docker` or from the owning group of the socket; compose gives this value to the `group_add` of the backend, and then the non-root container can use the socket. If the script cannot find that GID, it stops with a clear message. `IMAGE_TAG` selects the published images to run (see [Conventions](./conventions.md#environment-contract)). The Redis keys are **not** written by the script on a fresh install: `REDIS_HOST` and `REDIS_PORT` come from `.env.example`. The stack holds no source control credential in the environment: the operator registers each GitHub App from the Providers screen after the first start.
+2. **Find the version and get the source.** The script finds the version tag (see above) and downloads the tarball of the repository from `codeload.github.com` into `/tmp`. From that archive it extracts **only** `*/iac/production/*` into the install directory, then deletes the tarball — the install directory holds the production stack alone, with no `apps/`, no `scripts/` and no root manifests. When an installation is already there (a directory that has `iac/production/docker-compose.yml`), the script reuses it and skips the download.
+3. **Write `.env`.** On a **fresh** install, the script copies `iac/production/.env.example` to `.env` and fills in the secrets:
+   - Random secure values for `POSTGRES_PASSWORD`, `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `SECRETS_ENCRYPTION_KEY`.
+   - `NODE_ENV=production`, and `CORS_ORIGIN` pointed at the address of the host on port `8080`.
+   - `DOCKER_GID`, the docker group id of the host, found with `getent group docker` or from the owning group of the socket; compose passes it to the `group_add` of the backend, so the non-root container can reach the socket. The script stops with a clear message when it cannot find that GID.
+   - `IMAGE_TAG`, which selects the published images to run (see [Conventions](./conventions.md#environment-contract)).
 
-   On a **pre-existing** `.env`, the script keeps the file and changes as little as possible: it refreshes `DOCKER_GID` and `IMAGE_TAG`, it adds `REDIS_HOST=redis` and `REDIS_PORT=6379` only if the keys are not there, and it adds `SECRETS_ENCRYPTION_KEY` with a fresh random value only if the key is not there. It never touches the secrets or the ports that are already set.
-4. **Start only the database.** The script runs `docker compose … up -d postgres` and not a full `up -d`. Then it examines the health of the `gitpaas-postgres` container until the container is `healthy` (for a maximum of approximately 5 minutes). At this step, the backend and the frontend do not run.
+   The script writes no Redis key on a fresh install — `REDIS_HOST` and `REDIS_PORT` come from `.env.example` as they are. It also writes no source-control credential: the operator registers each GitHub App from the Providers screen after the first start.
+
+   On a **pre-existing** `.env`, the script changes as little as possible: it refreshes `DOCKER_GID` and `IMAGE_TAG`, adds `REDIS_HOST=redis` and `REDIS_PORT=6379` only when those keys are missing, and adds a fresh `SECRETS_ENCRYPTION_KEY` only when that key is missing. It never touches a secret or a port that is already set.
+4. **Start only the database.** The script runs `docker compose … up -d postgres`, not a full `up -d`, then waits for the `gitpaas-postgres` container to become `healthy` (up to about 5 minutes). The backend and the frontend do not run at this step.
 5. **Apply the SQL migrations.** See [Schema bootstrap](./key-flows.md#schema-bootstrap).
 6. **Make the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
-7. **Get the images and start the application stack.** Only when the schema is current and the admin row is available, the script runs `docker compose … pull` to get the published images from `ghcr.io/gitopslovers` at the tag in `IMAGE_TAG`. If the pull fails, the script stops and names that tag. Then it runs `docker compose … up -d`. Nothing is built on the server. This starts the backend and then the frontend, and the script examines the health of the `gitpaas-backend` container until the container is `healthy` (for a maximum of approximately 5 minutes).
+7. **Get the images and start the application stack.** Only once the schema is current and the admin row exists, the script runs `docker compose … pull` to fetch the published images from `ghcr.io/gitopslovers` at the tag in `IMAGE_TAG` — it stops and names that tag if the pull fails. Then it runs `docker compose … up -d`. Nothing is built on the server: this starts the backend, then the frontend, and the script waits for the `gitpaas-backend` container to become `healthy` (up to about 5 minutes).
 
 At the end, the script shows a summary with the frontend URL and the API URL, the admin credentials, and the manual steps that stay.
 
@@ -68,9 +74,9 @@ The full bootstrap speaks only to Postgres. Thus the backend image is not necess
 
 ### Manual follow-ups
 
-The installer starts a control plane that operates, but the source integration still needs input from the operator. The summary tells the operator to open the Providers screen of the frontend and register a GitHub App there: its name, its application id, its installation id and its private key (PEM). The backend stores that key encrypted with `SECRETS_ENCRYPTION_KEY`, and no manual edit of `.env` or restart of the stack is necessary for this step. Every service that the operator wants to deploy must then point at a registered provider, in the tab "Provider" of its detail page.
+The installer starts a control plane that operates, but the source integration still needs input from the operator. The summary asks the operator to open the Providers screen of the frontend and register a GitHub App there: its name, its application id, its installation id and its private key (PEM). The backend stores that key encrypted with `SECRETS_ENCRYPTION_KEY` — no manual edit of `.env` and no restart of the stack is necessary for this step. Each service that the operator wants to deploy must then point at a registered provider, in the "Provider" tab of its detail page.
 
-The summary also warns the operator to back up `SECRETS_ENCRYPTION_KEY`: a lost key makes every stored secret unreadable, a provider's private key as well as a secret variable of a service (see the capability [service-environment](../../business/service-environment.md)); the only recovery for a provider is to register the GitHub Apps again, and for a service variable is to set it again.
+The summary also warns the operator to back up `SECRETS_ENCRYPTION_KEY`. A lost key makes every stored secret unreadable — a provider's private key as well as a secret variable of a service (see the capability [service-environment](../../business/service-environment.md)). The only recovery is to register the GitHub Apps again for a provider, and to set the value again for a service variable.
 
 ### Upgrade from a version with `GITHUB_APP_*` variables
 

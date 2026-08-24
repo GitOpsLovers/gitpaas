@@ -1,6 +1,6 @@
 # Structure
 
-The `iac` folder is where we store all the code involved in defining and setting up the project's infrastructure. This is divided between the local infrastructure and the production infrastructure.
+`iac/` holds all the code that defines and sets up the infrastructure of the project. It splits into `iac/development/` and `iac/production/`.
 
 ## Development (`iac/development/`)
 

@@ -41,7 +41,7 @@ The `projects` feature is the reference example of this shape: a `Project` model
 
 `layout/ui/{components,containers,services}/` holds the application shell. `LayoutComponent` is the wrapper of the root route. It shows the sidebar, the header and `<router-outlet>`. The header injects `AuthService` for the user menu and for the logout. `BreadcrumbComponent` (`app-breadcrumb`) is the standard page header. It takes a `pageTitle` signal input and shows a `Home › {{ pageTitle }}` trail. Each page puts it first.
 
-`pages/` holds the route-level components, in a folder for each feature (`pages/<feature>/{list,add,edit,detail}/`). The class names end with `Page`, and the selectors are `app-<feature>-<action>-page`.
+`pages/` holds the route-level components, in a folder for each feature (`pages/<feature>/{list,add,edit,detail}/`).
 
 ## Shared
 

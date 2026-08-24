@@ -10,6 +10,8 @@
 │   └── frontend/         # Angular SPA
 ├── docs/                 # Project documentation
 ├── iac/                  # development/ and production/ infrastructure
+├── packages/
+│   └── contracts/        # Shared Zod schemas (@gitpaas/contracts)
 ├── .dockerignore
 ├── .releaserc.json       # semantic-release configuration
 ├── .tool-versions        # Node/pnpm pins

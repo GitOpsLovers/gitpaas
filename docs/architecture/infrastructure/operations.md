@@ -12,12 +12,12 @@
 
 ### Upgrades
 
-There is no separate upgrade command. The operator runs the installer again with the new version, for example `--version v1.4.0`. This is what occurs today:
+There is no separate upgrade command. The operator runs the installer again with the new version, for example `--version v1.4.0`. Today this happens:
 
-- The installer keeps the install directory. `fetch_source` returns immediately when `<dir>/iac/production/docker-compose.yml` is already there, so **it does not download the new source**.
-- `generate_env` still writes the new `IMAGE_TAG` into the available `.env` (and refreshes `DOCKER_GID`). Then step 7 pulls the images of the new version and starts them.
+- The installer keeps the install directory: `fetch_source` returns immediately when `<dir>/iac/production/docker-compose.yml` is already there, so **it does not download the new source**.
+- `generate_env` still writes the new `IMAGE_TAG` into the existing `.env` (and refreshes `DOCKER_GID`). Then step 7 pulls the images of the new version and starts them.
 
-> **Caveat.** The result is a **new image tag on the old compose file and the old migrations**. If the new version changes `docker-compose.yml`, or adds a `.sql` migration, the re-run does not get those changes, and the new images can start against a schema that is too old. To get the full new stack, delete the install directory before the re-run (the named volumes `postgres-data` and `redis-data` are not in that directory and stay), or update the files in `iac/production/` by hand. Make a backup of `.env` first, because a deleted directory also removes it and the installer then makes new secrets.
+> **Caveat.** The result is a **new image tag on the old compose file and the old migrations**. If the new version changes `docker-compose.yml`, or adds a `.sql` migration, the re-run does not pick up those changes, and the new images can start against a schema that is too old. To get the full new stack, either delete the install directory before the re-run (the named volumes `postgres-data` and `redis-data` live outside it and stay) or update the files in `iac/production/` by hand. Back up `.env` first — a deleted directory removes it too, and the installer then generates new secrets.
 
 ### Not covered yet
 

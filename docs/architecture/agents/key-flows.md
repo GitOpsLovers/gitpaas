@@ -16,7 +16,7 @@ flowchart TD
     F --> G[Relay the result, name every file changed]
 ```
 
-**The reason of this delivery.** This workflow takes a question, a small fix, a test, a refactor that keeps the behavior, a document, a configuration and an audit — work with no specification to gate it. It invokes no `git-manager`, and it opens no Pull Request, because the user reviews and commits the change of a conversation directly; a Pull Request for every sentence would put a review step in front of work that carries no risk large enough to need one. `.claude/skills/agent-orchestration/references/workflow-day.md` gives the four steps in full, and `references/limits.md` states when the orchestrator may edit a file itself instead of delegating.
+**The reason of this delivery.** This workflow carries no Pull Request because the user reviews and commits the change of a conversation directly; a Pull Request for every sentence would put a review step in front of work that carries no risk large enough to need one. `.claude/skills/agent-orchestration/references/workflow-day.md` gives the four steps and the kind of work this workflow takes, and `references/limits.md` states when the orchestrator may edit a file itself instead of delegating.
 
 ## The workflow of the SDD
 
@@ -37,7 +37,7 @@ flowchart TD
     K -->|No, last phase| L[documenter writes docs/business/, deletes the roadmap folder]
 ```
 
-**The reason of this delivery.** `git-manager` runs one time inside `/implement` alone, and nowhere else in the layer, because only `/implement` produces code that changed the behavior of `apps/` or of `packages/` under a specification the user already approved in `TODO.md`. A phase is the unit of that delivery: it groups its own tasks, its own tests, and its own Pull Request, so a reviewer judges one phase and not the whole feature, and the user can stop after a phase that reveals a wrong plan, before the next phase builds on it. `docs/roadmap/<feature>/TODO.md` is the whole state of the work between two commands, so a new conversation can pick up `/plan` or `/implement` from that one file alone. `.claude/skills/agent-orchestration/references/workflow-sdd.md` gives the three commands in full.
+**The reason of this delivery.** `git-manager` runs one time inside `/implement` alone, and nowhere else in the layer, because only `/implement` produces code that changed the behavior of `apps/` or of `packages/` under a specification the user already approved in `TODO.md`. A phase is the unit of that delivery: it groups its own tasks, its own tests, and its own Pull Request, so a reviewer judges one phase and not the whole feature, and the user can stop after a phase that reveals a wrong plan, before the next phase builds on it. `TODO.md` carries the state of the work between two commands for the same reason, so a new conversation can pick up `/plan` or `/implement` from that one file alone. `.claude/skills/agent-orchestration/references/workflow-sdd.md` gives the three commands in full.
 
 ## The choice of the agent
 

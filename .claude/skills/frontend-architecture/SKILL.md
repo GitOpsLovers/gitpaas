@@ -22,11 +22,14 @@ Read one file for your task, and never the folder. In a page of `docs/`, find th
 | [structure.md](../../../docs/architecture/frontend/structure.md) | You place a file, or a route must reach a page, or you need what `shared/` holds. | `## Bootstrap and routing`, `## Per-feature layout`, `## Layout and pages`, `## Shared` |
 | [conventions.md](../../../docs/architecture/frontend/conventions.md) | You need the border between a page and a container, and where a parameter of a route enters. | `## Layering` |
 | [conventions.md](../../../docs/architecture/frontend/conventions.md) | A feature reads or writes over HTTP, and you need the shape that crosses the wire. | `## API repositories` |
-| [conventions.md](../../../docs/architecture/frontend/conventions.md) | You write a component, and you name its file, its selector and its class. | `## Containers`, `## Presentational components` |
+| [conventions.md](../../../docs/architecture/frontend/conventions.md) | You write a component, or you route parameters to a container. | `## Containers`, `## Presentational components` |
 | [conventions.md](../../../docs/architecture/frontend/conventions.md) | You place the state, or you need which import takes an alias. | `## State`, `## Path aliases` |
 | [stack.md](../../../docs/architecture/frontend/stack.md) | You choose the library that takes a concern, or you need the runner of the specs. | — |
 | [key-flows.md](../../../docs/architecture/frontend/key-flows.md) | You need why a flow is built this way, or how the authentication refreshes a token. | One `##` for one flow |
 | [operations.md](../../../docs/architecture/frontend/operations.md) | You need the command that an operator runs. | — |
+| [arch-file-naming.md](references/arch-file-naming.md) | You name the file of a model, an API repository, or a presentational component. | — |
+| [arch-class-function-naming.md](references/arch-class-function-naming.md) | You name the class or the selector of a page or a presentational component, or you name an `output()`. | — |
+| [arch-known-deviations.md](references/arch-known-deviations.md) | You touch state management, and you need to know where the code still deviates from signals. | — |
 
 ## The API of Angular
 
