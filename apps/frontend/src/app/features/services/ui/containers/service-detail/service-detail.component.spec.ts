@@ -1,11 +1,17 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import type { Project, Service } from '@gitpaas/contracts';
+import { By } from '@angular/platform-browser';
+import { provideRouter, Router } from '@angular/router';
+import type { Project, Service, ServiceVariable } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
+import { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
+import { ServiceVariablesApiRepository } from '../../../infrastructure/api/service-variables-api.repository';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
+import { ServiceVariableChange, ServiceVariablesComponent } from '../../components/service-variables/service-variables.component';
 
 import { ServiceDetailComponent } from './service-detail.component';
 
@@ -25,6 +31,15 @@ interface ServiceDetailInternals {
     changeTab: (tab: string) => void;
     saveProvider: (settings: ServiceProviderSettings) => Promise<void>;
     deploy: () => Promise<void>;
+    tabs: Array<{ id: string; label: string }>;
+    savingVariable: () => boolean;
+    variableError: () => string | null;
+    pendingVariableRemoval: () => ServiceVariable | null;
+    removingVariable: () => boolean;
+    setVariable: (draft: ServiceVariableDraft) => Promise<void>;
+    changeVariable: (change: ServiceVariableChange) => Promise<void>;
+    requestVariableRemoval: (variable: ServiceVariable) => void;
+    confirmVariableRemoval: () => Promise<void>;
 }
 
 const project: Project = {
@@ -39,6 +54,10 @@ const service: Service = {
     repositoryId: '',
     deploymentBranch: '',
     composerPath: '',
+};
+
+const variable: ServiceVariable = {
+    id: 'var-1', serviceId: 'sv-1', name: 'DATABASE_URL', secret: false, value: 'postgres://db', valueSet: true,
 };
 
 describe('ServiceDetailComponent', () => {
@@ -58,6 +77,13 @@ describe('ServiceDetailComponent', () => {
         remove: ReturnType<typeof vi.fn>;
     };
     let deploymentsResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
+    let variablesRepository: {
+        variablesByService: ReturnType<typeof vi.fn>;
+        set: ReturnType<typeof vi.fn>;
+        update: ReturnType<typeof vi.fn>;
+        remove: ReturnType<typeof vi.fn>;
+    };
+    let variablesResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let router: { navigate: ReturnType<typeof vi.fn> };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ServiceDetailComponent>;
@@ -90,6 +116,13 @@ describe('ServiceDetailComponent', () => {
             deploy: vi.fn(),
             remove: vi.fn(),
         };
+        variablesResource = { value: signal(undefined), reload: vi.fn() };
+        variablesRepository = {
+            variablesByService: vi.fn().mockReturnValue(variablesResource),
+            set: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn(),
+        };
         router = { navigate: vi.fn() };
         toast = { success: vi.fn(), error: vi.fn() };
 
@@ -115,6 +148,7 @@ describe('ServiceDetailComponent', () => {
                         provide: NetworksApiRepository,
                         useValue: { networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
                     },
+                    { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
                 ],
             },
         });
@@ -291,5 +325,216 @@ describe('ServiceDetailComponent', () => {
         expect(serviceValue()).toEqual(updated);
         expect(toast.success).toHaveBeenCalledWith('Provider settings saved', expect.stringContaining('web'));
         expect(component.savingProvider()).toBe(false);
+    });
+
+    test('places the configuration tab third, between the provider tab and the deployments tab', () => {
+        create();
+
+        expect(component.tabs.map((entry) => entry.id)).toEqual([
+            'general', 'provider', 'configuration', 'deployments', 'containers', 'network', 'logs',
+        ]);
+    });
+
+    test('reloads the variables and clears the error when setting a variable succeeds', async () => {
+        variablesRepository.set.mockReturnValue(of(variable));
+        create();
+
+        await component.setVariable({ name: 'DATABASE_URL', value: 'postgres://db', secret: false });
+
+        expect(variablesRepository.set).toHaveBeenCalledWith('sv-1', {
+            name: 'DATABASE_URL', value: 'postgres://db', secret: false,
+        });
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+        expect(component.variableError()).toBeNull();
+        expect(component.savingVariable()).toBe(false);
+    });
+
+    test('reloads the variables and clears the error when changing a variable succeeds', async () => {
+        variablesRepository.update.mockReturnValue(of(variable));
+        create();
+
+        await component.changeVariable({
+            variable, draft: { name: 'DATABASE_URL_2', value: 'postgres://db', secret: false },
+        });
+
+        expect(variablesRepository.update).toHaveBeenCalledWith('sv-1', 'var-1', {
+            name: 'DATABASE_URL_2', value: 'postgres://db',
+        });
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+        expect(component.variableError()).toBeNull();
+    });
+
+    test('fills the error and reloads nothing when the API refuses the new variable', async () => {
+        variablesRepository.set.mockReturnValue(throwError(() => ({
+            status: 409,
+            error: {
+                statusCode: 409,
+                code: 'CONFLICT',
+                message: 'A variable with this name is already taken.',
+                error: 'Conflict',
+                timestamp: '2026-08-24T00:00:00.000Z',
+                path: '/services/sv-1/variables',
+                requestId: 'req-1',
+            },
+        })));
+        create();
+
+        await component.setVariable({ name: 'DATABASE_URL', value: 'postgres://db', secret: false });
+
+        expect(component.variableError()).toBe('A variable with this name is already taken.');
+        expect(variablesResource.reload).not.toHaveBeenCalled();
+        expect(component.savingVariable()).toBe(false);
+    });
+
+    test('fills the error and reloads nothing when the API refuses the changed variable', async () => {
+        variablesRepository.update.mockReturnValue(throwError(() => new Error('boom')));
+        create();
+
+        await component.changeVariable({
+            variable, draft: { name: 'DATABASE_URL', value: 'postgres://db', secret: false },
+        });
+
+        expect(component.variableError()).toBe('The variable could not be saved. Please try again.');
+        expect(variablesResource.reload).not.toHaveBeenCalled();
+    });
+
+    test('opens the confirmation before removing a variable', () => {
+        create();
+
+        component.requestVariableRemoval(variable);
+
+        expect(component.pendingVariableRemoval()).toEqual(variable);
+        expect(variablesRepository.remove).not.toHaveBeenCalled();
+    });
+
+    test('removes the variable pending confirmation and reloads the list', async () => {
+        variablesRepository.remove.mockReturnValue(of(undefined));
+        create();
+
+        component.requestVariableRemoval(variable);
+        await component.confirmVariableRemoval();
+
+        expect(variablesRepository.remove).toHaveBeenCalledWith('sv-1', 'var-1');
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+        expect(component.pendingVariableRemoval()).toBeNull();
+        expect(toast.success).toHaveBeenCalledWith('Variable removed', expect.stringContaining('DATABASE_URL'));
+    });
+
+    test('confirming the removal with nothing pending calls no method', async () => {
+        create();
+
+        await component.confirmVariableRemoval();
+
+        expect(variablesRepository.remove).not.toHaveBeenCalled();
+        expect(variablesResource.reload).not.toHaveBeenCalled();
+    });
+});
+
+// The configuration tab keeps its real template here, so a test proves the outputs of
+// `app-service-variables` reach the handlers of `ServiceDetailComponent` through the actual bindings
+// of `service-detail.component.html`, and not by calling a handler directly.
+describe('ServiceDetailComponent bindings of the service variables outputs', () => {
+    let repository: { serviceById: ReturnType<typeof vi.fn> };
+    let projectsRepository: {
+        namespaceId: ReturnType<typeof signal<string | undefined>>;
+        projectById: ReturnType<typeof vi.fn>;
+    };
+    let variablesRepository: {
+        variablesByService: ReturnType<typeof vi.fn>;
+        set: ReturnType<typeof vi.fn>;
+        update: ReturnType<typeof vi.fn>;
+        remove: ReturnType<typeof vi.fn>;
+    };
+    let fixture: ComponentFixture<ServiceDetailComponent>;
+    let component: ServiceDetailInternals;
+    let child: ServiceVariablesComponent;
+
+    beforeEach(() => {
+        repository = { serviceById: vi.fn().mockReturnValue({ value: signal(service) }) };
+        projectsRepository = {
+            namespaceId: signal<string | undefined>(undefined),
+            projectById: vi.fn().mockReturnValue({ value: signal(project) }),
+        };
+        variablesRepository = {
+            variablesByService: vi.fn().mockReturnValue({
+                value: signal([variable]), isLoading: signal(false), reload: vi.fn(),
+            }),
+            set: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn(),
+        };
+
+        TestBed.configureTestingModule({
+            imports: [ServiceDetailComponent],
+            providers: [
+                { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
+                provideRouter([]),
+                provideHttpClient(),
+                provideHttpClientTesting(),
+            ],
+        });
+        TestBed.overrideComponent(ServiceDetailComponent, {
+            set: {
+                providers: [
+                    { provide: ServicesApiRepository, useValue: repository },
+                    { provide: ProjectsApiRepository, useValue: projectsRepository },
+                    {
+                        provide: DeploymentsApiRepository,
+                        useValue: {
+                            deploymentsByService: vi.fn().mockReturnValue({ value: signal(undefined) }),
+                            logArchive: vi.fn().mockReturnValue({ value: signal(undefined), isLoading: signal(false) }),
+                        },
+                    },
+                    {
+                        provide: ContainersApiRepository,
+                        useValue: { containersByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
+                    },
+                    {
+                        provide: NetworksApiRepository,
+                        useValue: { networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
+                    },
+                    { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
+                ],
+            },
+        });
+
+        fixture = TestBed.createComponent(ServiceDetailComponent);
+        fixture.componentRef.setInput('namespaceId', 'ns-1');
+        fixture.componentRef.setInput('projectId', 'pr-1');
+        fixture.componentRef.setInput('serviceId', 'sv-1');
+        fixture.componentRef.setInput('tab', 'configuration');
+        fixture.detectChanges();
+        component = fixture.componentInstance as unknown as ServiceDetailInternals;
+
+        const debugElement = fixture.debugElement.query(By.directive(ServiceVariablesComponent));
+        child = debugElement.componentInstance as ServiceVariablesComponent;
+    });
+
+    test('passes the payload of the update output to changeVariable through the real template', () => {
+        const spy = vi.spyOn(component, 'changeVariable').mockResolvedValue(undefined);
+        const change: ServiceVariableChange = {
+            variable, draft: { name: 'DATABASE_URL_2', value: 'postgres://db', secret: false },
+        };
+
+        child.update.emit(change);
+
+        expect(spy).toHaveBeenCalledWith(change);
+    });
+
+    test('passes the payload of the set output to setVariable through the real template', () => {
+        const spy = vi.spyOn(component, 'setVariable').mockResolvedValue(undefined);
+        const draft: ServiceVariableDraft = { name: 'DATABASE_URL', value: 'postgres://db', secret: false };
+
+        child.set.emit(draft);
+
+        expect(spy).toHaveBeenCalledWith(draft);
+    });
+
+    test('passes the payload of the remove output to requestVariableRemoval through the real template', () => {
+        const spy = vi.spyOn(component, 'requestVariableRemoval');
+
+        child.remove.emit(variable);
+
+        expect(spy).toHaveBeenCalledWith(variable);
     });
 });

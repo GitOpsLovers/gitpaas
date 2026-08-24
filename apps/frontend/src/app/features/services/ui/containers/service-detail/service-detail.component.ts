@@ -1,15 +1,20 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { Container, Deployment, Network, Project, Service } from '@gitpaas/contracts';
+import type { Container, Deployment, Network, Project, Service, ServiceVariable } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
+import { buildServiceVariableUpdateUseCase } from '../../../application/build-service-variable-update.use-case';
+import { readServiceVariableErrorUseCase } from '../../../application/read-service-variable-error.use-case';
+import type { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
+import { ServiceVariablesApiRepository } from '../../../infrastructure/api/service-variables-api.repository';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
 import { ServiceDeployActionsComponent } from '../../components/service-deploy-actions/service-deploy-actions.component';
 import { ServiceDeploymentsComponent } from '../../components/service-deployments/service-deployments.component';
 import { ServiceLogsComponent } from '../../components/service-logs/service-logs.component';
 import { ServiceProviderComponent, ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
+import { ServiceVariableChange, ServiceVariablesComponent } from '../../components/service-variables/service-variables.component';
 
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { ServiceContainersComponent } from '@features/containers/ui/components/service-containers/service-containers.component';
@@ -18,17 +23,26 @@ import { NetworksApiRepository } from '@features/networks/infrastructure/api/net
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
+import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 import { ToastService } from '@shared/services/toast.service';
 
-type ServiceTab = 'general' | 'provider' | 'deployments' | 'containers' | 'network' | 'logs';
+type ServiceTab = 'general' | 'provider' | 'configuration' | 'deployments' | 'containers' | 'network' | 'logs';
 
 @Component({
     selector: 'app-service-detail',
     templateUrl: './service-detail.component.html',
-    providers: [ServicesApiRepository, ProjectsApiRepository, DeploymentsApiRepository, ContainersApiRepository, NetworksApiRepository],
+    providers: [
+        ServicesApiRepository,
+        ServiceVariablesApiRepository,
+        ProjectsApiRepository,
+        DeploymentsApiRepository,
+        ContainersApiRepository,
+        NetworksApiRepository,
+    ],
     imports: [
         BreadcrumbComponent,
+        ConfirmModalComponent,
         DeploymentLogsModalComponent,
         ServiceContainersComponent,
         ServiceDeployActionsComponent,
@@ -36,6 +50,7 @@ type ServiceTab = 'general' | 'provider' | 'deployments' | 'containers' | 'netwo
         ServiceLogsComponent,
         ServiceNetworksComponent,
         ServiceProviderComponent,
+        ServiceVariablesComponent,
         TabsComponent],
 })
 
@@ -44,6 +59,8 @@ type ServiceTab = 'general' | 'provider' | 'deployments' | 'containers' | 'netwo
  */
 export class ServiceDetailComponent {
     private readonly repository = inject(ServicesApiRepository);
+
+    private readonly variablesRepository = inject(ServiceVariablesApiRepository);
 
     private readonly projectsRepository = inject(ProjectsApiRepository);
 
@@ -76,6 +93,9 @@ export class ServiceDetailComponent {
 
     protected readonly networks: HttpResourceRef<Network[] | undefined> = this.networksRepository.networksByService(() => this.serviceId());
 
+    // eslint-disable-next-line max-len
+    protected readonly variables: HttpResourceRef<ServiceVariable[] | undefined> = this.variablesRepository.variablesByService(() => this.serviceId());
+
     protected readonly activeTab = computed<ServiceTab>(() => {
         const tab = this.tab();
         return this.tabs.some((entry) => entry.id === tab) ? (tab as ServiceTab) : 'general';
@@ -89,12 +109,28 @@ export class ServiceDetailComponent {
 
     protected readonly selectedDeployment = signal<Deployment | null>(null);
 
+    protected readonly savingVariable = signal(false);
+
+    protected readonly variableError = signal<string | null>(null);
+
+    protected readonly pendingVariableRemoval = signal<ServiceVariable | null>(null);
+
+    protected readonly removingVariable = signal(false);
+
+    /**
+     * Confirmation message naming the variable pending removal.
+     */
+    protected readonly removeVariableMessage = computed(
+        () => `“${this.pendingVariableRemoval()?.name ?? ''}” will no longer reach the containers at the next deployment.`,
+    );
+
     /**
      * Defines the tabs available in the service detail view.
      */
     protected readonly tabs: Array<{ id: ServiceTab; label: string }> = [
         { id: 'general', label: 'General' },
         { id: 'provider', label: 'Provider' },
+        { id: 'configuration', label: 'Configuration' },
         { id: 'deployments', label: 'Deployments' },
         { id: 'containers', label: 'Containers' },
         { id: 'network', label: 'Network' },
@@ -198,6 +234,90 @@ export class ServiceDetailComponent {
     protected viewDeployment(deployment: Deployment): void {
         this.selectedDeployment.set(deployment);
         this.logModalOpen.set(true);
+    }
+
+    /**
+     * Sets a new variable on the service.
+     *
+     * @param draft Name, value and kind the form holds
+     */
+    protected async setVariable(draft: ServiceVariableDraft): Promise<void> {
+        this.savingVariable.set(true);
+        this.variableError.set(null);
+
+        try {
+            await lastValueFrom(this.variablesRepository.set(this.serviceId(), {
+                name: draft.name,
+                value: draft.value,
+                secret: draft.secret,
+            }));
+
+            this.variables.reload();
+            this.toast.success('Variable saved', `“${draft.name}” applies at the next deployment.`);
+        } catch (error) {
+            this.variableError.set(readServiceVariableErrorUseCase(error, 'The variable could not be saved. Please try again.'));
+        } finally {
+            this.savingVariable.set(false);
+        }
+    }
+
+    /**
+     * Changes the name or the value of a stored variable.
+     *
+     * @param change Stored variable and the values the form holds
+     */
+    protected async changeVariable(change: ServiceVariableChange): Promise<void> {
+        this.savingVariable.set(true);
+        this.variableError.set(null);
+
+        try {
+            await lastValueFrom(this.variablesRepository.update(
+                this.serviceId(),
+                change.variable.id,
+                buildServiceVariableUpdateUseCase(change.variable, change.draft),
+            ));
+
+            this.variables.reload();
+            this.toast.success('Variable saved', `“${change.draft.name}” applies at the next deployment.`);
+        } catch (error) {
+            this.variableError.set(readServiceVariableErrorUseCase(error, 'The variable could not be saved. Please try again.'));
+        } finally {
+            this.savingVariable.set(false);
+        }
+    }
+
+    /**
+     * Opens the removal confirmation for a variable.
+     *
+     * @param variable Variable to remove
+     */
+    protected requestVariableRemoval(variable: ServiceVariable): void {
+        this.pendingVariableRemoval.set(variable);
+    }
+
+    /**
+     * Removes the variable pending confirmation.
+     */
+    protected async confirmVariableRemoval(): Promise<void> {
+        const variable = this.pendingVariableRemoval();
+
+        if (!variable) {
+            return;
+        }
+
+        this.removingVariable.set(true);
+
+        try {
+            await lastValueFrom(this.variablesRepository.remove(this.serviceId(), variable.id));
+
+            this.variables.reload();
+            this.toast.success('Variable removed', `“${variable.name}” stops at the next deployment.`);
+        } catch {
+            this.toast.error('Could not remove the variable', 'Something went wrong. Please try again.');
+        } finally {
+            this.removingVariable.set(false);
+            this.pendingVariableRemoval.set(null);
+        }
     }
 
     /**

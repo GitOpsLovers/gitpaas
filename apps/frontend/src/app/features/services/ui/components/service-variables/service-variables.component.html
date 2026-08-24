@@ -1,0 +1,143 @@
+<app-component-card title="Configuration" desc="The environment variables this service gives to its containers.">
+    <div
+        class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
+    >
+        <p>A variable reaches the containers of the stack, and never the build of an image.</p>
+        <p class="mt-1">A change takes effect at the next deployment, and no running container reads it.</p>
+    </div>
+
+    @if (variables().length > 0) {
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead>
+                    <tr
+                        class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+                    >
+                        <th scope="col" class="px-4 py-3 font-medium">Name</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Value</th>
+                        <th scope="col" class="px-4 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @for (variable of variables(); track variable.id) {
+                        <tr class="text-gray-600 dark:text-gray-300">
+                            <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                <span class="inline-flex items-center gap-1.5">
+                                    @if (variable.secret) {
+                                        <svg lucideLock class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                    }
+                                    <span class="block max-w-[16rem] truncate font-mono" [title]="variable.name">
+                                        {{ variable.name }}
+                                    </span>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                @if (variable.secret) {
+                                    <span
+                                        class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                        [class]="
+                                            variable.valueSet
+                                                ? 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500'
+                                                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                        "
+                                    >
+                                        {{ variable.valueSet ? 'Secret · value set' : 'Secret · empty' }}
+                                    </span>
+                                } @else {
+                                    <span class="block max-w-[20rem] truncate font-mono" [title]="variable.value ?? ''">
+                                        {{ variable.value }}
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-end gap-2">
+                                    <app-button variant="outline" size="sm" (btnClick)="edit(variable)">
+                                        <svg lucidePencil class="h-4 w-4"></svg>
+                                        Change
+                                    </app-button>
+                                    <app-button variant="danger" size="sm" (btnClick)="remove.emit(variable)">
+                                        <svg lucideTrash2 class="h-4 w-4"></svg>
+                                        Remove
+                                    </app-button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    } @else {
+        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            @if (loading()) {
+                Loading variables…
+            } @else {
+                No variables yet. Set the first one below.
+            }
+        </p>
+    }
+
+    <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+                <app-label for="variable-name">Name</app-label>
+                <app-input-field
+                    id="variable-name"
+                    name="variable-name"
+                    placeholder="DATABASE_URL"
+                    [value]="name()"
+                    [error]="error() !== null"
+                    (valueChange)="onNameChange($event)"
+                />
+            </div>
+
+            <div>
+                <app-label for="variable-value">Value</app-label>
+                <app-input-field
+                    id="variable-value"
+                    name="variable-value"
+                    [type]="secret() ? 'password' : 'text'"
+                    [value]="value()"
+                    [hint]="valueHint()"
+                    (valueChange)="onValueChange($event)"
+                />
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <input
+                id="variable-secret"
+                type="checkbox"
+                [checked]="secret()"
+                [disabled]="isEditing()"
+                (change)="secret.set($any($event.target).checked)"
+                class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+            />
+            <label for="variable-secret" class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400">
+                Store this value as a secret. GitPaaS seals it, and never gives it back.
+            </label>
+        </div>
+
+        @if (error()) {
+            <p class="text-sm text-error-500">{{ error() }}</p>
+        }
+
+        <div class="flex items-center gap-2">
+            <app-button type="submit" size="sm" [disabled]="saving() || !name()">
+                @if (isEditing()) {
+                    <svg lucidePencil class="h-4 w-4"></svg>
+                    {{ saving() ? 'Saving…' : 'Save variable' }}
+                } @else {
+                    <svg lucidePlus class="h-4 w-4"></svg>
+                    {{ saving() ? 'Saving…' : 'Add variable' }}
+                }
+            </app-button>
+
+            @if (isEditing()) {
+                <app-button variant="outline" size="sm" (btnClick)="reset()">
+                    <svg lucideX class="h-4 w-4"></svg>
+                    Cancel
+                </app-button>
+            }
+        </div>
+    </form>
+</app-component-card>

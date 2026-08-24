@@ -8,21 +8,19 @@ The audit of the three areas found that the architecture of GitPaaS is sound: th
 **Paths:** iac/production/, .github/workflows/
 
 - [ ] 1.1 Copy `packages/contracts/` into the two Dockerfiles of the production, so an image builds again.
-- [ ] 1.2 Build both images in `pr-verify.yml`, so the pipeline catches the same break next time.
-- [ ] 1.3 Make `turbo.json` build `contracts` before `dev`.
-- [ ] 1.4 Correct `globalPassThroughEnv`: remove the variable that does not exist, and add the one that does.
+- [ ] 1.2 Make `turbo.json` build `contracts` before `dev`.
+- [ ] 1.3 Correct `globalPassThroughEnv`: remove the variable that does not exist, and add the one that does.
 
 ## Phase 2 — The duplication of the backend
 
 **Agent:** refactorer
 **Paths:** apps/backend/src/
 
-- [ ] 2.1 Merge `containers` and `networks` into one feature, because their controllers and their services are identical after the rename of the noun.
-- [ ] 2.2 Extract the wrapper `run<T>` of the telemetry, which four adapters copy.
-- [ ] 2.3 Extract the block of the emission of the telemetry, which the middleware and the runner of the deployments copy.
-- [ ] 2.4 Split `deployment-runner.service.ts`: the queue on one side, the telemetry on the other.
-- [ ] 2.5 Stop `logs.module.ts` re-providing the two repositories that other modules already own.
-- [ ] 2.6 Align the three patterns of "not found" of the controllers on one pattern.
+- [ ] 2.1 Extract the wrapper `run<T>` of the telemetry, which four adapters copy.
+- [ ] 2.2 Extract the block of the emission of the telemetry, which the middleware and the runner of the deployments copy.
+- [ ] 2.3 Split `deployment-runner.service.ts`: the queue on one side, the telemetry on the other.
+- [ ] 2.4 Stop `logs.module.ts` re-providing the two repositories that other modules already own.
+- [ ] 2.5 Align the three patterns of "not found" of the controllers on one pattern.
 
 ## Phase 3 — The dead code of the backend
 

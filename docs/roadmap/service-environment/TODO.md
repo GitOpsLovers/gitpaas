@@ -18,14 +18,14 @@ A service needs a configuration that its repository must not hold: a database ad
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/services/
 
-- [ ] 2.1 Create the model and the repository of the API of the variables in the frontend.
-- [ ] 2.2 Add the tab `configuration`, with the label "Configuration", between `provider` and `deployments`.
-- [ ] 2.3 List each variable with its name, and show the value of a plain variable only.
-- [ ] 2.4 Show that a secret holds a value, and keep its field empty on a change.
-- [ ] 2.5 Give the actions that set, change and remove a variable.
-- [ ] 2.6 State that a change takes effect at the next deployment, and that a variable reaches the containers and not the build.
-- [ ] 2.7 Show which rule a name breaks, when the API refuses it.
-- [ ] 2.8 Create the specs of the tab, one per rule of the behavior of a variable.
+- [x] 2.1 Create the model and the repository of the API of the variables in the frontend.
+- [x] 2.2 Add the tab `configuration`, with the label "Configuration", between `provider` and `deployments`.
+- [x] 2.3 List each variable with its name, and show the value of a plain variable only.
+- [x] 2.4 Show that a secret holds a value, and keep its field empty on a change.
+- [x] 2.5 Give the actions that set, change and remove a variable.
+- [x] 2.6 State that a change takes effect at the next deployment, and that a variable reaches the containers and not the build.
+- [x] 2.7 Show which rule a name breaks, when the API refuses it.
+- [x] 2.8 Create the specs of the tab, one per rule of the behavior of a variable.
 
 ## Phase 3 — The documentation and the release
 
