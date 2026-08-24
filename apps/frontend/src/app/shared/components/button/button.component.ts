@@ -14,7 +14,7 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 export class ButtonComponent {
     public readonly type = input<'button' | 'submit'>('button');
 
-    public readonly size = input<'sm' | 'md'>('md');
+    public readonly size = input<'xs' | 'sm' | 'md'>('md');
 
     public readonly variant = input<'primary' | 'outline' | 'danger' | 'dark'>('primary');
 
@@ -29,7 +29,14 @@ export class ButtonComponent {
     @Output() public readonly btnClick = new EventEmitter<Event>();
 
     public get sizeClasses(): string {
-        return this.size() === 'sm' ? 'px-4 py-3 text-sm' : 'px-5 py-3.5 text-sm';
+        switch (this.size()) {
+            case 'xs':
+                return 'px-2 py-2 text-xs';
+            case 'sm':
+                return 'px-4 py-3 text-sm';
+            case 'md':
+                return 'px-5 py-3.5 text-sm';
+        }
     }
 
     public get variantClasses(): string {

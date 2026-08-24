@@ -1,9 +1,8 @@
 <app-component-card title="Configuration" desc="The environment variables this service gives to its containers.">
     <div
-        class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
+        class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
     >
-        <p>A variable reaches the containers of the stack, and never the build of an image.</p>
-        <p class="mt-1">A change takes effect at the next deployment, and no running container reads it.</p>
+        <p>A change takes effect at the next deployment, and no running container reads it.</p>
     </div>
 
     @if (variables().length > 0) {
@@ -37,27 +36,25 @@
                                         class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                                         [class]="
                                             variable.valueSet
-                                                ? 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500'
+                                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400'
                                                 : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                                         "
                                     >
                                         {{ variable.valueSet ? 'Secret · value set' : 'Secret · empty' }}
                                     </span>
                                 } @else {
-                                    <span class="block max-w-[20rem] truncate font-mono" [title]="variable.value ?? ''">
+                                    <span class="block max-w-[16rem] truncate font-mono" [title]="variable.value ?? ''">
                                         {{ variable.value }}
                                     </span>
                                 }
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-end gap-2">
-                                    <app-button variant="outline" size="sm" (btnClick)="edit(variable)">
+                                    <app-button variant="outline" size="xs" (btnClick)="edit(variable)">
                                         <svg lucidePencil class="h-4 w-4"></svg>
-                                        Change
                                     </app-button>
-                                    <app-button variant="danger" size="sm" (btnClick)="remove.emit(variable)">
+                                    <app-button variant="danger" size="xs" (btnClick)="remove.emit(variable)">
                                         <svg lucideTrash2 class="h-4 w-4"></svg>
-                                        Remove
                                     </app-button>
                                 </div>
                             </td>
