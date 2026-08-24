@@ -54,27 +54,6 @@ export class UsersModule {}
 })
 export class OrdersModule {}
 
-// Option 2: Use events for decoupled communication
-// users.service.ts
-@Injectable()
-export class UsersService {
-  constructor(private eventEmitter: EventEmitter2) {}
-
-  async createUser(data: CreateUserDto) {
-    const user = await this.userRepo.save(data);
-    this.eventEmitter.emit('user.created', user);
-    return user;
-  }
-}
-
-// orders.service.ts
-@Injectable()
-export class OrdersService {
-  @OnEvent('user.created')
-  handleUserCreated(user: User) {
-    // React to user creation without direct dependency
-  }
-}
 ```
 
 Reference: [NestJS Circular Dependency](https://docs.nestjs.com/fundamentals/circular-dependency)

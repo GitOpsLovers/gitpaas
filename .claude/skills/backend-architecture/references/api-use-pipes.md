@@ -7,6 +7,8 @@ tags: api, pipes, validation, transformation
 
 ## Use Pipes for Input Transformation
 
+This project validates a body with a schema of Zod and `ZodValidationPipe`, and it installs no `class-validator`. See `## Validation` of `docs/architecture/backend/conventions.md`.
+
 Use built-in pipes like `ParseIntPipe`, `ParseUUIDPipe`, and `DefaultValuePipe` for common transformations. Create custom pipes for business-specific transformations. Pipes separate validation/transformation logic from controllers.
 
 **Incorrect (manual type parsing in handlers):**
@@ -119,60 +121,6 @@ async findProducts(
 ): Promise<Product[]> {
   // ids is already an array, email is normalized
   return this.productsService.findByIds(ids);
-}
-
-// Sanitize HTML input
-@Injectable()
-export class SanitizeHtmlPipe implements PipeTransform<string, string> {
-  transform(value: string): string {
-    if (!value) return value;
-    return sanitizeHtml(value, { allowedTags: [] });
-  }
-}
-
-// Global validation pipe with transformation
-app.useGlobalPipes(
-  new ValidationPipe({
-    whitelist: true, // Strip non-DTO properties
-    transform: true, // Auto-transform to DTO types
-    transformOptions: {
-      enableImplicitConversion: true, // Convert query strings to numbers
-    },
-    forbidNonWhitelisted: true, // Throw on extra properties
-  }),
-);
-
-// DTO with transformation decorators
-export class FindProductsDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit?: number = 10;
-
-  @IsOptional()
-  @Transform(({ value }) => value?.toLowerCase())
-  @IsString()
-  search?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => value?.split(','))
-  @IsArray()
-  @IsString({ each: true })
-  categories?: string[];
-}
-
-@Get()
-async findAll(@Query() dto: FindProductsDto): Promise<Product[]> {
-  // dto is already transformed and validated
-  return this.productsService.findAll(dto);
 }
 
 // Pipe error customization

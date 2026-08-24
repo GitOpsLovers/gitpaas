@@ -134,50 +134,6 @@ export class UsersController {
   }
 }
 
-// Custom cache interceptor with TTL
-@Injectable()
-export class HttpCacheInterceptor implements NestInterceptor {
-  constructor(
-    private cacheManager: Cache,
-    private reflector: Reflector,
-  ) {}
-
-  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
-    const request = context.switchToHttp().getRequest();
-
-    // Only cache GET requests
-    if (request.method !== 'GET') {
-      return next.handle();
-    }
-
-    const cacheKey = this.generateKey(request);
-    const ttl = this.reflector.get<number>('cacheTTL', context.getHandler()) || 300;
-
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) {
-      return of(cached);
-    }
-
-    return next.handle().pipe(
-      tap((response) => {
-        this.cacheManager.set(cacheKey, response, ttl);
-      }),
-    );
-  }
-
-  private generateKey(request: Request): string {
-    return `cache:${request.url}:${JSON.stringify(request.query)}`;
-  }
-}
-
-// Usage with custom TTL
-@Get()
-@SetMetadata('cacheTTL', 600)
-@UseInterceptors(HttpCacheInterceptor)
-async findAll(): Promise<User[]> {
-  return this.usersService.findAll();
-}
-
 // Error mapping interceptor
 @Injectable()
 export class ErrorMappingInterceptor implements NestInterceptor {
