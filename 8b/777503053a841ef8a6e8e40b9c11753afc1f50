@@ -1,0 +1,33 @@
+docs/architecture/backend/key-flows.md
+  s_c2f6cc93196252::t_f39b5e72f98750 136,171-179
+docs/architecture/infrastructure/conventions.md
+  s_c2f6cc93196252::t_742ccd03d909e3 25
+docs/architecture/infrastructure/installation.md
+  s_c2f6cc93196252::t_247bb7ae70483b 43,45,71,73
+docs/business.md
+  s_c2f6cc93196252::t_fc83517e70038f 22
+docs/business/providers.md
+  s_c2f6cc93196252::t_8d078bf03f3106 61,72
+docs/business/service-environment.md
+  s_c2f6cc93196252::t_735c145fb589c1 1-134
+docs/business/services.md
+  s_c2f6cc93196252::t_0d1be2d860d83a 278,280-282
+scripts/install.sh
+  s_c2f6cc93196252::t_92b6c90cc9df2d 495-497
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8b777503053a841ef8a6e8e40b9c11753afc1f50",
+  "prompts": {},
+  "sessions": {
+    "s_c2f6cc93196252": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9c79082-b139-424d-a4d6-e9cff095a709",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
