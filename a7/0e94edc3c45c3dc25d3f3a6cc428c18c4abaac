@@ -1,0 +1,35 @@
+.claude/commands/implement.md
+  s_f2019bcf8e3b65::t_4a8df176502a75 1-30
+.claude/commands/plan.md
+  s_f2019bcf8e3b65::t_bbf9fc3070e328 1-26
+.claude/commands/research.md
+  s_f2019bcf8e3b65::t_9a608064c3ff21 1-28
+docs/architecture/agents.md
+  s_46b7e3bf0d7d6f::t_a1a966894c3b76 9-11
+docs/architecture/agents/key-flows.md
+  s_46b7e3bf0d7d6f::t_8f932c5acf187c 3,5-7,11-16,19-23,25-39,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a70e94edc3c45c3dc25d3f3a6cc428c18c4abaac",
+  "prompts": {},
+  "sessions": {
+    "s_46b7e3bf0d7d6f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aae9d2fc5c09e530a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f2019bcf8e3b65": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ffff8100-7f95-4efe-b483-9cc2ff4937de",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
