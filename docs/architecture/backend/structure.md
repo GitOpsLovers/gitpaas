@@ -24,6 +24,8 @@ src/
 
 Each feature has four different layers. There is one strict rule: **an outer layer can depend on an inner layer, but an inner layer can never depend on an outer layer.**
 
+The same rule holds above a feature: **`core/` must never import a feature.** `core/` gives the structure that every feature uses, so a dependency in that direction inverts the layering of the whole application.
+
 **Domain Layer**
 
 This layer holds the models, the repository and port interfaces, the DTOs, the errors and all the other elements that give the business model. These elements do not depend on the other layers and do not use a specified technology. The DTOs are the only exception, because they use `class-validator`.

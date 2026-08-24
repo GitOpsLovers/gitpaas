@@ -25,6 +25,13 @@ of a subagent. The card holds 4,642 bytes today. So the merged file grows, and t
 bytes falls. The plan sets the new target at 9,000 bytes, and it reaches that number by deleting
 the copies, not by deleting a rule. Section 4 gives the savings that remain after the merge.
 
+**Refused: the deletion of the card without a merge.** The four pages of `docs/architecture/`
+hold the same content, but no skill loads a page; a skill points at it, and the agent pays a `Read`.
+That `Read` costs 20,665 bytes for the backend and 10,193 for the frontend, against 4,642 for the
+card. And `implementer` and `refactorer`, the two agents that write code, point at no page of
+`docs/architecture/` today. So the summary stays, inside `CLAUDE.md`, and the long pages keep the
+detail.
+
 ### D2 — The layer keeps eight skills, it adds one, and it deletes five
 
 The layer keeps a skill that holds knowledge of this project or of a framework that moves fast. It
@@ -113,34 +120,34 @@ The acceptance criteria replace the scenarios.
 **Agent:** documenter
 **Paths:** `CLAUDE.md`, `.claude/rules/`, `.claude/agents/`
 
-- [ ] 1.1 Merge `.claude/rules/agent-rules.md` into `CLAUDE.md`. Add its five sections — the one
+- [x] 1.1 Merge `.claude/rules/agent-rules.md` into `CLAUDE.md`. Add its five sections — the one
       rule, the layers of the backend, the layers of the frontend, the path aliases and the tests —
       as a new section of `CLAUDE.md`. Delete the sentences of the card that repeat a rule that
       `CLAUDE.md` already states (D1).
-- [ ] 1.2 Delete `.claude/rules/agent-rules.md`, and delete `.claude/rules/` if it holds no other
+- [x] 1.2 Delete `.claude/rules/agent-rules.md`, and delete `.claude/rules/` if it holds no other
       file.
-- [ ] 1.3 Delete every pointer to `.claude/rules/agent-rules.md`. Seven files hold one: the six
+- [x] 1.3 Delete every pointer to `.claude/rules/agent-rules.md`. Seven files hold one: the six
       files of `.claude/agents/` and `.claude/skills/project-documentation/SKILL.md`. Correct the
       line of the table of `CLAUDE.md` that names the card (F2, D1).
-- [ ] 1.4 Correct the two roadmap folders that name the card: `docs/roadmap/complexity-reduction/`
+- [x] 1.4 Correct the two roadmap folders that name the card: `docs/roadmap/complexity-reduction/`
       holds three references, in `TODO.md`, in `research-backend.md` and in `research-frontend.md`.
       Point each one at `CLAUDE.md`.
-- [ ] 1.5 Delete the section "The shell" from the six files of `.claude/agents/`. `CLAUDE.md` keeps
+- [x] 1.5 Delete the section "The shell" from the six files of `.claude/agents/`. `CLAUDE.md` keeps
       the rule, and it is the one owner (F1, D1).
-- [ ] 1.6 Trim `CLAUDE.md` to 9,000 bytes at the most, with the merged rules inside it. Keep the
+- [x] 1.6 Trim `CLAUDE.md` to 9,000 bytes at the most, with the merged rules inside it. Keep the
       stack, the rules of every agent, the merged rules of the architecture and the table of the
       pointers. Replace the section of the specification-driven development with three lines: the
       two folders of the cycle, the two roads of a request, and the pointer to
       `agent-orchestration` (F3, D1).
-- [ ] 1.7 Delete from the six agent files every sentence that restates a rule of `CLAUDE.md`: the
+- [x] 1.7 Delete from the six agent files every sentence that restates a rule of `CLAUDE.md`: the
       layers, the aliases, the rule "depend inward only", the ban on ESLint, the ban on a
       dependency, and the five fields of the report. Keep the prime directive of each agent, its
       own procedure, and its own verification.
-- [ ] 1.8 Delete from `tester.md` and from `researcher.md` the restatement of the shape of a page
+- [x] 1.8 Delete from `tester.md` and from `researcher.md` the restatement of the shape of a page
       of the business. Replace each one with one line that points at
       `.claude/skills/project-documentation/SKILL.md` (F4).
-- [ ] 1.9 Delete `.claude/RESUME.md`, and add `RESUME.md` to `.claude/.gitignore` (F9).
-- [ ] 1.10 Measure `rtk wc -c` on `CLAUDE.md`, on the card and on the six agent files, and report
+- [x] 1.9 Delete `.claude/RESUME.md`, and add `RESUME.md` to `.claude/.gitignore` (F9).
+- [x] 1.10 Measure `rtk wc -c` on `CLAUDE.md`, on the card and on the six agent files, and report
       the before and the after.
 
 ### Phase 2 — The skills
@@ -186,13 +193,13 @@ Phase 1 edits `implementer.md` and `researcher.md`, so this phase starts after p
 - [ ] 3.2 Rewrite step 4 for the rule of D4. If a phase changes a file of `apps/` or of
       `packages/`, that phase carries a run of `tester` after the run of `implementer`. A phase
       that changes no such file carries none.
-- [ ] 3.3 Delete from section 4 the paragraph "The border between `implementer` and `tester`", and
+- [x] 3.3 Delete from section 4 the paragraph "The border between `implementer` and `tester`", and
       the order to restate that border in every prompt. Replace it with one line: `tester` writes
       every test of `apps/` and of `packages/`, and `implementer` writes none (D4).
-- [ ] 3.4 Correct `.claude/agents/implementer.md`. Delete every order to write a test or a spec
+- [x] 3.4 Correct `.claude/agents/implementer.md`. Delete every order to write a test or a spec
       file. Keep one line of verification: run the suite of the affected app with the command of
       `package.json`, and report the real result (D4).
-- [ ] 3.5 Correct `.claude/agents/tester.md`. State that this agent owns the whole test layer of
+- [x] 3.5 Correct `.claude/agents/tester.md`. State that this agent owns the whole test layer of
       `apps/` and of `packages/`: the test of the unit and the test of the scenario of the business
       (D4).
 - [ ] 3.6 Delete from section 2 the restatement of the shape of `plan.md`, and point at

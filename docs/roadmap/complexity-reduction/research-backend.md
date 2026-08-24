@@ -1,7 +1,7 @@
 # The research of the backend — complexity reduction
 
 Scope: `apps/backend/src` alone. No file of `apps/` changed. The audit measures the code against
-`.claude/rules/agent-rules.md`, `docs/architecture/backend/structure.md` and
+section 3 of `CLAUDE.md`, `docs/architecture/backend/structure.md` and
 `docs/architecture/backend/conventions.md`.
 
 ---

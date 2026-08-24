@@ -59,7 +59,7 @@ One area takes the same set of subpages.
 | `operations.md`     | The action that an operator runs on the application.                                              |
 | `installation.md`   | The installer. It exists for the infrastructure alone.                                            |
 
-The card `.claude/rules/agent-rules.md` is the short form of `structure.md` and of `conventions.md` of the two applications. If you change one of those four pages, read the card, and correct it in the same commit.
+`structure.md` and `conventions.md` of the two applications are the single source of the architecture. `CLAUDE.md` holds no copy of them, so a rule of the layers, of the naming or of the path aliases goes into these four pages and into no other place.
 
 `docs/architecture/agents/` holds the configuration of the AI, and not the application: the configuration of the agents and the skills, and the workflow that they follow.
 

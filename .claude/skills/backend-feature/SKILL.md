@@ -13,6 +13,7 @@ How to scaffold a feature in `apps/backend`. This file is a **procedure**, not a
 
 - Look every architectural rule up there. Do not assume one, and do not infer one from this file.
 - If this skill and `docs/architecture/backend.md` ever disagree, **the architecture doc wins** — follow it and report the discrepancy.
+- The skill `backend-architecture` routes to the exact page of `docs/architecture/backend/` for each question, so you read the section that you need and not the whole area.
 
 ## Procedure
 

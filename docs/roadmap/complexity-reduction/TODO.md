@@ -33,7 +33,7 @@ change and to test, and it slows every task that touches it.
   feature, and it takes its own folder of the roadmap.
 - **No over-engineering.** An abstraction enters the plan only when it removes duplication that
   exists today. A pattern for a future need does not enter.
-- **The rules of the architecture hold.** The plan respects `.claude/rules/agent-rules.md`: the
+- **The rules of the architecture hold.** The plan respects section 3 of `CLAUDE.md`: the
   dependencies point inward, a use case is a pure function, and an adapter is the only provider.
 - **No new dependency**, unless the plan names it and the user approves it.
 

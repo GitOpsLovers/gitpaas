@@ -1,7 +1,7 @@
 # The research of the complexity of the frontend
 
 Scope: `apps/frontend/src` alone. No file of `apps/` changed. Measured against
-`.claude/rules/agent-rules.md`, `docs/architecture/frontend/structure.md`,
+section 3 of `CLAUDE.md`, `docs/architecture/frontend/structure.md`,
 `docs/architecture/frontend/conventions.md` and the pages of `docs/business/`.
 
 ## What the frontend does today, and where
