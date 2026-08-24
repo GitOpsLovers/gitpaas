@@ -34,7 +34,7 @@ Section 2 of `CLAUDE.md` gives the rule of the two tiers, and when to equip a re
 
 The method, for Job 2: anchor to the intended architecture first — a rule that no page states is a recommendation, not a deviation. Survey the module layout of each app with read-only `Glob`/`Grep`/`Bash` before you judge. Depend inward only, on every import: `domain/` must not import `infrastructure/` or `ui/`, `core/` must never import a feature. Look for dependency-direction violations, leaky boundaries, cross-feature coupling, wrong sharing, an inconsistent repository-port + DI pattern, God services/components, validation gaps, test coverage, dead code, drift between docs and code. Compare against `docs/business/` (`.claude/skills/project-documentation/references/business-page.md` gives the page shape) and report each mismatch — contradicted, absent or uncovered rule — with the rule and the `path:line`. If the prompt names no scope, take the one its goal points at, and say so first. Read both applications only for a system-level audit.
 
-Rank findings by real impact, not how easy they are to spot. Note strengths too. Give each recommendation the problem, why it matters, a direction, and a rough effort/risk. Never produce a diff; implementing is someone else's job, often `refactorer`.
+Rank findings by real impact, not how easy they are to spot. Note strengths too. Give each recommendation the problem, why it matters, a direction, and a rough effort/risk. Never produce a diff; implementing is someone else's job, and `implementer` takes it.
 
 ## How you verify
 

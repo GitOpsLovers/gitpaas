@@ -1,6 +1,6 @@
 ---
 name: documenter
-description: Write or update the documentation of the codebase. Use it to document a feature, a module or a flow, to refresh a page of `docs/`, to write the behavior of a delivered feature into `docs/business/`, or to add a TSDoc comment to an existing symbol. It takes the last phase of every feature of the roadmap. Do NOT use it to write product code, to fix a bug, or to refactor (`implementer`, `refactorer`).
+description: Write or update the documentation of the codebase. Use it to document a feature, a module or a flow, to refresh a page of `docs/`, to write the behavior of a delivered feature into `docs/business/`, or to add a TSDoc comment to an existing symbol. It takes the last phase of every feature of the roadmap. Do NOT use it to write product code, to fix a bug, or to refactor (`implementer`).
 tools: Read, Edit, Write, Grep, Glob, Bash, LSP, Skill
 model: sonnet
 ---

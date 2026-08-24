@@ -104,9 +104,7 @@ There are two types of agents, each with a specific purpose:
 
 | The agent     | Its job                                                                                      |
 |---------------|----------------------------------------------------------------------------------------------|
-| `implementer` | Build a feature, wire an endpoint or a component, fix a bug                                  |
-| `refactorer`  | Restructure code, and keep the behavior                                                      |
-| `tester`      | Write or repair a test, and change no product code                                           |
+| `implementer` | Change the code: build a feature, fix a bug, restructure, and write the tests of that change |
 | `documenter`  | Write a page of `docs/`, or a doc-comment                                                    |
 | `researcher`  | Write the research of the cycle, or audit the structure. It reads, and never writes code     |
 | `git-manager` | Branch, commit, push, and open the Pull Request. It is the only agent that changes Git state |
@@ -119,25 +117,25 @@ A development cycle can be divided into two roads. The direct road covers a ques
 
 | The step                                                                               | Who owns it                                        |
 |----------------------------------------------------------------------------------------|----------------------------------------------------|
-| Describe the work, and write or approve `docs/roadmap/<feature>/TODO.md`               | The person                                         |
-| Research: `researcher` writes `research.md`                                            | The agent                                          |
-| **Approve the research**                                                               | The person. The first stop.                        |
-| Plan: the orchestrator writes `plan.md` itself                                         | The agent                                          |
-| **Approve the plan**                                                                   | The person. The second stop.                       |
-| Implement one phase: `implementer`, `refactorer`, `tester`, `documenter`               | The agent                                          |
+| Describe the work, and name the feature                                                | The person                                         |
+| `/research`: `researcher` reads the code, and reports in the conversation              | The agent. It writes no file.                      |
+| **Answer the questions of the research**                                               | The person. The first stop.                        |
+| `/plan`: the orchestrator writes `docs/roadmap/<feature>/TODO.md` itself               | The agent                                          |
+| **Approve `TODO.md`**                                                                  | The person. The second stop.                       |
+| Implement one phase: `implementer`, `documenter`                                       | The agent                                          |
 | Open the branch, the commit, the push and the Pull Request of the phase: `git-manager` | The agent, with no confirmation asked              |
 | **Review the Pull Request, and merge it**                                              | The person. No agent merges.                       |
 | Install a dependency                                                                   | The person. An agent names the package, and waits. |
 | Run ESLint                                                                             | The person. No agent runs it.                      |
 
-Between the two stops, the agents work with no further question. The last phase of a feature always goes to `documenter`: it writes the new behavior into `docs/business/`, corrects the pages that the feature made false, and deletes the folder of the roadmap.
+Each command runs its one step, and it stops. So the person approves by typing the next command, and between the two stops the agents work with no further question. The last phase of a feature always goes to `documenter`: it writes the new behavior into `docs/business/`, corrects the pages that the feature made false, and deletes the folder of the roadmap.
 
 ### One phase, one Pull Request
 
-A change is delivered in phases, and never in one large Pull Request. A phase is the smallest set of tasks that leaves the two applications in a state that builds and that passes the tests. `plan.md` names the phase, the agent and the paths at the head of each section:
+A change is delivered in phases, and never in one large Pull Request. A phase is the smallest set of tasks that leaves the two applications in a state that builds and that passes the tests. `TODO.md` names the phase, the agent and the paths at the head of each section:
 
 ```markdown
-### Phase 2 — The removal
+## Phase 2 — The removal
 
 **Agent:** implementer
 **Paths:** apps/backend/src/features/logs/, apps/backend/src/features/server/
@@ -151,13 +149,12 @@ The subagent that finishes a task marks its own box. So the file shows you the r
 
 ```text
 docs/roadmap/<feature>/
-  TODO.md        why the feature matters, what must change, and what stays out of scope
-  research.md    the result of the phase of the research
-  plan.md        the decisions, the rules that the feature adds, and the phases with their tasks
+  TODO.md        a short introduction, then the phases with their tasks
 ```
 
-A folder starts with `TODO.md` alone, and it goes away once the last phase of its feature merges.
-`docs/roadmap.md` lists the folders that still exist.
+The folder holds that one file, and no other. There is no `research.md`, and there is no `plan.md`: the findings of the research stay in the conversation, because the plan needs them one time alone. `TODO.md` is the whole state of the work between two commands, so a new conversation picks up `/plan` or `/implement` from that one file.
+
+The folder goes away once the last phase of its feature merges. `docs/roadmap.md` lists the folders that still exist.
 
 ## Commit & PR conventions
 
@@ -175,4 +172,4 @@ This project follows the **[Conventional Commits](https://www.conventionalcommit
 
 - Branch off `main` using a short, descriptive name (e.g. `feat/project-archiving`, `fix/refresh-token-expiry`). A branch of the cycle takes its name from the feature: `remember-me` gives `feat/remember-me`.
 - Keep commits scoped and messages in the Conventional Commits format.
-- Open your PR **against `main`**. Ensure the affected apps' lint, type-check, and unit tests pass first. The Pull Request carries a title alone, so the body of the commit names the feature and the phase.
+- Open your PR **against `main`**. Ensure the affected apps' lint, type-check, and unit tests pass first. The Pull Request carries a title alone and no body, and that title is the subject of the commit, copied character for character. So the body of the commit names the feature and the phase.

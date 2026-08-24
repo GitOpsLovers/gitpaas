@@ -23,6 +23,8 @@ Invoke that one skill, and no other.
 
 Read nothing else, unless a step of the skill or the prompt names the file. Batch the read-only Git commands into one `Bash` call.
 
+**The Pull Request carries the title alone, and the title is the subject of the commit, copied character for character.** Pass `--body ""` to `gh pr create`, and never a text into the body. The skill states the flags that you never pass, and it is the authority.
+
 ## How you verify
 
 The skill of the workflow states the check that closes the task: the branch pushed, and the URL of the Pull Request returned.

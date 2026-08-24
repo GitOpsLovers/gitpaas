@@ -2,7 +2,7 @@
 
 ## The sections of an agent file
 
-The six files of `.claude/agents/` share one shape, so a subagent that starts cold finds the same section in the same order in every file. A file opens with the frontmatter (`name`, `description`, `tools`, `model`), then holds five sections in this order.
+The four files of `.claude/agents/` share one shape, so a subagent that starts cold finds the same section in the same order in every file. A file opens with the frontmatter (`name`, `description`, `tools`, `model`), then holds five sections in this order.
 
 | The section                  | It holds                                                                                                                                 |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
@@ -21,13 +21,13 @@ The `description` of the frontmatter states the triggers of the agent and the ne
 
 ## The rule of the skill
 
-Every agent file names the skill of the job that it always loads, before it touches a file of the area that the skill covers. `implementer`, `refactorer` and `tester` name `backend-architecture` or `frontend-architecture` for a file of `apps/`; `documenter` names the same pair for a page that documents `apps/`, and `project-documentation` for every page it writes; `git-manager` names `git-github-workflow` alone; `implementer` and `refactorer` add `frontend-design` for a template of the frontend. A skill of the reference — `turborepo` and `typescript-advanced-types` — is optional, and the report of the agent names it and the reason in the field **Notes** when it equips one. `CLAUDE.md` gives the rule that the skill of the job wins when the two disagree.
+Every agent file names the skill of the job that it always loads, before it touches a file of the area that the skill covers. `implementer` names `backend-architecture` or `frontend-architecture` for a file of `apps/`, and the skill of the tests of that application for a spec; `documenter` names the same pair for a page that documents `apps/`, and `project-documentation` for every page it writes; `git-manager` names `git-github-workflow` alone; `implementer` adds `frontend-design` for a template of the frontend. A skill of the reference — `turborepo` and `typescript-advanced-types` — is optional, and the report of the agent names it and the reason in the field **Notes** when it equips one. `CLAUDE.md` gives the rule that the skill of the job wins when the two disagree.
 
 ## The rule of the verification
 
 Every agent that writes code or a document runs one check before it reports, and the check matches the border of its job.
 
-- `implementer`, `refactorer` and `tester` apply the rule of the verification of `CLAUDE.md`: `rtk pnpm run check-types --filter @gitpaas/<app>` for one application that a task touched a file of, and `build` too, and only, when the task changes a file of the build or of the compiler. `tester` also runs the suite of the app with the command of `package.json`.
+- `implementer` applies the rule of the verification of `CLAUDE.md`: `rtk pnpm run check-types --filter @gitpaas/<app>` for one application that a task touched a file of, and `build` too, and only, when the task changes a file of the build or of the compiler. It also runs the suite of the app with the command of `package.json`.
 - `documenter` runs the four checks of `references/checks.md` of `project-documentation`, and applies the rule of the verification of `CLAUDE.md` too, but only when it added a TSDoc comment, to confirm the comment did not break compilation.
 - `researcher` writes no code, so it verifies with evidence instead: every finding of its report cites a `path:line`, a `grep`, or an `LSP` result.
 - `git-manager` verifies with the check that closes the workflow of the skill it loads: the branch pushed, and the URL of the Pull Request returned.

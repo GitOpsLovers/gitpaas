@@ -10,9 +10,7 @@
     documenter.md
     git-manager.md
     implementer.md
-    refactorer.md
     researcher.md
-    tester.md
   commands/
     implement.md
     plan.md
@@ -34,18 +32,16 @@
   settings.json
 ```
 
-## The six agents
+## The four agents
 
 `.claude/agents/` holds one file for one subagent. Each file carries the frontmatter that the harness reads (`name`, `description`, `tools`, `model`) and the body that the subagent reads at its own cold start; `conventions.md` gives the shape of that body.
 
-| The agent     | It owns                                                                                                |
-|---------------|--------------------------------------------------------------------------------------------------------|
-| `implementer` | Product code that changes behavior: a feature, an endpoint, a bug fix. It writes no test.              |
-| `refactorer`  | A restructure that keeps the behavior identical.                                                       |
-| `tester`      | The whole test layer of `apps/` and of `packages/`. It changes no product code.                        |
-| `documenter`  | The pages of `docs/` and, on request alone, a TSDoc comment. It takes the last phase of every feature. |
-| `researcher`  | The research of a cycle and the audit. It reads, and it writes no code, ever.                          |
-| `git-manager` | Every Git and GitHub operation that changes state. It is the only agent that runs one.                 |
+| The agent     | It owns                                                                                                       |
+|---------------|---------------------------------------------------------------------------------------------------------------|
+| `implementer` | Every change of the code of `apps/` and of `packages/`: the feature, the bug fix, the restructure, the tests. |
+| `documenter`  | The pages of `docs/` and, on request alone, a TSDoc comment. It takes the last phase of every feature.        |
+| `researcher`  | The research of a cycle and the audit. It reads, and it writes no code, ever.                                 |
+| `git-manager` | Every Git and GitHub operation that changes state. It is the only agent that runs one.                        |
 
 The description of each agent states its own triggers, so the orchestrator picks by the type of the task and reads the description when the choice is close; `.claude/skills/agent-orchestration/references/which-agent.md` gives the table of that choice.
 

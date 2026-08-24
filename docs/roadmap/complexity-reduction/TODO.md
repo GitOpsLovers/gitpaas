@@ -13,7 +13,7 @@ The audit of the three areas found that the architecture of GitPaaS is sound: th
 
 ## Phase 2 — The duplication of the backend
 
-**Agent:** refactorer
+**Agent:** implementer
 **Paths:** apps/backend/src/
 
 - [ ] 2.1 Extract the wrapper `run<T>` of the telemetry, which four adapters copy.
@@ -24,7 +24,7 @@ The audit of the three areas found that the architecture of GitPaaS is sound: th
 
 ## Phase 3 — The dead code of the backend
 
-**Agent:** refactorer
+**Agent:** implementer
 **Paths:** apps/backend/src/, packages/contracts/
 
 - [ ] 3.1 Stop exporting the three providers that no consumer outside their feature uses.
@@ -35,7 +35,7 @@ The audit of the three areas found that the architecture of GitPaaS is sound: th
 
 ## Phase 4 — The duplication of the frontend
 
-**Agent:** refactorer
+**Agent:** implementer
 **Paths:** apps/frontend/src/app/
 
 - [ ] 4.1 Delete the engine of the submenu of the sidebar, which no item of the navigation uses.
@@ -48,7 +48,7 @@ The audit of the three areas found that the architecture of GitPaaS is sound: th
 
 ## Phase 5 — The conventions of the frontend
 
-**Agent:** refactorer
+**Agent:** implementer
 **Paths:** apps/frontend/src/app/
 
 - [ ] 5.1 Replace the decorator `@Output()` of the two shared primitives with the function `output()`.
@@ -59,7 +59,7 @@ The audit of the three areas found that the architecture of GitPaaS is sound: th
 
 ## Phase 6 — The tests and the infrastructure
 
-**Agent:** tester
+**Agent:** implementer
 **Paths:** apps/frontend/src/app/shared/, turbo.json, iac/, .github/
 
 - [ ] 6.1 Write the specs of `shared/` of the frontend, which holds no test at all.

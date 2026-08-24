@@ -27,4 +27,4 @@ One or two paragraphs of the detail, and the reason.
 - **THEN** <the result>
 ```
 
-Write the rule with `SHALL`, so it states an obligation and not a habit. Write one scenario for each case that proves the rule, because `tester` derives one test from one scenario. A rule with no scenario is a rule that nobody checks.
+Write the rule with `SHALL`, so it states an obligation and not a habit. Write one scenario for each case that proves the rule, because `implementer` derives one test from one scenario. A rule with no scenario is a rule that nobody checks.

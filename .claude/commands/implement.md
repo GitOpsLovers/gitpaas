@@ -18,13 +18,12 @@ Read the section `/implement <feature>` of
 [grouping.md](../skills/agent-orchestration/references/grouping.md), and write each prompt with
 [prompt.md](../skills/agent-orchestration/references/prompt.md).
 
-1. Delegate the tasks of the phase to the agent that the phase names.
-2. After the last code task, call `tester` one time for the phase.
-3. Call `git-manager` one time: the branch, the commit, the push and the Pull Request of this phase.
+1. Delegate the tasks of the phase to the agent that the phase names. `implementer` writes the code and its tests in the same call.
+2. Call `git-manager` one time: the branch, the commit, the push and the Pull Request of this phase.
 
 If a subagent reports a block, follow
 [blocked.md](../skills/agent-orchestration/references/blocked.md).
 
 ## The report
 
-Give the phase that ran, the boxes that the subagents checked, the result of `tester` and the URL of the Pull Request. Then stop. Run one phase alone, and never continue to the next one; the user types `/implement` again.
+Give the phase that ran, the boxes that the subagents checked, the result of the tests and the URL of the Pull Request. Then stop. Run one phase alone, and never continue to the next one; the user types `/implement` again.
