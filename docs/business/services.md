@@ -275,9 +275,11 @@ If the API refuses, the system SHALL show a message of failure, and it SHALL let
 - **WHEN** the API refuses the change
 - **THEN** the system shows the message "Could not update service", and the user stays on the screen
 
-## The six tabs of the screen
+## The seven tabs of the screen
 
-The system SHALL show six tabs, in this order: `general`, `provider`, `deployments`, `containers`, `network` and `logs`.
+The system SHALL show seven tabs, in this order: `general`, `provider`, `configuration`, `deployments`, `containers`, `network` and `logs`.
+
+The tab `configuration` manages the variables the service gives to its containers. See the capability `service-environment`.
 
 The path holds the tab. A path that names no tab opens `general`. A path that names an unknown tab also shows `general`.
 
