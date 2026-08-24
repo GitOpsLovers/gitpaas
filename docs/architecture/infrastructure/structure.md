@@ -4,20 +4,20 @@ The `iac` folder is where we store all the code involved in defining and setting
 
 ## Development (`iac/development/`)
 
-| File                             | Purpose                                                         |
-|-----------------------------------|-----------------------------------------------------------------|
+| File                             | Purpose                                                           |
+|-----------------------------------|------------------------------------------------------------------|
 | `docker-compose.yml`             | Compose stack (project `gitpaas-dev`) for the local dependencies. |
-| `pgadmin/servers.json`           | Pre-registers the local Postgres server in pgAdmin.              |
-| `redisinsight/databases.json`    | Pre-registers the local Redis database in RedisInsight.          |
+| `pgadmin/servers.json`           | Pre-registers the local Postgres server in pgAdmin.               |
+| `redisinsight/databases.json`    | Pre-registers the local Redis database in RedisInsight.           |
 
 The stack defines four services:
 
-| Service        | Role                                             |
-|----------------|---------------------------------------------------|
-| `postgres`     | Control-plane database.                            |
-| `redis`        | Hot store of the live deployment logs.             |
-| `pgadmin`      | Web UI to inspect and query the local Postgres.    |
-| `redisinsight` | Web UI to inspect and query the local Redis.       |
+| Service        | Role                                            |
+|----------------|-------------------------------------------------|
+| `postgres`     | Control-plane database.                         |
+| `redis`        | Hot store of the live deployment logs.          |
+| `pgadmin`      | Web UI to inspect and query the local Postgres. |
+| `redisinsight` | Web UI to inspect and query the local Redis.    |
 
 Named volumes: `postgres-data`, `redis-data`, `pgadmin-data` and `redisinsight-data` — one for each service's persisted data.
 

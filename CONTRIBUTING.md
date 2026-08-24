@@ -92,11 +92,15 @@ Add or update tests for any behavior you change. When you cannot run the app's t
 
 ## Agent workflow
 
-GitPaaS is built with AI agents, and the repository is arranged for them. This section tells you what to expect when you open a work session, and what stays your decision. The full rules live in the skill `.claude/skills/agent-orchestration/SKILL.md`, which the orchestrator follows; this section is the summary.
+GitPaaS is built with AI agents, and the repository is arranged for them. This section details the process of agentic work.
 
-**The orchestrator** is the agent that you talk to. It writes no product code. It classifies your request, it splits the work, it hands each part to a subagent, and it reports the result back to you.
+### Available agents
 
-**A subagent** is a fresh agent with one job and no memory of your conversation. Six of them live in `.claude/agents/`:
+There are two types of agents, each with a specific purpose:
+
+**The orchestrator** is the agent that you talk to. Its sole responsibility is to classify the task of coordinating the development cycle on demand and to call upon the subagents involved.
+
+**A subagent** is the specific agent responsible for performing all operations. They are always invoked through the Orchestrator, not by the user. The following exist:
 
 | The agent     | Its job                                                                                      |
 |---------------|----------------------------------------------------------------------------------------------|
@@ -109,7 +113,7 @@ GitPaaS is built with AI agents, and the repository is arranged for them. This s
 
 ### The two roads
 
-A request takes one of two roads. The direct road covers a question, a document, a configuration edit, a test, a refactor that keeps the behavior, and a bug fix that restores a behavior that `docs/business/` already states; it goes straight to a subagent. A request that changes the behavior of `apps/` or of `packages/` — a new capability, a changed rule, a new user-visible flow — runs the cycle of the specification-driven development: research, then plan, then implement.
+A development cycle can be divided into two roads. The direct road covers a question, a document, a configuration edit, a test, a refactor that keeps the behavior, and a bug fix that restores a behavior that `docs/business/` already states; it goes straight to a subagent. A request that changes the behavior of `apps/` or of `packages/` — a new capability, a changed rule, a new user-visible flow — runs the cycle of the specification-driven development: **research, plan, implement**.
 
 ### Who owns each step of the cycle
 

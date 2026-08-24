@@ -1,16 +1,10 @@
 # Business
 
-This document states what GitPaaS does for its user. One page holds one capability, and it states
-the rules of that capability and the cases that prove each rule. The pages describe the behavior
-that the applications carry today.
+This document states what GitPaaS does for its user. One page holds one capability, and it states the rules of that capability and the cases that prove each rule. The pages describe the behavior that the applications carry today.
 
-The area does not describe how the code works. `docs/architecture/backend.md`,
-`docs/architecture/frontend.md`, `docs/architecture/monorepo.md` and
-`docs/architecture/infrastructure.md` keep that role. A rule of the business lives here; the
-mechanism that carries it lives in the `key-flows.md` of its area.
+The area does not describe how the code works. `docs/architecture/backend.md`, `docs/architecture/frontend.md`, `docs/architecture/monorepo.md` and `docs/architecture/infrastructure.md` keep that role. A rule of the business lives here; the mechanism that carries it lives in the `key-flows.md` of its area.
 
-The future behavior lives in `docs/roadmap.md`. A page of this area moves from the roadmap when the
-change that builds it merges.
+The future behavior lives in `docs/roadmap.md`. A page of this area moves from the roadmap when the change that builds it merges.
 
 ## Sections
 

@@ -15,7 +15,7 @@ The layer keeps its shape: one orchestrator, a set of subagents, a card of the r
 - **One rule lives in one file.** Every other file points at that file, and it restates nothing.
 - **A file that loads by itself is never a file that an agent must read.** An agent file never orders a `Read` of `CLAUDE.md` or of the card of the rules.
 - **A skill that no agent can invoke goes away.** The agent that needs a skill gets the `Skill` tool and the name of the skill that it may load.
-- **The workflow loses the steps that pay nothing.** The run of `tester` on every phase is the first candidate, because `implementer` already writes and runs the tests of the unit that it builds.
+- **The workflow gives one job to one agent.** `tester` owns the whole test layer of `apps/` and of `packages/`, and `implementer` writes no test. The order to restate that border in every prompt goes away.
 - The always-on context of a session drops by about one third, and the cold start of a subagent drops by about one third.
 
 ## Out of scope
@@ -27,7 +27,7 @@ The layer keeps its shape: one orchestrator, a set of subagents, a card of the r
 
 ## Impact
 
-**The configuration.** `CLAUDE.md`, `.claude/rules/agent-rules.md`, the six files of `.claude/agents/` and the thirteen folders of `.claude/skills/`.
+**The configuration.** `CLAUDE.md`, which receives the rules of `.claude/rules/agent-rules.md` before that file is deleted, the six files of `.claude/agents/` and the thirteen folders of `.claude/skills/`.
 
 **The documentation.** `docs/architecture/agents/` describes the workflow, so it must state the new shape. The pages of `docs/business/` state the behavior of the product, and this feature touches none of them.
 

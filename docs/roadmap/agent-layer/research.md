@@ -142,12 +142,13 @@ the signals holds 905 lines that the model may not know. The user decides whethe
 | **B. Merge the card into `CLAUDE.md`.** | One file instead of two. The card is the reference that `implementer` uses most, and a merge makes one long file that every agent loads whole. |
 | **C. Split the card by application.** | An agent of the backend never loads the layers of the frontend. It needs a router that the layer does not have today. |
 
-## 4. What stays unknown
+## 4. The answers of the user
 
-1. Does `.claude/rules/agent-rules.md` load in the session of a subagent, or in the session of the
-   orchestrator alone? The answer decides F2.
-2. Does the user want `angular-developer` to stay?
-3. Does the user accept the conditional run of `tester`, or does the guarantee of one test pass per
-   phase matter more than the cold start that it costs?
-4. Is `model: inherit` right for `researcher`? Job 1 reads and reports, and a smaller model may
-   answer the four questions at a lower cost.
+The four open points are closed. `plan.md`, section 1, holds the decision of each one.
+
+| The question | The answer |
+|---|---|
+| Does `.claude/rules/agent-rules.md` load in the session of a subagent? | The question no longer applies. The user decided to merge the card into `CLAUDE.md` and to delete it, because two files scatter one subject (D1). |
+| Does the user want `angular-developer` to stay? | Yes. The frontend is Angular, and the skill holds knowledge that the agent needs. `implementer` gains the `Skill` tool and this name (D2). |
+| Does the user accept the conditional run of `tester`? | No. `tester` owns the whole test layer. Every phase that changes `apps/` or `packages/` carries a run of `tester`, and `implementer` writes no test (D4). |
+| Is `model: inherit` right for `researcher`? | No. The agent runs on Sonnet 5 (D3). |
