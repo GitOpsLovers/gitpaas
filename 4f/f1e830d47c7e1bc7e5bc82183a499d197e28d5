@@ -1,0 +1,85 @@
+.claude/agents/tester.md
+  s_9c3c65db4c18a4::t_fc8c0fce46fb64 18,20,42
+docs/roadmap/complexity-reduction/research-backend.md
+  s_9c3c65db4c18a4::t_cf13d7410d93ba 4
+docs/roadmap/complexity-reduction/TODO.md
+  s_9c3c65db4c18a4::t_20d89b2ea14b74 36
+.claude/.gitignore
+  s_9c3c65db4c18a4::t_b5ac015ed344ac 1-2
+docs/roadmap/complexity-reduction/research-frontend.md
+  s_9c3c65db4c18a4::t_a7315281ed6d6f 4
+.claude/agents/implementer.md
+  s_9c3c65db4c18a4::t_cd1b0eb59fd76b 18
+  s_7727e67de8c213::t_5808b9bbecc9c8 19-20
+  s_af5ad61360b271::t_90eca3dda8540e 24-27
+.claude/agents/documenter.md
+  s_9c3c65db4c18a4::t_807f605344d2d3 26
+.claude/agents/researcher.md
+  s_9c3c65db4c18a4::t_f2e762039be4ae 37,47
+  s_ff31c36c417eb7::t_7328330430c912 10
+docs/roadmap/agent-layer/plan.md
+  s_9c3c65db4c18a4::t_f2e659459ba516 28-34,123,127,129,132,135,137,142,146,149-150
+.claude/agents/refactorer.md
+  s_9c3c65db4c18a4::t_86e478b8abb50a 22
+  s_ff31c36c417eb7::t_778b81734a0e88 10
+CLAUDE.md
+  h_e4f33aa49027b9 4,6,10,17,34,44
+  s_6408eaec1b07a0::t_62a7dc907a5956 12-13,32
+  s_ff31c36c417eb7::t_78d39d75407766 3,8-9,26-28,36
+.claude/skills/agent-orchestration/SKILL.md
+  s_6408eaec1b07a0::t_88189437fc297c 8-12,48-50
+.claude/skills/project-documentation/SKILL.md
+  s_9c3c65db4c18a4::t_51c4a4cddf27c7 62
+docs/architecture/backend/structure.md
+  s_ff31c36c417eb7::t_94dfdc52c76b58 27-28
+docs/architecture/frontend/conventions.md
+  s_ff31c36c417eb7::t_77df6573f46bb9 5-6,41-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4ff1e830d47c7e1bc7e5bc82183a499d197e28d5",
+  "prompts": {},
+  "sessions": {
+    "s_6408eaec1b07a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b1e7b6fe-7307-4e38-abf6-a45e2d20e317",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_7727e67de8c213": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "320c79d5-7fac-4565-8cbc-3a5813fd348d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_9c3c65db4c18a4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "705145b7-a8bc-4293-8b29-d271d636a543",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_af5ad61360b271": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac9e140196e12948d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ff31c36c417eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "47dc0a66-2111-47a5-93ba-6b4f6eefbc2d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
