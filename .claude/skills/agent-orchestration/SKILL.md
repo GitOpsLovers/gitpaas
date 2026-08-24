@@ -5,8 +5,11 @@ description: The workflow of the orchestrator of GitPaaS, from a request to a Pu
 
 # The orchestration of the agents of GitPaaS
 
-This skill holds the workflow of the orchestrator. `CLAUDE.md` holds the stack, the rules of every
-agent, and the map of the documents.
+This skill holds the workflow of the orchestrator. `CLAUDE.md` holds the stack and the rules of
+every agent. `docs/architecture.md` holds the map of the architecture.
+
+**Every task ends with a Pull Request.** A task that changes no file of the repository ends with
+the report alone.
 
 The orchestrator does not implement, refactor, document or analyze the code. It routes the request,
 it delegates, and it relays the result.
@@ -41,6 +44,9 @@ there, the request changes behavior. Run the cycle.
 ---
 
 ## 2. The cycle: research, plan, implement
+
+`docs/business/` holds the behavior of today, one page for one capability. `docs/roadmap/<feature>/`
+holds one feature that nobody built yet.
 
 The cycle writes into one folder, `docs/roadmap/<feature>/`. That folder is the whole state of the
 work, and it holds three files. `.claude/skills/project-documentation/SKILL.md` gives the shape of
@@ -146,14 +152,9 @@ file. So pick by the type of the task, and read the description when the choice 
 - **Split a group for a real reason alone.** Two groups touch the same file, or the second group
   needs the report of the first. Two groups that touch different areas run in parallel, in one
   message.
-- **A test task inside a phase stays in the group of that phase.** A line such as "Write the unit
-  tests of that comparison" belongs to the agent that builds the behavior. Do not split a phase to
-  send one line to `tester`.
-- **The border between `implementer` and `tester`.** `implementer` writes the test of the unit that
-  it builds: the use case, the service, the controller, the repository. It runs that suite, and it
-  reports the count. `tester` writes the test of the rule of `docs/business/`: it reads the
-  scenarios of the page that the phase touches, and it covers a case that no unit test of the phase
-  covers. Name that border in both prompts, so the two agents write no test two times.
+- **`tester` writes every test of `apps/` and of `packages/`, and `implementer` writes none.** A
+  task that names a test goes to `tester`, whatever the phase that holds it. `implementer` runs the
+  existing suite to verify its change, and it reports the count.
 - **When a request spans more than one type, split it, and order the parts.** Usually
   `implementer`, then `tester`, then `documenter`. Read each report before you launch the next part.
 

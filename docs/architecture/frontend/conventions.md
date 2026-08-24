@@ -2,6 +2,8 @@
 
 ## Layering
 
+The three layers of a feature obey one strict rule: **an outer layer can depend on an inner layer, but an inner layer can never depend on an outer layer.** `domain/` must not import `infrastructure/` or `ui/`.
+
 - **All the business logic stays in the feature**, and never in a page. Each screen is a smart container that injects the repository, holds the state signals, and sends the commands.
 - **A page is thin.** It puts the components together, has no logic, and injects no services. Almost all the page classes are empty.
 - **The route parameters come in through the page.** With `withComponentInputBinding()`, a routed page receives the route parameters as signal inputs with the same names (`:id` → `id`, `:serviceId` → `serviceId`) and sends them to its container as inputs. The container reads them with `input.required<string>()` and does not inject `ActivatedRoute`. Thus the container is independent of the routing, and a test can set the inputs.
@@ -36,6 +38,8 @@ A presentational component only shows data and emits events. It never injects a 
 - **Do not use `CommonModule` or `ngClass`.** Make the dynamic classes with `[class]` bindings or with a `get …Classes()` accessor.
 - **Extend the style with a `className` input**, which is added to the Tailwind classes of the component. Thus a caller can change the spacing and does not make a new component.
 - Put a third-party widget behind the in-house contract (for example, the select control contains `@ng-select/ng-select`).
+- **The name of the file is `<name>.component.ts` and `<name>.component.html`.** If an import path is wrong, correct the import. Never rename the file.
+- **Use the per-icon components of `@lucide/angular`** (`<svg lucideX>`). Do not use the dynamic module.
 
 The Tailwind design tokens (`brand-*`, `error-*`, `success-*`, …) are defined in the `@theme` block of the global stylesheet. They come from TailAdmin.
 
