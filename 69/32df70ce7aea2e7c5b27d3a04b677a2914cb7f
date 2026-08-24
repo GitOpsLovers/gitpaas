@@ -1,0 +1,25 @@
+.claude/skills/agent-orchestration/SKILL.md
+  s_493de58a03caa2::t_cb2f40780c8d98 3,8,10,12-14,20-22
+.claude/skills/backend-feature/references/procedure.md
+  s_493de58a03caa2::t_698e66a0a1062f 5,8,13-15,19
+CLAUDE.md
+  s_493de58a03caa2::t_26fb4032afc37a 12,58-59,64,70
+docs/roadmap/agent-efficiency/plan.md
+  s_493de58a03caa2::t_c20924bde3a861 342,345,348,351,353,355,357,359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6932df70ce7aea2e7c5b27d3a04b677a2914cb7f",
+  "prompts": {},
+  "sessions": {
+    "s_493de58a03caa2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a090bb60872d270e5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
