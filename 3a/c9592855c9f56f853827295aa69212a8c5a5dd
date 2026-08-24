@@ -1,0 +1,29 @@
+.claude/agents/documenter.md
+  s_6c6c70902e4792::t_9d8ef78233c5b1 12,14-15,17
+.claude/agents/implementer.md
+  s_6c6c70902e4792::t_07437f26c5328e 23-25
+.claude/agents/refactorer.md
+  s_6c6c70902e4792::t_2d637d4459127f 19-21
+.claude/agents/tester.md
+  s_6c6c70902e4792::t_89312682f61730 46-47
+CLAUDE.md
+  s_6c6c70902e4792::t_d2894b4298a08c 31-48
+docs/roadmap/agent-efficiency/plan.md
+  s_6c6c70902e4792::t_2cde3a729f7a4f 308-314,320-321,324-335
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3ac9592855c9f56f853827295aa69212a8c5a5dd",
+  "prompts": {},
+  "sessions": {
+    "s_6c6c70902e4792": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fa93b3c-9b3f-4f2a-bbf1-58ac1617d517",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
