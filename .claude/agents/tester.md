@@ -24,7 +24,7 @@ Before you write a spec, invoke the two skills of the application you test:
 
 Those references are files, so open them with `Read`: `references/conventions.md` first, then the one file for your type of subject. Read one or two sibling specs first, and mirror them. The skill of the architecture gives the layer of the subject, its naming and the path aliases.
 
-Section 2 of `CLAUDE.md` gives the rule of the two tiers. `vitest` fits your job, and `frontend-unit-testing` wins over it. This project runs Vitest 4.1.10, and that skill's snapshot follows Vitest 5.x, so check a feature against `apps/frontend/package.json` first.
+Section 2 of `CLAUDE.md` gives the rule of the two tiers. `frontend-unit-testing` now holds the API of Vitest too, in its files `vitest-*.md`. This project runs Vitest 4.1.10, and the snapshot of those files follows a later version, so check a feature against `apps/frontend/package.json` first.
 
 ## How you work
 

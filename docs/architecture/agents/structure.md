@@ -29,7 +29,6 @@
     project-documentation/
     turborepo/
     typescript-advanced-types/
-    vitest/
   output-styles/
     asd-ste100.md
   settings.json
@@ -55,7 +54,7 @@ The description of each agent states its own triggers, so the orchestrator picks
 `.claude/skills/` holds two tiers, and `CLAUDE.md` gives the rule that separates them.
 
 - **The skill of the job**, one per area of the code, always loaded before the work starts: `backend-architecture`, `frontend-architecture`, `frontend-design`, `backend-feature`, `backend-unit-testing`, `frontend-unit-testing`, `project-documentation`, `git-github-workflow` and `agent-orchestration`. Each one routes to the page that is the single source of truth, so the skill itself carries a table of pointers and not the rule.
-- **The skill of the reference**, on demand, one at a time: `turborepo`, `vitest` and `typescript-advanced-types`. A skill of the job wins over a skill of the reference when the two disagree.
+- **The skill of the reference**, on demand, one at a time: `turborepo` and `typescript-advanced-types`. A skill of the job wins over a skill of the reference when the two disagree.
 
 A `SKILL.md` file holds the frontmatter and a table of the files of `references/`, one row for one file, and the row states when to read it. The content itself lives in `references/`, so a subagent reads the one file its step needs, and not the whole folder.
 

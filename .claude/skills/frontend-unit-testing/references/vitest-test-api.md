@@ -187,28 +187,6 @@ test('annotated', async ({ annotate }) => {
 })
 ```
 
-## Custom Test with Fixtures
-
-Prefer the **builder pattern** (4.1+) for automatic type inference:
-
-```ts
-import { test as base } from 'vitest'
-
-const test = base
-  .extend('db', async ({}, { onCleanup }) => {
-    const db = await createDb()
-    onCleanup(() => db.close()) // runs after the test/scope
-    return db
-  })
-
-test('query', async ({ db }) => {
-  const users = await db.query('SELECT * FROM users')
-  expect(users).toBeDefined()
-})
-```
-
-See [features-context](features-context.md) for fixture scopes, `test.override`, and the Playwright-compatible object syntax.
-
 ## Retry Configuration
 
 ```ts
@@ -226,30 +204,6 @@ test('with delay', {
 }, async () => {})
 ```
 
-## Tags
-
-Tags must be declared in config first, then applied to tests (4.1+):
-
-```ts
-test('database test', { tags: ['db', 'slow'] }, async () => {})
-
-// Run with a tag expression:
-// vitest --tagsFilter "db && !flaky"
-```
-
-See [features-test-tags](features-test-tags.md) for defining tags and filter syntax.
-
-## Benchmarks (v5)
-
-`bench` is no longer a top-level import — it is a [test-context fixture](features-benchmarking.md) used inside `test()`:
-
-```ts
-// file must match benchmark.include (e.g. *.bench.ts)
-test('sort', async ({ bench }) => {
-  await bench('Array.sort', () => [3, 1, 2].sort()).run()
-})
-```
-
 ## Key Points
 
 - Pass options as the **second argument**; the 3rd-arg options object was removed in v4 (a trailing timeout number is still allowed)
@@ -257,7 +211,6 @@ test('sort', async ({ bench }) => {
 - `test.only` throws in CI unless `allowOnly: true`
 - Use context's `expect` for concurrent tests and snapshots
 - Function name is used as test name if passed as first arg
-- `test.sequential` was removed in v5 — use `{ concurrent: false }`
 
 <!-- 
 Source references:

@@ -252,16 +252,6 @@ test('custom matcher', () => {
 })
 ```
 
-## Snapshot Assertions
-
-```ts
-expect(data).toMatchSnapshot()
-expect(data).toMatchInlineSnapshot(`{ "id": 1 }`)
-await expect(result).toMatchFileSnapshot('./expected.json')
-
-expect(() => throw new Error('fail')).toThrowErrorMatchingSnapshot()
-```
-
 ## Key Points
 
 - Use `toBe` for primitives, `toEqual` for objects/arrays

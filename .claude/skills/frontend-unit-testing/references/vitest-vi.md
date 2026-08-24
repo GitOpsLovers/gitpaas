@@ -5,7 +5,9 @@ description: vi helper for mocking, timers, utilities
 
 # Vi Utilities
 
-The `vi` helper provides mocking and utility functions.
+The `vi` helper provides mocking and utility functions. This project runs Vitest 4, and its specs
+use the globals, so they import nothing from `vitest`. They mock a collaborator with a double of
+`TestBed`, and never a module.
 
 ```ts
 import { vi } from 'vitest'
@@ -52,59 +54,6 @@ spy.mockReturnValue('mocked')
 vi.spyOn(obj, 'prop', 'get').mockReturnValue('value')
 ```
 
-## Module Mocking
-
-```ts
-// Hoisted to top of file
-vi.mock('./module', () => ({
-  fn: vi.fn(),
-}))
-
-// Partial mock
-vi.mock('./module', async (importOriginal) => ({
-  ...(await importOriginal()),
-  specificFn: vi.fn(),
-}))
-
-// Spy mode - keep implementation
-vi.mock('./module', { spy: true })
-
-// Import actual module inside mock
-const actual = await vi.importActual('./module')
-
-// Import as mock
-const mocked = await vi.importMock('./module')
-```
-
-## Dynamic Mocking
-
-```ts
-// Not hoisted - use with dynamic imports
-vi.doMock('./config', () => ({ key: 'value' }))
-const config = await import('./config')
-
-// Unmock
-vi.doUnmock('./config')
-vi.unmock('./module') // Hoisted
-```
-
-## Conditional Mocking — vi.when (v5)
-
-Argument-specific spy behaviors:
-
-```ts
-vi.when(spy)
-  .calledWith(1).thenReturn('one')
-  .calledWith(2).thenReturn('two')
-
-// then* actions: thenReturn / thenThrow / thenResolve / thenReject (+ *Once)
-// options: { times }, second arg { onUnmatched: 'throw' | 'passthrough' | fn }
-
-vi.isWhenChain(w)  // type guard for a When chain
-```
-
-See [features-mocking](features-mocking.md) for FIFO/LIFO matching and `toHaveBeenExhausted`.
-
 ## Assertion Helpers — vi.defineHelper (4.1+)
 
 Wrap reusable assertion functions so failures point at the **call site**, not inside the helper:
@@ -118,16 +67,6 @@ const expectValidUser = vi.defineHelper((user: unknown) => {
 test('returns a valid user', async () => {
   expectValidUser(await fetchUser('alice')) // failures reported here
 })
-```
-
-## Reset Modules
-
-```ts
-// Clear module cache
-vi.resetModules()
-
-// Wait for dynamic imports
-await vi.dynamicImportSettled()
 ```
 
 ## Fake Timers
@@ -186,18 +125,6 @@ vi.stubEnv('NODE_ENV', 'test')
 vi.unstubAllEnvs()
 ```
 
-## Hoisted Code
-
-Run code before imports:
-
-```ts
-const mock = vi.hoisted(() => vi.fn())
-
-vi.mock('./module', () => ({
-  fn: mock, // Can reference hoisted variable
-}))
-```
-
 ## Waiting Utilities
 
 ```ts
@@ -253,30 +180,10 @@ vi.resetAllMocks()   // Reset + clear implementation
 vi.restoreAllMocks() // Restore originals (spies)
 ```
 
-## vi.mocked Type Helper
-
-TypeScript helper for mocked values:
-
-```ts
-import { myFn } from './module'
-vi.mock('./module')
-
-// Type as mock
-vi.mocked(myFn).mockReturnValue('typed')
-
-// Deep mocking
-vi.mocked(myModule, { deep: true })
-
-// Partial mock typing
-vi.mocked(fn, { partial: true }).mockResolvedValue({ ok: true })
-```
-
 ## Key Points
 
-- `vi.mock` is hoisted - use `vi.doMock` for dynamic mocking
-- `vi.hoisted` lets you reference variables in mock factories
 - Use `vi.spyOn` to spy on existing methods (v4: supports constructors)
-- Use `vi.when` for argument-specific behaviors and `vi.defineHelper` for assertion helpers
+- Use `vi.defineHelper` for an assertion helper
 - Fake timers require explicit setup and teardown
 - `vi.waitFor` retries until assertion passes
 

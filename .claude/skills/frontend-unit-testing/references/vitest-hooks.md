@@ -175,40 +175,6 @@ test('query orders', () => {
 })
 ```
 
-## Concurrent Test Hooks
-
-For concurrent tests, use context's hooks:
-
-```ts
-test.concurrent('concurrent', ({ onTestFinished }) => {
-  const resource = allocate()
-  onTestFinished(() => resource.release())
-})
-```
-
-## Extended Test Hooks
-
-With `test.extend`, hooks are type-aware and must be called on the extended `test`:
-
-```ts
-const test = base
-  .extend('db', { scope: 'file' }, async ({}, { onCleanup }) => {
-    const db = await createDb()
-    onCleanup(() => db.close())
-    return db
-  })
-
-// Test-level hooks see fixtures
-test.beforeEach(({ db }) => db.seed())
-test.afterEach(({ db }) => db.clear())
-
-// Suite-level hooks (4.1+) can access file/worker-scoped fixtures
-test.beforeAll(({ db }) => db.createUsers())
-test.aroundAll(async (runSuite, { db }) => db.transaction(runSuite))
-```
-
-Suite-level hooks (`beforeAll`/`afterAll`/`aroundAll`) only see **file/worker-scoped** fixtures, and the **global** `beforeAll`/`afterAll` cannot access custom fixtures — use `test.beforeAll` etc.
-
 ## Hook Execution Order
 
 Default order (stack):
