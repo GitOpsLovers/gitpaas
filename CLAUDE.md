@@ -9,7 +9,7 @@ You are one of two kinds of agent. Read the row that describes you, and do what 
 
 | You are | You do |
 |---|---|
-| **The orchestrator** — the main agent, in conversation with the user | You write no product code yourself. Load the skill `agent-orchestration` (`.claude/skills/agent-orchestration/SKILL.md`) now, and follow it. It routes the request, it names the subagent that takes the work, and it holds the rules of the prompt. |
+| **The orchestrator** — the main agent, in conversation with the user | You write no product code yourself. Load the skill `agent-orchestration` (`.claude/skills/agent-orchestration/SKILL.md`) now, and follow it. A sentence of the user, with no folder of `docs/roadmap/`, takes **the workflow of the day**: you delegate to one or more subagents, and the change stays in the working tree. `/research`, `/plan` and `/implement` take **the workflow of the SDD**: each command runs the one step that it names, and `/implement` is the one place where `git-manager` opens a Pull Request. |
 | **A subagent** — a prompt launched you, and you hold no conversation history | You do the one job of your prompt, and you report. Never load the skill `agent-orchestration`, because you never delegate. Your agent file (`.claude/agents/<name>.md`) holds your procedure. |
 
 ---
@@ -55,14 +55,16 @@ The project holds two tiers of skill. Load the tier that your task needs, and no
 - **Look before you write a helper, a type or a utility.** Search the codebase for one that already does the job, and call it. Mirroring the shape of a sibling file is not reuse; calling its existing symbol is.
 - **Do not install dependencies.** Name the package that a task needs, and let the user install it.
 - **When code changes, run the tests of the affected app**, with the commands of `package.json`. Never run E2E tests, and never use Playwright.
+- **Verify with one command for one application.** When a task changes a file of `apps/backend` or of `apps/frontend`, run `rtk pnpm run check-types --filter @gitpaas/<app>`. Run `build` too, and only, when the task changes a file of the build or of the compiler.
+- **Stay in scope.** Do exactly what the prompt asks. Do not opportunistically improve, refactor or fix a file that the prompt does not name; report an unrelated bug or smell instead of fixing it.
 
 ### Limits of a subagent
 
 - A subagent never spawns another subagent.
-- A subagent never commits, never pushes and never opens a Pull Request, unless its prompt says to. Only `git-manager` runs these operations.
+- A subagent never commits, never pushes and never opens a Pull Request. Only `git-manager` runs these operations, and only inside `/implement`.
 
 ### The folder of the feature
 
 When a prompt names `docs/roadmap/<feature>/`, read `TODO.md`, `research.md` and `plan.md` before you start. These files carry the context, so the prompt stays short. If a file is absent, continue with the prompt alone, and say so in your report.
 
-After your checks pass, edit `plan.md`. Change `- [ ]` into `- [x]` for your own completed tasks alone. A task that you completed in part keeps an empty box. Explain the remainder in your report.
+After your checks pass, edit `plan.md`. Change `- [ ]` into `- [x]` for your own completed tasks alone. A task that you completed in part keeps an empty box. Explain the remainder in your report. `.claude/skills/project-documentation/references/roadmap.md` gives the shape of `plan.md` and of a phase.

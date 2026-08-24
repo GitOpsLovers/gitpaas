@@ -339,24 +339,24 @@ and the rule of the scope.
 **Paths:** `CLAUDE.md`, `.claude/skills/agent-orchestration/SKILL.md`,
 `.claude/skills/project-documentation/SKILL.md`, `.claude/skills/backend-feature/SKILL.md`
 
-- [ ] 2.1 Rewrite `agent-orchestration/SKILL.md` around two sections and no other: "The workflow of
+- [x] 2.1 Rewrite `agent-orchestration/SKILL.md` around two sections and no other: "The workflow of
       the day" and "The workflow of the SDD". Delete the section "Route the request" and its two
       roads. The rule of the two workflows, above, gives the border.
-- [ ] 2.2 Write the section "The workflow of the day". It holds the table of the choice of the agent,
+- [x] 2.2 Write the section "The workflow of the day". It holds the table of the choice of the agent,
       the rules of the grouping, the template of the prompt, and the sentence "This workflow invokes
       no `git-manager`, and it opens no Pull Request."
-- [ ] 2.3 Write the section "The workflow of the SDD". It holds one paragraph for each of the three
+- [x] 2.3 Write the section "The workflow of the SDD". It holds one paragraph for each of the three
       commands, and it names the file `.claude/commands/<name>.md` that holds the step. It states
       that the command is the gate, and that the orchestrator asks for no approval inside a command.
-- [ ] 2.4 Delete from the file the rule "Every task ends with a Pull Request". Replace it with the
+- [x] 2.4 Delete from the file the rule "Every task ends with a Pull Request". Replace it with the
       rule of the delivery, above.
-- [ ] 2.5 Cut the shape of `plan.md` and the shape of a phase. Replace them with a link to the
+- [x] 2.5 Cut the shape of `plan.md` and the shape of a phase. Replace them with a link to the
       section "The roadmap" of `project-documentation/SKILL.md`.
-- [ ] 2.6 Cut the paragraphs that explain the reason of a rule, and cut the duties of the last phase.
+- [x] 2.6 Cut the paragraphs that explain the reason of a rule, and cut the duties of the last phase.
       Keep the rule. Add one link to `docs/architecture/agents/key-flows.md` at the head of the file.
-- [ ] 2.7 Correct `backend-feature/SKILL.md`. Replace the four orders that name
+- [x] 2.7 Correct `backend-feature/SKILL.md`. Replace the four orders that name
       `docs/architecture/backend.md` with one order that invokes the skill `backend-architecture`.
-- [ ] 2.8 Rewrite the table "Find your role" of `CLAUDE.md`. It names the two workflows, and it names
+- [x] 2.8 Rewrite the table "Find your role" of `CLAUDE.md`. It names the two workflows, and it names
       the three commands. Reduce section 2 to the rules that every agent obeys, and add the two
       blocks that phase 3 moves out of the agent files: the commands of the verification, and the
       rule of the scope.
