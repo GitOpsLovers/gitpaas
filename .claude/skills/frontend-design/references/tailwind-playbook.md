@@ -2,6 +2,8 @@
 
 Use this reference for implementation, refactor, and review tasks where you need practical engineering judgment in addition to the official Tailwind docs. Its purpose is to help you make good architectural decisions quickly when you are writing, reviewing or refactoring Tailwind code.
 
+In this project, the entry point is `apps/frontend/src/styles.css`, and a named primitive takes `@utility`, and not `@layer components`. See [theme.md](theme.md).
+
 ## Default workflow
 
 1. Inspect the repo first.

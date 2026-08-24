@@ -95,5 +95,5 @@ Read one file for your task, and never the folder. In a page of `docs/`, find th
 
 ## The neighbouring skills
 
-- `tailadmin-ui-patterns` holds the components of the dashboard and their classes of Tailwind. Invoke it when you build a screen, and keep this skill for the structure.
+- `frontend-design` holds the theme of Tailwind, the markup of the dashboard and the practice of Tailwind v4. Invoke it when you build a screen, and keep this skill for the structure.
 - `frontend-unit-testing` holds every convention of a spec. This skill holds none.

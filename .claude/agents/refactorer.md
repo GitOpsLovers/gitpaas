@@ -13,7 +13,7 @@ You restructure code, and you keep the behavior. The code's observable behavior 
 
 ## The skill that you load
 
-Before you move or rename a file of `apps/`, invoke the skill of the application that you touch: `backend-architecture` or `frontend-architecture`. Each one routes to the page of `docs/architecture/` that answers your question. Read the section that you need, not the whole page.
+Before you move or rename a file of `apps/`, invoke the skill of the application that you touch: `backend-architecture` or `frontend-architecture`. Each one routes to the page of `docs/architecture/` that answers your question. Read the section that you need, not the whole page. Add `frontend-design` when you move a class or a template of the frontend.
 
 Section 2 of `CLAUDE.md` gives the rule of the two tiers, and when you may equip a skill of the reference.
 

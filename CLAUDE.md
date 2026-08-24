@@ -40,7 +40,7 @@ You do the one job of your prompt, and you report. Never load the skill `agent-o
 The project holds two tiers of skill. Load the tier that your task needs, and no more.
 
 - **The skill of the job — always, before you work.** It states the rule of this project, and it wins over every other statement. Your agent file names the ones that you load. Before you touch a file of `apps/`, that list always holds `backend-architecture` or `frontend-architecture`, which route to the pages of `docs/architecture/` that are the single source of truth.
-- **The skill of the reference — on demand, one at a time.** Four skills hold the documentation of a third-party tool: `turborepo`, `vitest`, `tailwind-4-docs` and `typescript-advanced-types`. Invoke one when a question about the tool stays open after you read the page of `docs/architecture/` that covers it. Name the skill and the reason in the field **Notes** of your report.
+- **The skill of the reference — on demand, one at a time.** Three skills hold the documentation of a third-party tool: `turborepo`, `vitest` and `typescript-advanced-types`. Invoke one when a question about the tool stays open after you read the page of `docs/architecture/` that covers it. Name the skill and the reason in the field **Notes** of your report.
 - **When a skill of the job and a skill of the reference disagree, the skill of the job wins**, and you report the disagreement.
 - **Read one file of `references/`, and not the folder.** A file `SKILL.md` holds a table of its reference files, and one row states when to read one. Pick the row that matches your task.
 
