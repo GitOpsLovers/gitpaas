@@ -1,34 +1,44 @@
 # Key flows
 
-## The path of a request, from the user to a merge
+The layer holds two named workflows, and never a third shape of the cycle. The workflow of the day is a conversation, and the workflow of the SDD is three commands. Each one carries its own reason for the way it delivers the change; `.claude/skills/agent-orchestration/references/routing.md` gives the test that chooses one workflow over the other for a given request.
 
-The orchestrator is the main agent, in conversation with the user. It never implements, refactors or documents the code itself; it classifies the request, it delegates, and it relays the result. A subagent starts with no history of the conversation, so it reads its own prompt, its own agent file, and the files that the prompt names.
+## The workflow of the day
+
+The user writes a sentence that names no folder of `docs/roadmap/`, and the orchestrator delegates to one or more subagents. The change stays in the working tree.
 
 ```mermaid
 flowchart TD
-    A[User request] --> B[Orchestrator classifies the request]
-    B --> C{Does it change the behavior of apps/ or of packages/?}
-    C -->|No: a question, a doc, a config, a test, a refactor, a bug fix| E[Group the tasks of a phase]
-    C -->|Yes| R[researcher reports its findings, and writes no file]
-    R --> RA[The user answers the open questions]
-    RA --> P[The orchestrator writes TODO.md: a short intro, and the phases]
-    P --> PA[The user approves TODO.md]
-    PA --> E
-    E --> F[Delegate the phase to one or more subagents]
-    F --> G[Subagents build, then mark their own tasks]
-    G --> H[tester runs once, for the phase]
-    H --> I[git-manager opens the Pull Request of the phase]
-    I --> J{More phases left?}
-    J -->|Yes| E
-    J -->|No, last phase| DOC[documenter writes docs/business/, deletes the roadmap folder]
-    DOC --> K[Change delivered]
+    A[User writes a sentence] --> B[Orchestrator picks the subagent]
+    B --> C[Group the tasks, decide the calls]
+    C --> D[Write the prompt of each delegation]
+    D --> E[Delegate to one or more subagents]
+    E --> F[Read every report]
+    F --> G[Relay the result, name every file changed]
 ```
 
-The orchestrator implements nothing, for one reason. A cold subagent reads one skill, one agent file and the paths of the prompt; the orchestrator carries the conversation of the whole request. If the orchestrator also edited code, every edit would carry that larger context, and every edit would cost more tokens than the same edit made by a subagent. The rule that splits the two roles, the two roads of a request, and the three phases of the cycle, live in the reference files of `.claude/skills/agent-orchestration/`. This page names the skill as the source of the workflow; it does not restate its steps.
+**The reason of this delivery.** This workflow takes a question, a small fix, a test, a refactor that keeps the behavior, a document, a configuration and an audit — work with no specification to gate it. It invokes no `git-manager`, and it opens no Pull Request, because the user reviews and commits the change of a conversation directly; a Pull Request for every sentence would put a review step in front of work that carries no risk large enough to need one. `.claude/skills/agent-orchestration/references/workflow-day.md` gives the four steps in full, and `references/limits.md` states when the orchestrator may edit a file itself instead of delegating.
 
-A phase is the unit of delivery because a change can span many files and many subagents, and a reviewer needs one phase, and not the whole change, to judge one Pull Request. A phase that groups its own tasks, its own test run and its own delivery keeps a Pull Request small enough to review, and it lets the user stop after a phase that reveals a wrong plan, before the next phase builds on it.
+## The workflow of the SDD
 
-**The delivery today.** `git-manager` opens the branch, the commit, the push and the Pull Request of every phase. The user confirms nothing before that Pull Request opens; the user's own review of the Pull Request, and the merge that follows it, are the check on the work.
+The user runs `/research`, `/plan` and `/implement` in order, one command for one step, and each command is the gate: it runs, and it stops, so the user approves by typing the next command.
+
+```mermaid
+flowchart TD
+    A["/research: user names a feature"] --> B[researcher reads the code and docs/business/, writes no file]
+    B --> C[Command relays: today's state, options, open questions]
+    C --> D[User answers the questions, in the conversation]
+    D --> E["/plan: orchestrator writes docs/roadmap/feature/TODO.md"]
+    E --> F[Command shows the phases, stops]
+    F --> G["/implement: takes the first phase with an open box"]
+    G --> H[Delegate the tasks of the phase]
+    H --> I[tester runs once, for the phase]
+    I --> J[git-manager opens the Pull Request of the phase]
+    J --> K{More phases left?}
+    K -->|Yes, user runs /implement again| G
+    K -->|No, last phase| L[documenter writes docs/business/, deletes the roadmap folder]
+```
+
+**The reason of this delivery.** `git-manager` runs one time inside `/implement` alone, and nowhere else in the layer, because only `/implement` produces code that changed the behavior of `apps/` or of `packages/` under a specification the user already approved in `TODO.md`. A phase is the unit of that delivery: it groups its own tasks, its own run of `tester`, and its own Pull Request, so a reviewer judges one phase and not the whole feature, and the user can stop after a phase that reveals a wrong plan, before the next phase builds on it. `docs/roadmap/<feature>/TODO.md` is the whole state of the work between two commands, so a new conversation can pick up `/plan` or `/implement` from that one file alone. `.claude/skills/agent-orchestration/references/workflow-sdd.md` gives the three commands in full.
 
 ## The choice of the agent
 
