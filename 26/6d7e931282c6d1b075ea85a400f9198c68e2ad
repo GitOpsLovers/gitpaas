@@ -1,0 +1,65 @@
+docs/roadmap.md
+  s_7638f9a1860151::t_53cc7d7c02b8bc 19-20
+docs/roadmap/agent-layer/TODO.md
+  s_9c3c65db4c18a4::t_818d5f9d678cc5 18,30
+docs/roadmap/agent-layer/plan.md
+  s_9c3c65db4c18a4::t_3ad4b57e6a17e7 3-5,8,10-12,16-17,23-26,28,30-31,41-43,45,50-52,54-55,57,63-65,69,71-74,76-78,99-100,102-107,111,114-139,142-144,156-157,159-163,167-168,171-176,181-182,186-188,190-198,201,209-215,221-223,226-230,233-236
+docs/roadmap/agent-layer/research.md
+  s_9c3c65db4c18a4::t_2bdad548e7b6c6 145-154
+docs/roadmap/complexity-reduction/TODO.md
+  s_d9e40881e04835::t_59a137a30cc4bc 1-44
+docs/roadmap/complexity-reduction/research-frontend.md
+  s_d9e40881e04835::t_1b5699c3a3c5a8 1-327
+docs/roadmap/complexity-reduction/research-infrastructure.md
+  s_d9e40881e04835::t_fb6a5388c39ee2 1-496
+docs/roadmap/complexity-reduction/research.md
+  s_d9e40881e04835::t_b65765f7f481d6 1-50
+docs/roadmap/security-hardening/TODO.md
+  s_7638f9a1860151::t_c570d91f5f805e 1-47
+docs/roadmap/security-hardening/plan.md
+  s_7638f9a1860151::t_db1a3aaaeaff32 1-215
+docs/roadmap/security-hardening/research.md
+  s_7638f9a1860151::t_750db228a062fe 1-209
+docs/roadmap/complexity-reduction/research-backend.md
+  s_86c480001192a1::t_2012661edd1c77 1-472
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "266d7e931282c6d1b075ea85a400f9198c68e2ad",
+  "prompts": {},
+  "sessions": {
+    "s_7638f9a1860151": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2338ce06-3129-4880-b7dc-a005cfde8467",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_86c480001192a1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a03f1bd41c20c7476",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_9c3c65db4c18a4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "705145b7-a8bc-4293-8b29-d271d636a543",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d9e40881e04835": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "28032fca-21cc-41d7-a9b2-2a75a5c06c50",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
