@@ -492,6 +492,9 @@ print_summary() {
     printf '\n'
     printf '  %sAdmin email%s    : %s\n' "$C_BOLD" "$C_RESET" "$GITPAAS_ADMIN_EMAIL"
     printf '  %sAdmin password%s : %s%s%s\n' "$C_BOLD" "$C_RESET" "$C_YELLOW$C_BOLD" "$ADMIN_PASSWORD" "$C_RESET"
+    printf '\n'
+    printf '  %sBack up SECRETS_ENCRYPTION_KEY%s in iac/production/.env: a lost key\n' "$C_BOLD" "$C_RESET"
+    printf '  makes every stored secret (a provider key, a secret variable of a service) unreadable.\n'
     printf '%s────────────────────────────────────────────────────────%s\n\n' "$C_GREEN$C_BOLD" "$C_RESET"
 }
 

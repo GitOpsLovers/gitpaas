@@ -58,7 +58,7 @@ The system SHALL refuse a provider whose name another provider already carries.
 
 ## The private key is encrypted at rest
 
-The system SHALL encrypt the private key with AES-256-GCM before it writes the record. The key of the encryption comes from the environment variable `PROVIDERS_ENCRYPTION_KEY`, which holds 32 random bytes in the hexadecimal form.
+The system SHALL encrypt the private key with AES-256-GCM before it writes the record. The key of the encryption comes from the environment variable `SECRETS_ENCRYPTION_KEY`, which holds 32 random bytes in the hexadecimal form.
 
 The system SHALL NOT write the private key in clear text, in the database or in the log.
 
@@ -69,7 +69,7 @@ The system SHALL NOT write the private key in clear text, in the database or in 
 
 ### Scenario: The variable of the encryption is absent
 
-- **WHEN** the application starts, and `PROVIDERS_ENCRYPTION_KEY` is absent
+- **WHEN** the application starts, and `SECRETS_ENCRYPTION_KEY` is absent
 - **THEN** the validation of the environment fails, and the application does not start
 
 ## The API never gives a private key
