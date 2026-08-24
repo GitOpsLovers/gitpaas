@@ -22,13 +22,17 @@ Read one file for your task, and never the folder. In a page of `docs/`, find th
 | [structure.md](../../../docs/architecture/backend/structure.md) | You place a file, or you need what each of the four layers holds, or you wire a module. | `## Top-level source folders`, `## The four layers`, `## Structure of a feature`, `## Module wiring` |
 | [structure.md](../../../docs/architecture/backend/structure.md) | You need where a spec lives and what it covers. | `## Testing` |
 | [structure.md](../../../docs/architecture/backend/structure.md) | You need how an error or a guard crosses every feature. | `## Cross-cutting concerns` |
-| [conventions.md](../../../docs/architecture/backend/conventions.md) | You name a file, a class or a function. | `## File naming`, `## Class and function naming` |
+| [arch-file-naming.md](references/arch-file-naming.md) | You name a file. | — |
+| [arch-class-function-naming.md](references/arch-class-function-naming.md) | You name a class or a function. | — |
+| [arch-jsdoc-comments.md](references/arch-jsdoc-comments.md) | You write the JSDoc comment of a class, a function or an interface. | — |
 | [conventions.md](../../../docs/architecture/backend/conventions.md) | You need which import takes an alias. | `## Imports` |
 | [conventions.md](../../../docs/architecture/backend/conventions.md) | You join a port to its adapter. | `## Ports and dependency injection` |
 | [conventions.md](../../../docs/architecture/backend/conventions.md) | You turn an ORM shape into a domain model. | `## Transformers` |
 | [conventions.md](../../../docs/architecture/backend/conventions.md) | You validate a body, or you shape a route. | `## Validation`, `## HTTP and REST` |
 | [stack.md](../../../docs/architecture/backend/stack.md) | You choose the library that takes a concern. | — |
 | [key-flows.md](../../../docs/architecture/backend/key-flows.md) | You need why a flow is built this way, how an error reaches the client, or what the telemetry holds. | One `##` for one flow |
+| [arch-telemetry-event-schema.md](references/arch-telemetry-event-schema.md) | You add a field to the telemetry event, or you need its full schema. | — |
+| [arch-known-deviations.md](references/arch-known-deviations.md) | You touch the not-found pattern or the Passport strategies, and you must not copy a known deviation. | — |
 | [operations.md](../../../docs/architecture/backend/operations.md) | You need the command that an operator runs, or you change the schema of the database. | — |
 
 ## The practice of NestJS

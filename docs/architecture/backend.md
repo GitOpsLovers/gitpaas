@@ -11,5 +11,5 @@ The application also uses **vertical slicing**. Each business domain stays in it
 - [Stack](./backend/stack.md): tools used for each concern.
 - [Structure](./backend/structure.md): folder structure, architectural layers, feature layout, module wiring and cross-cutting concerns.
 - [Conventions](./backend/conventions.md): programming conventions used in the application.
-- [Key flows](./backend/key-flows.md): explanation of the main flows and why they were designed this way, telemetry and logging included.
+- [Key flows](./backend/key-flows.md): one section for each flow of the request, the background work and the business, and the reason of its design. Telemetry and logging included.
 - [Operations](./backend/operations.md): actions that need to be performed on the application.
