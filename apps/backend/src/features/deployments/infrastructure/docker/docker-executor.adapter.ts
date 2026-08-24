@@ -15,7 +15,7 @@ import {
 import type { ResolvedBuild } from './compose-recipe.transformer';
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
-import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
+import type { RuntimeComposeProject, RuntimeProgressListener } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
@@ -182,24 +182,12 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * @param emit Line emitter
      */
     private followBuild(stream: NodeJS.ReadableStream, emit: DockerLogListener): Promise<void> {
-        return new Promise((resolvePromise, reject) => {
-            this.docker.followProgress(
-                stream,
-                (error) => {
-                    if (error) {
-                        reject(error instanceof Error ? error : new Error(JSON.stringify(error)));
-                    } else {
-                        resolvePromise();
-                    }
-                },
-                (event) => {
-                    const text = event.stream ?? event.status;
+        return this.followProgress(stream, (event) => {
+            const text = event.stream ?? event.status;
 
-                    if (text) {
-                        toLogLines(text).forEach(emit);
-                    }
-                },
-            );
+            if (text) {
+                toLogLines(text).forEach(emit);
+            }
         });
     }
 
@@ -244,23 +232,47 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * @param emit Line emitter
      */
     private followPull(stream: NodeJS.ReadableStream, emit: DockerLogListener): Promise<void> {
+        return this.followProgress(stream, (event) => {
+            // Skip byte-level progress frames; keep discrete lifecycle lines.
+            if (!event.status || event.progress) {
+                return;
+            }
+
+            emit(event.id ? `${event.id}: ${event.status}` : event.status);
+        });
+    }
+
+    /**
+     * Follows a progress stream of the daemon to its end, forwarding every frame to `onEvent`.
+     *
+     * @param stream Progress stream of the daemon
+     * @param onEvent Listener of every frame that carries no error
+     */
+    private followProgress(stream: NodeJS.ReadableStream, onEvent: RuntimeProgressListener): Promise<void> {
         return new Promise((resolvePromise, reject) => {
+            let failure: Error | undefined;
+
             this.docker.followProgress(
                 stream,
                 (error) => {
                     if (error) {
-                        reject(error);
+                        reject(error instanceof Error ? error : new Error(JSON.stringify(error)));
+                    } else if (failure) {
+                        reject(failure);
                     } else {
                         resolvePromise();
                     }
                 },
                 (event) => {
-                    // Skip byte-level progress frames; keep discrete lifecycle lines.
-                    if (!event.status || event.progress) {
+                    const message = event.error ?? event.errorDetail?.message;
+
+                    if (message) {
+                        failure = new Error(message);
+
                         return;
                     }
 
-                    emit(event.id ? `${event.id}: ${event.status}` : event.status);
+                    onEvent(event);
                 },
             );
         });

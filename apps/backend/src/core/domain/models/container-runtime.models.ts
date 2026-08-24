@@ -85,6 +85,8 @@ export interface RuntimeProgressEvent {
     status?: string;
     id?: string;
     progress?: string;
+    error?: string;
+    errorDetail?: { code?: number; message?: string };
 }
 
 /**

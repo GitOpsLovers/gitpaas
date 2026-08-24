@@ -156,6 +156,20 @@ describe('DockerExecutorAdapter', () => {
             await expect(internals(sut).followPull({}, jest.fn())).resolves.toBeUndefined();
         });
 
+        it('rejects with the error frame of the daemon, although the stream ends without a transport error', async () => {
+            const followProgress = jest.fn((
+                _stream,
+                onFinished: (error?: unknown) => void,
+                onProgress: (event: unknown) => void,
+            ) => {
+                onProgress({ error: 'manifest for redis:99 not found' });
+                onFinished();
+            });
+            const sut = executorWithRuntime({ followProgress });
+
+            await expect(internals(sut).followPull({}, jest.fn())).rejects.toThrow('manifest for redis:99 not found');
+        });
+
         it('emits discrete status lines and skips progress frames and status-less events', async () => {
             const followProgress = jest.fn((
                 _stream,
@@ -192,6 +206,41 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ followProgress });
 
             await expect(internals(sut).followBuild({}, jest.fn())).resolves.toBeUndefined();
+        });
+
+        it('rejects with the error frame of the daemon, although the stream ends without a transport error', async () => {
+            const followProgress = jest.fn((
+                _stream,
+                onFinished: (error?: unknown) => void,
+                onProgress: (event: unknown) => void,
+            ) => {
+                onProgress({ stream: 'Step 4/10 : RUN npm ci' });
+                onProgress({
+                    error: "The command '/bin/sh -c npm ci' returned a non-zero code: 1",
+                    errorDetail: { code: 1, message: "The command '/bin/sh -c npm ci' returned a non-zero code: 1" },
+                });
+                onFinished();
+            });
+            const sut = executorWithRuntime({ followProgress });
+            const emit = jest.fn();
+
+            await expect(internals(sut).followBuild({}, emit)).rejects.toThrow("The command '/bin/sh -c npm ci' returned a non-zero code: 1");
+            expect(emit).toHaveBeenCalledTimes(1);
+            expect(emit.mock.calls[0]?.[0]).toBe('Step 4/10 : RUN npm ci');
+        });
+
+        it('rejects with the detail message when the error frame carries no summary', async () => {
+            const followProgress = jest.fn((
+                _stream,
+                onFinished: (error?: unknown) => void,
+                onProgress: (event: unknown) => void,
+            ) => {
+                onProgress({ errorDetail: { message: 'COPY failed: file not found' } });
+                onFinished();
+            });
+            const sut = executorWithRuntime({ followProgress });
+
+            await expect(internals(sut).followBuild({}, jest.fn())).rejects.toThrow('COPY failed: file not found');
         });
     });
 
