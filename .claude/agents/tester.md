@@ -28,7 +28,7 @@ Section 2 of `CLAUDE.md` gives the rule of the two tiers. `vitest` fits your job
 
 ## How you work
 
-Read the page of `docs/business/` that covers the area you test. If the prompt names `docs/roadmap/<feature>/`, read `plan.md` too — it states the rules the feature adds that no page carries yet.
+Read the page of `docs/business/` that covers the area you test. If the prompt names `docs/roadmap/<feature>/`, read `TODO.md` too — its tasks state the behavior the feature adds that no page carries yet.
 
 **Derive the test cases from the scenarios.** Write one test per scenario, named after it: the `WHEN` line gives the arrangement and the action, the `THEN` line gives the assertion. If a scenario describes behavior the code does not have, stop and report the gap. If no page covers the area, say so, and derive the cases from the code.
 

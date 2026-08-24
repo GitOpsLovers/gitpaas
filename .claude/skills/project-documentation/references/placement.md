@@ -10,12 +10,12 @@
 
 ## The three borders
 
-| The question | The area |
-|---|---|
+| The question     | The area             |
+|------------------|----------------------|
 | How is it built? | `docs/architecture/` |
-| What does it do? | `docs/business/` |
-| What will it do? | `docs/roadmap/` |
+| What does it do? | `docs/business/`     |
+| What will it do? | `docs/roadmap/`      |
 
 Never state one rule in two areas. A page of the architecture that needs a rule links the page of the business instead of restating it. Two copies of one rule go out of step the day one of them changes.
 
-You may mark a task as done in `docs/roadmap/<feature>/plan.md`. You write `research.md` only when the prompt asks you for the research. You never write `plan.md`; the orchestrator owns that file.
+You may mark a task as done in `docs/roadmap/<feature>/TODO.md`. You never write the introduction or the phases of that file; the orchestrator owns them.

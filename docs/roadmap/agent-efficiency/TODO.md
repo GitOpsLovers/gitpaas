@@ -1,55 +1,86 @@
 # The efficiency of the layer of the agents
 
-## Why
+Every request pays for the configuration of the AI two times, and sometimes seven: the orchestrator loads it, and each subagent loads it again. The layer held 33.9 KB of agent files, 10.7 KB of the skill of the orchestration and 4.3 KB of descriptions, with the workflow of the cycle written three times in three shapes. We give the layer two named workflows — the workflow of the day, which leaves the change in the working tree, and the workflow of the SDD, which is three commands — and we put one fact in one file. Out of scope: the architecture of the two applications, the pages of `docs/business/`, a seventh agent, a fourth command, and the tool `rtk`.
 
-Every request of the user pays for the configuration of the AI two times, and sometimes seven times.
-The orchestrator loads it one time. Each subagent that the orchestrator starts loads it again, because
-a subagent holds no history and it reads `CLAUDE.md`, its own agent file and the descriptions of every
-skill of the project.
+## Phase 1 — One pattern for every skill
 
-The layer of the agents holds 33.9 KB of agent files, 10.7 KB of the skill of the orchestration, and
-4.3 KB of descriptions of the skills. Six of the fifteen skills are curated references of a
-third-party tool, and four agent files forbid them by name, so the layer pays the description of each
-one and it uses none of them. The workflow of the cycle is written three times, in three files, in
-three shapes.
+**Agent:** refactorer
+**Paths:** .claude/skills/, .claude/agents/, docs/architecture/agents/key-flows.md
 
-The layer also gives one shape to two kinds of work. A user who wants a small change gets the
-machinery of a feature: a branch, a commit and a Pull Request. A user who wants a feature drives the
-cycle by prose, because no command exists, and the cycle stops at three gates.
+- [x] 1.1 Shorten the description of the six reference skills to 120 characters, and name the skill of the job that wins.
+- [x] 1.2 Move the content of every `SKILL.md` into `references/`, and keep the table of the reference files alone.
+- [x] 1.3 Rename `nestjs-best-practices/rules/` into `references/`.
+- [x] 1.4 Give every row of every table one sentence "Read it when …".
+- [x] 1.5 Correct every pointer that named a section of a `SKILL.md` that no longer holds it.
+- [x] 1.6 Replace the paragraph that forbids a skill in four agent files with the rule of the two tiers of `CLAUDE.md`.
+- [x] 1.7 Add to each reference skill the line **The snapshot**: the version of the reference, the version of the project, and the refresh.
 
-## What must change
+## Phase 2 — The two workflows, and one fact in one file
 
-- **The layer holds two workflows, and it names them.**
-  - **The workflow of the day** is a conversation. The user speaks to the orchestrator, the
-    orchestrator delegates to one or more subagents, and the change stays in the working tree. No
-    agent touches Git.
-  - **The workflow of the SDD** is three commands: `/research`, `/plan` and `/implement`. Each
-    command calls the orchestrator, and the orchestrator runs the one step of that command.
-    `/implement` is the one place where `git-manager` opens a Pull Request.
-- **The layer costs fewer tokens.** One fact lives in one file. A subagent loads the text of its own
-  job, and no text of another job.
-- **The architecture of the agents is explicit.** One page states which agent exists, what it owns,
-  which skill it loads, and which workflow starts it.
-- **A skill states when it applies and where it applies.** A description names the question that the
-  skill answers, and the skill that wins over it. An agent equips a reference when it needs one, and
-  no agent file forbids a skill that the repository holds.
+**Agent:** documenter
+**Paths:** CLAUDE.md, .claude/skills/agent-orchestration/, .claude/skills/project-documentation/, .claude/skills/backend-feature/
 
-## The state today
+- [x] 2.1 Rewrite `agent-orchestration/SKILL.md` around the two workflows, and delete the section "Route the request".
+- [x] 2.2 Write the workflow of the day: the choice of the agent, the grouping, the prompt, and the rule that it opens no Pull Request.
+- [x] 2.3 Write the workflow of the SDD: one paragraph per command, and the rule that the command is the gate.
+- [x] 2.4 Delete the rule "Every task ends with a Pull Request", and replace it with the rule of the delivery.
+- [x] 2.5 Cut the shape of the file of the plan, and link the section of `project-documentation` that owns it.
+- [x] 2.6 Cut the reason of each rule, and link `docs/architecture/agents/key-flows.md` at the head of the file.
+- [x] 2.7 Correct `backend-feature/SKILL.md`: one order that invokes the skill `backend-architecture`.
+- [x] 2.8 Rewrite the table "Find your role" of `CLAUDE.md`, and reduce section 2 to the rules that every agent obeys.
 
-The audit is in [research.md](./research.md). It holds the size of each file, the duplication between
-the files, the routes that point at the wrong page, and the commands that run the same build two
-times. [plan.md](./plan.md) holds the phases that close them.
+## Phase 3 — One shape for the six agent files
 
-## Out of scope
+**Agent:** refactorer
+**Paths:** .claude/agents/
 
-- The architecture of `apps/backend` and of `apps/frontend`. This change reads the pages of
-  `docs/architecture/backend/` and of `docs/architecture/frontend/`; it does not rewrite them.
-- The pages of `docs/business/`. The behavior of the product does not change.
-- A new subagent. The six agents stay six agents, and only the workflow that starts each one changes.
-- A fourth command, and a command that merges a Pull Request.
-- The tool `rtk`, and the plugin `typescript-lsp`.
+- [x] 3.1 Write the six sections into each of the six files, in one order.
+- [x] 3.2 Delete from every agent file the preamble of the cold start, the rule of the scope and the commands of the verification.
+- [x] 3.3 Make one table of the report, with the same five fields in the same order.
+- [x] 3.4 Add to `git-manager.md` that `/implement` is its one caller.
+- [x] 3.5 Add to the five other files that the agent runs no `git` command that changes state.
+- [x] 3.6 Apply the rule of the verification: one command for one application.
+- [x] 3.7 Give one command for the tests of the frontend in `tester.md`.
 
-## Impact
+## Phase 4 — The routes state the cost
 
-`CLAUDE.md`, the six files of `.claude/agents/`, the descriptions of the fifteen skills, the new
-folder `.claude/commands/` with its three commands, and the area `docs/architecture/agents/`.
+**Agent:** documenter
+**Paths:** .claude/skills/backend-architecture/, .claude/skills/frontend-architecture/, .claude/skills/backend-unit-testing/, .claude/skills/frontend-unit-testing/
+
+- [x] 4.1 Add the column of the heading `##` to the routing table of the two skills of the architecture.
+- [x] 4.2 Add above each table the order to find the heading with `rtk grep -n`, and to read the range.
+- [x] 4.3 Check every link and every heading of the two tables.
+- [x] 4.4 Give the same column to the two skills of the unit testing.
+
+## Phase 5 — The three commands of the SDD
+
+**Agent:** implementer
+**Paths:** .claude/commands/
+
+- [ ] 5.1 Write `.claude/commands/research.md`: it delegates to `researcher`, it relays the questions, it writes no file, and it stops.
+- [ ] 5.2 Write `.claude/commands/plan.md`: the orchestrator writes `docs/roadmap/<name>/TODO.md` itself, short, and it stops.
+- [ ] 5.3 Write `.claude/commands/implement.md`: it takes the first phase of `TODO.md` that holds an open box, it delegates, it runs `tester` one time, it invokes `git-manager`, and it stops.
+- [ ] 5.4 Give the three commands one rule of the argument: the name of the feature, or the one folder of `docs/roadmap/`.
+- [ ] 5.5 Keep each command under 40 lines, and copy no rule of the skill of the orchestration.
+
+## Phase 6 — The documentation of the layer
+
+**Agent:** documenter
+**Paths:** docs/architecture/agents/, docs/architecture/agents.md, docs/roadmap.md
+**This is the last phase.**
+
+- [ ] 6.1 Create `docs/architecture/agents/structure.md`: the tree of `.claude/`, the six agents, the skills and the three commands.
+- [ ] 6.2 Create `docs/architecture/agents/conventions.md`: the sections of an agent file, and the rules of the source, of the skill and of the verification.
+- [ ] 6.3 Rewrite `key-flows.md` with one diagram per workflow, and the reason of each delivery.
+- [ ] 6.4 Add the two new subpages to the list `## Sections` of `docs/architecture/agents.md`.
+- [ ] 6.5 Measure the four rows of the table below again, and write the result beside the target.
+- [ ] 6.6 Delete `docs/roadmap/agent-efficiency/`, and remove its line from `docs/roadmap.md`.
+
+## The measure of the phase 6
+
+| The measure | Today | The target |
+|---|---|---|
+| `rtk wc -c CLAUDE.md` | 3 433 | 2 500 or less |
+| The total of `.claude/agents/*.md` | 33.9 KB | 20 KB or less |
+| `.claude/skills/agent-orchestration/SKILL.md` | 10.7 KB | 7 KB or less |
+| The descriptions of the skills | 4.3 KB | 2.1 KB or less |

@@ -1,32 +1,44 @@
-# The area `docs/roadmap/`, and the three files of a feature
+# The area `docs/roadmap/`, and the one file of a feature
 
 ### The roadmap
 
-`docs/roadmap/<feature>/` holds one future feature, and it is the working folder of the cycle of the specification-driven development. `docs/roadmap.md` is its index. The folder holds three files.
+`docs/roadmap/<feature>/` holds one future feature, and it is the working folder of the cycle of the specification-driven development. `docs/roadmap.md` is its index. The folder holds **one file, `TODO.md`**, and no other file. There is no `research.md`, and there is no `plan.md`.
 
-| The file | It holds | Who writes it |
-|---|---|---|
-| `TODO.md` | Why the feature matters, what must change, what stays out of scope, and what it touches | The user, or the orchestrator |
-| `research.md` | What the system does today, which pages of the business the feature changes, which options exist, and what stays unknown | `researcher` |
-| `plan.md` | The decisions, the option that each one refused, the rules that the feature adds, and the phases with their tasks | The orchestrator |
+| The file  | It holds                                               | Who writes it                                               |
+|-----------|--------------------------------------------------------|-------------------------------------------------------------|
+| `TODO.md` | A short introduction, then the phases with their tasks | The user seeds it; the orchestrator rewrites it at the plan |
 
-`plan.md` holds three parts, in this order.
+### The shape of `TODO.md`
 
-1. **The decisions.** Each one names the option that it refused, and the reason.
-2. **The rules that this feature adds.** One section for one capability, written in the shape of a page of the business, with `SHALL` and with a scenario for each case. This part is the contract of the feature: `tester` derives its cases from it, and `documenter` moves it into `docs/business/` in the last phase.
-3. **The phases.** One phase for one Pull Request.
+The file holds two parts, in this order, and nothing else.
 
-A phase takes this shape:
+1. **The introduction.** Six sentences at the most: the problem, what the feature does about it, and what stays out of scope. Write no analysis, no option, no citation of a line of code. The research lives in the conversation, and not in this file.
+2. **The phases.** One phase for one Pull Request. Each task is one line with a check box, and an agent can verify it.
 
 ```markdown
-### Phase <n> — <the subject>
+# <the feature>
+
+<The problem, in one or two sentences.>
+<What we do about it, in one or two sentences.>
+<What stays out of scope, in one sentence.>
+
+## Phase 1 — <the subject>
 
 **Agent:** implementer
 **Paths:** apps/backend/src/features/<feature>/
-**This is the last phase.**          (on the last phase alone)
 
-- [ ] <n>.1 <one task that an agent can verify>
+- [ ] 1.1 <one task that an agent can verify>
+- [ ] 1.2 <one task that an agent can verify>
+
+## Phase 2 — <the subject>
+
+**Agent:** documenter
+**This is the last phase.**
+
+- [ ] 2.1 <one task that an agent can verify>
 ```
+
+Keep the whole file under 100 lines. If a phase needs more than about eight tasks, split it into two phases.
 
 The last phase always goes to `documenter`, and it writes the behavior into `docs/business/`, corrects the pages that the feature made false, and deletes the folder of the roadmap.
 

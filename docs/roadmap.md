@@ -4,12 +4,10 @@ This document holds the work that GitPaaS has not built yet. One folder holds on
 
 ```text
 docs/roadmap/<feature>/
-    TODO.md        what the feature must do, and why it matters
-    research.md    the result of the phase of the research
-    plan.md        the decisions, the rules that the feature adds, and the phases with their tasks
+    TODO.md        a short introduction, then the phases with their tasks
 ```
 
-A folder starts with `TODO.md` alone. The orchestrator writes `research.md` and then `plan.md` during the cycle, and the user approves each one. When the last phase of the feature merges, `documenter` writes the new behavior into `docs/business/`, and the folder of the feature goes away. So this area holds the future alone, and `docs/business.md` holds the present.
+The folder holds that one file, and no other. `/research` reads the code and reports in the conversation; it writes no file. `/plan` writes `TODO.md`: the problem and the answer in six sentences at the most, then one phase for one Pull Request. When the last phase of the feature merges, `documenter` writes the new behavior into `docs/business/`, and the folder of the feature goes away. So this area holds the future alone, and `docs/business.md` holds the present.
 
 ## The features
 
