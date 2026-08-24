@@ -15,6 +15,5 @@ A folder starts with `TODO.md` alone. The orchestrator writes `research.md` and 
 
 - [service-environment](./roadmap/service-environment/TODO.md): the variables and the secrets of a service.
 - [domains](./roadmap/domains/TODO.md): the public address of a service, and its certificate.
-- [agent-layer](./roadmap/agent-layer/TODO.md): the optimization of the configuration of the agents.
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
