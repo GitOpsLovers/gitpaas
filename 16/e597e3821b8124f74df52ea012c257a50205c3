@@ -1,0 +1,37 @@
+.claude/skills/backend-architecture/SKILL.md
+  s_960a34c6d84794::t_a257f6023551f2 25-27,34-35
+.claude/skills/backend-architecture/references/arch-class-function-naming.md
+  s_960a34c6d84794::t_a5cdc396fcb64d 1-26
+.claude/skills/backend-architecture/references/arch-file-naming.md
+  s_960a34c6d84794::t_fd9bbc34cab66b 1-30
+.claude/skills/backend-architecture/references/arch-jsdoc-comments.md
+  s_960a34c6d84794::t_5b7288892ba5ab 1-8
+.claude/skills/backend-architecture/references/arch-known-deviations.md
+  s_960a34c6d84794::t_ddc3fb29332f69 1-16
+.claude/skills/backend-architecture/references/arch-telemetry-event-schema.md
+  s_960a34c6d84794::t_9b21b2c7ed1265 1-31
+docs/architecture/backend.md
+  s_960a34c6d84794::t_b9f0a4ce88e7fc 14
+docs/architecture/backend/conventions.md
+  s_960a34c6d84794::t_2ae8f992ced009 26,42
+docs/architecture/backend/key-flows.md
+  s_960a34c6d84794::t_84a86aed876d2c 27,29,33,35,37,43,45,53,65-69,73,75-76,78,82,88,90-91,95,97,99,103,107,109-111,117-120,122,126,140,142,144,148,157,159,161,163
+docs/architecture/backend/structure.md
+  s_960a34c6d84794::t_b8b35446d91bdc 19,21,35,53-57,61,68,71,73,79,83,91,95-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "16e597e3821b8124f74df52ea012c257a50205c3",
+  "prompts": {},
+  "sessions": {
+    "s_960a34c6d84794": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2aa4923095aec7e3",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
