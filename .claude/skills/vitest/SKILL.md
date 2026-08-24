@@ -1,55 +1,35 @@
 ---
 name: vitest
-description: Vitest fast unit testing framework powered by Vite with Jest-compatible API. Use when writing tests, mocking, configuring coverage, or working with test filtering and fixtures.
-metadata:
-  author: Anthony Fu
-  version: "2026.6.22"
-  source: Generated from https://github.com/vitest-dev/vitest, scripts located at https://github.com/antfu/skills
+description: Vitest reference - mocking, coverage, filtering, fixtures. The skill frontend-unit-testing wins over it.
 ---
 
-Vitest is a next-generation testing framework powered by Vite. It provides a Jest-compatible API with native ESM, TypeScript, and JSX support out of the box. Vitest shares the same config, transformers, resolvers, and plugins with your Vite app.
+# Vitest
 
-**Key Features:**
-- Vite-native: Uses Vite's transformation pipeline for fast HMR-like test updates
-- Jest-compatible: Drop-in replacement for most Jest test suites
-- Smart watch mode: Only reruns affected tests based on module graph
-- Native ESM, TypeScript, JSX support without configuration
-- Multi-threaded workers for parallel test execution
-- Built-in coverage via V8 or Istanbul
-- Snapshot testing, mocking, and spy utilities
+The general documentation of the runner. `frontend-unit-testing` holds the conventions of the specs of this project, and it wins over this skill. Read this skill for the API of the runner that no page of the project covers. The snapshot follows Vitest 5.x, and it dates from 2026-06-22.
 
-> The skill is based on Vitest 5.x (beta), generated at 2026-06-22.
+## The reference files
 
-## Core
+| The file | Read it when |
+| --- | --- |
+| [overview.md](references/overview.md) | You need what Vitest is, and what it gives you. |
+| [core-config.md](references/core-config.md) | You configure Vitest, or you integrate it with Vite. |
+| [core-cli.md](references/core-cli.md) | You run the command line, and you need a command or an option. |
+| [core-test-api.md](references/core-test-api.md) | You write `test`, or you need `skip`, `only` or `concurrent`. |
+| [core-describe.md](references/core-describe.md) | You group the tests with `describe`, or you nest a suite. |
+| [core-expect.md](references/core-expect.md) | You write an assertion, a matcher or an asymmetric matcher. |
+| [core-hooks.md](references/core-hooks.md) | You write `beforeEach`, `afterEach`, `beforeAll` or `afterAll`. |
+| [features-mocking.md](references/features-mocking.md) | You mock a function, a module, a timer or a date. |
+| [features-snapshots.md](references/features-snapshots.md) | You write a snapshot, or an inline snapshot. |
+| [features-coverage.md](references/features-coverage.md) | You configure the coverage of V8 or of Istanbul. |
+| [features-context.md](references/features-context.md) | You need a fixture, `context.expect` or `test.extend`. |
+| [features-concurrency.md](references/features-concurrency.md) | You run the tests in parallel, or you shard them. |
+| [features-filtering.md](references/features-filtering.md) | You filter by name, by pattern of the file, or by tag. |
+| [features-test-tags.md](references/features-test-tags.md) | You label a test with a tag, and you filter the run. |
+| [features-reporters.md](references/features-reporters.md) | You choose a reporter, or you configure the output of the CI. |
+| [features-benchmarking.md](references/features-benchmarking.md) | You write a benchmark with the fixture `bench`. |
+| [advanced-vi.md](references/advanced-vi.md) | You need `vi.mock`, `vi.spyOn`, a fake timer, `hoisted` or `waitFor`. |
+| [advanced-environments.md](references/advanced-environments.md) | You choose `node`, `jsdom`, `happy-dom` or a custom environment. |
+| [advanced-type-testing.md](references/advanced-type-testing.md) | You test a type with `expectTypeOf` or `assertType`. |
+| [advanced-projects.md](references/advanced-projects.md) | You configure a workspace of several projects. |
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Configuration | Vitest and Vite config integration, defineConfig usage | [core-config](references/core-config.md) |
-| CLI | Command line interface, commands and options | [core-cli](references/core-cli.md) |
-| Test API | test/it function, modifiers like skip, only, concurrent | [core-test-api](references/core-test-api.md) |
-| Describe API | describe/suite for grouping tests and nested suites | [core-describe](references/core-describe.md) |
-| Expect API | Assertions with toBe, toEqual, matchers and asymmetric matchers | [core-expect](references/core-expect.md) |
-| Hooks | beforeEach, afterEach, beforeAll, afterAll, aroundEach | [core-hooks](references/core-hooks.md) |
-
-## Features
-
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Mocking | Mock functions, modules, timers, dates with vi utilities | [features-mocking](references/features-mocking.md) |
-| Snapshots | Snapshot testing with toMatchSnapshot and inline snapshots | [features-snapshots](references/features-snapshots.md) |
-| Coverage | Code coverage with V8 or Istanbul providers | [features-coverage](references/features-coverage.md) |
-| Test Context | Test fixtures, context.expect, test.extend for custom fixtures | [features-context](references/features-context.md) |
-| Concurrency | Concurrent tests, parallel execution, sharding | [features-concurrency](references/features-concurrency.md) |
-| Filtering | Filter tests by name, file patterns, tags | [features-filtering](references/features-filtering.md) |
-| Test Tags | Label tests with tags to filter runs and apply shared options | [features-test-tags](references/features-test-tags.md) |
-| Reporters | Built-in reporters, default selection, CI/output config | [features-reporters](references/features-reporters.md) |
-| Benchmarking | Write benchmarks with the bench fixture (Tinybench) | [features-benchmarking](references/features-benchmarking.md) |
-
-## Advanced
-
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Vi Utilities | vi helper: mock, spyOn, fake timers, hoisted, waitFor | [advanced-vi](references/advanced-vi.md) |
-| Environments | Test environments: node, jsdom, happy-dom, custom | [advanced-environments](references/advanced-environments.md) |
-| Type Testing | Type-level testing with expectTypeOf and assertType | [advanced-type-testing](references/advanced-type-testing.md) |
-| Projects | Multi-project workspaces, different configs per project | [advanced-projects](references/advanced-projects.md) |
+Read one reference file for your task. Do not read the whole folder.

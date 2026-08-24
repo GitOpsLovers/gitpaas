@@ -1,5 +1,15 @@
 # Running the suite
 
+## The commands of the suite
+
+```bash
+# Full backend suite (run from apps/backend)
+rtk pnpm test
+
+# Scoped run — Jest treats the trailing argument as a testPathPattern regex
+rtk pnpm test -- src/features/services/infrastructure/database
+```
+
 `apps/backend/package.json` declares two test scripts only: `test` (`jest`) and `test:e2e` (`jest --config ./test/jest-e2e.json`).
 
 ```bash

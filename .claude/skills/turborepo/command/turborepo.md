@@ -19,7 +19,7 @@ Analyze $ARGUMENTS to determine:
 - **Topic**: configuration, caching, filtering, environment, CI, or CLI
 - **Task type**: new setup, debugging, optimization, or implementation
 
-Use decision trees in SKILL.md to select the relevant reference files.
+Use `references/decision-trees.md` to select the relevant reference files.
 
 ### Step 3: Read relevant reference files
 

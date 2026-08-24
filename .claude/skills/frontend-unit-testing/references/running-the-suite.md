@@ -1,5 +1,15 @@
 # Running the suite
 
+## The commands of the suite
+
+```bash
+# Full frontend suite (run from apps/frontend)
+rtk pnpm test
+
+# Scoped run — the builder takes a glob of the files, relative to the root of the project
+rtk pnpm test -- --include "src/app/features/projects/**/*.spec.ts"
+```
+
 `apps/frontend/package.json` declares one test script only: `test` (`ng test --watch=false`). The builder `@angular/build:unit-test` compiles the specs with `tsconfig.spec.json` and runs them with Vitest in `jsdom`. There is no `vitest.config.ts` in the project, and you must not add one.
 
 ```bash

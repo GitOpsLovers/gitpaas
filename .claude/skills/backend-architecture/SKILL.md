@@ -1,49 +1,33 @@
 ---
 name: backend-architecture
-description: The architecture of the backend application (`apps/backend`). Use it before you write, move, test or audit a file of `apps/backend`, and when you need the layers of a feature, the ports and the adapters, the transformers, the naming of a file or of a class, the path aliases, or the location of a spec. It routes to the pages of `docs/architecture/backend/`, which hold the detail.
+description: The architecture of `apps/backend`. Use it before you write, move, test or audit a file of that application. It routes to the page of `docs/architecture/backend/` that answers your question, and those pages are the single source of truth.
 ---
 
 # The architecture of the backend of GitPaaS
 
-This skill is a map, and not a copy. **The pages of `docs/architecture/backend/` are the single
-source of truth.** If this file and a page disagree, the page wins, and you report the disagreement.
+This skill is a map, and not a copy. The pages of `docs/architecture/backend/` hold the detail, and they win over any other statement. The application obeys the hexagonal architecture and the vertical slicing; `features/` is the location by default.
 
-The application obeys the hexagonal architecture and the vertical slicing. `apps/backend/src/` holds
-`core/`, `features/` and `shared/`, and `features/` is the location by default.
+Find the heading with `rtk grep -n`, then read the range with `Read`. Never read the whole page.
 
-## The one rule
+## The reference files
 
-**Depend inward only.** An outer layer depends on an inner layer, and an inner layer never depends
-on an outer layer. `domain/` must not import `infrastructure/` or `ui/`, and `core/` must never
-import a feature. Every other rule of the backend serves this one.
+| The file | Read it when | The heading |
+| --- | --- | --- |
+| [traps.md](references/traps.md) | You start any task of `apps/backend`. It holds the one rule and the three traps. | — |
+| [structure.md](../../../docs/architecture/backend/structure.md) | You place a file, or you need what each of the four layers holds, or you wire a module. | `## Top-level source folders`, `## The four layers`, `## Structure of a feature`, `## Module wiring` |
+| [structure.md](../../../docs/architecture/backend/structure.md) | You need where a spec lives and what it covers. | `## Testing` |
+| [structure.md](../../../docs/architecture/backend/structure.md) | You need how an error or a guard crosses every feature. | `## Cross-cutting concerns` |
+| [conventions.md](../../../docs/architecture/backend/conventions.md) | You name a file, a class or a function. | `## File naming`, `## Class and function naming` |
+| [conventions.md](../../../docs/architecture/backend/conventions.md) | You need which import takes an alias. | `## Imports` |
+| [conventions.md](../../../docs/architecture/backend/conventions.md) | You join a port to its adapter. | `## Ports and dependency injection` |
+| [conventions.md](../../../docs/architecture/backend/conventions.md) | You turn an ORM shape into a domain model. | `## Transformers` |
+| [conventions.md](../../../docs/architecture/backend/conventions.md) | You validate a body, or you shape a route. | `## Validation`, `## HTTP and REST` |
+| [stack.md](../../../docs/architecture/backend/stack.md) | You choose the library that takes a concern. | — |
+| [key-flows.md](../../../docs/architecture/backend/key-flows.md) | You need why a flow is built this way, or what the telemetry holds. | One `##` for one flow |
+| [operations.md](../../../docs/architecture/backend/operations.md) | You need the command that an operator runs. | — |
 
-## The page that answers your question
+## The neighbouring skills
 
-Read the section that you need, and not the whole page.
-
-| Your question | The page |
-|---|---|
-| Which folder takes this file? What does each of the four layers hold? How does a module wire? | [structure.md](../../../docs/architecture/backend/structure.md) |
-| How do I name this file, this class or this function? Which import takes an alias? | [conventions.md](../../../docs/architecture/backend/conventions.md), sections "File naming", "Class and function naming" and "Imports" |
-| How does a port meet its adapter? Where does the ORM shape become a domain model? | [conventions.md](../../../docs/architecture/backend/conventions.md), sections "Ports and dependency injection" and "Transformers" |
-| How do I validate a body? How does an error reach the client? | [conventions.md](../../../docs/architecture/backend/conventions.md) section "Validation", and [structure.md](../../../docs/architecture/backend/structure.md) section "Cross-cutting concerns" |
-| Where does a spec live, and what does it cover? | [structure.md](../../../docs/architecture/backend/structure.md) section "Testing" |
-| Which library takes this concern? | [stack.md](../../../docs/architecture/backend/stack.md) |
-| Why is the flow built this way? What does the telemetry hold? | [key-flows.md](../../../docs/architecture/backend/key-flows.md) |
-| Which command does an operator run? | [operations.md](../../../docs/architecture/backend/operations.md) |
-
-## The three traps
-
-These rules break the most often. The pages above hold the reason of each one.
-
-1. **A use case is a pure function**, and it receives each collaborator as a parameter. Only the
-   adapter is an `@Injectable()` provider.
-2. **A repository of the infrastructure never returns an ORM shape.** An adjacent `*.transformer.ts`
-   file maps the shape into a domain model.
-3. **The consumer injects the concrete adapter class** and types it as the port interface. The
-   project uses no injection token.
-
-## To scaffold a new feature
-
-The skill `backend-feature` holds the procedure, step by step. Invoke it, and keep this skill for
-the rules that it does not cover.
+- `backend-feature` holds the procedure that scaffolds a new resource. Invoke it, and keep this skill for the rules that it does not cover.
+- `backend-unit-testing` holds the conventions of a spec.
+- `nestjs-best-practices` holds the general practice of the framework. This skill wins over it.

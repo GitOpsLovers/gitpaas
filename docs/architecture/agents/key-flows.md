@@ -31,9 +31,9 @@ The orchestrator implements nothing, for one reason. A cold subagent reads one s
 file and the paths of the prompt; the orchestrator carries the conversation of the whole request.
 If the orchestrator also edited code, every edit would carry that larger context, and every edit
 would cost more tokens than the same edit made by a subagent. The rule that splits the two roles,
-the two roads of a request, and the three phases of the cycle, live in
-`.claude/skills/agent-orchestration/SKILL.md`. This page names the skill as the source of the
-workflow; it does not restate its steps.
+the two roads of a request, and the three phases of the cycle, live in the reference files of
+`.claude/skills/agent-orchestration/`. This page names the skill as the source of the workflow; it
+does not restate its steps.
 
 A phase is the unit of delivery because a change can span many files and many subagents, and a
 reviewer needs one phase, and not the whole change, to judge one Pull Request. A phase that groups
@@ -64,8 +64,8 @@ sides: the behavior of the application.
 
 Three agents that each guard one edge of "does this change behavior" catch a slip that one broad
 agent would miss: a refactor that quietly fixes a bug, or a test that quietly changes the code
-under test. The choice of the agent for each kind of task is in section 3 of
-`.claude/skills/agent-orchestration/SKILL.md`.
+under test. The choice of the agent for each kind of task is in
+`.claude/skills/agent-orchestration/references/which-agent.md`.
 
 `researcher` carries two jobs, and both read the code and write no code. The first job is
 the research of the cycle: it writes `docs/roadmap/<feature>/research.md`, so a plan starts from

@@ -22,7 +22,7 @@ with no spec. Cover it.
 
 ## The business drives the tests
 
-Read the page of `docs/business/` that covers the area that you test. If the prompt names `docs/roadmap/<feature>/`, read `plan.md` too, because it states the rules that the feature adds and that no page carries yet. `.claude/skills/project-documentation/SKILL.md` gives the shape of a page.
+Read the page of `docs/business/` that covers the area that you test. If the prompt names `docs/roadmap/<feature>/`, read `plan.md` too, because it states the rules that the feature adds and that no page carries yet. `.claude/skills/project-documentation/references/business-page.md` gives the shape of a page.
 
 **Derive the test cases from the scenarios.** Write one test per scenario, and name the test after it. The `WHEN` line gives the arrangement and the action. The `THEN` line gives the assertion.
 
