@@ -16,6 +16,18 @@
             />
         }
 
+        @case ('configuration') {
+            <app-service-variables
+                [variables]="variables.value() ?? []"
+                [loading]="variables.isLoading()"
+                [saving]="savingVariable()"
+                [error]="variableError()"
+                (set)="setVariable($event)"
+                (update)="changeVariable($event)"
+                (remove)="requestVariableRemoval($event)"
+            />
+        }
+
         @case ('deployments') {
             <app-service-deployments
                 [deployments]="deployments.value() ?? []"
@@ -38,6 +50,19 @@
         }
     }
 </div>
+
+<app-confirm-modal
+    [open]="pendingVariableRemoval() !== null"
+    [message]="removeVariableMessage()"
+    [loading]="removingVariable()"
+    title="Remove variable?"
+    confirmText="Remove"
+    cancelText="Cancel"
+    variant="danger"
+    icon="trash"
+    (confirmed)="confirmVariableRemoval()"
+    (cancelled)="pendingVariableRemoval.set(null)"
+/>
 
 <app-deployment-logs-modal
     [open]="logModalOpen()"
