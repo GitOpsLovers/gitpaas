@@ -5,7 +5,7 @@ description: Vitest reference - mocking, coverage, filtering, fixtures. The skil
 
 # Vitest
 
-The general documentation of the runner. `frontend-unit-testing` holds the conventions of the specs of this project, and it wins over this skill. Read this skill for the API of the runner that no page of the project covers. The snapshot follows Vitest 5.x, and it dates from 2026-06-22.
+The general documentation of the runner. `frontend-unit-testing` holds the conventions of the specs of this project, and it wins over this skill. Read this skill for the API of the runner that no page of the project covers. 
 
 ## The reference files
 

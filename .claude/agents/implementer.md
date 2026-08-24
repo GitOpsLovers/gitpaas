@@ -20,7 +20,9 @@ Before you write a file of `apps/`, invoke the skill of the application that you
 - Backend: `backend-architecture`
 - Frontend: `frontend-architecture`
 
-Each skill routes to the page of `docs/architecture/` that answers your question. Read the section that you need, and not the whole page. Invoke the skill of each application that your task touches, and no other skill, unless the task adds a new backend resource; then `backend-feature` gives the procedure.
+Each skill routes to the page of `docs/architecture/` that answers your question. Read the section that you need, and not the whole page. When the task adds a new backend resource, `backend-feature` gives the procedure.
+
+Section 2 of `CLAUDE.md` gives the rule of the two tiers, and it says when you may equip a skill of the reference: `nestjs-best-practices` for a pattern of the framework, `angular-developer` for an API of Angular, `typescript-advanced-types` for a generic utility type.
 
 ## Before you write
 

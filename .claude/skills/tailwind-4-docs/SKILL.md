@@ -9,9 +9,6 @@ compatibility: Requires git, Python 3, and internet access to initialize the Tai
 A local snapshot of the official documentation of Tailwind CSS v4. `tailadmin-ui-patterns` holds the classes of the components of the dashboard of this project, and it
 wins over this skill. Read this skill for the engine of Tailwind: a utility, a variant, or the configuration `@theme`.
 
-**The snapshot needs one initialization.** `references/docs/` and `references/docs-index.tsx` are generated, and Git ignores them. If either one is absent, or older than one week, read
-[initialization.md](references/initialization.md) before you answer.
-
 ## The reference files
 
 | The file | Read it when |

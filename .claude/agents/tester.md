@@ -41,9 +41,9 @@ Before you write a spec, invoke the two skills of the application that you test,
 
 The skill of the tests gives the conventions of the spec. The skill of the architecture gives the layer of the subject, its naming and the path aliases, and it routes to the page of `docs/architecture/` that holds the detail.
 
-Invoke the pair of the application that you test, and no other skill. Your `Skill` tool lists every skill of the project, and most of them belong to another agent. A skill that the prompt does not name, and that this file does not name, is not yours to load. `vitest` is one of them: the skill `frontend-unit-testing` already gives the rules of this project, and it wins over the general documentation of the runner.
-
 Each skill holds a table of reference files. Those references are files, and not skills, so you open them with `Read`. Read `references/conventions.md`, then read the one reference file for your type of subject. Do not read the whole folder. Always read one or two existing sibling specs first, and mirror them.
+
+Section 2 of `CLAUDE.md` gives the rule of the two tiers, and it says when you may equip a skill of the reference. `vitest` is the one that fits your job, and `frontend-unit-testing` wins over it. This project runs Vitest 4.1.10, and the snapshot of that skill follows Vitest 5.x, so check a feature against `apps/frontend/package.json` before you rely on it.
 
 ## Conventions you must follow
 

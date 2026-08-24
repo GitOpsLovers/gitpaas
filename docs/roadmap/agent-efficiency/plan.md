@@ -305,21 +305,33 @@ skills. Every rule, every procedure and every example lives in `references/`.
 - [x] 1.5 Correct every pointer that named a section of a file `SKILL.md` that no longer holds it:
       `tester.md`, `researcher.md`, `turborepo/command/turborepo.md` and
       `docs/architecture/agents/key-flows.md`.
-- [ ] 1.6 Replace the paragraph that forbids a skill in `documenter.md`, `tester.md`,
-      `implementer.md` and `refactorer.md` with the two tiers: the skill of the job that the agent
-      always loads, and the permission to invoke one skill of the reference on demand. Phase 3 writes
-      the six agent files, and it carries this task.
-- [ ] 1.7 Add to each of the six reference skills one line that gives the version of the tool and the
-      way to refresh the snapshot. Five of the six already carry a version in their frontmatter;
-      `typescript-advanced-types` carries none.
+- [x] 1.6 Replace the paragraph that forbids a skill in `documenter.md`, `tester.md`,
+      `implementer.md` and `refactorer.md` with the two tiers. The rule of the two tiers is a rule
+      that every agent obeys, so it lives one time, in section 2 of `CLAUDE.md`. Each agent file now
+      names its own skills of the job, and it links that section.
+- [x] 1.7 Add to each of the six reference skills one line **The snapshot**: the version that the
+      reference files follow, the version that this project runs, and the way to refresh the
+      snapshot.
 
 **Done when:** every `SKILL.md` holds a table of the reference files and no other content, every link
 of every table resolves, no file of `references/` is orphaned, and the six descriptions hold 120
 characters or less each.
 
-**The result of 1.1 to 1.5.** The descriptions fell from 4 300 characters to 2 188. The fifteen files
-`SKILL.md` hold 536 lines in total, and the largest one holds 70. Every link resolves, and every file
+**The result of phase 1.** The descriptions fell from 4 300 characters to 2 188. The fifteen files
+`SKILL.md` hold 551 lines in total, and the largest one holds 70. Every link resolves, and every file
 of every folder `references/` is reachable from its table.
+
+**Two drifts that 1.7 revealed.** The snapshot of `vitest` follows Vitest 5.x beta, and
+`apps/frontend` runs Vitest 4.1.10, so the reference is one major version ahead of the code. The
+reference files of `angular-developer` target Angular v21, and `apps/frontend` runs Angular 22.0.7.
+Both lines now carry the two versions, and `vitest/SKILL.md` and `tester.md` carry a warning.
+
+**`git-manager` keeps its closed door.** Its file says "Invoke that one skill, and no other", and
+that stays true. It runs the commands of Git, and no question of a third-party tool reaches it.
+
+**One note for phase 2.** Task 1.6 already added the block of the skills to section 2 of `CLAUDE.md`.
+Task 2.8 must keep that block, and add the two blocks that stay: the commands of the verification,
+and the rule of the scope.
 
 ### Phase 2 — The two workflows, and one fact in one file
 

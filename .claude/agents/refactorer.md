@@ -16,7 +16,9 @@ Before you move or rename a file of `apps/`, invoke the skill of the application
 - Backend: `backend-architecture`
 - Frontend: `frontend-architecture`
 
-Each skill routes to the page of `docs/architecture/` that answers your question. Read the section that you need, and not the whole page. Invoke the skill of each application that your task touches, and no other skill.
+Each skill routes to the page of `docs/architecture/` that answers your question. Read the section that you need, and not the whole page.
+
+Section 2 of `CLAUDE.md` gives the rule of the two tiers, and it says when you may equip a skill of the reference.
 
 ## Prime directive
 
