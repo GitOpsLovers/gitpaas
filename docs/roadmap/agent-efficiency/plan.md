@@ -369,19 +369,19 @@ and the rule of the scope.
 **Agent:** refactorer
 **Paths:** `.claude/agents/`
 
-- [ ] 3.1 Write the six sections of decision 8 into each of the six files, in that order.
-- [ ] 3.2 Delete from every agent file the preamble of the cold start, the rule of the scope and the
+- [x] 3.1 Write the six sections of decision 8 into each of the six files, in that order.
+- [x] 3.2 Delete from every agent file the preamble of the cold start, the rule of the scope and the
       commands of the verification. `CLAUDE.md` holds them after phase 2.
-- [ ] 3.3 Make one table of the report, with the fields **Changed**, **Verified**, **Open**,
+- [x] 3.3 Make one table of the report, with the fields **Changed**, **Verified**, **Open**,
       **Follow-ups** and **Notes**. Use the same order and the same wording in the five files that
       carry it. `git-manager` keeps its report of one line.
-- [ ] 3.4 Add one line to `git-manager.md`: the command `/implement` is the one caller, and the agent
+- [x] 3.4 Add one line to `git-manager.md`: the command `/implement` is the one caller, and the agent
       refuses a task that arrives outside a phase of `docs/roadmap/<feature>/plan.md`.
-- [ ] 3.5 Add one line to the five other agent files: the agent runs no `git` and no `gh` command
+- [x] 3.5 Add one line to the five other agent files: the agent runs no `git` and no `gh` command
       that changes state, and it reports the change that it left in the working tree.
-- [ ] 3.6 Apply the rule of the verification: one command for one application, and `build` only when
+- [x] 3.6 Apply the rule of the verification: one command for one application, and `build` only when
       the task changes a file of the build. Correct `implementer.md` and `refactorer.md`.
-- [ ] 3.7 Give one command for the tests of the frontend, `rtk pnpm --filter @gitpaas/frontend test`,
+- [x] 3.7 Give one command for the tests of the frontend, `rtk pnpm --filter @gitpaas/frontend test`,
       in `tester.md`. Delete the second form `rtk ng test --watch=false`.
 
 **Done when:** the six files hold 20 KB or less in total, the five reports hold the same five fields
