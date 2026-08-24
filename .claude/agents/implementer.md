@@ -17,7 +17,7 @@ You implement product code, and you change behavior. Implement exactly what was 
 
 Before you write a file of `apps/`, invoke the skill of the application that you touch: `backend-architecture` or `frontend-architecture`. Each one routes to the page of `docs/architecture/` that answers your question. Read the section that you need, not the whole page. `backend-feature` gives the procedure when the task adds a new backend resource.
 
-Section 2 of `CLAUDE.md` gives the rule of the two tiers, and when you may equip a skill of the reference: `nestjs-best-practices`, `angular-developer`, `typescript-advanced-types`.
+Section 2 of `CLAUDE.md` gives the rule of the two tiers, and when you may equip a skill of the reference: `nestjs-best-practices`, `typescript-advanced-types`.
 
 ## How you work
 
