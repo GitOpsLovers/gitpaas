@@ -1,0 +1,67 @@
+docs/architecture/infrastructure/structure.md
+  s_83127aee01cc51::t_7b008fe08ecab6 3
+.claude/skills/frontend-architecture/SKILL.md
+  s_adc19060a6c76c::t_6c7cf21df7e99a 25,30-32
+.claude/skills/frontend-architecture/references/arch-class-function-naming.md
+  s_adc19060a6c76c::t_4a0b15bb8c6bf2 1-15
+.claude/skills/frontend-architecture/references/arch-file-naming.md
+  s_adc19060a6c76c::t_5b59a444af7746 1-15
+.claude/skills/frontend-architecture/references/arch-known-deviations.md
+  s_83127aee01cc51::t_d6fdcb3d0a1573 1-7
+docs/architecture/agents/key-flows.md
+  s_bae0b5b1edf5b5::t_5afbbf0891c89d 19,40
+docs/architecture/frontend/conventions.md
+  s_adc19060a6c76c::t_2ff1119b226cb8 46
+docs/architecture/frontend/structure.md
+  s_adc19060a6c76c::t_03e01a7038e9bb 44
+docs/architecture/infrastructure/installation.md
+  s_adc19060a6c76c::t_2e779699d7bb06 11,15,25,42-47,49-52,55,77,79
+docs/architecture/infrastructure/operations.md
+  s_adc19060a6c76c::t_12dfe324f041ae 15,17-18,20
+docs/architecture/monorepo.md
+  s_d385b4f02f7fa5::t_cdf2c7f83105fa 5
+docs/architecture/monorepo/stack.md
+  s_bae0b5b1edf5b5::t_3efec129bd868b 6
+docs/architecture/monorepo/structure.md
+  s_d385b4f02f7fa5::t_d09fb9c6ff3d4e 13-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "95685fd43d8f0791c6a44a303e89b59e1883d2d4",
+  "prompts": {},
+  "sessions": {
+    "s_83127aee01cc51": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "04dc6e2d-2015-4107-919c-ba6eff7311fe",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_adc19060a6c76c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa94fb0bc1e1ebe98",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_bae0b5b1edf5b5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4ece57fa4c2b886e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d385b4f02f7fa5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5bf3856562af77bc",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
