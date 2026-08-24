@@ -1,0 +1,43 @@
+apps/frontend/src/app/features/services/application/build-service-variable-update.use-case.spec.ts
+  s_a2de7b26c095d5::t_ebfb1674c0cbdc 1-42
+apps/frontend/src/app/features/services/application/build-service-variable-update.use-case.ts
+  s_a2de7b26c095d5::t_25ab4024e2020b 1-26
+apps/frontend/src/app/features/services/application/read-service-variable-error.use-case.spec.ts
+  s_a2de7b26c095d5::t_fdc22e61dbd7f7 1-43
+apps/frontend/src/app/features/services/application/read-service-variable-error.use-case.ts
+  s_a2de7b26c095d5::t_9697c05bbf5f1c 1-29
+apps/frontend/src/app/features/services/domain/models/service-variable.models.ts
+  s_a2de7b26c095d5::t_61895cf9f32946 1-13
+apps/frontend/src/app/features/services/infrastructure/api/service-variables-api.repository.ts
+  s_a2de7b26c095d5::t_14b0d854118e4d 1-68
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.html
+  s_a2de7b26c095d5::t_c838c68c935bfe 1-146
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.spec.ts
+  s_a2de7b26c095d5::t_df6e37b9450e64 1-106
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.ts
+  s_a2de7b26c095d5::t_2411b7f1ef2b81 1-152
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_a2de7b26c095d5::t_2cc29375d6f761 19-30,54-66
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_a2de7b26c095d5::t_7d4131508caaaf 4,7-8,11,31-39,56-59,77-83,116-122,148,326-427
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_a2de7b26c095d5::t_27db5be917015a 4,7-10,17,26,30,35-42,45,53,63-64,96-98,112-126,133,239-322
+docs/roadmap/service-environment/TODO.md
+  s_a2de7b26c095d5::t_836a6fc09d639c 21-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d03d8286adcfa3d538c8bd15506cc124bc44fad2",
+  "prompts": {},
+  "sessions": {
+    "s_a2de7b26c095d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "887919fc-93c0-4aba-be30-b5bac4ec3d72",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
