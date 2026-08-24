@@ -1,0 +1,49 @@
+.claude/agents/documenter.md
+  s_30b11f357e50b1::t_e335f7cc8e3ee2 3
+.claude/agents/git-manager.md
+  s_30b11f357e50b1::t_f6123b7e2f442e 26-27
+.claude/agents/implementer.md
+  s_30b11f357e50b1::t_84190e1a1bb118 3,12,14-16,22-30,35,37-39,41,47-49,57,60
+.claude/agents/researcher.md
+  s_30b11f357e50b1::t_94118ec8045b84 37
+.claude/commands/implement.md
+  s_30b11f357e50b1::t_bf633f8d8b6d1e 21-22,29
+.claude/skills/agent-orchestration/references/workflow-sdd.md
+  s_30b11f357e50b1::t_d9bc86ee04d86f 20
+.claude/skills/git-github-workflow/references/limits.md
+  s_30b11f357e50b1::t_ab1fd69be9f675 7-11
+.claude/skills/git-github-workflow/references/naming.md
+  s_30b11f357e50b1::t_9b0fcca77e1311 6-7,9-13
+.claude/skills/git-github-workflow/references/procedure.md
+  s_30b11f357e50b1::t_27d0f42a8d5459 8,10,13,16-17
+.claude/skills/git-github-workflow/references/roadmap-feature.md
+  s_30b11f357e50b1::t_ecfab8d86a6652 7
+.claude/skills/project-documentation/references/business-page.md
+  s_30b11f357e50b1::t_c2b889f7ef992d 30
+CONTRIBUTING.md
+  s_30b11f357e50b1::t_02b3a526619772 107,120-125,131,135,138,152,155-157,175
+docs/architecture/agents.md
+  s_30b11f357e50b1::t_d6466311acf41a 9
+docs/architecture/agents/conventions.md
+  s_30b11f357e50b1::t_5bb3fb208bf817 5,24,30
+docs/architecture/agents/key-flows.md
+  s_30b11f357e50b1::t_9c7ed06158ac5e 33-34,40,44,46,48-50,52,56,60
+docs/roadmap/complexity-reduction/TODO.md
+  s_30b11f357e50b1::t_89ad45eae53fb3 16,27,38,51,62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "682cd41cfa5d53182a8a7f8a4fb06140b37aabb1",
+  "prompts": {},
+  "sessions": {
+    "s_30b11f357e50b1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e6b77e2-824e-435a-ac1f-ef3c3179791b",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
