@@ -1,0 +1,25 @@
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.spec.ts
+  s_0fe6dc3d88c849::t_5110c3e81c8672 40,44,55,93-145
+apps/frontend/src/app/features/services/ui/components/deployment-logs-modal/deployment-logs-modal.component.ts
+  s_0fe6dc3d88c849::t_c872fbf8740916 61-66,134-144,155,170-177
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_0fe6dc3d88c849::t_332a404dc1f088 73
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_0fe6dc3d88c849::t_bed8dd2f6a880f 13,434-437,449,453,457,488,515-517,547-554
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5d4d0286c5502b1381d9ac6b18b50b35fcb008c5",
+  "prompts": {},
+  "sessions": {
+    "s_0fe6dc3d88c849": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c23d4dce-2b48-463b-a341-a2d90aaca387",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
