@@ -12,6 +12,7 @@ import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { AuthenticationModule } from '@features/authentication/authentication.module';
 import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
+import { DomainsModule } from '@features/domains/domains.module';
 import { LogsModule } from '@features/logs/logs.module';
 import { NamespacesModule } from '@features/namespaces/namespaces.module';
 import { NetworksModule } from '@features/networks/networks.module';
@@ -53,6 +54,7 @@ import { UsersModule } from '@features/users/users.module';
         ProvidersModule,
         ServicesModule,
         ServiceEnvironmentModule,
+        DomainsModule,
         DeploymentsModule,
         LogsModule,
         ContainersModule,

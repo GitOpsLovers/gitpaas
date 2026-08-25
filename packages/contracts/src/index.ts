@@ -24,6 +24,19 @@ export type {
     UpdateServiceVariableDto,
 } from './service-environment/service-variable.contract';
 
+export {
+    certificateStateSchema,
+    claimDomainSchema,
+    DOMAIN_HOST_MAX_LENGTH,
+    DOMAIN_HOST_MESSAGE,
+    DOMAIN_HOST_PATTERN,
+    DOMAIN_PORT_MAX,
+    DOMAIN_PORT_MIN,
+    domainSchema,
+    updateDomainSchema,
+} from './domains/domain.contract';
+export type { CertificateState, ClaimDomainDto, Domain, UpdateDomainDto } from './domains/domain.contract';
+
 export { deploymentSchema, deploymentStatusSchema, triggerDeploymentSchema } from './deployments/deployment.contract';
 export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deployments/deployment.contract';
 
