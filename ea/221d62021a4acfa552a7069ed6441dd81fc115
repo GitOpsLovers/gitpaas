@@ -1,0 +1,19 @@
+docs/roadmap/domains/TODO.md
+  s_3d0a452eafe2cb::t_fe26b6da581995 3,8,10-17,19,22,24-26,30-31,40-43,50-55,60,63-69,74,77-78,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ea221d62021a4acfa552a7069ed6441dd81fc115",
+  "prompts": {},
+  "sessions": {
+    "s_3d0a452eafe2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14312341-f98b-4bf9-905e-3055a316f6de",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
