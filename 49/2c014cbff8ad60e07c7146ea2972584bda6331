@@ -1,0 +1,16 @@
+iac/production/backend.Dockerfile
+  h_e4f33aa49027b9 46,51-54
+iac/production/frontend.Dockerfile
+  h_e4f33aa49027b9 38,43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "492c014cbff8ad60e07c7146ea2972584bda6331",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
