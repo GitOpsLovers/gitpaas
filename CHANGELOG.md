@@ -1,3 +1,42 @@
+## [2.0.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.4.0...v2.0.0) (2026-08-25)
+
+### ⚠ BREAKING CHANGES
+
+* **request-model:** initialize contracts package (phase 1) (#112)
+
+### Features
+
+* add service environment ([#136](https://github.com/GitOpsLovers/gitpaas/issues/136)) ([94b7741](https://github.com/GitOpsLovers/gitpaas/commit/94b7741ffdfb7ff136f9c7465da78a7a1bfc1b5f))
+* **agents-metrics:** add phase 1 script and changelog plan ([#133](https://github.com/GitOpsLovers/gitpaas/issues/133)) ([32ea2af](https://github.com/GitOpsLovers/gitpaas/commit/32ea2afffb3b45c7c67e838c924baf263ab96721))
+* change styles of service configuration ([753bab4](https://github.com/GitOpsLovers/gitpaas/commit/753bab428359b451dc9aa82f0039dc1f0a89a2f9))
+* **logs:** add removal of expired logs (phase 2) ([#129](https://github.com/GitOpsLovers/gitpaas/issues/129)) ([b310ecd](https://github.com/GitOpsLovers/gitpaas/commit/b310ecd5ff6a5e56eb020737766384ddbd611844))
+* **logs:** deliver phase 5 of log-retention change ([#132](https://github.com/GitOpsLovers/gitpaas/issues/132)) ([6c49826](https://github.com/GitOpsLovers/gitpaas/commit/6c49826432b3ccaa7a6d79c1df661c86a3270f2b))
+* **logs:** handle error events in deployment log stream ([#111](https://github.com/GitOpsLovers/gitpaas/issues/111)) ([304c6cf](https://github.com/GitOpsLovers/gitpaas/commit/304c6cf7c8c27108442d7d2531638f3789ba3717))
+* **logs:** separate log state in response (phase 3) ([#130](https://github.com/GitOpsLovers/gitpaas/issues/130)) ([414c4db](https://github.com/GitOpsLovers/gitpaas/commit/414c4db38b858435bf7fd1db9a5a042a59f9c97d))
+* **request-model:** authentication contracts slice ([#117](https://github.com/GitOpsLovers/gitpaas/issues/117)) ([1433c76](https://github.com/GitOpsLovers/gitpaas/commit/1433c76378ddd3bd0d0629192b258323a7a4609c))
+* **request-model:** deployments contracts slice ([#116](https://github.com/GitOpsLovers/gitpaas/issues/116)) ([96e25e3](https://github.com/GitOpsLovers/gitpaas/commit/96e25e30d2466e23a78602d590f2c1dafbefefc3))
+* **request-model:** initialize contracts package (phase 1) ([#112](https://github.com/GitOpsLovers/gitpaas/issues/112)) ([a631505](https://github.com/GitOpsLovers/gitpaas/commit/a631505ba927c7793c086893d598ad3dcb2fcd65))
+* **request-model:** iso timestamps on the wire (phase 3) ([#114](https://github.com/GitOpsLovers/gitpaas/issues/114)) ([393cc51](https://github.com/GitOpsLovers/gitpaas/commit/393cc515d637a261b612bc19045870302f4fc3ca))
+* **request-model:** namespaces, containers and networks contracts slice ([#120](https://github.com/GitOpsLovers/gitpaas/issues/120)) ([e0535a1](https://github.com/GitOpsLovers/gitpaas/commit/e0535a1515fc8642d316904df6e44ce048eeb521))
+* **request-model:** phase 5 shapes that only one side has ([#122](https://github.com/GitOpsLovers/gitpaas/issues/122)) ([110bd6b](https://github.com/GitOpsLovers/gitpaas/commit/110bd6be091ace8b47fddb34fa6f6add83d82dea))
+* **request-model:** phase 6 generated openapi specification and reference ([#123](https://github.com/GitOpsLovers/gitpaas/issues/123)) ([252ffb7](https://github.com/GitOpsLovers/gitpaas/commit/252ffb76e21df1715bea155e42c63262aa890ead))
+* **request-model:** phase 7 removal of the old machinery ([#124](https://github.com/GitOpsLovers/gitpaas/issues/124)) ([06e4c85](https://github.com/GitOpsLovers/gitpaas/commit/06e4c852be6a9eb726cfe6c2a3a2fbc7efc312a8))
+* **request-model:** phase 8 close migration with specification sync ([#125](https://github.com/GitOpsLovers/gitpaas/issues/125)) ([0ad8e32](https://github.com/GitOpsLovers/gitpaas/commit/0ad8e3256d51bbdaa1afea721eb76e6d963c48f5))
+* **request-model:** projects contracts slice (phase 2) ([#113](https://github.com/GitOpsLovers/gitpaas/issues/113)) ([774cdcb](https://github.com/GitOpsLovers/gitpaas/commit/774cdcbc4af46af5b537626c3d553c06908eae9d))
+* **request-model:** providers contracts slice ([#118](https://github.com/GitOpsLovers/gitpaas/issues/118)) ([2511c0e](https://github.com/GitOpsLovers/gitpaas/commit/2511c0e35f0d7f10211fe323ee9c2ce200dc8ba2))
+* **request-model:** server contracts slice ([#119](https://github.com/GitOpsLovers/gitpaas/issues/119)) ([f1fcb73](https://github.com/GitOpsLovers/gitpaas/commit/f1fcb73a21e5f770ea4af6a6a3478dc04f4cfb62))
+* **request-model:** services contracts slice ([#115](https://github.com/GitOpsLovers/gitpaas/issues/115)) ([28d2689](https://github.com/GitOpsLovers/gitpaas/commit/28d268940f441e7f93f100ed167c8f8736e5bbd1))
+* **server:** add platform settings (phase 1) ([#128](https://github.com/GitOpsLovers/gitpaas/issues/128)) ([49261f1](https://github.com/GitOpsLovers/gitpaas/commit/49261f1f47dde60d86d334b3f650083f898dbe8f))
+* **server:** add server screen tabs for health, maintenance and settings ([#131](https://github.com/GitOpsLovers/gitpaas/issues/131)) ([908a25c](https://github.com/GitOpsLovers/gitpaas/commit/908a25c3d06db71f1f7b36e7483838336f64055e))
+* **service-env-secrets:** set up encryption for environment secrets ([#135](https://github.com/GitOpsLovers/gitpaas/issues/135)) ([8e963f7](https://github.com/GitOpsLovers/gitpaas/commit/8e963f73cb726b3965af40688e290b9336c7fed5))
+* **service-environment:** add configuration tab for service variables ([#141](https://github.com/GitOpsLovers/gitpaas/issues/141)) ([f2b7419](https://github.com/GitOpsLovers/gitpaas/commit/f2b74195b101e11674ed5e97de92a7f8e8171db5))
+* **service-environment:** inject environment at deployment ([#139](https://github.com/GitOpsLovers/gitpaas/issues/139)) ([c599fd0](https://github.com/GitOpsLovers/gitpaas/commit/c599fd0bbe192eb393b90285197ae60c3c2593f3))
+
+### Bug Fixes
+
+* add Contracts compilation on Dockerfiles ([492c014](https://github.com/GitOpsLovers/gitpaas/commit/492c014cbff8ad60e07c7146ea2972584bda6331))
+* emit errors on Docker compose process ([6855a88](https://github.com/GitOpsLovers/gitpaas/commit/6855a88257c4e60ea06289c6e57c9b519ab465d2))
+
 ## [1.4.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.3.0...v1.4.0) (2026-08-20)
 
 ### Features
