@@ -32,6 +32,8 @@
             <app-service-deployments
                 [deployments]="deployments.value() ?? []"
                 [loading]="deployments.isLoading()"
+                [deploying]="deploying()"
+                (deploy)="deploy()"
                 (view)="viewDeployment($event)"
                 (delete)="deleteDeployment($event)"
             />

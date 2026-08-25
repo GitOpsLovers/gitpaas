@@ -1,10 +1,19 @@
 import { DatePipe } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import type { Deployment, DeploymentStatus } from '@gitpaas/contracts';
-import { LucideCalendar, LucideClock, LucideEye, LucideGitBranch, LucideGitCommitHorizontal, LucideTrash2 } from '@lucide/angular';
+import {
+    LucideCalendar,
+    LucideClock,
+    LucideEye,
+    LucideGitBranch,
+    LucideGitCommitHorizontal,
+    LucideRocket,
+    LucideTrash2,
+} from '@lucide/angular';
 
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 
 @Component({
     selector: 'app-service-deployments',
@@ -12,6 +21,7 @@ import { ComponentCardComponent } from '@shared/components/component-card/compon
     imports: [
         ComponentCardComponent,
         ButtonComponent,
+        ConfirmModalComponent,
         DatePipe,
         LucideGitBranch,
         LucideGitCommitHorizontal,
@@ -19,11 +29,12 @@ import { ComponentCardComponent } from '@shared/components/component-card/compon
         LucideClock,
         LucideEye,
         LucideTrash2,
+        LucideRocket,
     ],
 })
 
 /**
- * Presentational card listing the service deployments history.
+ * Component for a card listing the service deployments history.
  */
 export class ServiceDeploymentsComponent {
     /**
@@ -37,6 +48,16 @@ export class ServiceDeploymentsComponent {
     public readonly loading = input(false);
 
     /**
+     * Whether a deployment is currently being triggered.
+     */
+    public readonly deploying = input(false);
+
+    /**
+     * Emitted when the user confirms a new deployment.
+     */
+    public readonly deploy = output();
+
+    /**
      * Emitted when the user wants to view a deployment.
      */
     public readonly view = output<Deployment>();
@@ -45,6 +66,23 @@ export class ServiceDeploymentsComponent {
      * Emitted when the user wants to delete a deployment.
      */
     public readonly delete = output<Deployment>();
+
+    protected readonly confirmOpen = signal(false);
+
+    /**
+     * Opens the deployment confirmation modal
+     */
+    protected requestDeploy(): void {
+        this.confirmOpen.set(true);
+    }
+
+    /**
+     * Confirms the deployment, closing the modal and emitting the deploy event
+     */
+    protected confirmDeploy(): void {
+        this.confirmOpen.set(false);
+        this.deploy.emit();
+    }
 
     /**
      * Abbreviates a commit SHA to its first 7 characters.

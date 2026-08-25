@@ -1,4 +1,11 @@
 <app-component-card title="Deployments" desc="History of this service's deployments, most recent first.">
+    <div class="flex items-center justify-end">
+        <app-button variant="primary" size="sm" [disabled]="deploying()" (btnClick)="requestDeploy()">
+            <svg lucideRocket class="h-4 w-4"></svg>
+            {{ deploying() ? 'Deploying…' : 'Deploy' }}
+        </app-button>
+    </div>
+
     <div class="flex flex-col gap-3">
         @for (deployment of deployments(); track deployment.id) {
             <div
@@ -78,4 +85,15 @@
             </p>
         }
     </div>
+
+    <app-confirm-modal
+        [open]="confirmOpen()"
+        title="Launch deployment?"
+        message="Are you sure you want to trigger a new deployment for this service?"
+        confirmText="Deploy"
+        cancelText="Cancel"
+        variant="primary"
+        (confirmed)="confirmDeploy()"
+        (cancelled)="confirmOpen.set(false)"
+    />
 </app-component-card>
