@@ -37,9 +37,11 @@ describe('DeploymentLogsModalComponent', () => {
     let repository: { logs: ReturnType<typeof vi.fn>; logArchive: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<DeploymentLogsModalComponent>;
     let component: DeploymentLogsModalInternals;
+    let finishedCount: number;
 
     const create = (): void => {
         fixture = TestBed.createComponent(DeploymentLogsModalComponent);
+        fixture.componentInstance.finished.subscribe(() => { finishedCount += 1; });
         fixture.componentRef.setInput('open', true);
         fixture.componentRef.setInput('deployment', deployment);
         fixture.detectChanges();
@@ -50,6 +52,7 @@ describe('DeploymentLogsModalComponent', () => {
 
     beforeEach(() => {
         events = new Subject<LogEvent>();
+        finishedCount = 0;
         repository = {
             logs: vi.fn().mockReturnValue(events.asObservable()),
             logArchive: vi.fn().mockReturnValue({
@@ -85,6 +88,59 @@ describe('DeploymentLogsModalComponent', () => {
         expect(component.failure()).toBeNull();
         expect(component.streaming()).toBe(false);
         expect(text()).toContain('Deployment failed');
+    });
+
+    test('emits finished once when the stream ends with a final status and then completes', () => {
+        create();
+
+        expect(finishedCount).toBe(0);
+
+        events.next({ type: 'end', status: 'success' });
+        events.complete();
+        fixture.detectChanges();
+
+        expect(finishedCount).toBe(1);
+    });
+
+    test('emits finished when the stream completes with no final status', () => {
+        create();
+
+        events.complete();
+        fixture.detectChanges();
+
+        expect(component.finalStatus()).toBeNull();
+        expect(finishedCount).toBe(1);
+    });
+
+    test('emits finished when the stream fails before any end event', () => {
+        create();
+
+        events.error(new Error('Log stream connection closed'));
+        fixture.detectChanges();
+
+        expect(finishedCount).toBe(1);
+    });
+
+    test('emits finished once for each deployment it streams', () => {
+        create();
+
+        events.next({ type: 'end', status: 'success' });
+        fixture.detectChanges();
+
+        expect(finishedCount).toBe(1);
+
+        const nextEvents = new Subject<LogEvent>();
+
+        repository.logs.mockReturnValue(nextEvents.asObservable());
+        fixture.componentRef.setInput('deployment', { ...deployment, id: 'dp-2' });
+        fixture.detectChanges();
+
+        expect(finishedCount).toBe(1);
+
+        nextEvents.next({ type: 'end', status: 'failed' });
+        fixture.detectChanges();
+
+        expect(finishedCount).toBe(2);
     });
 
     test('shows the code and the message of an error event, and keeps the final status', () => {

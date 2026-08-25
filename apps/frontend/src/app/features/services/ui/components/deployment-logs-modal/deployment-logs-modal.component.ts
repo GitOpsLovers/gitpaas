@@ -58,6 +58,12 @@ export class DeploymentLogsModalComponent {
      */
     public readonly closed = output();
 
+    /**
+     * Emitted once when the log stream of the shown deployment reaches its end, so the caller can
+     * read the final status of that deployment.
+     */
+    public readonly finished = output();
+
     protected readonly lines = signal<string[]>([]);
 
     protected readonly streaming = signal(false);
@@ -125,6 +131,17 @@ export class DeploymentLogsModalComponent {
             this.archivedDeploymentId.set(undefined);
             this.streaming.set(true);
 
+            let finished = false;
+
+            const finish = (): void => {
+                if (finished) {
+                    return;
+                }
+
+                finished = true;
+                this.finished.emit();
+            };
+
             const subscription = this.repository.logs(deployment.id).subscribe({
                 next: (event) => {
                     switch (event.type) {
@@ -135,6 +152,7 @@ export class DeploymentLogsModalComponent {
                         case 'end':
                             this.finalStatus.set(event.status);
                             this.streaming.set(false);
+                            finish();
 
                             return;
                         case 'error':
@@ -149,8 +167,14 @@ export class DeploymentLogsModalComponent {
                         }
                     }
                 },
-                error: () => { this.settle(deployment.id); },
-                complete: () => { this.settle(deployment.id); },
+                error: () => {
+                    this.settle(deployment.id);
+                    finish();
+                },
+                complete: () => {
+                    this.settle(deployment.id);
+                    finish();
+                },
             });
 
             onCleanup(() => { subscription.unsubscribe(); });

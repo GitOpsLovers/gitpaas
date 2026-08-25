@@ -10,6 +10,7 @@ import { of, throwError } from 'rxjs';
 import { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
 import { ServiceVariablesApiRepository } from '../../../infrastructure/api/service-variables-api.repository';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
 import { ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
 import { ServiceVariableChange, ServiceVariablesComponent } from '../../components/service-variables/service-variables.component';
 
@@ -430,10 +431,10 @@ describe('ServiceDetailComponent', () => {
     });
 });
 
-// The configuration tab keeps its real template here, so a test proves the outputs of
-// `app-service-variables` reach the handlers of `ServiceDetailComponent` through the actual bindings
-// of `service-detail.component.html`, and not by calling a handler directly.
-describe('ServiceDetailComponent bindings of the service variables outputs', () => {
+// The template stays real here, so a test proves the outputs of the children reach the handlers of
+// `ServiceDetailComponent` through the actual bindings of `service-detail.component.html`, and not
+// by calling a handler directly.
+describe('ServiceDetailComponent bindings of the child outputs', () => {
     let repository: { serviceById: ReturnType<typeof vi.fn> };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
@@ -445,12 +446,15 @@ describe('ServiceDetailComponent bindings of the service variables outputs', () 
         update: ReturnType<typeof vi.fn>;
         remove: ReturnType<typeof vi.fn>;
     };
+    let deploymentsResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ServiceDetailComponent>;
     let component: ServiceDetailInternals;
     let child: ServiceVariablesComponent;
+    let logsModal: DeploymentLogsModalComponent;
 
     beforeEach(() => {
         repository = { serviceById: vi.fn().mockReturnValue({ value: signal(service) }) };
+        deploymentsResource = { value: signal(undefined), reload: vi.fn() };
         projectsRepository = {
             namespaceId: signal<string | undefined>(undefined),
             projectById: vi.fn().mockReturnValue({ value: signal(project) }),
@@ -481,7 +485,7 @@ describe('ServiceDetailComponent bindings of the service variables outputs', () 
                     {
                         provide: DeploymentsApiRepository,
                         useValue: {
-                            deploymentsByService: vi.fn().mockReturnValue({ value: signal(undefined) }),
+                            deploymentsByService: vi.fn().mockReturnValue(deploymentsResource),
                             logArchive: vi.fn().mockReturnValue({ value: signal(undefined), isLoading: signal(false) }),
                         },
                     },
@@ -508,6 +512,9 @@ describe('ServiceDetailComponent bindings of the service variables outputs', () 
 
         const debugElement = fixture.debugElement.query(By.directive(ServiceVariablesComponent));
         child = debugElement.componentInstance as ServiceVariablesComponent;
+
+        const modalElement = fixture.debugElement.query(By.directive(DeploymentLogsModalComponent));
+        logsModal = modalElement.componentInstance as DeploymentLogsModalComponent;
     });
 
     test('passes the payload of the update output to changeVariable through the real template', () => {
@@ -536,5 +543,13 @@ describe('ServiceDetailComponent bindings of the service variables outputs', () 
         child.remove.emit(variable);
 
         expect(spy).toHaveBeenCalledWith(variable);
+    });
+
+    test('reloads the deployments once when the log stream of a deployment reaches its end', () => {
+        expect(deploymentsResource.reload).not.toHaveBeenCalled();
+
+        logsModal.finished.emit();
+
+        expect(deploymentsResource.reload).toHaveBeenCalledTimes(1);
     });
 });

@@ -70,4 +70,5 @@
     [open]="logModalOpen()"
     [deployment]="selectedDeployment()"
     (closed)="logModalOpen.set(false)"
+    (finished)="deployments.reload()"
 />
