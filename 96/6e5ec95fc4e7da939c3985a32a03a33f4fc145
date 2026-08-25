@@ -1,0 +1,35 @@
+docs/roadmap/security-hardening/TODO.md
+  s_33478c1156c91d::t_5d5cc92cece21f 12
+docs/roadmap/domains/TODO.md
+  s_33478c1156c91d::t_1255a6774937f2 10-17,53
+iac/production/.env.example
+  s_a9b636c38d8287::t_69628398c44561 13-20
+scripts/install.sh
+  s_a9b636c38d8287::t_24b82b1a6284b0 26-27,39-47,51-57,72-86,114,146-212,348-420,439,457,582-585,636-643,651-656,670-673,677
+iac/production/docker-compose.yml
+  s_a9b636c38d8287::t_cf92ae9986366c 4-30,62,87,94-112,116-120,124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "966e5ec95fc4e7da939c3985a32a03a33f4fc145",
+  "prompts": {},
+  "sessions": {
+    "s_33478c1156c91d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "567b6201-aa24-4ced-b0e1-162de257a3a8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_a9b636c38d8287": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a68b2af6f824a40d2",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
