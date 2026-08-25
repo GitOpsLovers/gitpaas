@@ -1,0 +1,73 @@
+apps/backend/src/features/domains/application/__tests__/claim-domain.use-case.spec.ts
+  s_077f81119adb41::t_5235ad0c8ef03a 1-115
+apps/backend/src/features/domains/application/update-domain.use-case.ts
+  s_077f81119adb41::t_0067763562f385 1-69
+apps/backend/src/features/domains/ui/services/domains.service.ts
+  s_077f81119adb41::t_411a3f90ab5100 1-37
+packages/contracts/src/domains/__tests__/domain.contract.spec.ts
+  s_077f81119adb41::t_df3767f26e9f1e 1-157
+packages/contracts/src/domains/domain.contract.ts
+  s_077f81119adb41::t_0ac4c43280ac5f 1-106
+apps/backend/src/features/domains/domain/models/domain.models.ts
+  s_077f81119adb41::t_bc7ea0241a9158 1-18
+apps/backend/src/features/domains/application/claim-domain.use-case.ts
+  s_077f81119adb41::t_7287d59317d603 1-30
+apps/backend/src/features/domains/ui/services/__tests__/domains.service.spec.ts
+  s_077f81119adb41::t_2481a94d01d2b0 1-180
+apps/backend/src/features/domains/ui/controllers/__tests__/domains.controller.spec.ts
+  s_077f81119adb41::t_b843a12f372082 1-274
+apps/backend/src/features/domains/infrastructure/database/__tests__/db-domains.transformer.spec.ts
+  s_077f81119adb41::t_1e11f709667c8d 1-53
+apps/backend/src/features/domains/ui/controllers/domains.controller.ts
+  s_077f81119adb41::t_f2e759982fadf2 1-86
+apps/backend/src/features/domains/infrastructure/database/__tests__/db-domains.repository.spec.ts
+  s_077f81119adb41::t_bd5124e3efc70a 1-270
+apps/backend/src/features/domains/application/remove-domain.use-case.ts
+  s_077f81119adb41::t_93911f4fa6de6d 1-29
+docs/roadmap/domains/TODO.md
+  s_077f81119adb41::t_a3069b23b2dc35 24-33
+apps/backend/src/features/domains/application/__tests__/remove-domain.use-case.spec.ts
+  s_077f81119adb41::t_1fdeda2fc1a523 1-92
+packages/contracts/src/index.ts
+  s_077f81119adb41::t_aead6f849addff 27-39
+apps/backend/src/app.module.ts
+  s_077f81119adb41::t_09e247368995b4 15,57
+apps/backend/src/features/domains/application/__tests__/update-domain.use-case.spec.ts
+  s_077f81119adb41::t_1d6a7c8499d72d 1-201
+apps/backend/src/features/domains/domain/errors/domain.errors.ts
+  s_077f81119adb41::t_303710e3d3b689 1-19
+iac/production/migrations/014_domains.sql
+  s_077f81119adb41::t_966090bff46193 1-15
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_077f81119adb41::t_6a7d8770a10a54 55-56
+apps/backend/src/features/domains/application/__tests__/get-domains-by-service.use-case.spec.ts
+  s_077f81119adb41::t_0e71cb0affa6e6 1-69
+apps/backend/src/features/domains/infrastructure/database/db-domains.repository.ts
+  s_077f81119adb41::t_ec556e798da37e 1-100
+apps/backend/src/features/domains/infrastructure/database/db-domain.entity.ts
+  s_077f81119adb41::t_aec8350b055f09 1-40
+apps/backend/src/features/domains/application/get-domains-by-service.use-case.ts
+  s_077f81119adb41::t_f5b59cd51ea72c 1-17
+apps/backend/src/features/domains/infrastructure/database/db-domains.transformer.ts
+  s_077f81119adb41::t_7f21ffa8bcc712 1-23
+apps/backend/src/features/domains/domain/repositories/domains.repository.ts
+  s_077f81119adb41::t_5831870a05acc8 1-74
+apps/backend/src/features/domains/domains.module.ts
+  s_077f81119adb41::t_8351a87e4622ed 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "539ade05326b8f67bc6168ed063ba2a5371c4825",
+  "prompts": {},
+  "sessions": {
+    "s_077f81119adb41": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f396b273-df7c-42ad-9d71-8c1477b10f43",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
