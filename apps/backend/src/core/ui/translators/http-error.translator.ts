@@ -52,6 +52,8 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['INVALID_LOG_RETENTION', (error) => new BadRequestException(error.message, { cause: error })],
     ['VARIABLE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['VARIABLE_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
+    ['DOMAIN_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['DOMAIN_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
 ]);
 
 /**

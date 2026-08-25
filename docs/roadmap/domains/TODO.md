@@ -21,16 +21,16 @@ GitPaaS deploys a compose stack, and nothing sends traffic to it: no proxy holds
 **Agent:** implementer
 **Paths:** packages/contracts/src/domains/, apps/backend/src/features/domains/, iac/production/migrations/
 
-- [ ] 2.1 Create `packages/contracts/src/domains/domain.contract.ts`, with the fields `host`, `targetService`, `port`, `https` and the state of the certificate.
-- [ ] 2.2 Create the feature `apps/backend/src/features/domains/`, with the division that `namespaces` uses.
-- [ ] 2.3 Create the domain model, the data transfer objects of the claim, of the change and of the removal, and check the form of the name and the range of the port.
-- [ ] 2.4 Put the name into small letters before the write, so one domain cannot be claimed in two forms.
-- [ ] 2.5 Create the errors `DOMAIN_NOT_FOUND` and `DOMAIN_TAKEN`, and register them in the translator with `404` and `409`.
-- [ ] 2.6 Create the repository, the entity and the transformer, with the rule that a domain is unique across the installation.
-- [ ] 2.7 Create the migration `014`, which adds the table of the domains with the foreign key to the service and the removal in cascade.
-- [ ] 2.8 Create the use cases: claim, change, remove, and list by service.
-- [ ] 2.9 Create the controller and the service of the feature, under the path of the service that owns the domain.
-- [ ] 2.10 Create the specs of the use cases, of the repository and of the controller.
+- [x] 2.1 Create `packages/contracts/src/domains/domain.contract.ts`, with the fields `host`, `targetService`, `port`, `https` and the state of the certificate.
+- [x] 2.2 Create the feature `apps/backend/src/features/domains/`, with the division that `namespaces` uses.
+- [x] 2.3 Create the domain model, the data transfer objects of the claim, of the change and of the removal, and check the form of the name and the range of the port.
+- [x] 2.4 Put the name into small letters before the write, so one domain cannot be claimed in two forms.
+- [x] 2.5 Create the errors `DOMAIN_NOT_FOUND` and `DOMAIN_TAKEN`, and register them in the translator with `404` and `409`.
+- [x] 2.6 Create the repository, the entity and the transformer, with the rule that a domain is unique across the installation.
+- [x] 2.7 Create the migration `014`, which adds the table of the domains with the foreign key to the service and the removal in cascade.
+- [x] 2.8 Create the use cases: claim, change, remove, and list by service.
+- [x] 2.9 Create the controller and the service of the feature, under the path of the service that owns the domain.
+- [x] 2.10 Create the specs of the use cases, of the repository and of the controller.
 
 ## Phase 3 — The port of the proxy
 
