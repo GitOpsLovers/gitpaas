@@ -35,9 +35,14 @@ FROM base AS build
 # Workspace manifests first for a cache-friendly dependency install.
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/frontend/package.json apps/frontend/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @gitpaas/frontend...
+
+# Compile `@gitpaas/contracts`
+COPY packages/contracts packages/contracts
+RUN pnpm --filter @gitpaas/contracts build
 
 # Build the production bundle (Angular's `application` builder emits to
 # apps/frontend/dist/frontend/browser).

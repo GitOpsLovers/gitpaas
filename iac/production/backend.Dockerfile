@@ -43,9 +43,14 @@ RUN apt-get update \
 # Copy the workspace manifests first so dependency installs stay cache-friendly.
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/backend/package.json apps/backend/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @gitpaas/backend...
+
+# Compile `@gitpaas/contracts`
+COPY packages/contracts packages/contracts
+RUN pnpm --filter @gitpaas/contracts build
 
 # Compile the backend to apps/backend/dist.
 COPY apps/backend apps/backend
