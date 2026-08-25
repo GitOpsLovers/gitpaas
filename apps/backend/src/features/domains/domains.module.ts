@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { DbDomainEntity } from './infrastructure/database/db-domain.entity';
 import { DatabaseDomainsRepository } from './infrastructure/database/db-domains.repository';
+import { TraefikReverseProxyAdapter } from './infrastructure/traefik/traefik-reverse-proxy.adapter';
 import { DomainsController } from './ui/controllers/domains.controller';
 import { DomainsService } from './ui/services/domains.service';
 
@@ -15,7 +16,8 @@ import { DomainsService } from './ui/services/domains.service';
     providers: [
         DomainsService,
         DatabaseDomainsRepository,
+        TraefikReverseProxyAdapter,
     ],
-    exports: [DatabaseDomainsRepository],
+    exports: [DatabaseDomainsRepository, TraefikReverseProxyAdapter],
 })
 export class DomainsModule {}

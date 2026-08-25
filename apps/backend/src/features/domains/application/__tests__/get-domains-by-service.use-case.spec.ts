@@ -1,6 +1,14 @@
 import { Domain } from '../../domain/models/domain.models';
+import { ReverseProxy } from '../../domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '../../domain/repositories/domains.repository';
 import { getDomainsByServiceUseCase } from '../get-domains-by-service.use-case';
+import { refreshCertificateStatesUseCase } from '../refresh-certificate-states.use-case';
+
+jest.mock('../refresh-certificate-states.use-case');
+
+const mockRefreshCertificateStatesUseCase = refreshCertificateStatesUseCase as jest.MockedFunction<
+    typeof refreshCertificateStatesUseCase
+>;
 
 const serviceId = 'f4f8c2a0-6d3b-4d0a-9b6e-2c1d5e8a7b90';
 
@@ -19,51 +27,59 @@ const domain = (overrides: Partial<Domain> = {}): Domain => ({
 
 describe('getDomainsByServiceUseCase', () => {
     let mockDomainsRepository: jest.Mocked<Pick<DomainsRepository, 'getByService'>>;
+    let mockReverseProxy: jest.Mocked<Pick<ReverseProxy, 'getCertificateStates'>>;
+
+    /** Runs the use case over the mocked collaborators. */
+    const run = (): Promise<Domain[]> => getDomainsByServiceUseCase(
+        mockDomainsRepository as unknown as DomainsRepository,
+        mockReverseProxy as unknown as ReverseProxy,
+        serviceId,
+    );
 
     beforeEach(() => {
         jest.clearAllMocks();
 
         mockDomainsRepository = { getByService: jest.fn() };
+        mockReverseProxy = { getCertificateStates: jest.fn() };
+        mockRefreshCertificateStatesUseCase.mockImplementation((_repository, _proxy, domains) => Promise.resolve(domains));
     });
 
     it('delegates the listing to the repository with the received service id', async () => {
         mockDomainsRepository.getByService.mockResolvedValue([]);
 
-        await getDomainsByServiceUseCase(mockDomainsRepository as unknown as DomainsRepository, serviceId);
+        await run();
 
         expect(mockDomainsRepository.getByService).toHaveBeenCalledTimes(1);
         expect(mockDomainsRepository.getByService).toHaveBeenCalledWith(serviceId);
     });
 
-    it('returns the domains that the repository gives', async () => {
+    it('refreshes the state of the certificate of the listed domains before it answers', async () => {
         const domains = [domain()];
+        const refreshed = [domain({ certificateState: 'pending' })];
         mockDomainsRepository.getByService.mockResolvedValue(domains);
+        mockRefreshCertificateStatesUseCase.mockResolvedValue(refreshed);
 
-        const result = await getDomainsByServiceUseCase(
-            mockDomainsRepository as unknown as DomainsRepository,
-            serviceId,
+        const result = await run();
+
+        expect(mockRefreshCertificateStatesUseCase).toHaveBeenCalledTimes(1);
+        expect(mockRefreshCertificateStatesUseCase).toHaveBeenCalledWith(
+            mockDomainsRepository,
+            mockReverseProxy,
+            domains,
         );
-
-        expect(result).toBe(domains);
+        expect(result).toBe(refreshed);
     });
 
     it('returns an empty list when the service holds no domain', async () => {
         mockDomainsRepository.getByService.mockResolvedValue([]);
 
-        const result = await getDomainsByServiceUseCase(
-            mockDomainsRepository as unknown as DomainsRepository,
-            serviceId,
-        );
-
-        expect(result).toEqual([]);
+        await expect(run()).resolves.toEqual([]);
     });
 
     it('propagates an error of the repository', async () => {
         const error = new Error('db unreachable');
         mockDomainsRepository.getByService.mockRejectedValue(error);
 
-        await expect(
-            getDomainsByServiceUseCase(mockDomainsRepository as unknown as DomainsRepository, serviceId),
-        ).rejects.toThrow(error);
+        await expect(run()).rejects.toThrow(error);
     });
 });
