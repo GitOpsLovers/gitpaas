@@ -7,14 +7,14 @@ GitPaaS deploys a compose stack, and nothing sends traffic to it: no proxy holds
 **Agent:** implementer
 **Paths:** iac/production/, scripts/install.sh, docs/roadmap/security-hardening/TODO.md
 
-- [ ] 1.1 Prove with a probe that `dockerode-compose` keeps a container on both its own network and one external network. If it does not, stop and report, because the plan of the labels fails.
-- [ ] 1.2 Add the reverse proxy Traefik to `iac/production/docker-compose.yml`, holding the ports `80` and `443` of the server.
-- [ ] 1.3 Create the external network of the proxy, and give the proxy read access to the socket of the Docker daemon.
-- [ ] 1.4 Configure the resolver of Let's Encrypt with the challenge HTTP-01, and give the operator a switch between the staging service and the production service.
-- [ ] 1.5 Move GitPaaS behind the proxy, and keep the port of today until the operator gives a domain of the control plane.
-- [ ] 1.6 Add the domain of the control plane, the email address of Let's Encrypt and the switch of the staging to `scripts/install.sh` and to `iac/production/.env.example`.
-- [ ] 1.7 Make the installer check that the ports `80` and `443` are free, and stop with a message that names the process that holds one.
-- [ ] 1.8 Change the task 1.3 of `docs/roadmap/security-hardening/TODO.md`, so the rule accepts the one network of the proxy and refuses every other external network.
+- [x] 1.1 Prove with a probe that `dockerode-compose` keeps a container on both its own network and one external network. If it does not, stop and report, because the plan of the labels fails.
+- [x] 1.2 Add the reverse proxy Traefik to `iac/production/docker-compose.yml`, holding the ports `80` and `443` of the server.
+- [x] 1.3 Create the external network of the proxy, and give the proxy read access to the socket of the Docker daemon.
+- [x] 1.4 Configure the resolver of Let's Encrypt with the challenge HTTP-01, and give the operator a switch between the staging service and the production service.
+- [x] 1.5 Move GitPaaS behind the proxy, and keep the port of today until the operator gives a domain of the control plane.
+- [x] 1.6 Add the domain of the control plane, the email address of Let's Encrypt and the switch of the staging to `scripts/install.sh` and to `iac/production/.env.example`.
+- [x] 1.7 Make the installer check that the ports `80` and `443` are free, and stop with a message that names the process that holds one.
+- [x] 1.8 Change the task 1.3 of `docs/roadmap/security-hardening/TODO.md`, so the rule accepts the one network of the proxy and refuses every other external network.
 
 ## Phase 2 — The contract and the record
 
@@ -50,7 +50,7 @@ GitPaaS deploys a compose stack, and nothing sends traffic to it: no proxy holds
 - [ ] 4.1 Add the endpoint that lists the compose services of the last deployment of a service, from the parsed recipe.
 - [ ] 4.2 Read the domains of the service in the run of the deployment, before the executor starts the stack.
 - [ ] 4.3 Stamp the labels of the routing onto the compose service that each domain names, beside `stampLabels`.
-- [ ] 4.4 Attach that compose service to the external network of the proxy, and keep its own network.
+- [ ] 4.4 Attach that compose service to the network of the proxy with `docker.getNetwork().connect()` after `compose.up`, because `dockerode-compose` crashes on a network `external`.
 - [ ] 4.5 Remove the routing of a service when that service goes away, beside the removal of its containers and its networks.
 - [ ] 4.6 Update the specs of the run: a service with domains, a service without them, and a domain that names a compose service that the recipe lost.
 

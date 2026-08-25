@@ -23,24 +23,8 @@
 #      container involved: prompts for your email, generates a random password,
 #      hashes it as argon2id in a throwaway container, inserts the row, and
 #      prints the password for you to copy.
-#   7. Only then pulls and brings up the application stack — the backend and the
-#      frontend — and waits for the backend to become healthy.
-#
-# The application therefore never boots against a database without an admin in it.
-#
-# GitPaaS runs everything on THIS server: the backend drives the host's own Docker
-# daemon through the bind-mounted /var/run/docker.sock. The only thing that needs
-# resolving is the socket's group id, which the installer detects for you.
-#
-# It is written for POSIX /bin/sh, fails fast (set -e), and is safe to re-run:
-# an existing .env is preserved, already-applied migrations are skipped, and the
-# admin seed is idempotent.
-#
-# Configuration (flags OR environment variables):
-#   --version <tag>   / GITPAAS_VERSION   Released version to install, e.g. v1.2.3.
-#                                         Default: the latest published release.
-#   --dir <path>      / GITPAAS_DIR       Install directory. Default: /opt/gitpaas.
-#   --email <email>   / GITPAAS_ADMIN_EMAIL   Admin email (skips the prompt).
+#   7. Only then pulls and brings up the application stack — the reverse proxy,
+#      the backend and the frontend — and waits for the backend to become healthy.
 
 set -e
 
@@ -52,10 +36,24 @@ REPO_NAME="gitpaas"
 REPO_SLUG="${REPO_OWNER}/${REPO_NAME}"
 
 GITPAAS_VERSION="${GITPAAS_VERSION:-latest}"
-GITPAAS_DIR="${GITPAAS_DIR:-/opt/gitpaas}"
-GITPAAS_ADMIN_EMAIL="${GITPAAS_ADMIN_EMAIL:-}"
+
+# Installation directory.
+GITPAAS_DIR="/opt/gitpaas"
+
+# Every value below is asked on the terminal, by configure_control_plane() and by bootstrap_admin().
+GITPAAS_ADMIN_EMAIL=""
+GITPAAS_DOMAIN=""
+GITPAAS_LETSENCRYPT_EMAIL=""
+GITPAAS_LETSENCRYPT_STAGING="false"
 
 ARGON2_IMAGE="alpine:3.22"
+
+# Services of Let's Encrypt the operator switches between.
+LETSENCRYPT_CA_PRODUCTION="https://acme-v02.api.letsencrypt.org/directory"
+LETSENCRYPT_CA_STAGING="https://acme-staging-v02.api.letsencrypt.org/directory"
+
+# Ports the reverse proxy needs for itself on this server.
+PROXY_PORTS="80 443"
 
 # ---------------------------------------------------------------------------
 # Logging helpers
@@ -70,6 +68,21 @@ fi
 log()  { printf '%s==>%s %s\n' "$C_GREEN$C_BOLD" "$C_RESET" "$*"; }
 err()  { printf '%s[error]%s %s\n' "$C_RED" "$C_RESET" "$*" >&2; }
 die()  { err "$*"; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Asking the operator
+# ---------------------------------------------------------------------------
+ask() {
+    { : < /dev/tty; } 2>/dev/null \
+        || die "This installer asks for the domain of the control plane and for the email of the first admin, so it needs a terminal. Run it from an interactive shell."
+
+    if [ -n "$2" ]; then
+        printf '%s%s%s %s: ' "$C_BOLD" "$1" "$C_RESET" "$2" > /dev/tty
+    else
+        printf '%s%s:%s ' "$C_BOLD" "$1" "$C_RESET" > /dev/tty
+    fi
+    read -r ANSWER < /dev/tty
+}
 
 # ---------------------------------------------------------------------------
 # Argument parsing
@@ -95,14 +108,10 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --version)     require_value $# --version v1.2.3; GITPAAS_VERSION="$2"; shift 2 ;;
         --version=*)   GITPAAS_VERSION="${1#*=}"; shift ;;
-        --dir)         require_value $# --dir /opt/gitpaas; GITPAAS_DIR="$2"; shift 2 ;;
-        --dir=*)       GITPAAS_DIR="${1#*=}"; shift ;;
-        --email)       require_value $# --email admin@example.com; GITPAAS_ADMIN_EMAIL="$2"; shift 2 ;;
-        --email=*)     GITPAAS_ADMIN_EMAIL="${1#*=}"; shift ;;
         -h|--help)
             awk 'NR == 1 { next } /^#/ { print; next } { exit }' "$0" 2>/dev/null || true
             exit 0 ;;
-        *) die "Unknown argument: $1 (try --help)" ;;
+        *) die "Unknown argument: $1. The installer takes --version alone (try --help)." ;;
     esac
 done
 
@@ -133,6 +142,62 @@ need tar
 
 # Docker CLI wrapper (root or sudo as needed).
 docker_cmd() { $SUDO docker "$@"; }
+
+# ---------------------------------------------------------------------------
+# Reverse proxy ports
+# ---------------------------------------------------------------------------
+port_listener() {
+    port="$1"
+
+    if command -v ss >/dev/null 2>&1; then
+        line="$($SUDO ss -ltnp 2>/dev/null | awk -v p=":${port}\$" 'NR > 1 && $4 ~ p { print; exit }')"
+        [ -z "$line" ] || { printf '%s\n' "$line"; return 0; }
+    fi
+    if command -v netstat >/dev/null 2>&1; then
+        line="$($SUDO netstat -ltnp 2>/dev/null | awk -v p=":${port}\$" '$1 ~ /^tcp/ && $4 ~ p { print; exit }')"
+        [ -z "$line" ] || { printf '%s\n' "$line"; return 0; }
+    fi
+    if command -v lsof >/dev/null 2>&1; then
+        line="$($SUDO lsof -nP -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | awk 'NR == 2 { print; exit }')"
+        [ -z "$line" ] || { printf '%s\n' "$line"; return 0; }
+    fi
+    return 0
+}
+
+# A port held by the proxy of GitPaaS itself is no conflict: it means the
+# installer is running again on a server that already carries this stack.
+port_held_by_proxy() {
+    docker_cmd ps --filter 'name=gitpaas-proxy' --filter 'status=running' \
+        --format '{{.Names}}' 2>/dev/null | grep -q .
+}
+
+assert_proxy_ports_free() {
+    if ! command -v ss >/dev/null 2>&1 \
+        && ! command -v netstat >/dev/null 2>&1 \
+        && ! command -v lsof >/dev/null 2>&1; then
+        log "Cannot check the ports 80 and 443 (no ss, netstat or lsof on this host) — continuing."
+        return
+    fi
+
+    ports_all_free=1
+    for port in $PROXY_PORTS; do
+        listener="$(port_listener "$port" || true)"
+        [ -n "$listener" ] || continue
+
+        if port_held_by_proxy; then
+            log "Port $port is held by the GitPaaS proxy of an earlier install — continuing."
+            ports_all_free=0
+            continue
+        fi
+
+        die "Port $port is already in use, and the GitPaaS reverse proxy needs both 80 and 443 of this server.
+  Holding it: $listener
+  Stop that process (a web server such as nginx, apache or caddy is the usual holder) and run the installer again."
+    done
+
+    [ "$ports_all_free" -eq 1 ] && log "Ports 80 and 443 are free."
+    return 0
+}
 
 # ---------------------------------------------------------------------------
 # Step 1 — Ensure Docker and compose plugin
@@ -269,6 +334,79 @@ image_tag_for_ref() {
     esac
 }
 
+# A domain, and not a URL, a path or something with a space in it. The record of
+# DNS is NOT checked: the operator may point it after the install, and the
+# published port keeps GitPaaS reachable meanwhile.
+assert_domain() {
+    case "$1" in
+        *://*|*/*|*:*|*' '*) die "'$1' is not a domain. Give the bare host, e.g. gitpaas.example.com — no scheme, no port and no path." ;;
+    esac
+    printf '%s' "$1" | grep -Eq '^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$' \
+        || die "'$1' is not a valid domain, e.g. gitpaas.example.com."
+}
+
+# Ask for the domain of the control plane and, when there is one, for the
+# address of Let's Encrypt. Both are optional: with no domain the operator
+# reaches GitPaaS by the published port, exactly as before.
+configure_control_plane() {
+    ask "Domain of the control plane" "(leave empty to reach GitPaaS at http://${HOST_ADDR}:8080)"
+    GITPAAS_DOMAIN="$ANSWER"
+
+    if [ -z "$GITPAAS_DOMAIN" ]; then
+        log "No domain of the control plane — GitPaaS stays on http://${HOST_ADDR}:8080."
+        return
+    fi
+
+    assert_domain "$GITPAAS_DOMAIN"
+
+    ask "Let's Encrypt email" "(notified about an expiring certificate)"
+    GITPAAS_LETSENCRYPT_EMAIL="$ANSWER"
+    [ -n "$GITPAAS_LETSENCRYPT_EMAIL" ] \
+        || die "A domain needs an address for Let's Encrypt. Run the installer again and answer that question."
+
+    # The staging service issues an untrusted certificate, so it is the answer of
+    # a trial run alone: the default is the production service.
+    ask "Use the STAGING service of Let's Encrypt" "(an untrusted certificate, but no rate limit) [y/N]"
+    case "$ANSWER" in
+        [Yy]|[Yy][Ee][Ss]) GITPAAS_LETSENCRYPT_STAGING="true" ;;
+        *)                 GITPAAS_LETSENCRYPT_STAGING="false" ;;
+    esac
+
+    if [ "$GITPAAS_LETSENCRYPT_STAGING" = "true" ]; then
+        log "Control plane: https://${GITPAAS_DOMAIN} (Let's Encrypt STAGING — the certificate will not be trusted by a browser)."
+    else
+        log "Control plane: https://${GITPAAS_DOMAIN}."
+    fi
+}
+
+# Write the settings of the proxy into .env. Without a domain only the defaults
+# are seeded, and an operator can fill them in later by hand.
+write_control_plane_env() {
+    if [ "$GITPAAS_LETSENCRYPT_STAGING" = "true" ]; then
+        ca_server="$LETSENCRYPT_CA_STAGING"
+    else
+        ca_server="$LETSENCRYPT_CA_PRODUCTION"
+    fi
+
+    if [ -z "$GITPAAS_DOMAIN" ]; then
+        default_env "CONTROL_PLANE_DOMAIN" ""
+        default_env "CONTROL_PLANE_PROXY" "false"
+        default_env "LETSENCRYPT_EMAIL" ""
+        default_env "LETSENCRYPT_CA_SERVER" "$ca_server"
+        return
+    fi
+
+    upsert_env "CONTROL_PLANE_DOMAIN"  "$GITPAAS_DOMAIN"
+    upsert_env "CONTROL_PLANE_PROXY"   "true"
+    upsert_env "LETSENCRYPT_EMAIL"     "$GITPAAS_LETSENCRYPT_EMAIL"
+    upsert_env "LETSENCRYPT_CA_SERVER" "$ca_server"
+
+    # The application must know itself by the domain, or the browser refuses the
+    # call of the API and every link it builds points at the old port.
+    upsert_env "CORS_ORIGIN"  "https://${GITPAAS_DOMAIN}"
+    upsert_env "APP_BASE_URL" "https://${GITPAAS_DOMAIN}"
+}
+
 generate_env() {
     PROD_DIR="$GITPAAS_DIR/iac/production"
     ENV_FILE="$PROD_DIR/.env"
@@ -287,6 +425,7 @@ generate_env() {
         default_env "REDIS_PORT" "6379"
         default_env "SECRETS_ENCRYPTION_KEY" "$(rand_secret)"
         default_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
+        write_control_plane_env
         return
     fi
 
@@ -304,6 +443,7 @@ generate_env() {
     set_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
     upsert_env "DOCKER_GID" "$DOCKER_GID"
     upsert_env "IMAGE_TAG" "$IMAGE_TAG"
+    write_control_plane_env
 
     log ".env written."
 }
@@ -428,14 +568,10 @@ hash_password() {
 }
 
 bootstrap_admin() {
-    # Prompt for the email if it was not supplied.
-    if [ -z "$GITPAAS_ADMIN_EMAIL" ]; then
-        if [ -r /dev/tty ]; then
-            printf '%sAdmin email:%s ' "$C_BOLD" "$C_RESET" > /dev/tty
-            read -r GITPAAS_ADMIN_EMAIL < /dev/tty
-        fi
-    fi
-    [ -n "$GITPAAS_ADMIN_EMAIL" ] || die "No admin email provided (use --email <addr> or GITPAAS_ADMIN_EMAIL when running non-interactively)."
+    ask "Admin email" ""
+    GITPAAS_ADMIN_EMAIL="$ANSWER"
+    [ -n "$GITPAAS_ADMIN_EMAIL" ] \
+        || die "No admin email given. Run the installer again and answer that question; the steps already done are skipped."
 
     load_db_credentials
 
@@ -486,8 +622,14 @@ print_summary() {
     printf '\n%s────────────────────────────────────────────────────────%s\n' "$C_GREEN$C_BOLD" "$C_RESET"
     printf '%s GitPaaS is up.%s\n' "$C_GREEN$C_BOLD" "$C_RESET"
     printf '%s────────────────────────────────────────────────────────%s\n' "$C_GREEN$C_BOLD" "$C_RESET"
-    printf '  Frontend : http://%s:8080\n' "$HOST_ADDR"
-    printf '  API      : http://%s:3000/api/v1\n' "$HOST_ADDR"
+    if [ -n "$GITPAAS_DOMAIN" ]; then
+        printf '  Frontend : https://%s\n' "$GITPAAS_DOMAIN"
+        printf '  API      : https://%s/api/v1\n' "$GITPAAS_DOMAIN"
+        printf '  Fallback : http://%s:8080 (the published port, always open)\n' "$HOST_ADDR"
+    else
+        printf '  Frontend : http://%s:8080\n' "$HOST_ADDR"
+        printf '  API      : http://%s:3000/api/v1\n' "$HOST_ADDR"
+    fi
     printf '  Docker   : local socket /var/run/docker.sock (backend joins group id %s)\n' "$DOCKER_GID"
     printf '\n'
     printf '  %sAdmin email%s    : %s\n' "$C_BOLD" "$C_RESET" "$GITPAAS_ADMIN_EMAIL"
@@ -495,6 +637,12 @@ print_summary() {
     printf '\n'
     printf '  %sBack up SECRETS_ENCRYPTION_KEY%s in iac/production/.env: a lost key\n' "$C_BOLD" "$C_RESET"
     printf '  makes every stored secret (a provider key, a secret variable of a service) unreadable.\n'
+    if [ -n "$GITPAAS_DOMAIN" ]; then
+        printf '\n'
+        printf '  The certificate of %s is asked on the first visit and arrives\n' "$GITPAAS_DOMAIN"
+        printf "  some minutes later. It needs the A record of that domain to point here, and\n"
+        printf '  the ports 80 and 443 of this server to be reachable from the internet.\n'
+    fi
     printf '%s────────────────────────────────────────────────────────%s\n\n' "$C_GREEN$C_BOLD" "$C_RESET"
 }
 
@@ -508,9 +656,14 @@ main() {
     HOST_ADDR="$(hostname -I 2>/dev/null | awk '{print $1}')"
     [ -n "$HOST_ADDR" ] || HOST_ADDR="localhost"
 
+    # Before anything on this host is touched: the proxy owns 80 and 443, and a
+    # conflict there is cheaper to report now than after Docker is installed.
+    assert_proxy_ports_free
+
     ensure_docker
     resolve_version
     fetch_source
+    configure_control_plane
     generate_env
     start_data_stores
     run_migrations
