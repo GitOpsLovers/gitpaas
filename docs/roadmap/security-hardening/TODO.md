@@ -9,7 +9,7 @@ GitPaaS drives the Docker daemon of the host, so whoever reaches the platform re
 
 - [ ] 1.1 Add `assertAllowedKeys` to `compose-recipe.transformer.ts`: a fixed set of allowed keys of a service, and an error that names the service and the key.
 - [ ] 1.2 Add `assertSafeVolumes`: a named volume of the file alone, and a refusal of every path of the host.
-- [ ] 1.3 Refuse a top-level network that is external, and refuse `network_mode` on a service.
+- [ ] 1.3 Refuse every top-level network that is external, and refuse `network_mode` on a service. A service reaches the reverse proxy by the direct connect of the deployment, and never by a network that its own recipe declares external.
 - [ ] 1.4 Call both checks in `DockerExecutorAdapter.up`, before the build and before the pull.
 - [ ] 1.5 Constrain `composerPath` in `service.contract.ts`: relative, no `..`, ends with `.yml` or `.yaml`.
 - [ ] 1.6 Resolve the joined path in the executor, and refuse it when it leaves the temporary directory.
