@@ -63,6 +63,8 @@ The system SHALL get and renew the certificate of a domain of HTTPS by itself, t
 
 The state of the certificate is one of `none`, `pending`, `ready` and `failed`. A domain of plain HTTP always carries `none`. A domain of HTTPS starts at `pending`, and the system reads the store of the proxy to find whether the certificate arrived, so it can move the state to `ready`. The certificate arrives some minutes after the domain answers, because the proxy asks Let's Encrypt only once the routing is live.
 
+The local environment gives HTTP alone: its proxy declares no resolver of Let's Encrypt and no entry point `websecure`, because a name of `*.localhost` never resolves outside the machine that runs it. A domain of HTTPS still gets its routing there, but it never answers: its router of plain HTTP only redirects the visitor to the secure one, and no entry point serves that redirect. So a domain answers on the local machine only when it is claimed with HTTPS off, and its certificate stays `pending` forever.
+
 ### Scenario: A domain of HTTPS is new
 
 - **WHEN** an operator claims a domain with HTTPS on

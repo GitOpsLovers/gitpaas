@@ -22,7 +22,7 @@ POST /deployments ─► persist `pending` ─► enqueue (durable, DB-backed)
 These infrastructure properties are important:
 
 - **Durable queue** — the tasks are stored (at-least-once, with a limited number of new attempts, a dead-letter state and a recovery at restart). Thus the deployments in progress stay after a restart of the control plane. The runs of one compose-project name occur one after the other, but different projects run at the same time.
-- **Local execution over the Docker socket** — the backend speaks to the daemon on `/var/run/docker.sock`. Thus the socket mount and its file permissions control the access, and not network credentials. As [Conventions](./conventions.md) says, this access is equal to root access on the host. Development and production use the same path.
+- **Local execution over the Docker socket** — the backend speaks to the daemon on `/var/run/docker.sock`. Thus the socket mount and its file permissions control the access, and not network credentials. As [Conventions](./conventions.md) says, this access is equal to root access on the host.
 - **A hot store and a cold archive for the logs** — the captured lines go to one Redis stream for each deployment, and the SSE subscribers read that same stream from its first entry. When the run ends, the full stream goes to the PostgreSQL `logs` table in one write, and the key in Redis expires 60 seconds later. Thus the full history is available for a replay after the end of the run, but **`GET /logs` gives no history while the run is in progress**. A crash of Redis loses the log of a run that is in progress, and the append-only file with `everysec` limits that loss to approximately one second.
 - **Limited log growth** — one setting limits the size of a log: `LOGS_MAX_LINES` for each deployment, which Redis applies on each append with `XADD MAXLEN ~`. The archive has no age limit and no scheduled sweep. The archived rows of a deployment stay until the deployment is deleted, because the foreign key of the `logs` table uses `ON DELETE CASCADE`.
 
@@ -34,10 +34,7 @@ Postgres and Redis declare a compose healthcheck, and the backend waits for the 
 
 The Redis append-only file stays in the named volume `redis-data`, which is mounted at `/data`, so a restart of the container keeps the streams that are open.
 
-The two environments are different only in the publication of the Redis port:
-
-- **Development** publishes `127.0.0.1:6379`, because the backend runs on the host and connects through the loopback interface.
-- **Production** publishes **no** host port. The backend is in the same compose network and reaches the server by its service name, so Redis is not available from outside the stack.
+Redis publishes no host port. The backend is in the same compose network and reaches the server by its service name, so Redis is not available from outside the stack.
 
 ## The reverse proxy
 

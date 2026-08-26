@@ -8,8 +8,7 @@ This document gives the infrastructure on which the GitPaaS application runs. Tw
 ## Sections
 
 - [Stack](./infrastructure/stack.md): tools used for each concern.
-- [Structure](./infrastructure/structure.md): the layout of the development and production compose stacks and where each part lives.
+- [Structure](./infrastructure/structure.md): the layout of the production compose stack and where each part lives.
 - [Conventions](./infrastructure/conventions.md): programming conventions used in the application.
 - [Installation](./infrastructure/installation.md): the one-line installer, its options, steps and admin seeding.
 - [Key flows](./infrastructure/key-flows.md): explanation of the main flows, including the live log store, and why they were designed this way.
-- [Operations](./infrastructure/operations.md): day-to-day tasks and what is not covered yet.
