@@ -1,0 +1,25 @@
+docs/architecture/infrastructure/conventions.md
+  s_ebe840ef002b5a::t_ec71d529fcc514 27
+docs/architecture/infrastructure/key-flows.md
+  s_ebe840ef002b5a::t_c0b1f4b9849fcb 63-72
+docs/architecture/infrastructure/structure.md
+  s_ebe840ef002b5a::t_8ff8d19abc1747 13,15-18,24,26,71
+docs/business/domains.md
+  s_ebe840ef002b5a::t_79210f8460f680 66-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b1f31095a7434fba36188f799b39815eded27de6",
+  "prompts": {},
+  "sessions": {
+    "s_ebe840ef002b5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a51a57d389d70008a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
