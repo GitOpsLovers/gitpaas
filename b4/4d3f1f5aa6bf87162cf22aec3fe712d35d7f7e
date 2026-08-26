@@ -1,0 +1,57 @@
+docs/business/domains.md
+  s_ebe840ef002b5a::t_79210f8460f680 66-67
+docs/architecture/infrastructure/conventions.md
+  s_ebe840ef002b5a::t_1a3e384cfa728a 24-26
+  s_ebe840ef002b5a::t_ec71d529fcc514 27
+  s_ebe840ef002b5a::t_0ccd720839b4a3 28
+  s_ebe840ef002b5a::t_cd99b8a9f8dcde 21-23
+docs/architecture/infrastructure/structure.md
+  s_83127aee01cc51::t_7b008fe08ecab6 3
+docs/architecture/infrastructure.md
+  s_7fe69149183de9::t_946e8fb1a9381e 11
+docs/architecture/infrastructure/stack.md
+  s_7fe69149183de9::t_3177d36280c193 5
+docs/architecture/infrastructure/key-flows.md
+  s_7fe69149183de9::t_93fe558bf6af3f 25
+  s_3fcea425064ffb::t_44fbe18fa500c5 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b44d3f1f5aa6bf87162cf22aec3fe712d35d7f7e",
+  "prompts": {},
+  "sessions": {
+    "s_3fcea425064ffb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a678e19ef24037fa1",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_7fe69149183de9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad0850cb0438f4943",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_83127aee01cc51": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "04dc6e2d-2015-4107-919c-ba6eff7311fe",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ebe840ef002b5a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a51a57d389d70008a",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
