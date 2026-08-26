@@ -43,7 +43,7 @@ const deploymentResponse: DeploymentResponse = {
 
 describe('DeploymentsController', () => {
     let mockDeploymentsService: jest.Mocked<
-        Pick<DeploymentsService, 'getAllByService' | 'findById' | 'create' | 'delete'>
+        Pick<DeploymentsService, 'getAllByService' | 'getComposeServices' | 'findById' | 'create' | 'delete'>
     >;
     let sut: DeploymentsController;
 
@@ -52,6 +52,7 @@ describe('DeploymentsController', () => {
 
         mockDeploymentsService = {
             getAllByService: jest.fn(),
+            getComposeServices: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
             delete: jest.fn(),
@@ -115,6 +116,41 @@ describe('DeploymentsController', () => {
             mockDeploymentsService.getAllByService.mockRejectedValue(error);
 
             await expect(sut.getAllByService(serviceId)).rejects.toBe(error);
+        });
+    });
+
+    describe('getComposeServices', () => {
+        it('delegates to the service with the received service id', async () => {
+            mockDeploymentsService.getComposeServices.mockResolvedValue(['web']);
+
+            await sut.getComposeServices(serviceId);
+
+            expect(mockDeploymentsService.getComposeServices).toHaveBeenCalledTimes(1);
+            expect(mockDeploymentsService.getComposeServices).toHaveBeenCalledWith(serviceId);
+        });
+
+        it('returns the compose services of the last deployment', async () => {
+            mockDeploymentsService.getComposeServices.mockResolvedValue(['web', 'cache']);
+
+            await expect(sut.getComposeServices(serviceId)).resolves.toEqual(['web', 'cache']);
+        });
+
+        it('returns an empty list when the service was never deployed', async () => {
+            mockDeploymentsService.getComposeServices.mockResolvedValue([]);
+
+            await expect(sut.getComposeServices(serviceId)).resolves.toEqual([]);
+        });
+
+        it('translates a missing service into a 404', async () => {
+            mockDeploymentsService.getComposeServices.mockRejectedValue(new ServiceNotFoundError(serviceId));
+
+            await expect(sut.getComposeServices(serviceId)).rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('translates a service that cannot be deployed into a 400', async () => {
+            mockDeploymentsService.getComposeServices.mockRejectedValue(new ServiceNotDeployableError());
+
+            await expect(sut.getComposeServices(serviceId)).rejects.toBeInstanceOf(BadRequestException);
         });
     });
 

@@ -10,6 +10,7 @@ import { DeploymentsController } from './ui/controllers/deployments.controller';
 import { DeploymentRunnerService } from './ui/services/deployment-runner.service';
 import { DeploymentsService } from './ui/services/deployments.service';
 
+import { DomainsModule } from '@features/domains/domains.module';
 import { LogsModule } from '@features/logs/logs.module';
 import { ProvidersModule } from '@features/providers/providers.module';
 import { ServiceEnvironmentModule } from '@features/service-environment/service-environment.module';
@@ -24,6 +25,7 @@ import { ServicesModule } from '@features/services/services.module';
         forwardRef(() => ServicesModule),
         ProvidersModule,
         ServiceEnvironmentModule,
+        DomainsModule,
         LogsModule,
     ],
     controllers: [DeploymentsController],

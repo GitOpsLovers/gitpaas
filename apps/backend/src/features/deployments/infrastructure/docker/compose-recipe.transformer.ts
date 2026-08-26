@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
+import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
@@ -265,6 +266,33 @@ export function stampLabels(compose: RuntimeComposeProject, projectName: string)
     for (const resource of recipeResources(compose)) {
         resource.labels = { ...toEntryMap(resource.labels), ...gitpaas };
     }
+}
+
+/**
+ * Stamps the labels of the routing onto the compose service that each domain names.
+ *
+ * @param compose Compose project driven by the container runtime
+ * @param routing Labels of the routing, grouped by the compose service each domain names
+ *
+ * @returns The names of the compose services that received the labels of the routing
+ */
+export function stampRouting(compose: RuntimeComposeProject, routing: RoutingLabels): string[] {
+    const services = recipeServices(compose);
+    const stamped: string[] = [];
+
+    for (const [name, labels] of Object.entries(routing)) {
+        // eslint-disable-next-line security/detect-object-injection
+        const service = services[name];
+
+        if (!service) {
+            continue;
+        }
+
+        service.labels = toEntryList({ ...toEntryMap(service.labels), ...labels });
+        stamped.push(name);
+    }
+
+    return stamped;
 }
 
 /**

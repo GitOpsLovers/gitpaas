@@ -7,6 +7,7 @@ import { GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.con
 import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { PROXY_NETWORK } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.constants';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
@@ -19,6 +20,25 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
         @Inject(DockerContainerRuntimeAdapter)
         private readonly client: ContainerRuntime,
     ) {}
+
+    public async removeRouting(service: Service): Promise<void> {
+        const projectName = getServiceSlug(service);
+        const selector: RuntimeSelector = { labels: getGitpaasLabels(), project: projectName };
+
+        try {
+            const containers = await this.client.listContainers(selector, true);
+
+            for (const container of containers) {
+                try {
+                    await this.client.disconnectNetwork(PROXY_NETWORK, container.id);
+                } catch {
+                    // Best-effort cleanup: a container that never joined the proxy is already unrouted.
+                }
+            }
+        } catch {
+            // Best-effort cleanup: the failed call is already counted in `deps.docker.errors`.
+        }
+    }
 
     public async removeContainers(service: Service): Promise<void> {
         const projectName = getServiceSlug(service);

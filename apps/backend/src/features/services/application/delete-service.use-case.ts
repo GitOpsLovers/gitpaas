@@ -36,6 +36,7 @@ export async function deleteServiceUseCase(
         return false;
     }
 
+    await serviceRuntimeResources.removeRouting(service);
     await serviceRuntimeResources.removeContainers(service);
     await serviceRuntimeResources.removeNetworks(service);
     await serviceRuntimeResources.removeImages(service);

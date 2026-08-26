@@ -67,6 +67,22 @@ export interface ContainerRuntime {
     removeNetwork: (id: string) => Promise<void>;
 
     /**
+     * Attaches a container to a network.
+     *
+     * @param network Identifier or name of the network the container joins
+     * @param containerId Identifier of the container
+     */
+    connectNetwork: (network: string, containerId: string) => Promise<void>;
+
+    /**
+     * Detaches a container from a network.
+     *
+     * @param network Identifier or name of the network the container leaves
+     * @param containerId Identifier of the container
+     */
+    disconnectNetwork: (network: string, containerId: string) => Promise<void>;
+
+    /**
      * Lists the images matching a selector.
      *
      * @param selector Resources the query is scoped to

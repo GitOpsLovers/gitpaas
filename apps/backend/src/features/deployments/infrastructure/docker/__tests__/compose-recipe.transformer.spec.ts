@@ -1,7 +1,14 @@
 import { resolve } from 'node:path';
 
 import {
-    injectEnvironment, normalizeBuildArgs, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, toNanoseconds,
+    injectEnvironment,
+    normalizeBuildArgs,
+    normalizeHealthchecks,
+    recipeServices,
+    resolveBuild,
+    stampLabels,
+    stampRouting,
+    toNanoseconds,
 } from '../compose-recipe.transformer';
 
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
@@ -180,6 +187,59 @@ describe('compose-recipe.transformer', () => {
             expect(() => { stampLabels(asCompose({}), 'my-project'); }).not.toThrow();
         });
     });
+    describe('stampRouting', () => {
+        it('merges the labels of the routing into the labels the compose service already carries', () => {
+            const compose = { recipe: { services: { web: { labels: ['app.tier=edge'] } } } };
+
+            const stamped = stampRouting(asCompose(compose), { web: { 'traefik.enable': 'true' } });
+
+            expect(stamped).toEqual(['web']);
+            expect(compose.recipe.services.web.labels).toEqual(['app.tier=edge', 'traefik.enable=true']);
+        });
+
+        it('stamps each compose service the routing names, and leaves every other one untouched', () => {
+            const compose = {
+                recipe: {
+                    services: {
+                        web: {} as { labels?: unknown },
+                        api: {} as { labels?: unknown },
+                        cache: { image: 'redis:7' } as { labels?: unknown; image?: string },
+                    },
+                },
+            };
+
+            const stamped = stampRouting(asCompose(compose), {
+                web: { 'traefik.enable': 'true' },
+                api: { 'traefik.enable': 'true' },
+            });
+
+            expect(stamped).toEqual(['web', 'api']);
+            expect(compose.recipe.services.cache).toEqual({ image: 'redis:7' });
+        });
+
+        it('skips a compose service the recipe lost, and reports the ones it stamped', () => {
+            const compose = { recipe: { services: { web: {} as { labels?: unknown } } } };
+
+            const stamped = stampRouting(asCompose(compose), {
+                web: { 'traefik.enable': 'true' },
+                worker: { 'traefik.enable': 'true' },
+            });
+
+            expect(stamped).toEqual(['web']);
+        });
+
+        it('stamps nothing when the service holds no domain', () => {
+            const compose = { recipe: { services: { web: { image: 'nginx' } } } };
+
+            expect(stampRouting(asCompose(compose), {})).toEqual([]);
+            expect(compose.recipe.services.web).toEqual({ image: 'nginx' });
+        });
+
+        it('does nothing when the recipe declares no service', () => {
+            expect(stampRouting(asCompose({}), { web: { 'traefik.enable': 'true' } })).toEqual([]);
+        });
+    });
+
     describe('injectEnvironment', () => {
         it('merges the variables into every service, in the KEY=value list form', () => {
             const web = { image: 'nginx' } as { image: string; environment?: unknown };

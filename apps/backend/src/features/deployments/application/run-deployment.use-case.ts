@@ -4,6 +4,8 @@ import { DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
+import { ReverseProxy } from '@features/domains/domain/ports/reverse-proxy.port';
+import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
@@ -57,8 +59,10 @@ async function loadServiceContext(
  * @param servicesRepository Services repository
  * @param providersRepository Providers repository
  * @param serviceVariablesRepository Service variables repository
+ * @param domainsRepository Domains repository
  * @param providerClient Provider client port
  * @param dockerExecutor Docker executor
+ * @param reverseProxy Reverse proxy, which builds the labels of the routing of the service
  * @param logStore Logs store
  * @param secretCipher Secret cipher, which opens the secrets of the service
  * @param payload Run payload
@@ -68,8 +72,10 @@ export async function runDeploymentUseCase(
     servicesRepository: ServicesRepository,
     providersRepository: ProvidersRepository,
     serviceVariablesRepository: ServiceVariablesRepository,
+    domainsRepository: DomainsRepository,
     providerClient: ProviderClient,
     dockerExecutor: DockerExecutor,
+    reverseProxy: ReverseProxy,
     logStore: LogStore,
     secretCipher: SecretCipher,
     payload: DeploymentRunTask,
@@ -86,8 +92,10 @@ export async function runDeploymentUseCase(
 
         const archive = await providerClient.getRepositoryArchive(credentials, payload.repositoryId, payload.commit);
         const environment = await getServiceEnvironmentUseCase(serviceVariablesRepository, secretCipher, serviceId);
+        const domains = await domainsRepository.getByService(serviceId);
+        const routing = reverseProxy.buildRouting(domains);
 
-        await dockerExecutor.up(archive, payload.composerPath, payload.projectName, environment, (line) => {
+        await dockerExecutor.up(archive, payload.composerPath, payload.projectName, environment, routing, (line) => {
             logStore.append(payload.deploymentId, line).catch(() => undefined);
         });
 

@@ -24,6 +24,10 @@ import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.a
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { StdoutTelemetryWriterAdapter } from '@core/infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { enrichTelemetry, getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
+import type { ReverseProxy } from '@features/domains/domain/ports/reverse-proxy.port';
+import type { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
+import { DatabaseDomainsRepository } from '@features/domains/infrastructure/database/db-domains.repository';
+import { TraefikReverseProxyAdapter } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.adapter';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import type { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
@@ -60,10 +64,14 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly providersRepository: ProvidersRepository,
         @Inject(DatabaseServiceVariablesRepository)
         private readonly serviceVariablesRepository: ServiceVariablesRepository,
+        @Inject(DatabaseDomainsRepository)
+        private readonly domainsRepository: DomainsRepository,
         @Inject(GithubProviderClientAdapter)
         private readonly providerClient: ProviderClient,
         @Inject(DockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
+        @Inject(TraefikReverseProxyAdapter)
+        private readonly reverseProxy: ReverseProxy,
         @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
         @Inject(SecretCipherAdapter)
@@ -135,8 +143,10 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.servicesRepository,
                     this.providersRepository,
                     this.serviceVariablesRepository,
+                    this.domainsRepository,
                     this.providerClient,
                     this.dockerExecutor,
+                    this.reverseProxy,
                     this.logStore,
                     this.secretCipher,
                     task,

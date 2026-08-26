@@ -47,12 +47,12 @@ GitPaaS deploys a compose stack, and nothing sends traffic to it: no proxy holds
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/, apps/backend/src/features/services/
 
-- [ ] 4.1 Add the endpoint that lists the compose services of the last deployment of a service, from the parsed recipe.
-- [ ] 4.2 Read the domains of the service in the run of the deployment, before the executor starts the stack.
-- [ ] 4.3 Stamp the labels of the routing onto the compose service that each domain names, beside `stampLabels`.
-- [ ] 4.4 Attach that compose service to the network of the proxy with `docker.getNetwork().connect()` after `compose.up`, because `dockerode-compose` crashes on a network `external`.
-- [ ] 4.5 Remove the routing of a service when that service goes away, beside the removal of its containers and its networks.
-- [ ] 4.6 Update the specs of the run: a service with domains, a service without them, and a domain that names a compose service that the recipe lost.
+- [x] 4.1 Add the endpoint that lists the compose services of the last deployment of a service, from the parsed recipe.
+- [x] 4.2 Read the domains of the service in the run of the deployment, before the executor starts the stack.
+- [x] 4.3 Stamp the labels of the routing onto the compose service that each domain names, beside `stampLabels`.
+- [x] 4.4 Attach that compose service to the network of the proxy with `docker.getNetwork().connect()` after `compose.up`, because `dockerode-compose` crashes on a network `external`.
+- [x] 4.5 Remove the routing of a service when that service goes away, beside the removal of its containers and its networks.
+- [x] 4.6 Update the specs of the run: a service with domains, a service without them, and a domain that names a compose service that the recipe lost.
 
 ## Phase 5 — The tab of the domains
 
