@@ -1,0 +1,35 @@
+apps/backend/.env.example
+  s_9c1748498753c6::t_9a76f59914e4c5 13-15
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_9c1748498753c6::t_7f3c2d182801f2 177-195
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_9c1748498753c6::t_5aacfc8242943d 25-35,60
+apps/backend/src/features/domains/infrastructure/traefik/__tests__/traefik-reverse-proxy.adapter.spec.ts
+  s_9c1748498753c6::t_8ce3a82a4d0132 7,120-121,125,164,169-182,185-224
+apps/backend/src/features/domains/infrastructure/traefik/traefik-reverse-proxy.adapter.ts
+  s_9c1748498753c6::t_361fb4f3b4316e 40-46,52-58,79,148-149,166-167,170-178
+docs/roadmap/local-reverse-proxy/TODO.md
+  s_9c1748498753c6::t_96b5ccdd4779d3 23-28
+iac/production/.env.example
+  s_9c1748498753c6::t_d5a36786a0a5c1 20-21
+iac/production/docker-compose.yml
+  s_9c1748498753c6::t_5cc38d22dc2997 73-74
+scripts/install.sh
+  s_9c1748498753c6::t_5b0e182803ed63 428
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c0caa58d0399baf501533a3779b132a071a69d17",
+  "prompts": {},
+  "sessions": {
+    "s_9c1748498753c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cc080c84-0965-4c61-b2e3-8e99523e1c90",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
