@@ -6,8 +6,10 @@ import { getDomainsByServiceUseCase } from '../../application/get-domains-by-ser
 import { removeDomainUseCase } from '../../application/remove-domain.use-case';
 import { updateDomainUseCase } from '../../application/update-domain.use-case';
 import { Domain } from '../../domain/models/domain.models';
+import type { ReverseProxy } from '../../domain/ports/reverse-proxy.port';
 import type { DomainsRepository } from '../../domain/repositories/domains.repository';
 import { DatabaseDomainsRepository } from '../../infrastructure/database/db-domains.repository';
+import { TraefikReverseProxyAdapter } from '../../infrastructure/traefik/traefik-reverse-proxy.adapter';
 
 /**
  * Domains service
@@ -17,10 +19,12 @@ export class DomainsService {
     constructor(
         @Inject(DatabaseDomainsRepository)
         private readonly repository: DomainsRepository,
+        @Inject(TraefikReverseProxyAdapter)
+        private readonly proxy: ReverseProxy,
     ) {}
 
     public getByService(serviceId: string): Promise<Domain[]> {
-        return getDomainsByServiceUseCase(this.repository, serviceId);
+        return getDomainsByServiceUseCase(this.repository, this.proxy, serviceId);
     }
 
     public claim(serviceId: string, claimDto: ClaimDomainDto): Promise<Domain> {

@@ -37,10 +37,10 @@ GitPaaS deploys a compose stack, and nothing sends traffic to it: no proxy holds
 **Agent:** implementer
 **Paths:** apps/backend/src/features/domains/
 
-- [ ] 3.1 Create the port `ReverseProxy` with the operations that build the routing of a service and that report the state of a certificate.
-- [ ] 3.2 Create the adapter of Traefik, which builds the labels of one compose service from the records of the domains, with the port and the choice of HTTPS of each one.
-- [ ] 3.3 Read the state of the certificate of each domain from the store of ACME of the proxy, and write it onto the record.
-- [ ] 3.4 Create the specs of the adapter: no domain, one domain of HTTP, one domain of HTTPS, and several domains on two compose services.
+- [x] 3.1 Create the port `ReverseProxy` with the operations that build the routing of a service and that report the state of a certificate.
+- [x] 3.2 Create the adapter of Traefik, which builds the labels of one compose service from the records of the domains, with the port and the choice of HTTPS of each one.
+- [x] 3.3 Read the state of the certificate of each domain from the store of ACME of the proxy, and write it onto the record.
+- [x] 3.4 Create the specs of the adapter: no domain, one domain of HTTP, one domain of HTTPS, and several domains on two compose services.
 
 ## Phase 4 — The routing at the deployment
 

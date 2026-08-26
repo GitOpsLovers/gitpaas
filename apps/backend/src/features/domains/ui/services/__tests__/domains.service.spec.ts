@@ -7,6 +7,7 @@ import { removeDomainUseCase } from '../../../application/remove-domain.use-case
 import { updateDomainUseCase } from '../../../application/update-domain.use-case';
 import { Domain } from '../../../domain/models/domain.models';
 import { DatabaseDomainsRepository } from '../../../infrastructure/database/db-domains.repository';
+import { TraefikReverseProxyAdapter } from '../../../infrastructure/traefik/traefik-reverse-proxy.adapter';
 import { DomainsService } from '../domains.service';
 
 jest.mock('../../../application/claim-domain.use-case');
@@ -37,17 +38,20 @@ const domain: Domain = {
 
 describe('DomainsService', () => {
     let mockDomainsRepository: jest.Mocked<DatabaseDomainsRepository>;
+    let mockReverseProxy: jest.Mocked<TraefikReverseProxyAdapter>;
     let sut: DomainsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
         mockDomainsRepository = {} as jest.Mocked<DatabaseDomainsRepository>;
+        mockReverseProxy = {} as jest.Mocked<TraefikReverseProxyAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 DomainsService,
                 { provide: DatabaseDomainsRepository, useValue: mockDomainsRepository },
+                { provide: TraefikReverseProxyAdapter, useValue: mockReverseProxy },
             ],
         }).compile();
 
@@ -55,13 +59,17 @@ describe('DomainsService', () => {
     });
 
     describe('getByService', () => {
-        it('delegates to the use case with the repository and the service id', async () => {
+        it('delegates to the use case with the repository, the proxy and the service id', async () => {
             mockGetDomainsByServiceUseCase.mockResolvedValue([domain]);
 
             await sut.getByService(serviceId);
 
             expect(mockGetDomainsByServiceUseCase).toHaveBeenCalledTimes(1);
-            expect(mockGetDomainsByServiceUseCase).toHaveBeenCalledWith(mockDomainsRepository, serviceId);
+            expect(mockGetDomainsByServiceUseCase).toHaveBeenCalledWith(
+                mockDomainsRepository,
+                mockReverseProxy,
+                serviceId,
+            );
         });
 
         it('returns the domains that the use case gives', async () => {
