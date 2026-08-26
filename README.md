@@ -41,7 +41,7 @@ You need a Linux server with `sudo`, plus `curl`, `openssl` and `tar`. Docker is
 curl -fsSL https://raw.githubusercontent.com/GitOpsLovers/gitpaas/main/scripts/install.sh | sh
 ```
 
-Enter your admin email, **copy the password it prints**, then open `http://<your-server>:8080` and sign in.
+Enter your admin email, then — if you want GitPaaS at your own domain instead of `http://<your-server>:8080` — a domain and an email address for Let's Encrypt, so the installer's reverse proxy can get you a certificate. **Copy the password it prints**, then open the address it shows and sign in.
 
 Add `-s -- --version v1.0.0` to pin a release. The installer is safe to re-run.
 

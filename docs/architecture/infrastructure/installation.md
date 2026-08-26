@@ -36,25 +36,26 @@ Each option is a flag and has an equivalent environment variable:
 
 ### What the installer does
 
-The script does seven steps in sequence:
+Before it touches the host, the script checks that the ports `80` and `443` are free, because the reverse proxy needs both. It stops and names the process that holds one, unless that process is the proxy of an earlier install of GitPaaS. Then the script does seven steps in sequence:
 
 1. **Make sure that Docker is available.** If Docker or the compose plugin is missing, the script installs the two parts with the official `get.docker.com` convenience script and enables the daemon.
 2. **Find the version and get the source.** The script finds the version tag (see above) and downloads the tarball of the repository from `codeload.github.com` into `/tmp`. From that archive it extracts **only** `*/iac/production/*` into the install directory, then deletes the tarball — the install directory holds the production stack alone, with no `apps/`, no `scripts/` and no root manifests. When an installation is already there (a directory that has `iac/production/docker-compose.yml`), the script reuses it and skips the download.
-3. **Write `.env`.** On a **fresh** install, the script copies `iac/production/.env.example` to `.env` and fills in the secrets:
+3. **Ask for the domain of the control plane.** The domain is optional: with no answer, GitPaaS stays reachable at `http://<host>:8080`, exactly as before this feature. With a domain, the script also asks for the email address of Let's Encrypt — obligatory, because the resolver needs it to renew a certificate and to warn of an expiry — and for a choice of the **staging** service of Let's Encrypt, which gives an untrusted certificate but carries no rate limit, and stays a trial run.
+4. **Write `.env`.** On a **fresh** install, the script copies `iac/production/.env.example` to `.env` and fills in the secrets:
    - Random secure values for `POSTGRES_PASSWORD`, `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `SECRETS_ENCRYPTION_KEY`.
-   - `NODE_ENV=production`, and `CORS_ORIGIN` pointed at the address of the host on port `8080`.
+   - `NODE_ENV=production`. Without a domain, `CORS_ORIGIN` and `APP_BASE_URL` point at the address of the host on port `8080`. With a domain, they point at `https://<domain>` instead, and `CONTROL_PLANE_DOMAIN`, `CONTROL_PLANE_PROXY` and `LETSENCRYPT_EMAIL` carry the answers of the step above (see [Conventions](./conventions.md#environment-contract)).
    - `DOCKER_GID`, the docker group id of the host, found with `getent group docker` or from the owning group of the socket; compose passes it to the `group_add` of the backend, so the non-root container can reach the socket. The script stops with a clear message when it cannot find that GID.
    - `IMAGE_TAG`, which selects the published images to run (see [Conventions](./conventions.md#environment-contract)).
 
    The script writes no Redis key on a fresh install — `REDIS_HOST` and `REDIS_PORT` come from `.env.example` as they are. It also writes no source-control credential: the operator registers each GitHub App from the Providers screen after the first start.
 
    On a **pre-existing** `.env`, the script changes as little as possible: it refreshes `DOCKER_GID` and `IMAGE_TAG`, adds `REDIS_HOST=redis` and `REDIS_PORT=6379` only when those keys are missing, and adds a fresh `SECRETS_ENCRYPTION_KEY` only when that key is missing. It never touches a secret or a port that is already set.
-4. **Start only the database.** The script runs `docker compose … up -d postgres`, not a full `up -d`, then waits for the `gitpaas-postgres` container to become `healthy` (up to about 5 minutes). The backend and the frontend do not run at this step.
-5. **Apply the SQL migrations.** See [Schema bootstrap](./key-flows.md#schema-bootstrap).
-6. **Make the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
-7. **Get the images and start the application stack.** Only once the schema is current and the admin row exists, the script runs `docker compose … pull` to fetch the published images from `ghcr.io/gitopslovers` at the tag in `IMAGE_TAG` — it stops and names that tag if the pull fails. Then it runs `docker compose … up -d`. Nothing is built on the server: this starts the backend, then the frontend, and the script waits for the `gitpaas-backend` container to become `healthy` (up to about 5 minutes).
+5. **Start only the database.** The script runs `docker compose … up -d postgres`, not a full `up -d`, then waits for the `gitpaas-postgres` container to become `healthy` (up to about 5 minutes). The backend, the frontend and the proxy do not run at this step.
+6. **Apply the SQL migrations.** See [Schema bootstrap](./key-flows.md#schema-bootstrap).
+7. **Make the first admin.** See [Interactive admin seeding](#interactive-admin-seeding).
+8. **Get the images and start the application stack.** Only once the schema is current and the admin row exists, the script runs `docker compose … pull` to fetch the published images from `ghcr.io/gitopslovers` at the tag in `IMAGE_TAG` — it stops and names that tag if the pull fails. Then it runs `docker compose … up -d`. Nothing is built on the server: this starts the proxy, the backend and the frontend, and the script waits for the `gitpaas-backend` container to become `healthy` (up to about 5 minutes).
 
-At the end, the script shows a summary with the frontend URL and the API URL, the admin credentials, and the manual steps that stay.
+At the end, the script shows a summary with the frontend URL and the API URL — `https://<domain>` with a fallback to the published port when a domain was given, or the plain published port with none — the admin credentials, and the manual steps that stay. With a domain, the summary also reminds the operator that its certificate is asked on the first visit, and that it needs the A record of the domain to point at this server, and the ports `80` and `443` to be reachable from the internet.
 
 ### Interactive admin seeding
 

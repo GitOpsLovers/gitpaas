@@ -11,6 +11,5 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 
 ## The features
 
-- [domains](./roadmap/domains/TODO.md): the public address of a service, and its certificate.
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.

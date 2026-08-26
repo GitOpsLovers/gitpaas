@@ -4,6 +4,7 @@
 |---------------------|--------------------------------------------------------|
 | Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
 | Images              | Multi-stage Dockerfiles, built and pushed by CI        |
+| Reverse proxy       | `traefik:v3.5`, with the certificates of Let's Encrypt |
 | Database            | `postgres:17.6-alpine`                                 |
 | Live log store      | `redis:8.2-alpine` with AOF persistence                |
 | Workload execution  | Local Docker daemon via `/var/run/docker.sock`         |
