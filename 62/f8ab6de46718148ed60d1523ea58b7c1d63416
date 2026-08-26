@@ -1,0 +1,35 @@
+docs/architecture/infrastructure/key-flows.md
+  s_c62d0d3fdc5fc3::t_8d3de4e4e9d574 42-62
+docs/architecture/infrastructure/installation.md
+  s_c62d0d3fdc5fc3::t_45c08396849624 39,43-44,46,53-56,58
+docs/architecture/infrastructure/structure.md
+  s_c62d0d3fdc5fc3::t_64d2d828dcaa71 46-58,69
+docs/business/domains.md
+  s_c62d0d3fdc5fc3::t_7a50101a62f753 1-95
+docs/architecture/infrastructure/stack.md
+  s_c62d0d3fdc5fc3::t_44dbe34e99f7af 7
+docs/business.md
+  s_c62d0d3fdc5fc3::t_dff7c27af8841d 14
+README.md
+  s_c62d0d3fdc5fc3::t_16e4130dc92ae9 44
+docs/business/networks.md
+  s_c62d0d3fdc5fc3::t_95e431356667b5 7-8
+docs/business/services.md
+  s_c62d0d3fdc5fc3::t_77d81eb2570a4d 278,280,282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "62f8ab6de46718148ed60d1523ea58b7c1d63416",
+  "prompts": {},
+  "sessions": {
+    "s_c62d0d3fdc5fc3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5111e7425dba9cb7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
