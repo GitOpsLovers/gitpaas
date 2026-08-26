@@ -425,6 +425,7 @@ generate_env() {
         default_env "REDIS_PORT" "6379"
         default_env "SECRETS_ENCRYPTION_KEY" "$(rand_secret)"
         default_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
+        default_env "PROXY_ACME_PATH" "/acme/acme.json"
         write_control_plane_env
         return
     fi

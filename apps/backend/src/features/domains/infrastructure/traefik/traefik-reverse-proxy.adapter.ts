@@ -34,15 +34,27 @@ type AcmeStore = Record<string, { Certificates?: AcmeCertificate[] | null } | un
  */
 @Injectable()
 export class TraefikReverseProxyAdapter implements ReverseProxy {
-    /** Path of the store of ACME of the proxy, as this installation mounts it. */
+    /**
+     * Path of the store of ACME of the proxy, as this installation mounts it.
+     */
     private readonly acmeStorePath: string;
+
+    /**
+     * Whether the adapter already warned about a store it cannot read.
+     */
+    private acmeStoreWarned = false;
 
     constructor(
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
         config: ConfigService,
     ) {
-        this.acmeStorePath = config.get<string>('PROXY_ACME_PATH') ?? DEFAULT_ACME_STORE_PATH;
+        // A file `.env` that ships the key with no value gives the text `''`, and `ConfigService`
+        // hands that raw text over even when the schema turned it into an absent value. An empty
+        // path therefore takes the default store, as an absent one does.
+        const configuredPath = config.get<string>('PROXY_ACME_PATH')?.trim();
+
+        this.acmeStorePath = configuredPath === undefined || configuredPath === '' ? DEFAULT_ACME_STORE_PATH : configuredPath;
     }
 
     public buildRouting(domains: Domain[]): RoutingLabels {
@@ -63,6 +75,7 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
     public async getCertificateStates(hosts: string[]): Promise<Map<string, CertificateState>> {
         const states = new Map<string, CertificateState>();
 
+        // Only a host of HTTPS reaches this call, so an installation of HTTP alone reads no store.
         if (hosts.length === 0) {
             return states;
         }
@@ -117,8 +130,7 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
     }
 
     /**
-     * Builds the name of the router of a domain. The host makes it readable, and the head of the
-     * id keeps it unique across the installation, because two hosts can share one slug.
+     * Builds the name of the router of a domain.
      *
      * @param domain Domain of a service
      *
@@ -148,14 +160,19 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
                 ...(certificate.domain?.sans ?? []),
             ]);
 
+            this.acmeStoreWarned = false;
+
             return new Set(hosts.filter((host): host is string => host !== undefined));
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            if (!this.acmeStoreWarned) {
+                const message = error instanceof Error ? error.message : String(error);
 
-            this.logger.warn(
-                `Failed to read the ACME store at ${this.acmeStorePath}: ${message}`,
-                PROXY_CONTEXT,
-            );
+                this.acmeStoreWarned = true;
+                this.logger.warn(
+                    `Failed to read the ACME store at ${this.acmeStorePath}: ${message}`,
+                    PROXY_CONTEXT,
+                );
+            }
 
             return undefined;
         }

@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { Domain } from '../../../domain/models/domain.models';
 import { TraefikReverseProxyAdapter } from '../traefik-reverse-proxy.adapter';
+import { DEFAULT_ACME_STORE_PATH } from '../traefik-reverse-proxy.constants';
 
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 
@@ -116,10 +117,12 @@ describe('TraefikReverseProxyAdapter', () => {
     });
 
     describe('getCertificateStates', () => {
-        it('never reads the store when no host is asked for', async () => {
+        it('never reads the store, and never warns, when no host takes HTTPS', async () => {
+            await expect(sut.getCertificateStates([])).resolves.toEqual(new Map());
             await expect(sut.getCertificateStates([])).resolves.toEqual(new Map());
 
             expect(mockReadFile).not.toHaveBeenCalled();
+            expect(mockLogger.warn).not.toHaveBeenCalled();
         });
 
         it('reports a host the store holds, main or alternative, as ready', async () => {
@@ -158,12 +161,66 @@ describe('TraefikReverseProxyAdapter', () => {
             );
         });
 
-        it('reports no state and warns when the store cannot be read', async () => {
+        it('reports no state and warns when the store is absent', async () => {
             mockReadFile.mockRejectedValue(new Error('ENOENT'));
 
             await expect(sut.getCertificateStates(['app.example.com'])).resolves.toEqual(new Map());
 
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                `Failed to read the ACME store at ${acmePath}: ENOENT`,
+                'ReverseProxy',
+            );
+        });
+
+        it('warns one time alone while the store stays absent', async () => {
+            mockReadFile.mockRejectedValue(new Error('ENOENT'));
+
+            await sut.getCertificateStates(['app.example.com']);
+            await sut.getCertificateStates(['app.example.com']);
+            await sut.getCertificateStates(['app.example.com']);
+
+            expect(mockReadFile).toHaveBeenCalledTimes(3);
             expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+        });
+
+        it('warns again when the store is read once and then goes absent', async () => {
+            mockReadFile.mockRejectedValueOnce(new Error('ENOENT'));
+            mockReadFile.mockResolvedValueOnce(JSON.stringify({ letsencrypt: { Certificates: [] } }));
+            mockReadFile.mockRejectedValueOnce(new Error('ENOENT'));
+
+            await sut.getCertificateStates(['app.example.com']);
+            await sut.getCertificateStates(['app.example.com']);
+            await sut.getCertificateStates(['app.example.com']);
+
+            expect(mockLogger.warn).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('the path of the store of ACME', () => {
+        /** Builds an adapter whose environment holds the given raw value of `PROXY_ACME_PATH`. */
+        const adapterReading = (value: string | undefined): TraefikReverseProxyAdapter =>
+            new TraefikReverseProxyAdapter(mockLogger as unknown as NestLoggerAdapter, {
+                get: jest.fn(() => value),
+            } as unknown as ConfigService);
+
+        beforeEach(() => {
+            mockReadFile.mockResolvedValue(JSON.stringify({ letsencrypt: { Certificates: [] } }));
+        });
+
+        it.each([
+            ['an absent value', undefined],
+            ['an empty value, as the file of the example ships it', ''],
+            ['a blank value', '   '],
+        ])('reads the default store when the variable holds %s', async (_case, value) => {
+            await adapterReading(value).getCertificateStates(['app.example.com']);
+
+            expect(mockReadFile).toHaveBeenCalledWith(DEFAULT_ACME_STORE_PATH, 'utf8');
+        });
+
+        it('reads the configured store when the variable holds a path', async () => {
+            await adapterReading('/custom/acme.json').getCertificateStates(['app.example.com']);
+
+            expect(mockReadFile).toHaveBeenCalledWith('/custom/acme.json', 'utf8');
         });
     });
 });

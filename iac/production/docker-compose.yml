@@ -70,6 +70,7 @@ services:
       - "${BACKEND_PORT:-3000}:${PORT:-3000}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - proxy-acme:/acme:ro
     group_add:
       - "${DOCKER_GID:?set DOCKER_GID in .env to the host docker group id (getent group docker | cut -d: -f3)}"
     depends_on:
@@ -95,15 +96,12 @@ services:
       - default
       - proxy
     labels:
-      # False until the operator gives CONTROL_PLANE_DOMAIN
       - "traefik.enable=${CONTROL_PLANE_PROXY:-false}"
       - "traefik.http.services.gitpaas.loadbalancer.server.port=8080"
-      # HTTPS, with the certificate that the resolver gets for this host
       - "traefik.http.routers.gitpaas.rule=Host(`${CONTROL_PLANE_DOMAIN:-localhost}`)"
       - "traefik.http.routers.gitpaas.entrypoints=websecure"
       - "traefik.http.routers.gitpaas.tls.certresolver=letsencrypt"
       - "traefik.http.routers.gitpaas.service=gitpaas"
-      # HTTP, which only sends the visitor to HTTPS
       - "traefik.http.routers.gitpaas-http.rule=Host(`${CONTROL_PLANE_DOMAIN:-localhost}`)"
       - "traefik.http.routers.gitpaas-http.entrypoints=web"
       - "traefik.http.routers.gitpaas-http.middlewares=gitpaas-https"
