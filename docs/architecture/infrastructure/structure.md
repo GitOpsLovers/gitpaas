@@ -43,7 +43,19 @@ The stack defines four services:
 | `backend`  | NestJS control-plane API.              |
 | `frontend` | nginx serving the built Angular SPA.   |
 
-Named volumes: `postgres-data`, holding the Postgres data directory, and `redis-data`, holding the Redis append-only file.
+The stack defines five services:
+
+| Service    | Role                                                                                                                 |
+|------------|----------------------------------------------------------------------------------------------------------------------|
+| `proxy`    | Reverse proxy Traefik: the two entrypoints of the server, and the routing of the control plane and of the workloads. |
+| `postgres` | Control-plane database.                                                                                              |
+| `redis`    | Hot store of the live deployment logs.                                                                               |
+| `backend`  | NestJS control-plane API.                                                                                            |
+| `frontend` | nginx serving the built Angular SPA.                                                                                 |
+
+Named volumes: `postgres-data`, holding the Postgres data directory, `redis-data`, holding the Redis append-only file, and `proxy-acme`, holding the store of ACME of the proxy — its certificates and its account of Let's Encrypt.
+
+`proxy` holds the ports `80` and `443` of the server, the only ports that a domain reaches. It watches the socket of Docker to find the labels of the routing, and it is the one service on the network `gitpaas-proxy`, besides `frontend` and a workload that a domain names. See [Key flows](./key-flows.md#the-reverse-proxy) for the routing, and the capability [domains](../../business/domains.md) for its rules.
 
 The `backend` and the `frontend` services **pull published images**:
 
@@ -54,4 +66,4 @@ ghcr.io/gitopslovers/gitpaas-frontend:${IMAGE_TAG:-latest}
 
 ## Development vs. production
 
-In development, only the dependencies (`postgres`, `redis`, `pgadmin`, `redisinsight`) run in compose. The backend and the frontend run on the host with `pnpm dev`. In production, every part of the stack — `postgres`, `redis`, `backend` and `frontend` — runs in compose, from the published images above.
+In development, only the dependencies (`postgres`, `redis`, `pgadmin`, `redisinsight`) run in compose, and no proxy runs: the backend and the frontend reach each other and the developer directly, on the host. In production, every part of the stack — `proxy`, `postgres`, `redis`, `backend` and `frontend` — runs in compose, from the published images above.

@@ -11,6 +11,7 @@ The future behavior lives in `docs/roadmap.md`. A page of this area moves from t
 - [auth](./business/auth.md): the session, the token, the guard and the role.
 - [containers](./business/containers.md): the container of a service, and its state.
 - [deployments](./business/deployments.md): the run of a deployment, its queue and its steps.
+- [domains](./business/domains.md): the domain of a service, its routing and its certificate.
 - [frontend-dashboard](./business/frontend-dashboard.md): the first screen of the application.
 - [frontend-shell](./business/frontend-shell.md): the layout, the navigation and the theme.
 - [logs](./business/logs.md): the output of a deployment, its stream and its archive.

@@ -19,6 +19,3 @@ There is no separate upgrade command. The operator runs the installer again with
 
 > **Caveat.** The result is a **new image tag on the old compose file and the old migrations**. If the new version changes `docker-compose.yml`, or adds a `.sql` migration, the re-run does not pick up those changes, and the new images can start against a schema that is too old. To get the full new stack, either delete the install directory before the re-run (the named volumes `postgres-data` and `redis-data` live outside it and stay) or update the files in `iac/production/` by hand. Back up `.env` first — a deleted directory removes it too, and the installer then generates new secrets.
 
-### Not covered yet
-
-- **Reverse proxy, automatic TLS, and domain routing** for the deployed applications — Phase 2.

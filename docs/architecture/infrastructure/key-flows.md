@@ -39,6 +39,27 @@ The two environments are different only in the publication of the Redis port:
 - **Development** publishes `127.0.0.1:6379`, because the backend runs on the host and connects through the loopback interface.
 - **Production** publishes **no** host port. The backend is in the same compose network and reaches the server by its service name, so Redis is not available from outside the stack.
 
+## The reverse proxy
+
+The service `proxy` (Traefik) holds the ports `80` and `443` of the server, and no other service publishes a port that a domain reaches. It watches the labels of the socket of Docker (`--providers.docker`), on the network `gitpaas-proxy` alone (`--providers.docker.network`), and it builds its routing from those labels — it needs no static configuration file for a domain.
+
+```text
+apps/backend ──buildRouting()──► labels ──stampRouting()──► compose recipe of the run
+                                                                    │
+                                                        DockerExecutor.up() ─► containers
+                                                                    │
+                                                docker.getNetwork('gitpaas-proxy').connect()
+                                                                    │
+                                                              proxy watches the socket ─► routes the host
+```
+
+- **The labels travel with the deployment, and not with a separate call.** `run-deployment.use-case.ts` reads the domains of the service and asks `ReverseProxy.buildRouting()` for the labels, grouped by the compose service that each domain names. `DockerExecutor` stamps them on the recipe beside the labels of the platform (`stampLabels`), so one run of a deployment carries the whole routing of the service.
+- **A routed container joins the network of the proxy after `compose.up`, and not in the recipe.** `dockerode-compose` crashes on a network that the recipe declares `external`, so the executor calls `docker.getNetwork('gitpaas-proxy').connect()` for each routed container once the stack is already up. A container that fails to join is a best-effort cleanup: it is already unrouted, because the proxy only watches the labels of a container that reached the network.
+- **The certificate of Let's Encrypt is the responsibility of the proxy alone.** The resolver `letsencrypt` gets a certificate for a domain the first time a router of that domain asks for TLS, with the challenge HTTP-01 on the entrypoint `web`. The store of ACME lives in the named volume `proxy-acme`, at `/acme/acme.json` inside the container. `TraefikReverseProxyAdapter` reads that same file to report the state of a certificate (`ready` once the host appears there, `pending` before), and it asks the proxy for nothing else — the backend never talks to the API of Traefik.
+- **The control plane routes through the same proxy as a workload.** `CONTROL_PLANE_PROXY` and `CONTROL_PLANE_DOMAIN` hold the labels of `frontend` in `iac/production/docker-compose.yml`: false and empty until the operator gives a domain, so the control plane keeps answering on its published port meanwhile. Once a domain is set, one router carries HTTPS and one plain router only redirects to it — the same shape that `TraefikReverseProxyAdapter` builds for a workload.
+
+See the capability [domains](../../business/domains.md) for the rules that a domain follows, and [Structure](./structure.md) for the service `proxy` in the stack.
+
 ## Schema bootstrap
 
 **Plain SQL files** own the production schema, and not the application. `iac/production/migrations/*.sql` holds the full schema in numbered files. Each name starts with a three-digit number, and the **lexicographic order of the names is the order of execution**. A new change gets the next number, and an applied file never changes. Each file is idempotent (`CREATE … IF NOT EXISTS`, and the foreign keys are added in a `pg_constraint` guard). Thus, if you apply a file two times, the second time has no effect.

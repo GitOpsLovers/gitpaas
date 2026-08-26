@@ -4,6 +4,8 @@
 
 This capability reads the Docker networks that the compose stack of a service makes. It gives the operator a view of the networks that belong to one service. It only reads, and it changes nothing.
 
+The list never gives the network of the reverse proxy. That network belongs to the runtime of GitPaaS, and not to one service; a routed compose service joins it besides its own networks, so it can reach the proxy. See the capability [domains](./domains.md) for the routing that connects a service to that network.
+
 ## List of the networks of a service
 
 The system SHALL answer with the networks of one service at `GET /api/v1/networks?serviceId=<uuid>`.
