@@ -59,14 +59,14 @@ GitPaaS deploys a compose stack, and nothing sends traffic to it: no proxy holds
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/domains/, apps/frontend/src/app/features/services/, apps/frontend/src/app/pages/services/
 
-- [ ] 5.1 Create the model and the repository of the API of the domains in the frontend.
-- [ ] 5.2 Add the tab `domains` to the detail of a service, after the tab `logs`, and add its value to the union of the tabs.
-- [ ] 5.3 List each domain with its compose service, its port, its choice of HTTPS, the state of its certificate, and the reason when that state is `failed`.
-- [ ] 5.4 Give the form that claims a domain: the name, a list of the compose services of the last deployment, the port, and the box of HTTPS.
-- [ ] 5.5 Give the action that changes a domain, and the action that removes one.
-- [ ] 5.6 Say that a domain answers after the next deployment, and that the certificate arrives some minutes later.
-- [ ] 5.7 Show the message of the domain that another service holds, when the API answers `409`.
-- [ ] 5.8 Create the specs of the tab, one per rule that this plan adds to the behavior of a service.
+- [x] 5.1 Create the model and the repository of the API of the domains in the frontend.
+- [x] 5.2 Add the tab `domains` to the detail of a service, after the tab `logs`, and add its value to the union of the tabs.
+- [x] 5.3 List each domain with its compose service, its port, its choice of HTTPS, the state of its certificate, and the reason when that state is `failed`.
+- [x] 5.4 Give the form that claims a domain: the name, a list of the compose services of the last deployment, the port, and the box of HTTPS.
+- [x] 5.5 Give the action that changes a domain, and the action that removes one.
+- [x] 5.6 Say that a domain answers after the next deployment, and that the certificate arrives some minutes later.
+- [x] 5.7 Show the message of the domain that another service holds, when the API answers `409`.
+- [x] 5.8 Create the specs of the tab, one per rule that this plan adds to the behavior of a service.
 
 ## Phase 6 — The documentation
 

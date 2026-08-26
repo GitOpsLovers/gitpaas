@@ -47,6 +47,21 @@ export class DeploymentsApiRepository {
     }
 
     /**
+     * Resource with the names of the compose services the last deployment of a service declares
+     *
+     * @param serviceId Accessor returning the service identifier
+     *
+     * @returns Resource that resolves to the compose services of the recipe
+     */
+    public composeServicesByService(serviceId: () => string | undefined) {
+        return httpResource<string[]>(() => {
+            const id = serviceId();
+
+            return id ? `${this.url}/compose-services?serviceId=${id}` : undefined;
+        });
+    }
+
+    /**
      * Resource with the durable archive of the output of a deployment
      *
      * @param deploymentId Accessor returning the deployment identifier, or undefined to stay idle
