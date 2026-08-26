@@ -1,3 +1,20 @@
+## [2.1.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.0.0...v2.1.0) (2026-08-26)
+
+### Features
+
+* add Deploy button to deployments list ([ea221d6](https://github.com/GitOpsLovers/gitpaas/commit/ea221d62021a4acfa552a7069ed6441dd81fc115))
+* **domains:** add domain management feature ([#146](https://github.com/GitOpsLovers/gitpaas/issues/146)) ([3cec7ba](https://github.com/GitOpsLovers/gitpaas/commit/3cec7ba15726e339ace1368a1fdc1b20ae3d5711))
+* **domains:** add domains tab to service detail ([#150](https://github.com/GitOpsLovers/gitpaas/issues/150)) ([9fb5b9c](https://github.com/GitOpsLovers/gitpaas/commit/9fb5b9c18f5822f08d0fe8d2fbe6e72ee179d9ee))
+* **domains:** add reverse proxy port and adapter ([#147](https://github.com/GitOpsLovers/gitpaas/issues/147)) ([1bac428](https://github.com/GitOpsLovers/gitpaas/commit/1bac4287935d2e18f49889d6cbe8d6a2445b1708))
+* **domains:** add reverse proxy traefik to production runtime ([#145](https://github.com/GitOpsLovers/gitpaas/issues/145)) ([bcd179c](https://github.com/GitOpsLovers/gitpaas/commit/bcd179cfd795757216fc70fa9d44b0ca9395ba80))
+* **domains:** add routing at deployment ([#149](https://github.com/GitOpsLovers/gitpaas/issues/149)) ([507e8f2](https://github.com/GitOpsLovers/gitpaas/commit/507e8f2d791496de338d0a7e57bd90f2e8ed8391))
+* **infra:** add ACME path configuration ([#153](https://github.com/GitOpsLovers/gitpaas/issues/153)) ([b3476be](https://github.com/GitOpsLovers/gitpaas/commit/b3476bed180130470bca760495a9fc243905d6d0))
+* **infra:** add reverse proxy to local stack ([#152](https://github.com/GitOpsLovers/gitpaas/issues/152)) ([bfcbc33](https://github.com/GitOpsLovers/gitpaas/commit/bfcbc333b23640c3a80395eece2f20efd848e3ac))
+
+### Bug Fixes
+
+* show deployment status on refresh ([5d4d028](https://github.com/GitOpsLovers/gitpaas/commit/5d4d0286c5502b1381d9ac6b18b50b35fcb008c5))
+
 ## [2.0.0](https://github.com/GitOpsLovers/gitpaas/compare/v1.4.0...v2.0.0) (2026-08-25)
 
 ### ⚠ BREAKING CHANGES
