@@ -5,6 +5,13 @@ import { Service } from '../models/service.models';
  */
 export interface ServiceRuntimeResources {
     /**
+     * Removes the routing of the service from the reverse proxy.
+     *
+     * @param service Service whose routing should go away
+     */
+    removeRouting: (service: Service) => Promise<void>;
+
+    /**
      * Removes the containers the service owns on the server.
      *
      * @param service Service whose containers should be removed

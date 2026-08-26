@@ -80,6 +80,14 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         await this.run(() => this.getClient().getNetwork(id).remove());
     }
 
+    public async connectNetwork(network: string, containerId: string): Promise<void> {
+        await this.run(() => this.getClient().getNetwork(network).connect({ Container: containerId }));
+    }
+
+    public async disconnectNetwork(network: string, containerId: string): Promise<void> {
+        await this.run(() => this.getClient().getNetwork(network).disconnect({ Container: containerId, Force: true }));
+    }
+
     public async listImages(selector: RuntimeSelector): Promise<RuntimeImageSummary[]> {
         const filters = toLabelFilter(selector);
         const images = await this.run(() => this.getClient().listImages({ filters }));

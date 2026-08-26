@@ -36,6 +36,24 @@ export class DeploymentsController {
     }
 
     /**
+     * List the compose services the last deployment of a service declares
+     *
+     * @param serviceId Service identifier
+     *
+     * @returns The names of the compose services of the recipe
+     */
+    @Get('compose-services')
+    public async getComposeServices(@Query('serviceId', ParseUUIDPipe) serviceId: string): Promise<string[]> {
+        enrichTelemetry({ 'service.id': serviceId });
+
+        try {
+            return await this.service.getComposeServices(serviceId);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
      * Find a single deployment by its identifier
      *
      * @param id Deployment identifier

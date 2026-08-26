@@ -74,9 +74,10 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     let mockRemoveContainer: jest.Mock;
     let mockRemoveNetwork: jest.Mock;
     let mockRemoveImage: jest.Mock;
+    let mockDisconnectNetwork: jest.Mock;
     let mockContainerRuntime: jest.Mocked<Pick<
         DockerContainerRuntimeAdapter,
-        'listContainers' | 'listNetworks' | 'listImages' | 'removeContainer' | 'removeNetwork' | 'removeImage'
+        'listContainers' | 'listNetworks' | 'listImages' | 'removeContainer' | 'removeNetwork' | 'removeImage' | 'disconnectNetwork'
     >>;
     let sut: DockerServiceRuntimeResourcesAdapter;
 
@@ -89,6 +90,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         mockRemoveContainer = jest.fn().mockResolvedValue(undefined);
         mockRemoveNetwork = jest.fn().mockResolvedValue(undefined);
         mockRemoveImage = jest.fn().mockResolvedValue(undefined);
+        mockDisconnectNetwork = jest.fn().mockResolvedValue(undefined);
 
         mockContainerRuntime = {
             listContainers: mockListContainers,
@@ -97,9 +99,45 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             removeContainer: mockRemoveContainer,
             removeNetwork: mockRemoveNetwork,
             removeImage: mockRemoveImage,
+            disconnectNetwork: mockDisconnectNetwork,
         };
 
         sut = new DockerServiceRuntimeResourcesAdapter(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
+    });
+
+    describe('removeRouting', () => {
+        it('lists containers scoped to the GitPaaS marker and the service project', async () => {
+            await sut.removeRouting(service);
+
+            expect(mockListContainers).toHaveBeenCalledWith(projectSelector, true);
+        });
+
+        it('detaches every container of the service from the network of the proxy', async () => {
+            mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
+
+            await sut.removeRouting(service);
+
+            expect(mockDisconnectNetwork).toHaveBeenCalledTimes(2);
+            expect(mockDisconnectNetwork).toHaveBeenCalledWith('gitpaas-proxy', 'c1');
+            expect(mockDisconnectNetwork).toHaveBeenCalledWith('gitpaas-proxy', 'c2');
+        });
+
+        it('catches a container that never joined the proxy and continues with the rest', async () => {
+            mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
+            mockDisconnectNetwork.mockRejectedValueOnce(new Error('container is not connected to the network'));
+
+            await expect(sut.removeRouting(service)).resolves.toBeUndefined();
+
+            expect(mockDisconnectNetwork).toHaveBeenCalledTimes(2);
+        });
+
+        it('does not throw when the runtime is unreachable while listing', async () => {
+            mockListContainers.mockRejectedValue(new Error('daemon down'));
+
+            await expect(sut.removeRouting(service)).resolves.toBeUndefined();
+
+            expect(mockDisconnectNetwork).not.toHaveBeenCalled();
+        });
     });
 
     describe('removeContainers', () => {

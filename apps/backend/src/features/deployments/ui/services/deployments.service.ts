@@ -4,12 +4,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { createDeploymentUseCase } from '../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../application/find-deployment-by-id.use-case';
+import { getComposeServicesUseCase } from '../../application/get-compose-services.use-case';
 import { getDeploymentsByServiceUseCase } from '../../application/get-deployments-by-service.use-case';
 import { Deployment } from '../../domain/models/deployment.models';
 import type { DeploymentQueue } from '../../domain/ports/deployment-queue.port';
+import type { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import type { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { DatabaseDeploymentQueueAdapter } from '../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-deployments.repository';
+import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-executor.adapter';
 import { enrichWithDeployment } from '../telemetry/enrich-with-deployment';
 
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
@@ -39,6 +42,8 @@ export class DeploymentsService {
         private readonly deploymentQueue: DeploymentQueue,
         @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
+        @Inject(DockerExecutorAdapter)
+        private readonly dockerExecutor: DockerExecutor,
     ) {}
 
     /**
@@ -50,6 +55,28 @@ export class DeploymentsService {
      */
     public getAllByService(serviceId: string): Promise<Deployment[]> {
         return getDeploymentsByServiceUseCase(this.repository, serviceId);
+    }
+
+    /**
+     * List the compose services the last deployment of a service declares
+     *
+     * @param serviceId Service identifier
+     *
+     * @returns The names of the compose services of the recipe, empty when the service was never deployed
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
+     * @throws {ServiceNotDeployableError} When the service cannot be deployed
+     * @throws {ProviderNotFoundError} When the provider of the service no longer exists
+     */
+    public getComposeServices(serviceId: string): Promise<string[]> {
+        return getComposeServicesUseCase(
+            this.repository,
+            this.servicesRepository,
+            this.providersRepository,
+            this.providerClient,
+            this.dockerExecutor,
+            serviceId,
+        );
     }
 
     /**

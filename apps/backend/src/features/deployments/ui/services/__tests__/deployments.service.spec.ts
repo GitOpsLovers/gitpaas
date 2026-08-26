@@ -4,12 +4,14 @@ import { Test } from '@nestjs/testing';
 import { createDeploymentUseCase } from '../../../application/create-deployment.use-case';
 import { deleteDeploymentUseCase } from '../../../application/delete-deployment.use-case';
 import { findDeploymentByIdUseCase } from '../../../application/find-deployment-by-id.use-case';
+import { getComposeServicesUseCase } from '../../../application/get-compose-services.use-case';
 import { getDeploymentsByServiceUseCase } from '../../../application/get-deployments-by-service.use-case';
 import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
 import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
 import { DatabaseDeploymentsRepository } from '../../../infrastructure/database/db-deployments.repository';
+import { DockerExecutorAdapter } from '../../../infrastructure/docker/docker-executor.adapter';
 import { DeploymentsService } from '../deployments.service';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -23,6 +25,7 @@ import { DatabaseServicesRepository } from '@features/services/infrastructure/da
 jest.mock('../../../application/create-deployment.use-case');
 jest.mock('../../../application/delete-deployment.use-case');
 jest.mock('../../../application/find-deployment-by-id.use-case');
+jest.mock('../../../application/get-compose-services.use-case');
 jest.mock('../../../application/get-deployments-by-service.use-case');
 
 const mockCreateDeploymentUseCase = createDeploymentUseCase as jest.MockedFunction<
@@ -36,6 +39,9 @@ const mockFindDeploymentByIdUseCase = findDeploymentByIdUseCase as jest.MockedFu
 >;
 const mockGetDeploymentsByServiceUseCase = getDeploymentsByServiceUseCase as jest.MockedFunction<
     typeof getDeploymentsByServiceUseCase
+>;
+const mockGetComposeServicesUseCase = getComposeServicesUseCase as jest.MockedFunction<
+    typeof getComposeServicesUseCase
 >;
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -62,6 +68,7 @@ describe('DeploymentsService', () => {
     let mockProviderClient: jest.Mocked<GithubProviderClientAdapter>;
     let mockQueue: jest.Mocked<Pick<DeploymentQueue, 'enqueue'>>;
     let mockLogStore: jest.Mocked<LogStore>;
+    let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let sut: DeploymentsService;
 
     beforeEach(async () => {
@@ -78,6 +85,7 @@ describe('DeploymentsService', () => {
             stream: jest.fn(),
             purge: jest.fn(),
         };
+        mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -88,6 +96,7 @@ describe('DeploymentsService', () => {
                 { provide: GithubProviderClientAdapter, useValue: mockProviderClient },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
+                { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
             ],
         }).compile();
 
@@ -125,6 +134,37 @@ describe('DeploymentsService', () => {
             mockGetDeploymentsByServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.getAllByService(serviceId)).rejects.toThrow(error);
+        });
+    });
+
+    describe('getComposeServices', () => {
+        it('delegates to the use case with every port it needs and the service id', async () => {
+            mockGetComposeServicesUseCase.mockResolvedValue(['web']);
+
+            await sut.getComposeServices(serviceId);
+
+            expect(mockGetComposeServicesUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetComposeServicesUseCase).toHaveBeenCalledWith(
+                mockDeploymentsRepository,
+                mockServicesRepository,
+                mockProvidersRepository,
+                mockProviderClient,
+                mockDockerExecutor,
+                serviceId,
+            );
+        });
+
+        it('returns the compose services produced by the use case', async () => {
+            mockGetComposeServicesUseCase.mockResolvedValue(['web', 'cache']);
+
+            await expect(sut.getComposeServices(serviceId)).resolves.toEqual(['web', 'cache']);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new ServiceNotFoundError(serviceId);
+            mockGetComposeServicesUseCase.mockRejectedValue(error);
+
+            await expect(sut.getComposeServices(serviceId)).rejects.toThrow(error);
         });
     });
 

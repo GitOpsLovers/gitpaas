@@ -10,7 +10,7 @@ import * as tar from 'tar';
 import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import {
-    injectEnvironment, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels,
+    injectEnvironment, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, stampRouting,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
 import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
@@ -19,8 +19,11 @@ import type { RuntimeComposeProject, RuntimeProgressListener } from '@core/domai
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
+import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
+import { PROXY_NETWORK } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.constants';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
@@ -29,11 +32,16 @@ import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-cas
 const STARTUP_LOG_TAIL = 100;
 
 /**
+ * Project name the throwaway compose project of a recipe reading is bound to.
+ */
+const RECIPE_PROJECT_NAME = 'gitpaas-recipe';
+
+/**
  * The subset of a started container the executor reads its startup output from.
  */
 interface StartedContainer {
     id: string;
-    inspect: () => Promise<{ Name: string; Config: { Tty: boolean } }>;
+    inspect: () => Promise<{ Name: string; Config: { Tty: boolean; Labels?: Record<string, string> } }>;
     logs: (options: { follow: false; stdout: boolean; stderr: boolean; tail: number; timestamps: boolean }) => Promise<Buffer>;
 }
 
@@ -54,6 +62,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
         composePath: string,
         projectName: string,
         environment: Record<string, string>,
+        routing: RoutingLabels,
         onLog?: DockerLogListener,
     ): Promise<void> {
         const emit = (line: string): void => onLog?.(line);
@@ -79,12 +88,19 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             normalizeHealthchecks(compose);
             stampLabels(compose, projectName);
+
+            const routed = this.applyRouting(compose, routing, emit);
+
             injectEnvironment(compose, environment);
 
             emit('▶ Creating and starting containers…');
 
             const result = (await this.run(() => compose.up())) as { services?: StartedContainer[] };
             const containers = result.services ?? [];
+
+            // `dockerode-compose` crashes on an `external` network of the recipe, so the routed
+            // containers join the network of the proxy once the stack is already up.
+            await this.attachToProxy(containers, routed, emit);
 
             for (const container of containers) {
                 await this.captureStartupLogs(container, emit);
@@ -93,6 +109,79 @@ export class DockerExecutorAdapter implements DockerExecutor {
             emit(`✔ Stack "${projectName}" is up (${containers.length} container(s))`);
         } finally {
             await rm(directory, { recursive: true, force: true });
+        }
+    }
+
+    public async listComposeServices(archive: Buffer, composePath: string): Promise<string[]> {
+        const directory = await mkdtemp(join(tmpdir(), 'gitpaas-recipe-'));
+
+        try {
+            await this.extractArchive(archive, directory);
+
+            // The compose project parses the recipe as it is built, and nothing drives the stack.
+            const compose = this.docker.createComposeProject(join(directory, composePath), RECIPE_PROJECT_NAME);
+
+            return Object.keys(recipeServices(compose));
+        } finally {
+            await rm(directory, { recursive: true, force: true });
+        }
+    }
+
+    /**
+     * Stamps the labels of the routing on the recipe.
+     *
+     * @param compose Compose project driven by the container runtime
+     * @param routing Labels of the routing, grouped by the compose service each domain names
+     * @param emit Line emitter
+     *
+     * @returns The names of the compose services that carry the routing
+     */
+    private applyRouting(compose: RuntimeComposeProject, routing: RoutingLabels, emit: DockerLogListener): Set<string> {
+        const stamped = new Set(stampRouting(compose, routing));
+
+        for (const name of Object.keys(routing)) {
+            if (!stamped.has(name)) {
+                emit(`▹ The recipe declares no service "${name}"; the domains that name it stay unrouted.`);
+            }
+        }
+
+        return stamped;
+    }
+
+    /**
+     * Attaches every routed container of a started stack to the network of the proxy.
+     *
+     * @param containers Started containers of the stack
+     * @param routed Names of the compose services that carry the routing
+     * @param emit Line emitter
+     */
+    private async attachToProxy(containers: StartedContainer[], routed: Set<string>, emit: DockerLogListener): Promise<void> {
+        if (routed.size === 0) {
+            return;
+        }
+
+        for (const container of containers) {
+            try {
+                const info = await this.run(() => container.inspect());
+                // eslint-disable-next-line security/detect-object-injection
+                const name = info.Config.Labels?.[COMPOSE_SERVICE_LABEL];
+
+                if (name === undefined || !routed.has(name)) {
+                    continue;
+                }
+
+                await this.docker.connectNetwork(PROXY_NETWORK, container.id);
+
+                emit(`▶ Attached ${name} to the network ${PROXY_NETWORK}.`);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+
+                emit(`✖ Could not attach container ${container.id.slice(0, 12)} to the network ${PROXY_NETWORK}: ${message}`);
+                this.logger.warn(
+                    `Could not attach container ${container.id} to the network ${PROXY_NETWORK}: ${message}`,
+                    DockerExecutorAdapter.name,
+                );
+            }
         }
     }
 
@@ -107,9 +196,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
     }
 
     /**
-     * Builds every service that declares a local `build:` context, streaming the
-     * Docker build output, and rewrites each into a plain image service so
-     * `compose.up()` runs (rather than rebuilds) it.
+     * Builds every service that declares a local `build:` context.
      *
      * @param compose Compose project driven by the container runtime
      * @param composeFile Absolute path to the compose file (build contexts are relative to its dir)

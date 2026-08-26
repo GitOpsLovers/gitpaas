@@ -424,6 +424,28 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(remove).toHaveBeenCalledWith();
         });
 
+        it('attaches a container to a network by name', async () => {
+            const { sut, daemon } = buildSut();
+            const connect = jest.fn().mockResolvedValue(undefined);
+            daemon.getNetwork.mockReturnValue({ connect });
+
+            await sut.connectNetwork('gitpaas-proxy', 'c1');
+
+            expect(daemon.getNetwork).toHaveBeenCalledWith('gitpaas-proxy');
+            expect(connect).toHaveBeenCalledWith({ Container: 'c1' });
+        });
+
+        it('force-detaches a container from a network by name', async () => {
+            const { sut, daemon } = buildSut();
+            const disconnect = jest.fn().mockResolvedValue(undefined);
+            daemon.getNetwork.mockReturnValue({ disconnect });
+
+            await sut.disconnectNetwork('gitpaas-proxy', 'c1');
+
+            expect(daemon.getNetwork).toHaveBeenCalledWith('gitpaas-proxy');
+            expect(disconnect).toHaveBeenCalledWith({ Container: 'c1', Force: true });
+        });
+
         it('force-removes an image by id', async () => {
             const { sut, daemon } = buildSut();
             const remove = jest.fn().mockResolvedValue(undefined);
