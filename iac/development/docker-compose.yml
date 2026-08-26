@@ -1,10 +1,13 @@
 # Local development stack.
 #
 # GitPaaS runs everything on ONE machine: the backend (running on this host with
-# `pnpm dev`) drives the LOCAL Docker daemon through /var/run/docker.sock, so
-# everything it deploys lands on your own Docker. There is no emulated remote
-# server here — this stack only provides the backend's own data stores + UIs.
+# `pnpm run dev`) drives the LOCAL Docker daemon through /var/run/docker.sock, so
+# everything it deploys lands on your own Docker.
 #
+# - proxy:    the local Traefik. It listens on http://127.0.0.1:80 and routes
+#             every host of `*.localhost` that a labelled container claims. Its
+#             dashboard sits at http://traefik.localhost.
+# - whoami:   the probe of the routing, at http://whoami.localhost.
 # - postgres: the application's own database, where GitPaaS persists its
 #             operations (projects, deployments, ...).
 # - redis:    the hot store for the live deployment logs. A run's output lives
@@ -20,6 +23,44 @@
 name: gitpaas-dev
 
 services:
+  # Reverse proxy
+  proxy:
+    image: traefik:v3.5
+    container_name: gitpaas-proxy
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=gitpaas-proxy"
+      - "--entrypoints.web.address=:80"
+      - "--api.dashboard=true"
+    ports:
+      - "127.0.0.1:80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+  # Probe of the routing.
+  whoami:
+    image: traefik/whoami:v1.11
+    container_name: gitpaas-whoami
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+    depends_on:
+      - proxy
+
   postgres:
     image: postgres:17.6-alpine3.22
     container_name: gitpaas-postgres
@@ -60,14 +101,12 @@ services:
     container_name: gitpaas-pgadmin
     restart: unless-stopped
     environment:
-      # pgAdmin rejects special-use TLDs like `.local`, so use a normal domain.
       PGADMIN_DEFAULT_EMAIL: admin@gitpaas.dev
       PGADMIN_DEFAULT_PASSWORD: gitpaas
-      # Desktop mode: skip the login screen and master-password prompt for local dev.
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     ports:
-      - "127.0.0.1:5050:80" # web UI — open http://127.0.0.1:5050
+      - "127.0.0.1:5050:80"
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
       - pgadmin-data:/var/lib/pgadmin
@@ -90,6 +129,11 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+
+networks:
+  # The network that every routed stack joins.
+  proxy:
+    name: gitpaas-proxy
 
 volumes:
   postgres-data:
