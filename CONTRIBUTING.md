@@ -48,6 +48,8 @@ docker compose logs -f postgres  # Follow a service's logs
 docker compose down -v           # Wipe all state
 ```
 
+The stack also runs a reverse proxy, the service `proxy`, on port 80 and on the network `gitpaas-proxy` — the same shape the production server uses. Once it is up, `http://traefik.localhost` opens its dashboard and `http://whoami.localhost` reaches the probe `whoami`, which proves the routing before you deploy anything.
+
 ### Database schema and migrations
 
 In development, TypeORM `synchronize` is on, so schema changes to entities are applied automatically on backend boot.

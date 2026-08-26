@@ -3,7 +3,7 @@ name: gitpaas
 services:
   # Reverse proxy
   proxy:
-    image: traefik:v3.5
+    image: traefik:v3.7.11
     container_name: gitpaas-proxy
     restart: unless-stopped
     command:
