@@ -2,7 +2,7 @@
 
 | Concern             | Tool                                                   |
 |---------------------|--------------------------------------------------------|
-| Orchestration       | Docker Compose (`iac/development/`, `iac/production/`) |
+| Orchestration       | Docker Compose (`iac/production/`)                     |
 | Images              | Multi-stage Dockerfiles, built and pushed by CI        |
 | Reverse proxy       | `traefik:v3.5`, with the certificates of Let's Encrypt |
 | Database            | `postgres:17.6-alpine`                                 |
