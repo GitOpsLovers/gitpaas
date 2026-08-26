@@ -20,12 +20,12 @@ The proxy exists in the production stack alone, so a developer cannot test the r
 **Agent:** implementer
 **Paths:** apps/backend/, iac/production/docker-compose.yml, iac/production/.env.example, scripts/install.sh
 
-- [ ] 2.1 Add `PROXY_ACME_PATH` to `apps/backend/.env.example`, with the value that the local environment takes and a comment of one line.
-- [ ] 2.2 Add `PROXY_ACME_PATH` to `iac/production/.env.example`, and give the container `backend` of `iac/production/docker-compose.yml` a read-only mount of the volume `proxy-acme`.
-- [ ] 2.3 Make `getCertificateStates` of `traefik-reverse-proxy.adapter.ts` read no store when no host takes HTTPS, so the local log carries no warning.
-- [ ] 2.4 Make the adapter log the absent store one time, and not at each refresh.
-- [ ] 2.5 Update the specs of the adapter: the store is absent, no host takes HTTPS, and the store holds a certificate.
-- [ ] 2.6 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
+- [x] 2.1 Add `PROXY_ACME_PATH` to `apps/backend/.env.example`, with the value that the local environment takes and a comment of one line.
+- [x] 2.2 Add `PROXY_ACME_PATH` to `iac/production/.env.example`, and give the container `backend` of `iac/production/docker-compose.yml` a read-only mount of the volume `proxy-acme`.
+- [x] 2.3 Make `getCertificateStates` of `traefik-reverse-proxy.adapter.ts` read no store when no host takes HTTPS, so the local log carries no warning.
+- [x] 2.4 Make the adapter log the absent store one time, and not at each refresh.
+- [x] 2.5 Update the specs of the adapter: the store is absent, no host takes HTTPS, and the store holds a certificate.
+- [x] 2.6 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
 
 ## Phase 3 — The documentation
 

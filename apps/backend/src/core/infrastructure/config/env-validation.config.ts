@@ -23,6 +23,14 @@ const requiredText = z.string().min(1);
 const requiredNumber = z.coerce.number();
 
 /**
+ * An optional text variable, where an empty value counts as an absent one
+ */
+const optionalText = z
+    .string()
+    .optional()
+    .transform((value) => (value === undefined || value.trim() === '' ? undefined : value));
+
+/**
  * Shape and constraints of the environment variables the backend understands
  */
 const environmentSchema = z.object({
@@ -46,6 +54,7 @@ const environmentSchema = z.object({
     LOGS_MAX_LINES: requiredNumber,
     TELEMETRY_SLOW_MS: requiredNumber.default(TELEMETRY_DEFAULT_SLOW_MS),
     TELEMETRY_SAMPLE_RATE: requiredNumber.min(0).max(1).default(TELEMETRY_DEFAULT_SAMPLE_RATE),
+    PROXY_ACME_PATH: optionalText,
     JWT_ACCESS_SECRET: requiredText,
     JWT_ACCESS_EXPIRES_IN: requiredText,
     JWT_REFRESH_SECRET: requiredText,

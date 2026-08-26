@@ -174,6 +174,25 @@ describe('validate', () => {
         );
     });
 
+    it('accepts an absent store of ACME, since the local proxy issues no certificate', () => {
+        expect(() => validate(validEnv())).not.toThrow();
+        expect(validate(validEnv()).PROXY_ACME_PATH).toBeUndefined();
+    });
+
+    it('keeps the configured store of ACME, which the schema would otherwise strip', () => {
+        expect(validate({ ...validEnv(), PROXY_ACME_PATH: '/acme/acme.json' }).PROXY_ACME_PATH).toBe(
+            '/acme/acme.json',
+        );
+    });
+
+    it('treats an empty store of ACME as an absent one, as the file of the example ships it', () => {
+        expect(validate({ ...validEnv(), PROXY_ACME_PATH: '' }).PROXY_ACME_PATH).toBeUndefined();
+    });
+
+    it('treats a blank store of ACME as an absent one', () => {
+        expect(validate({ ...validEnv(), PROXY_ACME_PATH: '   ' }).PROXY_ACME_PATH).toBeUndefined();
+    });
+
     it('coerces the Redis port to a number', () => {
         expect(validate(validEnv()).REDIS_PORT).toBe(6379);
     });
