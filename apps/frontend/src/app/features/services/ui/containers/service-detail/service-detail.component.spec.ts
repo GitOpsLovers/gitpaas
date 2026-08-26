@@ -1,10 +1,10 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
-import type { Project, Service, ServiceVariable } from '@gitpaas/contracts';
+import type { Domain, Project, Service, ServiceVariable } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
@@ -18,6 +18,10 @@ import { ServiceDetailComponent } from './service-detail.component';
 
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
+import { DOMAIN_TAKEN_MESSAGE } from '@features/domains/application/read-domain-error.use-case';
+import type { DomainDraft } from '@features/domains/domain/models/domain.models';
+import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
+import { DomainChange } from '@features/domains/ui/components/service-domains/service-domains.component';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -41,6 +45,15 @@ interface ServiceDetailInternals {
     changeVariable: (change: ServiceVariableChange) => Promise<void>;
     requestVariableRemoval: (variable: ServiceVariable) => void;
     confirmVariableRemoval: () => Promise<void>;
+    savingDomain: () => boolean;
+    domainError: () => string | null;
+    pendingDomainRemoval: () => Domain | null;
+    removeDomainMessage: () => string;
+    removingDomain: () => boolean;
+    claimDomain: (draft: DomainDraft) => Promise<void>;
+    changeDomain: (change: DomainChange) => Promise<void>;
+    requestDomainRemoval: (domain: Domain) => void;
+    confirmDomainRemoval: () => Promise<void>;
 }
 
 const project: Project = {
@@ -61,6 +74,21 @@ const variable: ServiceVariable = {
     id: 'var-1', serviceId: 'sv-1', name: 'DATABASE_URL', secret: false, value: 'postgres://db', valueSet: true,
 };
 
+const domain: Domain = {
+    id: 'dm-1',
+    serviceId: 'sv-1',
+    host: 'api.example.com',
+    targetService: 'web',
+    port: 8080,
+    https: true,
+    certificateState: 'pending',
+    certificateError: null,
+};
+
+const draft: DomainDraft = {
+    host: 'api.example.com', targetService: 'web', port: 8080, https: true,
+};
+
 describe('ServiceDetailComponent', () => {
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
     let serviceValue: ReturnType<typeof signal<Service | undefined>>;
@@ -74,6 +102,7 @@ describe('ServiceDetailComponent', () => {
     };
     let deploymentsRepository: {
         deploymentsByService: ReturnType<typeof vi.fn>;
+        composeServicesByService: ReturnType<typeof vi.fn>;
         deploy: ReturnType<typeof vi.fn>;
         remove: ReturnType<typeof vi.fn>;
     };
@@ -85,6 +114,13 @@ describe('ServiceDetailComponent', () => {
         remove: ReturnType<typeof vi.fn>;
     };
     let variablesResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
+    let domainsRepository: {
+        domainsByService: ReturnType<typeof vi.fn>;
+        claim: ReturnType<typeof vi.fn>;
+        update: ReturnType<typeof vi.fn>;
+        remove: ReturnType<typeof vi.fn>;
+    };
+    let domainsResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let router: { navigate: ReturnType<typeof vi.fn> };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ServiceDetailComponent>;
@@ -114,7 +150,15 @@ describe('ServiceDetailComponent', () => {
         };
         deploymentsRepository = {
             deploymentsByService: vi.fn().mockReturnValue(deploymentsResource),
+            composeServicesByService: vi.fn().mockReturnValue({ value: signal(['web', 'worker']) }),
             deploy: vi.fn(),
+            remove: vi.fn(),
+        };
+        domainsResource = { value: signal(undefined), reload: vi.fn() };
+        domainsRepository = {
+            domainsByService: vi.fn().mockReturnValue(domainsResource),
+            claim: vi.fn(),
+            update: vi.fn(),
             remove: vi.fn(),
         };
         variablesResource = { value: signal(undefined), reload: vi.fn() };
@@ -150,6 +194,7 @@ describe('ServiceDetailComponent', () => {
                         useValue: { networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
                     },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
+                    { provide: DomainsApiRepository, useValue: domainsRepository },
                 ],
             },
         });
@@ -332,7 +377,7 @@ describe('ServiceDetailComponent', () => {
         create();
 
         expect(component.tabs.map((entry) => entry.id)).toEqual([
-            'general', 'provider', 'configuration', 'deployments', 'containers', 'network', 'logs',
+            'general', 'provider', 'configuration', 'deployments', 'containers', 'network', 'logs', 'domains',
         ]);
     });
 
@@ -429,6 +474,133 @@ describe('ServiceDetailComponent', () => {
         expect(variablesRepository.remove).not.toHaveBeenCalled();
         expect(variablesResource.reload).not.toHaveBeenCalled();
     });
+
+    test('offers the domains tab after the logs tab', () => {
+        create();
+
+        expect(component.tabs.map((entry) => entry.id)).toEqual([
+            'general', 'provider', 'configuration', 'deployments', 'containers', 'network', 'logs', 'domains',
+        ]);
+    });
+
+    test('activates the domains tab coming from the route', () => {
+        create('ns-1', 'pr-1', 'sv-1', 'domains');
+
+        expect(component.activeTab()).toBe('domains');
+    });
+
+    test('loads the domains and the compose services of the service of the route', () => {
+        create();
+
+        const [domainsAccessor] = domainsRepository.domainsByService.mock.calls[0] as [() => string | undefined];
+        const [composeAccessor] = deploymentsRepository.composeServicesByService.mock.calls[0] as [() => string | undefined];
+
+        expect(domainsAccessor()).toBe('sv-1');
+        expect(composeAccessor()).toBe('sv-1');
+    });
+
+    test('claims a domain, reloads the list and announces the next deployment', async () => {
+        domainsRepository.claim.mockReturnValue(of(domain));
+        create();
+
+        await component.claimDomain(draft);
+
+        expect(domainsRepository.claim).toHaveBeenCalledWith('sv-1', draft);
+        expect(domainsResource.reload).toHaveBeenCalledTimes(1);
+        expect(component.domainError()).toBeNull();
+        expect(component.savingDomain()).toBe(false);
+        expect(toast.success).toHaveBeenCalledWith('Domain claimed', expect.stringContaining('after the next deployment'));
+    });
+
+    test('shows the message of the domain another service holds when the API answers 409', async () => {
+        domainsRepository.claim.mockReturnValue(throwError(() => new HttpErrorResponse({
+            status: 409,
+            error: {
+                statusCode: 409,
+                code: 'DOMAIN_TAKEN',
+                message: 'Domain api.example.com is already claimed',
+                error: 'Conflict',
+                timestamp: '2026-08-26T00:00:00.000Z',
+                path: '/services/sv-1/domains',
+                requestId: 'req-1',
+            },
+        })));
+        create();
+
+        await component.claimDomain(draft);
+
+        expect(component.domainError()).toBe(DOMAIN_TAKEN_MESSAGE);
+        expect(domainsResource.reload).not.toHaveBeenCalled();
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(component.savingDomain()).toBe(false);
+    });
+
+    test('changes a domain and reloads the list', async () => {
+        domainsRepository.update.mockReturnValue(of(domain));
+        create();
+
+        await component.changeDomain({ domain, draft: { ...draft, port: 3000 } });
+
+        expect(domainsRepository.update).toHaveBeenCalledWith('sv-1', 'dm-1', { ...draft, port: 3000 });
+        expect(domainsResource.reload).toHaveBeenCalledTimes(1);
+        expect(toast.success).toHaveBeenCalledWith('Domain saved', expect.stringContaining('after the next deployment'));
+    });
+
+    test('fills the error and reloads nothing when the API refuses the changed domain', async () => {
+        domainsRepository.update.mockReturnValue(throwError(() => new Error('boom')));
+        create();
+
+        await component.changeDomain({ domain, draft });
+
+        expect(component.domainError()).toBe('The domain could not be saved. Please try again.');
+        expect(domainsResource.reload).not.toHaveBeenCalled();
+        expect(component.savingDomain()).toBe(false);
+    });
+
+    test('opens the confirmation before removing a domain', () => {
+        create();
+
+        component.requestDomainRemoval(domain);
+
+        expect(component.pendingDomainRemoval()).toEqual(domain);
+        expect(component.removeDomainMessage()).toContain('api.example.com');
+        expect(domainsRepository.remove).not.toHaveBeenCalled();
+    });
+
+    test('removes the domain pending confirmation and reloads the list', async () => {
+        domainsRepository.remove.mockReturnValue(of(undefined));
+        create();
+
+        component.requestDomainRemoval(domain);
+        await component.confirmDomainRemoval();
+
+        expect(domainsRepository.remove).toHaveBeenCalledWith('sv-1', 'dm-1');
+        expect(domainsResource.reload).toHaveBeenCalledTimes(1);
+        expect(component.pendingDomainRemoval()).toBeNull();
+        expect(component.removingDomain()).toBe(false);
+        expect(toast.success).toHaveBeenCalledWith('Domain removed', expect.stringContaining('api.example.com'));
+    });
+
+    test('keeps the domain pending nothing and warns when the removal fails', async () => {
+        domainsRepository.remove.mockReturnValue(throwError(() => new Error('boom')));
+        create();
+
+        component.requestDomainRemoval(domain);
+        await component.confirmDomainRemoval();
+
+        expect(domainsResource.reload).not.toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalledWith('Could not remove the domain', expect.any(String));
+        expect(component.pendingDomainRemoval()).toBeNull();
+    });
+
+    test('confirming the domain removal with nothing pending calls no method', async () => {
+        create();
+
+        await component.confirmDomainRemoval();
+
+        expect(domainsRepository.remove).not.toHaveBeenCalled();
+        expect(domainsResource.reload).not.toHaveBeenCalled();
+    });
 });
 
 // The template stays real here, so a test proves the outputs of the children reach the handlers of
@@ -486,6 +658,7 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                         provide: DeploymentsApiRepository,
                         useValue: {
                             deploymentsByService: vi.fn().mockReturnValue(deploymentsResource),
+                            composeServicesByService: vi.fn().mockReturnValue({ value: signal([]) }),
                             logArchive: vi.fn().mockReturnValue({ value: signal(undefined), isLoading: signal(false) }),
                         },
                     },
@@ -498,6 +671,17 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                         useValue: { networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
                     },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
+                    {
+                        provide: DomainsApiRepository,
+                        useValue: {
+                            domainsByService: vi.fn().mockReturnValue({
+                                value: signal([]), isLoading: signal(false), reload: vi.fn(),
+                            }),
+                            claim: vi.fn(),
+                            update: vi.fn(),
+                            remove: vi.fn(),
+                        },
+                    },
                 ],
             },
         });
@@ -530,11 +714,11 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
 
     test('passes the payload of the set output to setVariable through the real template', () => {
         const spy = vi.spyOn(component, 'setVariable').mockResolvedValue(undefined);
-        const draft: ServiceVariableDraft = { name: 'DATABASE_URL', value: 'postgres://db', secret: false };
+        const variableDraft: ServiceVariableDraft = { name: 'DATABASE_URL', value: 'postgres://db', secret: false };
 
-        child.set.emit(draft);
+        child.set.emit(variableDraft);
 
-        expect(spy).toHaveBeenCalledWith(draft);
+        expect(spy).toHaveBeenCalledWith(variableDraft);
     });
 
     test('passes the payload of the remove output to requestVariableRemoval through the real template', () => {

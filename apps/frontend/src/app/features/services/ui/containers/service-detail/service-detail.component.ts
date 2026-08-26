@@ -1,7 +1,7 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { Container, Deployment, Network, Project, Service, ServiceVariable } from '@gitpaas/contracts';
+import type { Container, Deployment, Domain, Network, Project, Service, ServiceVariable } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { buildServiceVariableUpdateUseCase } from '../../../application/build-service-variable-update.use-case';
@@ -19,6 +19,10 @@ import { ServiceVariableChange, ServiceVariablesComponent } from '../../componen
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { ServiceContainersComponent } from '@features/containers/ui/components/service-containers/service-containers.component';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
+import { readDomainErrorUseCase } from '@features/domains/application/read-domain-error.use-case';
+import type { DomainDraft } from '@features/domains/domain/models/domain.models';
+import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
+import { DomainChange, ServiceDomainsComponent } from '@features/domains/ui/components/service-domains/service-domains.component';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -27,7 +31,7 @@ import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 import { ToastService } from '@shared/services/toast.service';
 
-type ServiceTab = 'general' | 'provider' | 'configuration' | 'deployments' | 'containers' | 'network' | 'logs';
+type ServiceTab = 'general' | 'provider' | 'configuration' | 'deployments' | 'containers' | 'network' | 'logs' | 'domains';
 
 @Component({
     selector: 'app-service-detail',
@@ -39,6 +43,7 @@ type ServiceTab = 'general' | 'provider' | 'configuration' | 'deployments' | 'co
         DeploymentsApiRepository,
         ContainersApiRepository,
         NetworksApiRepository,
+        DomainsApiRepository,
     ],
     imports: [
         BreadcrumbComponent,
@@ -47,6 +52,7 @@ type ServiceTab = 'general' | 'provider' | 'configuration' | 'deployments' | 'co
         ServiceContainersComponent,
         ServiceDeployActionsComponent,
         ServiceDeploymentsComponent,
+        ServiceDomainsComponent,
         ServiceLogsComponent,
         ServiceNetworksComponent,
         ServiceProviderComponent,
@@ -70,6 +76,8 @@ export class ServiceDetailComponent {
 
     private readonly networksRepository = inject(NetworksApiRepository);
 
+    private readonly domainsRepository = inject(DomainsApiRepository);
+
     private readonly toast = inject(ToastService);
 
     private readonly router = inject(Router);
@@ -92,6 +100,11 @@ export class ServiceDetailComponent {
     protected readonly containers: HttpResourceRef<Container[] | undefined> = this.containersRepository.containersByService(() => this.serviceId());
 
     protected readonly networks: HttpResourceRef<Network[] | undefined> = this.networksRepository.networksByService(() => this.serviceId());
+
+    protected readonly domains: HttpResourceRef<Domain[] | undefined> = this.domainsRepository.domainsByService(() => this.serviceId());
+
+    // eslint-disable-next-line max-len
+    protected readonly composeServices: HttpResourceRef<string[] | undefined> = this.deploymentsRepository.composeServicesByService(() => this.serviceId());
 
     // eslint-disable-next-line max-len
     protected readonly variables: HttpResourceRef<ServiceVariable[] | undefined> = this.variablesRepository.variablesByService(() => this.serviceId());
@@ -117,6 +130,14 @@ export class ServiceDetailComponent {
 
     protected readonly removingVariable = signal(false);
 
+    protected readonly savingDomain = signal(false);
+
+    protected readonly domainError = signal<string | null>(null);
+
+    protected readonly pendingDomainRemoval = signal<Domain | null>(null);
+
+    protected readonly removingDomain = signal(false);
+
     /**
      * Confirmation message naming the variable pending removal.
      */
@@ -135,7 +156,15 @@ export class ServiceDetailComponent {
         { id: 'containers', label: 'Containers' },
         { id: 'network', label: 'Network' },
         { id: 'logs', label: 'Logs' },
+        { id: 'domains', label: 'Domains' },
     ];
+
+    /**
+     * Confirmation message naming the domain pending removal.
+     */
+    protected readonly removeDomainMessage = computed(
+        () => `“${this.pendingDomainRemoval()?.host ?? ''}” stops answering after the next deployment.`,
+    );
 
     /**
      * Maps the current project and service into a breadcrumb trail for navigation.
@@ -317,6 +346,82 @@ export class ServiceDetailComponent {
         } finally {
             this.removingVariable.set(false);
             this.pendingVariableRemoval.set(null);
+        }
+    }
+
+    /**
+     * Claims a domain for the service.
+     *
+     * @param draft Host, compose service, port and choice of HTTPS the form holds
+     */
+    protected async claimDomain(draft: DomainDraft): Promise<void> {
+        this.savingDomain.set(true);
+        this.domainError.set(null);
+
+        try {
+            await lastValueFrom(this.domainsRepository.claim(this.serviceId(), draft));
+
+            this.domains.reload();
+            this.toast.success('Domain claimed', `“${draft.host}” answers after the next deployment.`);
+        } catch (error) {
+            this.domainError.set(readDomainErrorUseCase(error, 'The domain could not be claimed. Please try again.'));
+        } finally {
+            this.savingDomain.set(false);
+        }
+    }
+
+    /**
+     * Changes a domain the service already holds.
+     *
+     * @param change Claimed domain and the values the form holds
+     */
+    protected async changeDomain(change: DomainChange): Promise<void> {
+        this.savingDomain.set(true);
+        this.domainError.set(null);
+
+        try {
+            await lastValueFrom(this.domainsRepository.update(this.serviceId(), change.domain.id, change.draft));
+
+            this.domains.reload();
+            this.toast.success('Domain saved', `“${change.draft.host}” answers after the next deployment.`);
+        } catch (error) {
+            this.domainError.set(readDomainErrorUseCase(error, 'The domain could not be saved. Please try again.'));
+        } finally {
+            this.savingDomain.set(false);
+        }
+    }
+
+    /**
+     * Opens the removal confirmation for a domain.
+     *
+     * @param domain Domain to remove
+     */
+    protected requestDomainRemoval(domain: Domain): void {
+        this.pendingDomainRemoval.set(domain);
+    }
+
+    /**
+     * Removes the domain pending confirmation.
+     */
+    protected async confirmDomainRemoval(): Promise<void> {
+        const domain = this.pendingDomainRemoval();
+
+        if (!domain) {
+            return;
+        }
+
+        this.removingDomain.set(true);
+
+        try {
+            await lastValueFrom(this.domainsRepository.remove(this.serviceId(), domain.id));
+
+            this.domains.reload();
+            this.toast.success('Domain removed', `“${domain.host}” stops answering after the next deployment.`);
+        } catch {
+            this.toast.error('Could not remove the domain', 'Something went wrong. Please try again.');
+        } finally {
+            this.removingDomain.set(false);
+            this.pendingDomainRemoval.set(null);
         }
     }
 
