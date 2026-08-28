@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import type {
     OrphanRemovalResult,
     PlatformSettings,
+    PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
     ServerStatus,
@@ -25,9 +26,6 @@ export class ServerApiRepository {
     /**
      * Resource with the readiness of the server's critical dependencies
      *
-     * The API answers `503` when a dependency is down, and the body of that
-     * answer carries the states. That answer reaches the resource's `error`.
-     *
      * @returns Resource that resolves to the readiness result
      */
     public readiness() {
@@ -36,9 +34,6 @@ export class ServerApiRepository {
 
     /**
      * Resource with the information the server's Docker daemon reports
-     *
-     * The API answers `503` when the daemon does not answer, and that answer
-     * reaches the resource's `error`.
      *
      * @returns Resource that resolves to the state of the daemon
      */
@@ -100,5 +95,25 @@ export class ServerApiRepository {
      */
     public updateSettings(updateDto: UpdatePlatformSettingsDto): Observable<PlatformSettings> {
         return this.http.put<PlatformSettings>(`${this.url}/settings`, updateDto);
+    }
+
+    /**
+     * Resource with the versions of the installation and the state of its last update.
+     *
+     * @param enabled Accessor telling whether the read may run
+     *
+     * @returns Resource that resolves to the state of the update of the platform
+     */
+    public updateStatus(enabled: () => boolean) {
+        return httpResource<PlatformUpdateStatus>(() => (enabled() ? `${this.url}/update` : undefined));
+    }
+
+    /**
+     * Starts the update of the platform towards the latest release published.
+     *
+     * @returns The versions of the installation and the update that started
+     */
+    public startUpdate(): Observable<PlatformUpdateStatus> {
+        return this.http.post<PlatformUpdateStatus>(`${this.url}/update`, {});
     }
 }
