@@ -25,12 +25,12 @@ The states stay `up` and `down`, the dependency keeps its fields of today, and n
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/server/
 
-- [ ] 2.1 Add a map of the name of the probe to its human label in `map-readiness-health.use-case.ts`: PostgreSQL, Docker daemon, Redis, Reverse proxy, Backend, Frontend.
-- [ ] 2.2 Show that label in the row of the dependency of `server-health-panel.component.html`, in place of the raw name. Keep the raw name when the map holds no entry.
-- [ ] 2.3 Add a button "Refresh" to the panel. It emits an output that the container `ServerHealthComponent` receives.
-- [ ] 2.4 Reload the two resources of `ServerHealthComponent` when that output fires, and disable the button while a read runs.
-- [ ] 2.5 Update the unit tests of the use case, of the panel and of the container.
-- [ ] 2.6 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
+- [x] 2.1 Add a map of the name of the probe to its human label in `map-readiness-health.use-case.ts`: PostgreSQL, Docker daemon, Redis, Reverse proxy, Backend, Frontend.
+- [x] 2.2 Show that label in the row of the dependency of `server-health-panel.component.html`, in place of the raw name. Keep the raw name when the map holds no entry.
+- [x] 2.3 Add a button "Refresh" to the panel. It emits an output that the container `ServerHealthComponent` receives.
+- [x] 2.4 Reload the two resources of `ServerHealthComponent` when that output fires, and disable the button while a read runs.
+- [x] 2.5 Update the unit tests of the use case, of the panel and of the container.
+- [x] 2.6 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
 
 ## Phase 3 — The documentation of the behavior
 

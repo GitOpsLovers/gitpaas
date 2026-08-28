@@ -32,20 +32,30 @@
             <ul class="divide-y divide-gray-100 border-t border-gray-100 dark:divide-gray-800 dark:border-gray-800">
                 @for (dependency of readiness().dependencies; track dependency.name) {
                     <li class="flex items-center justify-between gap-4 py-3">
-                        <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ dependency.name }}</span>
+                        <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ dependency.label }}</span>
 
-                        @if (dependency.status === 'up') {
-                            <span
-                                class="rounded-full bg-success-50 px-2.5 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500"
-                            >
-                                up
-                            </span>
-                        } @else {
-                            <span
-                                class="rounded-full bg-error-50 px-2.5 py-0.5 text-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500"
-                            >
-                                down
-                            </span>
+                        @switch (dependency.status) {
+                            @case ('up') {
+                                <span
+                                    class="rounded-full bg-success-50 px-2.5 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500"
+                                >
+                                    up
+                                </span>
+                            }
+                            @case ('not-applicable') {
+                                <span
+                                    class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/[0.05] dark:text-gray-300"
+                                >
+                                    Not applicable
+                                </span>
+                            }
+                            @default {
+                                <span
+                                    class="rounded-full bg-error-50 px-2.5 py-0.5 text-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                                >
+                                    down
+                                </span>
+                            }
                         }
                     </li>
                 }
@@ -81,4 +91,11 @@
             }
         </div>
     }
+
+    <div class="mt-4 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
+        <app-button variant="outline" size="sm" [disabled]="loading()" (btnClick)="refresh.emit()">
+            <svg lucideRotateCw class="h-4 w-4"></svg>
+            Refresh
+        </app-button>
+    </div>
 </app-component-card>

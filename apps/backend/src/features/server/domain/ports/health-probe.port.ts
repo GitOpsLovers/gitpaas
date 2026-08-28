@@ -1,8 +1,7 @@
+import type { DependencyState } from '@gitpaas/contracts';
+
 /**
  * Health probe for a single critical dependency.
- *
- * Adapters implementing this port are responsible for catching their own
- * connectivity errors and resolving `false` rather than throwing.
  */
 export interface HealthProbe {
     /**
@@ -13,7 +12,7 @@ export interface HealthProbe {
     /**
      * Probes the dependency.
      *
-     * @returns `true` when the dependency is reachable, `false` otherwise
+     * @returns `up` when the dependency is reachable, `down` when it is not.
      */
-    check: () => Promise<boolean>;
+    check: () => Promise<DependencyState>;
 }

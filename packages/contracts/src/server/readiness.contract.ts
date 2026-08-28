@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * Whether one critical dependency of the server is reachable.
  */
-export const dependencyStateSchema = z.enum(['up', 'down']);
+export const dependencyStateSchema = z.enum(['up', 'down', 'not-applicable']);
 
 /**
  * The reachability of one critical dependency, as a readiness check probes it.
@@ -14,7 +14,7 @@ export const dependencyStatusSchema = z.object({
 });
 
 /**
- * The aggregate readiness of the server: `ok` only when every dependency is `up`.
+ * The aggregate readiness of the server: `error` as soon as one dependency is `down`.
  */
 export const readinessStateSchema = z.enum(['ok', 'error']);
 

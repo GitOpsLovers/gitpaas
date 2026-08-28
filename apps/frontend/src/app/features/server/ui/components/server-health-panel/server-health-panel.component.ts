@@ -1,14 +1,15 @@
-import { Component, input } from '@angular/core';
-import { LucideCircleAlert, LucideCircleCheck } from '@lucide/angular';
+import { Component, input, output } from '@angular/core';
+import { LucideCircleAlert, LucideCircleCheck, LucideRotateCw } from '@lucide/angular';
 
 import { DaemonHealth, ReadinessHealth } from '../../../domain/models/server-health.model';
 
+import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 
 @Component({
     selector: 'app-server-health-panel',
     templateUrl: './server-health-panel.component.html',
-    imports: [ComponentCardComponent, LucideCircleAlert, LucideCircleCheck],
+    imports: [ButtonComponent, ComponentCardComponent, LucideCircleAlert, LucideCircleCheck, LucideRotateCw],
 })
 
 /**
@@ -30,4 +31,9 @@ export class ServerHealthPanelComponent {
      * Whether the health of the server is still being read.
      */
     public readonly loading = input(false);
+
+    /**
+     * Asks the container to read the health of the server again.
+     */
+    public readonly refresh = output();
 }

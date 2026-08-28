@@ -25,12 +25,12 @@ describe('PostgresHealthProbeAdapter', () => {
     });
 
     it('reports up when the query resolves', async () => {
-        await expect(probe.check()).resolves.toBe(true);
+        await expect(probe.check()).resolves.toBe('up');
     });
 
     it('reports down when the query rejects, without throwing', async () => {
         query.mockRejectedValue(new Error('connection terminated'));
 
-        await expect(probe.check()).resolves.toBe(false);
+        await expect(probe.check()).resolves.toBe('down');
     });
 });

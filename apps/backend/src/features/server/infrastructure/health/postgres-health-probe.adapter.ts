@@ -1,3 +1,4 @@
+import type { DependencyState } from '@gitpaas/contracts';
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
@@ -17,15 +18,15 @@ export class PostgresHealthProbeAdapter implements HealthProbe {
     /**
      * Probes PostgreSQL connectivity.
      *
-     * @returns `true` when the query succeeds, `false` otherwise
+     * @returns `up` when the query succeeds, `down` otherwise
      */
-    public async check(): Promise<boolean> {
+    public async check(): Promise<DependencyState> {
         try {
             await this.dataSource.query('SELECT 1');
 
-            return true;
+            return 'up';
         } catch {
-            return false;
+            return 'down';
         }
     }
 }

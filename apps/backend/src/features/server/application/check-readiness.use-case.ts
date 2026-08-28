@@ -5,11 +5,6 @@ import { HealthProbe } from '../domain/ports/health-probe.port';
 /**
  * Use case for checking whether the server's critical dependencies are ready.
  *
- * Runs every probe in parallel and aggregates the results. A probe that
- * resolves `false` — or throws — is reported as `down`; this function never
- * rejects on a probe failure. The overall status is `ok` only when every
- * dependency is `up`.
- *
  * @param probes Health probes for the dependencies to check
  *
  * @returns Overall status and a per-dependency breakdown
@@ -18,16 +13,14 @@ export async function checkReadinessUseCase(probes: HealthProbe[]): Promise<Read
     const dependencies: DependencyStatus[] = await Promise.all(
         probes.map(async (probe) => {
             try {
-                const up = await probe.check();
-
-                return { name: probe.name, status: up ? 'up' : 'down' };
+                return { name: probe.name, status: await probe.check() };
             } catch {
-                return { name: probe.name, status: 'down' };
+                return { name: probe.name, status: 'down' as const };
             }
         }),
     );
 
-    const status = dependencies.every((dependency) => dependency.status === 'up') ? 'ok' : 'error';
+    const status = dependencies.some((dependency) => dependency.status === 'down') ? 'error' : 'ok';
 
     return { status, dependencies };
 }

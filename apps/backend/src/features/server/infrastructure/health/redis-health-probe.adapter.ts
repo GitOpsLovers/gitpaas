@@ -1,3 +1,4 @@
+import type { DependencyState } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { HealthProbe } from '../../domain/ports/health-probe.port';
@@ -13,13 +14,13 @@ export class RedisHealthProbeAdapter implements HealthProbe {
 
     constructor(@Inject(RedisConnection) private readonly connection: RedisConnection) {}
 
-    public async check(): Promise<boolean> {
+    public async check(): Promise<DependencyState> {
         try {
             await this.connection.getClient().ping();
 
-            return true;
+            return 'up';
         } catch {
-            return false;
+            return 'down';
         }
     }
 }

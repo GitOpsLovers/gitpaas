@@ -24,19 +24,19 @@ describe('DockerHealthProbeAdapter', () => {
     });
 
     it('reports up when the ping resolves', async () => {
-        await expect(probe.check()).resolves.toBe(true);
+        await expect(probe.check()).resolves.toBe('up');
     });
 
     it('reports up on any answer from the daemon, whatever its acknowledgement', async () => {
         ping.mockResolvedValue(false);
 
-        await expect(probe.check()).resolves.toBe(true);
+        await expect(probe.check()).resolves.toBe('up');
     });
 
     it('reports down when the ping rejects, without throwing', async () => {
         ping.mockRejectedValue(new Error('daemon unreachable'));
 
-        await expect(probe.check()).resolves.toBe(false);
+        await expect(probe.check()).resolves.toBe('down');
     });
 
     it('swallows a synchronous throw from the runtime and reports down', async () => {
@@ -44,12 +44,12 @@ describe('DockerHealthProbeAdapter', () => {
             throw new Error('could not create the Docker client');
         });
 
-        await expect(probe.check()).resolves.toBe(false);
+        await expect(probe.check()).resolves.toBe('down');
     });
 
     it('reports down when the ping rejects with a non-Error value', async () => {
         ping.mockRejectedValue('socket hang up');
 
-        await expect(probe.check()).resolves.toBe(false);
+        await expect(probe.check()).resolves.toBe('down');
     });
 });
