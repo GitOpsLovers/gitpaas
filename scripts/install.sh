@@ -345,10 +345,13 @@ assert_domain() {
         || die "'$1' is not a valid domain, e.g. gitpaas.example.com."
 }
 
-# Ask for the domain of the control plane and, when there is one, for the
-# address of Let's Encrypt. Both are optional: with no domain the operator
-# reaches GitPaaS by the published port, exactly as before.
+# Ask for the address of Let's Encrypt nd for the domain of the control plane.
 configure_control_plane() {
+    ask "Let's Encrypt email" "(every domain with HTTPS uses this address, and Let's Encrypt notifies it about an expiring certificate)"
+    GITPAAS_LETSENCRYPT_EMAIL="$ANSWER"
+    [ -n "$GITPAAS_LETSENCRYPT_EMAIL" ] \
+        || die "Let's Encrypt needs an address. Run the installer again and answer that question."
+
     ask "Domain of the control plane" "(leave empty to reach GitPaaS at http://${HOST_ADDR}:8080)"
     GITPAAS_DOMAIN="$ANSWER"
 
@@ -358,11 +361,6 @@ configure_control_plane() {
     fi
 
     assert_domain "$GITPAAS_DOMAIN"
-
-    ask "Let's Encrypt email" "(notified about an expiring certificate)"
-    GITPAAS_LETSENCRYPT_EMAIL="$ANSWER"
-    [ -n "$GITPAAS_LETSENCRYPT_EMAIL" ] \
-        || die "A domain needs an address for Let's Encrypt. Run the installer again and answer that question."
 
     # The staging service issues an untrusted certificate, so it is the answer of
     # a trial run alone: the default is the production service.
@@ -379,8 +377,7 @@ configure_control_plane() {
     fi
 }
 
-# Write the settings of the proxy into .env. Without a domain only the defaults
-# are seeded, and an operator can fill them in later by hand.
+# Write the settings of the proxy into .env.
 write_control_plane_env() {
     if [ "$GITPAAS_LETSENCRYPT_STAGING" = "true" ]; then
         ca_server="$LETSENCRYPT_CA_STAGING"
@@ -391,7 +388,7 @@ write_control_plane_env() {
     if [ -z "$GITPAAS_DOMAIN" ]; then
         default_env "CONTROL_PLANE_DOMAIN" ""
         default_env "CONTROL_PLANE_PROXY" "false"
-        default_env "LETSENCRYPT_EMAIL" ""
+        upsert_env "LETSENCRYPT_EMAIL" "$GITPAAS_LETSENCRYPT_EMAIL"
         default_env "LETSENCRYPT_CA_SERVER" "$ca_server"
         return
     fi

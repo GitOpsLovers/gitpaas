@@ -24,7 +24,7 @@
 | PostgreSQL      | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`                                  |
 | Secrets         | `SECRETS_ENCRYPTION_KEY` (32 random bytes, hex; encrypts every stored provider private key and every secret variable of a service at rest)      |
 | Docker          | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                                                                     |
-| Reverse proxy   | `PROXY_ACME_PATH` (path of the store of ACME the backend reads to report the state of a certificate; empty takes the default `/acme/acme.json`) |
+| Reverse proxy   | `LETSENCRYPT_EMAIL`, `PROXY_ACME_PATH`                                                                                                          |
 | JWT             | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`                                                    |
 
 The file carries no build argument, because CI builds the images and not the server. The frontend needs no variable of its own.
