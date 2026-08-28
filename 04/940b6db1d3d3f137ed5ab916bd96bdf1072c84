@@ -1,0 +1,113 @@
+apps/backend/src/features/server/ui/jobs/check-latest-release.job.ts
+  s_c4579e7c730495::t_8f6b48c21b4c41 1-58
+apps/backend/src/features/server/ui/jobs/__tests__/check-latest-release.job.spec.ts
+  s_c4579e7c730495::t_a5530424488a97 1-107
+apps/backend/src/features/server/infrastructure/release/__tests__/github-release.transformer.spec.ts
+  s_c4579e7c730495::t_6a7cd5749a2fef 1-31
+apps/backend/src/features/server/application/check-latest-release.use-case.ts
+  s_c4579e7c730495::t_3c1b58bc881b2f 1-23
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_c4579e7c730495::t_928061fa2dca9b 196-213
+apps/backend/src/features/server/infrastructure/release/github-release-source.adapter.ts
+  s_c4579e7c730495::t_9b4a7b53b01dc5 1-47
+iac/production/.env.example
+  s_c4579e7c730495::t_e72208b65083bc 32
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_c4579e7c730495::t_e1096a78b1f2e5 4,13,19,22,24,26,28,31,38,43,74-79,162-179
+packages/contracts/src/index.ts
+  s_c4579e7c730495::t_a68a65361985f8 112-117
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_c4579e7c730495::t_a2a06ef6a367de 152-166
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts
+  s_c4579e7c730495::t_8a7b26a2170e56 12,142-158
+apps/backend/src/core/domain/models/container-runtime.models.ts
+  s_c4579e7c730495::t_c82805a5a6ef56 113-124
+apps/backend/src/features/server/infrastructure/database/db-platform-update.entity.ts
+  s_c4579e7c730495::t_a23501cace430b 1-31
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_c4579e7c730495::t_78ece7575ec291 48,84,663-728
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-updates.repository.spec.ts
+  s_c4579e7c730495::t_f607488f207724 1-90
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-updates.transformer.spec.ts
+  s_c4579e7c730495::t_d5fd370a3618fe 1-41
+apps/backend/src/features/server/infrastructure/database/db-platform-updates.repository.ts
+  s_c4579e7c730495::t_0fdd4d6875a087 1-39
+apps/backend/.env.example
+  s_c4579e7c730495::t_4e1b7667bf6e0b 10
+apps/backend/src/features/server/application/get-platform-update.use-case.ts
+  s_c4579e7c730495::t_eff844b481b07c 1-27
+apps/backend/src/features/server/domain/errors/__tests__/server.errors.spec.ts
+  s_c4579e7c730495::t_58316b93fbfd35 1-7,59-133
+apps/backend/src/features/server/domain/errors/server.errors.ts
+  s_c4579e7c730495::t_340e751a9b6abd 30-68
+iac/production/migrations/015_platform_updates.sql
+  s_c4579e7c730495::t_2dc8373fc6aeb9 1-12
+apps/backend/src/features/server/infrastructure/docker/__tests__/docker-update-runner.adapter.spec.ts
+  s_c4579e7c730495::t_7532596372ecc1 1-117
+apps/backend/src/features/server/domain/models/platform-release.models.ts
+  s_c4579e7c730495::t_c7d06e21d72942 1-7
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_c4579e7c730495::t_e7ec261b78371b 1,6,12,16,19,26,31,42-44,68-74,88-100,125-127,144-147,163-165,476-537
+apps/backend/src/features/server/application/start-platform-update.use-case.ts
+  s_c4579e7c730495::t_14d2a48554fda6 1-55
+docs/roadmap/platform-update/TODO.md
+  s_c4579e7c730495::t_d5acfa1b90f883 28-35
+apps/backend/src/features/server/domain/ports/latest-release-store.port.ts
+  s_c4579e7c730495::t_fa2ddafc7048da 1-20
+apps/backend/src/features/server/domain/ports/release-source.port.ts
+  s_c4579e7c730495::t_8a94878449a99e 1-13
+apps/backend/src/features/server/infrastructure/database/db-platform-updates.transformer.ts
+  s_c4579e7c730495::t_c3c702581719bc 1-22
+apps/backend/src/features/server/infrastructure/release/__tests__/github-release-source.adapter.spec.ts
+  s_c4579e7c730495::t_4bf362b2b313d1 1-84
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_c4579e7c730495::t_db70c2a75da3ce 5,13,17,20-26,33-34,48-60,110-111,128-129,628-721
+apps/backend/src/core/domain/ports/container-runtime.port.ts
+  s_c4579e7c730495::t_8c2516ade4ce9c 8,158-166
+apps/backend/src/features/server/domain/ports/update-runner.port.ts
+  s_c4579e7c730495::t_645fd34bb93359 1-12
+apps/backend/src/features/server/application/__tests__/get-platform-update.use-case.spec.ts
+  s_c4579e7c730495::t_d8579fdbfeeb9b 1-67
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_c4579e7c730495::t_7530d952afa8de 4,20,29-31,37,152-185
+apps/backend/src/features/server/domain/constants/platform-update.constants.ts
+  s_c4579e7c730495::t_29fab1429d9c9a 1-44
+apps/backend/src/features/server/application/__tests__/check-latest-release.use-case.spec.ts
+  s_c4579e7c730495::t_b258dd7e8608cc 1-56
+apps/backend/src/features/server/infrastructure/release/github-release.transformer.ts
+  s_c4579e7c730495::t_b5820e663a911c 1-27
+apps/backend/src/features/server/infrastructure/release/__tests__/memory-latest-release-store.adapter.spec.ts
+  s_c4579e7c730495::t_6bf75170e9b9d7 1-35
+apps/backend/src/features/server/infrastructure/docker/docker-update-runner.adapter.ts
+  s_c4579e7c730495::t_cff1597e9e9eb9 1-87
+apps/backend/src/features/server/application/__tests__/start-platform-update.use-case.spec.ts
+  s_c4579e7c730495::t_d48fe1d664278f 1-167
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_c4579e7c730495::t_15ac440b16c9e6 53-55
+apps/backend/src/features/server/infrastructure/release/memory-latest-release-store.adapter.ts
+  s_c4579e7c730495::t_2e54e4e71f3e1f 1-20
+apps/backend/src/features/server/domain/repositories/platform-updates.repository.ts
+  s_c4579e7c730495::t_d1d15e2d69b64d 1-22
+packages/contracts/src/server/platform-update.contract.ts
+  s_c4579e7c730495::t_486071d1a69936 1-43
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_c4579e7c730495::t_6ebb437cb18d83 33-40,66
+apps/backend/src/features/server/server.module.ts
+  s_c4579e7c730495::t_ea4bc37c6f4dc6 6-7,10,17-18,20,29,42-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "04940b6db1d3d3f137ed5ab916bd96bdf1072c84",
+  "prompts": {},
+  "sessions": {
+    "s_c4579e7c730495": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a53c8ae-31a7-4395-9368-367eafa8818a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
