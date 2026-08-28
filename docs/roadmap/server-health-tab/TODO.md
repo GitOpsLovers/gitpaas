@@ -11,14 +11,14 @@ The states stay `up` and `down`, the dependency keeps its fields of today, and n
 **Agent:** implementer
 **Paths:** apps/backend/src/features/server/, apps/backend/src/core/
 
-- [ ] 1.1 Write `RedisHealthProbeAdapter` in `apps/backend/src/features/server/infrastructure/health/`, with the name `redis`. It reports `up` when the command `PING` of `RedisConnection` answers.
-- [ ] 1.2 Write a probe of a container of the stack in the same folder. It reads the state of one container through the Docker API, and it reports `up` when that container runs.
-- [ ] 1.3 Create one probe of a container for the proxy, one for the backend and one for the frontend. Take the name of each container from `iac/production/docker-compose.yml`.
-- [ ] 1.4 Register the four new probes in `apps/backend/src/features/server/server.module.ts`.
-- [ ] 1.5 Pass the six probes to `checkReadinessUseCase` in `server.service.ts`, in this order: postgres, docker, redis, proxy, backend, frontend.
-- [ ] 1.6 Keep the rule of the answer `503`: the readiness answers `503` when one probe of the six reports `down`.
-- [ ] 1.7 Write the unit tests of the new probes, and update the tests of `check-readiness.use-case` and of `server.service`.
-- [ ] 1.8 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
+- [x] 1.1 Write `RedisHealthProbeAdapter` in `apps/backend/src/features/server/infrastructure/health/`, with the name `redis`. It reports `up` when the command `PING` of `RedisConnection` answers.
+- [x] 1.2 Write a probe of a container of the stack in the same folder. It reads the state of one container through the Docker API, and it reports `up` when that container runs.
+- [x] 1.3 Create one probe of a container for the proxy, one for the backend and one for the frontend. Take the name of each container from `iac/production/docker-compose.yml`.
+- [x] 1.4 Register the four new probes in `apps/backend/src/features/server/server.module.ts`.
+- [x] 1.5 Pass the six probes to `checkReadinessUseCase` in `server.service.ts`, in this order: postgres, docker, redis, proxy, backend, frontend.
+- [x] 1.6 Keep the rule of the answer `503`: the readiness answers `503` when one probe of the six reports `down`.
+- [x] 1.7 Write the unit tests of the new probes, and update the tests of `check-readiness.use-case` and of `server.service`.
+- [x] 1.8 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
 
 ## Phase 2 — The rows and the button of the panel
 

@@ -13,8 +13,12 @@ import { InvalidLogRetentionError } from '../../../domain/errors/server.errors';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
+import { BackendHealthProbeAdapter } from '../../../infrastructure/health/backend-health-probe.adapter';
 import { DockerHealthProbeAdapter } from '../../../infrastructure/health/docker-health-probe.adapter';
+import { FrontendHealthProbeAdapter } from '../../../infrastructure/health/frontend-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postgres-health-probe.adapter';
+import { ProxyHealthProbeAdapter } from '../../../infrastructure/health/proxy-health-probe.adapter';
+import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
 import { ServerService } from '../server.service';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
@@ -70,6 +74,10 @@ const readinessResult: ReadinessResult = {
     dependencies: [
         { name: 'postgres', status: 'up' },
         { name: 'docker', status: 'up' },
+        { name: 'redis', status: 'up' },
+        { name: 'proxy', status: 'up' },
+        { name: 'backend', status: 'up' },
+        { name: 'frontend', status: 'up' },
     ],
 };
 
@@ -79,6 +87,10 @@ describe('ServerService', () => {
     let mockServices: jest.Mocked<DatabaseServicesRepository>;
     let mockPostgresProbe: jest.Mocked<PostgresHealthProbeAdapter>;
     let mockDockerProbe: jest.Mocked<DockerHealthProbeAdapter>;
+    let mockRedisProbe: jest.Mocked<RedisHealthProbeAdapter>;
+    let mockProxyProbe: jest.Mocked<ProxyHealthProbeAdapter>;
+    let mockBackendProbe: jest.Mocked<BackendHealthProbeAdapter>;
+    let mockFrontendProbe: jest.Mocked<FrontendHealthProbeAdapter>;
     let mockContainerRuntime: jest.Mocked<DockerContainerRuntimeAdapter>;
     let mockPlatformSettings: jest.Mocked<DatabasePlatformSettingsRepository>;
     let sut: ServerService;
@@ -91,6 +103,10 @@ describe('ServerService', () => {
         mockServices = {} as jest.Mocked<DatabaseServicesRepository>;
         mockPostgresProbe = { name: 'postgres', check: jest.fn() } as unknown as jest.Mocked<PostgresHealthProbeAdapter>;
         mockDockerProbe = { name: 'docker', check: jest.fn() } as unknown as jest.Mocked<DockerHealthProbeAdapter>;
+        mockRedisProbe = { name: 'redis', check: jest.fn() } as unknown as jest.Mocked<RedisHealthProbeAdapter>;
+        mockProxyProbe = { name: 'proxy', check: jest.fn() } as unknown as jest.Mocked<ProxyHealthProbeAdapter>;
+        mockBackendProbe = { name: 'backend', check: jest.fn() } as unknown as jest.Mocked<BackendHealthProbeAdapter>;
+        mockFrontendProbe = { name: 'frontend', check: jest.fn() } as unknown as jest.Mocked<FrontendHealthProbeAdapter>;
         mockContainerRuntime = {} as jest.Mocked<DockerContainerRuntimeAdapter>;
         mockPlatformSettings = {} as jest.Mocked<DatabasePlatformSettingsRepository>;
 
@@ -102,6 +118,10 @@ describe('ServerService', () => {
                 { provide: DatabaseServicesRepository, useValue: mockServices },
                 { provide: PostgresHealthProbeAdapter, useValue: mockPostgresProbe },
                 { provide: DockerHealthProbeAdapter, useValue: mockDockerProbe },
+                { provide: RedisHealthProbeAdapter, useValue: mockRedisProbe },
+                { provide: ProxyHealthProbeAdapter, useValue: mockProxyProbe },
+                { provide: BackendHealthProbeAdapter, useValue: mockBackendProbe },
+                { provide: FrontendHealthProbeAdapter, useValue: mockFrontendProbe },
                 { provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime },
                 { provide: DatabasePlatformSettingsRepository, useValue: mockPlatformSettings },
             ],
@@ -284,7 +304,7 @@ describe('ServerService', () => {
     });
 
     describe('checkReadiness', () => {
-        it('delegates to the check readiness use case with both probes in order', async () => {
+        it('delegates to the check readiness use case with the six probes of the stack in order', async () => {
             mockCheckReadinessUseCase.mockResolvedValue(readinessResult);
 
             await sut.checkReadiness();
@@ -293,6 +313,10 @@ describe('ServerService', () => {
             expect(mockCheckReadinessUseCase).toHaveBeenCalledWith([
                 mockPostgresProbe,
                 mockDockerProbe,
+                mockRedisProbe,
+                mockProxyProbe,
+                mockBackendProbe,
+                mockFrontendProbe,
             ]);
         });
 
@@ -309,7 +333,11 @@ describe('ServerService', () => {
                 status: 'error',
                 dependencies: [
                     { name: 'postgres', status: 'up' },
-                    { name: 'docker', status: 'down' },
+                    { name: 'docker', status: 'up' },
+                    { name: 'redis', status: 'down' },
+                    { name: 'proxy', status: 'up' },
+                    { name: 'backend', status: 'up' },
+                    { name: 'frontend', status: 'up' },
                 ],
             };
             mockCheckReadinessUseCase.mockResolvedValue(errored);
