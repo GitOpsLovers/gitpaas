@@ -1,0 +1,45 @@
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.ts
+  s_ca23dd0201ba98::t_d793dfc58fa23a 1,3,12-23,52-62,86
+apps/frontend/src/app/features/server/domain/models/server-health.model.ts
+  s_ca23dd0201ba98::t_c76f2da35210e3 3-10,21
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.html
+  s_ca23dd0201ba98::t_32722b1ebcdbd0 35,84-90
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.ts
+  s_ca23dd0201ba98::t_fd322a45bb7006 1-2,6,12,34-38
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.html
+  s_ca23dd0201ba98::t_d6a582ba0c97b0 1-6
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.ts
+  s_ca23dd0201ba98::t_0990128f9af4ae 55-62
+docs/roadmap/server-health-tab/TODO.md
+  s_ca23dd0201ba98::t_c3f20b094c9d9d 28-33
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.spec.ts
+  s_2fe98ce6eb22e9::t_27941a28259bd9 14,23-24,34,44-45,50-79,84,93-94,106,113
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.spec.ts
+  s_2fe98ce6eb22e9::t_4df1c6341c6912 11-12,21-22,54,61-62,68-70,82,90,121,145,148-165
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.spec.ts
+  s_2fe98ce6eb22e9::t_47a5e74e03b659 1-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "430cedaed16c7e97204967be709b0f06cb9f3524",
+  "prompts": {},
+  "sessions": {
+    "s_2fe98ce6eb22e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a26bda7b56faa3cc7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ca23dd0201ba98": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a193ec3-e52a-4629-a5ea-48fcd778159c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
