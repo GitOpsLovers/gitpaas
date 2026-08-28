@@ -69,6 +69,29 @@ See the capability [domains](../../business/domains.md) for the rules that a dom
 
 Thus the backend has **no migration machinery**: no TypeORM migrations, no CLI DataSource, no `migration:*` scripts, and no `migrate` service in the compose stack. In development and in test, TypeORM `synchronize` continues to make the schema from the entities. As a result, and because `migration:generate` is no longer available, **you must write the same change manually in a `.sql` file** in `iac/production/migrations/`, with the types, the defaults and the constraint names that TypeORM needs.
 
+## The update of the platform
+
+An administrator starts the update from the tab Maintenance of `/server` (see the capability [server](../../business/server.md#the-start-of-the-update)). The backend starts the container of the update detached from itself, so the container goes on through the restart that it brings to the backend:
+
+```text
+POST /server/update ─► open a row of `platform_updates` ─► DockerUpdateRunnerAdapter.start()
+                                                                    │
+                                        runs a container, mounted on /opt/gitpaas and the Docker socket
+                                                                    │
+                                    downloads scripts/update.sh of the target release, and runs it
+                                                                    │
+  resolve version ─► replace iac/production/ ─► carry .env forward ─► apply migrations ─► pull ─► compose up -d
+                                                                    │
+                                          each step is written to `platform_updates` with `psql`
+                                                                    │
+                                              GET /server/update ─► polled every two seconds by the screen
+```
+
+- **The script the container runs is the one script the installer uses too.** `update.sh` sits beside `install.sh` (see [Installation](./installation.md#update)), and it applies the SQL migrations of the new `iac/production/migrations/` through the same ledger `schema_migrations` that the installer uses (see [Schema bootstrap](#schema-bootstrap)).
+- **The state travels through PostgreSQL, and not through the container that is being replaced.** The backend opens the row of `platform_updates` before it starts the container, so the screen keeps reading that same row while its own backend container is replaced underneath it.
+- **The report of the progress is best effort.** A write to `platform_updates` that fails never stops the update; the script only loses the report of that one step, and it keeps working from its own terminal.
+- **A check every six hours keeps the latest release ready to read.** `CheckLatestReleaseJob` reads the GitHub API and keeps the version it finds in memory (see the capability [server](../../business/server.md#the-check-of-the-latest-release)), so `GET /server/update` answers from that value, and not with a call to GitHub on every read.
+
 ## Release and image publishing
 
 `.github/workflows/release.yml` starts manually (`workflow_dispatch`) and has two stages:
