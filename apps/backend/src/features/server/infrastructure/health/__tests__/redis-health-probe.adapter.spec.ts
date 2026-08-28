@@ -29,25 +29,25 @@ describe('RedisHealthProbeAdapter', () => {
     });
 
     it('reports up when the PING answers', async () => {
-        await expect(sut.check()).resolves.toBe(true);
+        await expect(sut.check()).resolves.toBe('up');
     });
 
     it('reports up whatever the payload the PING answers with', async () => {
         ping.mockResolvedValue('');
 
-        await expect(sut.check()).resolves.toBe(true);
+        await expect(sut.check()).resolves.toBe('up');
     });
 
     it('reports down when the PING rejects, without propagating the error', async () => {
         ping.mockRejectedValue(new Error('connection refused'));
 
-        await expect(sut.check()).resolves.toBe(false);
+        await expect(sut.check()).resolves.toBe('down');
     });
 
     it('reports down when the PING rejects with a non-Error value', async () => {
         ping.mockRejectedValue('socket hang up');
 
-        await expect(sut.check()).resolves.toBe(false);
+        await expect(sut.check()).resolves.toBe('down');
     });
 
     it('reports down when opening the connection throws synchronously', async () => {
@@ -55,6 +55,6 @@ describe('RedisHealthProbeAdapter', () => {
             throw new Error('could not reach Redis');
         });
 
-        await expect(sut.check()).resolves.toBe(false);
+        await expect(sut.check()).resolves.toBe('down');
     });
 });

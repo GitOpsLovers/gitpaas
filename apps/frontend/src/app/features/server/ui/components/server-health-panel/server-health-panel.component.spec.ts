@@ -8,8 +8,8 @@ const readyHealth: ReadinessHealth = {
     read: true,
     ready: true,
     dependencies: [
-        { name: 'database', status: 'up' },
-        { name: 'docker', status: 'up' },
+        { name: 'postgres', status: 'up', label: 'PostgreSQL' },
+        { name: 'docker', status: 'up', label: 'Docker daemon' },
     ],
     message: null,
 };
@@ -18,8 +18,19 @@ const notReadyHealth: ReadinessHealth = {
     read: true,
     ready: false,
     dependencies: [
-        { name: 'database', status: 'up' },
-        { name: 'docker', status: 'down' },
+        { name: 'postgres', status: 'up', label: 'PostgreSQL' },
+        { name: 'docker', status: 'down', label: 'Docker daemon' },
+    ],
+    message: null,
+};
+
+const localHealth: ReadinessHealth = {
+    read: true,
+    ready: true,
+    dependencies: [
+        { name: 'postgres', status: 'up', label: 'PostgreSQL' },
+        { name: 'proxy', status: 'not-applicable', label: 'Reverse proxy' },
+        { name: 'backend', status: 'not-applicable', label: 'Backend' },
     ],
     message: null,
 };
@@ -51,16 +62,24 @@ const unreachableDaemon: DaemonHealth = {
 
 describe('ServerHealthPanelComponent', () => {
     let fixture: ComponentFixture<ServerHealthPanelComponent>;
+    let refreshed: number;
 
     const create = (readiness: ReadinessHealth, daemon: DaemonHealth, loading = false): void => {
         fixture = TestBed.createComponent(ServerHealthPanelComponent);
         fixture.componentRef.setInput('readiness', readiness);
         fixture.componentRef.setInput('daemon', daemon);
         fixture.componentRef.setInput('loading', loading);
+        refreshed = 0;
+        // eslint-disable-next-line no-return-assign
+        fixture.componentInstance.refresh.subscribe(() => (refreshed += 1));
         fixture.detectChanges();
     };
 
     const text = (): string => (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+    const refreshButton = (): HTMLButtonElement =>
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        (fixture.nativeElement as HTMLElement).querySelector('button')!;
 
     const dependencyLines = (): string[] =>
         Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li')).map((line) =>
@@ -73,7 +92,7 @@ describe('ServerHealthPanelComponent', () => {
     test('Every dependency is available', () => {
         create(readyHealth, reachableDaemon);
 
-        expect(dependencyLines()).toEqual(['database up', 'docker up']);
+        expect(dependencyLines()).toEqual(['PostgreSQL up', 'Docker daemon up']);
         expect(text()).toContain('The server is ready');
         expect(text()).not.toContain('The server is not ready');
     });
@@ -81,8 +100,20 @@ describe('ServerHealthPanelComponent', () => {
     test('One dependency is not available', () => {
         create(notReadyHealth, reachableDaemon);
 
-        expect(dependencyLines()).toEqual(['database up', 'docker down']);
+        expect(dependencyLines()).toEqual(['PostgreSQL up', 'Docker daemon down']);
         expect(text()).toContain('The server is not ready');
+    });
+
+    test('A dependency the environment does not carry is not applicable', () => {
+        create(localHealth, reachableDaemon);
+
+        expect(dependencyLines()).toEqual([
+            'PostgreSQL up',
+            'Reverse proxy Not applicable',
+            'Backend Not applicable',
+        ]);
+        expect(text()).toContain('The server is ready');
+        expect(text()).not.toContain('down');
     });
 
     test('The daemon answers', () => {
@@ -112,6 +143,7 @@ describe('ServerHealthPanelComponent', () => {
 
         expect(text()).toContain('Reading the health of the server');
         expect(dependencyLines()).toEqual([]);
+        expect(text()).toContain('Refresh');
         expect(text()).not.toContain('The server is ready');
         expect(text()).not.toContain('Docker daemon');
     });
@@ -135,7 +167,25 @@ describe('ServerHealthPanelComponent', () => {
 
         fixture.detectChanges();
 
-        expect(dependencyLines()).toEqual(['database up', 'docker up']);
+        expect(dependencyLines()).toEqual(['PostgreSQL up', 'Docker daemon up']);
         expect(text()).toContain('The server is ready');
+    });
+
+    test('asks for a new reading when the operator presses Refresh', () => {
+        create(readyHealth, reachableDaemon);
+
+        refreshButton().click();
+
+        expect(refreshed).toBe(1);
+    });
+
+    test('does not ask for a new reading while a reading runs', () => {
+        create(readyHealth, reachableDaemon, true);
+
+        expect(refreshButton().disabled).toBe(true);
+
+        refreshButton().click();
+
+        expect(refreshed).toBe(0);
     });
 });

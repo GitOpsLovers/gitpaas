@@ -1,3 +1,5 @@
+import type { DependencyState } from '@gitpaas/contracts';
+
 import { HealthProbe } from '../../domain/ports/health-probe.port';
 
 import type { RuntimeContainerSummary } from '@core/domain/models/container-runtime.models';
@@ -19,13 +21,19 @@ export abstract class StackContainerHealthProbeAdapter implements HealthProbe {
 
     constructor(protected readonly client: ContainerRuntime) {}
 
-    public async check(): Promise<boolean> {
+    public async check(): Promise<DependencyState> {
+        if (process.env.NODE_ENV !== 'production') {
+            return 'not-applicable';
+        }
+
         try {
             const containers = await this.client.listContainers({}, true);
 
-            return containers.some((container) => this.isNamed(container) && container.state === 'running');
+            return containers.some((container) => this.isNamed(container) && container.state === 'running')
+                ? 'up'
+                : 'down';
         } catch {
-            return false;
+            return 'down';
         }
     }
 

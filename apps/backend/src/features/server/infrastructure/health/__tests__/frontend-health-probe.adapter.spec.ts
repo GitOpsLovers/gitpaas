@@ -17,14 +17,22 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
 });
 
 describe('FrontendHealthProbeAdapter', () => {
+    let envBackup: NodeJS.ProcessEnv;
     let mockContainerRuntime: jest.Mocked<Pick<DockerContainerRuntimeAdapter, 'listContainers'>>;
     let sut: FrontendHealthProbeAdapter;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
+        envBackup = { ...process.env };
+        process.env.NODE_ENV = 'production';
+
         mockContainerRuntime = { listContainers: jest.fn().mockResolvedValue([containerSummary()]) };
         sut = new FrontendHealthProbeAdapter(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
+    });
+
+    afterEach(() => {
+        process.env = envBackup;
     });
 
     it('is named frontend', () => {
@@ -32,18 +40,24 @@ describe('FrontendHealthProbeAdapter', () => {
     });
 
     it('reports up when the container gitpaas-frontend runs', async () => {
-        await expect(sut.check()).resolves.toBe(true);
+        await expect(sut.check()).resolves.toBe('up');
     });
 
     it('reports down when the container gitpaas-frontend is stopped', async () => {
         mockContainerRuntime.listContainers.mockResolvedValue([containerSummary({ state: 'exited' })]);
 
-        await expect(sut.check()).resolves.toBe(false);
+        await expect(sut.check()).resolves.toBe('down');
     });
 
     it('never watches a container of another service of the stack', async () => {
         mockContainerRuntime.listContainers.mockResolvedValue([containerSummary({ names: ['/gitpaas-postgres'] })]);
 
-        await expect(sut.check()).resolves.toBe(false);
+        await expect(sut.check()).resolves.toBe('down');
+    });
+
+    it('reports not-applicable outside of production, because the stack runs no such container', async () => {
+        process.env.NODE_ENV = 'development';
+
+        await expect(sut.check()).resolves.toBe('not-applicable');
     });
 });

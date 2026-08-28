@@ -1,6 +1,6 @@
-import { errorEnvelopeSchema, readinessResultSchema, type ReadinessResult } from '@gitpaas/contracts';
+import { errorEnvelopeSchema, readinessResultSchema, type DependencyStatus, type ReadinessResult } from '@gitpaas/contracts';
 
-import { ReadinessHealth } from '../domain/models/server-health.model';
+import { HealthDependency, ReadinessHealth } from '../domain/models/server-health.model';
 
 import { readErrorPayloadUseCase } from './read-error-payload.use-case';
 
@@ -8,6 +8,18 @@ import { readErrorPayloadUseCase } from './read-error-payload.use-case';
  * Message shown when the readiness of the server could not be read at all.
  */
 const UNREADABLE_MESSAGE = 'Could not read the health of the server.';
+
+/**
+ * Human label of every dependency the readiness of the server probes.
+ */
+const DEPENDENCY_LABELS: Record<string, string> = {
+    postgres: 'PostgreSQL',
+    docker: 'Docker daemon',
+    redis: 'Redis',
+    proxy: 'Reverse proxy',
+    backend: 'Backend',
+    frontend: 'Frontend',
+};
 
 /**
  * Schema of the one field of the envelope that keeps the states of the dependencies.
@@ -38,6 +50,17 @@ function readinessOfError(error: unknown): ReadinessResult | null {
 }
 
 /**
+ * Gives one dependency the label the panel shows.
+ *
+ * @param dependency Dependency as the API reports it
+ *
+ * @returns The dependency with its human label, or with its raw name when the map holds no entry
+ */
+function labelled(dependency: DependencyStatus): HealthDependency {
+    return { ...dependency, label: DEPENDENCY_LABELS[dependency.name] ?? dependency.name };
+}
+
+/**
  * Maps the value and the error of the readiness read into the health the panel shows.
  *
  * @param value Body of the answer, when the answer arrived
@@ -59,8 +82,9 @@ export function mapReadinessHealthUseCase(value: ReadinessResult | undefined, er
 
     return {
         read: true,
-        ready: result.status === 'ok' && result.dependencies.every((dependency) => dependency.status === 'up'),
-        dependencies: result.dependencies,
+        ready:
+            result.status === 'ok' && result.dependencies.every((dependency) => dependency.status !== 'down'),
+        dependencies: result.dependencies.map(labelled),
         message: null,
     };
 }

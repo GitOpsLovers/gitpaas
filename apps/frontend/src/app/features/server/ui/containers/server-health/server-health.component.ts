@@ -52,4 +52,12 @@ export class ServerHealthComponent {
      * Whether either of the two reads is still running.
      */
     protected readonly loading = computed(() => this.readinessResource.isLoading() || this.statusResource.isLoading());
+
+    /**
+     * Reads the readiness and the state of the daemon again.
+     */
+    protected refresh(): void {
+        this.readinessResource.reload();
+        this.statusResource.reload();
+    }
 }

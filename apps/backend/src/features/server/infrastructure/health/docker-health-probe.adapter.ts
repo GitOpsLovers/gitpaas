@@ -1,3 +1,4 @@
+import type { DependencyState } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { HealthProbe } from '../../domain/ports/health-probe.port';
@@ -17,15 +18,15 @@ export class DockerHealthProbeAdapter implements HealthProbe {
     /**
      * Probes the Docker daemon connectivity.
      *
-     * @returns `true` when the daemon answers the ping, `false` otherwise
+     * @returns `up` when the daemon answers the ping, `down` otherwise
      */
-    public async check(): Promise<boolean> {
+    public async check(): Promise<DependencyState> {
         try {
             await this.client.ping();
 
-            return true;
+            return 'up';
         } catch {
-            return false;
+            return 'down';
         }
     }
 }
