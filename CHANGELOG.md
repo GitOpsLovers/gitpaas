@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.1.0...v2.1.1) (2026-08-28)
+
+### Bug Fixes
+
+* make Let's encryt email mandatory ([bd9123b](https://github.com/GitOpsLovers/gitpaas/commit/bd9123ba2f806d0153ba81258e8d4ea266a18784))
+
 ## [2.1.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.0.0...v2.1.0) (2026-08-26)
 
 ### Features
