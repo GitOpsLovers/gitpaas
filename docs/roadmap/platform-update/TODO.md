@@ -25,14 +25,14 @@ The rollback stays out of scope, and a failed update needs a manual recovery.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/server/, iac/production/migrations/
 
-- [ ] 2.1 Add the migration that creates the table of the state of the update: the identifier, the target version, the step, the percent, the state and the error.
-- [ ] 2.2 Report the installed version from the image that runs, with `resolveServiceVersion()`. That value is the one source of truth.
-- [ ] 2.3 Add a job of the cron that reads `releases/latest` of the GitHub API, and that stores the answer. Add the setting that disables the job.
-- [ ] 2.4 Add `GET /server/update` for an administrator. It answers the installed version, the latest version and the state of the last update.
-- [ ] 2.5 Add `POST /server/update` for an administrator. It starts the detached container of the update, which mounts `/opt/gitpaas` and the socket of Docker, and it runs `update.sh`.
-- [ ] 2.6 Refuse a second update while one runs, and refuse the start when the installed version is unknown or equal to the latest version.
-- [ ] 2.7 Write the unit tests of the new use cases, of the job and of the controller.
-- [ ] 2.8 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
+- [x] 2.1 Add the migration that creates the table of the state of the update: the identifier, the target version, the step, the percent, the state and the error.
+- [x] 2.2 Report the installed version from the image that runs, with `resolveServiceVersion()`. That value is the one source of truth.
+- [x] 2.3 Add a job of the cron that reads `releases/latest` of the GitHub API, and that stores the answer. Add the setting that disables the job.
+- [x] 2.4 Add `GET /server/update` for an administrator. It answers the installed version, the latest version and the state of the last update.
+- [x] 2.5 Add `POST /server/update` for an administrator. It starts the detached container of the update, which mounts `/opt/gitpaas` and the socket of Docker, and it runs `update.sh`.
+- [x] 2.6 Refuse a second update while one runs, and refuse the start when the installed version is unknown or equal to the latest version.
+- [x] 2.7 Write the unit tests of the new use cases, of the job and of the controller.
+- [x] 2.8 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
 
 ## Phase 3 — The notification, the button and the progress
 

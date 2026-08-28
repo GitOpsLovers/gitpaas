@@ -193,6 +193,24 @@ describe('validate', () => {
         expect(validate({ ...validEnv(), PROXY_ACME_PATH: '   ' }).PROXY_ACME_PATH).toBeUndefined();
     });
 
+    it('keeps the check of the latest release on when the environment names it not', () => {
+        expect(validate(validEnv()).UPDATE_CHECK_ENABLED).toBe(true);
+    });
+
+    it('turns the check of the latest release off on the value "false"', () => {
+        expect(validate({ ...validEnv(), UPDATE_CHECK_ENABLED: 'false' }).UPDATE_CHECK_ENABLED).toBe(false);
+    });
+
+    it('turns the check of the latest release on on the value "true"', () => {
+        expect(validate({ ...validEnv(), UPDATE_CHECK_ENABLED: 'true' }).UPDATE_CHECK_ENABLED).toBe(true);
+    });
+
+    it('rejects a switch of the check that is neither "true" nor "false"', () => {
+        expect(() => validate({ ...validEnv(), UPDATE_CHECK_ENABLED: 'yes' })).toThrow(
+            /UPDATE_CHECK_ENABLED/,
+        );
+    });
+
     it('coerces the Redis port to a number', () => {
         expect(validate(validEnv()).REDIS_PORT).toBe(6379);
     });

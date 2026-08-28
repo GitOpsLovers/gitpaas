@@ -27,3 +27,42 @@ export class InvalidLogRetentionError extends DomainError {
         );
     }
 }
+
+/**
+ * Raised when an update of the platform starts while another one still runs.
+ */
+export class UpdateAlreadyRunningError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super(
+            'UPDATE_ALREADY_RUNNING',
+            'An update of the platform already runs. Wait for it to end before you start another one.',
+            options,
+        );
+    }
+}
+
+/**
+ * Raised when an update of the platform starts while the platform runs the latest release.
+ */
+export class PlatformUpToDateError extends DomainError {
+    constructor(version: string, options?: ErrorOptions) {
+        super(
+            'PLATFORM_UP_TO_DATE',
+            `The platform already runs the version ${version}, which is the latest release.`,
+            options,
+        );
+    }
+}
+
+/**
+ * Raised when an update of the platform starts while a version of the comparison is unknown.
+ */
+export class UnknownPlatformVersionError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super(
+            'UNKNOWN_PLATFORM_VERSION',
+            'The version of the installation or of the latest release is unknown, so no update can start.',
+            options,
+        );
+    }
+}

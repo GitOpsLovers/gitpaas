@@ -149,6 +149,21 @@ describe('translateError', () => {
                 .toBeInstanceOf(BadRequestException);
         });
 
+        it('maps UPDATE_ALREADY_RUNNING to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('UPDATE_ALREADY_RUNNING')))
+                .toBeInstanceOf(ConflictException);
+        });
+
+        it('maps PLATFORM_UP_TO_DATE to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('PLATFORM_UP_TO_DATE')))
+                .toBeInstanceOf(ConflictException);
+        });
+
+        it('maps UNKNOWN_PLATFORM_VERSION to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('UNKNOWN_PLATFORM_VERSION')))
+                .toBeInstanceOf(ConflictException);
+        });
+
         it('maps PROVIDER_MANIFEST_CODE_REJECTED to a BadRequestException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_MANIFEST_CODE_REJECTED')))
                 .toBeInstanceOf(BadRequestException);

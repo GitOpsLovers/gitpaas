@@ -109,6 +109,12 @@ export {
     updatePlatformSettingsSchema,
 } from './server/platform-settings.contract';
 export type { PlatformSettings, UpdatePlatformSettingsDto } from './server/platform-settings.contract';
+export {
+    platformUpdateSchema,
+    platformUpdateStateSchema,
+    platformUpdateStatusSchema,
+} from './server/platform-update.contract';
+export type { PlatformUpdate, PlatformUpdateState, PlatformUpdateStatus } from './server/platform-update.contract';
 
 export { containerPortSchema, containerSchema } from './containers/container.contract';
 export type { Container, ContainerPort } from './containers/container.contract';

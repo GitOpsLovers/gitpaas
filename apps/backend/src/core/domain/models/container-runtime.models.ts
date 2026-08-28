@@ -111,6 +111,18 @@ export interface RuntimeBuildImageOptions {
 }
 
 /**
+ * Definition of a container the runtime starts detached from the caller, and that outlives it.
+ */
+export interface RuntimeDetachedContainerOptions {
+    image: string;
+    command: string[];
+    binds: string[];
+    name?: string;
+    labels?: Record<string, string>;
+    removeOnExit?: boolean;
+}
+
+/**
  * A compose project bound to the runtime, restricted to the lifecycle operations a deployment drives.
  */
 export interface RuntimeComposeProject {

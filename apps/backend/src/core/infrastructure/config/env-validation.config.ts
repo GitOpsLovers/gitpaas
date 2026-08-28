@@ -31,6 +31,14 @@ const optionalText = z
     .transform((value) => (value === undefined || value.trim() === '' ? undefined : value));
 
 /**
+ * A switch of the environment, where the absent value keeps the feature on
+ */
+const enabledFlag = z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true');
+
+/**
  * Shape and constraints of the environment variables the backend understands
  */
 const environmentSchema = z.object({
@@ -55,6 +63,7 @@ const environmentSchema = z.object({
     TELEMETRY_SLOW_MS: requiredNumber.default(TELEMETRY_DEFAULT_SLOW_MS),
     TELEMETRY_SAMPLE_RATE: requiredNumber.min(0).max(1).default(TELEMETRY_DEFAULT_SAMPLE_RATE),
     PROXY_ACME_PATH: optionalText,
+    UPDATE_CHECK_ENABLED: enabledFlag,
     JWT_ACCESS_SECRET: requiredText,
     JWT_ACCESS_EXPIRES_IN: requiredText,
     JWT_REFRESH_SECRET: requiredText,

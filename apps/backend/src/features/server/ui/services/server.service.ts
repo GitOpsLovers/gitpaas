@@ -1,6 +1,7 @@
 import type {
     OrphanRemovalResult,
     PlatformSettings,
+    PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
     UpdatePlatformSettingsDto,
@@ -9,28 +10,37 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
 import { getPlatformSettingsUseCase } from '../../application/get-platform-settings.use-case';
+import { getPlatformUpdateUseCase } from '../../application/get-platform-update.use-case';
 import { getServerStatusUseCase } from '../../application/get-server-status.use-case';
 import { pruneContainersUseCase } from '../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
+import { startPlatformUpdateUseCase } from '../../application/start-platform-update.use-case';
 import { updatePlatformSettingsUseCase } from '../../application/update-platform-settings.use-case';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
+import type { LatestReleaseStore } from '../../domain/ports/latest-release-store.port';
 import type { OrphanContainers } from '../../domain/ports/orphan-containers.port';
+import type { UpdateRunner } from '../../domain/ports/update-runner.port';
 import type { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
+import type { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
 import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
+import { DatabasePlatformUpdatesRepository } from '../../infrastructure/database/db-platform-updates.repository';
 import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
+import { DockerUpdateRunnerAdapter } from '../../infrastructure/docker/docker-update-runner.adapter';
 import { BackendHealthProbeAdapter } from '../../infrastructure/health/backend-health-probe.adapter';
 import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-health-probe.adapter';
 import { FrontendHealthProbeAdapter } from '../../infrastructure/health/frontend-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from '../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
+import { MemoryLatestReleaseStoreAdapter } from '../../infrastructure/release/memory-latest-release-store.adapter';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { resolveServiceVersion } from '@core/infrastructure/telemetry/resolve-service-version';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
@@ -61,6 +71,12 @@ export class ServerService {
         private readonly containerRuntime: ContainerRuntime,
         @Inject(DatabasePlatformSettingsRepository)
         private readonly settings: PlatformSettingsRepository,
+        @Inject(DatabasePlatformUpdatesRepository)
+        private readonly updates: PlatformUpdatesRepository,
+        @Inject(MemoryLatestReleaseStoreAdapter)
+        private readonly latestRelease: LatestReleaseStore,
+        @Inject(DockerUpdateRunnerAdapter)
+        private readonly updateRunner: UpdateRunner,
     ) {}
 
     /**
@@ -142,5 +158,23 @@ export class ServerService {
      */
     public updateSettings(updateDto: UpdatePlatformSettingsDto): Promise<PlatformSettings> {
         return updatePlatformSettingsUseCase(this.settings, updateDto);
+    }
+
+    /**
+     * Reads the version the platform runs, the latest release published, and the state of the last update
+     *
+     * @returns The versions of the installation and the state of its last update
+     */
+    public getUpdate(): Promise<PlatformUpdateStatus> {
+        return getPlatformUpdateUseCase(this.updates, this.latestRelease, resolveServiceVersion());
+    }
+
+    /**
+     * Starts the update of the platform towards the latest release
+     *
+     * @returns The versions of the installation and the update that started
+     */
+    public startUpdate(): Promise<PlatformUpdateStatus> {
+        return startPlatformUpdateUseCase(this.updates, this.latestRelease, this.updateRunner, resolveServiceVersion());
     }
 }
