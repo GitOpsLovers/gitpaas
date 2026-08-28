@@ -2,6 +2,7 @@ import type {
     ErrorEnvelope,
     OrphanRemovalResult,
     PlatformSettings,
+    PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
 } from '@gitpaas/contracts';
@@ -9,19 +10,28 @@ import { updatePlatformSettingsSchema } from '@gitpaas/contracts';
 import {
     ArgumentsHost,
     BadRequestException,
+    ConflictException,
     ForbiddenException,
     ServiceUnavailableException,
 } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
+import { HttpAdapterHost, Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 
-import { DaemonUnreachableError, InvalidLogRetentionError } from '../../../domain/errors/server.errors';
+import {
+    DaemonUnreachableError,
+    InvalidLogRetentionError,
+    PlatformUpToDateError,
+    UnknownPlatformVersionError,
+    UpdateAlreadyRunningError,
+} from '../../../domain/errors/server.errors';
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
+import { ROLES_KEY } from '@features/authentication/ui/decorators/roles.decorator';
+import { UserRole } from '@features/users/domain/models/user.models';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -35,6 +45,19 @@ const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
 const platformSettings: PlatformSettings = { logRetentionDays: 45 };
+const updateStatus: PlatformUpdateStatus = {
+    installedVersion: '2.1.0',
+    latestVersion: '2.2.0',
+    update: {
+        id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+        targetVersion: 'v2.2.0',
+        step: 'starting',
+        percent: 0,
+        state: 'running',
+        error: null,
+        startedAt: '2026-08-28T10:00:00.000Z',
+    },
+};
 const readyResult: ReadinessResult = {
     status: 'ok',
     dependencies: [
@@ -84,6 +107,8 @@ describe('ServerController', () => {
             | 'getStatus'
             | 'getSettings'
             | 'updateSettings'
+            | 'getUpdate'
+            | 'startUpdate'
         >
     >;
     let sut: ServerController;
@@ -100,6 +125,8 @@ describe('ServerController', () => {
             getStatus: jest.fn(),
             getSettings: jest.fn(),
             updateSettings: jest.fn(),
+            getUpdate: jest.fn(),
+            startUpdate: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -596,6 +623,100 @@ describe('ServerController', () => {
 
         it('rejects an age that is no whole number with a BadRequestException', () => {
             expect(() => validate({ logRetentionDays: 7.5 })).toThrow(BadRequestException);
+        });
+    });
+
+    describe('getUpdate', () => {
+        it('delegates the read of the state of the update to the service', async () => {
+            mockServerService.getUpdate.mockResolvedValue(updateStatus);
+
+            const result = await sut.getUpdate();
+
+            expect(mockServerService.getUpdate).toHaveBeenCalledTimes(1);
+            expect(result).toBe(updateStatus);
+        });
+
+        it('answers the installed version and no update while the platform ran none', async () => {
+            mockServerService.getUpdate.mockResolvedValue({
+                installedVersion: '2.1.0',
+                latestVersion: null,
+                update: null,
+            });
+
+            const result = await sut.getUpdate();
+
+            expect(result).toEqual({ installedVersion: '2.1.0', latestVersion: null, update: null });
+        });
+
+        it('propagates a failure with no translation', async () => {
+            const error = new Error('connection terminated');
+            mockServerService.getUpdate.mockRejectedValue(error);
+
+            await expect(sut.getUpdate()).rejects.toBe(error);
+        });
+    });
+
+    describe('startUpdate', () => {
+        it('delegates the start of the update to the service', async () => {
+            mockServerService.startUpdate.mockResolvedValue(updateStatus);
+
+            const result = await sut.startUpdate();
+
+            expect(mockServerService.startUpdate).toHaveBeenCalledTimes(1);
+            expect(result).toBe(updateStatus);
+        });
+
+        it('translates a second update into a ConflictException', async () => {
+            mockServerService.startUpdate.mockRejectedValue(new UpdateAlreadyRunningError());
+
+            await expect(sut.startUpdate()).rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('translates a platform that runs the latest release into a ConflictException', async () => {
+            mockServerService.startUpdate.mockRejectedValue(new PlatformUpToDateError('2.2.0'));
+
+            await expect(sut.startUpdate()).rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('translates an unknown version into a ConflictException', async () => {
+            mockServerService.startUpdate.mockRejectedValue(new UnknownPlatformVersionError());
+
+            await expect(sut.startUpdate()).rejects.toBeInstanceOf(ConflictException);
+        });
+
+        it('answers 409 in the envelope the client receives for a second update', async () => {
+            mockServerService.startUpdate.mockRejectedValue(new UpdateAlreadyRunningError());
+
+            const rejection = await sut.startUpdate().catch((error: unknown) => error);
+
+            expect(envelopeOf(rejection).statusCode).toBe(409);
+        });
+
+        it('translates an unreachable daemon into a ServiceUnavailableException', async () => {
+            mockServerService.startUpdate.mockRejectedValue(new Error('connect ENOENT /var/run/docker.sock'));
+
+            await expect(sut.startUpdate()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+    });
+
+    describe('the routes of the update', () => {
+        /** Reads the roles the decorator of a handler of the controller declares. */
+        const rolesOf = (handler: string): UserRole[] | undefined => new Reflector().get(
+            ROLES_KEY,
+            Object.getOwnPropertyDescriptor(ServerController.prototype, handler)?.value as () => void,
+        );
+
+        it('reserves the read of the state of the update to an administrator', () => {
+            expect(rolesOf('getUpdate')).toEqual([UserRole.Admin]);
+        });
+
+        it('reserves the start of the update to an administrator', () => {
+            expect(rolesOf('startUpdate')).toEqual([UserRole.Admin]);
+        });
+
+        it('leaves the other routes of the server to every authenticated user', () => {
+            expect(rolesOf('getStatus')).toBeUndefined();
+            expect(rolesOf('getSettings')).toBeUndefined();
         });
     });
 });

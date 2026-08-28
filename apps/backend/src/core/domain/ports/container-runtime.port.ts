@@ -5,6 +5,7 @@ import type {
     RuntimeBuildImageOptions,
     RuntimeComposeProject,
     RuntimeContainerSummary,
+    RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
     RuntimeProgressCompletion,
@@ -153,6 +154,15 @@ export interface ContainerRuntime {
      * @param onProgress Called for every progress frame
      */
     followProgress: (stream: RuntimeProgressStream, onFinished: RuntimeProgressCompletion, onProgress: RuntimeProgressListener) => void;
+
+    /**
+     * Creates a container and starts it detached, so it keeps running once the caller is gone.
+     *
+     * @param options Definition of the container to run
+     *
+     * @returns Identifier of the container that runs
+     */
+    runDetachedContainer: (options: RuntimeDetachedContainerOptions) => Promise<string>;
 
     /**
      * Creates a compose project bound to the runtime.

@@ -9,6 +9,7 @@ import type {
     RuntimeBuildImageOptions,
     RuntimeComposeProject,
     RuntimeContainerSummary,
+    RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
     RuntimeProgressCompletion,
@@ -136,6 +137,23 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
 
     public followProgress(stream: RuntimeProgressStream, onFinished: RuntimeProgressCompletion, onProgress: RuntimeProgressListener): void {
         this.getClient().modem.followProgress(stream, onFinished, onProgress);
+    }
+
+    public async runDetachedContainer(options: RuntimeDetachedContainerOptions): Promise<string> {
+        const container = await this.run(() => this.getClient().createContainer({
+            Image: options.image,
+            Cmd: options.command,
+            name: options.name,
+            Labels: options.labels,
+            HostConfig: {
+                Binds: options.binds,
+                AutoRemove: options.removeOnExit ?? false,
+            },
+        }));
+
+        await this.run(() => container.start());
+
+        return container.id;
     }
 
     public createComposeProject(composeFilePath: string, projectName: string): RuntimeComposeProject {

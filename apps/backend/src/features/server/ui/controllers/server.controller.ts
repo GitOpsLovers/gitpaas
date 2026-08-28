@@ -1,6 +1,7 @@
 import type {
     OrphanRemovalResult,
     PlatformSettings,
+    PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
     ServerStatus,
@@ -16,6 +17,7 @@ import {
     Post,
     Put,
     ServiceUnavailableException,
+    UseGuards,
 } from '@nestjs/common';
 
 import { DaemonUnreachableError } from '../../domain/errors/server.errors';
@@ -24,11 +26,15 @@ import { ServerService } from '../services/server.service';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
+import { Roles } from '@features/authentication/ui/decorators/roles.decorator';
+import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
+import { UserRole } from '@features/users/domain/models/user.models';
 
 /**
  * Server controller
  */
 @Controller('server')
+@UseGuards(RolesGuard)
 export class ServerController {
     constructor(private readonly service: ServerService) {}
 
@@ -140,6 +146,40 @@ export class ServerController {
             return await this.service.updateSettings(updateDto);
         } catch (error) {
             throw translateError(error);
+        }
+    }
+
+    /**
+     * Reads the version the platform runs, the latest release published, and the state of the last update.
+     *
+     * @returns The versions of the installation and the state of its last update
+     */
+    @Get('update')
+    @Roles(UserRole.Admin)
+    public async getUpdate(): Promise<PlatformUpdateStatus> {
+        try {
+            return await this.service.getUpdate();
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Starts the update of the platform towards the latest release.
+     *
+     * @returns The versions of the installation and the update that started
+     */
+    @Post('update')
+    @HttpCode(202)
+    @Roles(UserRole.Admin)
+    public async startUpdate(): Promise<PlatformUpdateStatus> {
+        try {
+            return await this.service.startUpdate();
+        } catch (error) {
+            throw translateError(error, () => new ServiceUnavailableException(
+                'Could not start the update of the platform. Verify the server is running and reachable.',
+                { cause: new DaemonUnreachableError({ cause: error }) },
+            ));
         }
     }
 

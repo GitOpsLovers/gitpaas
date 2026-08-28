@@ -1,28 +1,34 @@
-import type { OrphanRemovalResult, PlatformSettings, PruneResult, ReadinessResult } from '@gitpaas/contracts';
+import type { OrphanRemovalResult, PlatformSettings, PlatformUpdateStatus, PruneResult, ReadinessResult } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
 import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
 import { getPlatformSettingsUseCase } from '../../../application/get-platform-settings.use-case';
+import { getPlatformUpdateUseCase } from '../../../application/get-platform-update.use-case';
 import { getServerStatusUseCase } from '../../../application/get-server-status.use-case';
 import { pruneContainersUseCase } from '../../../application/prune-containers.use-case';
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../../application/remove-orphaned-containers.use-case';
+import { startPlatformUpdateUseCase } from '../../../application/start-platform-update.use-case';
 import { updatePlatformSettingsUseCase } from '../../../application/update-platform-settings.use-case';
 import { InvalidLogRetentionError } from '../../../domain/errors/server.errors';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
+import { DatabasePlatformUpdatesRepository } from '../../../infrastructure/database/db-platform-updates.repository';
 import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
+import { DockerUpdateRunnerAdapter } from '../../../infrastructure/docker/docker-update-runner.adapter';
 import { BackendHealthProbeAdapter } from '../../../infrastructure/health/backend-health-probe.adapter';
 import { DockerHealthProbeAdapter } from '../../../infrastructure/health/docker-health-probe.adapter';
 import { FrontendHealthProbeAdapter } from '../../../infrastructure/health/frontend-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from '../../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
+import { MemoryLatestReleaseStoreAdapter } from '../../../infrastructure/release/memory-latest-release-store.adapter';
 import { ServerService } from '../server.service';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { resolveServiceVersion } from '@core/infrastructure/telemetry/resolve-service-version';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 
 jest.mock('../../../application/prune-images.use-case');
@@ -33,6 +39,9 @@ jest.mock('../../../application/check-readiness.use-case');
 jest.mock('../../../application/get-server-status.use-case');
 jest.mock('../../../application/get-platform-settings.use-case');
 jest.mock('../../../application/update-platform-settings.use-case');
+jest.mock('../../../application/get-platform-update.use-case');
+jest.mock('../../../application/start-platform-update.use-case');
+jest.mock('@core/infrastructure/telemetry/resolve-service-version');
 
 const mockGetServerStatusUseCase = getServerStatusUseCase as jest.MockedFunction<
     typeof getServerStatusUseCase
@@ -56,6 +65,13 @@ const mockGetPlatformSettingsUseCase = getPlatformSettingsUseCase as jest.Mocked
 const mockUpdatePlatformSettingsUseCase = updatePlatformSettingsUseCase as jest.MockedFunction<
     typeof updatePlatformSettingsUseCase
 >;
+const mockGetPlatformUpdateUseCase = getPlatformUpdateUseCase as jest.MockedFunction<
+    typeof getPlatformUpdateUseCase
+>;
+const mockStartPlatformUpdateUseCase = startPlatformUpdateUseCase as jest.MockedFunction<
+    typeof startPlatformUpdateUseCase
+>;
+const mockResolveServiceVersion = resolveServiceVersion as jest.MockedFunction<typeof resolveServiceVersion>;
 
 const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 };
 const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
@@ -69,6 +85,19 @@ const runtimeInfo: ContainerRuntimeInfo = {
     images: 12,
 };
 const platformSettings: PlatformSettings = { logRetentionDays: 45 };
+const updateStatus: PlatformUpdateStatus = {
+    installedVersion: '2.1.0',
+    latestVersion: '2.2.0',
+    update: {
+        id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+        targetVersion: 'v2.2.0',
+        step: 'starting',
+        percent: 0,
+        state: 'running',
+        error: null,
+        startedAt: '2026-08-28T10:00:00.000Z',
+    },
+};
 const readinessResult: ReadinessResult = {
     status: 'ok',
     dependencies: [
@@ -93,6 +122,9 @@ describe('ServerService', () => {
     let mockFrontendProbe: jest.Mocked<FrontendHealthProbeAdapter>;
     let mockContainerRuntime: jest.Mocked<DockerContainerRuntimeAdapter>;
     let mockPlatformSettings: jest.Mocked<DatabasePlatformSettingsRepository>;
+    let mockPlatformUpdates: jest.Mocked<DatabasePlatformUpdatesRepository>;
+    let mockLatestReleaseStore: jest.Mocked<MemoryLatestReleaseStoreAdapter>;
+    let mockUpdateRunner: jest.Mocked<DockerUpdateRunnerAdapter>;
     let sut: ServerService;
 
     beforeEach(async () => {
@@ -109,6 +141,10 @@ describe('ServerService', () => {
         mockFrontendProbe = { name: 'frontend', check: jest.fn() } as unknown as jest.Mocked<FrontendHealthProbeAdapter>;
         mockContainerRuntime = {} as jest.Mocked<DockerContainerRuntimeAdapter>;
         mockPlatformSettings = {} as jest.Mocked<DatabasePlatformSettingsRepository>;
+        mockPlatformUpdates = {} as jest.Mocked<DatabasePlatformUpdatesRepository>;
+        mockLatestReleaseStore = {} as jest.Mocked<MemoryLatestReleaseStoreAdapter>;
+        mockUpdateRunner = {} as jest.Mocked<DockerUpdateRunnerAdapter>;
+        mockResolveServiceVersion.mockReturnValue('2.1.0');
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -124,6 +160,9 @@ describe('ServerService', () => {
                 { provide: FrontendHealthProbeAdapter, useValue: mockFrontendProbe },
                 { provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime },
                 { provide: DatabasePlatformSettingsRepository, useValue: mockPlatformSettings },
+                { provide: DatabasePlatformUpdatesRepository, useValue: mockPlatformUpdates },
+                { provide: MemoryLatestReleaseStoreAdapter, useValue: mockLatestReleaseStore },
+                { provide: DockerUpdateRunnerAdapter, useValue: mockUpdateRunner },
             ],
         }).compile();
 
@@ -432,6 +471,68 @@ describe('ServerService', () => {
             mockUpdatePlatformSettingsUseCase.mockRejectedValue(error);
 
             await expect(sut.updateSettings({ logRetentionDays: 0 })).rejects.toThrow(error);
+        });
+    });
+
+    describe('getUpdate', () => {
+        it('delegates to the get platform update use case with the repository, the store and the installed version', async () => {
+            mockGetPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            await sut.getUpdate();
+
+            expect(mockGetPlatformUpdateUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetPlatformUpdateUseCase).toHaveBeenCalledWith(mockPlatformUpdates, mockLatestReleaseStore, '2.1.0');
+        });
+
+        it('reads the installed version from the image that runs', async () => {
+            mockGetPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+            mockResolveServiceVersion.mockReturnValue('9.9.9');
+
+            await sut.getUpdate();
+
+            expect(mockGetPlatformUpdateUseCase).toHaveBeenCalledWith(mockPlatformUpdates, mockLatestReleaseStore, '9.9.9');
+        });
+
+        it('returns the state produced by the use case', async () => {
+            mockGetPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            expect(await sut.getUpdate()).toBe(updateStatus);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('connection terminated');
+            mockGetPlatformUpdateUseCase.mockRejectedValue(error);
+
+            await expect(sut.getUpdate()).rejects.toThrow(error);
+        });
+    });
+
+    describe('startUpdate', () => {
+        it('delegates to the start platform update use case with the repository, the store, the runner and the version', async () => {
+            mockStartPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            await sut.startUpdate();
+
+            expect(mockStartPlatformUpdateUseCase).toHaveBeenCalledTimes(1);
+            expect(mockStartPlatformUpdateUseCase).toHaveBeenCalledWith(
+                mockPlatformUpdates,
+                mockLatestReleaseStore,
+                mockUpdateRunner,
+                '2.1.0',
+            );
+        });
+
+        it('returns the state produced by the use case', async () => {
+            mockStartPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            expect(await sut.startUpdate()).toBe(updateStatus);
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('an update already runs');
+            mockStartPlatformUpdateUseCase.mockRejectedValue(error);
+
+            await expect(sut.startUpdate()).rejects.toThrow(error);
         });
     });
 });

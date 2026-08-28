@@ -45,6 +45,7 @@ interface FakeDaemon {
     pruneContainers: jest.Mock;
     buildImage: jest.Mock;
     pull: jest.Mock;
+    createContainer: jest.Mock;
     modem: { followProgress: jest.Mock };
 }
 
@@ -80,6 +81,7 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
     daemon.buildImage = jest.fn().mockResolvedValue(Readable.from([]));
     daemon.pull = jest.fn().mockResolvedValue(Readable.from([]));
     daemon.modem = { followProgress: jest.fn() };
+    daemon.createContainer = jest.fn().mockResolvedValue({ id: 'c0ffee', start: jest.fn().mockResolvedValue(undefined) });
 
     return { sut, daemon };
 };
@@ -655,6 +657,72 @@ describe('DockerContainerRuntimeAdapter', () => {
             });
 
             expect(() => { sut.followProgress(Readable.from([]), jest.fn(), jest.fn()); }).toThrow(error);
+        });
+    });
+
+    describe('runDetachedContainer', () => {
+        /** The definition of a container the update of the platform runs. */
+        const detachedOptions = {
+            image: 'docker:28-cli',
+            command: ['sh', '-c', 'echo update'],
+            binds: ['/opt/gitpaas:/opt/gitpaas', '/var/run/docker.sock:/var/run/docker.sock'],
+            labels: { 'com.gitpaas.managed': 'true' },
+        };
+
+        it('creates the container on the image, the command, the mounts and the labels it received', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer(detachedOptions);
+
+            expect(daemon.createContainer).toHaveBeenCalledTimes(1);
+            expect(daemon.createContainer).toHaveBeenCalledWith({
+                Image: 'docker:28-cli',
+                Cmd: ['sh', '-c', 'echo update'],
+                name: undefined,
+                Labels: { 'com.gitpaas.managed': 'true' },
+                HostConfig: {
+                    Binds: ['/opt/gitpaas:/opt/gitpaas', '/var/run/docker.sock:/var/run/docker.sock'],
+                    AutoRemove: false,
+                },
+            });
+        });
+
+        it('starts the container it created, and returns its identifier', async () => {
+            const { sut, daemon } = buildSut();
+            const container = { id: 'deadbeef', start: jest.fn().mockResolvedValue(undefined) };
+            daemon.createContainer.mockResolvedValue(container);
+
+            const result = await sut.runDetachedContainer(detachedOptions);
+
+            expect(container.start).toHaveBeenCalledTimes(1);
+            expect(result).toBe('deadbeef');
+        });
+
+        it('names the container, and removes it on its exit, when the caller asks for it', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer({ ...detachedOptions, name: 'gitpaas-updater', removeOnExit: true });
+
+            expect(daemon.createContainer).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'gitpaas-updater',
+                HostConfig: expect.objectContaining({ AutoRemove: true }),
+            }));
+        });
+
+        it('propagates a failure of the daemon that refuses the container', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('no such image');
+            daemon.createContainer.mockRejectedValue(error);
+
+            await expect(sut.runDetachedContainer(detachedOptions)).rejects.toThrow(error);
+        });
+
+        it('propagates a failure of the start of the container', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('port is already allocated');
+            daemon.createContainer.mockResolvedValue({ id: 'c0ffee', start: jest.fn().mockRejectedValue(error) });
+
+            await expect(sut.runDetachedContainer(detachedOptions)).rejects.toThrow(error);
         });
     });
 
