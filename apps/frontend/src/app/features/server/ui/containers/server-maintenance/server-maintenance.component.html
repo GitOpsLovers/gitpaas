@@ -1,3 +1,14 @@
+@if (showUpdate()) {
+    <div class="mb-6">
+        <app-server-update-panel
+            [update]="update()"
+            [updating]="updating()"
+            [timedOut]="timedOut()"
+            (updateRequested)="requestUpdate()"
+        />
+    </div>
+}
+
 <app-component-card
     title="Maintenance"
     desc="Reclaim disk space on the server by removing Docker resources that are no longer in use."
@@ -79,4 +90,16 @@
     [loading]="running()"
     (confirmed)="confirmOrphanRemoval()"
     (cancelled)="cancelOrphanRemoval()"
+/>
+
+<app-confirm-modal
+    [open]="updatePending()"
+    title="Update GitPaaS"
+    [message]="updateConfirmMessage()"
+    confirmText="Update"
+    variant="primary"
+    icon="rocket"
+    [loading]="running()"
+    (confirmed)="confirmUpdate()"
+    (cancelled)="cancelUpdate()"
 />

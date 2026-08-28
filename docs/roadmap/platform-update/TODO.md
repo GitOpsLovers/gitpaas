@@ -39,14 +39,14 @@ The rollback stays out of scope, and a failed update needs a manual recovery.
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/server/
 
-- [ ] 3.1 Add the two operations of `GET /server/update` and of `POST /server/update` to `server-api.repository.ts`.
-- [ ] 3.2 Show an alert "A new version X.Y.Z is available" at the top of the tab "Maintenance" when the two versions differ. Show nothing when they are equal.
-- [ ] 3.3 Add the button of the update to that alert, behind the modal of the confirmation of the feature.
-- [ ] 3.4 Poll `GET /server/update` every two seconds while an update runs, and show a bar of the progress with the name of the step.
-- [ ] 3.5 Reload the page when the state reports the end and the installed version is equal to the target version.
-- [ ] 3.6 Show the error and the last step after a failure or after a timeout, and do not reload the page.
-- [ ] 3.7 Hide the alert and the button from a user who is not an administrator.
-- [ ] 3.8 Write the unit tests of the panel and of the container, and run `rtk pnpm run check-types --filter @gitpaas/frontend`.
+- [x] 3.1 Add the two operations of `GET /server/update` and of `POST /server/update` to `server-api.repository.ts`.
+- [x] 3.2 Show an alert "A new version X.Y.Z is available" at the top of the tab "Maintenance" when the two versions differ. Show nothing when they are equal.
+- [x] 3.3 Add the button of the update to that alert, behind the modal of the confirmation of the feature.
+- [x] 3.4 Poll `GET /server/update` every two seconds while an update runs, and show a bar of the progress with the name of the step.
+- [x] 3.5 Reload the page when the state reports the end and the installed version is equal to the target version.
+- [x] 3.6 Show the error and the last step after a failure or after a timeout, and do not reload the page.
+- [x] 3.7 Hide the alert and the button from a user who is not an administrator.
+- [x] 3.8 Write the unit tests of the panel and of the container, and run `rtk pnpm run check-types --filter @gitpaas/frontend`.
 
 ## Phase 4 — The documentation of the behavior
 

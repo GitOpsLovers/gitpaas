@@ -1,10 +1,14 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, DOCUMENT, effect, inject, signal } from '@angular/core';
 import type { OrphanRemovalResult, PruneResult } from '@gitpaas/contracts';
 import { LucideBox, LucideDatabase, LucideLayers, LucideUnplug } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
+import { mapPlatformUpdateUseCase } from '../../../application/map-platform-update.use-case';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
+import { reloadPage } from '../../../infrastructure/browser/reload-page';
+import { ServerUpdatePanelComponent } from '../../components/server-update-panel/server-update-panel.component';
 
+import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
@@ -31,6 +35,16 @@ interface PruneAction {
  */
 const BYTES_PER_UNIT = 1024;
 
+/**
+ * Delay between two reads of the state of the update while one runs.
+ */
+const POLL_INTERVAL_MS = 2000;
+
+/**
+ * Time the screen waits for an update to end before it reports a timeout.
+ */
+const UPDATE_TIMEOUT_MS = 10 * 60 * 1000;
+
 @Component({
     selector: 'app-server-maintenance',
     templateUrl: './server-maintenance.component.html',
@@ -39,6 +53,7 @@ const BYTES_PER_UNIT = 1024;
         ComponentCardComponent,
         ButtonComponent,
         ConfirmModalComponent,
+        ServerUpdatePanelComponent,
         LucideBox,
         LucideLayers,
         LucideDatabase,
@@ -53,6 +68,16 @@ export class ServerMaintenanceComponent {
     private readonly repository = inject(ServerApiRepository);
 
     private readonly toast = inject(ToastService);
+
+    private readonly auth = inject(AuthService);
+
+    private readonly document = inject(DOCUMENT);
+
+    private readonly updateResource = this.repository.updateStatus(() => this.isAdmin());
+
+    private pollHandle: ReturnType<typeof setInterval> | null = null;
+
+    private pollDeadline = 0;
 
     protected readonly actions: readonly PruneAction[] = [
         {
@@ -93,6 +118,55 @@ export class ServerMaintenanceComponent {
     protected readonly orphanPending = signal(false);
 
     protected readonly running = signal(false);
+
+    protected readonly updatePending = signal(false);
+
+    protected readonly updating = signal(false);
+
+    protected readonly timedOut = signal(false);
+
+    /**
+     * Whether the user may read the state of the update and start one.
+     */
+    protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'admin');
+
+    /**
+     * State of the update of the platform, as the panel shows it.
+     */
+    protected readonly update = computed(() => mapPlatformUpdateUseCase(
+        this.updateResource.error() ? undefined : this.updateResource.value(),
+    ));
+
+    /**
+     * Whether the panel of the update has anything to say.
+     */
+    protected readonly showUpdate = computed(
+        () => this.isAdmin() && (this.update().available || this.update().failed || this.updating() || this.timedOut()),
+    );
+
+    /**
+     * Message shown in the confirmation dialog of the update of the platform.
+     */
+    protected readonly updateConfirmMessage = computed(
+        () => `GitPaaS will update itself to ${this.update().latestVersion ?? 'the latest release'}. `
+            + 'The platform restarts, and the deployed services keep running. This cannot be undone.',
+    );
+
+    constructor() {
+        this.loadCurrentUser();
+
+        effect(() => { this.followUpdate(); });
+
+        effect(() => {
+            if (this.updating() && !this.timedOut()) {
+                this.startPolling();
+            } else {
+                this.stopPolling();
+            }
+        });
+
+        inject(DestroyRef).onDestroy(() => { this.stopPolling(); });
+    }
 
     /**
      * Title shown in the confirmation dialog for the pending action.
@@ -179,6 +253,128 @@ export class ServerMaintenanceComponent {
         } finally {
             this.running.set(false);
             this.orphanPending.set(false);
+        }
+    }
+
+    /**
+     * Opens the confirmation dialog of the update of the platform.
+     */
+    protected requestUpdate(): void {
+        this.updatePending.set(true);
+    }
+
+    /**
+     * Dismisses the confirmation dialog of the update without starting it.
+     */
+    protected cancelUpdate(): void {
+        this.updatePending.set(false);
+    }
+
+    /**
+     * Starts the update of the platform pending confirmation.
+     */
+    protected async confirmUpdate(): Promise<void> {
+        this.running.set(true);
+        this.timedOut.set(false);
+
+        try {
+            await lastValueFrom(this.repository.startUpdate());
+
+            this.updating.set(true);
+            this.toast.success(
+                'Update started',
+                'GitPaaS is updating itself. This page opens again when the update ends.',
+            );
+        } catch {
+            this.toast.error(
+                'Update failed to start',
+                'Could not start the update of the platform. Please verify the server is running and try again.',
+            );
+        } finally {
+            this.running.set(false);
+            this.updatePending.set(false);
+        }
+    }
+
+    /**
+     * Follows the run of the update.
+     */
+    private followUpdate(): void {
+        const update = this.update();
+        const updating = this.updating();
+
+        if (update.running && !updating && !this.timedOut()) {
+            this.updating.set(true);
+
+            return;
+        }
+
+        if (!updating) {
+            return;
+        }
+
+        if (update.failed) {
+            this.updating.set(false);
+
+            return;
+        }
+
+        if (update.finished) {
+            this.updating.set(false);
+            reloadPage(this.document);
+        }
+    }
+
+    /**
+     * Reads the state of the update again, until the run ends or the wait is over.
+     */
+    private poll(): void {
+        if (Date.now() >= this.pollDeadline) {
+            this.timedOut.set(true);
+            this.updating.set(false);
+
+            return;
+        }
+
+        this.updateResource.reload();
+    }
+
+    /**
+     * Starts the reading of the state of the update, when none runs already.
+     */
+    private startPolling(): void {
+        if (this.pollHandle !== null) {
+            return;
+        }
+
+        this.pollDeadline = Date.now() + UPDATE_TIMEOUT_MS;
+        this.pollHandle = setInterval(() => { this.poll(); }, POLL_INTERVAL_MS);
+    }
+
+    /**
+     * Stops the reading of the state of the update.
+     */
+    private stopPolling(): void {
+        if (this.pollHandle === null) {
+            return;
+        }
+
+        clearInterval(this.pollHandle);
+        this.pollHandle = null;
+    }
+
+    /**
+     * Loads the user of the session, so that the screen knows its role.
+     */
+    private async loadCurrentUser(): Promise<void> {
+        if (this.auth.currentUser()) {
+            return;
+        }
+
+        try {
+            await lastValueFrom(this.auth.loadCurrentUser());
+        } catch {
+            // The role stays unknown, and the panel of the update stays hidden.
         }
     }
 
