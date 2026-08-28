@@ -54,6 +54,10 @@ RUN pnpm --filter @gitpaas/frontend build
 # ---------------------------------------------------------------------------
 FROM nginxinc/nginx-unprivileged:${NGINX_VERSION} AS runtime
 
+# The release workflow passes the tag of the release as APP_VERSION
+ARG APP_VERSION=
+ENV APP_VERSION=${APP_VERSION}
+
 COPY iac/production/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /repo/apps/frontend/dist/frontend/browser /usr/share/nginx/html
 
