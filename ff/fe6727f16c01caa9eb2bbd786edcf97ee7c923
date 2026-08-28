@@ -1,0 +1,97 @@
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.html
+  s_c7dde436e5025d::t_f62e7b9436f75c 37-58
+  s_ca23dd0201ba98::t_32722b1ebcdbd0 35,94-100
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.ts
+  s_c7dde436e5025d::t_b82b5c438da909 85-86
+  s_ca23dd0201ba98::t_d793dfc58fa23a 1,3,12-23,52-62,87
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.spec.ts
+  s_2fe98ce6eb22e9::t_47a5e74e03b659 1-169
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.html
+  s_ca23dd0201ba98::t_d6a582ba0c97b0 1-6
+apps/frontend/src/app/features/server/domain/models/server-health.model.ts
+  s_ca23dd0201ba98::t_c76f2da35210e3 3-10,21
+  s_c7dde436e5025d::t_3e776f53665b65 18
+apps/frontend/src/app/features/server/ui/containers/server-health/server-health.component.ts
+  s_ca23dd0201ba98::t_0990128f9af4ae 55-62
+apps/frontend/src/app/features/server/application/map-readiness-health.use-case.spec.ts
+  s_2fe98ce6eb22e9::t_27941a28259bd9 14,23-24,34,44-45,50-79,84,93-94,106,113,157-160,162-163,168-169,171,174,177,179,182-183,186,189-191,195-196,199
+  s_ca23dd0201ba98::t_0537f247371416 156,161,164-167,170,172-173,175-176,178,180-181,184-185,187-188,192-194,197-198,200
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.spec.ts
+  s_2fe98ce6eb22e9::t_4df1c6341c6912 11-12,21-22,31,65,72-73,79-81,93,101,144,168,171-188
+  s_fbb263a094e948::t_99a09e510094db 23-26,115-116
+  s_ca23dd0201ba98::t_fc80ae17522e6d 27-30,32-33,105-114
+docs/roadmap/server-health-tab/TODO.md
+  s_ca23dd0201ba98::t_c3f20b094c9d9d 28-33
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.ts
+  s_ca23dd0201ba98::t_fd322a45bb7006 1-2,6,12,34-38
+apps/backend/src/features/server/application/__tests__/check-readiness.use-case.spec.ts
+  s_ca23dd0201ba98::t_4e896eb0ca292e 1-2,7,9-10,22-23,31,33-34,46,48-49,63-64,78,106-145,148-153,169-191,194-199,217-218
+apps/backend/src/features/server/application/check-readiness.use-case.ts
+  s_ca23dd0201ba98::t_97e90d695cc292 8-12,22,24,29
+apps/backend/src/features/server/domain/ports/health-probe.port.ts
+  s_ca23dd0201ba98::t_b66b4fbd3fb944 1-2,7,18-19,21
+apps/backend/src/features/server/infrastructure/health/__tests__/backend-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_f583ab744ff079 20,27-29,34-37,43,49,55-61
+apps/backend/src/features/server/infrastructure/health/__tests__/docker-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_7c3638a1135364 27,33,39,47,53
+apps/backend/src/features/server/infrastructure/health/__tests__/frontend-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_f493de08b443dd 20,27-29,34-37,43,49,55-61
+apps/backend/src/features/server/infrastructure/health/__tests__/postgres-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_ce236e8e4062d6 28,34
+apps/backend/src/features/server/infrastructure/health/__tests__/proxy-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_ee21f01cd3e944 20,27-29,34-37,43,49,55-61
+apps/backend/src/features/server/infrastructure/health/__tests__/redis-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_c725c2bee3273e 32,38,44,50,58
+apps/backend/src/features/server/infrastructure/health/__tests__/stack-container-health-probe.adapter.spec.ts
+  s_ca23dd0201ba98::t_333530b5277210 27,34-36,43-46,55,61,69,75,81,87,95,101,107,115-135
+apps/backend/src/features/server/infrastructure/health/docker-health-probe.adapter.ts
+  s_ca23dd0201ba98::t_adf9defd7bd779 3-4,22,24,28,30
+apps/backend/src/features/server/infrastructure/health/postgres-health-probe.adapter.ts
+  s_ca23dd0201ba98::t_d949eb8b1f36d3 4-5,22,24,28,30
+apps/backend/src/features/server/infrastructure/health/redis-health-probe.adapter.ts
+  s_ca23dd0201ba98::t_3df4290726df8f 3-4,18-23,27,29
+apps/backend/src/features/server/infrastructure/health/stack-container-health-probe.adapter.ts
+  s_ca23dd0201ba98::t_224fbf2b8ce3cc 1-2,24-37,41-43,45
+packages/contracts/src/server/readiness.contract.ts
+  s_ca23dd0201ba98::t_9cc6583f456f61 5-7,9,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fffe6727f16c01caa9eb2bbd786edcf97ee7c923",
+  "prompts": {},
+  "sessions": {
+    "s_2fe98ce6eb22e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a26bda7b56faa3cc7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c7dde436e5025d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9d6f9878350fd4ce",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ca23dd0201ba98": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a193ec3-e52a-4629-a5ea-48fcd778159c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_fbb263a094e948": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a546854fce8639e94",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
