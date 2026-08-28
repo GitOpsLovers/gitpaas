@@ -1,0 +1,47 @@
+apps/backend/src/features/server/application/__tests__/check-readiness.use-case.spec.ts
+  s_7febcd5bf8e97f::t_6ec089e62b5fc1 104-149
+apps/backend/src/features/server/infrastructure/health/__tests__/backend-health-probe.adapter.spec.ts
+  s_7febcd5bf8e97f::t_2ab7a1d2027e11 1-49
+apps/backend/src/features/server/infrastructure/health/__tests__/frontend-health-probe.adapter.spec.ts
+  s_7febcd5bf8e97f::t_cdc00350d46918 1-49
+apps/backend/src/features/server/infrastructure/health/__tests__/proxy-health-probe.adapter.spec.ts
+  s_7febcd5bf8e97f::t_348fa978b388ff 1-49
+apps/backend/src/features/server/infrastructure/health/__tests__/redis-health-probe.adapter.spec.ts
+  s_7febcd5bf8e97f::t_cc7653e2e790b5 1-60
+apps/backend/src/features/server/infrastructure/health/__tests__/stack-container-health-probe.adapter.spec.ts
+  s_7febcd5bf8e97f::t_29cb09825882e8 1-109
+apps/backend/src/features/server/infrastructure/health/backend-health-probe.adapter.ts
+  s_7febcd5bf8e97f::t_18da931da17b4d 1-20
+apps/backend/src/features/server/infrastructure/health/frontend-health-probe.adapter.ts
+  s_7febcd5bf8e97f::t_38eb123505e4b4 1-20
+apps/backend/src/features/server/infrastructure/health/proxy-health-probe.adapter.ts
+  s_7febcd5bf8e97f::t_a60a45d5923011 1-20
+apps/backend/src/features/server/infrastructure/health/redis-health-probe.adapter.ts
+  s_7febcd5bf8e97f::t_e7fa51efe16a7a 1-32
+apps/backend/src/features/server/infrastructure/health/stack-container-health-probe.adapter.ts
+  s_7febcd5bf8e97f::t_1c498b0b532f60 1-51
+apps/backend/src/features/server/server.module.ts
+  s_7febcd5bf8e97f::t_ebdd9a75f662a4 8,10,12-13,31-34
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_7febcd5bf8e97f::t_9bd75f73916ffc 16,18,20-21,77-80,90-93,106-109,121-124,307,316-319,336-340
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_7febcd5bf8e97f::t_7587b7b6becdb6 24,26,28-29,52-59,108-115
+docs/roadmap/server-health-tab/TODO.md
+  s_7febcd5bf8e97f::t_1b65084131a621 14-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b41ea6dac6fbbf3af4111722a8eecdc22bb2dfdc",
+  "prompts": {},
+  "sessions": {
+    "s_7febcd5bf8e97f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b222c888-d833-4c00-b28b-765a6efebc5b",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
