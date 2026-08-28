@@ -1,0 +1,31 @@
+docs/roadmap.md
+  s_e6c11236a2e335::t_cbda6bb77535a7 17-18
+docs/roadmap/platform-update/TODO.md
+  s_e6c11236a2e335::t_c42dedf86d7721 1-60
+docs/roadmap/server-health-tab/TODO.md
+  s_6e226450dac1bc::t_789ac703a6a640 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ac71e53ffcb4a48d2b99b027cdd6ed603a3a38d6",
+  "prompts": {},
+  "sessions": {
+    "s_6e226450dac1bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7370eb4-c43f-4006-a103-c1507acd90d2",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e6c11236a2e335": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b5db569f-fcad-49a8-8050-7b00fd5be837",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
