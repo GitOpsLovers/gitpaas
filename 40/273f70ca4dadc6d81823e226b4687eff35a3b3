@@ -1,0 +1,19 @@
+docs/business/server.md
+  s_87abcede9c9236::t_7a170e990bac0d 11,17,165-178,192-196,229,231,233,235,247-251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "40273f70ca4dadc6d81823e226b4687eff35a3b3",
+  "prompts": {},
+  "sessions": {
+    "s_87abcede9c9236": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "acd22170-1e42-47e8-91cb-95e1c51939da",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
