@@ -101,6 +101,52 @@ describe('checkReadinessUseCase', () => {
         });
     });
 
+    it('reports ok with the six services of the stack up', async () => {
+        const result = await checkReadinessUseCase([
+            upProbe('postgres', true),
+            upProbe('docker', true),
+            upProbe('redis', true),
+            upProbe('proxy', true),
+            upProbe('backend', true),
+            upProbe('frontend', true),
+        ]);
+
+        expect(result).toEqual({
+            status: 'ok',
+            dependencies: [
+                { name: 'postgres', status: 'up' },
+                { name: 'docker', status: 'up' },
+                { name: 'redis', status: 'up' },
+                { name: 'proxy', status: 'up' },
+                { name: 'backend', status: 'up' },
+                { name: 'frontend', status: 'up' },
+            ],
+        });
+    });
+
+    it('reports error when a single service of the stack is down, marking only it down', async () => {
+        const result = await checkReadinessUseCase([
+            upProbe('postgres', true),
+            upProbe('docker', true),
+            upProbe('redis', false),
+            upProbe('proxy', true),
+            upProbe('backend', true),
+            upProbe('frontend', true),
+        ]);
+
+        expect(result).toEqual({
+            status: 'error',
+            dependencies: [
+                { name: 'postgres', status: 'up' },
+                { name: 'docker', status: 'up' },
+                { name: 'redis', status: 'down' },
+                { name: 'proxy', status: 'up' },
+                { name: 'backend', status: 'up' },
+                { name: 'frontend', status: 'up' },
+            ],
+        });
+    });
+
     it('preserves probe ordering in the breakdown', async () => {
         const result = await checkReadinessUseCase([
             upProbe('docker', true),

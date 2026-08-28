@@ -21,8 +21,12 @@ import type { PlatformSettingsRepository } from '../../domain/repositories/platf
 import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
 import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
+import { BackendHealthProbeAdapter } from '../../infrastructure/health/backend-health-probe.adapter';
 import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-health-probe.adapter';
+import { FrontendHealthProbeAdapter } from '../../infrastructure/health/frontend-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
+import { ProxyHealthProbeAdapter } from '../../infrastructure/health/proxy-health-probe.adapter';
+import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
@@ -45,6 +49,14 @@ export class ServerService {
         private readonly postgresProbe: HealthProbe,
         @Inject(DockerHealthProbeAdapter)
         private readonly dockerProbe: HealthProbe,
+        @Inject(RedisHealthProbeAdapter)
+        private readonly redisProbe: HealthProbe,
+        @Inject(ProxyHealthProbeAdapter)
+        private readonly proxyProbe: HealthProbe,
+        @Inject(BackendHealthProbeAdapter)
+        private readonly backendProbe: HealthProbe,
+        @Inject(FrontendHealthProbeAdapter)
+        private readonly frontendProbe: HealthProbe,
         @Inject(DockerContainerRuntimeAdapter)
         private readonly containerRuntime: ContainerRuntime,
         @Inject(DatabasePlatformSettingsRepository)
@@ -93,7 +105,14 @@ export class ServerService {
      * @returns Overall readiness status and a per-dependency breakdown
      */
     public checkReadiness(): Promise<ReadinessResult> {
-        return checkReadinessUseCase([this.postgresProbe, this.dockerProbe]);
+        return checkReadinessUseCase([
+            this.postgresProbe,
+            this.dockerProbe,
+            this.redisProbe,
+            this.proxyProbe,
+            this.backendProbe,
+            this.frontendProbe,
+        ]);
     }
 
     /**
