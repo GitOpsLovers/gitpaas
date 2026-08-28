@@ -11,14 +11,14 @@ The rollback stays out of scope, and a failed update needs a manual recovery.
 **Agent:** implementer
 **Paths:** scripts/, iac/production/, .github/workflows/
 
-- [ ] 1.1 Write `scripts/update.sh` beside `install.sh`. It takes an optional `--version`, and it resolves the latest release when the flag is absent.
-- [ ] 1.2 Download the tarball of the target version, and replace `/opt/gitpaas/iac/production/` with its content. Never skip the download when the folder exists.
-- [ ] 1.3 Keep the values of the existing `.env`, and write the new `IMAGE_TAG`. Add every new key of `.env.example` that the file misses.
-- [ ] 1.4 Apply the new files of `iac/production/migrations/` through the ledger `schema_migrations`, with the same logic as `install.sh`.
-- [ ] 1.5 Run `compose pull` and `compose up -d` at the end, and report a non-zero code when a step fails.
-- [ ] 1.6 Refuse the value `latest` for `IMAGE_TAG` in `update.sh` and in `install.sh`. Both scripts stop with a message.
-- [ ] 1.7 Write each step of the script to the table of the state of the update in PostgreSQL, with `psql`: the step, the percent and the error.
-- [ ] 1.8 Bake `APP_VERSION` into the images of the backend and of the frontend in `.github/workflows/release.yml`, with the value of the tag of the release.
+- [x] 1.1 Write `scripts/update.sh` beside `install.sh`. It takes an optional `--version`, and it resolves the latest release when the flag is absent.
+- [x] 1.2 Download the tarball of the target version, and replace `/opt/gitpaas/iac/production/` with its content. Never skip the download when the folder exists.
+- [x] 1.3 Keep the values of the existing `.env`, and write the new `IMAGE_TAG`. Add every new key of `.env.example` that the file misses.
+- [x] 1.4 Apply the new files of `iac/production/migrations/` through the ledger `schema_migrations`, with the same logic as `install.sh`.
+- [x] 1.5 Run `compose pull` and `compose up -d` at the end, and report a non-zero code when a step fails.
+- [x] 1.6 Refuse the value `latest` for `IMAGE_TAG` in `update.sh` and in `install.sh`. Both scripts stop with a message.
+- [x] 1.7 Write each step of the script to the table of the state of the update in PostgreSQL, with `psql`: the step, the percent and the error.
+- [x] 1.8 Bake `APP_VERSION` into the images of the backend and of the frontend in `.github/workflows/release.yml`, with the value of the tag of the release.
 
 ## Phase 2 — The version, the check and the endpoint of the update
 

@@ -325,6 +325,13 @@ detect_docker_gid() {
     log "Host Docker socket group id: $DOCKER_GID."
 }
 
+# Assert that the image tag is valid and not "latest".
+assert_image_tag() {
+    [ -n "$1" ] || die "The image tag of this install resolved to nothing. Re-run naming a released version explicitly, e.g. --version v1.2.3."
+    [ "$1" != "latest" ] \
+        || die "'latest' is not a valid IMAGE_TAG: it is a moving tag, so the images would stop matching the installed source at the next release. Name a released version explicitly, e.g. --version v1.2.3."
+}
+
 # Map the resolved version tag to the tag of the PUBLISHED container images.
 image_tag_for_ref() {
     ref="$1"
@@ -412,6 +419,7 @@ generate_env() {
 
     # Determine the tag of the published images to pull.
     IMAGE_TAG="$(image_tag_for_ref "$RESOLVED_REF")"
+    assert_image_tag "$IMAGE_TAG"
     log "Application images will be pulled at tag: $IMAGE_TAG."
 
     if [ -f "$ENV_FILE" ]; then

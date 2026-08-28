@@ -63,9 +63,8 @@ RUN pnpm --filter @gitpaas/backend build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm --filter @gitpaas/backend --prod --legacy deploy /prod/backend
 
-# Stamp the version of the ROOT manifest so the runtime stage publishes it as
-# `service.version` without carrying the workspace manifest along.
-RUN node -p "require('/repo/package.json').version" > /prod/version
+# Stamp the version so the runtime stage publishes it as `service.version`
+RUN echo "${APP_VERSION:-$(node -p "require('/repo/package.json').version")}" > /prod/version
 
 # ---------------------------------------------------------------------------
 # runtime: minimal, non-root
