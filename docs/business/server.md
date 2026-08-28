@@ -8,13 +8,13 @@ This capability keeps the server of the platform in good order. It reports the r
 
 The system SHALL give a public readiness probe at `GET /api/v1/server/readiness`.
 
-The probe examines the critical dependencies: PostgreSQL and the Docker daemon. The answer holds the aggregate status and one entry per dependency. The aggregate status is `ok` only if every dependency is `up`.
+The probe examines the six critical dependencies of the stack, in this order: PostgreSQL, the Docker daemon, Redis, the reverse proxy, the backend container and the frontend container. The answer holds the aggregate status and one entry per dependency. The aggregate status is `ok` only if every dependency is `up`.
 
 The system SHALL run every probe at the same time. A probe that gives `false`, and a probe that raises an error, both give the state `down`. The check itself SHALL never raise an error.
 
 ### Scenario: Every dependency is available
 
-- **WHEN** a client calls the probe, and PostgreSQL and the Docker daemon both answer
+- **WHEN** a client calls the probe, and the six dependencies all answer
 - **THEN** the system answers `200` with the status `ok`, and with the state `up` for each dependency
 
 ### Scenario: One dependency is not available
@@ -162,7 +162,20 @@ For the removal of the orphan containers:
 
 The tab Health SHALL show a panel of the health, and that tab is the tab that `/server` opens.
 
-The panel SHALL show one line per critical dependency, with the name of the dependency and its state. The state is `up` or `down`. The panel SHALL also show one aggregate mark, so the operator reads the health of the server without reading each line.
+The panel SHALL show one line per critical dependency, with the label of the dependency and its state. The state is `up` or `down`. The panel SHALL also show one aggregate mark, so the operator reads the health of the server without reading each line.
+
+The label replaces the raw name that the probe reports:
+
+| Name of the probe  | Label         |
+|--------------------|---------------|
+| `postgres`         | PostgreSQL    |
+| `docker`           | Docker daemon |
+| `redis`            | Redis         |
+| `proxy`            | Reverse proxy |
+| `backend`          | Backend       |
+| `frontend`         | Frontend      |
+
+The panel SHALL show the raw name when a dependency carries a name that this table does not hold.
 
 The aggregate mark says that the server is ready only when every dependency is `up`.
 
@@ -175,6 +188,11 @@ The aggregate mark says that the server is ready only when every dependency is `
 
 - **WHEN** the API reports that one dependency is `down`
 - **THEN** the panel shows the state of each dependency, and the aggregate mark says that the server is not ready
+
+### Scenario: The API reports a dependency that the table does not hold
+
+- **WHEN** the API reports a dependency whose name is not in the table of the labels
+- **THEN** the panel shows the raw name of that dependency, in place of a label
 
 ## A dependency that is down is data, and not a failure of the screen
 
@@ -208,13 +226,13 @@ When the daemon does not answer, the panel SHALL say so in place of the informat
 - **WHEN** the API answers `503` for the state of the daemon
 - **THEN** the panel says that the daemon is not reachable, in place of the information
 
-## The panel reads one time
+## The panel reads one time, and the button of the refresh reads again
 
-The tab Health SHALL read the health when it opens, and it SHALL NOT read it again on a timer.
+The tab Health SHALL read the health when it opens, and it SHALL NOT read it again on a timer. The panel SHALL carry a button "Refresh" that reads the health again, on the choice of the operator alone.
 
-While the two reads run, the panel SHALL show that the reading runs.
+While a read runs, the panel SHALL show that the reading runs, and it SHALL disable the button "Refresh".
 
-The operator sees the state of the moment when the tab opens. A panel that reads again on a timer holds a connection open for as long as the screen stays open, and this change does not add that.
+The operator sees the state of the moment when the tab opens, or the moment of the last choice of the button "Refresh". A panel that reads again on a timer holds a connection open for as long as the screen stays open, and this change does not add that; the operator asks for a new read instead.
 
 ### Scenario: The user opens the screen
 
@@ -225,6 +243,11 @@ The operator sees the state of the moment when the tab opens. A panel that reads
 
 - **WHEN** the screen stays open after the two answers arrived
 - **THEN** the screen makes no further call, and the panel keeps the values that it read
+
+### Scenario: The user chooses the button "Refresh"
+
+- **WHEN** the user chooses the button "Refresh"
+- **THEN** the screen reads the readiness and the state of the daemon again, and it disables the button "Refresh" until the two answers arrive
 
 ### Scenario: The user comes back to the tab
 
