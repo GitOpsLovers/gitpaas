@@ -1,0 +1,29 @@
+.github/workflows/release.yml
+  s_495a831aa2cad3::t_65b8167bfbf319 135-137,141
+docs/roadmap/platform-update/TODO.md
+  s_495a831aa2cad3::t_c5e48d50fe821b 14-21
+iac/production/backend.Dockerfile
+  s_495a831aa2cad3::t_6c46f0229cab43 66-71
+iac/production/frontend.Dockerfile
+  s_495a831aa2cad3::t_8ecbe473d1e191 57-62
+scripts/install.sh
+  s_495a831aa2cad3::t_474c2204529c29 328-336,424
+scripts/update.sh
+  s_495a831aa2cad3::t_2102fc018f25b7 1-499
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4be42406e0aa24a0ae337ebc208e4a07a0fafb30",
+  "prompts": {},
+  "sessions": {
+    "s_495a831aa2cad3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5507da70-2b99-487c-b542-db82a2299a4d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
