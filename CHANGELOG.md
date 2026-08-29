@@ -1,3 +1,14 @@
+## [2.3.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.2.1...v2.3.0) (2026-08-29)
+
+### Features
+
+* **core:** add network support to container runtime ([#168](https://github.com/GitOpsLovers/gitpaas/issues/168)) ([64d9bb8](https://github.com/GitOpsLovers/gitpaas/commit/64d9bb891b8bdbfb1d6c3569721a02837ab10333))
+* **deployments:** attach networks at deployment ([#171](https://github.com/GitOpsLovers/gitpaas/issues/171)) ([c7bad5b](https://github.com/GitOpsLovers/gitpaas/commit/c7bad5b3ddde99de941f0f6ca3ec20d63a5e3ee3))
+* **networks:** add persistence of project networks ([#169](https://github.com/GitOpsLovers/gitpaas/issues/169)) ([414c833](https://github.com/GitOpsLovers/gitpaas/commit/414c83318fe561197abf95679bea7c6189551415))
+* **networks:** add project networks API ([#170](https://github.com/GitOpsLovers/gitpaas/issues/170)) ([7546dca](https://github.com/GitOpsLovers/gitpaas/commit/7546dcae2b4705a9c2478f0b8e8572454d4c7213))
+* **networks:** add project networks interface ([#173](https://github.com/GitOpsLovers/gitpaas/issues/173)) ([77c6b28](https://github.com/GitOpsLovers/gitpaas/commit/77c6b28cf5b7eac293cae9ae44c25bc33c303cf6))
+* **networks:** read networks of a service ([#172](https://github.com/GitOpsLovers/gitpaas/issues/172)) ([a79154f](https://github.com/GitOpsLovers/gitpaas/commit/a79154fcefa89c142e937437ce7795425fbf6c8b))
+
 ## [2.2.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.2.0...v2.2.1) (2026-08-29)
 
 ### Bug Fixes
