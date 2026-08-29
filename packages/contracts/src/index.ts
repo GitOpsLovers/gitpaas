@@ -122,6 +122,9 @@ export type { Container, ContainerPort } from './containers/container.contract';
 export { networkSchema } from './networks/network.contract';
 export type { Network } from './networks/network.contract';
 
+export { projectNetworkSchema, projectNetworkStateSchema } from './networks/project-network.contract';
+export type { ProjectNetwork, ProjectNetworkState } from './networks/project-network.contract';
+
 export {
     archivedLogEntrySchema,
     deploymentLogArchiveSchema,
