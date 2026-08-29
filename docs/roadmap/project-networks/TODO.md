@@ -56,10 +56,10 @@ A network that crosses two projects stays out of scope.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/networks/
 
-- [ ] 5.1 Read the networks that the containers of the service hold, through the model of the runtime.
-- [ ] 5.2 Merge that list with the networks that the service declares, by the name of the network.
-- [ ] 5.3 Give each network of the answer a state: declared and connected, declared alone, or connected alone.
-- [ ] 5.4 Write the unit tests of the merge.
+- [x] 5.1 Read the networks that the containers of the service hold, through the model of the runtime.
+- [x] 5.2 Merge that list with the networks that the service declares, by the name of the network.
+- [x] 5.3 Give each network of the answer a state: declared and connected, declared alone, or connected alone.
+- [x] 5.4 Write the unit tests of the merge.
 
 ## Phase 6 — The interface of the user
 
