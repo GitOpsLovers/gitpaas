@@ -5,6 +5,7 @@ import type {
     RuntimeBuildImageOptions,
     RuntimeComposeProject,
     RuntimeContainerSummary,
+    RuntimeCreateNetworkOptions,
     RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
@@ -61,6 +62,15 @@ export interface ContainerRuntime {
     listNetworks: (selector: RuntimeSelector) => Promise<RuntimeNetworkSummary[]>;
 
     /**
+     * Creates a network.
+     *
+     * @param options Definition of the network to create
+     *
+     * @returns Identifier of the created network
+     */
+    createNetwork: (options: RuntimeCreateNetworkOptions) => Promise<string>;
+
+    /**
      * Removes a network.
      *
      * @param id Identifier of the network to remove
@@ -72,8 +82,9 @@ export interface ContainerRuntime {
      *
      * @param network Identifier or name of the network the container joins
      * @param containerId Identifier of the container
+     * @param aliases Names the container answers to on that network
      */
-    connectNetwork: (network: string, containerId: string) => Promise<void>;
+    connectNetwork: (network: string, containerId: string, aliases?: string[]) => Promise<void>;
 
     /**
      * Detaches a container from a network.

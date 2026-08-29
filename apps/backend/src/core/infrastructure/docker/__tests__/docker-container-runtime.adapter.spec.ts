@@ -37,6 +37,7 @@ interface FakeDaemon {
     listContainers: jest.Mock;
     listNetworks: jest.Mock;
     listImages: jest.Mock;
+    createNetwork: jest.Mock;
     getContainer: jest.Mock;
     getNetwork: jest.Mock;
     getImage: jest.Mock;
@@ -72,6 +73,7 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
     daemon.listContainers = jest.fn().mockResolvedValue([]);
     daemon.listNetworks = jest.fn().mockResolvedValue([]);
     daemon.listImages = jest.fn().mockResolvedValue([]);
+    daemon.createNetwork = jest.fn().mockResolvedValue({ id: 'n-created' });
     daemon.getContainer = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
     daemon.getNetwork = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
     daemon.getImage = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
@@ -320,6 +322,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     Created: 1_752_192_000,
                     Labels: { 'io.gitpaas.project': 'web-frontend', 'com.docker.compose.project': 'web-frontend' },
                     Ports: [{ PrivatePort: 3000, PublicPort: 8080, Type: 'tcp' }],
+                    NetworkSettings: { Networks: { 'web-frontend_default': {}, 'gitpaas-proxy': {} } },
                 },
                 { Id: 'bare', Created: 0 },
             ]);
@@ -334,6 +337,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     createdAt: new Date(1_752_192_000 * 1000),
                     projects: ['web-frontend', 'web-frontend'],
                     ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
+                    networks: ['web-frontend_default', 'gitpaas-proxy'],
                 },
                 {
                     id: 'bare',
@@ -344,6 +348,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     createdAt: new Date(0),
                     projects: [],
                     ports: [],
+                    networks: [],
                 },
             ]);
         });
@@ -393,6 +398,39 @@ describe('DockerContainerRuntimeAdapter', () => {
         });
     });
 
+    describe('createNetwork', () => {
+        it('creates the network on the name, the driver and the internal flag it received', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.createNetwork({ name: 'gitpaas-p1-n1', driver: 'bridge', internal: true });
+
+            expect(daemon.createNetwork).toHaveBeenCalledWith({ Name: 'gitpaas-p1-n1', Driver: 'bridge', Internal: true });
+        });
+
+        it('returns the identifier of the network the daemon created', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.createNetwork.mockResolvedValue({ id: 'n-42' });
+
+            await expect(sut.createNetwork({ name: 'gitpaas-p1-n1' })).resolves.toBe('n-42');
+        });
+
+        it('leaves the driver to the daemon, and defaults the network to a routed one', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.createNetwork({ name: 'gitpaas-p1-n1' });
+
+            expect(daemon.createNetwork).toHaveBeenCalledWith({ Name: 'gitpaas-p1-n1', Driver: undefined, Internal: false });
+        });
+
+        it('propagates a failure of the daemon that refuses the network', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('network with name gitpaas-p1-n1 already exists');
+            daemon.createNetwork.mockRejectedValue(error);
+
+            await expect(sut.createNetwork({ name: 'gitpaas-p1-n1' })).rejects.toThrow(error);
+        });
+    });
+
     describe('removals', () => {
         it('force-removes a container with its anonymous volumes', async () => {
             const { sut, daemon } = buildSut();
@@ -434,6 +472,26 @@ describe('DockerContainerRuntimeAdapter', () => {
             await sut.connectNetwork('gitpaas-proxy', 'c1');
 
             expect(daemon.getNetwork).toHaveBeenCalledWith('gitpaas-proxy');
+            expect(connect).toHaveBeenCalledWith({ Container: 'c1' });
+        });
+
+        it('attaches a container to a network under the aliases it answers to', async () => {
+            const { sut, daemon } = buildSut();
+            const connect = jest.fn().mockResolvedValue(undefined);
+            daemon.getNetwork.mockReturnValue({ connect });
+
+            await sut.connectNetwork('gitpaas-proxy', 'c1', ['api', 'api-1']);
+
+            expect(connect).toHaveBeenCalledWith({ Container: 'c1', EndpointConfig: { Aliases: ['api', 'api-1'] } });
+        });
+
+        it('sends no endpoint configuration when the alias list is empty', async () => {
+            const { sut, daemon } = buildSut();
+            const connect = jest.fn().mockResolvedValue(undefined);
+            daemon.getNetwork.mockReturnValue({ connect });
+
+            await sut.connectNetwork('gitpaas-proxy', 'c1', []);
+
             expect(connect).toHaveBeenCalledWith({ Container: 'c1' });
         });
 
