@@ -1,0 +1,61 @@
+apps/frontend/src/app/features/services/domain/models/service-variable.models.ts
+  s_4b0c4a2f4904eb::t_2410f4771c54af 2
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_4b0c4a2f4904eb::t_2a6e26d5e55a49 19,31-43
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_4b0c4a2f4904eb::t_774e18fa046d06 396,400,498,502,759
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_4b0c4a2f4904eb::t_154f2fc16215c9 37,162-163
+apps/frontend/src/app/shared/components/component-card/component-card.component.html
+  s_4b0c4a2f4904eb::t_321548a219c8b5 3-15
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.html
+  s_4b0c4a2f4904eb::t_6afa13ef358d1c 1-6,76,81-106,109-116,118-123,126-128,130-139,141,145-147
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.spec.ts
+  s_2c91032a70fa21::t_6c72f9689ae4d2 8,28-35,63-106,129-130,132,137,140,151,153-166,169-173,176-198
+docs/business.md
+  s_4b0c4a2f4904eb::t_3f51be3422911b 23
+docs/business/service-environment.md
+  s_d550531e3a666b::t_16d30d0a52e492 5,96,98,106-116,120,125-143,147,152
+docs/business/services.md
+  s_75b2a80e55b0cb::t_4fc6c4c82fa4be 280,282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "888e59000c9c26ef51f585ad7fba356ec0afbb66",
+  "prompts": {},
+  "sessions": {
+    "s_2c91032a70fa21": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a470b9e87edd35844",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_4b0c4a2f4904eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62ac67d3-9bc0-499c-98bc-b314d9701caf",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_75b2a80e55b0cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a56e13a276bf255eb",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d550531e3a666b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af1b04bcb64a00173",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
