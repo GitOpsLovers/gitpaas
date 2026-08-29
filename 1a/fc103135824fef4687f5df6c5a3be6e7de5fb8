@@ -1,0 +1,19 @@
+README.md
+  s_6fc6a39226f255::t_3bf49beba79dc0 7,16,18,20,22,24-28,30,32-34,36,38,40-42,44,46-47,49,51,53,55-57,59,61,63,65,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1afc103135824fef4687f5df6c5a3be6e7de5fb8",
+  "prompts": {},
+  "sessions": {
+    "s_6fc6a39226f255": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4de0e471-97aa-4bf5-a228-7e90e06c5d0e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
