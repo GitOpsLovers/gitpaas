@@ -1,3 +1,13 @@
+## [2.2.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.1.1...v2.2.0) (2026-08-29)
+
+### Features
+
+* **frontend:** add platform update UI components ([#166](https://github.com/GitOpsLovers/gitpaas/issues/166)) ([b5e2ab3](https://github.com/GitOpsLovers/gitpaas/commit/b5e2ab33b854e5ca2f4298b6c1c03e3e051d7a7e))
+* **platform-update:** add update script and app versioning ([#164](https://github.com/GitOpsLovers/gitpaas/issues/164)) ([d7d68f9](https://github.com/GitOpsLovers/gitpaas/commit/d7d68f98b7db040299407fc01a6eda6aa5720813))
+* **server:** add health labels and refresh button ([#162](https://github.com/GitOpsLovers/gitpaas/issues/162)) ([0ad1d2d](https://github.com/GitOpsLovers/gitpaas/commit/0ad1d2dc37ccca15b75237d0f5ced207189e614a))
+* **server:** add health probes for stack services ([#161](https://github.com/GitOpsLovers/gitpaas/issues/161)) ([c308ce9](https://github.com/GitOpsLovers/gitpaas/commit/c308ce9f7735fd05aa98b13892a202ef67b2f84d))
+* **server:** add platform update check and endpoints ([#165](https://github.com/GitOpsLovers/gitpaas/issues/165)) ([ebc9cc3](https://github.com/GitOpsLovers/gitpaas/commit/ebc9cc3445c2308a177c42c00321f899a618f2b2))
+
 ## [2.1.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.1.0...v2.1.1) (2026-08-28)
 
 ### Bug Fixes
