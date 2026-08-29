@@ -1,0 +1,33 @@
+docs/architecture/infrastructure/key-flows.md
+  s_2801a54da79a80::t_53e67ba833c2e4 72-94
+docs/architecture/infrastructure/installation.md
+  s_45063ca9dd45bc::t_bedeb1b5366371 33
+  s_2801a54da79a80::t_6e86778e298417 29,34-35,62,86,89-110
+  s_45063ca9dd45bc::t_9f3b081c7d1c89 31-32
+docs/business/server.md
+  s_2801a54da79a80::t_4c7f5ade7cfeaf 5,91-136,139,207-259
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "32cbb34ef46dbd49bd34d182209a16489402a64e",
+  "prompts": {},
+  "sessions": {
+    "s_2801a54da79a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a61868730bead42c5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_45063ca9dd45bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2d95bdca2e91680b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
