@@ -13,5 +13,4 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
-- [project-networks](./roadmap/project-networks/TODO.md): the network of a project, and the private route between two services.
 - [user-profile-and-2fa](./roadmap/user-profile-and-2fa/TODO.md): the section of the profile of the user, and the second factor with Google Authenticator.
