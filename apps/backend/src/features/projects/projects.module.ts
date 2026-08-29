@@ -16,5 +16,6 @@ import { ProjectsService } from './ui/services/projects.service';
         ProjectsService,
         DatabaseProjectsRepository,
     ],
+    exports: [DatabaseProjectsRepository],
 })
 export class ProjectsModule {}

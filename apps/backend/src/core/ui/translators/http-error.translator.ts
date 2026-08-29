@@ -57,6 +57,9 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['VARIABLE_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
     ['DOMAIN_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['DOMAIN_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
+    ['PROJECT_NETWORK_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['PROJECT_NETWORK_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
+    ['PROJECT_NETWORK_IN_USE', (error) => new ConflictException(error.message, { cause: error })],
 ]);
 
 /**

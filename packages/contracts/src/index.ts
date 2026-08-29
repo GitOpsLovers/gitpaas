@@ -122,8 +122,24 @@ export type { Container, ContainerPort } from './containers/container.contract';
 export { networkSchema } from './networks/network.contract';
 export type { Network } from './networks/network.contract';
 
-export { projectNetworkSchema, projectNetworkStateSchema } from './networks/project-network.contract';
-export type { ProjectNetwork, ProjectNetworkState } from './networks/project-network.contract';
+export {
+    createProjectNetworkSchema,
+    joinProjectNetworkSchema,
+    PROJECT_NETWORK_NAME_MAX_LENGTH,
+    PROJECT_NETWORK_NAME_MESSAGE,
+    PROJECT_NETWORK_NAME_PATTERN,
+    projectNetworkName,
+    projectNetworkSchema,
+    projectNetworkStateSchema,
+    updateProjectNetworkSchema,
+} from './networks/project-network.contract';
+export type {
+    CreateProjectNetworkDto,
+    JoinProjectNetworkDto,
+    ProjectNetwork,
+    ProjectNetworkState,
+    UpdateProjectNetworkDto,
+} from './networks/project-network.contract';
 
 export {
     archivedLogEntrySchema,
