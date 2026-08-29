@@ -2,7 +2,7 @@ import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type {
-    Container, Deployment, Domain, Network, Project, ProjectNetwork, Service, ServiceVariable,
+    Container, Deployment, Domain, Namespace, Network, Project, ProjectNetwork, Service, ServiceVariable,
 } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
@@ -25,6 +25,7 @@ import { readDomainErrorUseCase } from '@features/domains/application/read-domai
 import type { DomainDraft } from '@features/domains/domain/models/domain.models';
 import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
 import { DomainChange, ServiceDomainsComponent } from '@features/domains/ui/components/service-domains/service-domains.component';
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { readProjectNetworkErrorUseCase } from '@features/networks/application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
@@ -71,6 +72,8 @@ export class ServiceDetailComponent {
 
     private readonly variablesRepository = inject(ServiceVariablesApiRepository);
 
+    private readonly namespacesRepository = inject(NamespacesApiRepository);
+
     private readonly projectsRepository = inject(ProjectsApiRepository);
 
     private readonly deploymentsRepository = inject(DeploymentsApiRepository);
@@ -94,6 +97,8 @@ export class ServiceDetailComponent {
     public readonly tab = input.required<string>();
 
     protected readonly service: HttpResourceRef<Service | undefined> = this.repository.serviceById(() => this.serviceId());
+
+    private readonly namespace: HttpResourceRef<Namespace | undefined> = this.namespacesRepository.namespaceById(() => this.namespaceId());
 
     private readonly project: HttpResourceRef<Project | undefined> = this.projectsRepository.projectById(() => this.projectId());
 
@@ -175,13 +180,13 @@ export class ServiceDetailComponent {
     );
 
     /**
-     * Maps the current project and service into a breadcrumb trail for navigation.
+     * Maps the current namespace, project and service into a breadcrumb trail for navigation.
      */
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => {
         const projectsLink = ['/namespaces', this.namespaceId(), 'projects'];
 
         return [
-            { label: 'Projects', link: projectsLink },
+            { label: this.namespace.value()?.name ?? 'Namespace', link: projectsLink },
             { label: this.project.value()?.name ?? 'Project', link: [...projectsLink, this.projectId()] },
             { label: this.service.value()?.name ?? 'Service' },
         ];

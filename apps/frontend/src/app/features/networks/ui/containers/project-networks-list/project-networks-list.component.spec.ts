@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { Project, ProjectNetwork } from '@gitpaas/contracts';
+import type { Namespace, Project, ProjectNetwork } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { PROJECT_NETWORK_IN_USE_MESSAGE, PROJECT_NETWORK_NAME_TAKEN_MESSAGE } from '../../../application/read-project-network-error.use-case';
@@ -8,6 +8,7 @@ import { NetworksApiRepository } from '../../../infrastructure/api/networks-api.
 
 import { ProjectNetworksListComponent } from './project-networks-list.component';
 
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import type { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -28,6 +29,10 @@ interface ProjectNetworksListInternals {
 const NAMESPACE_ID = 'ns-1';
 
 const PROJECT_ID = 'pr-1';
+
+const namespace: Namespace = {
+    id: NAMESPACE_ID, name: 'acme', projectsCount: 1,
+};
 
 const project: Project = {
     id: PROJECT_ID, name: 'api', namespaceId: NAMESPACE_ID, servicesCount: 2,
@@ -64,6 +69,9 @@ describe('ProjectNetworksListComponent', () => {
         renameProjectNetwork: ReturnType<typeof vi.fn>;
         removeProjectNetwork: ReturnType<typeof vi.fn>;
     };
+    let namespacesRepository: {
+        namespaceById: ReturnType<typeof vi.fn>;
+    };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
         projectById: ReturnType<typeof vi.fn>;
@@ -86,6 +94,9 @@ describe('ProjectNetworksListComponent', () => {
             renameProjectNetwork: vi.fn().mockReturnValue(of(network)),
             removeProjectNetwork: vi.fn().mockReturnValue(of(undefined)),
         };
+        namespacesRepository = {
+            namespaceById: vi.fn().mockReturnValue({ value: signal<Namespace | undefined>(namespace) }),
+        };
         projectsRepository = {
             namespaceId: signal<string | undefined>(undefined),
             projectById: vi.fn().mockReturnValue({ value: signal<Project | undefined>(project) }),
@@ -94,7 +105,10 @@ describe('ProjectNetworksListComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [ProjectNetworksListComponent],
-            providers: [{ provide: ToastService, useValue: toast }],
+            providers: [
+                { provide: NamespacesApiRepository, useValue: namespacesRepository },
+                { provide: ToastService, useValue: toast },
+            ],
         });
         TestBed.overrideComponent(ProjectNetworksListComponent, {
             set: {
@@ -122,11 +136,19 @@ describe('ProjectNetworksListComponent', () => {
             expect(projectsRepository.namespaceId()).toBe(NAMESPACE_ID);
         });
 
-        test('names the project and the networks in the breadcrumb', () => {
+        test('reads the namespace of the route', () => {
+            create();
+
+            const [accessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
+
+            expect(accessor()).toBe(NAMESPACE_ID);
+        });
+
+        test('names the namespace, the project and the networks in the breadcrumb', () => {
             create();
 
             expect(component.breadcrumb()).toEqual<BreadcrumbItem[]>([
-                { label: 'Projects', link: ['/namespaces', NAMESPACE_ID, 'projects'] },
+                { label: 'acme', link: ['/namespaces', NAMESPACE_ID, 'projects'] },
                 { label: 'api', link: ['/namespaces', NAMESPACE_ID, 'projects', PROJECT_ID] },
                 { label: 'Networks' },
             ]);

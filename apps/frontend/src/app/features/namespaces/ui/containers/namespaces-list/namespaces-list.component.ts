@@ -12,7 +12,6 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
     selector: 'app-namespaces-list',
     templateUrl: './namespaces-list.component.html',
-    providers: [NamespacesApiRepository],
     imports: [RouterLink, NamespaceCardComponent, ConfirmModalComponent],
 })
 
@@ -26,7 +25,7 @@ export class NamespacesListComponent {
 
     private readonly toast = inject(ToastService);
 
-    protected readonly namespaces = this.repository.namespaces;
+    protected readonly namespaces = this.repository.namespaces();
 
     protected readonly pendingDelete = signal<Namespace | null>(null);
 

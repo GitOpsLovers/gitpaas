@@ -1,12 +1,13 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import type { Project, ProjectNetwork } from '@gitpaas/contracts';
+import type { Namespace, Project, ProjectNetwork } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
 import { readProjectNetworkErrorUseCase } from '../../../application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '../../../infrastructure/api/networks-api.repository';
 import { ProjectNetworkRename, ProjectNetworksComponent } from '../../components/project-networks/project-networks.component';
 
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
@@ -25,6 +26,8 @@ import { ToastService } from '@shared/services/toast.service';
 export class ProjectNetworksListComponent {
     private readonly repository = inject(NetworksApiRepository);
 
+    private readonly namespacesRepository = inject(NamespacesApiRepository);
+
     private readonly projectsRepository = inject(ProjectsApiRepository);
 
     private readonly toast = inject(ToastService);
@@ -34,6 +37,8 @@ export class ProjectNetworksListComponent {
     public readonly projectId = input.required<string>();
 
     protected readonly networks: HttpResourceRef<ProjectNetwork[] | undefined> = this.repository.networksByProject(() => this.projectId());
+
+    private readonly namespace: HttpResourceRef<Namespace | undefined> = this.namespacesRepository.namespaceById(() => this.namespaceId());
 
     private readonly project: HttpResourceRef<Project | undefined> = this.projectsRepository.projectById(() => this.projectId());
 
@@ -53,13 +58,13 @@ export class ProjectNetworksListComponent {
     );
 
     /**
-     * Maps the current project into a breadcrumb trail for navigation.
+     * Maps the current namespace and project into a breadcrumb trail for navigation.
      */
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => {
         const projectsLink = ['/namespaces', this.namespaceId(), 'projects'];
 
         return [
-            { label: 'Projects', link: projectsLink },
+            { label: this.namespace.value()?.name ?? 'Namespace', link: projectsLink },
             { label: this.project.value()?.name ?? 'Project', link: [...projectsLink, this.projectId()] },
             { label: 'Networks' },
         ];

@@ -52,6 +52,7 @@ describe('NamespaceEditComponent', () => {
         TestBed.configureTestingModule({
             imports: [NamespaceEditComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: repository },
                 {
                     provide: ActivatedRoute,
                     useValue: { snapshot: { paramMap: { get: () => 'ns-1' } } },
@@ -63,7 +64,6 @@ describe('NamespaceEditComponent', () => {
         TestBed.overrideComponent(NamespaceEditComponent, {
             set: {
                 template: '',
-                providers: [{ provide: NamespacesApiRepository, useValue: repository }],
             },
         });
     });

@@ -5,6 +5,7 @@ import { lastValueFrom } from 'rxjs';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceFormComponent } from '../../components/service-form/service-form.component';
 
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -22,6 +23,8 @@ import { ToastService } from '@shared/services/toast.service';
 export class ServiceAddComponent {
     private readonly repository = inject(ServicesApiRepository);
 
+    private readonly namespacesRepository = inject(NamespacesApiRepository);
+
     private readonly projectsRepository = inject(ProjectsApiRepository);
 
     private readonly router = inject(Router);
@@ -34,6 +37,10 @@ export class ServiceAddComponent {
 
     protected readonly projectId = this.route.snapshot.paramMap.get('id') ?? '';
 
+    private readonly namespace = this.namespacesRepository.namespaceById(() => this.namespaceId);
+
+    private readonly namespaceName = computed(() => this.namespace.value()?.name ?? 'Namespace');
+
     private readonly project = this.projectsRepository.projectById(() => this.projectId);
 
     private readonly projectName = computed(() => this.project.value()?.name ?? 'Project');
@@ -41,7 +48,7 @@ export class ServiceAddComponent {
     protected readonly submitting = signal(false);
 
     protected readonly breadcrumb = computed<BreadcrumbItem[]>(() => [
-        { label: 'Projects', link: ['/namespaces', this.namespaceId, 'projects'] },
+        { label: this.namespaceName(), link: ['/namespaces', this.namespaceId, 'projects'] },
         { label: this.projectName(), link: ['/namespaces', this.namespaceId, 'projects', this.projectId] },
         { label: 'Add service' },
     ]);

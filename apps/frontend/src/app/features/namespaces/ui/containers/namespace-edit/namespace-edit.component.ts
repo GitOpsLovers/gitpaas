@@ -9,7 +9,6 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
     selector: 'app-namespace-edit',
     templateUrl: './namespace-edit.component.html',
-    providers: [NamespacesApiRepository],
     imports: [NamespaceFormComponent],
 })
 

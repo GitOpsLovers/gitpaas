@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '@environments/environment';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 
 /**
  * Namespaces API repository
@@ -17,8 +17,12 @@ export class NamespacesApiRepository {
 
     /**
      * Resource with all namespaces
+     *
+     * @returns Resource that resolves to every namespace
      */
-    public readonly namespaces = httpResource<Namespace[]>(() => this.url);
+    public namespaces() {
+        return httpResource<Namespace[]>(() => this.url);
+    }
 
     /**
      * Resource with a single namespace by id

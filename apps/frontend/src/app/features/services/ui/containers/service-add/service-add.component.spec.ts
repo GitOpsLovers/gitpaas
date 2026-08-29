@@ -1,13 +1,14 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
-import type { Project, Service } from '@gitpaas/contracts';
+import type { Namespace, Project, Service } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 
 import { ServiceAddComponent } from './service-add.component';
 
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -19,6 +20,10 @@ interface ServiceAddInternals {
     breadcrumb: () => BreadcrumbItem[];
     create: (name: string) => Promise<void>;
 }
+
+const namespace: Namespace = {
+    id: 'ns-1', name: 'acme', projectsCount: 1,
+};
 
 const project: Project = {
     id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
@@ -35,8 +40,12 @@ const created: Service = {
 };
 
 describe('ServiceAddComponent', () => {
+    let namespaceValue: ReturnType<typeof signal<Namespace | undefined>>;
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
     let repository: { create: ReturnType<typeof vi.fn> };
+    let namespacesRepository: {
+        namespaceById: ReturnType<typeof vi.fn>;
+    };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
         projectById: ReturnType<typeof vi.fn>;
@@ -55,8 +64,12 @@ describe('ServiceAddComponent', () => {
     };
 
     beforeEach(() => {
+        namespaceValue = signal<Namespace | undefined>(undefined);
         projectValue = signal<Project | undefined>(undefined);
         repository = { create: vi.fn() };
+        namespacesRepository = {
+            namespaceById: vi.fn().mockReturnValue({ value: namespaceValue }),
+        };
         projectsRepository = {
             namespaceId: signal<string | undefined>(undefined),
             projectById: vi.fn().mockReturnValue({ value: projectValue }),
@@ -67,6 +80,7 @@ describe('ServiceAddComponent', () => {
         TestBed.configureTestingModule({
             imports: [ServiceAddComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: namespacesRepository },
                 { provide: Router, useValue: router },
                 { provide: ToastService, useValue: toast },
                 {
@@ -106,6 +120,9 @@ describe('ServiceAddComponent', () => {
 
         expect(projectsRepository.namespaceId()).toBe('ns-1');
 
+        const [namespaceAccessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
+        expect(namespaceAccessor()).toBe('ns-1');
+
         const [idAccessor] = projectsRepository.projectById.mock.calls[0] as [() => string | undefined];
         expect(idAccessor()).toBe('pr-1');
     });
@@ -114,13 +131,15 @@ describe('ServiceAddComponent', () => {
         create();
 
         expect(component.breadcrumb()).toEqual([
-            { label: 'Projects', link: ['/namespaces', 'ns-1', 'projects'] },
+            { label: 'Namespace', link: ['/namespaces', 'ns-1', 'projects'] },
             { label: 'Project', link: ['/namespaces', 'ns-1', 'projects', 'pr-1'] },
             { label: 'Add service' },
         ]);
 
+        namespaceValue.set(namespace);
         projectValue.set(project);
 
+        expect(component.breadcrumb()[0]).toEqual({ label: 'acme', link: ['/namespaces', 'ns-1', 'projects'] });
         expect(component.breadcrumb()[1]).toEqual({
             label: 'api',
             link: ['/namespaces', 'ns-1', 'projects', 'pr-1'],

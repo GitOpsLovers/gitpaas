@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
-import type { Domain, Project, ProjectNetwork, Service, ServiceVariable } from '@gitpaas/contracts';
+import type { Domain, Namespace, Project, ProjectNetwork, Service, ServiceVariable } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
@@ -22,6 +22,7 @@ import { DOMAIN_TAKEN_MESSAGE } from '@features/domains/application/read-domain-
 import type { DomainDraft } from '@features/domains/domain/models/domain.models';
 import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
 import { DomainChange } from '@features/domains/ui/components/service-domains/service-domains.component';
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { PROJECT_NETWORK_NAME_TAKEN_MESSAGE } from '@features/networks/application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -58,6 +59,10 @@ interface ServiceDetailInternals {
     joiningNetwork: () => boolean;
     joinNetwork: (network: ProjectNetwork) => Promise<void>;
 }
+
+const namespace: Namespace = {
+    id: 'ns-1', name: 'acme', projectsCount: 0,
+};
 
 const project: Project = {
     id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
@@ -101,11 +106,15 @@ const projectNetwork: ProjectNetwork = {
 };
 
 describe('ServiceDetailComponent', () => {
+    let namespaceValue: ReturnType<typeof signal<Namespace | undefined>>;
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
     let serviceValue: ReturnType<typeof signal<Service | undefined>>;
     let repository: {
         serviceById: ReturnType<typeof vi.fn>;
         update: ReturnType<typeof vi.fn>;
+    };
+    let namespacesRepository: {
+        namespaceById: ReturnType<typeof vi.fn>;
     };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
@@ -154,12 +163,16 @@ describe('ServiceDetailComponent', () => {
     };
 
     beforeEach(() => {
+        namespaceValue = signal<Namespace | undefined>(undefined);
         projectValue = signal<Project | undefined>(undefined);
         serviceValue = signal<Service | undefined>(undefined);
         deploymentsResource = { value: signal(undefined), reload: vi.fn() };
         repository = {
             serviceById: vi.fn().mockReturnValue({ value: serviceValue }),
             update: vi.fn(),
+        };
+        namespacesRepository = {
+            namespaceById: vi.fn().mockReturnValue({ value: namespaceValue }),
         };
         projectsRepository = {
             namespaceId: signal<string | undefined>(undefined),
@@ -197,6 +210,7 @@ describe('ServiceDetailComponent', () => {
         TestBed.configureTestingModule({
             imports: [ServiceDetailComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: namespacesRepository },
                 { provide: Router, useValue: router },
                 { provide: ToastService, useValue: toast },
             ],
@@ -231,12 +245,14 @@ describe('ServiceDetailComponent', () => {
         expect(projectsRepository.namespaceId()).toBe('ns-2');
     });
 
-    test('loads the project and the service of the route', () => {
+    test('loads the namespace, the project and the service of the route', () => {
         create();
 
+        const [namespaceAccessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
         const [projectAccessor] = projectsRepository.projectById.mock.calls[0] as [() => string | undefined];
         const [serviceAccessor] = repository.serviceById.mock.calls[0] as [() => string | undefined];
 
+        expect(namespaceAccessor()).toBe('ns-1');
         expect(projectAccessor()).toBe('pr-1');
         expect(serviceAccessor()).toBe('sv-1');
     });
@@ -245,16 +261,17 @@ describe('ServiceDetailComponent', () => {
         create();
 
         expect(component.breadcrumb()).toEqual([
-            { label: 'Projects', link: ['/namespaces', 'ns-1', 'projects'] },
+            { label: 'Namespace', link: ['/namespaces', 'ns-1', 'projects'] },
             { label: 'Project', link: ['/namespaces', 'ns-1', 'projects', 'pr-1'] },
             { label: 'Service' },
         ]);
 
+        namespaceValue.set(namespace);
         projectValue.set(project);
         serviceValue.set(service);
 
         expect(component.breadcrumb()).toEqual([
-            { label: 'Projects', link: ['/namespaces', 'ns-1', 'projects'] },
+            { label: 'acme', link: ['/namespaces', 'ns-1', 'projects'] },
             { label: 'api', link: ['/namespaces', 'ns-1', 'projects', 'pr-1'] },
             { label: 'web' },
         ]);
@@ -262,11 +279,12 @@ describe('ServiceDetailComponent', () => {
 
     test('rebuilds the breadcrumb links when the namespace changes', () => {
         create();
+        namespaceValue.set(namespace);
 
         fixture.componentRef.setInput('namespaceId', 'ns-2');
         fixture.detectChanges();
 
-        expect(component.breadcrumb()[0]).toEqual({ label: 'Projects', link: ['/namespaces', 'ns-2', 'projects'] });
+        expect(component.breadcrumb()[0]).toEqual({ label: 'acme', link: ['/namespaces', 'ns-2', 'projects'] });
         expect(component.breadcrumb()[1]?.link).toEqual(['/namespaces', 'ns-2', 'projects', 'pr-1']);
     });
 
@@ -705,6 +723,10 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
         TestBed.configureTestingModule({
             imports: [ServiceDetailComponent],
             providers: [
+                {
+                    provide: NamespacesApiRepository,
+                    useValue: { namespaceById: vi.fn().mockReturnValue({ value: signal(namespace) }) },
+                },
                 { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
                 provideRouter([]),
                 provideHttpClient(),

@@ -1,13 +1,14 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
-import type { Project, Service } from '@gitpaas/contracts';
+import type { Namespace, Project, Service } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 
 import { ServiceEditComponent } from './service-edit.component';
 
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -21,6 +22,10 @@ interface ServiceEditInternals {
     breadcrumb: () => BreadcrumbItem[];
     update: (name: string) => Promise<void>;
 }
+
+const namespace: Namespace = {
+    id: 'ns-1', name: 'acme', projectsCount: 1,
+};
 
 const project: Project = {
     id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
@@ -39,12 +44,16 @@ const service: Service = {
 const ROUTE_PARAMS = { namespaceId: 'ns-1', id: 'pr-1', serviceId: 'sv-1' };
 
 describe('ServiceEditComponent', () => {
+    let namespaceValue: ReturnType<typeof signal<Namespace | undefined>>;
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
     let serviceValue: ReturnType<typeof signal<Service | undefined>>;
     let isLoading: ReturnType<typeof signal<boolean>>;
     let repository: {
         serviceById: ReturnType<typeof vi.fn>;
         update: ReturnType<typeof vi.fn>;
+    };
+    let namespacesRepository: {
+        namespaceById: ReturnType<typeof vi.fn>;
     };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
@@ -64,12 +73,16 @@ describe('ServiceEditComponent', () => {
     };
 
     beforeEach(() => {
+        namespaceValue = signal<Namespace | undefined>(undefined);
         projectValue = signal<Project | undefined>(undefined);
         serviceValue = signal<Service | undefined>(undefined);
         isLoading = signal(false);
         repository = {
             serviceById: vi.fn().mockReturnValue({ value: serviceValue, isLoading }),
             update: vi.fn(),
+        };
+        namespacesRepository = {
+            namespaceById: vi.fn().mockReturnValue({ value: namespaceValue }),
         };
         projectsRepository = {
             namespaceId: signal<string | undefined>(undefined),
@@ -81,6 +94,7 @@ describe('ServiceEditComponent', () => {
         TestBed.configureTestingModule({
             imports: [ServiceEditComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: namespacesRepository },
                 { provide: Router, useValue: router },
                 { provide: ToastService, useValue: toast },
                 {
@@ -115,6 +129,9 @@ describe('ServiceEditComponent', () => {
 
         expect(projectsRepository.namespaceId()).toBe('ns-1');
 
+        const [namespaceAccessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
+        expect(namespaceAccessor()).toBe('ns-1');
+
         const [idAccessor] = projectsRepository.projectById.mock.calls[0] as [() => string | undefined];
         expect(idAccessor()).toBe('pr-1');
     });
@@ -144,13 +161,15 @@ describe('ServiceEditComponent', () => {
         create();
 
         expect(component.breadcrumb()).toEqual([
-            { label: 'Projects', link: ['/namespaces', 'ns-1', 'projects'] },
+            { label: 'Namespace', link: ['/namespaces', 'ns-1', 'projects'] },
             { label: 'Project', link: ['/namespaces', 'ns-1', 'projects', 'pr-1'] },
             { label: 'Edit service' },
         ]);
 
+        namespaceValue.set(namespace);
         projectValue.set(project);
 
+        expect(component.breadcrumb()[0]?.label).toBe('acme');
         expect(component.breadcrumb()[1]?.label).toBe('api');
     });
 

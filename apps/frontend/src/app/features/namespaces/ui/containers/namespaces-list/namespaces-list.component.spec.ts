@@ -23,8 +23,9 @@ interface NamespacesListInternals {
 const namespace: Namespace = { id: 'ns-1', name: 'platform', projectsCount: 2 };
 
 describe('NamespacesListComponent', () => {
+    let namespaces: { reload: ReturnType<typeof vi.fn> };
     let repository: {
-        namespaces: { reload: ReturnType<typeof vi.fn> };
+        namespaces: ReturnType<typeof vi.fn>;
         delete: ReturnType<typeof vi.fn>;
     };
     let router: { navigate: ReturnType<typeof vi.fn> };
@@ -37,8 +38,9 @@ describe('NamespacesListComponent', () => {
     };
 
     beforeEach(() => {
+        namespaces = { reload: vi.fn() };
         repository = {
-            namespaces: { reload: vi.fn() },
+            namespaces: vi.fn().mockReturnValue(namespaces),
             delete: vi.fn(),
         };
         router = { navigate: vi.fn() };
@@ -47,22 +49,18 @@ describe('NamespacesListComponent', () => {
         TestBed.configureTestingModule({
             imports: [NamespacesListComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: repository },
                 { provide: Router, useValue: router },
                 { provide: ToastService, useValue: toast },
             ],
         });
-        TestBed.overrideComponent(NamespacesListComponent, {
-            set: {
-                template: '',
-                providers: [{ provide: NamespacesApiRepository, useValue: repository }],
-            },
-        });
+        TestBed.overrideComponent(NamespacesListComponent, { set: { template: '' } });
     });
 
     test('exposes the namespaces resource from the repository', () => {
         create();
 
-        expect(component.namespaces).toBe(repository.namespaces);
+        expect(component.namespaces).toBe(namespaces);
         expect(component.pendingDelete()).toBeNull();
         expect(component.deleting()).toBe(false);
     });
@@ -106,7 +104,7 @@ describe('NamespacesListComponent', () => {
         expect(repository.delete).not.toHaveBeenCalled();
         expect(toast.success).not.toHaveBeenCalled();
         expect(toast.error).not.toHaveBeenCalled();
-        expect(repository.namespaces.reload).not.toHaveBeenCalled();
+        expect(namespaces.reload).not.toHaveBeenCalled();
     });
 
     test('deletes the pending namespace, notifies success and reloads the list', async () => {
@@ -118,7 +116,7 @@ describe('NamespacesListComponent', () => {
 
         expect(repository.delete).toHaveBeenCalledWith('ns-1');
         expect(toast.success).toHaveBeenCalledWith('Namespace deleted', expect.stringContaining('platform'));
-        expect(repository.namespaces.reload).toHaveBeenCalledTimes(1);
+        expect(namespaces.reload).toHaveBeenCalledTimes(1);
         expect(component.deleting()).toBe(false);
         expect(component.pendingDelete()).toBeNull();
     });
@@ -135,7 +133,7 @@ describe('NamespacesListComponent', () => {
             'Something went wrong. Please try again.',
         );
         expect(toast.success).not.toHaveBeenCalled();
-        expect(repository.namespaces.reload).not.toHaveBeenCalled();
+        expect(namespaces.reload).not.toHaveBeenCalled();
         expect(component.deleting()).toBe(false);
         expect(component.pendingDelete()).toBeNull();
     });

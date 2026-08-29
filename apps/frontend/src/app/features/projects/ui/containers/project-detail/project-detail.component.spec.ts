@@ -3,17 +3,22 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import type { Project } from '@gitpaas/contracts';
+import type { Namespace, Project } from '@gitpaas/contracts';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
 import { ProjectDetailComponent } from './project-detail.component';
 
+import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 
 interface ProjectDetailInternals {
     breadcrumb: () => BreadcrumbItem[];
 }
+
+const namespace: Namespace = {
+    id: 'ns-1', name: 'acme', projectsCount: 1,
+};
 
 const project: Project = {
     id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
@@ -21,9 +26,13 @@ const project: Project = {
 
 describe('ProjectDetailComponent', () => {
     let value: ReturnType<typeof signal<Project | undefined>>;
+    let namespaceValue: ReturnType<typeof signal<Namespace | undefined>>;
     let repository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
         projectById: ReturnType<typeof vi.fn>;
+    };
+    let namespacesRepository: {
+        namespaceById: ReturnType<typeof vi.fn>;
     };
     let fixture: ComponentFixture<ProjectDetailComponent>;
     let component: ProjectDetailInternals;
@@ -38,14 +47,19 @@ describe('ProjectDetailComponent', () => {
 
     beforeEach(() => {
         value = signal<Project | undefined>(undefined);
+        namespaceValue = signal<Namespace | undefined>(undefined);
         repository = {
             namespaceId: signal<string | undefined>(undefined),
             projectById: vi.fn().mockReturnValue({ value }),
+        };
+        namespacesRepository = {
+            namespaceById: vi.fn().mockReturnValue({ value: namespaceValue }),
         };
 
         TestBed.configureTestingModule({
             imports: [ProjectDetailComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: namespacesRepository },
                 provideRouter([]),
                 provideHttpClient(),
                 provideHttpClientTesting(),
@@ -58,7 +72,9 @@ describe('ProjectDetailComponent', () => {
             TestBed.overrideComponent(ProjectDetailComponent, {
                 set: {
                     template: '',
-                    providers: [{ provide: ProjectsApiRepository, useValue: repository }],
+                    providers: [
+                        { provide: ProjectsApiRepository, useValue: repository },
+                    ],
                 },
             });
         });
@@ -92,14 +108,28 @@ describe('ProjectDetailComponent', () => {
             expect(idAccessor()).toBe('pr-2');
         });
 
+        test('loads the namespace of the route', () => {
+            create();
+
+            const [namespaceAccessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
+            expect(namespaceAccessor()).toBe('ns-1');
+        });
+
         test('builds a breadcrumb linking back to the namespace project list', () => {
             create();
 
             expect(component.breadcrumb()).toEqual([
-                { label: 'Namespaces', link: '/namespaces' },
-                { label: 'Projects', link: ['/namespaces', 'ns-1', 'projects'] },
+                { label: 'Namespace', link: ['/namespaces', 'ns-1', 'projects'] },
                 { label: 'Project' },
             ]);
+        });
+
+        test('names the first breadcrumb crumb after the namespace once it resolves', () => {
+            create();
+
+            namespaceValue.set(namespace);
+
+            expect(component.breadcrumb()[0]).toEqual({ label: 'acme', link: ['/namespaces', 'ns-1', 'projects'] });
         });
 
         test('names the last breadcrumb crumb after the project once it resolves', () => {
@@ -116,14 +146,18 @@ describe('ProjectDetailComponent', () => {
             fixture.componentRef.setInput('namespaceId', 'ns-2');
             fixture.detectChanges();
 
-            expect(component.breadcrumb()[1]).toEqual({ label: 'Projects', link: ['/namespaces', 'ns-2', 'projects'] });
+            expect(component.breadcrumb()[0]).toEqual({ label: 'Namespace', link: ['/namespaces', 'ns-2', 'projects'] });
         });
     });
 
     describe('template', () => {
         beforeEach(() => {
             TestBed.overrideComponent(ProjectDetailComponent, {
-                set: { providers: [{ provide: ProjectsApiRepository, useValue: repository }] },
+                set: {
+                    providers: [
+                        { provide: ProjectsApiRepository, useValue: repository },
+                    ],
+                },
             });
         });
 

@@ -38,14 +38,12 @@ describe('NamespacesApiRepository', () => {
     });
 
     afterEach(() => {
-        // The collection resource loads eagerly on construction; drain it when a
-        // test does not exercise it explicitly.
-        httpMock.match(BASE_URL).forEach((req) => { req.flush([]); });
         httpMock.verify();
     });
 
-    describe('namespaces resource', () => {
+    describe('namespaces', () => {
         test('GETs the namespaces collection URL and exposes the response', async () => {
+            const resource = TestBed.runInInjectionContext(() => repository.namespaces());
             TestBed.tick();
 
             const req = httpMock.expectOne(BASE_URL);
@@ -53,17 +51,25 @@ describe('NamespacesApiRepository', () => {
             req.flush([namespace]);
             await settle();
 
-            expect(repository.namespaces.value()).toEqual([namespace]);
+            expect(resource.value()).toEqual([namespace]);
+        });
+
+        // eslint-disable-next-line vitest/expect-expect
+        test('issues no request until the resource is created', () => {
+            TestBed.tick();
+
+            httpMock.expectNone(BASE_URL);
         });
 
         test('surfaces the failure on the resource when the request errors', async () => {
+            const resource = TestBed.runInInjectionContext(() => repository.namespaces());
             TestBed.tick();
 
             httpMock.expectOne(BASE_URL).flush('boom', { status: 500, statusText: 'Server Error' });
             await settle();
 
-            expect(repository.namespaces.status()).toBe('error');
-            expect(repository.namespaces.error()).toBeDefined();
+            expect(resource.status()).toBe('error');
+            expect(resource.error()).toBeDefined();
         });
     });
 
@@ -80,9 +86,6 @@ describe('NamespacesApiRepository', () => {
             await settle();
 
             expect(resource.value()).toEqual(namespace);
-
-            // The collection resource also fires on construction.
-            httpMock.expectOne(BASE_URL).flush([]);
         });
 
         test('issues no request while the id is undefined and requests once it resolves', async () => {
@@ -102,8 +105,6 @@ describe('NamespacesApiRepository', () => {
             await settle();
 
             expect(resource.value()).toEqual({ ...namespace, id: 'ns-2' });
-
-            httpMock.expectOne(BASE_URL).flush([]);
         });
     });
 

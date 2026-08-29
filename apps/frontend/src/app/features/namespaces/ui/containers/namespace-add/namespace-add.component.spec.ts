@@ -35,6 +35,7 @@ describe('NamespaceAddComponent', () => {
         TestBed.configureTestingModule({
             imports: [NamespaceAddComponent],
             providers: [
+                { provide: NamespacesApiRepository, useValue: repository },
                 { provide: Router, useValue: router },
                 { provide: ToastService, useValue: toast },
             ],
@@ -42,7 +43,6 @@ describe('NamespaceAddComponent', () => {
         TestBed.overrideComponent(NamespaceAddComponent, {
             set: {
                 template: '',
-                providers: [{ provide: NamespacesApiRepository, useValue: repository }],
             },
         });
     });
