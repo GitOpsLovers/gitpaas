@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { DbProjectNetworkEntity } from './infrastructure/database/db-project-network.entity';
@@ -20,7 +20,7 @@ import { ServicesModule } from '@features/services/services.module';
 @Module({
     imports: [
         ProjectsModule,
-        ServicesModule,
+        forwardRef(() => ServicesModule),
         TypeOrmModule.forFeature([DbProjectNetworkEntity, DbServiceNetworkEntity]),
     ],
     controllers: [NetworksController, ProjectNetworksController],

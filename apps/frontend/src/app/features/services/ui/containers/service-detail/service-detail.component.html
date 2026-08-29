@@ -44,7 +44,13 @@
         }
 
         @case ('network') {
-            <app-service-networks [networks]="networks.value() ?? []" [loading]="networks.isLoading()" />
+            <app-service-networks
+                [networks]="networks.value() ?? []"
+                [projectNetworks]="projectNetworks.value() ?? []"
+                [loading]="networks.isLoading()"
+                [joining]="joiningNetwork()"
+                (join)="joinNetwork($event)"
+            />
         }
 
         @case ('logs') {

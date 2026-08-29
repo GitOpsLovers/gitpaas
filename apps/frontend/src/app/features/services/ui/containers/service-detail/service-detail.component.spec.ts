@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
-import type { Domain, Project, Service, ServiceVariable } from '@gitpaas/contracts';
+import type { Domain, Project, ProjectNetwork, Service, ServiceVariable } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
@@ -22,6 +22,7 @@ import { DOMAIN_TAKEN_MESSAGE } from '@features/domains/application/read-domain-
 import type { DomainDraft } from '@features/domains/domain/models/domain.models';
 import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
 import { DomainChange } from '@features/domains/ui/components/service-domains/service-domains.component';
+import { PROJECT_NETWORK_NAME_TAKEN_MESSAGE } from '@features/networks/application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -54,6 +55,8 @@ interface ServiceDetailInternals {
     changeDomain: (change: DomainChange) => Promise<void>;
     requestDomainRemoval: (domain: Domain) => void;
     confirmDomainRemoval: () => Promise<void>;
+    joiningNetwork: () => boolean;
+    joinNetwork: (network: ProjectNetwork) => Promise<void>;
 }
 
 const project: Project = {
@@ -89,6 +92,14 @@ const draft: DomainDraft = {
     host: 'api.example.com', targetService: 'web', port: 8080, https: true,
 };
 
+const projectNetwork: ProjectNetwork = {
+    id: 'nw-1',
+    projectId: 'pr-1',
+    name: 'backend',
+    daemonName: 'gitpaas-pr-1-nw-1',
+    state: 'ready',
+};
+
 describe('ServiceDetailComponent', () => {
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
     let serviceValue: ReturnType<typeof signal<Service | undefined>>;
@@ -121,6 +132,12 @@ describe('ServiceDetailComponent', () => {
         remove: ReturnType<typeof vi.fn>;
     };
     let domainsResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
+    let networksRepository: {
+        networksByService: ReturnType<typeof vi.fn>;
+        networksByProject: ReturnType<typeof vi.fn>;
+        joinProjectNetwork: ReturnType<typeof vi.fn>;
+    };
+    let networksResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let router: { navigate: ReturnType<typeof vi.fn> };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ServiceDetailComponent>;
@@ -161,6 +178,12 @@ describe('ServiceDetailComponent', () => {
             update: vi.fn(),
             remove: vi.fn(),
         };
+        networksResource = { value: signal(undefined), reload: vi.fn() };
+        networksRepository = {
+            networksByService: vi.fn().mockReturnValue(networksResource),
+            networksByProject: vi.fn().mockReturnValue({ value: signal(undefined) }),
+            joinProjectNetwork: vi.fn(),
+        };
         variablesResource = { value: signal(undefined), reload: vi.fn() };
         variablesRepository = {
             variablesByService: vi.fn().mockReturnValue(variablesResource),
@@ -189,10 +212,7 @@ describe('ServiceDetailComponent', () => {
                         provide: ContainersApiRepository,
                         useValue: { containersByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
                     },
-                    {
-                        provide: NetworksApiRepository,
-                        useValue: { networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
-                    },
+                    { provide: NetworksApiRepository, useValue: networksRepository },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
                     { provide: DomainsApiRepository, useValue: domainsRepository },
                 ],
@@ -601,6 +621,48 @@ describe('ServiceDetailComponent', () => {
         expect(domainsRepository.remove).not.toHaveBeenCalled();
         expect(domainsResource.reload).not.toHaveBeenCalled();
     });
+
+    test('loads the networks of the project of the route', () => {
+        create();
+
+        const [accessor] = networksRepository.networksByProject.mock.calls[0] as [() => string | undefined];
+
+        expect(accessor()).toBe('pr-1');
+    });
+
+    test('joins the service to a network of its project, reloads the list and announces it', async () => {
+        networksRepository.joinProjectNetwork.mockReturnValue(of(undefined));
+        create();
+
+        await component.joinNetwork(projectNetwork);
+
+        expect(networksRepository.joinProjectNetwork).toHaveBeenCalledWith('pr-1', 'nw-1', { serviceId: 'sv-1' });
+        expect(networksResource.reload).toHaveBeenCalled();
+        expect(toast.success).toHaveBeenCalled();
+        expect(component.joiningNetwork()).toBe(false);
+    });
+
+    test('names the rule the API refused when the join fails', async () => {
+        networksRepository.joinProjectNetwork.mockReturnValue(throwError(() => new HttpErrorResponse({
+            status: 409,
+            error: {
+                statusCode: 409,
+                code: 'PROJECT_NETWORK_NAME_TAKEN',
+                message: 'Refused',
+                error: 'Conflict',
+                timestamp: '2026-08-29T00:00:00.000Z',
+                path: '/projects/pr-1/networks/nw-1/services',
+                requestId: 'req-1',
+            },
+        })));
+        create();
+
+        await component.joinNetwork(projectNetwork);
+
+        expect(toast.error).toHaveBeenCalledWith('Could not join the network', PROJECT_NETWORK_NAME_TAKEN_MESSAGE);
+        expect(networksResource.reload).not.toHaveBeenCalled();
+        expect(component.joiningNetwork()).toBe(false);
+    });
 });
 
 // The template stays real here, so a test proves the outputs of the children reach the handlers of
@@ -668,7 +730,11 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                     },
                     {
                         provide: NetworksApiRepository,
-                        useValue: { networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
+                        useValue: {
+                            networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }),
+                            networksByProject: vi.fn().mockReturnValue({ value: signal(undefined) }),
+                            joinProjectNetwork: vi.fn(),
+                        },
                     },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
                     {

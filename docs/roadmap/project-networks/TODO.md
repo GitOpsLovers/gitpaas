@@ -66,11 +66,11 @@ A network that crosses two projects stays out of scope.
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/networks/, apps/frontend/src/app/features/projects/
 
-- [ ] 6.1 Show the state of each network in the table of the component `service-networks`.
-- [ ] 6.2 Add the page that lists the networks of a project, and the form that creates one.
-- [ ] 6.3 Add the actions that rename a network and that delete a network, with the message of the error `409`.
-- [ ] 6.4 Add the control that joins a service to a network of its project.
-- [ ] 6.5 Write the unit tests of the components and of the repository of the API.
+- [x] 6.1 Show the state of each network in the table of the component `service-networks`.
+- [x] 6.2 Add the page that lists the networks of a project, and the form that creates one.
+- [x] 6.3 Add the actions that rename a network and that delete a network, with the message of the error `409`.
+- [x] 6.4 Add the control that joins a service to a network of its project.
+- [x] 6.5 Write the unit tests of the components and of the repository of the API.
 
 ## Phase 7 — The documentation
 

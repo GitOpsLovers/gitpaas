@@ -107,6 +107,11 @@ export const routes: Routes = [
                                 title: 'Project | GitPaaS',
                             },
                             {
+                                path: ':id/networks',
+                                loadComponent: () => import('@pages/projects/networks/project-networks.component').then((m) => m.ProjectNetworksPage),
+                                title: 'Project networks | GitPaaS',
+                            },
+                            {
                                 path: ':id/services/add',
                                 loadComponent: () => import('@pages/services/add/service-add.component').then((m) => m.ServicesAddPage),
                                 title: 'Add service | GitPaaS',
