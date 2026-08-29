@@ -32,12 +32,12 @@ A network that crosses two projects stays out of scope.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/networks/
 
-- [ ] 3.1 Write the use case that creates a network, and give it the name `gitpaas-<projectId>-<networkId>` on the daemon.
-- [ ] 3.2 Write the use cases that list, that rename and that delete a network of a project.
-- [ ] 3.3 Refuse the deletion with a `409` when a container holds the network.
-- [ ] 3.4 Write the use cases that join a service to a network, and that remove it from the network.
-- [ ] 3.5 Add the controller of the routes `/api/v1/projects/:projectId/networks`, and the transformer of the response.
-- [ ] 3.6 Write the unit tests of the six use cases.
+- [x] 3.1 Write the use case that creates a network, and give it the name `gitpaas-<projectId>-<networkId>` on the daemon.
+- [x] 3.2 Write the use cases that list, that rename and that delete a network of a project.
+- [x] 3.3 Refuse the deletion with a `409` when a container holds the network.
+- [x] 3.4 Write the use cases that join a service to a network, and that remove it from the network.
+- [x] 3.5 Add the controller of the routes `/api/v1/projects/:projectId/networks`, and the transformer of the response.
+- [x] 3.6 Write the unit tests of the six use cases.
 
 ## Phase 4 — The attachment at the deployment
 
