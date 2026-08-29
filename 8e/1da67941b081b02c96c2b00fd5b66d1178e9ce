@@ -1,0 +1,61 @@
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_18d4d66ec87ffb::t_b20ece5b003223 13-14,66-74,81,94,125-127,204-212,234,239-276,291,311,325,340,385,404
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_18d4d66ec87ffb::t_783f644a5c2f0e 10,64,78,100-101,103
+apps/backend/src/features/deployments/deployments.module.ts
+  s_18d4d66ec87ffb::t_2f654797fd350c 15,31
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_18d4d66ec87ffb::t_a4aa5f5716854d 4,122-162
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_18d4d66ec87ffb::t_dbb8820885546a 312,352,387,412,435,455,476,483-589,603
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_18d4d66ec87ffb::t_7eb1ef100962e1 26,92,125,151,191,512,532,569,584,630
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_18d4d66ec87ffb::t_a57e9a40b947c9 33-34,71-72,151
+apps/backend/src/features/projects/ui/services/__tests__/projects.service.spec.ts
+  s_18d4d66ec87ffb::t_f0a1083dab2362 14,51,58,64,216,224
+apps/backend/src/features/projects/ui/services/projects.service.ts
+  s_18d4d66ec87ffb::t_96cafe7f209419 13-14,25-26,84,92
+apps/backend/src/features/services/infrastructure/docker/__tests__/docker-service-runtime-resources.adapter.spec.ts
+  s_18d4d66ec87ffb::t_99d8619a7f048d 125-133
+docs/roadmap/project-networks/TODO.md
+  s_18d4d66ec87ffb::t_289a3e31020690 47-52
+apps/backend/src/features/deployments/domain/ports/docker-executor.port.ts
+  s_dc04e386bf8cf4::t_f7ac5ce26c3d2a 22,31
+apps/backend/src/features/projects/application/__tests__/delete-project.use-case.spec.ts
+  s_aa6fa28cb44557::t_2db52ad48e2711 6-8,17-38,46-49,56,66,76,85,90-167,171,177,181-188,192,198,206-218,226
+apps/backend/src/features/projects/application/delete-project.use-case.ts
+  s_aa6fa28cb44557::t_fae6a7cd39d555 4-6,8,11,21,31-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8e1da67941b081b02c96c2b00fd5b66d1178e9ce",
+  "prompts": {},
+  "sessions": {
+    "s_18d4d66ec87ffb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afa5331e-ee1e-4b52-aedf-5a98f2eac56c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_aa6fa28cb44557": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa9b89c841854ce2e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_dc04e386bf8cf4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a21a5a8faa4b67cd5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
