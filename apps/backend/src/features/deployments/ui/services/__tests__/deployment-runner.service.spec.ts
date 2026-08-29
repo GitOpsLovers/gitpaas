@@ -23,6 +23,7 @@ import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-d
 import { DatabaseDomainsRepository } from '@features/domains/infrastructure/database/db-domains.repository';
 import { TraefikReverseProxyAdapter } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.adapter';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
+import { DatabaseServiceNetworksRepository } from '@features/networks/infrastructure/database/db-service-networks.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
@@ -88,6 +89,7 @@ describe('DeploymentRunnerService', () => {
     let mockSecretCipher: jest.Mocked<SecretCipherAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockDomainsRepository: jest.Mocked<DatabaseDomainsRepository>;
+    let mockServiceNetworksRepository: jest.Mocked<DatabaseServiceNetworksRepository>;
     let mockReverseProxy: jest.Mocked<TraefikReverseProxyAdapter>;
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
@@ -120,6 +122,7 @@ describe('DeploymentRunnerService', () => {
         mockSecretCipher = {} as jest.Mocked<SecretCipherAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockDomainsRepository = {} as jest.Mocked<DatabaseDomainsRepository>;
+        mockServiceNetworksRepository = {} as jest.Mocked<DatabaseServiceNetworksRepository>;
         mockReverseProxy = {} as jest.Mocked<TraefikReverseProxyAdapter>;
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
@@ -145,6 +148,7 @@ describe('DeploymentRunnerService', () => {
                 { provide: SecretCipherAdapter, useValue: mockSecretCipher },
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: DatabaseDomainsRepository, useValue: mockDomainsRepository },
+                { provide: DatabaseServiceNetworksRepository, useValue: mockServiceNetworksRepository },
                 { provide: TraefikReverseProxyAdapter, useValue: mockReverseProxy },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
@@ -184,6 +188,7 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
+            mockServiceNetworksRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -504,6 +509,7 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
+            mockServiceNetworksRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -523,6 +529,7 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
+            mockServiceNetworksRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -559,6 +566,7 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
+            mockServiceNetworksRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -573,6 +581,7 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
+            mockServiceNetworksRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -618,6 +627,7 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
+            mockServiceNetworksRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,

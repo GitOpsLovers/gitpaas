@@ -7,6 +7,7 @@ import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { ReverseProxy } from '@features/domains/domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
+import { ServiceNetworksRepository } from '@features/networks/domain/repositories/service-networks.repository';
 import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
@@ -60,6 +61,7 @@ async function loadServiceContext(
  * @param providersRepository Providers repository
  * @param serviceVariablesRepository Service variables repository
  * @param domainsRepository Domains repository
+ * @param serviceNetworksRepository Service networks repository, which holds the networks of the project the service joined
  * @param providerClient Provider client port
  * @param dockerExecutor Docker executor
  * @param reverseProxy Reverse proxy, which builds the labels of the routing of the service
@@ -73,6 +75,7 @@ export async function runDeploymentUseCase(
     providersRepository: ProvidersRepository,
     serviceVariablesRepository: ServiceVariablesRepository,
     domainsRepository: DomainsRepository,
+    serviceNetworksRepository: ServiceNetworksRepository,
     providerClient: ProviderClient,
     dockerExecutor: DockerExecutor,
     reverseProxy: ReverseProxy,
@@ -94,8 +97,10 @@ export async function runDeploymentUseCase(
         const environment = await getServiceEnvironmentUseCase(serviceVariablesRepository, secretCipher, serviceId);
         const domains = await domainsRepository.getByService(serviceId);
         const routing = reverseProxy.buildRouting(domains);
+        const projectNetworks = await serviceNetworksRepository.listByService(serviceId);
+        const networks = projectNetworks.map((network) => network.daemonName);
 
-        await dockerExecutor.up(archive, payload.composerPath, payload.projectName, environment, routing, (line) => {
+        await dockerExecutor.up(archive, payload.composerPath, payload.projectName, environment, routing, networks, (line) => {
             logStore.append(payload.deploymentId, line).catch(() => undefined);
         });
 

@@ -122,6 +122,15 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             expect(mockDisconnectNetwork).toHaveBeenCalledWith('gitpaas-proxy', 'c2');
         });
 
+        it('never detaches a container from a network of its project', async () => {
+            mockListContainers.mockResolvedValue([containerSummary('c1')]);
+
+            await sut.removeRouting(service);
+
+            // The network of the project survives the unrouting: only the network of the proxy goes away.
+            expect(mockDisconnectNetwork.mock.calls).toEqual([['gitpaas-proxy', 'c1']]);
+        });
+
         it('catches a container that never joined the proxy and continues with the rest', async () => {
             mockListContainers.mockResolvedValue([containerSummary('c1'), containerSummary('c2')]);
             mockDisconnectNetwork.mockRejectedValueOnce(new Error('container is not connected to the network'));

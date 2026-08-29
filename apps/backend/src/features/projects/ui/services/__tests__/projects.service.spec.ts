@@ -11,6 +11,7 @@ import { Project } from '../../../domain/models/project.models';
 import { DatabaseProjectsRepository } from '../../../infrastructure/database/db-projects.repository';
 import { ProjectsService } from '../projects.service';
 
+import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 jest.mock('../../../application/create-project.use-case');
@@ -47,17 +48,20 @@ const project: Project = {
 
 describe('ProjectsService', () => {
     let mockProjectsRepository: jest.Mocked<DatabaseProjectsRepository>;
+    let mockContainerRuntime: jest.Mocked<DockerContainerRuntimeAdapter>;
     let sut: ProjectsService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
         mockProjectsRepository = {} as jest.Mocked<DatabaseProjectsRepository>;
+        mockContainerRuntime = {} as jest.Mocked<DockerContainerRuntimeAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ProjectsService,
                 { provide: DatabaseProjectsRepository, useValue: mockProjectsRepository },
+                { provide: DockerContainerRuntimeAdapter, useValue: mockContainerRuntime },
             ],
         }).compile();
 
@@ -209,7 +213,7 @@ describe('ProjectsService', () => {
     });
 
     describe('delete', () => {
-        it('delegates to the use case with the repository, the namespace and the id', async () => {
+        it('delegates to the use case with the repository, the runtime, the namespace and the id', async () => {
             mockDeleteProjectUseCase.mockResolvedValue(true);
 
             await sut.delete(namespaceId, projectId);
@@ -217,6 +221,7 @@ describe('ProjectsService', () => {
             expect(mockDeleteProjectUseCase).toHaveBeenCalledTimes(1);
             expect(mockDeleteProjectUseCase).toHaveBeenCalledWith(
                 mockProjectsRepository,
+                mockContainerRuntime,
                 namespaceId,
                 projectId,
             );
