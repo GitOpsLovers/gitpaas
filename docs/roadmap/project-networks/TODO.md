@@ -44,12 +44,12 @@ A network that crosses two projects stays out of scope.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/, apps/backend/src/features/services/, apps/backend/src/features/projects/
 
-- [ ] 4.1 Load the networks of the project in `run-deployment.use-case.ts`, for the services that joined one.
-- [ ] 4.2 Connect each container to those networks after `compose.up()`, with the slug of the service as the alias.
-- [ ] 4.3 Keep the network `gitpaas-proxy` on a routed container, and never disconnect the network of the project in `removeRouting`.
-- [ ] 4.4 Remove the networks of a project on the daemon when the use case deletes the project.
-- [ ] 4.5 Put the label of GitPaaS on the network `<project>_default` that Docker Compose creates, so the tab shows it.
-- [ ] 4.6 Write the unit tests of the four changes.
+- [x] 4.1 Load the networks of the project in `run-deployment.use-case.ts`, for the services that joined one.
+- [x] 4.2 Connect each container to those networks after `compose.up()`, with the slug of the service as the alias.
+- [x] 4.3 Keep the network `gitpaas-proxy` on a routed container, and never disconnect the network of the project in `removeRouting`.
+- [x] 4.4 Remove the networks of a project on the daemon when the use case deletes the project.
+- [x] 4.5 Put the label of GitPaaS on the network `<project>_default` that Docker Compose creates, so the tab shows it.
+- [x] 4.6 Write the unit tests of the four changes.
 
 ## Phase 5 — The read of the networks of a service
 

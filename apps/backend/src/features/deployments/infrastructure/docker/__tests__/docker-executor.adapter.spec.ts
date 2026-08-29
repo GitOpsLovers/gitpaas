@@ -309,7 +309,7 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ createComposeProject });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], onLog);
 
             expect(onLog.mock.calls.map((call) => call[0])).toEqual([
                 '▶ Extracting repository…',
@@ -349,7 +349,7 @@ describe('DockerExecutorAdapter', () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
             const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], jest.fn());
 
             const gitpaas = { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'test-project' };
             expect(stampedAtUp).toEqual({
@@ -384,6 +384,7 @@ describe('DockerExecutorAdapter', () => {
                 'test-project',
                 { DATABASE_URL: 'postgres://db' },
                 {},
+                [],
                 jest.fn(),
             );
 
@@ -408,7 +409,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, [], onLog);
 
             expect(labelsAtUp).toContain('traefik.enable=true');
             expect(connectNetwork).toHaveBeenCalledTimes(1);
@@ -431,7 +432,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, [], onLog);
 
             expect(onLog).toHaveBeenCalledWith('▹ The recipe declares no service "web"; the domains that name it stay unrouted.');
             expect(connectNetwork).not.toHaveBeenCalled();
@@ -451,7 +452,7 @@ describe('DockerExecutorAdapter', () => {
                 createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
             });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], jest.fn());
 
             expect(connectNetwork).not.toHaveBeenCalled();
         });
@@ -472,11 +473,118 @@ describe('DockerExecutorAdapter', () => {
             const onLog = jest.fn();
 
             await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, onLog),
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, [], onLog),
             ).resolves.toBeUndefined();
 
             expect(onLog).toHaveBeenCalledWith('✖ Could not attach container container-1 to the network gitpaas-proxy: no such network');
             expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
+        });
+
+        it('joins every container of the stack to each network of the project, under the slug of the service', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx' } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, ['gitpaas-p-a', 'gitpaas-p-b'], onLog);
+
+            expect(connectNetwork).toHaveBeenCalledTimes(2);
+            expect(connectNetwork).toHaveBeenNthCalledWith(1, 'gitpaas-p-a', 'container-1', ['test-project']);
+            expect(connectNetwork).toHaveBeenNthCalledWith(2, 'gitpaas-p-b', 'container-1', ['test-project']);
+            expect(onLog).toHaveBeenCalledWith('▶ Attached container-1 to the network gitpaas-p-a as test-project.');
+        });
+
+        it('keeps the container on the network of the proxy when it also joins a network of the project', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx' } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const disconnectNetwork = jest.fn();
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork, disconnectNetwork,
+            });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, routing, ['gitpaas-p-a'], jest.fn());
+
+            expect(disconnectNetwork).not.toHaveBeenCalled();
+            expect(connectNetwork).toHaveBeenNthCalledWith(1, 'gitpaas-proxy', 'container-1');
+            expect(connectNetwork).toHaveBeenNthCalledWith(2, 'gitpaas-p-a', 'container-1', ['test-project']);
+        });
+
+        it('reports a network of the project that went away and still brings the stack up', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx' } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockRejectedValue(new Error('no such network'));
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await expect(
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, ['gitpaas-p-a'], onLog),
+            ).resolves.toBeUndefined();
+
+            expect(onLog).toHaveBeenCalledWith('✖ Could not attach container container-1 to the network gitpaas-p-a: no such network');
+            expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
+        });
+
+        it('never touches a network of the project when the service joined none', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx' } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn();
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], jest.fn());
+
+            expect(connectNetwork).not.toHaveBeenCalled();
+        });
+
+        it('has the default network of the stack declared and labelled by the time the stack is created', async () => {
+            const recipe = { services: { web: { image: 'nginx' } } } as { services: unknown; networks?: Record<string, unknown> };
+            let networksAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                networksAtUp = recipe.networks;
+
+                return Promise.resolve({ services: [] });
+            });
+            mockCompose.instance = { recipe, down: jest.fn().mockResolvedValue(undefined), up: composeUp };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], jest.fn());
+
+            expect(networksAtUp).toEqual({
+                default: { labels: { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'test-project' } },
+            });
         });
 
         it('still cleans up the temp dir when an early step throws', async () => {
@@ -492,7 +600,7 @@ describe('DockerExecutorAdapter', () => {
 
             const sut = executorWithRuntime({ createComposeProject });
 
-            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {})).rejects.toThrow('extract failed');
+            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [])).rejects.toThrow('extract failed');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
         });
     });

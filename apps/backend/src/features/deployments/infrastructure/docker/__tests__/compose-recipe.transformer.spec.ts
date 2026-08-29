@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 
 import {
+    declareDefaultNetwork,
     injectEnvironment,
     normalizeBuildArgs,
     normalizeHealthchecks,
@@ -115,6 +116,47 @@ describe('compose-recipe.transformer', () => {
 
             expect(withCheck.healthcheck).toEqual({ interval: 5e9, timeout: 2e9, start_period: 0 });
             expect(withoutCheck.healthcheck).toBeUndefined();
+        });
+    });
+
+    describe('declareDefaultNetwork', () => {
+        it('declares the default network on a recipe that declares none', () => {
+            const compose = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
+
+            declareDefaultNetwork(asCompose(compose));
+
+            expect(compose.recipe.networks).toEqual({ default: {} });
+        });
+
+        it('adds the default network beside the networks the recipe already declares', () => {
+            const compose = { recipe: { services: {}, networks: { edge: null } } };
+
+            declareDefaultNetwork(asCompose(compose));
+
+            expect(compose.recipe.networks).toEqual({ edge: null, default: {} });
+        });
+
+        it('keeps the definition of a default network the recipe declares itself', () => {
+            const compose = { recipe: { services: {}, networks: { default: { internal: true } } } };
+
+            declareDefaultNetwork(asCompose(compose));
+
+            expect(compose.recipe.networks.default).toEqual({ internal: true });
+        });
+
+        it('does nothing when the compose project carries no recipe', () => {
+            expect(() => { declareDefaultNetwork(asCompose({})); }).not.toThrow();
+        });
+
+        it('gives the default network the GitPaaS labels once the stamping runs', () => {
+            const compose = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
+
+            declareDefaultNetwork(asCompose(compose));
+            stampLabels(asCompose(compose), 'my-project');
+
+            expect(compose.recipe.networks).toEqual({
+                default: { labels: { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' } },
+            });
         });
     });
 

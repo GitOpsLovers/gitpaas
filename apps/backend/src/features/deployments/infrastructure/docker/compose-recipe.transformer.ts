@@ -246,6 +246,24 @@ export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
 }
 
 /**
+ * Declares the `default` network of the recipe, which `dockerode-compose` otherwise creates as a bare `<project>_default` with no label.
+ *
+ * @param compose Compose project driven by the container runtime
+ */
+export function declareDefaultNetwork(compose: RuntimeComposeProject): void {
+    const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
+
+    if (!recipe) {
+        return;
+    }
+
+    const networks = recipe.networks ?? {};
+
+    networks.default = networks.default ?? {};
+    recipe.networks = networks;
+}
+
+/**
  * Stamps the GitPaaS ownership labels on every resource the stack will create.
  *
  * @param compose Compose project driven by the container runtime
