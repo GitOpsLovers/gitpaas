@@ -1,0 +1,49 @@
+apps/backend/src/features/networks/domain/repositories/service-networks.repository.ts
+  s_2c2c23051a28c5::t_529123baa39ca1 1-42
+apps/backend/src/features/networks/infrastructure/database/db-service-network.entity.ts
+  s_2c2c23051a28c5::t_a9a1e2b9186f86 1-25
+apps/backend/src/features/networks/domain/models/project-network.models.ts
+  s_2c2c23051a28c5::t_93524c1c04b363 1-21
+packages/contracts/src/index.ts
+  s_2c2c23051a28c5::t_187fe43236ed33 125-127
+apps/backend/src/features/networks/infrastructure/database/__tests__/db-project-networks.repository.spec.ts
+  s_2c2c23051a28c5::t_b63692d2e08508 1-200
+apps/backend/src/features/networks/infrastructure/database/db-project-networks.repository.ts
+  s_2c2c23051a28c5::t_345a4c13b5053e 1-72
+apps/backend/src/features/networks/infrastructure/database/db-project-networks.transformer.ts
+  s_2c2c23051a28c5::t_da9d706bf91a88 1-19
+apps/backend/src/features/networks/infrastructure/database/db-service-networks.repository.ts
+  s_2c2c23051a28c5::t_2babad099ac1b2 1-55
+iac/production/migrations/017_project_networks.sql
+  s_2c2c23051a28c5::t_485cf210562969 1-23
+apps/backend/src/features/networks/infrastructure/database/__tests__/db-service-networks.repository.spec.ts
+  s_2c2c23051a28c5::t_333f4ad68c4eed 1-167
+apps/backend/src/features/networks/networks.module.ts
+  s_2c2c23051a28c5::t_0a834e6b0434cb 2,4-7,18,20-26
+apps/backend/src/features/networks/infrastructure/database/db-project-network.entity.ts
+  s_2c2c23051a28c5::t_a1056b00031a9c 1-27
+apps/backend/src/features/networks/domain/repositories/project-networks.repository.ts
+  s_2c2c23051a28c5::t_ea3521f7ffdf98 1-52
+docs/roadmap/project-networks/TODO.md
+  s_2c2c23051a28c5::t_e2cd769133047b 24-28
+apps/backend/src/features/networks/infrastructure/database/__tests__/db-project-networks.transformer.spec.ts
+  s_2c2c23051a28c5::t_a59c9ac6d36d91 1-40
+packages/contracts/src/networks/project-network.contract.ts
+  s_2c2c23051a28c5::t_cea06d49ed28d9 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "64c57c0515ff9ba5c8df86f9da16787eba7d15a6",
+  "prompts": {},
+  "sessions": {
+    "s_2c2c23051a28c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c020c1a6-601e-4a81-9341-2ae577cb1751",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
