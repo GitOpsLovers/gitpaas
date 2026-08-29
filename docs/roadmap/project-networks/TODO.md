@@ -11,10 +11,10 @@ A network that crosses two projects stays out of scope.
 **Agent:** implementer
 **Paths:** apps/backend/src/core/
 
-- [ ] 1.1 Add the method `createNetwork` to `container-runtime.port.ts`, with the name, the driver and the flag `internal`.
-- [ ] 1.2 Add the optional parameter `aliases` to the method `connectNetwork` of the same port.
-- [ ] 1.3 Add the networks of a container to the model `RuntimeContainerSummary`.
-- [ ] 1.4 Implement the three changes in `docker-container-runtime.adapter.ts` and in its transformer, with their unit tests.
+- [x] 1.1 Add the method `createNetwork` to `container-runtime.port.ts`, with the name, the driver and the flag `internal`.
+- [x] 1.2 Add the optional parameter `aliases` to the method `connectNetwork` of the same port.
+- [x] 1.3 Add the networks of a container to the model `RuntimeContainerSummary`.
+- [x] 1.4 Implement the three changes in `docker-container-runtime.adapter.ts` and in its transformer, with their unit tests.
 
 ## Phase 2 — The persistence of a network of a project
 

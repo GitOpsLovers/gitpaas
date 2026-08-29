@@ -13,7 +13,10 @@ import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } f
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /** A daemon container summary as the tests declare it: only the fields under test. */
-type PartialContainerInfo = Partial<Omit<Docker.ContainerInfo, 'Ports'>> & { Ports?: Array<Partial<Docker.Port>> };
+type PartialContainerInfo = Partial<Omit<Docker.ContainerInfo, 'Ports' | 'NetworkSettings'>> & {
+    Ports?: Array<Partial<Docker.Port>>;
+    NetworkSettings?: { Networks: Record<string, Partial<Docker.NetworkInfo>> };
+};
 
 /** Widens a partial daemon container summary into the shape Dockerode declares. */
 const containerInfo = (info: PartialContainerInfo): Docker.ContainerInfo => info as Docker.ContainerInfo;
@@ -116,6 +119,7 @@ describe('toContainerSummary', () => {
             Created: 1_752_192_000,
             Labels: { 'io.gitpaas.project': 'web-frontend', 'com.docker.compose.project': 'web-frontend' },
             Ports: [{ PrivatePort: 3000, PublicPort: 8080, Type: 'tcp' }],
+            NetworkSettings: { Networks: { 'web-frontend_default': {}, 'gitpaas-proxy': {} } },
         });
 
         expect(toContainerSummary(info)).toEqual({
@@ -127,6 +131,7 @@ describe('toContainerSummary', () => {
             createdAt: new Date(1_752_192_000 * 1000),
             projects: ['web-frontend', 'web-frontend'],
             ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
+            networks: ['web-frontend_default', 'gitpaas-proxy'],
         });
     });
 
@@ -147,12 +152,29 @@ describe('toContainerSummary', () => {
         expect(toContainerSummary(unlabelled).projects).toEqual([]);
     });
 
-    it('defaults the names, ports and projects of a bare summary to empty lists', () => {
+    it('defaults the names, ports, projects and networks of a bare summary to empty lists', () => {
         const result = toContainerSummary(containerInfo({ Id: 'id', Created: 0 }));
 
         expect(result.names).toEqual([]);
         expect(result.ports).toEqual([]);
         expect(result.projects).toEqual([]);
+        expect(result.networks).toEqual([]);
+    });
+
+    it('reports the name of every network the container is attached to', () => {
+        const info = containerInfo({
+            Id: 'id',
+            Created: 0,
+            NetworkSettings: { Networks: { 'gitpaas-proxy': {} } },
+        });
+
+        expect(toContainerSummary(info).networks).toEqual(['gitpaas-proxy']);
+    });
+
+    it('reports no network when the daemon reports an attachment to none', () => {
+        const info = containerInfo({ Id: 'id', Created: 0, NetworkSettings: { Networks: {} } });
+
+        expect(toContainerSummary(info).networks).toEqual([]);
     });
 
     it('coerces an unpublished port to a null public port', () => {

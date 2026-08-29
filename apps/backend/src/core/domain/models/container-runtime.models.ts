@@ -42,6 +42,7 @@ export interface RuntimeContainerSummary {
     createdAt: Date;
     projects: string[];
     ports: RuntimePortMapping[];
+    networks: string[];
 }
 
 /**
@@ -120,6 +121,15 @@ export interface RuntimeDetachedContainerOptions {
     name?: string;
     labels?: Record<string, string>;
     removeOnExit?: boolean;
+}
+
+/**
+ * Definition of a network the runtime creates.
+ */
+export interface RuntimeCreateNetworkOptions {
+    name: string;
+    driver?: string;
+    internal?: boolean;
 }
 
 /**

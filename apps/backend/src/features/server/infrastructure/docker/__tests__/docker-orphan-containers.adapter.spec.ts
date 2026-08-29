@@ -30,6 +30,7 @@ const containerSummary = (
     createdAt: new Date('2025-07-11T00:00:00.000Z'),
     projects: overrides.projects ?? [project, project],
     ports: [],
+    networks: [],
 });
 
 /**

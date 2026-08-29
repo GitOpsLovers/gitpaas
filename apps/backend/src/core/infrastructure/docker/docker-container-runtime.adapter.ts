@@ -9,6 +9,7 @@ import type {
     RuntimeBuildImageOptions,
     RuntimeComposeProject,
     RuntimeContainerSummary,
+    RuntimeCreateNetworkOptions,
     RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
@@ -77,12 +78,25 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         return networks.map((network) => toNetworkSummary(network));
     }
 
+    public async createNetwork(options: RuntimeCreateNetworkOptions): Promise<string> {
+        const network = await this.run(() => this.getClient().createNetwork({
+            Name: options.name,
+            Driver: options.driver,
+            Internal: options.internal ?? false,
+        }));
+
+        return network.id;
+    }
+
     public async removeNetwork(id: string): Promise<void> {
         await this.run(() => this.getClient().getNetwork(id).remove());
     }
 
-    public async connectNetwork(network: string, containerId: string): Promise<void> {
-        await this.run(() => this.getClient().getNetwork(network).connect({ Container: containerId }));
+    public async connectNetwork(network: string, containerId: string, aliases?: string[]): Promise<void> {
+        await this.run(() => this.getClient().getNetwork(network).connect({
+            Container: containerId,
+            ...(aliases?.length ? { EndpointConfig: { Aliases: aliases } } : {}),
+        }));
     }
 
     public async disconnectNetwork(network: string, containerId: string): Promise<void> {

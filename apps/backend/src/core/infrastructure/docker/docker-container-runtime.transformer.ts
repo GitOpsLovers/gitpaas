@@ -97,6 +97,7 @@ export function toContainerSummary(info: Docker.ContainerInfo): RuntimeContainer
             publicPort: port.PublicPort ?? null,
             type: port.Type,
         })),
+        networks: Object.keys(info.NetworkSettings?.Networks ?? {}),
     };
 }
 
