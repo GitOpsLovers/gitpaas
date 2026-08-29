@@ -21,11 +21,11 @@ A network that crosses two projects stays out of scope.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/networks/, packages/contracts/src/networks/, iac/production/migrations/
 
-- [ ] 2.1 Add the model `ProjectNetwork`, with the identifier, the project, the display name, the name of the daemon and the state.
-- [ ] 2.2 Add the entity `db-project-network.entity.ts` and the entity of the join between a service and a network.
-- [ ] 2.3 Write the migration `015_project_networks.sql` for the two tables.
-- [ ] 2.4 Add the repository of the database, and its port in `domain/repositories/`.
-- [ ] 2.5 Add the contract of a network of a project, with the state `ready`, `missing` or `orphan`.
+- [x] 2.1 Add the model `ProjectNetwork`, with the identifier, the project, the display name, the name of the daemon and the state.
+- [x] 2.2 Add the entity `db-project-network.entity.ts` and the entity of the join between a service and a network.
+- [x] 2.3 Write the migration `017_project_networks.sql` for the two tables (015 and 016 were taken).
+- [x] 2.4 Add the repository of the database, and its port in `domain/repositories/`.
+- [x] 2.5 Add the contract of a network of a project, with the state `ready`, `missing` or `orphan`.
 
 ## Phase 3 — The API of the networks of a project
 
