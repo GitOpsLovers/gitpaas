@@ -1,0 +1,123 @@
+<app-component-card
+    title="Networks"
+    desc="The private networks of this project. A service joins one from its tab “Network”."
+>
+    <div
+        class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
+    >
+        <p>
+            A network of a project holds no route to the Internet. A service that joined one reaches the others by their
+            name, and the connection arrives at the next deployment.
+        </p>
+    </div>
+
+    @if (networks().length > 0) {
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead>
+                    <tr
+                        class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+                    >
+                        <th scope="col" class="px-4 py-3 font-medium">Name</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Name on the daemon</th>
+                        <th scope="col" class="px-4 py-3 font-medium">State</th>
+                        <th scope="col" class="px-4 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @for (network of networks(); track network.id) {
+                        <tr class="text-gray-600 dark:text-gray-300">
+                            <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg lucideNetwork class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                    <span class="block max-w-[16rem] truncate font-mono" [title]="network.name">
+                                        {{ network.name }}
+                                    </span>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="block max-w-[20rem] truncate font-mono" [title]="network.daemonName">
+                                    {{ network.daemonName }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span
+                                    class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    [class]="stateBadgeClass(network.state)"
+                                >
+                                    {{ stateLabel(network.state) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-end gap-2">
+                                    <app-button
+                                        variant="outline"
+                                        size="xs"
+                                        [disabled]="network.state === 'orphan'"
+                                        (btnClick)="edit(network)"
+                                    >
+                                        <svg lucidePencil class="h-4 w-4"></svg>
+                                    </app-button>
+                                    <app-button
+                                        variant="danger"
+                                        size="xs"
+                                        [disabled]="network.state === 'orphan'"
+                                        (btnClick)="remove.emit(network)"
+                                    >
+                                        <svg lucideTrash2 class="h-4 w-4"></svg>
+                                    </app-button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    } @else {
+        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            @if (loading()) {
+                Loading networks…
+            } @else {
+                No networks yet. Create the first one below.
+            }
+        </p>
+    }
+
+    <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
+        <div>
+            <app-label for="project-network-name">Name</app-label>
+            <app-input-field
+                id="project-network-name"
+                name="project-network-name"
+                placeholder="backend"
+                hint="Small letters, numbers and the hyphen. It neither starts nor ends with the hyphen."
+                [value]="name()"
+                [error]="error() !== null"
+                (valueChange)="onNameChange($event)"
+            />
+        </div>
+
+        @if (error()) {
+            <p class="text-sm text-error-500">{{ error() }}</p>
+        }
+
+        <div class="flex items-center gap-2">
+            <app-button type="submit" size="sm" [disabled]="saving() || !canSubmit()">
+                @if (isEditing()) {
+                    <svg lucidePencil class="h-4 w-4"></svg>
+                    {{ saving() ? 'Saving…' : 'Save network' }}
+                } @else {
+                    <svg lucidePlus class="h-4 w-4"></svg>
+                    {{ saving() ? 'Saving…' : 'Create network' }}
+                }
+            </app-button>
+
+            @if (isEditing()) {
+                <app-button variant="outline" size="sm" (btnClick)="reset()">
+                    <svg lucideX class="h-4 w-4"></svg>
+                    Cancel
+                </app-button>
+            }
+        </div>
+    </form>
+</app-component-card>

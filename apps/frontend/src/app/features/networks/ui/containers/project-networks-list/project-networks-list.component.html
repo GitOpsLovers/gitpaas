@@ -1,0 +1,24 @@
+<app-breadcrumb [items]="breadcrumb()" />
+
+<app-project-networks
+    [networks]="networks.value() ?? []"
+    [loading]="networks.isLoading()"
+    [saving]="saving()"
+    [error]="error()"
+    (create)="create($event)"
+    (rename)="rename($event)"
+    (remove)="requestRemoval($event)"
+/>
+
+<app-confirm-modal
+    [open]="pendingRemoval() !== null"
+    [message]="removeMessage()"
+    [loading]="removing()"
+    title="Remove network?"
+    confirmText="Remove"
+    cancelText="Cancel"
+    variant="danger"
+    icon="trash"
+    (confirmed)="confirmRemoval()"
+    (cancelled)="pendingRemoval.set(null)"
+/>
