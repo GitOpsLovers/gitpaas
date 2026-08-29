@@ -1,0 +1,51 @@
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-add/namespace-add.component.spec.ts
+  s_4923223754f8af::t_f027807c7517e6 38
+apps/frontend/src/app/features/namespaces/ui/containers/namespace-edit/namespace-edit.component.spec.ts
+  s_4923223754f8af::t_fcb25477054ff8 55
+apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.spec.ts
+  s_4923223754f8af::t_665bd79a238aa6 26,28,41,43,52,57,63,107,119,136
+apps/frontend/src/app/features/namespaces/ui/containers/namespaces-list/namespaces-list.component.ts
+  s_4923223754f8af::t_2bddb4d0dab4a6 28
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.spec.ts
+  s_4923223754f8af::t_ab8ef889155485 6,12,19-22,29,34-36,50,55-57,62,75-77,111-117,122,127-134,149,156-160
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.spec.ts
+  s_4923223754f8af::t_9cd9e9c8c23a67 4,11,24-27,43,46-48,67,70-72,83,123-125,134,139,142
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.ts
+  s_4923223754f8af::t_92eab9d067c6f6 8,26-27,40-43,51
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_4923223754f8af::t_028a88bafbdb62 7,25,63-66,109,116-118,166,174-176,213,248,251,255,264,269,274,282,287,726-729
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_4923223754f8af::t_a77ca25fa1e3b2 5,28,75-76,101-102,183,189
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.spec.ts
+  s_4923223754f8af::t_1fe73a2a072de0 4,11,26-29,47,55-57,76,84-86,97,132-134,164,169,172
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.ts
+  s_4923223754f8af::t_5875a6b9ced6d7 8,26-27,42-45,59
+apps/frontend/src/app/features/namespaces/infrastructure/api/namespaces-api.repository.ts
+  s_b103d51367be08::t_403149fb8932e7 8,20-21,23-25
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.spec.ts
+  s_b103d51367be08::t_1314068ac9335d 3,11,33-36,72-74,97-99,108-111,139-147,151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8e4eec65205b0aa6ade503c3650d6a917a672e88",
+  "prompts": {},
+  "sessions": {
+    "s_4923223754f8af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "60d1b113-d68a-40b1-8c96-bd10ef5e0563",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b103d51367be08": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab5f4e7f0b39e9913",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
