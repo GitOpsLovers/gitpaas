@@ -1,3 +1,9 @@
+## [2.2.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.2.0...v2.2.1) (2026-08-29)
+
+### Bug Fixes
+
+* add platform settings migration ([6bdb934](https://github.com/GitOpsLovers/gitpaas/commit/6bdb934703a0edcfda92ca4dc0e524d40adba84f))
+
 ## [2.2.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.1.1...v2.2.0) (2026-08-29)
 
 ### Features
