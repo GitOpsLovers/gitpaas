@@ -121,12 +121,12 @@ The system SHALL change the name of a project at `PUT /api/v1/namespaces/:namesp
 
 The system SHALL remove a project at `DELETE /api/v1/namespaces/:namespaceId/projects/:id`, and it SHALL answer `204 No Content`.
 
-The database removes the services of the project by the cascade. The system SHALL NOT count the services before the removal, so a project that holds services goes away with them.
+The database removes the services of the project by the cascade. The system SHALL NOT count the services before the removal, so a project that holds services goes away with them. Before it removes the record, the system SHALL also remove every network of the project on the daemon. See the capability [networks](./networks.md).
 
 ### Scenario: The project exists in that namespace
 
 - **WHEN** a client deletes an available project of that namespace
-- **THEN** the system removes the record, the database removes the services of the project, and the system answers `204`
+- **THEN** the system removes the networks of the project on the daemon, removes the record, the database removes the services of the project, and the system answers `204`
 
 ### Scenario: The project does not exist
 
