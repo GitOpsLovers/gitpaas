@@ -1,0 +1,81 @@
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_f4f0deb42c77f8::t_38c566bc1a7fb2 60-62
+apps/backend/src/features/networks/application/__tests__/create-project-network.use-case.spec.ts
+  s_f4f0deb42c77f8::t_936848e40e451c 1-168
+apps/backend/src/features/networks/application/__tests__/delete-project-network.use-case.spec.ts
+  s_f4f0deb42c77f8::t_1e9d60f26afebf 1-176
+apps/backend/src/features/networks/application/__tests__/get-project-network-daemon-name.use-case.spec.ts
+  s_f4f0deb42c77f8::t_5e2b2a832c8492 1-25
+apps/backend/src/features/networks/application/__tests__/get-project-networks.use-case.spec.ts
+  s_f4f0deb42c77f8::t_cb2cc4f35fa923 1-143
+apps/backend/src/features/networks/application/__tests__/join-service-to-network.use-case.spec.ts
+  s_f4f0deb42c77f8::t_7ebfd4f02fe969 1-120
+apps/backend/src/features/networks/application/__tests__/remove-service-from-network.use-case.spec.ts
+  s_f4f0deb42c77f8::t_71c28e6b812ebd 1-85
+apps/backend/src/features/networks/application/__tests__/rename-project-network.use-case.spec.ts
+  s_f4f0deb42c77f8::t_5bb2457ae906d9 1-154
+apps/backend/src/features/networks/application/create-project-network.use-case.ts
+  s_f4f0deb42c77f8::t_0477e7c93b18ce 1-64
+apps/backend/src/features/networks/application/delete-project-network.use-case.ts
+  s_f4f0deb42c77f8::t_51de5e08895ba9 1-50
+apps/backend/src/features/networks/application/get-project-network-daemon-name.use-case.ts
+  s_f4f0deb42c77f8::t_57e86e99ee80ce 1-22
+apps/backend/src/features/networks/application/get-project-networks.use-case.ts
+  s_f4f0deb42c77f8::t_1e7bc3d725f96a 1-50
+apps/backend/src/features/networks/application/join-service-to-network.use-case.ts
+  s_f4f0deb42c77f8::t_31c3182595a7ff 1-46
+apps/backend/src/features/networks/application/remove-service-from-network.use-case.ts
+  s_f4f0deb42c77f8::t_ee6dda4f89e29f 1-37
+apps/backend/src/features/networks/application/rename-project-network.use-case.ts
+  s_f4f0deb42c77f8::t_379785c4cd29dc 1-57
+apps/backend/src/features/networks/domain/errors/project-network.errors.ts
+  s_f4f0deb42c77f8::t_cd254bb1620b9b 1-28
+apps/backend/src/features/networks/networks.module.ts
+  s_f4f0deb42c77f8::t_6187310d0e20d4 10,12,14,21-26,29
+apps/backend/src/features/networks/ui/controllers/__tests__/project-networks.controller.spec.ts
+  s_f4f0deb42c77f8::t_0728801509736a 1-273
+apps/backend/src/features/networks/ui/controllers/project-networks.controller.ts
+  s_f4f0deb42c77f8::t_391ec31c0694f9 1-125
+apps/backend/src/features/networks/ui/services/__tests__/project-networks.service.spec.ts
+  s_f4f0deb42c77f8::t_d88f837a59a456 1-226
+apps/backend/src/features/networks/ui/services/project-networks.service.ts
+  s_f4f0deb42c77f8::t_fe05a51ef165ee 1-87
+apps/backend/src/features/networks/ui/transformers/__tests__/project-network-response.transformer.spec.ts
+  s_f4f0deb42c77f8::t_0a6b0bd43fd1b7 1-37
+apps/backend/src/features/networks/ui/transformers/project-network-response.transformer.ts
+  s_f4f0deb42c77f8::t_14bd1d46fcacff 1-20
+apps/backend/src/features/projects/projects.module.ts
+  s_f4f0deb42c77f8::t_6fa202f739057e 19
+docs/roadmap/project-networks/TODO.md
+  s_f4f0deb42c77f8::t_e1a2527f6427ad 35-40
+packages/contracts/src/networks/__tests__/project-network.contract.spec.ts
+  s_f4f0deb42c77f8::t_a257afbffb279f 1-78
+packages/contracts/src/networks/project-network.contract.ts
+  s_f4f0deb42c77f8::t_ab931186f350fd 28-89
+packages/contracts/src/index.ts
+  s_854afdfe882c59::t_8654e08db1159e 125-142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "475e7d49bd221ee8bc97d042ba8caab8d23b7ee8",
+  "prompts": {},
+  "sessions": {
+    "s_854afdfe882c59": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeac744c3c6101d92",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f4f0deb42c77f8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "510f0623-fa44-44ab-98da-53019725501c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
