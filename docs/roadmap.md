@@ -14,4 +14,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
 - [project-networks](./roadmap/project-networks/TODO.md): the network of a project, and the private route between two services.
-- [platform-update](./roadmap/platform-update/TODO.md): the script `update.sh`, and the update of the platform from the tab of the maintenance.

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This capability keeps the server of the platform in good order. It reports the readiness of the critical dependencies, it reports the state of the Docker daemon, it removes the unused resources, and it removes the containers that agree with no available service. It also gives the screen of the maintenance of the server, at the route `/server`, where the operator gives back the space of the disk, and removes the containers that no service needs.
+This capability keeps the server of the platform in good order. It reports the readiness of the critical dependencies, it reports the state of the Docker daemon, it removes the unused resources, and it removes the containers that agree with no available service. It also gives the screen of the maintenance of the server, at the route `/server`, where the operator gives back the space of the disk, removes the containers that no service needs, and updates the platform to a new release.
 
 ## The readiness probe
 
@@ -88,9 +88,55 @@ The answer holds the count of the removed containers and their names.
 - **WHEN** the Docker daemon does not answer
 - **THEN** the system answers `503 Service Unavailable`
 
+## The check of the latest release
+
+The system SHALL check for the latest release of GitPaaS every six hours, and once when the backend starts, and it SHALL keep the version it finds, so a read of the version of the installation needs no call to GitHub.
+
+The setting `UPDATE_CHECK_ENABLED` SHALL turn this check off. A check that fails raises no error to an administrator; it logs the failure alone, and it keeps the version of the last successful check.
+
+### Scenario: The check finds a release
+
+- **WHEN** the check reads the latest release that GitHub publishes for GitPaaS
+- **THEN** the system keeps its version, so the screen of the maintenance can offer it
+
+### Scenario: The check fails
+
+- **WHEN** the check cannot reach GitHub, or GitHub answers with an error
+- **THEN** the system keeps the version of the last successful check, and it raises no error to the administrator
+
+## The version of the installation and the state of the update
+
+The system SHALL answer with the version the platform runs, the latest release, and the state of the last update, at `GET /api/v1/server/update`. This endpoint needs an administrator.
+
+### Scenario: An administrator reads the state
+
+- **WHEN** an administrator calls the endpoint
+- **THEN** the system answers `200` with the installed version, the latest version, and the state of the last update, when one exists
+
+## The start of the update
+
+The system SHALL start the update of the platform at `POST /api/v1/server/update`, for an administrator alone. The update runs inside a short-lived container, detached from the backend, so the update goes on through the restart that it brings to the backend.
+
+The system SHALL refuse to start a second update while one runs. It SHALL also refuse to start the update when the installed version is unknown, when the latest version is unknown, or when the two versions already agree.
+
+### Scenario: An administrator starts the update
+
+- **WHEN** an administrator calls the endpoint, and the platform runs behind the latest release
+- **THEN** the system opens a row for the state of the update, starts the container of the update, and answers `202` with that state
+
+### Scenario: An update already runs
+
+- **WHEN** an administrator calls the endpoint while an update runs
+- **THEN** the system answers with an error, and it starts no second update
+
+### Scenario: The platform already runs the latest release
+
+- **WHEN** an administrator calls the endpoint, and the installed version already agrees with the latest version
+- **THEN** the system answers with an error, and it starts no update
+
 ## The four actions of the maintenance
 
-The tab Maintenance SHALL show four actions, each one with a name, a short description and a button:
+The tab Maintenance SHALL show four actions, each one with a name, a short description and a button. An administrator whom the platform can update SHALL also see, above these four actions, the alert of a new version (see below).
 
 | Action                     | Description                                                         |
 |----------------------------|---------------------------------------------------------------------|
@@ -157,6 +203,59 @@ For the removal of the orphan containers:
 
 - **WHEN** the call fails, for example because the Docker daemon does not answer
 - **THEN** the system shows a message of failure that asks the user to verify that the daemon runs
+
+## The alert of a new version
+
+The tab Maintenance SHALL show an alert "A new version X.Y.Z is available" when the latest release differs from the installed version, and it SHALL show no alert when the two agree.
+
+The alert SHALL carry a button "Update GitPaaS". The system SHALL ask the user to confirm before it starts the update, with a message that names the target version, and that says the platform restarts while the deployed services keep running.
+
+The tab SHALL hide the alert, and the button, from a user who is not an administrator.
+
+### Scenario: A new release is available
+
+- **WHEN** an administrator opens the tab Maintenance, and the latest release differs from the installed version
+- **THEN** the system shows the alert with the version and the button "Update GitPaaS"
+
+### Scenario: The platform already runs the latest release
+
+- **WHEN** the latest release agrees with the installed version
+- **THEN** the system shows no alert
+
+### Scenario: The user is not an administrator
+
+- **WHEN** a user who is not an administrator opens the tab Maintenance
+- **THEN** the system shows neither the alert nor the button, whatever the two versions are
+
+## The progress of the update
+
+Once the user confirms the update, the system SHALL read the state of the update every two seconds, and it SHALL show the step that runs and a bar of the progress, until the update ends or the read times out.
+
+### Scenario: The update runs
+
+- **WHEN** the user confirms the update
+- **THEN** the system reads the state of the update every two seconds, and it shows the step and the percent that the last read carries
+
+## The end of the update
+
+The system SHALL reload the page when the state of the update reports its end, and the installed version agrees with the target version.
+
+The system SHALL show the last step and the reason, and it SHALL NOT reload the page, when the update fails or when the read times out.
+
+### Scenario: The update succeeds
+
+- **WHEN** the state of the update reports its end, and the installed version agrees with the target version
+- **THEN** the system reloads the page
+
+### Scenario: The update fails
+
+- **WHEN** the state of the update reports a failure
+- **THEN** the system shows the last step and the reason of the failure, and it does not reload the page
+
+### Scenario: The read times out
+
+- **WHEN** the update does not end after ten minutes
+- **THEN** the system says that the update did not finish in time, and it does not reload the page
 
 ## The panel of the health
 

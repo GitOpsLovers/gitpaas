@@ -26,13 +26,13 @@ The source comes from the `codeload` tarball endpoint of GitHub, but `--version`
 
 ### Options
 
-Each option is a flag and has an equivalent environment variable:
+The installer takes one flag, and it has an equivalent environment variable:
 
-| Flag | Environment variable | Default | Purpose |
-|---|---|---|---|
-| `--version <tag>` | `GITPAAS_VERSION` | `latest` | Released version tag to install (`v1.2.3` or `1.2.3`). A branch name is refused. |
-| `--dir <path>` | `GITPAAS_DIR` | `/opt/gitpaas` | Install directory the source is unpacked into. |
-| `--email <email>` | `GITPAAS_ADMIN_EMAIL` | *(prompted)* | First admin's email; skips the interactive prompt. |
+| Flag              | Environment variable | Default  | Purpose                                               |
+|-------------------|----------------------|----------|-------------------------------------------------------|
+| `--version <tag>` | `GITPAAS_VERSION`    | `latest` | Released version tag to install (`v1.2.3` or `1.2.3`). |
+
+The install directory is `/opt/gitpaas`. The script always asks for the email of the first admin on the controlling terminal (see [Interactive admin seeding](#interactive-admin-seeding)).
 
 ### What the installer does
 
@@ -59,7 +59,7 @@ At the end, the script shows a summary with the frontend URL and the API URL —
 
 ### Interactive admin seeding
 
-When the schema is available — and **before the first start of an application container** — the installer makes the **first** administrator directly in the database. If `--email` or `GITPAAS_ADMIN_EMAIL` did not give an email, the script asks for an email on the controlling terminal (`/dev/tty`, because stdin is the piped script). Then it does these steps:
+When the schema is available — and **before the first start of an application container** — the installer makes the **first** administrator directly in the database. The script always asks for an email on the controlling terminal (`/dev/tty`, because stdin is the piped script), and it stops when the answer is empty. Then it does these steps:
 
 1. **It makes a hash of a random alphanumeric password** in a temporary `alpine` container that runs the `argon2` CLI. The parameters are the same as the defaults of node-argon2. Thus the argon2id verifier of the backend accepts the encoded string without a change:
 
@@ -83,6 +83,28 @@ The summary also warns the operator to back up `SECRETS_ENCRYPTION_KEY`. A lost 
 
 A version before this change kept one GitHub App for the whole installation, in the three environment variables `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY` and `GITHUB_APP_INSTALLATION_ID`. An installation that upgrades from that version, and that already holds services, must register a provider **before** it applies the migration `iac/production/migrations/011_services_provider.sql`. That migration adds the column `providerId` to the table `services` and, when the installation holds exactly one provider, it fills the column from that provider. An installation with no provider yet, or with more than one, leaves the column empty, and every affected service stops being deployable until the operator opens it and sets its provider by hand.
 
-To avoid that manual step, run the helper script `scripts/import-github-app-provider.sh` before the upgrade. The script reads the three `GITHUB_APP_*` variables of the existing `.env` file and creates a provider named `default` through the API, so the migration finds exactly one provider and fills `providerId` for every existing service. The header of the script also documents the manual alternative: register the provider from the Providers screen, then open and save each service again.
+The one way to avoid that manual step is to register the provider before the migration runs: open the Providers screen, register a provider with the three `GITHUB_APP_*` values of the existing `.env`, then open and save each existing service so it points at that provider.
 
 > **Known limitation.** The production frontend image contains `apiBaseUrl: http://localhost:3000/api/v1` from the build. Thus, if you open the UI from a machine that is **not** the server, the UI currently calls the incorrect API host. A future build argument for the frontend will make the API base configurable at the installation.
+
+## Update
+
+`scripts/update.sh` sits beside `install.sh`, and it moves an existing installation to a new release without a fresh install. An administrator triggers it from the tab Maintenance of the screen `/server` (see the capability [server](../../business/server.md#the-start-of-the-update)): the backend starts a short-lived container that mounts `/opt/gitpaas` and the Docker socket, and that container downloads `update.sh` from the target release and runs it — so the script goes on even though it replaces the backend container that started it.
+
+Run by hand, the script takes the same flag as the installer:
+
+```sh
+sudo sh /opt/gitpaas/scripts/update.sh --version v1.2.3
+```
+
+`--version` (`GITPAAS_VERSION`) is optional; with no value the script resolves the latest published release, exactly as the installer does. The `assert_version_tag` check refuses a value that is not a released tag, and `IMAGE_TAG` refuses the literal `latest` in both scripts, for the same reason: the images are published one per release, so a moving tag would stop matching the source tree at the next release. The flag `--update-id` carries the identifier of the row of `platform_updates` that the backend already opened; the script opens its own row when nothing is passed, so a manual run still reports its progress.
+
+### What the update does
+
+1. **Resolve the target version**, from `--version` or from the latest release.
+2. **Download `iac/production/` of that version, and replace the installed copy with it.** The download always happens, even when the directory already exists. The existing `.env` moves aside before the swap, and the previous `iac/production/` is kept at `iac/production.old` until the update ends, so a failed run leaves the files of the version the operator came from.
+3. **Carry `.env` forward.** The script keeps every value that is already there, writes the new `IMAGE_TAG`, and appends every key of the new `.env.example` that the file misses.
+4. **Apply the new SQL migrations**, with the same ledger `schema_migrations` that the installer uses (see [Schema bootstrap](./key-flows.md#schema-bootstrap)).
+5. **Pull the new images, and bring the stack up**, with `compose pull` and `compose up -d`.
+
+Every step writes to the row of `platform_updates` with `psql`, so the screen of the maintenance can follow the progress while the backend container is replaced. That report is best effort: a database that cannot be reached never stops the update, and the script logs to its own terminal in every case. A failure at any step exits with a non-zero code, and the last step and the error land in the row.
