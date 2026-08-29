@@ -1,0 +1,69 @@
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_4a071556328ccc::t_a433829de36eff 4-6,28,107-109,147-148,436-460
+apps/frontend/src/app/features/networks/ui/components/project-networks/project-networks.component.ts
+  s_4a071556328ccc::t_9d609a77459f29 1-187
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.html
+  s_5a0269dea101d7::t_61d8df6944e395 5-18
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.html
+  s_5a0269dea101d7::t_70621392206aa2 1-24
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_5a0269dea101d7::t_31097ffb081689 7,25,58-59,95-102,135-140,181-186,215,624-665,733-737
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.ts
+  s_5a0269dea101d7::t_cc88fea600bf8b 2-4,6,8-18,23-30,34,42-46,51-113
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.spec.ts
+  s_4a071556328ccc::t_a6823f504b5708 1-244
+apps/frontend/src/app/pages/projects/networks/project-networks.component.ts
+  s_4a071556328ccc::t_9376cf3ab1a1c7 1-18
+apps/frontend/src/app/features/networks/infrastructure/api/networks-api.repository.spec.ts
+  s_4a071556328ccc::t_7aa4f3defaf8d5 1-196
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.html
+  s_5a0269dea101d7::t_f246fea42f5151 1,10,26-33,55-77
+apps/frontend/src/app/features/networks/ui/components/project-networks/project-networks.component.spec.ts
+  s_5a0269dea101d7::t_985335074f9975 1-230
+apps/frontend/src/app/features/networks/application/read-project-network-error.use-case.ts
+  s_5a0269dea101d7::t_eb2fa9f337cfda 1-58
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.spec.ts
+  s_5a0269dea101d7::t_0efea5dabc496f 1-180
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.ts
+  s_5a0269dea101d7::t_9f0a791b7c20b9 1-154
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_5a0269dea101d7::t_17ef86ae6a6980 47-53
+apps/frontend/src/app/features/networks/ui/components/project-networks/project-networks.component.html
+  s_5a0269dea101d7::t_4a5cfa5f56a258 1-123
+docs/roadmap/project-networks/TODO.md
+  s_4a071556328ccc::t_400f913d0c5ede 69-73
+apps/frontend/src/app/features/networks/infrastructure/api/networks-api.repository.ts
+  s_5a0269dea101d7::t_af089bd1380858 1-10,20-21,24-25,40-117
+apps/frontend/src/app/features/networks/application/read-project-network-error.use-case.spec.ts
+  s_5a0269dea101d7::t_e314bc5cf32610 1-63
+apps/frontend/src/app/app.routes.ts
+  s_5a0269dea101d7::t_79df85bd101c74 109-113
+apps/frontend/src/app/pages/projects/networks/project-networks.component.html
+  s_4a071556328ccc::t_e1b0b390386cc5 1
+apps/backend/src/features/networks/networks.module.ts
+  s_4a071556328ccc::t_10b3101cbff61a 1,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1c0fec09e0046b656755701a64abc563f1095ff3",
+  "prompts": {},
+  "sessions": {
+    "s_4a071556328ccc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b11bc0d2-2afe-495d-81c0-11fa54c78073",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_5a0269dea101d7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1ce32b6491786cf4",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
