@@ -119,8 +119,8 @@ export type { PlatformUpdate, PlatformUpdateState, PlatformUpdateStatus } from '
 export { containerPortSchema, containerSchema } from './containers/container.contract';
 export type { Container, ContainerPort } from './containers/container.contract';
 
-export { networkSchema } from './networks/network.contract';
-export type { Network } from './networks/network.contract';
+export { networkSchema, networkStateSchema } from './networks/network.contract';
+export type { Network, NetworkState } from './networks/network.contract';
 
 export {
     createProjectNetworkSchema,

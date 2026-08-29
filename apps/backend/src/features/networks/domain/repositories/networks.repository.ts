@@ -14,4 +14,13 @@ export interface NetworksRepository {
      * @returns Networks of the service
      */
     listByService: (service: Service) => Promise<Network[]>;
+
+    /**
+     * List every network the containers of a service hold.
+     *
+     * @param service Service the containers belong to
+     *
+     * @returns Networks the containers of the service are connected to
+     */
+    listConnectedByService: (service: Service) => Promise<Network[]>;
 }

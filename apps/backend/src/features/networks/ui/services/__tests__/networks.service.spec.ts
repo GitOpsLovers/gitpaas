@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
 import { getNetworksByServiceUseCase } from '../../../application/get-networks-by-service.use-case';
-import { Network } from '../../../domain/models/network.models';
+import { NetworkStatus } from '../../../domain/models/network.models';
 import { DockerNetworksRepository } from '../../../infrastructure/docker/docker-networks.repository';
 import { NetworksService } from '../networks.service';
 
@@ -16,7 +16,7 @@ const mockGetNetworksByServiceUseCase = getNetworksByServiceUseCase as jest.Mock
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
-const networks: Network[] = [
+const networks: NetworkStatus[] = [
     {
         id: 'net-a1b2c3d4',
         name: 'web-frontend_default',
@@ -25,19 +25,20 @@ const networks: Network[] = [
         internal: false,
         attachable: true,
         createdAt: new Date('2026-07-11T00:00:00.000Z'),
+        state: 'attached',
     },
 ];
 
 describe('NetworksService', () => {
     let mockServicesRepository: jest.Mocked<Pick<DatabaseServicesRepository, 'findById'>>;
-    let mockNetworksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService'>>;
+    let mockNetworksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService' | 'listConnectedByService'>>;
     let sut: NetworksService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
         mockServicesRepository = { findById: jest.fn() };
-        mockNetworksRepository = { listByService: jest.fn() };
+        mockNetworksRepository = { listByService: jest.fn(), listConnectedByService: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [

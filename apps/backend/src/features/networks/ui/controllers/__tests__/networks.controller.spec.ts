@@ -2,7 +2,7 @@ import type { Network as NetworkResponse } from '@gitpaas/contracts';
 import { ForbiddenException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { Network } from '../../../domain/models/network.models';
+import { NetworkStatus } from '../../../domain/models/network.models';
 import { NetworksService } from '../../services/networks.service';
 import { NetworksController } from '../networks.controller';
 
@@ -11,7 +11,7 @@ import { ServiceNotFoundError } from '@features/services/domain/errors/service.e
 
 const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
-const networks: Network[] = [
+const networks: NetworkStatus[] = [
     {
         id: 'net-a1b2c3d4',
         name: 'web-frontend_default',
@@ -20,6 +20,7 @@ const networks: Network[] = [
         internal: false,
         attachable: true,
         createdAt: new Date('2026-07-11T00:00:00.000Z'),
+        state: 'attached',
     },
 ];
 
@@ -32,6 +33,7 @@ const networkResponses: NetworkResponse[] = [
         internal: false,
         attachable: true,
         createdAt: '2026-07-11T00:00:00.000Z',
+        state: 'attached',
     },
 ];
 
