@@ -1,0 +1,53 @@
+apps/backend/src/features/networks/ui/transformers/network-response.transformer.ts
+  s_baa9dddd9444bc::t_7ddf153917f30e 3,8,12,21
+apps/backend/src/features/networks/domain/models/network.models.ts
+  s_baa9dddd9444bc::t_e71c645f9c30b3 1-5,18-24
+apps/backend/src/features/networks/ui/services/networks.service.ts
+  s_baa9dddd9444bc::t_2eff4d52e66997 4,24,28,30
+apps/backend/src/features/networks/infrastructure/docker/docker-networks.repository.ts
+  s_baa9dddd9444bc::t_3fc42333b36029 10,28-43
+apps/backend/src/features/networks/ui/services/__tests__/networks.service.spec.ts
+  s_baa9dddd9444bc::t_94082368758688 4,19,28,34,41
+packages/contracts/src/index.ts
+  s_baa9dddd9444bc::t_e166f2e8ebb1d1 122-123
+packages/contracts/src/networks/network.contract.ts
+  s_baa9dddd9444bc::t_2b562045e491e2 3-7,19,22-26
+docs/roadmap/project-networks/TODO.md
+  s_baa9dddd9444bc::t_33aa9083f9fd9f 59-62
+apps/backend/src/features/networks/infrastructure/docker/__tests__/docker-networks.repository.spec.ts
+  s_baa9dddd9444bc::t_78d3618474b357 5,7,27-42,55-56,63-64,68-70,72-74,76-77,79,81-85,87-108,111-194,196,198-199
+apps/backend/src/features/networks/domain/repositories/networks.repository.ts
+  s_baa9dddd9444bc::t_7f598f61546ff2 17-25
+apps/backend/src/features/networks/ui/controllers/__tests__/networks.controller.spec.ts
+  s_baa9dddd9444bc::t_c8a0bfc01e7f07 5,14,23,36
+apps/backend/src/features/networks/application/__tests__/get-networks-by-service.use-case.spec.ts
+  s_f6860592a2565f::t_98cd800907010f 3,11-22,36,39,42,52-55,65,70-71,74,98,109,115-225
+apps/backend/src/features/networks/ui/transformers/__tests__/network-response.transformer.spec.ts
+  s_baa9dddd9444bc::t_93e2a73de81918 1,5,13,27,41-48
+apps/backend/src/features/networks/application/get-networks-by-service.use-case.ts
+  s_baa9dddd9444bc::t_4573eb9f9dccce 1,8-32,38-40,46,53-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "69361bc46921cc433e14d5e2af813324b432d3fb",
+  "prompts": {},
+  "sessions": {
+    "s_baa9dddd9444bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5155cddc-afc5-4e57-9796-513a2072de12",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f6860592a2565f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7b5c437724a90796",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
