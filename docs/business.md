@@ -20,6 +20,6 @@ The future behavior lives in `docs/roadmap.md`. A page of this area moves from t
 - [projects](./business/projects.md): the project, and the services that it holds.
 - [providers](./business/providers.md): the source control provider, and its credentials.
 - [server](./business/server.md): the health, the settings and the maintenance of the server.
-- [service-environment](./business/service-environment.md): the variable of a service, plain or secret, and its tab "Configuration".
+- [service-environment](./business/service-environment.md): the variable of a service, plain or secret, and its tab "Environment".
 - [services](./business/services.md): the service, its configuration and its detail.
 - [users](./business/users.md): the user record, and the password.

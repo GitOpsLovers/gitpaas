@@ -1,4 +1,6 @@
-import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
+import {
+    Component, computed, effect, input, linkedSignal, output, signal, untracked,
+} from '@angular/core';
 import type { ServiceVariable } from '@gitpaas/contracts';
 import { LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
 
@@ -72,6 +74,11 @@ export class ServiceVariablesComponent {
      */
     public readonly remove = output<ServiceVariable>();
 
+    /**
+     * Whether the form shows. It stays hidden until the user asks for it.
+     */
+    protected readonly formVisible = signal(false);
+
     protected readonly editing = signal<ServiceVariable | null>(null);
 
     protected readonly name = signal('');
@@ -79,6 +86,19 @@ export class ServiceVariablesComponent {
     protected readonly value = signal('');
 
     protected readonly secret = signal(false);
+
+    /**
+     * Whether the user dismissed the message of the error. Every new reason the API gives shows again.
+     */
+    private readonly errorDismissed = linkedSignal({
+        source: this.error,
+        computation: () => false,
+    });
+
+    /**
+     * Reason the form shows under its fields, which is empty once the user dismissed it.
+     */
+    protected readonly errorMessage = computed(() => (this.errorDismissed() ? null : this.error()));
 
     /**
      * Whether the form changes a stored variable instead of setting a new one.
@@ -97,21 +117,48 @@ export class ServiceVariablesComponent {
             this.variables();
 
             untracked(() => {
-                this.reset();
+                this.close();
             });
         });
     }
 
     /**
-     * Loads a stored variable into the form. The field of a secret stays empty, because its value never arrives.
+     * Shows an empty form, so the user sets a new variable.
+     */
+    protected open(): void {
+        this.reset();
+        this.formVisible.set(true);
+    }
+
+    /**
+     * Loads a stored variable into the form and shows it. The field of a secret stays empty, because its value
+     * never arrives.
      *
      * @param variable Variable to change
      */
     protected edit(variable: ServiceVariable): void {
+        this.reset();
         this.editing.set(variable);
         this.name.set(variable.name);
         this.value.set(variable.secret ? '' : variable.value ?? '');
         this.secret.set(variable.secret);
+        this.formVisible.set(true);
+    }
+
+    /**
+     * Hides the form, and empties it.
+     */
+    protected close(): void {
+        this.reset();
+        this.formVisible.set(false);
+    }
+
+    /**
+     * Hides the form, empties it, and drops the message of the error the user read.
+     */
+    protected cancel(): void {
+        this.close();
+        this.errorDismissed.set(true);
     }
 
     /**

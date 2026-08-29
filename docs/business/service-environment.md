@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A service needs configuration that its repository must not hold: a database address, a key of an API, a password. This capability keeps a set of named variables per service, each one plain or secret, and it gives them to the containers of the stack at each deployment. GitPaaS encrypts a secret at rest, and it never gives its value back to a client. The tab "Configuration" of the detail of a service, at `/namespaces/:namespaceId/projects/:id/services/:serviceId/configuration`, manages that set.
+A service needs configuration that its repository must not hold: a database address, a key of an API, a password. This capability keeps a set of named variables per service, each one plain or secret, and it gives them to the containers of the stack at each deployment. GitPaaS encrypts a secret at rest, and it never gives its value back to a client. The tab "Environment" of the detail of a service, at `/namespaces/:namespaceId/projects/:id/services/:serviceId/environment`, manages that set.
 
 ## The variable of a service
 
@@ -93,9 +93,9 @@ The system SHALL fail a deployment, with a message that names the variable and n
 - **WHEN** a deployment starts, and a secret of the service seals under a key that the running key of the encryption does not open
 - **THEN** the system marks the deployment `failed` with a message that names the variable, and it starts no container
 
-## The tab "Configuration" lists and manages the variables
+## The tab "Environment" lists the variables, and hides the form
 
-The tab `configuration` SHALL list every variable of the service, and it SHALL give a form that sets a new variable or changes a chosen one.
+The tab `environment` SHALL list every variable of the service. It SHALL hide the form that sets or changes a variable until the user asks for it.
 
 Each row SHALL show the name, and, for a plain variable, its value. For a secret, the row SHALL show only whether a value is set, and never the value.
 
@@ -103,26 +103,53 @@ The tab SHALL state that a variable reaches the containers of the stack and neve
 
 ### Scenario: The tab lists the variables
 
-- **WHEN** the user opens the tab `configuration` of a service that holds variables
-- **THEN** the system shows one row per variable, with the value of a plain variable and the presence of the value of a secret
+- **WHEN** the user opens the tab `environment` of a service that holds variables
+- **THEN** the system shows one row per variable, with the value of a plain variable and the presence of the value of a secret, and no form
+
+## The button "Add Variable" opens an empty form
+
+The card SHALL show a button "Add Variable" in its header. The system SHALL show an empty form when the user activates it, so the user sets a new variable.
+
+### Scenario: The user opens the form to add a variable
+
+- **WHEN** the user activates the button "Add Variable"
+- **THEN** the system shows an empty form
 
 ## The form changes a variable without showing a stored secret
 
-When the user chooses a stored variable to change, the system SHALL load its name into the form, and it SHALL leave the field of the value empty when the variable is a secret. The hint under the field SHALL state that an empty value keeps the stored one.
+When the user chooses a stored variable to change, the system SHALL show the form, and it SHALL load its name into it. It SHALL leave the field of the value empty when the variable is a secret. The hint under the field SHALL state that an empty value keeps the stored one.
 
 ### Scenario: The user changes a secret
 
 - **WHEN** the user chooses a secret to change
-- **THEN** the system fills the name, it leaves the field of the value empty, and it shows the hint that an empty value keeps the stored one
+- **THEN** the system shows the form, it fills the name, it leaves the field of the value empty, and it shows the hint that an empty value keeps the stored one
+
+## The button "Cancel" hides the form
+
+The form SHALL show a button "Cancel". The system SHALL hide the form, and it SHALL drop the message of the error, when the user activates it.
+
+### Scenario: The user cancels the form
+
+- **WHEN** the user activates the button "Cancel"
+- **THEN** the system hides the form, and it drops the message of the error
+
+## A save that succeeds hides the form
+
+The system SHALL hide the form after it sets or changes a variable.
+
+### Scenario: The save succeeds
+
+- **WHEN** the user submits the form, and the API accepts the variable
+- **THEN** the system hides the form
 
 ## The tab shows the rule a name breaks
 
-When the API refuses a variable, the system SHALL show the message of the API under the form, so the user reads the rule the name breaks.
+When the API refuses a variable, the system SHALL show the message of the API under the form, and it SHALL keep the form open, so the user reads the rule the name breaks and corrects it.
 
 ### Scenario: The API refuses the name
 
 - **WHEN** the user submits a name that breaks the rule of a name, or a name that another variable of the service already carries
-- **THEN** the system shows the message of the API under the form, and the user stays on the tab
+- **THEN** the system shows the message of the API under the form, it keeps the form open, and the user stays on the tab
 
 ## The removal of a variable asks for a confirmation
 

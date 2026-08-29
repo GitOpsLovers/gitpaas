@@ -393,11 +393,11 @@ describe('ServiceDetailComponent', () => {
         expect(component.savingProvider()).toBe(false);
     });
 
-    test('places the configuration tab third, between the provider tab and the deployments tab', () => {
+    test('places the environment tab third, between the provider tab and the domains tab', () => {
         create();
 
         expect(component.tabs.map((entry) => entry.id)).toEqual([
-            'general', 'provider', 'configuration', 'deployments', 'containers', 'network', 'logs', 'domains',
+            'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'logs',
         ]);
     });
 
@@ -495,11 +495,11 @@ describe('ServiceDetailComponent', () => {
         expect(variablesResource.reload).not.toHaveBeenCalled();
     });
 
-    test('offers the domains tab after the logs tab', () => {
+    test('offers the domains tab after the environment tab', () => {
         create();
 
         expect(component.tabs.map((entry) => entry.id)).toEqual([
-            'general', 'provider', 'configuration', 'deployments', 'containers', 'network', 'logs', 'domains',
+            'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'logs',
         ]);
     });
 
@@ -756,7 +756,7 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
         fixture.componentRef.setInput('namespaceId', 'ns-1');
         fixture.componentRef.setInput('projectId', 'pr-1');
         fixture.componentRef.setInput('serviceId', 'sv-1');
-        fixture.componentRef.setInput('tab', 'configuration');
+        fixture.componentRef.setInput('tab', 'environment');
         fixture.detectChanges();
         component = fixture.componentInstance as unknown as ServiceDetailInternals;
 

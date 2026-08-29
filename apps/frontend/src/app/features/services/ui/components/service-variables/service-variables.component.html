@@ -1,4 +1,9 @@
-<app-component-card title="Configuration" desc="The environment variables this service gives to its containers.">
+<app-component-card title="Environment" desc="The environment variables this service gives to its containers.">
+    <app-button card-action size="sm" (btnClick)="open()">
+        <svg lucidePlus class="h-4 w-4"></svg>
+        Add Variable
+    </app-button>
+
     <div
         class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
     >
@@ -68,73 +73,76 @@
             @if (loading()) {
                 Loading variables…
             } @else {
-                No variables yet. Set the first one below.
+                No variables yet. Add the first one with the button above.
             }
         </p>
     }
 
-    <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-                <app-label for="variable-name">Name</app-label>
-                <app-input-field
-                    id="variable-name"
-                    name="variable-name"
-                    placeholder="DATABASE_URL"
-                    [value]="name()"
-                    [error]="error() !== null"
-                    (valueChange)="onNameChange($event)"
-                />
+    @if (formVisible()) {
+        <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <app-label for="variable-name">Name</app-label>
+                    <app-input-field
+                        id="variable-name"
+                        name="variable-name"
+                        placeholder="DATABASE_URL"
+                        [value]="name()"
+                        [error]="errorMessage() !== null"
+                        (valueChange)="onNameChange($event)"
+                    />
+                </div>
+
+                <div>
+                    <app-label for="variable-value">Value</app-label>
+                    <app-input-field
+                        id="variable-value"
+                        name="variable-value"
+                        [type]="secret() ? 'password' : 'text'"
+                        [value]="value()"
+                        [hint]="valueHint()"
+                        (valueChange)="onValueChange($event)"
+                    />
+                </div>
             </div>
 
-            <div>
-                <app-label for="variable-value">Value</app-label>
-                <app-input-field
-                    id="variable-value"
-                    name="variable-value"
-                    [type]="secret() ? 'password' : 'text'"
-                    [value]="value()"
-                    [hint]="valueHint()"
-                    (valueChange)="onValueChange($event)"
+            <div class="flex items-center gap-3">
+                <input
+                    id="variable-secret"
+                    type="checkbox"
+                    [checked]="secret()"
+                    [disabled]="isEditing()"
+                    (change)="secret.set($any($event.target).checked)"
+                    class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
                 />
+                <label
+                    for="variable-secret"
+                    class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400"
+                >
+                    Store this value as a secret. GitPaaS seals it, and never gives it back.
+                </label>
             </div>
-        </div>
 
-        <div class="flex items-center gap-3">
-            <input
-                id="variable-secret"
-                type="checkbox"
-                [checked]="secret()"
-                [disabled]="isEditing()"
-                (change)="secret.set($any($event.target).checked)"
-                class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
-            />
-            <label for="variable-secret" class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400">
-                Store this value as a secret. GitPaaS seals it, and never gives it back.
-            </label>
-        </div>
+            @if (errorMessage()) {
+                <p class="text-sm text-error-500">{{ errorMessage() }}</p>
+            }
 
-        @if (error()) {
-            <p class="text-sm text-error-500">{{ error() }}</p>
-        }
+            <div class="flex items-center gap-2">
+                <app-button type="submit" size="sm" [disabled]="saving() || !name()">
+                    @if (isEditing()) {
+                        <svg lucidePencil class="h-4 w-4"></svg>
+                        {{ saving() ? 'Saving…' : 'Save variable' }}
+                    } @else {
+                        <svg lucidePlus class="h-4 w-4"></svg>
+                        {{ saving() ? 'Saving…' : 'Add variable' }}
+                    }
+                </app-button>
 
-        <div class="flex items-center gap-2">
-            <app-button type="submit" size="sm" [disabled]="saving() || !name()">
-                @if (isEditing()) {
-                    <svg lucidePencil class="h-4 w-4"></svg>
-                    {{ saving() ? 'Saving…' : 'Save variable' }}
-                } @else {
-                    <svg lucidePlus class="h-4 w-4"></svg>
-                    {{ saving() ? 'Saving…' : 'Add variable' }}
-                }
-            </app-button>
-
-            @if (isEditing()) {
-                <app-button variant="outline" size="sm" (btnClick)="reset()">
+                <app-button variant="outline" size="sm" (btnClick)="cancel()">
                     <svg lucideX class="h-4 w-4"></svg>
                     Cancel
                 </app-button>
-            }
-        </div>
-    </form>
+            </div>
+        </form>
+    }
 </app-component-card>

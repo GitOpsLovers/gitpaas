@@ -1,5 +1,5 @@
 /**
- * The values the form of the tab of the configuration holds while the user writes one variable.
+ * The values the form of the tab of the environment holds while the user writes one variable.
  */
 export interface ServiceVariableDraft {
     name: string;

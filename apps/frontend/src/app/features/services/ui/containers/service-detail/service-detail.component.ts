@@ -34,7 +34,7 @@ import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 import { ToastService } from '@shared/services/toast.service';
 
-type ServiceTab = 'general' | 'provider' | 'configuration' | 'deployments' | 'containers' | 'network' | 'logs' | 'domains';
+type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployments' | 'containers' | 'network' | 'logs';
 
 @Component({
     selector: 'app-service-detail',
@@ -159,12 +159,12 @@ export class ServiceDetailComponent {
     protected readonly tabs: Array<{ id: ServiceTab; label: string }> = [
         { id: 'general', label: 'General' },
         { id: 'provider', label: 'Provider' },
-        { id: 'configuration', label: 'Configuration' },
+        { id: 'environment', label: 'Environment' },
+        { id: 'domains', label: 'Domains' },
         { id: 'deployments', label: 'Deployments' },
         { id: 'containers', label: 'Containers' },
         { id: 'network', label: 'Network' },
         { id: 'logs', label: 'Logs' },
-        { id: 'domains', label: 'Domains' },
     ];
 
     /**

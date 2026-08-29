@@ -16,7 +16,7 @@
             />
         }
 
-        @case ('configuration') {
+        @case ('environment') {
             <app-service-variables
                 [variables]="variables.value() ?? []"
                 [loading]="variables.isLoading()"
@@ -25,6 +25,19 @@
                 (set)="setVariable($event)"
                 (update)="changeVariable($event)"
                 (remove)="requestVariableRemoval($event)"
+            />
+        }
+
+        @case ('domains') {
+            <app-service-domains
+                [domains]="domains.value() ?? []"
+                [composeServices]="composeServices.value() ?? []"
+                [loading]="domains.isLoading()"
+                [saving]="savingDomain()"
+                [error]="domainError()"
+                (claim)="claimDomain($event)"
+                (update)="changeDomain($event)"
+                (remove)="requestDomainRemoval($event)"
             />
         }
 
@@ -55,19 +68,6 @@
 
         @case ('logs') {
             <app-service-logs />
-        }
-
-        @case ('domains') {
-            <app-service-domains
-                [domains]="domains.value() ?? []"
-                [composeServices]="composeServices.value() ?? []"
-                [loading]="domains.isLoading()"
-                [saving]="savingDomain()"
-                [error]="domainError()"
-                (claim)="claimDomain($event)"
-                (update)="changeDomain($event)"
-                (remove)="requestDomainRemoval($event)"
-            />
         }
     }
 </div>
