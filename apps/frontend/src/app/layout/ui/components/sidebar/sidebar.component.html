@@ -224,8 +224,6 @@
                 <!-- end support section -->
             </div>
         </nav>
-        @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-            <app-sidebar-widget />
-        }
+        <app-sidebar-version />
     </div>
 </aside>

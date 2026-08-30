@@ -21,7 +21,7 @@ import {
 import { combineLatest, Subscription } from 'rxjs';
 
 import { SidebarService } from '../../services/sidebar.service';
-import { SidebarWidgetComponent } from '../sidebar-widget/sidebar-widget.component';
+import { SidebarVersionComponent } from '../sidebar-version/sidebar-version.component';
 
 type NavIcon = 'grid' | 'box' | 'git-branch' | 'server';
 
@@ -39,7 +39,7 @@ interface NavItem {
     imports: [
         CommonModule,
         RouterModule,
-        SidebarWidgetComponent,
+        SidebarVersionComponent,
         LucideLayoutGrid,
         LucideBox,
         LucideGitBranch,
