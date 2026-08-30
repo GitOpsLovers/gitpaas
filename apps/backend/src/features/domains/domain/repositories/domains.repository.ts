@@ -54,6 +54,7 @@ export interface DomainsRepository {
      * @param id Domain id
      * @param updateDto Domain data
      * @param certificateState State the certificate returns to, or `undefined` to keep the stored one
+     * @param certificateError Reason of the state, or `null` when the state carries no reason
      *
      * @returns Updated domain, or `null` when it does not exist
      */
@@ -61,6 +62,7 @@ export interface DomainsRepository {
         id: string,
         updateDto: UpdateDomainDto,
         certificateState?: CertificateState,
+        certificateError?: string | null,
     ) => Promise<Domain | null>;
 
     /**

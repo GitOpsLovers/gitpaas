@@ -1,4 +1,4 @@
-import { Domain } from '../domain/models/domain.models';
+import { CertificateState, Domain } from '../domain/models/domain.models';
 import { ReverseProxy } from '../domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '../domain/repositories/domains.repository';
 
@@ -9,7 +9,7 @@ import { DomainsRepository } from '../domain/repositories/domains.repository';
  * @param proxy Reverse proxy
  * @param domains Domains as the rows hold them today
  *
- * @returns The same domains, each carrying the state the proxy reports
+ * @returns The same domains, each carrying the state the proxy reports.
  */
 export async function refreshCertificateStatesUseCase(
     repository: DomainsRepository,
@@ -22,18 +22,24 @@ export async function refreshCertificateStatesUseCase(
         return domains;
     }
 
-    const states = await proxy.getCertificateStates(secured.map((domain) => domain.host));
+    const report = await proxy.getCertificateStates(secured.map((domain) => domain.host));
     const refreshed: Domain[] = [];
 
     for (const domain of domains) {
-        const state = states.get(domain.host);
+        const state: CertificateState | undefined = report.error === null
+            ? report.states.get(domain.host)
+            : 'failed';
 
-        if (!domain.https || state === undefined || state === domain.certificateState) {
+        if (
+            !domain.https
+            || state === undefined
+            || (state === domain.certificateState && report.error === domain.certificateError)
+        ) {
             refreshed.push(domain);
             continue;
         }
 
-        const updated = await repository.update(domain.id, {}, state);
+        const updated = await repository.update(domain.id, {}, state, report.error);
 
         refreshed.push(updated ?? domain);
     }

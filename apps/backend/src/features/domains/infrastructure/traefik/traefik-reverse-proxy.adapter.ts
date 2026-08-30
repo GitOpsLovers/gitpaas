@@ -4,7 +4,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { CertificateState, Domain } from '../../domain/models/domain.models';
-import { ReverseProxy, RoutingLabels } from '../../domain/ports/reverse-proxy.port';
+import { CertificateReport, ReverseProxy, RoutingLabels } from '../../domain/ports/reverse-proxy.port';
 
 import {
     ACME_RESOLVER,
@@ -30,6 +30,11 @@ interface AcmeCertificate {
 type AcmeStore = Record<string, { Certificates?: AcmeCertificate[] | null } | undefined>;
 
 /**
+ * The answer of one read of the store of ACME: its hosts, or the reason the read failed.
+ */
+type AcmeStoreRead = { hosts: Set<string>; error: null } | { hosts: null; error: string };
+
+/**
  * Traefik reverse proxy adapter
  */
 @Injectable()
@@ -38,11 +43,6 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
      * Path of the store of ACME of the proxy, as this installation mounts it.
      */
     private readonly acmeStorePath: string;
-
-    /**
-     * Whether the adapter already warned about a store it cannot read.
-     */
-    private acmeStoreWarned = false;
 
     constructor(
         @Inject(NestLoggerAdapter)
@@ -72,25 +72,25 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
         return routing;
     }
 
-    public async getCertificateStates(hosts: string[]): Promise<Map<string, CertificateState>> {
+    public async getCertificateStates(hosts: string[]): Promise<CertificateReport> {
         const states = new Map<string, CertificateState>();
 
         // Only a host of HTTPS reaches this call, so an installation of HTTP alone reads no store.
         if (hosts.length === 0) {
-            return states;
+            return { states, error: null };
         }
 
-        const issued = await this.readIssuedHosts();
+        const read = await this.readIssuedHosts();
 
-        if (issued === undefined) {
-            return states;
+        if (read.hosts === null) {
+            return { states, error: read.error };
         }
 
         for (const host of hosts) {
-            states.set(host, issued.has(host) ? 'ready' : 'pending');
+            states.set(host, read.hosts.has(host) ? 'ready' : 'pending');
         }
 
-        return states;
+        return { states, error: null };
     }
 
     /**
@@ -145,9 +145,9 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
     /**
      * Reads every host the store of ACME holds a certificate for.
      *
-     * @returns The hosts of the store, or `undefined` when the store cannot be read
+     * @returns The hosts of the store, or the reason the store cannot be read
      */
-    private async readIssuedHosts(): Promise<Set<string> | undefined> {
+    private async readIssuedHosts(): Promise<AcmeStoreRead> {
         try {
             // eslint-disable-next-line security/detect-non-literal-fs-filename
             const raw = await readFile(this.acmeStorePath, 'utf8');
@@ -160,21 +160,31 @@ export class TraefikReverseProxyAdapter implements ReverseProxy {
                 ...(certificate.domain?.sans ?? []),
             ]);
 
-            this.acmeStoreWarned = false;
-
-            return new Set(hosts.filter((host): host is string => host !== undefined));
+            return { hosts: new Set(hosts.filter((host): host is string => host !== undefined)), error: null };
         } catch (error) {
-            if (!this.acmeStoreWarned) {
-                const message = error instanceof Error ? error.message : String(error);
+            // Every failure is logged, because a store the backend cannot read holds every
+            // certificate of the installation, and the operator must see the cause of each read.
+            const reason = this.describeStoreFailure(error);
 
-                this.acmeStoreWarned = true;
-                this.logger.warn(
-                    `Failed to read the ACME store at ${this.acmeStorePath}: ${message}`,
-                    PROXY_CONTEXT,
-                );
-            }
+            this.logger.warn(reason, PROXY_CONTEXT);
 
-            return undefined;
+            return { hosts: null, error: reason };
         }
+    }
+
+    /**
+     * Describes a failed read of the store of ACME, for the log and for the interface.
+     *
+     * @param error Error the read threw
+     *
+     * @returns The path of the store, the code of the error and its message
+     */
+    private describeStoreFailure(error: unknown): string {
+        const code = typeof error === 'object' && error !== null && 'code' in error
+            ? String((error).code)
+            : 'UNKNOWN';
+        const message = error instanceof Error ? error.message : String(error);
+
+        return `Failed to read the ACME store at ${this.acmeStorePath} (${code}): ${message}`;
     }
 }

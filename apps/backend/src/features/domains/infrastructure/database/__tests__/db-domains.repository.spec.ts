@@ -219,6 +219,19 @@ describe('DatabaseDomainsRepository', () => {
             });
         });
 
+        it('writes the reason of the failure that the caller gives with the state', async () => {
+            const entity = domainEntity({ certificateState: 'pending', certificateError: null });
+            mockRepository.findOneBy.mockResolvedValue(entity);
+            mockRepository.save.mockResolvedValue(entity);
+
+            await sut.update(domainId, {}, 'failed', 'the ACME store is unreadable');
+
+            expect(mockRepository.merge).toHaveBeenCalledWith(entity, {
+                certificateState: 'failed',
+                certificateError: 'the ACME store is unreadable',
+            });
+        });
+
         it('saves the merged row and maps it into a domain model', async () => {
             const entity = domainEntity();
             mockRepository.findOneBy.mockResolvedValue(entity);

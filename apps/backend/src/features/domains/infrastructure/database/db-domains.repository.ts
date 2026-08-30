@@ -72,6 +72,7 @@ export class DatabaseDomainsRepository implements DomainsRepository {
         id: string,
         updateDto: UpdateDomainDto,
         certificateState?: CertificateState,
+        certificateError: string | null = null,
     ): Promise<Domain | null> {
         const domain = await this.repository.findOneBy({ id });
 
@@ -84,7 +85,7 @@ export class DatabaseDomainsRepository implements DomainsRepository {
             ...(updateDto.targetService === undefined ? {} : { targetService: updateDto.targetService }),
             ...(updateDto.port === undefined ? {} : { port: updateDto.port }),
             ...(updateDto.https === undefined ? {} : { https: updateDto.https }),
-            ...(certificateState === undefined ? {} : { certificateState, certificateError: null }),
+            ...(certificateState === undefined ? {} : { certificateState, certificateError }),
         });
 
         const saved = await this.repository.save(domain);

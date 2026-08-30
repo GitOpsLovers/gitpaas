@@ -6,6 +6,21 @@ import { CertificateState, Domain } from '../models/domain.models';
 export type RoutingLabels = Record<string, Record<string, string>>;
 
 /**
+ * What the store of the proxy reports about a set of hosts.
+ */
+export interface CertificateReport {
+    /**
+     * The state of each host the store answers for. It holds no entry when the store is unreadable.
+     */
+    states: Map<string, CertificateState>;
+
+    /**
+     * The reason the store cannot be read, or `null` when the read succeeded.
+     */
+    error: string | null;
+}
+
+/**
  * Reverse proxy port
  */
 export interface ReverseProxy {
@@ -23,8 +38,7 @@ export interface ReverseProxy {
      *
      * @param hosts Hosts the state is read for
      *
-     * @returns The state of each host that the store answers for. A host is absent whenever the
-     * store cannot be read, and the caller then keeps the state it holds.
+     * @returns The state of each host that the store answers for.
      */
-    getCertificateStates: (hosts: string[]) => Promise<Map<string, CertificateState>>;
+    getCertificateStates: (hosts: string[]) => Promise<CertificateReport>;
 }

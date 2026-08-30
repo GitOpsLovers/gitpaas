@@ -118,8 +118,8 @@ describe('TraefikReverseProxyAdapter', () => {
 
     describe('getCertificateStates', () => {
         it('never reads the store, and never warns, when no host takes HTTPS', async () => {
-            await expect(sut.getCertificateStates([])).resolves.toEqual(new Map());
-            await expect(sut.getCertificateStates([])).resolves.toEqual(new Map());
+            await expect(sut.getCertificateStates([])).resolves.toEqual({ states: new Map(), error: null });
+            await expect(sut.getCertificateStates([])).resolves.toEqual({ states: new Map(), error: null });
 
             expect(mockReadFile).not.toHaveBeenCalled();
             expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -137,62 +137,73 @@ describe('TraefikReverseProxyAdapter', () => {
                 }),
             );
 
-            const states = await sut.getCertificateStates([
+            const report = await sut.getCertificateStates([
                 'app.example.com',
                 'admin.example.com',
                 'shop.example.com',
             ]);
 
             expect(mockReadFile).toHaveBeenCalledWith(acmePath, 'utf8');
-            expect(states).toEqual(
-                new Map([
+            expect(report).toEqual({
+                states: new Map([
                     ['app.example.com', 'ready'],
                     ['admin.example.com', 'ready'],
                     ['shop.example.com', 'pending'],
                 ]),
-            );
+                error: null,
+            });
+            expect(mockLogger.warn).not.toHaveBeenCalled();
         });
 
         it('reports every host as pending when the resolver holds no certificate yet', async () => {
             mockReadFile.mockResolvedValue(JSON.stringify({ letsencrypt: { Certificates: null } }));
 
-            await expect(sut.getCertificateStates(['app.example.com'])).resolves.toEqual(
-                new Map([['app.example.com', 'pending']]),
-            );
+            await expect(sut.getCertificateStates(['app.example.com'])).resolves.toEqual({
+                states: new Map([['app.example.com', 'pending']]),
+                error: null,
+            });
         });
 
-        it('reports no state and warns when the store is absent', async () => {
-            mockReadFile.mockRejectedValue(new Error('ENOENT'));
+        it('reports the reason, and warns, when the store cannot be read', async () => {
+            mockReadFile.mockRejectedValue(Object.assign(new Error('permission denied'), { code: 'EACCES' }));
 
-            await expect(sut.getCertificateStates(['app.example.com'])).resolves.toEqual(new Map());
+            const reason = `Failed to read the ACME store at ${acmePath} (EACCES): permission denied`;
 
-            expect(mockLogger.warn).toHaveBeenCalledWith(
-                `Failed to read the ACME store at ${acmePath}: ENOENT`,
-                'ReverseProxy',
-            );
+            await expect(sut.getCertificateStates(['app.example.com'])).resolves.toEqual({
+                states: new Map(),
+                error: reason,
+            });
+
+            expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+            expect(mockLogger.warn).toHaveBeenCalledWith(reason, 'ReverseProxy');
         });
 
-        it('warns one time alone while the store stays absent', async () => {
-            mockReadFile.mockRejectedValue(new Error('ENOENT'));
+        it('names the code UNKNOWN when the failure carries none', async () => {
+            mockReadFile.mockRejectedValue(new Error('not json'));
+
+            const reason = `Failed to read the ACME store at ${acmePath} (UNKNOWN): not json`;
+
+            await expect(sut.getCertificateStates(['app.example.com'])).resolves.toEqual({
+                states: new Map(),
+                error: reason,
+            });
+
+            expect(mockLogger.warn).toHaveBeenCalledWith(reason, 'ReverseProxy');
+        });
+
+        it('warns on every read while the store stays unreadable', async () => {
+            mockReadFile.mockRejectedValue(Object.assign(new Error('no such file'), { code: 'ENOENT' }));
 
             await sut.getCertificateStates(['app.example.com']);
             await sut.getCertificateStates(['app.example.com']);
             await sut.getCertificateStates(['app.example.com']);
 
             expect(mockReadFile).toHaveBeenCalledTimes(3);
-            expect(mockLogger.warn).toHaveBeenCalledTimes(1);
-        });
-
-        it('warns again when the store is read once and then goes absent', async () => {
-            mockReadFile.mockRejectedValueOnce(new Error('ENOENT'));
-            mockReadFile.mockResolvedValueOnce(JSON.stringify({ letsencrypt: { Certificates: [] } }));
-            mockReadFile.mockRejectedValueOnce(new Error('ENOENT'));
-
-            await sut.getCertificateStates(['app.example.com']);
-            await sut.getCertificateStates(['app.example.com']);
-            await sut.getCertificateStates(['app.example.com']);
-
-            expect(mockLogger.warn).toHaveBeenCalledTimes(2);
+            expect(mockLogger.warn).toHaveBeenCalledTimes(3);
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                `Failed to read the ACME store at ${acmePath} (ENOENT): no such file`,
+                'ReverseProxy',
+            );
         });
     });
 

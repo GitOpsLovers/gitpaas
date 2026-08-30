@@ -1,5 +1,5 @@
 import { CertificateState, Domain } from '../../domain/models/domain.models';
-import { ReverseProxy } from '../../domain/ports/reverse-proxy.port';
+import { CertificateReport, ReverseProxy } from '../../domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '../../domain/repositories/domains.repository';
 import { refreshCertificateStatesUseCase } from '../refresh-certificate-states.use-case';
 
@@ -30,7 +30,13 @@ describe('refreshCertificateStatesUseCase', () => {
     );
 
     /** Answers the proxy gives for the hosts it is asked about. */
-    const states = (entries: Array<[string, CertificateState]>): Map<string, CertificateState> => new Map(entries);
+    const states = (entries: Array<[string, CertificateState]>): CertificateReport => ({
+        states: new Map(entries),
+        error: null,
+    });
+
+    /** The answer the proxy gives when it cannot read its store of ACME. */
+    const unreadable = (error: string): CertificateReport => ({ states: new Map(), error });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -72,6 +78,7 @@ describe('refreshCertificateStatesUseCase', () => {
             'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
             {},
             'ready',
+            null,
         );
         expect(result).toEqual([written]);
     });
@@ -117,6 +124,7 @@ describe('refreshCertificateStatesUseCase', () => {
             '11111111-2222-4333-8444-555555555555',
             {},
             'ready',
+            null,
         );
     });
 
@@ -126,6 +134,78 @@ describe('refreshCertificateStatesUseCase', () => {
         mockDomainsRepository.update.mockResolvedValue(null);
 
         await expect(run(domains)).resolves.toEqual(domains);
+    });
+
+    it('fails every domain of HTTPS with the reason when the store cannot be read', async () => {
+        const reason = 'Failed to read the ACME store at /acme/acme.json (EACCES): permission denied';
+        const failed = domain({ certificateState: 'failed', certificateError: reason });
+        mockReverseProxy.getCertificateStates.mockResolvedValue(unreadable(reason));
+        mockDomainsRepository.update.mockResolvedValue(failed);
+
+        const result = await run([domain({ certificateState: 'ready' })]);
+
+        expect(mockDomainsRepository.update).toHaveBeenCalledTimes(1);
+        expect(mockDomainsRepository.update).toHaveBeenCalledWith(
+            'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+            {},
+            'failed',
+            reason,
+        );
+        expect(result).toEqual([failed]);
+    });
+
+    it('keeps a domain of HTTP untouched when the store cannot be read', async () => {
+        const plain = domain({
+            id: '99999999-8888-4777-8666-555555555555', host: 'shop.example.com', https: false, certificateState: 'none',
+        });
+        mockReverseProxy.getCertificateStates.mockResolvedValue(unreadable('EACCES'));
+        mockDomainsRepository.update.mockResolvedValue(domain({ certificateState: 'failed', certificateError: 'EACCES' }));
+
+        const result = await run([domain(), plain]);
+
+        expect(mockDomainsRepository.update).toHaveBeenCalledTimes(1);
+        expect(result[1]).toBe(plain);
+    });
+
+    it('never writes again when the domain already carries the failure and its reason', async () => {
+        const reason = 'EACCES on /acme/acme.json';
+        const domains = [domain({ certificateState: 'failed', certificateError: reason })];
+        mockReverseProxy.getCertificateStates.mockResolvedValue(unreadable(reason));
+
+        await expect(run(domains)).resolves.toEqual(domains);
+
+        expect(mockDomainsRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('writes again when the reason of the failure changed', async () => {
+        const written = domain({ certificateState: 'failed', certificateError: 'ENOENT' });
+        mockReverseProxy.getCertificateStates.mockResolvedValue(unreadable('ENOENT'));
+        mockDomainsRepository.update.mockResolvedValue(written);
+
+        await run([domain({ certificateState: 'failed', certificateError: 'EACCES' })]);
+
+        expect(mockDomainsRepository.update).toHaveBeenCalledWith(
+            'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+            {},
+            'failed',
+            'ENOENT',
+        );
+    });
+
+    it('clears the reason of a domain the store now lists', async () => {
+        const written = domain({ certificateState: 'ready' });
+        mockReverseProxy.getCertificateStates.mockResolvedValue(states([['app.example.com', 'ready']]));
+        mockDomainsRepository.update.mockResolvedValue(written);
+
+        const result = await run([domain({ certificateState: 'failed', certificateError: 'EACCES' })]);
+
+        expect(mockDomainsRepository.update).toHaveBeenCalledWith(
+            'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+            {},
+            'ready',
+            null,
+        );
+        expect(result).toEqual([written]);
     });
 
     it('propagates an error of the proxy', async () => {
