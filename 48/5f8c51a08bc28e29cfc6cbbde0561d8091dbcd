@@ -1,0 +1,31 @@
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_1d8b7903bd43c3::t_6432c9e8446dcb 186-193,196-198
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_1d8b7903bd43c3::t_846815a5ba0aeb 6,110-139
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts
+  s_2b46102efc20c8::t_15d03418c181d0 30,119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "485f8c51a08bc28e29cfc6cbbde0561d8091dbcd",
+  "prompts": {},
+  "sessions": {
+    "s_1d8b7903bd43c3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3b139426-1837-4b39-b5a1-ac076236ba3c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_2b46102efc20c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af5ebb46badbc2e2f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
