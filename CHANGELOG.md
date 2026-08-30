@@ -1,3 +1,14 @@
+## [2.5.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.4.0...v2.5.0) (2026-08-30)
+
+### Features
+
+* show domains form after button click ([d45ab8c](https://github.com/GitOpsLovers/gitpaas/commit/d45ab8c1f45e5b7ada27f4ed0931a6ffaf1d8467))
+* **sidebar:** add version block to sidebar ([#175](https://github.com/GitOpsLovers/gitpaas/issues/175)) ([d6ce5db](https://github.com/GitOpsLovers/gitpaas/commit/d6ce5dbbdef0f0248b5609a2f19a5dc8fdb8c848))
+
+### Bug Fixes
+
+* clear old GitPaaS unused images ([485f8c5](https://github.com/GitOpsLovers/gitpaas/commit/485f8c51a08bc28e29cfc6cbbde0561d8091dbcd))
+
 ## [2.4.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.3.0...v2.4.0) (2026-08-30)
 
 ### Features
