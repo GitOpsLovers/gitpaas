@@ -98,6 +98,11 @@ export class ServiceDomainsComponent {
 
     protected readonly maxPort = DOMAIN_PORT_MAX;
 
+    /**
+     * Whether the form shows. It stays hidden until the user asks for it.
+     */
+    protected readonly formVisible = signal(false);
+
     protected readonly editing = signal<Domain | null>(null);
 
     protected readonly host = signal('');
@@ -134,7 +139,7 @@ export class ServiceDomainsComponent {
             this.domains();
 
             untracked(() => {
-                this.reset();
+                this.close();
             });
         });
     }
@@ -171,7 +176,15 @@ export class ServiceDomainsComponent {
     }
 
     /**
-     * Loads a claimed domain into the form.
+     * Shows an empty form, so the user claims a new domain.
+     */
+    protected open(): void {
+        this.reset();
+        this.formVisible.set(true);
+    }
+
+    /**
+     * Loads a claimed domain into the form and shows it.
      *
      * @param domain Domain to change
      */
@@ -181,6 +194,15 @@ export class ServiceDomainsComponent {
         this.targetService.set(domain.targetService);
         this.port.set(domain.port);
         this.https.set(domain.https);
+        this.formVisible.set(true);
+    }
+
+    /**
+     * Hides the form, and empties it.
+     */
+    protected close(): void {
+        this.reset();
+        this.formVisible.set(false);
     }
 
     /**

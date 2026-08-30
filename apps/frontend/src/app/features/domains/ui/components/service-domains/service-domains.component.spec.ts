@@ -10,6 +10,7 @@ import { DomainChange, ServiceDomainsComponent } from './service-domains.compone
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
 
 interface ServiceDomainsInternals {
+    formVisible: () => boolean;
     editing: () => Domain | null;
     isEditing: () => boolean;
     canSubmit: () => boolean;
@@ -17,7 +18,9 @@ interface ServiceDomainsInternals {
     targetService: WritableSignal<string>;
     port: () => number;
     https: () => boolean;
+    open: () => void;
     edit: (domain: Domain) => void;
+    close: () => void;
     reset: () => void;
     onHostChange: (value: string | number) => void;
     onPortChange: (value: string | number) => void;
@@ -101,6 +104,11 @@ describe('ServiceDomainsComponent', () => {
         component.onSubmit(new Event('submit'));
     };
 
+    const openForm = (): void => {
+        component.open();
+        fixture.detectChanges();
+    };
+
     beforeEach(() => {
         TestBed.configureTestingModule({ imports: [ServiceDomainsComponent] });
     });
@@ -144,7 +152,7 @@ describe('ServiceDomainsComponent', () => {
         test('invites the first claim when the service holds no domain', () => {
             create([]);
 
-            expect(text()).toContain('No domains yet. Claim the first one below.');
+            expect(text()).toContain('No domains yet. Claim the first one with the button above.');
         });
 
         test('announces the loading while the list arrives', () => {
@@ -154,17 +162,66 @@ describe('ServiceDomainsComponent', () => {
             expect(text()).not.toContain('No domains yet.');
         });
 
-        test('says that a domain answers after the next deployment, and that the certificate follows', () => {
+        test('says that a change takes effect with the next deployment', () => {
             create([]);
 
-            expect(text()).toContain('A domain answers after the next deployment');
-            expect(text()).toContain('the certificate arrives some minutes later');
+            expect(text()).toContain('The changes will take effect with the next service deployment.');
+        });
+    });
+
+    describe('the visibility of the form', () => {
+        test('hides the form until the user asks for it', () => {
+            create([]);
+
+            expect(component.formVisible()).toBe(false);
+            expect(text()).not.toContain('Compose service');
+        });
+
+        test('shows an empty form when the user asks for it', () => {
+            create([]);
+
+            openForm();
+
+            expect(component.formVisible()).toBe(true);
+            expect(component.isEditing()).toBe(false);
+            expect(component.host()).toBe('');
+        });
+
+        test('shows the form when the user changes a claimed domain', () => {
+            create([ready]);
+
+            component.edit(ready);
+
+            expect(component.formVisible()).toBe(true);
+        });
+
+        test('hides the form and empties it when the user cancels', () => {
+            create([ready]);
+
+            component.edit(ready);
+            component.close();
+
+            expect(component.formVisible()).toBe(false);
+            expect(component.isEditing()).toBe(false);
+            expect(component.host()).toBe('');
+        });
+
+        test('hides the form when the list reloads after a write', () => {
+            create([ready]);
+
+            openForm();
+            fixture.componentRef.setInput('domains', [ready, plain]);
+            fixture.detectChanges();
+
+            expect(component.formVisible()).toBe(false);
         });
     });
 
     describe('the claim', () => {
         test('offers the compose services of the last deployment as the options of the target', () => {
             create([]);
+
+            openForm();
 
             expect(select()?.options()).toEqual<Select2Option[]>([
                 { value: 'web', label: 'web' },
@@ -174,6 +231,8 @@ describe('ServiceDomainsComponent', () => {
 
         test('asks for a deployment when the last recipe declares no compose service', () => {
             create([], []);
+
+            openForm();
 
             expect(select()).toBeUndefined();
             expect(text()).toContain('Deploy this service once');
@@ -244,6 +303,8 @@ describe('ServiceDomainsComponent', () => {
         test('shows the reason the API refused the claim', () => {
             create([], COMPOSE_SERVICES, false, false, 'Another service already holds this domain.');
 
+            openForm();
+
             expect(text()).toContain('Another service already holds this domain.');
         });
     });
@@ -281,7 +342,7 @@ describe('ServiceDomainsComponent', () => {
             create([ready]);
 
             component.edit(ready);
-            component.reset();
+            component.close();
 
             expect(component.isEditing()).toBe(false);
             expect(component.host()).toBe('');

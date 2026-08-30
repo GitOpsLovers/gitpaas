@@ -1,11 +1,13 @@
 <app-component-card title="Domains" desc="The public hosts that reach the compose services of this service.">
+    <app-button card-action size="sm" (btnClick)="open()">
+        <svg lucidePlus class="h-4 w-4"></svg>
+        Add Domain
+    </app-button>
+
     <div
         class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
     >
-        <p>
-            A domain answers after the next deployment, because the routing travels in the labels of the stack. When
-            HTTPS is on, the certificate arrives some minutes later.
-        </p>
+        <p>The changes will take effect with the next service deployment.</p>
     </div>
 
     @if (domains().length > 0) {
@@ -71,89 +73,89 @@
             @if (loading()) {
                 Loading domains…
             } @else {
-                No domains yet. Claim the first one below.
+                No domains yet. Claim the first one with the button above.
             }
         </p>
     }
 
-    <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
-        <div class="grid gap-4 sm:grid-cols-3">
-            <div>
-                <app-label for="domain-host">Host</app-label>
-                <app-input-field
-                    id="domain-host"
-                    name="domain-host"
-                    placeholder="api.example.com"
-                    [value]="host()"
-                    [error]="error() !== null"
-                    (valueChange)="onHostChange($event)"
-                />
-            </div>
-
-            <div>
-                <app-label for="domain-target-service">Compose service</app-label>
-                @if (composeServices().length > 0) {
-                    <app-select2
-                        [options]="targetOptions()"
-                        [value]="targetService()"
-                        (valueChange)="targetService.set($event)"
-                        placeholder="Select a compose service…"
+    @if (formVisible()) {
+        <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div>
+                    <app-label for="domain-host">Host</app-label>
+                    <app-input-field
+                        id="domain-host"
+                        name="domain-host"
+                        placeholder="api.example.com"
+                        [value]="host()"
+                        [error]="error() !== null"
+                        (valueChange)="onHostChange($event)"
                     />
-                } @else {
-                    <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                        Deploy this service once, so GitPaaS can read the compose services of its recipe.
-                    </p>
-                }
+                </div>
+
+                <div>
+                    <app-label for="domain-target-service">Compose service</app-label>
+                    @if (composeServices().length > 0) {
+                        <app-select2
+                            [options]="targetOptions()"
+                            [value]="targetService()"
+                            (valueChange)="targetService.set($event)"
+                            placeholder="Select a compose service…"
+                        />
+                    } @else {
+                        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                            Deploy this service once, so GitPaaS can read the compose services of its recipe.
+                        </p>
+                    }
+                </div>
+
+                <div>
+                    <app-label for="domain-port">Port</app-label>
+                    <app-input-field
+                        id="domain-port"
+                        name="domain-port"
+                        type="number"
+                        [min]="minPort.toString()"
+                        [max]="maxPort.toString()"
+                        [value]="port()"
+                        (valueChange)="onPortChange($event)"
+                    />
+                </div>
             </div>
 
-            <div>
-                <app-label for="domain-port">Port</app-label>
-                <app-input-field
-                    id="domain-port"
-                    name="domain-port"
-                    type="number"
-                    [min]="minPort.toString()"
-                    [max]="maxPort.toString()"
-                    [value]="port()"
-                    (valueChange)="onPortChange($event)"
+            <div class="flex items-center gap-3">
+                <input
+                    id="domain-https"
+                    type="checkbox"
+                    [checked]="https()"
+                    (change)="https.set($any($event.target).checked)"
+                    class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
                 />
+                <label for="domain-https" class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400">
+                    Serve this host over HTTPS. The proxy gets and renews the certificate of Let's Encrypt by itself.
+                </label>
             </div>
-        </div>
 
-        <div class="flex items-center gap-3">
-            <input
-                id="domain-https"
-                type="checkbox"
-                [checked]="https()"
-                (change)="https.set($any($event.target).checked)"
-                class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
-            />
-            <label for="domain-https" class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400">
-                Serve this host over HTTPS. The proxy gets and renews the certificate of Let's Encrypt by itself.
-            </label>
-        </div>
+            @if (error()) {
+                <p class="text-sm text-error-500">{{ error() }}</p>
+            }
 
-        @if (error()) {
-            <p class="text-sm text-error-500">{{ error() }}</p>
-        }
+            <div class="flex items-center gap-2">
+                <app-button type="submit" size="sm" [disabled]="saving() || !canSubmit()">
+                    @if (isEditing()) {
+                        <svg lucidePencil class="h-4 w-4"></svg>
+                        {{ saving() ? 'Saving…' : 'Save domain' }}
+                    } @else {
+                        <svg lucidePlus class="h-4 w-4"></svg>
+                        {{ saving() ? 'Saving…' : 'Claim domain' }}
+                    }
+                </app-button>
 
-        <div class="flex items-center gap-2">
-            <app-button type="submit" size="sm" [disabled]="saving() || !canSubmit()">
-                @if (isEditing()) {
-                    <svg lucidePencil class="h-4 w-4"></svg>
-                    {{ saving() ? 'Saving…' : 'Save domain' }}
-                } @else {
-                    <svg lucidePlus class="h-4 w-4"></svg>
-                    {{ saving() ? 'Saving…' : 'Claim domain' }}
-                }
-            </app-button>
-
-            @if (isEditing()) {
-                <app-button variant="outline" size="sm" (btnClick)="reset()">
+                <app-button variant="outline" size="sm" (btnClick)="close()">
                     <svg lucideX class="h-4 w-4"></svg>
                     Cancel
                 </app-button>
-            }
-        </div>
-    </form>
+            </div>
+        </form>
+    }
 </app-component-card>
