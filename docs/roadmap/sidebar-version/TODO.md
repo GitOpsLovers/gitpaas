@@ -7,13 +7,13 @@ The sidebar of the frontend shows no version, so a user cannot tell which releas
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/layout/ui/components/sidebar/
 
-- [ ] 1.1 Rename the component `sidebar-widget` into `sidebar-version`, with its folder, its class, its selector and its files of test, and update the template of `sidebar.component.html` that renders it.
-- [ ] 1.2 Give `SidebarVersionComponent` the repository `ServerApiRepository` in its own array `providers`, and read `updateStatus()` one time when the component starts.
-- [ ] 1.3 Show the block only when the role of the current user is `admin`, with the same check that `server-maintenance.component.ts` uses.
-- [ ] 1.4 Show the text of `installedVersion` at the bottom of the sidebar, and show it only when the sidebar is expanded, hovered or open on mobile, as the old widget was.
-- [ ] 1.5 Show a button with the label `Update to <latestVersion>` when the field `update` is true, and hide it when the field is false. The button navigates to `/server/maintenance`.
-- [ ] 1.6 Write the unit tests of `SidebarVersionComponent`: the non-admin user, the admin user without an update, and the admin user with an update.
-- [ ] 1.7 Run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
+- [x] 1.1 Rename the component `sidebar-widget` into `sidebar-version`, with its folder, its class, its selector and its files of test, and update the template of `sidebar.component.html` that renders it.
+- [x] 1.2 Give `SidebarVersionComponent` the repository `ServerApiRepository` in its own array `providers`, and read `updateStatus()` one time when the component starts.
+- [x] 1.3 Show the block only when the role of the current user is `admin`, with the same check that `server-maintenance.component.ts` uses.
+- [x] 1.4 Show the text of `installedVersion` at the bottom of the sidebar, and show it only when the sidebar is expanded, hovered or open on mobile, as the old widget was.
+- [x] 1.5 Show a button with the label `Update to <latestVersion>` when the field `update` is true, and hide it when the field is false. The button navigates to `/server/maintenance`.
+- [x] 1.6 Write the unit tests of `SidebarVersionComponent`: the non-admin user, the admin user without an update, and the admin user with an update.
+- [x] 1.7 Run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
 
 ## Phase 2 — The documentation
 
