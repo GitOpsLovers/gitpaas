@@ -1,8 +1,10 @@
 @if (projects.isLoading()) {
-    <p class="text-sm text-gray-500 dark:text-gray-400">Loading projects…</p>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <app-skeleton variant="card" [count]="8" />
+    </div>
 } @else if (projects.error()) {
     <div
-        class="rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
+        class="flex min-h-40 items-center rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
     >
         Could not load projects. Is the backend running?
     </div>
@@ -18,7 +20,9 @@
         }
     </div>
 } @else {
-    <div class="rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
+    <div
+        class="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700"
+    >
         <p class="text-sm text-gray-500 dark:text-gray-400">No projects yet.</p>
         <a
             [routerLink]="['/namespaces', namespaceId(), 'projects', 'add']"

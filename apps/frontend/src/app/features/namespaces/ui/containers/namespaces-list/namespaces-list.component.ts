@@ -7,12 +7,13 @@ import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-
 import { NamespaceCardComponent } from '../../components/namespace-card/namespace-card.component';
 
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-namespaces-list',
     templateUrl: './namespaces-list.component.html',
-    imports: [RouterLink, NamespaceCardComponent, ConfirmModalComponent],
+    imports: [RouterLink, NamespaceCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**

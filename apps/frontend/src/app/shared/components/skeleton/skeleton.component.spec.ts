@@ -17,6 +17,7 @@ describe('SkeletonComponent', () => {
 
     const bars = (): HTMLElement[] => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('div'));
 
+    // eslint-disable-next-line security/detect-object-injection
     const classesOf = (index = 0): string => bars()[index]?.className ?? '';
 
     beforeEach(() => {

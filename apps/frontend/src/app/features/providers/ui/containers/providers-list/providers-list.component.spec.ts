@@ -283,12 +283,17 @@ describe('ProvidersListComponent', () => {
             });
         });
 
-        test('announces the reading while it runs', () => {
+        test('shows a grid of eight skeleton cards while the reading runs', () => {
             isLoading.set(true);
             value.set(undefined);
             create();
 
-            expect(text()).toContain('Loading providers…');
+            const skeleton = fixture.nativeElement.querySelector('app-skeleton') as HTMLElement;
+
+            expect(skeleton).not.toBeNull();
+            expect(skeleton.querySelectorAll('div')).toHaveLength(8);
+            expect(skeleton.querySelector('div')?.className).toContain('h-40');
+            expect(text()).not.toContain('Loading providers…');
             expect(fixture.nativeElement.querySelector('app-provider-card')).toBeNull();
         });
 

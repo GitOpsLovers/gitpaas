@@ -7,13 +7,14 @@ import { ServicesApiRepository } from '../../../infrastructure/api/services-api.
 import { ServiceCardComponent } from '../../components/service-card/service-card.component';
 
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-services-list',
     templateUrl: './services-list.component.html',
     providers: [ServicesApiRepository],
-    imports: [RouterLink, ServiceCardComponent, ConfirmModalComponent],
+    imports: [RouterLink, ServiceCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**

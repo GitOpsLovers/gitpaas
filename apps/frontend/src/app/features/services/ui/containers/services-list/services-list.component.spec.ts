@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import type { Service } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
@@ -34,7 +34,13 @@ const service: Service = {
 describe('ServicesListComponent', () => {
     let repository: {
         projectId: ReturnType<typeof signal<string | undefined>>;
-        services: { reload: ReturnType<typeof vi.fn> };
+        services: {
+            reload: ReturnType<typeof vi.fn>;
+            isLoading?: () => boolean;
+            error?: () => unknown;
+            hasValue?: () => boolean;
+            value?: () => Service[] | undefined;
+        };
         delete: ReturnType<typeof vi.fn>;
     };
     let router: { navigate: ReturnType<typeof vi.fn> };
@@ -170,5 +176,44 @@ describe('ServicesListComponent', () => {
         expect(repository.services.reload).not.toHaveBeenCalled();
         expect(component.deleting()).toBe(false);
         expect(component.pendingDelete()).toBeNull();
+    });
+
+    describe('the loading state', () => {
+        const createLoading = (): HTMLElement => {
+            TestBed.resetTestingModule();
+            TestBed.configureTestingModule({
+                imports: [ServicesListComponent],
+                providers: [provideRouter([]), { provide: ToastService, useValue: toast }],
+            });
+            TestBed.overrideComponent(ServicesListComponent, {
+                set: { providers: [{ provide: ServicesApiRepository, useValue: repository }] },
+            });
+
+            const loading = TestBed.createComponent(ServicesListComponent);
+
+            loading.componentRef.setInput('namespaceId', 'ns-1');
+            loading.componentRef.setInput('projectId', 'pr-1');
+            loading.detectChanges();
+
+            return loading.nativeElement as HTMLElement;
+        };
+
+        beforeEach(() => {
+            repository.services = {
+                ...repository.services,
+                isLoading: () => true,
+                error: () => undefined,
+                hasValue: () => false,
+                value: () => undefined,
+            };
+        });
+
+        test('shows a grid of eight skeleton cards while the services load', () => {
+            const element = createLoading();
+
+            expect(element.querySelectorAll('app-skeleton div')).toHaveLength(8);
+            expect(element.textContent).not.toContain('No services yet.');
+            expect(element.textContent).not.toContain('Could not load services.');
+        });
     });
 });
