@@ -54,6 +54,9 @@ RUN pnpm --filter @gitpaas/frontend build
 # ---------------------------------------------------------------------------
 FROM nginxinc/nginx-unprivileged:${NGINX_VERSION} AS runtime
 
+# Marks the image as GitPaaS-owned.
+LABEL io.gitpaas.managed="true"
+
 # The release workflow passes the tag of the release as APP_VERSION
 ARG APP_VERSION=
 ENV APP_VERSION=${APP_VERSION}

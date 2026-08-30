@@ -27,6 +27,7 @@ import { recordDependencyCall } from '../telemetry/telemetry-deps';
 import {
     toContainerRuntimeInfo,
     toContainerSummary,
+    toImagePruneFilter,
     toImageSummary,
     toLabelFilter,
     toNetworkSummary,
@@ -115,7 +116,7 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
     }
 
     public async pruneImages(selector: RuntimeSelector): Promise<RuntimePruneReport> {
-        const filters = toLabelFilter(selector);
+        const filters = toImagePruneFilter(selector);
         const { ImagesDeleted, SpaceReclaimed } = await this.run(() => this.getClient().pruneImages({ filters }));
 
         return toPruneReport(ImagesDeleted, SpaceReclaimed);

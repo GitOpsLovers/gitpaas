@@ -73,6 +73,9 @@ FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
+# Marks the image as GitPaaS-owned.
+LABEL io.gitpaas.managed="true"
+
 # Ship only what the app needs at runtime.
 COPY --from=build /prod/backend/node_modules ./node_modules
 COPY --from=build /prod/backend/package.json ./package.json

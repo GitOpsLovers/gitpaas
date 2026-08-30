@@ -24,10 +24,15 @@ interface DockerDaemonInfo {
 
 /**
  * A Docker label filter fragment, as the daemon's `filters` query expects it.
- * Deliberately a type alias, not an interface: Dockerode's `filters` option requires the implicit index signature only aliases get.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type DockerLabelFilter = { label: string[] };
+
+/**
+ * A Docker image prune filter fragment, as the daemon's `filters` query expects it.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DockerImagePruneFilter = { label: string[]; dangling: string[] };
 
 /**
  * Compose label Docker stamps on every resource it groups under a stack.
@@ -70,6 +75,17 @@ export function toLabelFilter(selector: RuntimeSelector): DockerLabelFilter {
     return {
         label: Object.entries(labels).map(([key, value]) => (value === null ? key : `${key}=${value}`)),
     };
+}
+
+/**
+ * Serialises a domain selector into the daemon's `filters` shape for an image prune.
+ *
+ * @param selector Domain selector describing the images to match
+ *
+ * @returns Image prune filter fragment the daemon's `filters` query expects
+ */
+export function toImagePruneFilter(selector: RuntimeSelector): DockerImagePruneFilter {
+    return { ...toLabelFilter(selector), dangling: ['false'] };
 }
 
 /**

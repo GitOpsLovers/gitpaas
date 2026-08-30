@@ -183,9 +183,19 @@ describe('DockerContainerRuntimeAdapter', () => {
         it('scopes a query to GitPaaS-managed resources', async () => {
             const { sut, daemon } = buildSut();
 
+            await sut.listImages({ labels: getGitpaasLabels() });
+
+            expect(daemon.listImages).toHaveBeenCalledWith({ filters: { label: ['io.gitpaas.managed=true'] } });
+        });
+
+        it('adds the dangling=false filter to the image prune, so an obsolete tagged image is pruned too', async () => {
+            const { sut, daemon } = buildSut();
+
             await sut.pruneImages({ labels: getGitpaasLabels() });
 
-            expect(daemon.pruneImages).toHaveBeenCalledWith({ filters: { label: ['io.gitpaas.managed=true'] } });
+            expect(daemon.pruneImages).toHaveBeenCalledWith({
+                filters: { label: ['io.gitpaas.managed=true'], dangling: ['false'] },
+            });
         });
 
         it('adds the GitPaaS project label to the marker', async () => {

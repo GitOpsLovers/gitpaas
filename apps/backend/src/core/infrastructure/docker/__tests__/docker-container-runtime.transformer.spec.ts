@@ -3,6 +3,7 @@ import type Docker from 'dockerode';
 import {
     toContainerRuntimeInfo,
     toContainerSummary,
+    toImagePruneFilter,
     toImageSummary,
     toLabelFilter,
     toNetworkSummary,
@@ -105,6 +106,36 @@ describe('toLabelFilter', () => {
         first.label.push('io.gitpaas.project=anything');
 
         expect(toLabelFilter({ labels: getGitpaasLabels() })).toEqual({ label: ['io.gitpaas.managed=true'] });
+    });
+});
+
+describe('toImagePruneFilter', () => {
+    it('keeps the serialised label filter of the selector', () => {
+        expect(toImagePruneFilter({ labels: getGitpaasLabels(), project: 'my-service' })).toEqual({
+            label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'],
+            dangling: ['false'],
+        });
+    });
+
+    it('adds the dangling=false filter, so an obsolete tagged image is pruned too', () => {
+        expect(toImagePruneFilter({ labels: getGitpaasLabels() })).toEqual({
+            label: ['io.gitpaas.managed=true'],
+            dangling: ['false'],
+        });
+    });
+
+    it('keeps the dangling=false filter when the selector is empty', () => {
+        expect(toImagePruneFilter({})).toEqual({ label: [], dangling: ['false'] });
+    });
+
+    it('hands out a fresh filter per call, so a caller mutating one cannot widen another', () => {
+        const first = toImagePruneFilter({ labels: getGitpaasLabels() });
+        first.dangling.push('true');
+
+        expect(toImagePruneFilter({ labels: getGitpaasLabels() })).toEqual({
+            label: ['io.gitpaas.managed=true'],
+            dangling: ['false'],
+        });
     });
 });
 
