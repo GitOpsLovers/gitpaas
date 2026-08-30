@@ -1,0 +1,21 @@
+docs/business/frontend-shell.md
+  s_1ce2fe9f1812eb::t_c41794fb3c89cc 39-66
+docs/business/server.md
+  s_1ce2fe9f1812eb::t_7be73b79b0c8bc 215-216
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f6a655fcd8185e7f795acc8aae130eaa4e985664",
+  "prompts": {},
+  "sessions": {
+    "s_1ce2fe9f1812eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a41a8c1a8eb514e0e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
