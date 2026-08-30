@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import type { Namespace } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
@@ -136,5 +136,43 @@ describe('NamespacesListComponent', () => {
         expect(namespaces.reload).not.toHaveBeenCalled();
         expect(component.deleting()).toBe(false);
         expect(component.pendingDelete()).toBeNull();
+    });
+
+    describe('the loading state', () => {
+        const createLoading = (): HTMLElement => {
+            TestBed.resetTestingModule();
+            TestBed.configureTestingModule({
+                imports: [NamespacesListComponent],
+                providers: [
+                    provideRouter([]),
+                    { provide: NamespacesApiRepository, useValue: repository },
+                    { provide: ToastService, useValue: toast },
+                ],
+            });
+
+            const fixture = TestBed.createComponent(NamespacesListComponent);
+
+            fixture.detectChanges();
+
+            return fixture.nativeElement as HTMLElement;
+        };
+
+        beforeEach(() => {
+            repository.namespaces.mockReturnValue({
+                ...namespaces,
+                isLoading: () => true,
+                error: () => undefined,
+                hasValue: () => false,
+                value: () => undefined,
+            });
+        });
+
+        test('shows a grid of eight skeleton cards while the namespaces load', () => {
+            const element = createLoading();
+
+            expect(element.querySelectorAll('app-skeleton div')).toHaveLength(8);
+            expect(element.textContent).not.toContain('No namespaces yet.');
+            expect(element.textContent).not.toContain('Could not load namespaces.');
+        });
     });
 });

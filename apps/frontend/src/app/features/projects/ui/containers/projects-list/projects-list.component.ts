@@ -7,13 +7,14 @@ import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.
 import { ProjectCardComponent } from '../../components/project-card/project-card.component';
 
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-projects-list',
     templateUrl: './projects-list.component.html',
     providers: [ProjectsApiRepository],
-    imports: [RouterLink, ProjectCardComponent, ConfirmModalComponent],
+    imports: [RouterLink, ProjectCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**

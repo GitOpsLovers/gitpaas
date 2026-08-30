@@ -18,9 +18,9 @@ Every loading state of `apps/frontend` is a short sentence, and it takes much le
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/{projects,providers,namespaces,services}/ui/containers/*-list/
 
-- [ ] 2.1 Replace the sentence of the loading state of the four list containers with `app-skeleton` of the variant `card` and `count` 8, inside the same classes of the grid.
-- [ ] 2.2 Give the empty state and the error state of the four containers a minimum height that equals the height of one card.
-- [ ] 2.3 Extend the spec of each container with a test of the branch of the loading state.
+- [x] 2.1 Replace the sentence of the loading state of the four list containers with `app-skeleton` of the variant `card` and `count` 8, inside the same classes of the grid.
+- [x] 2.2 Give the empty state and the error state of the four containers a minimum height that equals the height of one card.
+- [x] 2.3 Extend the spec of each container with a test of the branch of the loading state.
 
 ## Phase 3 — The tables
 

@@ -8,6 +8,7 @@ import { ProvidersApiRepository } from '../../../infrastructure/api/providers-ap
 import { ProviderCardComponent, ProviderConnectionState } from '../../components/provider-card/provider-card.component';
 
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 /**
@@ -31,7 +32,7 @@ interface ProviderConnectionResult {
     selector: 'app-providers-list',
     templateUrl: './providers-list.component.html',
     providers: [ProvidersApiRepository],
-    imports: [RouterLink, ProviderCardComponent, ConfirmModalComponent],
+    imports: [RouterLink, ProviderCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**
