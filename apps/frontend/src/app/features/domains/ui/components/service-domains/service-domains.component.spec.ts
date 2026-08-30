@@ -97,6 +97,12 @@ describe('ServiceDomainsComponent', () => {
     const rows = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody tr')];
 
+    const skeletons = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody app-skeleton')];
+
+    const headers = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
+
     const select = (): Select2Component | undefined =>
         fixture.debugElement.query(By.directive(Select2Component))?.componentInstance as Select2Component | undefined;
 
@@ -155,10 +161,12 @@ describe('ServiceDomainsComponent', () => {
             expect(text()).toContain('No domains yet. Claim the first one with the button above.');
         });
 
-        test('announces the loading while the list arrives', () => {
+        test('keeps the head of the table and shows five skeleton rows while the list arrives', () => {
             create([], COMPOSE_SERVICES, true);
 
-            expect(text()).toContain('Loading domains…');
+            expect(headers()).toHaveLength(6);
+            expect(skeletons()).toHaveLength(5);
+            expect(text()).not.toContain('Loading domains…');
             expect(text()).not.toContain('No domains yet.');
         });
 

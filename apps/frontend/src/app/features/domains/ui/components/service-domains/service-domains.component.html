@@ -10,7 +10,7 @@
         <p>The changes will take effect with the next service deployment.</p>
     </div>
 
-    @if (domains().length > 0) {
+    @if (loading() || domains().length > 0) {
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
                 <thead>
@@ -26,55 +26,61 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    @for (domain of domains(); track domain.id) {
-                        <tr class="text-gray-600 dark:text-gray-300">
-                            <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
-                                <span class="inline-flex items-center gap-1.5">
-                                    <svg lucideGlobe class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
-                                    <span class="block max-w-[16rem] truncate font-mono" [title]="domain.host">
-                                        {{ domain.host }}
+                    @if (loading()) {
+                        @for (row of skeletonRows; track row) {
+                            <tr>
+                                <td class="px-4" colspan="6">
+                                    <app-skeleton variant="row" />
+                                </td>
+                            </tr>
+                        }
+                    } @else {
+                        @for (domain of domains(); track domain.id) {
+                            <tr class="text-gray-600 dark:text-gray-300">
+                                <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <svg lucideGlobe class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                        <span class="block max-w-[16rem] truncate font-mono" [title]="domain.host">
+                                            {{ domain.host }}
+                                        </span>
                                     </span>
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap font-mono">{{ domain.targetService }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">{{ domain.port }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">{{ domain.https ? 'Yes' : 'No' }}</td>
-                            <td class="px-4 py-3">
-                                <span
-                                    class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                    [class]="certificateBadgeClass(domain.certificateState)"
-                                >
-                                    {{ certificateLabel(domain.certificateState) }}
-                                </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap font-mono">{{ domain.targetService }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ domain.port }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ domain.https ? 'Yes' : 'No' }}</td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                        [class]="certificateBadgeClass(domain.certificateState)"
+                                    >
+                                        {{ certificateLabel(domain.certificateState) }}
+                                    </span>
 
-                                @if (domain.certificateState === 'failed' && domain.certificateError) {
-                                    <p class="mt-1 max-w-[18rem] text-xs text-error-500">
-                                        {{ domain.certificateError }}
-                                    </p>
-                                }
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center justify-end gap-2">
-                                    <app-button variant="outline" size="xs" (btnClick)="edit(domain)">
-                                        <svg lucidePencil class="h-4 w-4"></svg>
-                                    </app-button>
-                                    <app-button variant="danger" size="xs" (btnClick)="remove.emit(domain)">
-                                        <svg lucideTrash2 class="h-4 w-4"></svg>
-                                    </app-button>
-                                </div>
-                            </td>
-                        </tr>
+                                    @if (domain.certificateState === 'failed' && domain.certificateError) {
+                                        <p class="mt-1 max-w-[18rem] text-xs text-error-500">
+                                            {{ domain.certificateError }}
+                                        </p>
+                                    }
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <app-button variant="outline" size="xs" (btnClick)="edit(domain)">
+                                            <svg lucidePencil class="h-4 w-4"></svg>
+                                        </app-button>
+                                        <app-button variant="danger" size="xs" (btnClick)="remove.emit(domain)">
+                                            <svg lucideTrash2 class="h-4 w-4"></svg>
+                                        </app-button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
         </div>
     } @else {
-        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-            @if (loading()) {
-                Loading domains…
-            } @else {
-                No domains yet. Claim the first one with the button above.
-            }
+        <p class="flex min-h-55 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            No domains yet. Claim the first one with the button above.
         </p>
     }
 

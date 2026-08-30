@@ -7,6 +7,7 @@ import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 /**
  * The label each state of a network of a service carries in the table.
@@ -26,6 +27,7 @@ const STATE_LABELS: Record<NetworkState, string> = {
         DatePipe,
         LabelComponent,
         Select2Component,
+        SkeletonComponent,
         LucidePlus,
     ],
 })
@@ -58,6 +60,11 @@ export class ServiceNetworksComponent {
      * Emitted when the user joins the service to a network of its project.
      */
     public readonly join = output<ProjectNetwork>();
+
+    /**
+     * The rows the skeleton of the table shows while the list loads.
+     */
+    protected readonly skeletonRows = [0, 1, 2, 3, 4];
 
     protected readonly selectedNetworkId = signal('');
 

@@ -10,6 +10,7 @@ import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 /**
  * A change of one stored variable, with the values the form holds.
@@ -27,6 +28,7 @@ export interface ServiceVariableChange {
         ComponentCardComponent,
         InputFieldComponent,
         LabelComponent,
+        SkeletonComponent,
         LucideLock,
         LucidePencil,
         LucidePlus,
@@ -73,6 +75,11 @@ export class ServiceVariablesComponent {
      * Emitted when the user removes a stored variable.
      */
     public readonly remove = output<ServiceVariable>();
+
+    /**
+     * The rows the skeleton of the table shows while the list loads.
+     */
+    protected readonly skeletonRows = [0, 1, 2, 3, 4];
 
     /**
      * Whether the form shows. It stays hidden until the user asks for it.

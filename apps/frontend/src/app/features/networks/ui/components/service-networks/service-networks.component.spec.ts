@@ -80,6 +80,12 @@ describe('ServiceNetworksComponent', () => {
     const rows = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody tr')];
 
+    const skeletons = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody app-skeleton')];
+
+    const headers = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
+
     const select = (): Select2Component | undefined =>
         fixture.debugElement.query(By.directive(Select2Component))?.componentInstance as Select2Component | undefined;
 
@@ -118,10 +124,12 @@ describe('ServiceNetworksComponent', () => {
             expect(text()).toContain('No networks for this service.');
         });
 
-        test('announces the loading while the list arrives', () => {
+        test('keeps the head of the table and shows five skeleton rows while the list arrives', () => {
             create([], [], true);
 
-            expect(text()).toContain('Loading networks…');
+            expect(headers()).toHaveLength(7);
+            expect(skeletons()).toHaveLength(5);
+            expect(text()).not.toContain('Loading networks…');
             expect(text()).not.toContain('No networks for this service.');
         });
     });

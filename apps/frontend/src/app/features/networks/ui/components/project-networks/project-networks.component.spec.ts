@@ -71,6 +71,12 @@ describe('ProjectNetworksComponent', () => {
     const rows = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody tr')];
 
+    const skeletons = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody app-skeleton')];
+
+    const headers = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
+
     const rowButtons = (row: HTMLElement): HTMLButtonElement[] =>
         [...row.querySelectorAll<HTMLButtonElement>('app-button button')];
 
@@ -115,10 +121,12 @@ describe('ProjectNetworksComponent', () => {
             expect(text()).toContain('No networks yet. Create the first one below.');
         });
 
-        test('announces the loading while the list arrives', () => {
+        test('keeps the head of the table and shows five skeleton rows while the list arrives', () => {
             create([], true);
 
-            expect(text()).toContain('Loading networks…');
+            expect(headers()).toHaveLength(4);
+            expect(skeletons()).toHaveLength(5);
+            expect(text()).not.toContain('Loading networks…');
             expect(text()).not.toContain('No networks yet.');
         });
 
