@@ -1,3 +1,14 @@
+## [2.4.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.3.0...v2.4.0) (2026-08-30)
+
+### Features
+
+* add namespaces to breadcrumbs ([8e4eec6](https://github.com/GitOpsLovers/gitpaas/commit/8e4eec65205b0aa6ade503c3650d6a917a672e88))
+* rename configuration tab to environment ([888e590](https://github.com/GitOpsLovers/gitpaas/commit/888e59000c9c26ef51f585ad7fba356ec0afbb66))
+
+### Bug Fixes
+
+* certificate status error ([8ab05de](https://github.com/GitOpsLovers/gitpaas/commit/8ab05dec31de432c8b766a5568cef38940e1de3a))
+
 ## [2.3.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.2.1...v2.3.0) (2026-08-29)
 
 ### Features
