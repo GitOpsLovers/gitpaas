@@ -7,11 +7,11 @@ Every loading state of `apps/frontend` is a short sentence, and it takes much le
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/shared/components/skeleton/
 
-- [ ] 1.1 Verify that `animate-pulse` exists in the built CSS of Tailwind v4. If it is absent, add the animation to the block `@theme` of `apps/frontend/src/styles.css`.
-- [ ] 1.2 Create `skeleton.component.ts` and `skeleton.component.html` with the signal inputs `variant` (`text | card | row | circle`), `count` (default 1) and `className`.
-- [ ] 1.3 Resolve the classes of the variant with a accessor `get variantClasses()`, as `button.component.ts` does. Use `output()`, and never `@Output()`.
-- [ ] 1.4 Give the bar the classes `rounded-lg bg-gray-100 motion-safe:animate-pulse dark:bg-gray-800`. Add no attribute of ARIA.
-- [ ] 1.5 Write `skeleton.component.spec.ts` for the four variants and for the input `count`.
+- [x] 1.1 Verify that `animate-pulse` exists in the built CSS of Tailwind v4. If it is absent, add the animation to the block `@theme` of `apps/frontend/src/styles.css`.
+- [x] 1.2 Create `skeleton.component.ts` and `skeleton.component.html` with the signal inputs `variant` (`text | card | row | circle`), `count` (default 1) and `className`.
+- [x] 1.3 Resolve the classes of the variant with a accessor `get variantClasses()`, as `button.component.ts` does. Use `output()`, and never `@Output()`.
+- [x] 1.4 Give the bar the classes `rounded-lg bg-gray-100 motion-safe:animate-pulse dark:bg-gray-800`. Add no attribute of ARIA.
+- [x] 1.5 Write `skeleton.component.spec.ts` for the four variants and for the input `count`.
 
 ## Phase 2 — The grids of cards
 
