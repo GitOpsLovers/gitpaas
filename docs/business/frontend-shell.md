@@ -111,6 +111,27 @@ The system SHALL keep the choice under the key `theme` of `localStorage`, and it
 - **WHEN** the user opens the application, and `localStorage` holds no choice
 - **THEN** the system applies the dark theme
 
+## The loading state of a screen
+
+The system SHALL show a skeleton in the shape of the content, while the screen loads it, in place of a sentence of text. The skeleton SHALL take about the same height as the content that replaces it, so the screen keeps one height while it moves from the loading state to the loaded state.
+
+The system SHALL give the error state and the empty state of a screen a minimum height as well, so the screen keeps one height across its four states: loading, error, empty and loaded.
+
+### Scenario: A screen loads its content
+
+- **WHEN** a user opens a screen that reads dynamic content from the API
+- **THEN** the system shows a skeleton in the shape of that content, until the content arrives
+
+### Scenario: The content fails to load
+
+- **WHEN** the call to the API fails
+- **THEN** the system shows the error message at the minimum height of the loaded content, and not a shorter box
+
+### Scenario: The content is empty
+
+- **WHEN** the call to the API succeeds, and it returns no item
+- **THEN** the system shows the empty message at the minimum height of the loaded content, and not a shorter box
+
 ## The trail of the navigation
 
 The system SHALL show a trail of the navigation at the top of each screen that lies below the first level.

@@ -17,4 +17,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 - [service-runtime-logs](./roadmap/service-runtime-logs/TODO.md): the logs of the container that runs, in the tab Logs of a service.
 - [server-settings-gitpaas-domain](./roadmap/server-settings-gitpaas-domain/TODO.md): the domain of the control plane, set from the tab Settings of the server.
 - [ui-improvements](./roadmap/ui-improvements/TODO.md): the description and the date of creation of a project and of a service, the bullet of the state of a service, and the icon of the main title.
-- [skeleton-loaders](./roadmap/skeleton-loaders/TODO.md): the shared skeleton of the loading state, on every page that loads dynamic content.
