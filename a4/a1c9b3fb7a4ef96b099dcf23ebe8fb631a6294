@@ -1,0 +1,19 @@
+iac/production/docker-compose.yml
+  s_4eef86e9451731::t_f4e58ad49cd3a2 31-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a4a1c9b3fb7a4ef96b099dcf23ebe8fb631a6294",
+  "prompts": {},
+  "sessions": {
+    "s_4eef86e9451731": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7c0106d5-21ad-4430-a0ce-76d55d042bdf",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
