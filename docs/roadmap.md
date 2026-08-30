@@ -16,3 +16,6 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 - [user-profile-and-2fa](./roadmap/user-profile-and-2fa/TODO.md): the section of the profile of the user, and the second factor with Google Authenticator.
 - [service-runtime-logs](./roadmap/service-runtime-logs/TODO.md): the logs of the container that runs, in the tab Logs of a service.
 - [server-settings-gitpaas-domain](./roadmap/server-settings-gitpaas-domain/TODO.md): the domain of the control plane, set from the tab Settings of the server.
+- [sidebar-version](./roadmap/sidebar-version/TODO.md): the version of GitPaaS at the bottom of the sidebar, and the button that announces a new release.
+- [ui-improvements](./roadmap/ui-improvements/TODO.md): the description and the date of creation of a project and of a service, the bullet of the state of a service, and the icon of the main title.
+- [skeleton-loaders](./roadmap/skeleton-loaders/TODO.md): the shared skeleton of the loading state, on every page that loads dynamic content.
