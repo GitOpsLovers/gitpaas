@@ -53,3 +53,5 @@ shared/
 ```
 
 The toast system is the reference cross-cutting service. `ToastService` (`providedIn: 'root'`) owns a stack that signals control, with typed `success`/`error`/`warning`/`info` helpers and an automatic dismissal. The presentational `ToastComponent` shows the stack. It is mounted one time, globally, in `App`.
+
+`SkeletonComponent` (`app-skeleton`) is the shared primitive of the loading state. It takes the signal inputs `variant` (`text | card | row | circle`), `count` (default `1`) and `className`, and it repeats `count` bars of the classes of `variant`, each with `motion-safe:animate-pulse`. A container places it where the loaded content will sit — for example a grid of `app-skeleton` of the variant `card` while a list of cards loads, or a `<tbody>` of `app-skeleton` of the variant `row` while a table loads — so the skeleton keeps the height of the screen close to the height of the content that replaces it. See the business rule of the loading state in `docs/business/frontend-shell.md`.
