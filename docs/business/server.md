@@ -212,6 +212,8 @@ The alert SHALL carry a button "Update GitPaaS". The system SHALL ask the user t
 
 The tab SHALL hide the alert, and the button, from a user who is not an administrator.
 
+The sidebar is the second place that announces a new release (see the capability `frontend-shell`). The tab Maintenance stays the one place that runs the update.
+
 ### Scenario: A new release is available
 
 - **WHEN** an administrator opens the tab Maintenance, and the latest release differs from the installed version
