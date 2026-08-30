@@ -1,0 +1,53 @@
+apps/frontend/src/app/features/domains/ui/components/service-domains/service-domains.component.html
+  s_6e4d8558cf76cd::t_b46897549b38ed 2-6,10,76,81-94,96-121,123,126-132,134-136,139-141,143-152,154,158-160
+apps/frontend/src/app/features/domains/ui/components/service-domains/service-domains.component.spec.ts
+  s_6e4d8558cf76cd::t_6f1934482f519d 13,21,23,107-111,155,165,168-216,224-225,235-236,306-307,345
+docs/roadmap/service-runtime-logs/TODO.md
+  s_70277ce59b1290::t_a3503ec9f02b54 1-61
+apps/frontend/src/app/features/domains/ui/components/service-domains/service-domains.component.ts
+  s_5f63fa05027ec0::t_3ffb53c8a7598d 101-105,142,179-187,197-205
+docs/roadmap.md
+  s_b496c437d63045::t_7e0196006b9798 17-18
+docs/roadmap/server-settings-gitpaas-domain/TODO.md
+  s_b496c437d63045::t_6c32e8f0ad66f2 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d45ab8c1f45e5b7ada27f4ed0931a6ffaf1d8467",
+  "prompts": {},
+  "sessions": {
+    "s_5f63fa05027ec0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af6092e9140150970",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_6e4d8558cf76cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de5997aa-7f02-4cce-9a8f-034759cad85b",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_70277ce59b1290": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9b5a5716-53e1-4ceb-9597-f56399bbac39",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b496c437d63045": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1af97ed-c7e3-4acc-8609-6fda709612bf",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
