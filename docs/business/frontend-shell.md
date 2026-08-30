@@ -36,6 +36,34 @@ On a wide window, the control of the header makes the sidebar wide or narrow. On
 - **WHEN** the user chooses the control, and the window is narrower than 1280 pixels
 - **THEN** the system opens the sidebar above the screen, with a dark ground behind it
 
+## The version at the bottom of the sidebar
+
+The system SHALL show the installed version of GitPaaS at the bottom of the sidebar, to an administrator alone, and only while the sidebar is expanded, hovered or open on the narrow window.
+
+The system SHALL show a button "Update to X.Y.Z" below the version, when a newer release exists. The button carries the user to the tab Maintenance, at `/server/maintenance` (see the capability `server`), where the update runs. The system SHALL hide the button when the installed version already agrees with the latest one.
+
+The system SHALL read the version and the state of the update one time, when the sidebar starts. No timer refreshes it.
+
+### Scenario: An administrator sees the version
+
+- **WHEN** an administrator opens the application, and the sidebar is expanded, hovered or open on the narrow window
+- **THEN** the system shows the installed version at the bottom of the sidebar
+
+### Scenario: An administrator sees the button of the update
+
+- **WHEN** an administrator opens the application, and a newer release exists
+- **THEN** the system shows the button "Update to X.Y.Z", and it carries the administrator to the tab Maintenance when they choose it
+
+### Scenario: The platform already runs the latest release
+
+- **WHEN** the installed version agrees with the latest one
+- **THEN** the system shows the version, and no button
+
+### Scenario: The user is not an administrator
+
+- **WHEN** a user who is not an administrator opens the application
+- **THEN** the system shows no version, and no button, in the sidebar
+
 ## The menu of the user
 
 The system SHALL give a menu in the header that holds the action to sign out.
