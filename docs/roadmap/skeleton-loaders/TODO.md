@@ -36,10 +36,10 @@ Every loading state of `apps/frontend` is a short sentence, and it takes much le
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/{projects,providers,namespaces,services,server}/ui/
 
-- [ ] 4.1 Replace the sentence of the loading state of the five edit pages with `app-skeleton` of the variant `text`, which copies the count of the fields of the form.
-- [ ] 4.2 Replace the sentence of `server-health-panel` with `app-skeleton`, which copies the shape of the panel.
-- [ ] 4.3 Give the error state of the five pages and of the panel a minimum height.
-- [ ] 4.4 Extend the spec of each page and of the panel with a test of the branch of the loading state.
+- [x] 4.1 Replace the sentence of the loading state of the five edit pages with `app-skeleton` of the variant `text`, which copies the count of the fields of the form.
+- [x] 4.2 Replace the sentence of `server-health-panel` with `app-skeleton`, which copies the shape of the panel.
+- [x] 4.3 Give the error state of the five pages and of the panel a minimum height.
+- [x] 4.4 Extend the spec of each page and of the panel with a test of the branch of the loading state.
 
 ## Phase 5 — The documentation
 

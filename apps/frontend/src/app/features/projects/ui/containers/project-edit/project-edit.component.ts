@@ -4,13 +4,15 @@ import { lastValueFrom } from 'rxjs';
 
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { ProjectFormComponent } from '@features/projects/ui/components/project-form/project-form.component';
+import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-project-edit',
     templateUrl: './project-edit.component.html',
     providers: [ProjectsApiRepository],
-    imports: [ProjectFormComponent],
+    imports: [ComponentCardComponent, ProjectFormComponent, SkeletonComponent],
 })
 
 /**

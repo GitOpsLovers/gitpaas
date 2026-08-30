@@ -81,6 +81,9 @@ describe('ServerHealthPanelComponent', () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         (fixture.nativeElement as HTMLElement).querySelector('button')!;
 
+    const skeletons = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('app-skeleton')];
+
     const dependencyLines = (): string[] =>
         Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li')).map((line) =>
             (line.textContent ?? '').replace(/\s+/g, ' ').trim());
@@ -138,14 +141,21 @@ describe('ServerHealthPanelComponent', () => {
         expect(text()).not.toContain('25.0.3');
     });
 
-    test('shows that the reading runs while the two calls run', () => {
+    test('shows a skeleton of the panel while the two calls run', () => {
         create(readyHealth, reachableDaemon, true);
 
-        expect(text()).toContain('Reading the health of the server');
+        expect(skeletons()).toHaveLength(6);
         expect(dependencyLines()).toEqual([]);
         expect(text()).toContain('Refresh');
+        expect(text()).not.toContain('Reading the health of the server');
         expect(text()).not.toContain('The server is ready');
         expect(text()).not.toContain('Docker daemon');
+    });
+
+    test('shows no skeleton once the reading answers', () => {
+        create(readyHealth, reachableDaemon);
+
+        expect(skeletons()).toEqual([]);
     });
 
     test('shows the message of the failed reading and no dependency line', () => {

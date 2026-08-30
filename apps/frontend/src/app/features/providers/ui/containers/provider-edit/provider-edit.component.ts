@@ -9,13 +9,15 @@ import {
     ProviderFormComponent,
     ProviderFormValue,
 } from '@features/providers/ui/components/provider-form/provider-form.component';
+import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-provider-edit',
     templateUrl: './provider-edit.component.html',
     providers: [ProvidersApiRepository],
-    imports: [ProviderFormComponent],
+    imports: [ComponentCardComponent, ProviderFormComponent, SkeletonComponent],
 })
 
 /**
@@ -46,6 +48,11 @@ export class ProviderEditComponent {
     protected readonly loading = computed(() => this.provider.isLoading());
 
     protected readonly submitting = signal(false);
+
+    /**
+     * The three short fields the form holds above the private key.
+     */
+    protected readonly skeletonFields = [0, 1, 2];
 
     protected async update(value: ProviderFormValue): Promise<void> {
         this.submitting.set(true);

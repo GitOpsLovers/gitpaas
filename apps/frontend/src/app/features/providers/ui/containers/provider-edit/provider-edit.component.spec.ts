@@ -239,11 +239,14 @@ describe('ProviderEditComponent', () => {
             });
         });
 
-        test('announces the reading while the provider loads', () => {
+        test('shows a skeleton of the four fields while the provider loads', () => {
             isLoading.set(true);
             create();
 
-            expect(fixture.nativeElement.textContent).toContain('Loading…');
+            const skeletons = fixture.nativeElement.querySelectorAll('app-skeleton') as NodeListOf<HTMLElement>;
+
+            expect(skeletons).toHaveLength(9);
+            expect(fixture.nativeElement.textContent).not.toContain('Loading…');
             expect(fixture.nativeElement.querySelector('app-provider-form')).toBeNull();
         });
 

@@ -9,13 +9,14 @@ import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-server-settings',
     templateUrl: './server-settings.component.html',
     providers: [ServerApiRepository],
-    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
+    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent, SkeletonComponent],
 })
 
 /**

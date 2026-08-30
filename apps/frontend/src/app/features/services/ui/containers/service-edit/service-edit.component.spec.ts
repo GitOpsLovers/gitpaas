@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import type { Namespace, Project, Service } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
@@ -61,6 +61,7 @@ describe('ServiceEditComponent', () => {
     };
     let router: { navigate: ReturnType<typeof vi.fn> };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+    let fixture: ComponentFixture<ServiceEditComponent>;
     let component: ServiceEditInternals;
 
     const create = (params: Record<string, string> = ROUTE_PARAMS): void => {
@@ -68,7 +69,7 @@ describe('ServiceEditComponent', () => {
             useValue: { snapshot: { paramMap: convertToParamMap(params) } },
         });
 
-        const fixture = TestBed.createComponent(ServiceEditComponent);
+        fixture = TestBed.createComponent(ServiceEditComponent);
         component = fixture.componentInstance as unknown as ServiceEditInternals;
     };
 
@@ -103,111 +104,141 @@ describe('ServiceEditComponent', () => {
                 },
             ],
         });
-        TestBed.overrideComponent(ServiceEditComponent, {
-            set: {
-                template: '',
-                providers: [
-                    { provide: ServicesApiRepository, useValue: repository },
-                    { provide: ProjectsApiRepository, useValue: projectsRepository },
-                ],
-            },
+    });
+
+    describe('behaviour', () => {
+        beforeEach(() => {
+            TestBed.overrideComponent(ServiceEditComponent, {
+                set: {
+                    template: '',
+                    providers: [
+                        { provide: ServicesApiRepository, useValue: repository },
+                        { provide: ProjectsApiRepository, useValue: projectsRepository },
+                    ],
+                },
+            });
+        });
+
+        test('reads the namespace, the project and the service from the route', () => {
+            create();
+
+            expect(component.namespaceId).toBe('ns-1');
+            expect(component.projectId).toBe('pr-1');
+
+            const [serviceIdAccessor] = repository.serviceById.mock.calls[0] as [() => string | undefined];
+            expect(serviceIdAccessor()).toBe('sv-1');
+        });
+
+        test('scopes the projects repository to the namespace of the route', () => {
+            create();
+
+            expect(projectsRepository.namespaceId()).toBe('ns-1');
+
+            const [namespaceAccessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
+            expect(namespaceAccessor()).toBe('ns-1');
+
+            const [idAccessor] = projectsRepository.projectById.mock.calls[0] as [() => string | undefined];
+            expect(idAccessor()).toBe('pr-1');
+        });
+
+        test('exposes an empty initial name until the service resolves', () => {
+            create();
+
+            expect(component.initialName()).toBe('');
+
+            serviceValue.set(service);
+
+            expect(component.initialName()).toBe('web');
+        });
+
+        test('mirrors the resource loading state', () => {
+            isLoading.set(true);
+            create();
+
+            expect(component.loading()).toBe(true);
+
+            isLoading.set(false);
+
+            expect(component.loading()).toBe(false);
+        });
+
+        test('builds a breadcrumb with namespaced links', () => {
+            create();
+
+            expect(component.breadcrumb()).toEqual([
+                { label: 'Namespace', link: ['/namespaces', 'ns-1', 'projects'] },
+                { label: 'Project', link: ['/namespaces', 'ns-1', 'projects', 'pr-1'] },
+                { label: 'Edit service' },
+            ]);
+
+            namespaceValue.set(namespace);
+            projectValue.set(project);
+
+            expect(component.breadcrumb()[0]?.label).toBe('acme');
+            expect(component.breadcrumb()[1]?.label).toBe('api');
+        });
+
+        test('updates the service, notifies success and navigates to the namespaced project', async () => {
+            repository.update.mockReturnValue(of({ ...service, name: 'renamed' }));
+            create();
+
+            await component.update('renamed');
+
+            expect(repository.update).toHaveBeenCalledWith('sv-1', { name: 'renamed' });
+            expect(toast.success).toHaveBeenCalledWith('Service updated', expect.stringContaining('renamed'));
+            expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1']);
+            expect(toast.error).not.toHaveBeenCalled();
+        });
+
+        test('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
+            repository.update.mockReturnValue(throwError(() => new Error('boom')));
+            create();
+
+            await component.update('renamed');
+
+            expect(toast.error).toHaveBeenCalledWith(
+                'Could not update service',
+                'Something went wrong. Please try again.',
+            );
+            expect(toast.success).not.toHaveBeenCalled();
+            expect(router.navigate).not.toHaveBeenCalled();
+            expect(component.submitting()).toBe(false);
+        });
+
+        test('marks the form as submitting while the request is in flight', () => {
+            repository.update.mockReturnValue(NEVER);
+            create();
+
+            expect(component.submitting()).toBe(false);
+
+            component.update('renamed');
+
+            expect(component.submitting()).toBe(true);
         });
     });
 
-    test('reads the namespace, the project and the service from the route', () => {
-        create();
+    describe('template', () => {
+        beforeEach(() => {
+            TestBed.overrideComponent(ServiceEditComponent, {
+                set: {
+                    providers: [
+                        { provide: ServicesApiRepository, useValue: repository },
+                        { provide: ProjectsApiRepository, useValue: projectsRepository },
+                    ],
+                },
+            });
+        });
 
-        expect(component.namespaceId).toBe('ns-1');
-        expect(component.projectId).toBe('pr-1');
+        test('shows a skeleton of the field while the service loads', () => {
+            isLoading.set(true);
+            create();
+            fixture.detectChanges();
 
-        const [serviceIdAccessor] = repository.serviceById.mock.calls[0] as [() => string | undefined];
-        expect(serviceIdAccessor()).toBe('sv-1');
-    });
+            const skeletons = fixture.nativeElement.querySelectorAll('app-skeleton') as NodeListOf<HTMLElement>;
 
-    test('scopes the projects repository to the namespace of the route', () => {
-        create();
-
-        expect(projectsRepository.namespaceId()).toBe('ns-1');
-
-        const [namespaceAccessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
-        expect(namespaceAccessor()).toBe('ns-1');
-
-        const [idAccessor] = projectsRepository.projectById.mock.calls[0] as [() => string | undefined];
-        expect(idAccessor()).toBe('pr-1');
-    });
-
-    test('exposes an empty initial name until the service resolves', () => {
-        create();
-
-        expect(component.initialName()).toBe('');
-
-        serviceValue.set(service);
-
-        expect(component.initialName()).toBe('web');
-    });
-
-    test('mirrors the resource loading state', () => {
-        isLoading.set(true);
-        create();
-
-        expect(component.loading()).toBe(true);
-
-        isLoading.set(false);
-
-        expect(component.loading()).toBe(false);
-    });
-
-    test('builds a breadcrumb with namespaced links', () => {
-        create();
-
-        expect(component.breadcrumb()).toEqual([
-            { label: 'Namespace', link: ['/namespaces', 'ns-1', 'projects'] },
-            { label: 'Project', link: ['/namespaces', 'ns-1', 'projects', 'pr-1'] },
-            { label: 'Edit service' },
-        ]);
-
-        namespaceValue.set(namespace);
-        projectValue.set(project);
-
-        expect(component.breadcrumb()[0]?.label).toBe('acme');
-        expect(component.breadcrumb()[1]?.label).toBe('api');
-    });
-
-    test('updates the service, notifies success and navigates to the namespaced project', async () => {
-        repository.update.mockReturnValue(of({ ...service, name: 'renamed' }));
-        create();
-
-        await component.update('renamed');
-
-        expect(repository.update).toHaveBeenCalledWith('sv-1', { name: 'renamed' });
-        expect(toast.success).toHaveBeenCalledWith('Service updated', expect.stringContaining('renamed'));
-        expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1']);
-        expect(toast.error).not.toHaveBeenCalled();
-    });
-
-    test('notifies an error, stays on the page and re-enables the form when the update fails', async () => {
-        repository.update.mockReturnValue(throwError(() => new Error('boom')));
-        create();
-
-        await component.update('renamed');
-
-        expect(toast.error).toHaveBeenCalledWith(
-            'Could not update service',
-            'Something went wrong. Please try again.',
-        );
-        expect(toast.success).not.toHaveBeenCalled();
-        expect(router.navigate).not.toHaveBeenCalled();
-        expect(component.submitting()).toBe(false);
-    });
-
-    test('marks the form as submitting while the request is in flight', () => {
-        repository.update.mockReturnValue(NEVER);
-        create();
-
-        expect(component.submitting()).toBe(false);
-
-        component.update('renamed');
-
-        expect(component.submitting()).toBe(true);
+            expect(skeletons).toHaveLength(3);
+            expect(fixture.nativeElement.textContent).not.toContain('Loading…');
+            expect(fixture.nativeElement.querySelector('app-service-form')).toBeNull();
+        });
     });
 });
