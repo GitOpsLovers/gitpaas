@@ -28,6 +28,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - proxy-acme:/acme
+    group_add:
+      - "${DOCKER_GID:?set DOCKER_GID in .env to the host docker group id (getent group docker | cut -d: -f3)}"
     networks:
       - proxy
 
