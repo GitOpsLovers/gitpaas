@@ -3,9 +3,18 @@
     desc="Parameters of the deployment system. A change applies to the next run of the cleanup."
 >
     @if (loadFailed()) {
-        <p class="text-sm text-error-500">Could not load the settings. Is the backend running?</p>
+        <p class="flex min-h-40 items-center text-sm text-error-500">
+            Could not load the settings. Is the backend running?
+        </p>
     } @else if (settings.isLoading()) {
-        <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+        <div class="flex min-h-40 flex-col gap-6">
+            <div class="flex max-w-xs flex-col gap-2">
+                <app-skeleton variant="text" className="max-w-40" />
+                <app-skeleton variant="row" />
+                <app-skeleton variant="text" className="max-w-56" />
+            </div>
+            <app-skeleton variant="row" className="max-w-32" />
+        </div>
     } @else {
         <form class="space-y-6" (submit)="save($event)">
             <div class="max-w-xs">

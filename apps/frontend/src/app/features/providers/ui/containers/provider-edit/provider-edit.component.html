@@ -1,5 +1,24 @@
 @if (loading()) {
-    <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+    <app-component-card
+        title="Provider details"
+        desc="Register the GitHub App the services of this installation deploy through."
+    >
+        <div class="flex flex-col gap-6">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                @for (field of skeletonFields; track field) {
+                    <div class="flex flex-col gap-2">
+                        <app-skeleton variant="text" className="max-w-24" />
+                        <app-skeleton variant="row" />
+                    </div>
+                }
+            </div>
+            <div class="flex flex-col gap-2">
+                <app-skeleton variant="text" className="max-w-40" />
+                <app-skeleton variant="card" />
+            </div>
+            <app-skeleton variant="row" className="max-w-40" />
+        </div>
+    </app-component-card>
 } @else {
     <app-provider-form
         [initialName]="initialName()"

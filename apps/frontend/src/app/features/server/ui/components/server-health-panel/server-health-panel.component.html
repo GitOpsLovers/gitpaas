@@ -1,6 +1,23 @@
 <app-component-card title="Health" desc="State of the server's critical dependencies, read when this screen opened.">
     @if (loading()) {
-        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Reading the health of the server…</p>
+        <div class="flex items-center gap-3 pb-4">
+            <app-skeleton variant="circle" />
+            <div class="flex w-full flex-col gap-2">
+                <app-skeleton variant="text" className="max-w-40" />
+                <app-skeleton variant="text" className="max-w-64" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-5 border-t border-gray-100 py-4 dark:border-gray-800">
+            <app-skeleton variant="text" [count]="3" />
+        </div>
+
+        <div class="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+            <app-skeleton variant="text" className="max-w-32" />
+            <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                <app-skeleton variant="text" [count]="4" />
+            </div>
+        </div>
     } @else {
         @if (readiness().read) {
             <div class="flex items-center gap-3 pb-4">
@@ -61,7 +78,11 @@
                 }
             </ul>
         } @else {
-            <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">{{ readiness().message }}</p>
+            <p
+                class="flex min-h-40 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400"
+            >
+                {{ readiness().message }}
+            </p>
         }
 
         <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
@@ -87,7 +108,9 @@
                     </div>
                 </dl>
             } @else {
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ daemon().message }}</p>
+                <p class="mt-2 flex min-h-16 items-center text-sm text-gray-500 dark:text-gray-400">
+                    {{ daemon().message }}
+                </p>
             }
         </div>
     }

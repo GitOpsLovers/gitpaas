@@ -166,11 +166,14 @@ describe('ServerSettingsComponent', () => {
             });
         });
 
-        test('announces the reading while the settings load', () => {
+        test('shows a skeleton of the field while the settings load', () => {
             isLoading.set(true);
             create();
 
-            expect(fixture.nativeElement.textContent).toContain('Loading…');
+            const skeletons = fixture.nativeElement.querySelectorAll('app-skeleton') as NodeListOf<HTMLElement>;
+
+            expect(skeletons).toHaveLength(4);
+            expect(fixture.nativeElement.textContent).not.toContain('Loading…');
             expect(fixture.nativeElement.querySelector('form')).toBeNull();
         });
 

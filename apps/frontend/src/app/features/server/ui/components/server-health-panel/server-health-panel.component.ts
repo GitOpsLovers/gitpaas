@@ -5,11 +5,19 @@ import { DaemonHealth, ReadinessHealth } from '../../../domain/models/server-hea
 
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 @Component({
     selector: 'app-server-health-panel',
     templateUrl: './server-health-panel.component.html',
-    imports: [ButtonComponent, ComponentCardComponent, LucideCircleAlert, LucideCircleCheck, LucideRotateCw],
+    imports: [
+        ButtonComponent,
+        ComponentCardComponent,
+        SkeletonComponent,
+        LucideCircleAlert,
+        LucideCircleCheck,
+        LucideRotateCw,
+    ],
 })
 
 /**

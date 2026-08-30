@@ -8,13 +8,15 @@ import { ServiceFormComponent } from '../../components/service-form/service-form
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
+import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-service-edit',
     templateUrl: './service-edit.component.html',
     providers: [ServicesApiRepository, ProjectsApiRepository],
-    imports: [BreadcrumbComponent, ServiceFormComponent],
+    imports: [BreadcrumbComponent, ComponentCardComponent, ServiceFormComponent, SkeletonComponent],
 })
 
 /**

@@ -4,12 +4,14 @@ import { lastValueFrom } from 'rxjs';
 
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { NamespaceFormComponent } from '@features/namespaces/ui/components/namespace-form/namespace-form.component';
+import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-namespace-edit',
     templateUrl: './namespace-edit.component.html',
-    imports: [NamespaceFormComponent],
+    imports: [ComponentCardComponent, NamespaceFormComponent, SkeletonComponent],
 })
 
 /**
