@@ -1,0 +1,29 @@
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.html
+  s_1dd9a387a8ba92::t_6953929d6e0df4 1-15
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.spec.ts
+  s_1dd9a387a8ba92::t_6a6eccb4793fe2 1-166
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.ts
+  s_1dd9a387a8ba92::t_a3c011f235fcb6 1-81
+apps/frontend/src/app/layout/ui/components/sidebar/sidebar.component.html
+  s_1dd9a387a8ba92::t_2dc7537f4b1324 227
+apps/frontend/src/app/layout/ui/components/sidebar/sidebar.component.ts
+  s_1dd9a387a8ba92::t_654e750c78d6f6 24,42
+docs/roadmap/sidebar-version/TODO.md
+  s_1dd9a387a8ba92::t_b69460e5e50fe8 10-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a0e27e88d45e0d652986423d013183670c66cfd3",
+  "prompts": {},
+  "sessions": {
+    "s_1dd9a387a8ba92": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b49a2598-46cb-4197-b953-71c48902220e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
