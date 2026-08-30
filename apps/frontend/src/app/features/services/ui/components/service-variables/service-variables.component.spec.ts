@@ -33,10 +33,17 @@ describe('ServiceVariablesComponent', () => {
         .from(fixture.nativeElement.querySelectorAll('form button') as NodeListOf<HTMLButtonElement>)
         .find((button) => (button.textContent ?? '').includes('Cancel'));
 
-    const create = (variables: ServiceVariable[] = [], error: string | null = null): void => {
+    const skeletons = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody app-skeleton')];
+
+    const headers = (): HTMLElement[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
+
+    const create = (variables: ServiceVariable[] = [], error: string | null = null, loading = false): void => {
         fixture = TestBed.createComponent(ServiceVariablesComponent);
         fixture.componentRef.setInput('variables', variables);
         fixture.componentRef.setInput('error', error);
+        fixture.componentRef.setInput('loading', loading);
         component = fixture.componentInstance as unknown as ServiceVariablesInternals;
         fixture.detectChanges();
     };
@@ -45,6 +52,14 @@ describe('ServiceVariablesComponent', () => {
         TestBed.configureTestingModule({
             imports: [ServiceVariablesComponent],
         });
+    });
+
+    test('keeps the head of the table and shows five skeleton rows while the list arrives', () => {
+        create([], null, true);
+
+        expect(headers()).toHaveLength(3);
+        expect(skeletons()).toHaveLength(5);
+        expect(text()).not.toContain('No variables yet.');
     });
 
     test('shows the value of a plain variable', () => {

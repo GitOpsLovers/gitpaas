@@ -11,7 +11,7 @@
         </p>
     </div>
 
-    @if (networks().length > 0) {
+    @if (loading() || networks().length > 0) {
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
                 <thead>
@@ -25,61 +25,67 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    @for (network of networks(); track network.id) {
-                        <tr class="text-gray-600 dark:text-gray-300">
-                            <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
-                                <span class="inline-flex items-center gap-1.5">
-                                    <svg lucideNetwork class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
-                                    <span class="block max-w-[16rem] truncate font-mono" [title]="network.name">
-                                        {{ network.name }}
+                    @if (loading()) {
+                        @for (row of skeletonRows; track row) {
+                            <tr>
+                                <td class="px-4" colspan="4">
+                                    <app-skeleton variant="row" />
+                                </td>
+                            </tr>
+                        }
+                    } @else {
+                        @for (network of networks(); track network.id) {
+                            <tr class="text-gray-600 dark:text-gray-300">
+                                <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <svg lucideNetwork class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                        <span class="block max-w-[16rem] truncate font-mono" [title]="network.name">
+                                            {{ network.name }}
+                                        </span>
                                     </span>
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="block max-w-[20rem] truncate font-mono" [title]="network.daemonName">
-                                    {{ network.daemonName }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span
-                                    class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                    [class]="stateBadgeClass(network.state)"
-                                >
-                                    {{ stateLabel(network.state) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center justify-end gap-2">
-                                    <app-button
-                                        variant="outline"
-                                        size="xs"
-                                        [disabled]="network.state === 'orphan'"
-                                        (btnClick)="edit(network)"
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="block max-w-[20rem] truncate font-mono" [title]="network.daemonName">
+                                        {{ network.daemonName }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                        [class]="stateBadgeClass(network.state)"
                                     >
-                                        <svg lucidePencil class="h-4 w-4"></svg>
-                                    </app-button>
-                                    <app-button
-                                        variant="danger"
-                                        size="xs"
-                                        [disabled]="network.state === 'orphan'"
-                                        (btnClick)="remove.emit(network)"
-                                    >
-                                        <svg lucideTrash2 class="h-4 w-4"></svg>
-                                    </app-button>
-                                </div>
-                            </td>
-                        </tr>
+                                        {{ stateLabel(network.state) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <app-button
+                                            variant="outline"
+                                            size="xs"
+                                            [disabled]="network.state === 'orphan'"
+                                            (btnClick)="edit(network)"
+                                        >
+                                            <svg lucidePencil class="h-4 w-4"></svg>
+                                        </app-button>
+                                        <app-button
+                                            variant="danger"
+                                            size="xs"
+                                            [disabled]="network.state === 'orphan'"
+                                            (btnClick)="remove.emit(network)"
+                                        >
+                                            <svg lucideTrash2 class="h-4 w-4"></svg>
+                                        </app-button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
         </div>
     } @else {
-        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-            @if (loading()) {
-                Loading networks…
-            } @else {
-                No networks yet. Create the first one below.
-            }
+        <p class="flex min-h-55 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            No networks yet. Create the first one below.
         </p>
     }
 

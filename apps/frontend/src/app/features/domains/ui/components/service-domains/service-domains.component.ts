@@ -9,6 +9,7 @@ import { ComponentCardComponent } from '@shared/components/component-card/compon
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 /**
  * The port the form proposes when the user claims a domain.
@@ -42,6 +43,7 @@ export interface DomainChange {
         InputFieldComponent,
         LabelComponent,
         Select2Component,
+        SkeletonComponent,
         LucideGlobe,
         LucidePencil,
         LucidePlus,
@@ -93,6 +95,11 @@ export class ServiceDomainsComponent {
      * Emitted when the user removes a claimed domain.
      */
     public readonly remove = output<Domain>();
+
+    /**
+     * The rows the skeleton of the table shows while the list loads.
+     */
+    protected readonly skeletonRows = [0, 1, 2, 3, 4];
 
     protected readonly minPort = DOMAIN_PORT_MIN;
 

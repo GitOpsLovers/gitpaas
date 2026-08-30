@@ -10,7 +10,7 @@
         <p>The changes will take effect with the next service deployment.</p>
     </div>
 
-    @if (variables().length > 0) {
+    @if (loading() || variables().length > 0) {
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
                 <thead>
@@ -23,58 +23,67 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    @for (variable of variables(); track variable.id) {
-                        <tr class="text-gray-600 dark:text-gray-300">
-                            <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
-                                <span class="inline-flex items-center gap-1.5">
+                    @if (loading()) {
+                        @for (row of skeletonRows; track row) {
+                            <tr>
+                                <td class="px-4" colspan="3">
+                                    <app-skeleton variant="row" />
+                                </td>
+                            </tr>
+                        }
+                    } @else {
+                        @for (variable of variables(); track variable.id) {
+                            <tr class="text-gray-600 dark:text-gray-300">
+                                <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        @if (variable.secret) {
+                                            <svg lucideLock class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                        }
+                                        <span class="block max-w-[16rem] truncate font-mono" [title]="variable.name">
+                                            {{ variable.name }}
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
                                     @if (variable.secret) {
-                                        <svg lucideLock class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                        <span
+                                            class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                            [class]="
+                                                variable.valueSet
+                                                    ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400'
+                                                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                            "
+                                        >
+                                            {{ variable.valueSet ? 'Secret · value set' : 'Secret · empty' }}
+                                        </span>
+                                    } @else {
+                                        <span
+                                            class="block max-w-[16rem] truncate font-mono"
+                                            [title]="variable.value ?? ''"
+                                        >
+                                            {{ variable.value }}
+                                        </span>
                                     }
-                                    <span class="block max-w-[16rem] truncate font-mono" [title]="variable.name">
-                                        {{ variable.name }}
-                                    </span>
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                @if (variable.secret) {
-                                    <span
-                                        class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                        [class]="
-                                            variable.valueSet
-                                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400'
-                                                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                                        "
-                                    >
-                                        {{ variable.valueSet ? 'Secret · value set' : 'Secret · empty' }}
-                                    </span>
-                                } @else {
-                                    <span class="block max-w-[16rem] truncate font-mono" [title]="variable.value ?? ''">
-                                        {{ variable.value }}
-                                    </span>
-                                }
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center justify-end gap-2">
-                                    <app-button variant="outline" size="xs" (btnClick)="edit(variable)">
-                                        <svg lucidePencil class="h-4 w-4"></svg>
-                                    </app-button>
-                                    <app-button variant="danger" size="xs" (btnClick)="remove.emit(variable)">
-                                        <svg lucideTrash2 class="h-4 w-4"></svg>
-                                    </app-button>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <app-button variant="outline" size="xs" (btnClick)="edit(variable)">
+                                            <svg lucidePencil class="h-4 w-4"></svg>
+                                        </app-button>
+                                        <app-button variant="danger" size="xs" (btnClick)="remove.emit(variable)">
+                                            <svg lucideTrash2 class="h-4 w-4"></svg>
+                                        </app-button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
         </div>
     } @else {
-        <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-            @if (loading()) {
-                Loading variables…
-            } @else {
-                No variables yet. Add the first one with the button above.
-            }
+        <p class="flex min-h-55 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            No variables yet. Add the first one with the button above.
         </p>
     }
 

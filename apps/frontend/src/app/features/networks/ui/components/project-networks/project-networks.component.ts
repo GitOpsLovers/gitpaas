@@ -11,6 +11,7 @@ import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 /**
  * The label each state of a network of a project carries in the table.
@@ -37,6 +38,7 @@ export interface ProjectNetworkRename {
         ComponentCardComponent,
         InputFieldComponent,
         LabelComponent,
+        SkeletonComponent,
         LucideNetwork,
         LucidePencil,
         LucidePlus,
@@ -83,6 +85,11 @@ export class ProjectNetworksComponent {
      * Emitted when the user removes a network.
      */
     public readonly remove = output<ProjectNetwork>();
+
+    /**
+     * The rows the skeleton of the table shows while the list loads.
+     */
+    protected readonly skeletonRows = [0, 1, 2, 3, 4];
 
     protected readonly editing = signal<ProjectNetwork | null>(null);
 

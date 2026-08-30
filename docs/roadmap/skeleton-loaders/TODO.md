@@ -27,9 +27,9 @@ Every loading state of `apps/frontend` is a short sentence, and it takes much le
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/{services,domains,containers,networks}/ui/components/
 
-- [ ] 3.1 In the six tables, keep the real `<thead>` visible, and fill the `<tbody>` with 5 rows of `app-skeleton` of the variant `row`.
-- [ ] 3.2 Give the empty state and the error state of the six tables a minimum height that equals the height of 5 rows.
-- [ ] 3.3 Extend the spec of each component with a test of the branch of the loading state.
+- [x] 3.1 In the six tables, keep the real `<thead>` visible, and fill the `<tbody>` with 5 rows of `app-skeleton` of the variant `row`.
+- [x] 3.2 Give the empty state and the error state of the six tables a minimum height that equals the height of 5 rows.
+- [x] 3.3 Extend the spec of each component with a test of the branch of the loading state.
 
 ## Phase 4 — The forms and the panel
 

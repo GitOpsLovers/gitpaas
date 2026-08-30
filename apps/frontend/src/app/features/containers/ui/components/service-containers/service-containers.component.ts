@@ -3,11 +3,12 @@ import { Component, input } from '@angular/core';
 import type { Container, ContainerPort } from '@gitpaas/contracts';
 
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 @Component({
     selector: 'app-service-containers',
     templateUrl: './service-containers.component.html',
-    imports: [ComponentCardComponent, DatePipe],
+    imports: [ComponentCardComponent, DatePipe, SkeletonComponent],
 })
 
 /**
@@ -24,6 +25,11 @@ export class ServiceContainersComponent {
      * Whether the container list is loading.
      */
     public readonly loading = input(false);
+
+    /**
+     * The rows the skeleton of the table shows while the list loads.
+     */
+    protected readonly skeletonRows = [0, 1, 2, 3, 4];
 
     /**
      * Colour classes for a container state badge.
