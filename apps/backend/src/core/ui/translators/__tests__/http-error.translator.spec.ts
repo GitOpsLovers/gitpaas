@@ -149,6 +149,11 @@ describe('translateError', () => {
                 .toBeInstanceOf(BadRequestException);
         });
 
+        it('maps INVALID_GITPAAS_DOMAIN to a BadRequestException', () => {
+            expect(translateError(new CodedDomainError('INVALID_GITPAAS_DOMAIN')))
+                .toBeInstanceOf(BadRequestException);
+        });
+
         it('maps UPDATE_ALREADY_RUNNING to a ConflictException', () => {
             expect(translateError(new CodedDomainError('UPDATE_ALREADY_RUNNING')))
                 .toBeInstanceOf(ConflictException);

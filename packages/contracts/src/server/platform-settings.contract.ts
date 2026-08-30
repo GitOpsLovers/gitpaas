@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { domainHost } from '../domains/domain.contract';
+
 /**
  * The shortest age, in days, that an archived log row may keep.
  */
@@ -19,6 +21,7 @@ export const platformSettingsSchema = z.object({
         .int()
         .min(LOG_RETENTION_MIN_DAYS)
         .max(LOG_RETENTION_MAX_DAYS),
+    gitpaasDomain: domainHost.optional(),
 });
 
 /**

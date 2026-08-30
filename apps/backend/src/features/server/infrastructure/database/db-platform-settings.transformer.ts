@@ -10,5 +10,8 @@ import { DbPlatformSettingsEntity } from './db-platform-settings.entity';
  * @returns Parameters of the deployment system
  */
 export function toPlatformSettings(entity: DbPlatformSettingsEntity): PlatformSettings {
-    return { logRetentionDays: entity.logRetentionDays };
+    return {
+        logRetentionDays: entity.logRetentionDays,
+        gitpaasDomain: entity.gitpaasDomain ?? undefined,
+    };
 }

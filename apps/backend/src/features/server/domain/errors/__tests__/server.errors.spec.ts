@@ -1,5 +1,8 @@
+import { DOMAIN_HOST_MESSAGE } from '@gitpaas/contracts';
+
 import {
     DaemonUnreachableError,
+    InvalidGitpaasDomainError,
     InvalidLogRetentionError,
     PlatformUpToDateError,
     UnknownPlatformVersionError,
@@ -54,6 +57,30 @@ describe('InvalidLogRetentionError', () => {
         const original = new Error('out of range');
 
         expect(new InvalidLogRetentionError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('InvalidGitpaasDomainError', () => {
+    it('is a DomainError', () => {
+        expect(new InvalidGitpaasDomainError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to InvalidGitpaasDomainError', () => {
+        expect(new InvalidGitpaasDomainError().name).toBe('InvalidGitpaasDomainError');
+    });
+
+    it('carries the INVALID_GITPAAS_DOMAIN code', () => {
+        expect(new InvalidGitpaasDomainError().code).toBe('INVALID_GITPAAS_DOMAIN');
+    });
+
+    it('states the rule of a host name in its message', () => {
+        expect(new InvalidGitpaasDomainError().message).toBe(DOMAIN_HOST_MESSAGE);
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('bad host');
+
+        expect(new InvalidGitpaasDomainError({ cause: original }).cause).toBe(original);
     });
 });
 

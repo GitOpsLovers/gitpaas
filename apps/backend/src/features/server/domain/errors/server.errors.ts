@@ -1,4 +1,4 @@
-import { LOG_RETENTION_MAX_DAYS, LOG_RETENTION_MIN_DAYS } from '@gitpaas/contracts';
+import { DOMAIN_HOST_MESSAGE, LOG_RETENTION_MAX_DAYS, LOG_RETENTION_MIN_DAYS } from '@gitpaas/contracts';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -23,6 +23,19 @@ export class InvalidLogRetentionError extends DomainError {
         super(
             'INVALID_LOG_RETENTION',
             `The age of a log must be a whole number of days between ${LOG_RETENTION_MIN_DAYS} and ${LOG_RETENTION_MAX_DAYS}`,
+            options,
+        );
+    }
+}
+
+/**
+ * Raised when the host the control plane must answer on breaks the rule of a host name.
+ */
+export class InvalidGitpaasDomainError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super(
+            'INVALID_GITPAAS_DOMAIN',
+            DOMAIN_HOST_MESSAGE,
             options,
         );
     }

@@ -5,6 +5,7 @@ import { toPlatformSettings } from '../db-platform-settings.transformer';
 const settingsEntity = (overrides: Partial<DbPlatformSettingsEntity> = {}): DbPlatformSettingsEntity => ({
     id: 1,
     logRetentionDays: 30,
+    gitpaasDomain: null,
     updatedAt: new Date('2026-08-21T00:00:00.000Z'),
     ...overrides,
 });
@@ -14,7 +15,17 @@ describe('toPlatformSettings', () => {
         expect(toPlatformSettings(settingsEntity({ logRetentionDays: 90 }))).toEqual({ logRetentionDays: 90 });
     });
 
+    it('maps the host of the control plane from the row of the settings', () => {
+        const result = toPlatformSettings(settingsEntity({ gitpaasDomain: 'gitpaas.example.com' }));
+
+        expect(result.gitpaasDomain).toBe('gitpaas.example.com');
+    });
+
+    it('leaves the host of the control plane absent while the column is empty', () => {
+        expect(toPlatformSettings(settingsEntity({ gitpaasDomain: null })).gitpaasDomain).toBeUndefined();
+    });
+
     it('never carries the columns of the storage of the row', () => {
-        expect(Object.keys(toPlatformSettings(settingsEntity()))).toEqual(['logRetentionDays']);
+        expect(Object.keys(toPlatformSettings(settingsEntity()))).toEqual(['logRetentionDays', 'gitpaasDomain']);
     });
 });

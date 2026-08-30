@@ -7,6 +7,7 @@ import { DatabasePlatformSettingsRepository } from '../db-platform-settings.repo
 const settingsEntity = (overrides: Partial<DbPlatformSettingsEntity> = {}): DbPlatformSettingsEntity => ({
     id: PLATFORM_SETTINGS_ROW_ID,
     logRetentionDays: 30,
+    gitpaasDomain: null,
     updatedAt: new Date('2026-08-21T00:00:00.000Z'),
     ...overrides,
 });
@@ -52,8 +53,34 @@ describe('DatabasePlatformSettingsRepository', () => {
             expect(mockRepository.save).toHaveBeenCalledWith({
                 id: PLATFORM_SETTINGS_ROW_ID,
                 logRetentionDays: 45,
+                gitpaasDomain: null,
             });
             expect(result).toEqual({ logRetentionDays: 45 });
+        });
+
+        it('writes the host of the control plane into the column of the row', async () => {
+            mockRepository.save.mockResolvedValue(
+                settingsEntity({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' }),
+            );
+
+            const result = await sut.save({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' });
+
+            expect(mockRepository.save).toHaveBeenCalledWith({
+                id: PLATFORM_SETTINGS_ROW_ID,
+                logRetentionDays: 45,
+                gitpaasDomain: 'gitpaas.example.com',
+            });
+            expect(result.gitpaasDomain).toBe('gitpaas.example.com');
+        });
+
+        it('empties the column of the host when the parameters carry none', async () => {
+            mockRepository.save.mockResolvedValue(settingsEntity({ logRetentionDays: 45 }));
+
+            await sut.save({ logRetentionDays: 45 });
+
+            expect(mockRepository.save).toHaveBeenCalledWith(
+                expect.objectContaining({ gitpaasDomain: null }),
+            );
         });
 
         it('propagates errors thrown by the underlying repository', async () => {

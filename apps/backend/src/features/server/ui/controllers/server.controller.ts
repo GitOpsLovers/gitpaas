@@ -132,13 +132,14 @@ export class ServerController {
     }
 
     /**
-     * Writes the parameters of the deployment system.
+     * Writes the parameters of the deployment system. An administrator alone reaches it.
      *
      * @param updateDto Parameters to keep
      *
      * @returns Parameters the system keeps
      */
     @Put('settings')
+    @Roles(UserRole.Admin)
     public async updateSettings(
         @Body(new ZodValidationPipe(updatePlatformSettingsSchema)) updateDto: UpdatePlatformSettingsDto,
     ): Promise<PlatformSettings> {

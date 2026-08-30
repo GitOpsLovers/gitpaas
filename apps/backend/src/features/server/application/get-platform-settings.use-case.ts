@@ -13,5 +13,8 @@ import { PlatformSettingsRepository } from '../domain/repositories/platform-sett
 export async function getPlatformSettingsUseCase(settings: PlatformSettingsRepository): Promise<PlatformSettings> {
     const saved = await settings.find();
 
-    return { logRetentionDays: saved?.logRetentionDays ?? DEFAULT_LOG_RETENTION_DAYS };
+    return {
+        logRetentionDays: saved?.logRetentionDays ?? DEFAULT_LOG_RETENTION_DAYS,
+        gitpaasDomain: saved?.gitpaasDomain,
+    };
 }

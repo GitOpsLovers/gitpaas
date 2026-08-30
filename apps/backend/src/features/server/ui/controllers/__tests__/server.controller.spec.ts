@@ -11,6 +11,7 @@ import {
     ArgumentsHost,
     BadRequestException,
     ConflictException,
+    ExecutionContext,
     ForbiddenException,
     ServiceUnavailableException,
 } from '@nestjs/common';
@@ -31,7 +32,8 @@ import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.mode
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { ROLES_KEY } from '@features/authentication/ui/decorators/roles.decorator';
-import { UserRole } from '@features/users/domain/models/user.models';
+import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
+import { User, UserRole } from '@features/users/domain/models/user.models';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -624,6 +626,34 @@ describe('ServerController', () => {
         it('rejects an age that is no whole number with a BadRequestException', () => {
             expect(() => validate({ logRetentionDays: 7.5 })).toThrow(BadRequestException);
         });
+
+        it('accepts a body that carries no host of the control plane', () => {
+            expect(validate({ logRetentionDays: 30 })).toEqual({ logRetentionDays: 30 });
+        });
+
+        it('accepts a host of the control plane that follows the rule of a host name', () => {
+            expect(validate({ logRetentionDays: 30, gitpaasDomain: 'gitpaas.example.com' })).toEqual({
+                logRetentionDays: 30,
+                gitpaasDomain: 'gitpaas.example.com',
+            });
+        });
+
+        it('brings the host of the control plane down to small letters', () => {
+            expect(validate({ logRetentionDays: 30, gitpaasDomain: 'GitPaaS.Example.COM' })).toEqual({
+                logRetentionDays: 30,
+                gitpaasDomain: 'gitpaas.example.com',
+            });
+        });
+
+        it('rejects a host of a single label with a BadRequestException', () => {
+            expect(() => validate({ logRetentionDays: 30, gitpaasDomain: 'localhost' }))
+                .toThrow(BadRequestException);
+        });
+
+        it('rejects a host that carries a character the rule refuses with a BadRequestException', () => {
+            expect(() => validate({ logRetentionDays: 30, gitpaasDomain: 'git paas.example.com' }))
+                .toThrow(BadRequestException);
+        });
     });
 
     describe('getUpdate', () => {
@@ -714,9 +744,45 @@ describe('ServerController', () => {
             expect(rolesOf('startUpdate')).toEqual([UserRole.Admin]);
         });
 
+        it('reserves the write of the parameters of the deployment system to an administrator', () => {
+            expect(rolesOf('updateSettings')).toEqual([UserRole.Admin]);
+        });
+
         it('leaves the other routes of the server to every authenticated user', () => {
             expect(rolesOf('getStatus')).toBeUndefined();
             expect(rolesOf('getSettings')).toBeUndefined();
+        });
+    });
+
+    describe('the guard of the routes of the settings', () => {
+        /** Builds the guard the controller declares, with the reflector that reads its metadata. */
+        const guard = (): RolesGuard => new RolesGuard(new Reflector());
+
+        /** Builds an execution context for a handler of the controller, with the given role. */
+        const contextFor = (handler: string, role?: UserRole): ExecutionContext =>
+            ({
+                getHandler: () => Object.getOwnPropertyDescriptor(ServerController.prototype, handler)?.value,
+                getClass: () => ServerController,
+                switchToHttp: () => ({
+                    getRequest: () => ({ user: role ? ({ role } as User) : undefined }),
+                }),
+            }) as unknown as ExecutionContext;
+
+        it('lets an administrator write the parameters of the deployment system', () => {
+            expect(guard().canActivate(contextFor('updateSettings', UserRole.Admin))).toBe(true);
+        });
+
+        it('refuses the write of the parameters to a user who is no administrator', () => {
+            expect(() => guard().canActivate(contextFor('updateSettings', UserRole.User)))
+                .toThrow(ForbiddenException);
+        });
+
+        it('refuses the write of the parameters to a request that carries no user', () => {
+            expect(() => guard().canActivate(contextFor('updateSettings'))).toThrow(ForbiddenException);
+        });
+
+        it('lets a user who is no administrator read the parameters of the deployment system', () => {
+            expect(guard().canActivate(contextFor('getSettings', UserRole.User))).toBe(true);
         });
     });
 });
