@@ -1,0 +1,41 @@
+docs/roadmap.md
+  s_1f92abd938b7f0::t_89cad849e998dc 19-21
+docs/roadmap/sidebar-version/TODO.md
+  s_92d19b8f1d6a29::t_ff3b12c68a9978 1-26
+docs/roadmap/skeleton-loaders/TODO.md
+  s_1f92abd938b7f0::t_51af466831e0e0 1-51
+docs/roadmap/ui-improvements/TODO.md
+  s_052b0f76a4bbe6::t_42d94f880c0fdf 1-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "2e263612dd49ec7ea4219c12ace3d457e984af42",
+  "prompts": {},
+  "sessions": {
+    "s_052b0f76a4bbe6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9148e580-af51-4eaa-b378-312f3941aeb4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_1f92abd938b7f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fb841d0-f475-488f-9efe-e479ca1246fb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_92d19b8f1d6a29": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "80e26211-7cbc-40e7-b232-eff6d320e8fb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
