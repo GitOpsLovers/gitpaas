@@ -19,4 +19,22 @@ export interface PlatformUpdatesRepository {
      * @returns The update the row holds
      */
     open: (targetVersion: string) => Promise<PlatformUpdate>;
+
+    /**
+     * Closes the row of an update as failed
+     *
+     * @param updateId Identifier of the row the update reports its progress into
+     * @param reason Message that tells why the update ended
+     */
+    fail: (updateId: string, reason: string) => Promise<void>;
+
+    /**
+     * Closes as failed every row that still runs and that started before the given moment
+     *
+     * @param startedBefore Moment a row must have started before to count as abandoned
+     * @param reason Message that tells why the update ended
+     *
+     * @returns Number of rows the call closed
+     */
+    failStale: (startedBefore: Date, reason: string) => Promise<number>;
 }

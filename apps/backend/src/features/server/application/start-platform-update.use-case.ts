@@ -49,7 +49,14 @@ export async function startPlatformUpdateUseCase(
 
     const update = await updates.open(latest.tag);
 
-    await runner.start(update.id, latest.tag);
+    try {
+        await runner.start(update.id, latest.tag);
+    } catch (error) {
+        // The row exists already, so a failure of the start would leave it running for ever.
+        await updates.fail(update.id, error instanceof Error ? error.message : String(error));
+
+        throw error;
+    }
 
     return { installedVersion, latestVersion: latest.version, update };
 }

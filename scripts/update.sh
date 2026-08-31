@@ -90,9 +90,12 @@ psql_run() {
         psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"
 }
 
-# The same, but it never fails the update: the progress is a report, and the
-# database of an old installation may not carry `platform_updates` yet.
-psql_report() { psql_run "$@" >/dev/null 2>&1 || true; }
+# Report the output of a SQL command to the platform_updates table.
+psql_report() {
+    report_output="$(psql_run "$@" 2>&1)" && return 0
+    err "The report to platform_updates failed: $(printf '%s' "$report_output" | tr '\n' ' ')"
+    return 0
+}
 
 # Open the row of this update, unless the caller already created one.
 open_update_state() {
@@ -102,11 +105,16 @@ open_update_state() {
     fi
 
     GITPAAS_UPDATE_ID="$(psql_run -tA -v "target=$RESOLVED_REF" <<'SQL' 2>/dev/null || true
-INSERT INTO "platform_updates" ("targetVersion", "step", "percent", "state")
-VALUES (:'target', 'starting', 0, 'running')
-RETURNING "id";
+WITH "opened" AS (
+    INSERT INTO "platform_updates" ("targetVersion", "step", "percent", "state")
+    VALUES (:'target', 'starting', 0, 'running')
+    RETURNING "id"
+)
+SELECT "id" FROM "opened";
 SQL
     )"
+
+    GITPAAS_UPDATE_ID="$(printf '%s\n' "$GITPAAS_UPDATE_ID" | awk 'NF { print; exit }' | tr -d '[:space:]')"
 
     [ -n "$GITPAAS_UPDATE_ID" ] \
         || log "No row of platform_updates could be opened — the update runs, and it reports on this terminal alone."

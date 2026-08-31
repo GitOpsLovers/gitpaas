@@ -1,7 +1,7 @@
 import type { PlatformUpdate } from '@gitpaas/contracts';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 
 import { UPDATE_INITIAL_STEP } from '../../domain/constants/platform-update.constants';
 import { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
@@ -35,5 +35,18 @@ export class DatabasePlatformUpdatesRepository implements PlatformUpdatesReposit
         });
 
         return toPlatformUpdate(entity);
+    }
+
+    public async fail(updateId: string, reason: string): Promise<void> {
+        await this.repository.update({ id: updateId }, { state: 'failed', error: reason });
+    }
+
+    public async failStale(startedBefore: Date, reason: string): Promise<number> {
+        const result = await this.repository.update(
+            { state: 'running', startedAt: LessThan(startedBefore) },
+            { state: 'failed', error: reason },
+        );
+
+        return result.affected ?? 0;
     }
 }
