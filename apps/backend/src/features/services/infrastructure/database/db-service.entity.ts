@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { DbProjectEntity } from '@features/projects/infrastructure/database/db-project.entity';
 import { DbProviderEntity } from '@features/providers/infrastructure/database/db-provider.entity';
@@ -14,6 +14,9 @@ export class DbServiceEntity {
     @Column()
     public name!: string;
 
+    @Column({ type: 'text', default: '' })
+    public description!: string;
+
     @Column('uuid')
     public projectId!: string;
 
@@ -28,6 +31,9 @@ export class DbServiceEntity {
 
     @Column({ type: 'text', default: '' })
     public composerPath!: string;
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    public createdAt!: Date;
 
     @ManyToOne(() => DbProjectEntity, (project) => project.services, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'projectId' })

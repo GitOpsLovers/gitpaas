@@ -3,5 +3,6 @@
  */
 export interface CreateProjectInNamespaceDto {
     name: string;
+    description?: string;
     namespaceId: string;
 }

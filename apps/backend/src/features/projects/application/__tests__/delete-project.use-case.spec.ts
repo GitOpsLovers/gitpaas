@@ -11,7 +11,9 @@ describe('deleteProjectUseCase', () => {
     const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
     const otherNamespaceId = '0a9d7ef7-8b6c-4f42-a1c2-9de3e33a95a1';
 
-    const project: Project = { id, name: 'GitPaaS', namespaceId };
+    const project: Project = {
+        id, name: 'GitPaaS', description: '', namespaceId, createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
 
     let mockProjectsRepository: jest.Mocked<Pick<ProjectsRepository, 'findById' | 'delete'>>;
     let mockContainerRuntime: jest.Mocked<Pick<ContainerRuntime, 'listNetworks' | 'removeNetwork'>>;

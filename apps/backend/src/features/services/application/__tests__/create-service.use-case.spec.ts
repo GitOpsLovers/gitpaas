@@ -9,6 +9,7 @@ describe('createServiceUseCase', () => {
 
     const createDto: CreateServiceDto = {
         name: 'api',
+        description: 'The gateway of the API',
         projectId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
         providerId,
     };
@@ -16,11 +17,13 @@ describe('createServiceUseCase', () => {
     const createdService: Service = {
         id: '9c858901-8a57-4791-81fe-4c455b099bc9',
         name: createDto.name,
+        description: 'The gateway of the API',
         projectId: createDto.projectId,
         providerId,
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
 
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'create'>>;

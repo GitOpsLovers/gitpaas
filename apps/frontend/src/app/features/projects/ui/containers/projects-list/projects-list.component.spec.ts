@@ -22,7 +22,12 @@ interface ProjectsListInternals {
 }
 
 const project: Project = {
-    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 2,
+    id: 'pr-1',
+    name: 'api',
+    namespaceId: 'ns-1',
+    servicesCount: 2,
+    description: 'The API project',
+    createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 describe('ProjectsListComponent', () => {

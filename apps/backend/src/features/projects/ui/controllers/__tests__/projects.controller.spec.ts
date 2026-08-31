@@ -1,4 +1,4 @@
-import type { CreateProjectDto, UpdateProjectDto } from '@gitpaas/contracts';
+import type { CreateProjectDto, Project as ProjectResponse, UpdateProjectDto } from '@gitpaas/contracts';
 import { ConflictException, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
@@ -17,7 +17,19 @@ const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const project: Project = {
     id: projectId,
     name: 'platform',
+    description: 'The control plane',
     namespaceId,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    servicesCount: 3,
+};
+
+/** The shape the controller must answer with for `project`. */
+const projectResponse: ProjectResponse = {
+    id: projectId,
+    name: 'platform',
+    description: 'The control plane',
+    namespaceId,
+    createdAt: '2026-01-01T00:00:00.000Z',
     servicesCount: 3,
 };
 
@@ -136,7 +148,7 @@ describe('ProjectsController', () => {
 
             const result = await sut.getAll(namespaceId);
 
-            expect(result).toEqual([project]);
+            expect(result).toEqual([projectResponse]);
         });
 
         it('returns an empty list when the namespace holds no project', async () => {
@@ -176,7 +188,16 @@ describe('ProjectsController', () => {
 
             const result = await sut.findById(namespaceId, projectId);
 
-            expect(result).toBe(project);
+            expect(result).toEqual(projectResponse);
+        });
+
+        it('answers with the date of creation as a text of the ISO form, and never as a Date', async () => {
+            mockProjectsService.findById.mockResolvedValue(project);
+
+            const result = await sut.findById(namespaceId, projectId);
+
+            expect(result.createdAt).toBe('2026-01-01T00:00:00.000Z');
+            expect(result.createdAt).not.toBeInstanceOf(Date);
         });
 
         it('translates a not-found domain error into a NotFoundException', async () => {
@@ -216,7 +237,7 @@ describe('ProjectsController', () => {
 
             const result = await sut.create(namespaceId, createDto);
 
-            expect(result).toBe(project);
+            expect(result).toEqual(projectResponse);
         });
 
         it('translates a duplicate name into a ConflictException', async () => {
@@ -259,7 +280,7 @@ describe('ProjectsController', () => {
 
             const result = await sut.update(namespaceId, projectId, updateDto);
 
-            expect(result).toBe(updated);
+            expect(result).toEqual({ ...projectResponse, name: 'renamed' });
         });
 
         it('translates a not-found domain error into a NotFoundException', async () => {

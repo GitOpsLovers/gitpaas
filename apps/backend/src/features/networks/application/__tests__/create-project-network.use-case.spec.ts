@@ -16,7 +16,9 @@ const projectId = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 const project = (overrides: Partial<Project> = {}): Project => ({
     id: projectId,
     name: 'gitpaas',
+    description: '',
     namespaceId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
 });
 

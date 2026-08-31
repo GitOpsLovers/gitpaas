@@ -21,11 +21,13 @@ describe('getComposeServicesUseCase', () => {
     const service: Service = {
         id: serviceId,
         name: 'My Service',
+        description: '',
         projectId: 'a1b2c3d4-0000-0000-0000-000000000000',
         providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
 
     const credentials: ProviderCredentials = {

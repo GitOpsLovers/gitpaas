@@ -9,6 +9,7 @@ import { DatabaseProjectsRepository } from '../db-projects.repository';
 
 const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const otherNamespaceId = '0a9d7ef7-8b6c-4f42-a1c2-9de3e33a95a1';
+const createdAt = new Date('2026-01-01T00:00:00.000Z');
 
 /**
  * Builds a project database-entity fixture, overriding only the fields under test.
@@ -16,7 +17,9 @@ const otherNamespaceId = '0a9d7ef7-8b6c-4f42-a1c2-9de3e33a95a1';
 const projectEntity = (overrides: Partial<DbProjectEntity> = {}): DbProjectEntity => ({
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
     name: 'gitpaas',
+    description: '',
     namespaceId,
+    createdAt,
     services: [],
     ...overrides,
 });
@@ -81,10 +84,10 @@ describe('DatabaseProjectsRepository', () => {
             });
             expect(result).toEqual<Project[]>([
                 {
-                    id: withServices.id, name: 'with-services', namespaceId, servicesCount: 3,
+                    id: withServices.id, name: 'with-services', description: '', namespaceId, createdAt, servicesCount: 3,
                 },
                 {
-                    id: withoutServices.id, name: 'no-services', namespaceId, servicesCount: 0,
+                    id: withoutServices.id, name: 'no-services', description: '', namespaceId, createdAt, servicesCount: 0,
                 },
             ]);
         });
@@ -127,7 +130,9 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: entity.id,
                 name: entity.name,
+                description: '',
                 namespaceId,
+                createdAt,
                 servicesCount: 2,
             });
         });
@@ -141,7 +146,9 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: entity.id,
                 name: entity.name,
+                description: '',
                 namespaceId: otherNamespaceId,
+                createdAt,
                 servicesCount: 0,
             });
         });
@@ -170,7 +177,9 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: saved.id,
                 name: createData.name,
+                description: '',
                 namespaceId,
+                createdAt,
                 servicesCount: 0,
             });
             expect(result).not.toBe(saved);
@@ -189,7 +198,9 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: saved.id,
                 name: createData.name,
+                description: '',
                 namespaceId,
+                createdAt,
                 servicesCount: 0,
             });
         });
@@ -210,10 +221,34 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: saved.id,
                 name: createData.name,
+                description: '',
                 namespaceId,
+                createdAt,
                 servicesCount: 0,
             });
             expect(saved.services).toHaveLength(2);
+        });
+
+        it('carries the description of the write data into the entity it creates', async () => {
+            const withDescription: CreateProjectInNamespaceDto = { ...createData, description: 'The control plane' };
+            const entity = projectEntity({ name: createData.name, description: 'The control plane' });
+            mockRepository.create.mockReturnValue(entity);
+            mockRepository.save.mockResolvedValue(entity);
+
+            const result = await sut.create(withDescription);
+
+            expect(mockRepository.create).toHaveBeenCalledWith(withDescription);
+            expect(result.description).toBe('The control plane');
+        });
+
+        it('maps the date of creation the save gave back', async () => {
+            const saved = projectEntity({ name: createData.name, createdAt: new Date('2026-06-01T10:00:00.000Z') });
+            mockRepository.create.mockReturnValue(projectEntity({ name: createData.name }));
+            mockRepository.save.mockResolvedValue(saved);
+
+            const result = await sut.create(createData);
+
+            expect(result.createdAt).toEqual(new Date('2026-06-01T10:00:00.000Z'));
         });
 
         it('translates a unique violation on save into a ProjectNameTakenError', async () => {
@@ -271,7 +306,9 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: saved.id,
                 name: 'renamed',
+                description: '',
                 namespaceId,
+                createdAt,
                 servicesCount: 0,
             });
             expect(result).not.toBe(saved);
@@ -291,7 +328,9 @@ describe('DatabaseProjectsRepository', () => {
             expect(result).toEqual<Project>({
                 id: saved.id,
                 name: 'renamed',
+                description: '',
                 namespaceId,
+                createdAt,
                 servicesCount: 0,
             });
             expect(result).not.toBe(saved);

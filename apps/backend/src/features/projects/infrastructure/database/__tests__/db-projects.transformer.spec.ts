@@ -5,53 +5,82 @@ import { toProject, toProjectPersistenceError } from '../db-projects.transformer
 import { DbServiceEntity } from '@features/services/infrastructure/database/db-service.entity';
 
 const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+const createdAt = new Date('2026-01-01T00:00:00.000Z');
 
 describe('toProject', () => {
     it('maps the entity fields and derives servicesCount from the loaded relation', () => {
         const entity: DbProjectEntity = {
             id: 'p-1',
             name: 'GitPaaS',
+            description: 'The control plane',
             namespaceId,
+            createdAt,
             services: [{} as DbServiceEntity, {} as DbServiceEntity, {} as DbServiceEntity],
         };
 
         expect(toProject(entity)).toEqual({
             id: 'p-1',
             name: 'GitPaaS',
+            description: 'The control plane',
             namespaceId,
+            createdAt,
             servicesCount: 3,
         });
     });
 
     it('defaults servicesCount to 0 when the services relation is undefined (not loaded)', () => {
-        const entity: DbProjectEntity = { id: 'p-2', name: 'No relation', namespaceId };
+        const entity: DbProjectEntity = {
+            id: 'p-2', name: 'No relation', description: '', namespaceId, createdAt,
+        };
 
         expect(toProject(entity)).toEqual({
             id: 'p-2',
             name: 'No relation',
+            description: '',
             namespaceId,
+            createdAt,
             servicesCount: 0,
         });
     });
 
     it('derives servicesCount of 0 for an empty loaded relation', () => {
         const entity: DbProjectEntity = {
-            id: 'p-3', name: 'Empty', namespaceId, services: [],
+            id: 'p-3', name: 'Empty', description: '', namespaceId, createdAt, services: [],
         };
 
         expect(toProject(entity)).toEqual({
             id: 'p-3',
             name: 'Empty',
+            description: '',
             namespaceId,
+            createdAt,
             servicesCount: 0,
         });
+    });
+
+    it('carries the empty description of a project that holds none', () => {
+        const entity: DbProjectEntity = {
+            id: 'p-5', name: 'Bare', description: '', namespaceId, createdAt, services: [],
+        };
+
+        expect(toProject(entity).description).toBe('');
+    });
+
+    it('carries the date of creation as a Date, and never as a text', () => {
+        const entity: DbProjectEntity = {
+            id: 'p-6', name: 'Dated', description: '', namespaceId, createdAt, services: [],
+        };
+
+        expect(toProject(entity).createdAt).toBe(createdAt);
     });
 
     it('never copies the loaded namespace relation into the domain model', () => {
         const entity: DbProjectEntity = {
             id: 'p-4',
             name: 'GitPaaS',
+            description: '',
             namespaceId,
+            createdAt,
             namespace: { id: namespaceId, name: 'platform' },
             services: [],
         };

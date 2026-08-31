@@ -24,11 +24,13 @@ interface ServicesListInternals {
 const service: Service = {
     id: 'sv-1',
     name: 'api',
+    description: 'The API service',
     projectId: 'pr-1',
     providerId: null,
     repositoryId: '',
     deploymentBranch: '',
     composerPath: '',
+    createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 describe('ServicesListComponent', () => {

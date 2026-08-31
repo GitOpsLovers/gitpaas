@@ -32,11 +32,13 @@ describe('createDeploymentUseCase', () => {
     const service: Service = {
         id: triggerDto.serviceId,
         name: 'My Service',
+        description: '',
         projectId: 'a1b2c3d4-0000-0000-0000-000000000000',
         providerId,
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
 
     const credentials: ProviderCredentials = {

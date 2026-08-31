@@ -6,7 +6,13 @@ describe('getAllProjectsUseCase', () => {
     const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
     const projects: Project[] = [
-        { id: '9c858901-8a57-4791-81fe-4c455b099bc9', name: 'GitPaaS', namespaceId },
+        {
+            id: '9c858901-8a57-4791-81fe-4c455b099bc9',
+            name: 'GitPaaS',
+            description: '',
+            namespaceId,
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        },
     ];
 
     let mockProjectsRepository: jest.Mocked<Pick<ProjectsRepository, 'getAll'>>;

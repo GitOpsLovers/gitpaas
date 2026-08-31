@@ -1,5 +1,5 @@
 import { createServiceSchema, updateServiceSchema } from '@gitpaas/contracts';
-import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+import type { CreateServiceDto, Service as ServiceResponse, UpdateServiceDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -15,8 +15,8 @@ import {
     Query,
 } from '@nestjs/common';
 
-import { Service } from '../../domain/models/service.models';
 import { ServicesService } from '../services/services.service';
+import { toServiceResponse } from '../transformers/service-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
@@ -30,14 +30,16 @@ export class ServicesController {
     constructor(private readonly service: ServicesService) {}
 
     @Get()
-    public getAllByProject(@Query('projectId', ParseUUIDPipe) projectId: string): Promise<Service[]> {
+    public async getAllByProject(@Query('projectId', ParseUUIDPipe) projectId: string): Promise<ServiceResponse[]> {
         enrichTelemetry({ 'project.id': projectId });
 
-        return this.service.getAllByProject(projectId);
+        const services = await this.service.getAllByProject(projectId);
+
+        return services.map(toServiceResponse);
     }
 
     @Get(':id')
-    public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<Service> {
+    public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceResponse> {
         enrichTelemetry({ 'service.id': id });
 
         const service = await this.service.findById(id);
@@ -46,7 +48,7 @@ export class ServicesController {
             throw new NotFoundException(`Service ${id} not found`);
         }
 
-        return service;
+        return toServiceResponse(service);
     }
 
     /**
@@ -57,9 +59,9 @@ export class ServicesController {
      * @returns Created service
      */
     @Post()
-    public async create(@Body(new ZodValidationPipe(createServiceSchema)) createDto: CreateServiceDto): Promise<Service> {
+    public async create(@Body(new ZodValidationPipe(createServiceSchema)) createDto: CreateServiceDto): Promise<ServiceResponse> {
         try {
-            return await this.service.create(createDto);
+            return toServiceResponse(await this.service.create(createDto));
         } catch (error) {
             throw translateError(error);
         }
@@ -69,7 +71,7 @@ export class ServicesController {
     public async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body(new ZodValidationPipe(updateServiceSchema)) updateDto: UpdateServiceDto,
-    ): Promise<Service> {
+    ): Promise<ServiceResponse> {
         enrichTelemetry({ 'service.id': id });
 
         const service = await this.service.update(id, updateDto);
@@ -78,7 +80,7 @@ export class ServicesController {
             throw new NotFoundException(`Service ${id} not found`);
         }
 
-        return service;
+        return toServiceResponse(service);
     }
 
     @Delete(':id')

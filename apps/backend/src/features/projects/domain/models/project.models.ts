@@ -4,6 +4,8 @@
 export interface Project {
     id: string;
     name: string;
+    description: string;
     namespaceId: string;
+    createdAt: Date;
     servicesCount?: number;
 }

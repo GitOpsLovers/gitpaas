@@ -27,11 +27,13 @@ const network = (overrides: Partial<ProjectNetwork> = {}): ProjectNetwork => ({
 const service = (overrides: Partial<Service> = {}): Service => ({
     id: serviceId,
     name: 'web',
+    description: '',
     projectId,
     providerId: null,
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
 });
 
