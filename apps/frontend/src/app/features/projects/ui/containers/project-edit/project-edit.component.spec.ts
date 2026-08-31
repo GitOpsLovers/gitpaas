@@ -5,6 +5,7 @@ import type { Project } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+import { ProjectFormValue } from '../../components/project-form/project-form.component';
 
 import { ProjectEditComponent } from './project-edit.component';
 
@@ -12,10 +13,13 @@ import { ToastService } from '@shared/services/toast.service';
 
 interface ProjectEditInternals {
     initialName: () => string;
+    initialDescription: () => string;
     loading: () => boolean;
     submitting: () => boolean;
-    update: (name: string) => Promise<void>;
+    update: (value: ProjectFormValue) => Promise<void>;
 }
+
+const RENAMED: ProjectFormValue = { name: 'renamed', description: 'The API project' };
 
 const project: Project = {
     id: 'pr-1',
@@ -96,9 +100,9 @@ describe('ProjectEditComponent', () => {
 
             expect(repository.namespaceId()).toBe('ns-2');
 
-            await component.update('api');
+            await component.update(RENAMED);
 
-            expect(repository.update).toHaveBeenCalledWith('ns-2', 'pr-1', { name: 'api' });
+            expect(repository.update).toHaveBeenCalledWith('ns-2', 'pr-1', RENAMED);
             expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-2', 'projects']);
         });
 
@@ -110,6 +114,16 @@ describe('ProjectEditComponent', () => {
             value.set(project);
 
             expect(component.initialName()).toBe('api');
+        });
+
+        test('exposes an empty initial description until the project resolves', () => {
+            create();
+
+            expect(component.initialDescription()).toBe('');
+
+            value.set(project);
+
+            expect(component.initialDescription()).toBe('The API project');
         });
 
         test('mirrors the resource loading state', () => {
@@ -127,9 +141,9 @@ describe('ProjectEditComponent', () => {
             repository.update.mockReturnValue(of({ ...project, name: 'renamed' }));
             create();
 
-            await component.update('renamed');
+            await component.update(RENAMED);
 
-            expect(repository.update).toHaveBeenCalledWith('ns-1', 'pr-1', { name: 'renamed' });
+            expect(repository.update).toHaveBeenCalledWith('ns-1', 'pr-1', RENAMED);
             expect(toast.success).toHaveBeenCalledWith('Project updated', expect.stringContaining('renamed'));
             expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects']);
             expect(toast.error).not.toHaveBeenCalled();
@@ -139,7 +153,7 @@ describe('ProjectEditComponent', () => {
             repository.update.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
-            await component.update('renamed');
+            await component.update(RENAMED);
 
             expect(toast.error).toHaveBeenCalledWith(
                 'Could not update project',
@@ -156,7 +170,7 @@ describe('ProjectEditComponent', () => {
 
             expect(component.submitting()).toBe(false);
 
-            component.update('renamed');
+            component.update(RENAMED);
 
             expect(component.submitting()).toBe(true);
         });

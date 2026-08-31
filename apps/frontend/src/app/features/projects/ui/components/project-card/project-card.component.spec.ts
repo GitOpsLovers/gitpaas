@@ -3,12 +3,15 @@ import type { Project } from '@gitpaas/contracts';
 
 import { ProjectCardComponent } from './project-card.component';
 
+/** Midnight of the 14th of March 2026, in the timezone of the runner. */
+const CREATED_AT = new Date(2026, 2, 14).toISOString();
+
 const project = (overrides: Partial<Project> = {}): Project => ({
     id: 'pr-1',
     name: 'api',
     description: 'The API project',
     namespaceId: 'ns-1',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: CREATED_AT,
     servicesCount: 2,
     ...overrides,
 });
@@ -35,6 +38,10 @@ describe('ProjectCardComponent', () => {
 
     const badge = (): Element | null => fixture.nativeElement.querySelector('span');
 
+    const description = (): Element | null => fixture.nativeElement.querySelector('p');
+
+    const createdAt = (): Element | null => fixture.nativeElement.querySelector('time');
+
     const openDropdown = (): void => {
         (fixture.nativeElement.querySelector('button[aria-label="Open menu"]') as HTMLButtonElement).click();
         fixture.detectChanges();
@@ -50,6 +57,24 @@ describe('ProjectCardComponent', () => {
         create(project({ name: 'platform' }));
 
         expect(text()).toContain('platform');
+    });
+
+    test('shows the description of the project', () => {
+        create(project({ description: 'The control plane' }));
+
+        expect(description()?.textContent?.trim()).toBe('The control plane');
+    });
+
+    test('shows no description when the project holds an empty one', () => {
+        create(project({ description: '' }));
+
+        expect(description()).toBeNull();
+    });
+
+    test('shows the date of creation as a day', () => {
+        create(project());
+
+        expect(createdAt()?.textContent?.trim()).toBe('2026-03-14');
     });
 
     test('hides the badge of the services when the project holds none', () => {

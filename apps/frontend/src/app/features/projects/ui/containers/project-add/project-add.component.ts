@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
-import { ProjectFormComponent } from '../../components/project-form/project-form.component';
+import { ProjectFormComponent, ProjectFormValue } from '../../components/project-form/project-form.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
@@ -28,11 +28,11 @@ export class ProjectAddComponent {
 
     protected readonly submitting = signal(false);
 
-    protected async create(name: string): Promise<void> {
+    protected async create(value: ProjectFormValue): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const project = await lastValueFrom(this.repository.create(this.namespaceId(), { name }));
+            const project = await lastValueFrom(this.repository.create(this.namespaceId(), value));
 
             this.toast.success('Project created', `“${project.name}” has been created.`);
             this.router.navigate(['/namespaces', this.namespaceId(), 'projects']);

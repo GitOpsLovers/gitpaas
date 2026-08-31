@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
-import { ServiceFormComponent } from '../../components/service-form/service-form.component';
+import { ServiceFormComponent, ServiceFormValue } from '../../components/service-form/service-form.component';
 
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -57,11 +57,11 @@ export class ServiceAddComponent {
         this.projectsRepository.namespaceId.set(this.namespaceId);
     }
 
-    protected async create(name: string): Promise<void> {
+    protected async create(value: ServiceFormValue): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const service = await lastValueFrom(this.repository.create({ name, projectId: this.projectId }));
+            const service = await lastValueFrom(this.repository.create({ ...value, projectId: this.projectId }));
 
             this.toast.success('Service created', `“${service.name}” has been created.`);
             this.router.navigate(['/namespaces', this.namespaceId, 'projects', this.projectId]);
