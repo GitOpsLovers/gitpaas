@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { Service } from '@gitpaas/contracts';
 
+import type { ServiceState } from '../../../domain/models/service-state.models';
+
 import { ServiceCardComponent } from './service-card.component';
 
 /** Midnight of the 14th of March 2026, in the timezone of the runner. */
@@ -25,9 +27,14 @@ describe('ServiceCardComponent', () => {
     let edited: Service[];
     let deleted: Service[];
 
-    const create = (value: Service): void => {
+    const create = (value: Service, state?: ServiceState): void => {
         fixture = TestBed.createComponent(ServiceCardComponent);
         fixture.componentRef.setInput('service', value);
+
+        if (state) {
+            fixture.componentRef.setInput('state', state);
+        }
+
         viewed = [];
         edited = [];
         deleted = [];
@@ -42,6 +49,8 @@ describe('ServiceCardComponent', () => {
     const description = (): Element | null => fixture.nativeElement.querySelector('p');
 
     const createdAt = (): Element | null => fixture.nativeElement.querySelector('time');
+
+    const bullet = (): HTMLElement => fixture.nativeElement.querySelector('span[role="status"]') as HTMLElement;
 
     const openDropdown = (): void => {
         (fixture.nativeElement.querySelector('button[aria-label="Open menu"]') as HTMLButtonElement).click();
@@ -81,6 +90,52 @@ describe('ServiceCardComponent', () => {
         create(service());
 
         expect(createdAt()?.textContent?.trim()).toBe('2026-03-14');
+    });
+
+    describe('the bullet of the state', () => {
+        test('paints the bullet green and names it when the containers run', () => {
+            create(service(), 'ok');
+
+            expect(bullet().className).toContain('bg-success-500');
+            expect(bullet().getAttribute('aria-label')).toBe('Running');
+        });
+
+        test('paints the bullet yellow and names it when the containers are unstable', () => {
+            create(service(), 'warning');
+
+            expect(bullet().className).toContain('bg-warning-500');
+            expect(bullet().getAttribute('aria-label')).toBe('Unstable');
+        });
+
+        test('paints the bullet red and names it when the containers stopped', () => {
+            create(service(), 'error');
+
+            expect(bullet().className).toContain('bg-error-500');
+            expect(bullet().getAttribute('aria-label')).toBe('Stopped');
+        });
+
+        test('paints the bullet grey and names it when the state is not known', () => {
+            create(service(), 'unknown');
+
+            expect(bullet().className).toContain('bg-gray-400');
+            expect(bullet().getAttribute('aria-label')).toBe('Never deployed');
+        });
+
+        test('paints the bullet grey when the caller gives no state', () => {
+            create(service());
+
+            expect(bullet().className).toContain('bg-gray-400');
+        });
+
+        test('repaints the bullet when the state changes', () => {
+            create(service(), 'ok');
+
+            fixture.componentRef.setInput('state', 'error');
+            fixture.detectChanges();
+
+            expect(bullet().className).toContain('bg-error-500');
+            expect(bullet().className).not.toContain('bg-success-500');
+        });
     });
 
     test('emits the service on a view', () => {

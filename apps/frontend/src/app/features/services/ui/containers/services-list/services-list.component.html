@@ -13,6 +13,7 @@
         @for (service of services.value(); track service.id) {
             <app-service-card
                 [service]="service"
+                [state]="states()[service.id] ?? 'unknown'"
                 (view)="view($event)"
                 (edit)="edit($event)"
                 (delete)="requestDelete($event)"

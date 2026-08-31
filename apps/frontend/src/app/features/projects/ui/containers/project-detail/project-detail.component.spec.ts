@@ -9,6 +9,7 @@ import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.
 
 import { ProjectDetailComponent } from './project-detail.component';
 
+import { TokenStorageService } from '@features/authentication/infrastructure/storage/token-storage.service';
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 
@@ -65,6 +66,9 @@ describe('ProjectDetailComponent', () => {
             imports: [ProjectDetailComponent],
             providers: [
                 { provide: NamespacesApiRepository, useValue: namespacesRepository },
+                // The services list of the template reads the deployments, whose repository reads the token,
+                // and the environment of the tests exposes no real storage.
+                { provide: TokenStorageService, useValue: { accessToken: signal<string | null>(null) } },
                 provideRouter([]),
                 provideHttpClient(),
                 provideHttpClientTesting(),

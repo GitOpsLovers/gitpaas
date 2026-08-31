@@ -1,5 +1,6 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import {
     type Deployment,
     type DeploymentLogArchive,
@@ -7,7 +8,7 @@ import {
     type TriggerDeploymentDto,
     logEventSchema,
 } from '@gitpaas/contracts';
-import { Observable, Subscriber } from 'rxjs';
+import { forkJoin, Observable, of, Subscriber } from 'rxjs';
 
 import { environment } from '@environments/environment';
 import { TokenStorageService } from '@features/authentication/infrastructure/storage/token-storage.service';
@@ -47,6 +48,21 @@ export class DeploymentsApiRepository {
     }
 
     /**
+     * Resource with the deployments of several services, one request for each service, keyed by the service
+     *
+     * @param serviceIds Accessor returning the identifiers of the services to read
+     *
+     * @returns Resource that resolves to the deployments of each service
+     */
+    public deploymentsByServices(serviceIds: () => string[]) {
+        return rxResource<Record<string, Deployment[]>, string[]>({
+            params: serviceIds,
+            defaultValue: {},
+            stream: ({ params }) => this.readDeploymentsOf(params),
+        });
+    }
+
+    /**
      * Resource with the names of the compose services the last deployment of a service declares
      *
      * @param serviceId Accessor returning the service identifier
@@ -74,6 +90,28 @@ export class DeploymentsApiRepository {
 
             return id ? `${this.logsUrl}?deploymentId=${id}` : undefined;
         });
+    }
+
+    /**
+     * Reads the deployments of each given service, with one request for each one.
+     *
+     * @param serviceIds Identifiers of the services to read
+     *
+     * @returns The deployments of each service, keyed by the service
+     */
+    private readDeploymentsOf(serviceIds: string[]): Observable<Record<string, Deployment[]>> {
+        if (serviceIds.length === 0) {
+            return of({});
+        }
+
+        const requests: Record<string, Observable<Deployment[]>> = {};
+
+        for (const id of serviceIds) {
+            // eslint-disable-next-line security/detect-object-injection
+            requests[id] = this.http.get<Deployment[]>(`${this.url}?serviceId=${id}`);
+        }
+
+        return forkJoin(requests);
     }
 
     /**
