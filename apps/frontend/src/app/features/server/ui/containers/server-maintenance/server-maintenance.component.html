@@ -14,6 +14,48 @@
     desc="Reclaim disk space on the server by removing Docker resources that are no longer in use."
 >
     <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        @if (isAdmin()) {
+            <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-start gap-3">
+                    <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.03] dark:text-gray-400"
+                    >
+                        <svg lucideRefreshCw class="h-5 w-5"></svg>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">{{ checkAction.label }}</h4>
+                        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ checkAction.description }}</p>
+
+                        @if (checkMessage(); as message) {
+                            @if (checkState() === 'failed') {
+                                <p class="mt-1.5 text-sm text-error-600 dark:text-error-500" role="alert">
+                                    {{ message }}
+                                </p>
+                            } @else {
+                                <p class="mt-1.5 text-sm text-success-600 dark:text-success-500">{{ message }}</p>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="sm:shrink-0">
+                    <app-button
+                        variant="outline"
+                        size="sm"
+                        [disabled]="checking() || running()"
+                        (btnClick)="checkForUpdates()"
+                    >
+                        @if (checking()) {
+                            <svg lucideLoaderCircle class="h-4 w-4 animate-spin"></svg>
+                            Checking for updates…
+                        } @else {
+                            {{ checkAction.label }}
+                        }
+                    </app-button>
+                </div>
+            </li>
+        }
+
         @for (action of actions; track action.resource) {
             <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-start gap-3">

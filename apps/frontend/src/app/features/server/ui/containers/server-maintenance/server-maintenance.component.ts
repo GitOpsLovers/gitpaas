@@ -1,6 +1,6 @@
 import { Component, computed, DestroyRef, DOCUMENT, effect, inject, signal } from '@angular/core';
 import type { OrphanRemovalResult, PruneResult } from '@gitpaas/contracts';
-import { LucideBox, LucideDatabase, LucideLayers, LucideUnplug } from '@lucide/angular';
+import { LucideBox, LucideDatabase, LucideLayers, LucideLoaderCircle, LucideRefreshCw, LucideUnplug } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
 import { describeRequestFailureUseCase } from '../../../application/describe-request-failure.use-case';
@@ -32,6 +32,16 @@ interface PruneAction {
 }
 
 /**
+ * State of the check of the latest release, as the card shows it.
+ */
+type UpdateCheckState = 'idle' | 'checking' | 'succeeded' | 'failed';
+
+/**
+ * Message shown when the platform already runs the latest release published.
+ */
+const UP_TO_DATE_MESSAGE = 'GitPaaS already runs the latest release published.';
+
+/**
  * Number of bytes in a kibibyte, used to format reclaimed space.
  */
 const BYTES_PER_UNIT = 1024;
@@ -59,6 +69,8 @@ const UPDATE_TIMEOUT_MS = 10 * 60 * 1000;
         LucideLayers,
         LucideDatabase,
         LucideUnplug,
+        LucideRefreshCw,
+        LucideLoaderCircle,
     ],
 })
 
@@ -106,6 +118,11 @@ export class ServerMaintenanceComponent {
         },
     ];
 
+    protected readonly checkAction = {
+        label: 'Check for updates',
+        description: 'Read the latest release published now, without waiting for the next automatic check.',
+    } as const;
+
     protected readonly orphanAction = {
         label: 'Remove orphaned containers',
         description: 'Force-stop and remove leftover containers from deleted or stuck services.',
@@ -125,6 +142,15 @@ export class ServerMaintenanceComponent {
     protected readonly updating = signal(false);
 
     protected readonly timedOut = signal(false);
+
+    protected readonly checkState = signal<UpdateCheckState>('idle');
+
+    protected readonly checkError = signal<string | null>(null);
+
+    /**
+     * Whether a check of the latest release runs right now.
+     */
+    protected readonly checking = computed(() => this.checkState() === 'checking');
 
     /**
      * Whether the user may read the state of the update and start one.
@@ -152,6 +178,25 @@ export class ServerMaintenanceComponent {
         () => `GitPaaS will update itself to ${this.update().latestVersion ?? 'the latest release'}. `
             + 'The platform restarts, and the deployed services keep running. This cannot be undone.',
     );
+
+    /**
+     * Outcome of the last check of the latest release, as the card shows it.
+     */
+    protected readonly checkMessage = computed(() => {
+        const state = this.checkState();
+
+        if (state === 'failed') {
+            return this.checkError();
+        }
+
+        if (state !== 'succeeded') {
+            return null;
+        }
+
+        const update = this.update();
+
+        return update.available ? `A new version ${update.latestVersion} is available.` : UP_TO_DATE_MESSAGE;
+    });
 
     constructor() {
         this.loadCurrentUser();
@@ -254,6 +299,25 @@ export class ServerMaintenanceComponent {
         } finally {
             this.running.set(false);
             this.orphanPending.set(false);
+        }
+    }
+
+    /**
+     * Reads the latest release published at once, and shows the state of the update it leaves.
+     */
+    protected async checkForUpdates(): Promise<void> {
+        this.checkState.set('checking');
+        this.checkError.set(null);
+
+        try {
+            const status = await lastValueFrom(this.repository.checkUpdate());
+
+            this.updateResource.set(status);
+            this.checkState.set('succeeded');
+        } catch (error) {
+            // The state of the update keeps its previous value, so the screen still shows the version.
+            this.checkError.set(describeRequestFailureUseCase(error));
+            this.checkState.set('failed');
         }
     }
 
