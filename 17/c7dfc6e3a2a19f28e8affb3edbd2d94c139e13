@@ -1,0 +1,148 @@
+apps/backend/src/features/services/ui/transformers/__tests__/service-response.transformer.spec.ts
+  s_c11b77a6ad1b3e::t_ae91fda59cee77 1-52
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_c11b77a6ad1b3e::t_d464de1debba22 1,22,28-41,137,171-180,220,238,295
+apps/backend/src/features/projects/ui/services/__tests__/projects.service.spec.ts
+  s_c11b77a6ad1b3e::t_184a713da2ba49 45,47
+apps/backend/src/features/services/infrastructure/database/db-service.entity.ts
+  s_c11b77a6ad1b3e::t_2554676f4cf5a6 1,17-19,35-37
+apps/backend/src/features/services/domain/models/service.models.ts
+  s_c11b77a6ad1b3e::t_55969e4e8db726 7,13
+apps/backend/src/features/projects/application/__tests__/delete-project.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_b7e7737a6f8348 14-16
+apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.transformer.spec.ts
+  s_c11b77a6ad1b3e::t_181b7492d12faa 8,15,17,24,26,32-34,39,41,48,54,56,61-76,81,83
+apps/backend/src/features/projects/infrastructure/database/__tests__/db-projects.repository.spec.ts
+  s_c11b77a6ad1b3e::t_f3f999963a30a9 12,20,22,87,90,133,135,149,151,180,182,201,203,224,226,232-253,309,311,331,333
+apps/backend/src/features/services/application/__tests__/get-services-by-project.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_830a5fed10cb13 12,18
+packages/contracts/src/projects/__tests__/project.contract.spec.ts
+  s_c11b77a6ad1b3e::t_a0742853706d1e 13,15,42-61,86-97,148-171
+apps/backend/src/features/projects/ui/controllers/__tests__/projects.controller.spec.ts
+  s_c11b77a6ad1b3e::t_5a2760aae8621d 1,20,22-32,151,191-200,240,283
+apps/backend/src/features/networks/application/__tests__/get-networks-by-service.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_13cd7522bf60b3 29,35
+packages/contracts/src/services/service.contract.ts
+  s_c11b77a6ad1b3e::t_4b713902bff7bc 9,15,23,33
+iac/production/migrations/019_projects_services_description_created_at.sql
+  s_c11b77a6ad1b3e::t_d819f07e25c113 1-21
+apps/backend/src/features/services/application/__tests__/create-service.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_14492dbad8be0c 12,20,26
+apps/backend/src/features/networks/infrastructure/docker/__tests__/docker-networks.repository.spec.ts
+  s_c11b77a6ad1b3e::t_028a0aa5351062 47,53
+apps/backend/src/features/projects/domain/dtos/create-project-in-namespace.dto.ts
+  s_c11b77a6ad1b3e::t_49d864162abd5f 6
+apps/backend/src/features/services/ui/transformers/service-response.transformer.ts
+  s_c11b77a6ad1b3e::t_ab58b6ebbedaf0 1-24
+apps/backend/src/features/networks/application/__tests__/create-project-network.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_6249fd8ea0e79c 19,21
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_290e34d4ff08de 35,41
+apps/backend/src/features/projects/application/__tests__/update-project.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_c10378e703b8a4 14-21
+apps/backend/src/features/projects/infrastructure/database/db-projects.transformer.ts
+  s_c11b77a6ad1b3e::t_7343db8b8faf06 37,39
+apps/backend/src/features/deployments/application/__tests__/get-compose-services.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_ac417fb19034a9 24,30
+apps/backend/src/features/services/application/__tests__/update-service.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_8068250958e8d1 11,20,26
+apps/backend/src/features/projects/application/__tests__/get-all-projects.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_5aca77519ea1d9 9-15
+apps/backend/src/features/networks/application/__tests__/join-service-to-network.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_c5e530cb2425fa 30,36
+apps/backend/src/features/projects/application/__tests__/create-project.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_c51290e2f97c1c 9,14,16,34-38,42,47,62,67-75
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.transformer.spec.ts
+  s_c11b77a6ad1b3e::t_8f42d4fc038638 7-8,14,20,26,32,40,46,52,58,66,72,78-93
+apps/backend/src/features/services/ui/controllers/services.controller.ts
+  s_c11b77a6ad1b3e::t_777b7b863efff4 2,19,33,36-38,42,51,62,64,74,83
+apps/backend/src/features/containers/application/__tests__/get-containers-by-service.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_f32dd93a21e753 17,23
+apps/backend/src/features/projects/ui/transformers/project-response.transformer.ts
+  s_c11b77a6ad1b3e::t_43500191b334ee 1-21
+apps/frontend/src/app/features/projects/ui/containers/projects-list/projects-list.component.spec.ts
+  h_e4f33aa49027b9 25-28
+  h_e4f33aa49027b9 29-30
+apps/backend/src/features/projects/domain/models/project.models.ts
+  s_c11b77a6ad1b3e::t_fda398df5bd84f 7,9
+apps/backend/src/features/projects/infrastructure/database/db-project.entity.ts
+  s_c11b77a6ad1b3e::t_d811412d3704f7 1-10,27-29,33-35
+packages/contracts/src/projects/project.contract.ts
+  s_c11b77a6ad1b3e::t_673e0cda10fa21 9,11,20,24,28
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_3c94702ead5df4 37,43
+apps/backend/src/features/services/infrastructure/docker/__tests__/docker-service-runtime-resources.adapter.spec.ts
+  s_c11b77a6ad1b3e::t_35eb377fc58fb8 61,67
+docs/roadmap/ui-improvements/TODO.md
+  s_c11b77a6ad1b3e::t_8b02e95809595f 10-15
+apps/backend/src/features/services/application/__tests__/find-service-by-id.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_3edb6d621ec22a 11,17
+apps/backend/src/features/services/application/__tests__/delete-service.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_83ecd5152e8df4 16,22
+apps/frontend/src/app/features/projects/infrastructure/api/projects-api.repository.spec.ts
+  h_e4f33aa49027b9 16-19
+  h_e4f33aa49027b9 20-21
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_c11b77a6ad1b3e::t_5be95f417c08ca 60,66
+apps/backend/src/features/server/application/__tests__/remove-orphaned-containers.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_c23dcc34f37483 14,20
+apps/backend/src/features/projects/ui/controllers/projects.controller.ts
+  s_c11b77a6ad1b3e::t_0a738eb8d79b5e 2,17,31,35-37,47,51,61,63,74,76
+apps/backend/src/features/projects/application/__tests__/find-project-by-id.use-case.spec.ts
+  s_c11b77a6ad1b3e::t_93c342c0fe1024 12-14
+apps/backend/src/features/containers/infrastructure/docker/__tests__/docker-containers.repository.spec.ts
+  s_c11b77a6ad1b3e::t_2896aef6f62741 32,38
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_c11b77a6ad1b3e::t_3d2ae054fffabb 22,28
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_c11b77a6ad1b3e::t_25c39e517d2de5 47,53
+apps/backend/src/features/projects/ui/transformers/__tests__/project-response.transformer.spec.ts
+  s_c11b77a6ad1b3e::t_95378268cc9cd1 1-52
+apps/frontend/src/app/features/projects/ui/components/project-card/project-card.component.spec.ts
+  s_65d52a39a373b8::t_3c2a2dd9f608c9 9,11
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.spec.ts
+  s_65d52a39a373b8::t_308797a8b4b757 27,33
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.spec.ts
+  h_e4f33aa49027b9 38-43
+apps/frontend/src/app/features/projects/ui/containers/project-add/project-add.component.spec.ts
+  h_e4f33aa49027b9 18-23
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.spec.ts
+  h_e4f33aa49027b9 24-29
+apps/frontend/src/app/features/projects/ui/containers/project-edit/project-edit.component.spec.ts
+  h_e4f33aa49027b9 21-26
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.spec.ts
+  h_e4f33aa49027b9 29-34,40,46
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  h_e4f33aa49027b9 68-73,79,85
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.spec.ts
+  h_e4f33aa49027b9 31-36,42,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "17c7dfc6e3a2a19f28e8affb3edbd2d94c139e13",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_65d52a39a373b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "787429e2-97de-496f-924e-ecbfe81f5485",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c11b77a6ad1b3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1fc7fcce-f349-4831-86f5-5b023aaaf9d4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
