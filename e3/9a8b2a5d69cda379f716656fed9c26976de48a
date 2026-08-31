@@ -1,0 +1,16 @@
+apps/frontend/src/app/features/server/ui/components/server-health-panel/server-health-panel.component.html
+  h_e4f33aa49027b9 1
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.html
+  h_e4f33aa49027b9 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e39a8b2a5d69cda379f716656fed9c26976de48a",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
