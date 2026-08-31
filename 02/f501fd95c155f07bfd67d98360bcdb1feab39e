@@ -1,0 +1,51 @@
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_4f1e17c5119066::t_0cf3a62892c4e0 187-191
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_4f1e17c5119066::t_359d046d80aec4 57
+apps/backend/src/features/server/application/check-latest-release.use-case.ts
+  s_4f1e17c5119066::t_84b0e0d263d77a 12-13
+apps/backend/src/features/server/domain/errors/__tests__/server.errors.spec.ts
+  s_4f1e17c5119066::t_53d3a6862a03fd 11,264-288
+apps/backend/src/features/server/domain/errors/server.errors.ts
+  s_4f1e17c5119066::t_ad5756a5c93647 125-137
+apps/backend/src/features/server/domain/ports/release-source.port.ts
+  s_4f1e17c5119066::t_8e0085e923467d 10-12
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_4f1e17c5119066::t_927d74a9bbcc15 25,114,133,692-736,791-794
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_4f1e17c5119066::t_56c6e754cef367 168-183
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_4f1e17c5119066::t_9d990b6930da4c 4,15,30,44,80-82,136,159,182,536-572
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_4f1e17c5119066::t_7b0eb26d1d7bbc 11,28,46,87-88,189-199
+docs/roadmap/update-check-button/TODO.md
+  s_4f1e17c5119066::t_4a68cfa3256fb6 10-16
+apps/backend/src/features/server/infrastructure/release/__tests__/github-release-source.adapter.spec.ts
+  s_d63ad448db82e9::t_8869de85a0de81 1-2,20,41-42,45,49,52,55-56,58-59,62,65-76,79-84,86-90,92
+apps/backend/src/features/server/infrastructure/release/github-release-source.adapter.ts
+  s_d63ad448db82e9::t_43f9bcf21621b4 1,4,16-17,19,23-28,30-32,34,39-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "02f501fd95c155f07bfd67d98360bcdb1feab39e",
+  "prompts": {},
+  "sessions": {
+    "s_4f1e17c5119066": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a90d5d3e-27b3-43a9-8cab-8332a28d7f78",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d63ad448db82e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a084beb66b28f60b2",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
