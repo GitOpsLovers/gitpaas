@@ -1,0 +1,53 @@
+apps/backend/src/features/server/domain/errors/server.errors.ts
+  s_235cb30deb12a1::t_64ffe0d99a6de4 1,31-43
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_235cb30deb12a1::t_c8b4d692ae2313 150-154
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.entity.ts
+  s_235cb30deb12a1::t_20fdfedcb6a42c 20-22
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-settings.repository.spec.ts
+  s_235cb30deb12a1::t_c56b023b7dd9af 10,56,61-85
+apps/backend/src/features/server/domain/errors/__tests__/server.errors.spec.ts
+  s_235cb30deb12a1::t_c05ef043252dd3 1-2,5,63-86
+apps/backend/src/features/server/ui/controllers/server.controller.ts
+  s_235cb30deb12a1::t_5b3a9c753968ac 135,142
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_235cb30deb12a1::t_2340b7c8cdea74 14,35-36,629-656,747-750,756-787
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.transformer.ts
+  s_235cb30deb12a1::t_230e0ef72ae4b2 13-16
+apps/backend/src/features/server/application/__tests__/get-platform-settings.use-case.spec.ts
+  s_235cb30deb12a1::t_a5729f0a29bade 1-2,17,54-80
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.repository.ts
+  s_235cb30deb12a1::t_e81f89fe9d8953 28-32
+apps/backend/src/features/server/application/update-platform-settings.use-case.ts
+  s_235cb30deb12a1::t_204b7f8b8197a2 2-7,9,21,27,37-44
+iac/production/migrations/018_platform_settings_gitpaas_domain.sql
+  s_235cb30deb12a1::t_0d1e0fb8411a84 1-10
+docs/roadmap/server-settings-gitpaas-domain/TODO.md
+  s_235cb30deb12a1::t_5a72cbefc386ac 10-14
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-settings.transformer.spec.ts
+  s_235cb30deb12a1::t_abf12507c7ef19 8,18-27,29
+apps/backend/src/features/server/application/get-platform-settings.use-case.ts
+  s_235cb30deb12a1::t_819eb68e7478bb 16-19
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_235cb30deb12a1::t_7ae0ab19ae4af7 53
+apps/backend/src/features/server/application/__tests__/update-platform-settings.use-case.spec.ts
+  s_235cb30deb12a1::t_fe195833d467a5 1,3,17,29-32,78-159
+packages/contracts/src/server/platform-settings.contract.ts
+  s_235cb30deb12a1::t_3e43366d71ba65 3-4,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "90874c6f6a2f30cfbd10c3be33adaf0789015cf9",
+  "prompts": {},
+  "sessions": {
+    "s_235cb30deb12a1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "96c3dc39-5b9c-461f-a5ce-ab2383adf7dd",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
