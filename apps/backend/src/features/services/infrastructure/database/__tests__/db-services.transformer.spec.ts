@@ -4,26 +4,32 @@ import { toService, toServicePersistenceError } from '../db-services.transformer
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
 import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
 
+const createdAt = new Date('2026-01-01T00:00:00.000Z');
+
 describe('toService', () => {
     it('maps every service entity field into the domain model', () => {
         const entity: DbServiceEntity = {
             id: 's-1',
             name: 'api',
+            description: 'The gateway of the API',
             projectId: 'p-1',
             providerId: 'pv-1',
             repositoryId: 'gitopslovers/api',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
+            createdAt,
         };
 
         expect(toService(entity)).toEqual({
             id: 's-1',
             name: 'api',
+            description: 'The gateway of the API',
             projectId: 'p-1',
             providerId: 'pv-1',
             repositoryId: 'gitopslovers/api',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
+            createdAt,
         });
     });
 
@@ -31,21 +37,25 @@ describe('toService', () => {
         const entity: DbServiceEntity = {
             id: 's-2',
             name: 'web',
+            description: '',
             projectId: 'p-2',
             providerId: 'pv-2',
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
+            createdAt,
         };
 
         expect(toService(entity)).toEqual({
             id: 's-2',
             name: 'web',
+            description: '',
             projectId: 'p-2',
             providerId: 'pv-2',
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
+            createdAt,
         });
     });
 
@@ -53,14 +63,32 @@ describe('toService', () => {
         const entity: DbServiceEntity = {
             id: 's-3',
             name: 'worker',
+            description: '',
             projectId: 'p-3',
             providerId: null,
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
+            createdAt,
         };
 
         expect(toService(entity).providerId).toBeNull();
+    });
+
+    it('carries the date of creation as a Date, and never as a text', () => {
+        const entity: DbServiceEntity = {
+            id: 's-5',
+            name: 'worker',
+            description: '',
+            projectId: 'p-5',
+            providerId: null,
+            repositoryId: '',
+            deploymentBranch: '',
+            composerPath: '',
+            createdAt,
+        };
+
+        expect(toService(entity).createdAt).toBe(createdAt);
     });
 
     it('gives a null provider when the column carries no value at all', () => {

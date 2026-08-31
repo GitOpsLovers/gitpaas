@@ -1,4 +1,4 @@
-import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+import type { CreateServiceDto, Service as ServiceResponse, UpdateServiceDto } from '@gitpaas/contracts';
 import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
@@ -19,11 +19,26 @@ const providerId = 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f';
 const service: Service = {
     id: serviceId,
     name: 'api-gateway',
+    description: 'The gateway of the API',
     projectId,
     providerId,
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+};
+
+/** The shape the controller must answer with for `service`. */
+const serviceResponse: ServiceResponse = {
+    id: serviceId,
+    name: 'api-gateway',
+    description: 'The gateway of the API',
+    projectId,
+    providerId,
+    repositoryId: '42',
+    deploymentBranch: 'main',
+    composerPath: 'docker-compose.yml',
+    createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 /**
@@ -119,7 +134,7 @@ describe('ServicesController', () => {
 
             const result = await sut.getAllByProject(projectId);
 
-            expect(result).toEqual([service]);
+            expect(result).toEqual([serviceResponse]);
         });
 
         it('returns an empty list when the project has no services', async () => {
@@ -153,7 +168,16 @@ describe('ServicesController', () => {
 
             const result = await sut.findById(serviceId);
 
-            expect(result).toBe(service);
+            expect(result).toEqual(serviceResponse);
+        });
+
+        it('answers with the date of creation as a text of the ISO form, and never as a Date', async () => {
+            mockServicesService.findById.mockResolvedValue(service);
+
+            const result = await sut.findById(serviceId);
+
+            expect(result.createdAt).toBe('2026-01-01T00:00:00.000Z');
+            expect(result.createdAt).not.toBeInstanceOf(Date);
         });
 
         it('throws a NotFoundException when the service does not exist', async () => {
@@ -193,7 +217,7 @@ describe('ServicesController', () => {
 
             const result = await sut.create(createDto);
 
-            expect(result).toBe(service);
+            expect(result).toEqual(serviceResponse);
         });
 
         it('propagates errors raised by the service', async () => {
@@ -211,7 +235,7 @@ describe('ServicesController', () => {
             const result = await sut.create(dtoWithoutProvider);
 
             expect(mockServicesService.create).toHaveBeenCalledWith(dtoWithoutProvider);
-            expect(result).toBe(serviceWithoutProvider);
+            expect(result).toEqual({ ...serviceResponse, providerId: null });
         });
 
         it('translates a ProviderNotFoundError into a NotFoundException', async () => {
@@ -268,7 +292,7 @@ describe('ServicesController', () => {
 
             const result = await sut.update(serviceId, updateDto);
 
-            expect(result).toBe(updated);
+            expect(result).toEqual({ ...serviceResponse, name: 'renamed' });
         });
 
         it('throws a NotFoundException when the service does not exist', async () => {

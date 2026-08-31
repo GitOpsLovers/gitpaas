@@ -42,7 +42,9 @@ const namespaceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const project: Project = {
     id: projectId,
     name: 'platform',
+    description: 'The control plane',
     namespaceId,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
     servicesCount: 3,
 };
 

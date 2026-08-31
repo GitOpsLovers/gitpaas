@@ -4,9 +4,11 @@
 export interface Service {
     id: string;
     name: string;
+    description: string;
     projectId: string;
     providerId: string | null;
     repositoryId: string;
     deploymentBranch: string;
     composerPath: string;
+    createdAt: Date;
 }

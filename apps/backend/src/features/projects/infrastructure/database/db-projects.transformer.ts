@@ -34,7 +34,9 @@ export function toProject(entity: DbProjectEntity): Project {
     return {
         id: entity.id,
         name: entity.name,
+        description: entity.description,
         namespaceId: entity.namespaceId,
+        createdAt: entity.createdAt,
         servicesCount: entity.services?.length ?? 0,
     };
 }

@@ -1,5 +1,5 @@
 import { createProjectSchema, updateProjectSchema } from '@gitpaas/contracts';
-import type { CreateProjectDto, UpdateProjectDto } from '@gitpaas/contracts';
+import type { CreateProjectDto, Project as ProjectResponse, UpdateProjectDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -13,8 +13,8 @@ import {
     Put,
 } from '@nestjs/common';
 
-import { Project } from '../../domain/models/project.models';
 import { ProjectsService } from '../services/projects.service';
+import { toProjectResponse } from '../transformers/project-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
@@ -28,11 +28,13 @@ export class ProjectsController {
     constructor(private readonly service: ProjectsService) {}
 
     @Get()
-    public async getAll(@Param('namespaceId', ParseUUIDPipe) namespaceId: string): Promise<Project[]> {
+    public async getAll(@Param('namespaceId', ParseUUIDPipe) namespaceId: string): Promise<ProjectResponse[]> {
         enrichTelemetry({ 'namespace.id': namespaceId });
 
         try {
-            return await this.service.getAll(namespaceId);
+            const projects = await this.service.getAll(namespaceId);
+
+            return projects.map(toProjectResponse);
         } catch (error) {
             throw translateError(error);
         }
@@ -42,11 +44,11 @@ export class ProjectsController {
     public async findById(
         @Param('namespaceId', ParseUUIDPipe) namespaceId: string,
         @Param('id', ParseUUIDPipe) id: string,
-    ): Promise<Project> {
+    ): Promise<ProjectResponse> {
         enrichTelemetry({ 'namespace.id': namespaceId, 'project.id': id });
 
         try {
-            return await this.service.findById(namespaceId, id);
+            return toProjectResponse(await this.service.findById(namespaceId, id));
         } catch (error) {
             throw translateError(error);
         }
@@ -56,9 +58,9 @@ export class ProjectsController {
     public async create(
         @Param('namespaceId', ParseUUIDPipe) namespaceId: string,
         @Body(new ZodValidationPipe(createProjectSchema)) createDto: CreateProjectDto,
-    ): Promise<Project> {
+    ): Promise<ProjectResponse> {
         try {
-            return await this.service.create(namespaceId, createDto);
+            return toProjectResponse(await this.service.create(namespaceId, createDto));
         } catch (error) {
             throw translateError(error);
         }
@@ -69,9 +71,9 @@ export class ProjectsController {
         @Param('namespaceId', ParseUUIDPipe) namespaceId: string,
         @Param('id', ParseUUIDPipe) id: string,
         @Body(new ZodValidationPipe(updateProjectSchema)) updateDto: UpdateProjectDto,
-    ): Promise<Project> {
+    ): Promise<ProjectResponse> {
         try {
-            return await this.service.update(namespaceId, id, updateDto);
+            return toProjectResponse(await this.service.update(namespaceId, id, updateDto));
         } catch (error) {
             throw translateError(error);
         }

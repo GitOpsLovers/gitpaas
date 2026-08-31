@@ -9,11 +9,13 @@ describe('getServicesByProjectUseCase', () => {
         {
             id: '9c858901-8a57-4791-81fe-4c455b099bc9',
             name: 'api',
+            description: '',
             projectId,
             providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
             repositoryId: '42',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
         },
     ];
 

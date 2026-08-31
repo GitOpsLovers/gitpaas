@@ -28,17 +28,24 @@ const namespace: Namespace = {
 };
 
 const project: Project = {
-    id: 'pr-1', name: 'api', namespaceId: 'ns-1', servicesCount: 0,
+    id: 'pr-1',
+    name: 'api',
+    namespaceId: 'ns-1',
+    servicesCount: 0,
+    description: 'The API project',
+    createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 const service: Service = {
     id: 'sv-1',
     name: 'web',
+    description: 'The web service',
     projectId: 'pr-1',
     providerId: null,
     repositoryId: '',
     deploymentBranch: '',
     composerPath: '',
+    createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 const ROUTE_PARAMS = { namespaceId: 'ns-1', id: 'pr-1', serviceId: 'sv-1' };

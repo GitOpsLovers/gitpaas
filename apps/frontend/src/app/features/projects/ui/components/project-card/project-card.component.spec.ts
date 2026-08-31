@@ -6,7 +6,9 @@ import { ProjectCardComponent } from './project-card.component';
 const project = (overrides: Partial<Project> = {}): Project => ({
     id: 'pr-1',
     name: 'api',
+    description: 'The API project',
     namespaceId: 'ns-1',
+    createdAt: '2026-01-01T00:00:00.000Z',
     servicesCount: 2,
     ...overrides,
 });

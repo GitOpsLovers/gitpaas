@@ -57,10 +57,12 @@ export function toService(entity: DbServiceEntity): Service {
     return {
         id: entity.id,
         name: entity.name,
+        description: entity.description,
         projectId: entity.projectId,
         providerId: entity.providerId ?? null,
         repositoryId: entity.repositoryId,
         deploymentBranch: entity.deploymentBranch,
         composerPath: entity.composerPath,
+        createdAt: entity.createdAt,
     };
 }

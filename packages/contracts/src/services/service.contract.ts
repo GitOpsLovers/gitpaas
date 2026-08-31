@@ -6,11 +6,13 @@ import { z } from 'zod';
 export const serviceSchema = z.object({
     id: z.uuid(),
     name: z.string().min(1),
+    description: z.string(),
     projectId: z.uuid(),
     providerId: z.uuid().nullable(),
     repositoryId: z.string(),
     deploymentBranch: z.string(),
     composerPath: z.string(),
+    createdAt: z.iso.datetime(),
 });
 
 /**
@@ -18,6 +20,7 @@ export const serviceSchema = z.object({
  */
 export const createServiceSchema = z.strictObject({
     name: z.string().min(1),
+    description: z.string().max(500).optional(),
     projectId: z.uuid(),
     providerId: z.uuid().nullable().optional(),
 });
@@ -27,6 +30,7 @@ export const createServiceSchema = z.strictObject({
  */
 export const updateServiceSchema = z.strictObject({
     name: z.string().min(1),
+    description: z.string().max(500).optional(),
     providerId: z.uuid().nullable().optional(),
     repositoryId: z.string().optional(),
     deploymentBranch: z.string().optional(),

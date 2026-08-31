@@ -11,8 +11,14 @@ describe('updateProjectUseCase', () => {
     const otherNamespaceId = '0a9d7ef7-8b6c-4f42-a1c2-9de3e33a95a1';
     const updateDto: UpdateProjectDto = { name: 'Renamed' };
 
-    const existingProject: Project = { id, name: 'GitPaaS', namespaceId };
-    const updatedProject: Project = { id, name: updateDto.name, namespaceId };
+    const createdAt = new Date('2026-01-01T00:00:00.000Z');
+
+    const existingProject: Project = {
+        id, name: 'GitPaaS', description: '', namespaceId, createdAt,
+    };
+    const updatedProject: Project = {
+        id, name: updateDto.name, description: 'The control plane', namespaceId, createdAt,
+    };
 
     let mockProjectsRepository: jest.Mocked<Pick<ProjectsRepository, 'findById' | 'update'>>;
 

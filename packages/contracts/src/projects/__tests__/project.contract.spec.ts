@@ -10,7 +10,9 @@ const validBody = (overrides: Record<string, unknown> = {}): Record<string, unkn
 const validProject = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
     id: '9c858901-8a57-4791-81fe-4c455b099bc9',
     name: 'gitpaas',
+    description: 'The control plane',
     namespaceId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    createdAt: '2026-01-01T00:00:00.000Z',
     servicesCount: 3,
     ...overrides,
 });
@@ -37,6 +39,26 @@ describe('createProjectSchema', () => {
     it('rejects an unknown key', () => {
         expect(createProjectSchema.safeParse(validBody({ id: 'injected' })).success).toBe(false);
     });
+
+    it('accepts a body with no description', () => {
+        expect(createProjectSchema.safeParse(validBody()).success).toBe(true);
+    });
+
+    it('accepts an empty description', () => {
+        expect(createProjectSchema.safeParse(validBody({ description: '' })).success).toBe(true);
+    });
+
+    it('rejects a description that is not a text', () => {
+        expect(createProjectSchema.safeParse(validBody({ description: 42 })).success).toBe(false);
+    });
+
+    it('rejects a description longer than 500 characters', () => {
+        expect(createProjectSchema.safeParse(validBody({ description: 'a'.repeat(501) })).success).toBe(false);
+    });
+
+    it('accepts a description of exactly 500 characters', () => {
+        expect(createProjectSchema.safeParse(validBody({ description: 'a'.repeat(500) })).success).toBe(true);
+    });
 });
 
 describe('updateProjectSchema', () => {
@@ -60,6 +82,18 @@ describe('updateProjectSchema', () => {
 
     it('rejects an unknown key', () => {
         expect(updateProjectSchema.safeParse(validBody({ createdAt: '2026-01-01' })).success).toBe(false);
+    });
+
+    it('accepts a body with no description', () => {
+        expect(updateProjectSchema.safeParse(validBody()).success).toBe(true);
+    });
+
+    it('accepts an empty description, which clears the one the project held', () => {
+        expect(updateProjectSchema.safeParse(validBody({ description: '' })).success).toBe(true);
+    });
+
+    it('rejects a description longer than 500 characters', () => {
+        expect(updateProjectSchema.safeParse(validBody({ description: 'a'.repeat(501) })).success).toBe(false);
     });
 });
 
@@ -110,5 +144,29 @@ describe('projectSchema', () => {
 
     it('rejects a servicesCount that is not an integer', () => {
         expect(projectSchema.safeParse(validProject({ servicesCount: 1.5 })).success).toBe(false);
+    });
+
+    it('rejects a project with no description', () => {
+        const { description: _description, ...withoutDescription } = validProject();
+
+        expect(projectSchema.safeParse(withoutDescription).success).toBe(false);
+    });
+
+    it('accepts an empty description', () => {
+        expect(projectSchema.safeParse(validProject({ description: '' })).success).toBe(true);
+    });
+
+    it('rejects a project with no createdAt', () => {
+        const { createdAt: _createdAt, ...withoutCreatedAt } = validProject();
+
+        expect(projectSchema.safeParse(withoutCreatedAt).success).toBe(false);
+    });
+
+    it('rejects a createdAt that is not a date of the ISO form', () => {
+        expect(projectSchema.safeParse(validProject({ createdAt: '2026-01-01' })).success).toBe(false);
+    });
+
+    it('rejects a createdAt carried as a Date, since the wire carries a text', () => {
+        expect(projectSchema.safeParse(validProject({ createdAt: new Date() })).success).toBe(false);
     });
 });

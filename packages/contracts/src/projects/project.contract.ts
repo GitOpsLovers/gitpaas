@@ -6,7 +6,9 @@ import { z } from 'zod';
 export const projectSchema = z.object({
     id: z.uuid(),
     name: z.string().min(1),
+    description: z.string(),
     namespaceId: z.uuid(),
+    createdAt: z.iso.datetime(),
     servicesCount: z.int().nonnegative(),
 });
 
@@ -15,13 +17,15 @@ export const projectSchema = z.object({
  */
 export const createProjectSchema = z.strictObject({
     name: z.string().min(1),
+    description: z.string().max(500).optional(),
 });
 
 /**
- * The body that changes the name of an existing project.
+ * The body that changes the name and the description of an existing project.
  */
 export const updateProjectSchema = z.strictObject({
     name: z.string().min(1),
+    description: z.string().max(500).optional(),
 });
 
 /**

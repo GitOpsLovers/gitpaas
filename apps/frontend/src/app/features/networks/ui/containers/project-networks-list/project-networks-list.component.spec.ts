@@ -35,7 +35,12 @@ const namespace: Namespace = {
 };
 
 const project: Project = {
-    id: PROJECT_ID, name: 'api', namespaceId: NAMESPACE_ID, servicesCount: 2,
+    id: PROJECT_ID,
+    name: 'api',
+    namespaceId: NAMESPACE_ID,
+    servicesCount: 2,
+    description: 'The API project',
+    createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 const network: ProjectNetwork = {

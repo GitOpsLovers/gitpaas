@@ -7,12 +7,12 @@ A card of a project and a card of a service show the name alone, so a user canno
 **Agent:** implementer
 **Paths:** apps/backend/src/features/projects/, apps/backend/src/features/services/, packages/contracts/src/, iac/production/migrations/
 
-- [ ] 1.1 Add the column `description` (`text NOT NULL DEFAULT ''`) and the column `createdAt` (`timestamptz NOT NULL DEFAULT now()`) to `db-project.entity.ts` and to `db-service.entity.ts`.
-- [ ] 1.2 Add the two fields to `project.models.ts` and to `service.models.ts`, and map them in `db-projects.transformer.ts` and in `db-services.transformer.ts`.
-- [ ] 1.3 Add `description` (string) and `createdAt` (`z.iso.datetime()`) to `projectSchema` and to `serviceSchema`, and add `description` to the schemas of the creation and of the edition of the two features.
-- [ ] 1.4 Write a transformer of the response for the two features, which turns the `Date` of `createdAt` into a string ISO, as `provider-response.transformer.ts:20` does, and call it from the two controllers.
-- [ ] 1.5 Write the file `iac/production/migrations/018_*.sql`, idempotent, with the four columns, their types, their defaults and the names of the constraints that TypeORM produces.
-- [ ] 1.6 Update the unit tests of the two features, then run `rtk pnpm run check-types --filter @gitpaas/backend` and the unit tests of the backend, and make them pass.
+- [x] 1.1 Add the column `description` (`text NOT NULL DEFAULT ''`) and the column `createdAt` (`timestamptz NOT NULL DEFAULT now()`) to `db-project.entity.ts` and to `db-service.entity.ts`.
+- [x] 1.2 Add the two fields to `project.models.ts` and to `service.models.ts`, and map them in `db-projects.transformer.ts` and in `db-services.transformer.ts`.
+- [x] 1.3 Add `description` (string) and `createdAt` (`z.iso.datetime()`) to `projectSchema` and to `serviceSchema`, and add `description` to the schemas of the creation and of the edition of the two features.
+- [x] 1.4 Write a transformer of the response for the two features, which turns the `Date` of `createdAt` into a string ISO, as `provider-response.transformer.ts:20` does, and call it from the two controllers.
+- [x] 1.5 Write the file `iac/production/migrations/018_*.sql`, idempotent, with the four columns, their types, their defaults and the names of the constraints that TypeORM produces.
+- [x] 1.6 Update the unit tests of the two features, then run `rtk pnpm run check-types --filter @gitpaas/backend` and the unit tests of the backend, and make them pass.
 
 ## Phase 2 — The description and the date in the frontend
 
