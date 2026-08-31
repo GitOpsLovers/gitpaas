@@ -3,9 +3,13 @@ import { Router, RouterLink } from '@angular/router';
 import type { Service } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
+import { computeServiceStateUseCase } from '../../../application/compute-service-state.use-case';
+import type { ServiceState } from '../../../domain/models/service-state.models';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { ServiceCardComponent } from '../../components/service-card/service-card.component';
 
+import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
+import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -13,7 +17,7 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
     selector: 'app-services-list',
     templateUrl: './services-list.component.html',
-    providers: [ServicesApiRepository],
+    providers: [ServicesApiRepository, ContainersApiRepository, DeploymentsApiRepository],
     imports: [RouterLink, ServiceCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
@@ -22,6 +26,10 @@ import { ToastService } from '@shared/services/toast.service';
  */
 export class ServicesListComponent {
     private readonly repository = inject(ServicesApiRepository);
+
+    private readonly containersRepository = inject(ContainersApiRepository);
+
+    private readonly deploymentsRepository = inject(DeploymentsApiRepository);
 
     private readonly router = inject(Router);
 
@@ -32,6 +40,43 @@ export class ServicesListComponent {
     public readonly projectId = input.required<string>();
 
     protected readonly services = this.repository.services;
+
+    /**
+     * Identifiers of the services the list shows.
+     */
+    private readonly serviceIds = computed(() => this.services.value()?.map((service) => service.id) ?? []);
+
+    private readonly containersByService = this.containersRepository.containersByServices(this.serviceIds);
+
+    /**
+     * Services whose containers arrived and hold none, which are the only ones that need their deployments.
+     */
+    private readonly servicesWithoutContainers = computed(() => {
+        const containers = this.containersByService.value();
+
+        // eslint-disable-next-line security/detect-object-injection
+        return this.serviceIds().filter((id) => id in containers && containers[id].length === 0);
+    });
+
+    private readonly deploymentsByService = this.deploymentsRepository.deploymentsByServices(
+        this.servicesWithoutContainers,
+    );
+
+    /**
+     * State of the containers of each service, keyed by the service, which the bullet of its card reports.
+     */
+    protected readonly states = computed<Record<string, ServiceState>>(() => {
+        const containers = this.containersByService.value();
+        const deployments = this.deploymentsByService.value();
+        const states: Record<string, ServiceState> = {};
+
+        for (const id of this.serviceIds()) {
+            // eslint-disable-next-line security/detect-object-injection
+            states[id] = computeServiceStateUseCase(containers[id] ?? [], (deployments[id] ?? []).length > 0);
+        }
+
+        return states;
+    });
 
     protected readonly pendingDelete = signal<Service | null>(null);
 

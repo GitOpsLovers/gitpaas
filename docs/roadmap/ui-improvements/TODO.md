@@ -30,10 +30,10 @@ A card of a project and a card of a service show the name alone, so a user canno
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/services/
 
-- [ ] 3.1 Give `service-card` an input of a state that holds one of the four values `ok`, `warning`, `error` and `unknown`, and show a bullet in the upper-right corner of the card: green, yellow, red and gray.
-- [ ] 3.2 In the container of the list of the services, read `GET /containers?serviceId=` one time for each service of the list, and compute the state: `running` gives `ok`; `paused` and `restarting` give `warning`; `exited` and `dead` give `error`.
-- [ ] 3.3 When the service holds no container, read `GET /deployments?serviceId=` for that service alone. A service without a deployment gives `unknown`, and a service with one gives `error`.
-- [ ] 3.4 Write the unit tests of the bullet and of the computation of the state, then run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
+- [x] 3.1 Give `service-card` an input of a state that holds one of the four values `ok`, `warning`, `error` and `unknown`, and show a bullet in the upper-right corner of the card: green, yellow, red and gray.
+- [x] 3.2 In the container of the list of the services, read `GET /containers?serviceId=` one time for each service of the list, and compute the state: `running` gives `ok`; `paused` and `restarting` give `warning`; `exited` and `dead` give `error`.
+- [x] 3.3 When the service holds no container, read `GET /deployments?serviceId=` for that service alone. A service without a deployment gives `unknown`, and a service with one gives `error`.
+- [x] 3.4 Write the unit tests of the bullet and of the computation of the state, then run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
 
 ## Phase 4 — The icon of the main title
 

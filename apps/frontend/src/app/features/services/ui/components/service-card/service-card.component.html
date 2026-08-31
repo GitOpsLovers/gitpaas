@@ -11,6 +11,8 @@
             {{ service().name }}
         </button>
 
+        <span role="status" [attr.aria-label]="bulletLabel()" [title]="bulletLabel()" [class]="bulletClasses()"></span>
+
         <app-dropdown class="relative z-10 shrink-0">
             <button
                 type="button"

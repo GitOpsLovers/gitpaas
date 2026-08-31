@@ -1,6 +1,8 @@
-import { httpResource } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import type { Container } from '@gitpaas/contracts';
+import { forkJoin, type Observable, of } from 'rxjs';
 
 import { environment } from '@environments/environment';
 
@@ -10,6 +12,8 @@ import { environment } from '@environments/environment';
  * Containers API repository
  */
 export class ContainersApiRepository {
+    private readonly http = inject(HttpClient);
+
     private readonly url = `${environment.apiBaseUrl}/containers`;
 
     /**
@@ -25,5 +29,42 @@ export class ContainersApiRepository {
 
             return id ? `${this.url}?serviceId=${id}` : undefined;
         });
+    }
+
+    /**
+     * Resource with the containers of several services, one request for each service, keyed by the service
+     *
+     * @param serviceIds Accessor returning the identifiers of the services to read
+     *
+     * @returns Resource that resolves to the containers of each service
+     */
+    public containersByServices(serviceIds: () => string[]) {
+        return rxResource<Record<string, Container[]>, string[]>({
+            params: serviceIds,
+            defaultValue: {},
+            stream: ({ params }) => this.readContainersOf(params),
+        });
+    }
+
+    /**
+     * Reads the containers of each given service, with one request for each one.
+     *
+     * @param serviceIds Identifiers of the services to read
+     *
+     * @returns The containers of each service, keyed by the service
+     */
+    private readContainersOf(serviceIds: string[]): Observable<Record<string, Container[]>> {
+        if (serviceIds.length === 0) {
+            return of({});
+        }
+
+        const requests: Record<string, Observable<Container[]>> = {};
+
+        for (const id of serviceIds) {
+            // eslint-disable-next-line security/detect-object-injection
+            requests[id] = this.http.get<Container[]>(`${this.url}?serviceId=${id}`);
+        }
+
+        return forkJoin(requests);
     }
 }
