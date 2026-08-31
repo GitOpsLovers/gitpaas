@@ -1,0 +1,37 @@
+docs/roadmap/update-check-button/TODO.md
+  s_4089bdca2e05ef::t_af9974489f4c64 23-29
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.spec.ts
+  s_36670358d92871::t_8de3bda57daaae 1-241
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_36670358d92871::t_59ec1689c27680 111-119
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.html
+  s_36670358d92871::t_1b3c95897e42c8 17-58
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.spec.ts
+  s_36670358d92871::t_7e15661ee14e30 5,27-30,94-108,126,129,162-166,168-171,316-398
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.ts
+  s_36670358d92871::t_763c40d9ac996e 3,34-43,72-73,121-125,146-154,182-200,305-323
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fb4ed74057cb7a96bdbbd20fa7dd532e2f28e6a1",
+  "prompts": {},
+  "sessions": {
+    "s_36670358d92871": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9f285d0a2c290481",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_4089bdca2e05ef": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "caa391d2-f050-4feb-8111-ac09865d3c3e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
