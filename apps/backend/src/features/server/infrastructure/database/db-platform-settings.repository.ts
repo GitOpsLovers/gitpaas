@@ -25,7 +25,11 @@ export class DatabasePlatformSettingsRepository implements PlatformSettingsRepos
     }
 
     public async save(settings: PlatformSettings): Promise<PlatformSettings> {
-        const entity = await this.repository.save({ id: PLATFORM_SETTINGS_ROW_ID, ...settings });
+        const entity = await this.repository.save({
+            id: PLATFORM_SETTINGS_ROW_ID,
+            logRetentionDays: settings.logRetentionDays,
+            gitpaasDomain: settings.gitpaasDomain ?? null,
+        });
 
         return toPlatformSettings(entity);
     }

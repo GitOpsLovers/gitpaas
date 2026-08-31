@@ -1,3 +1,5 @@
+import type { PlatformSettings } from '@gitpaas/contracts';
+
 import { DEFAULT_LOG_RETENTION_DAYS } from '../../domain/constants/platform-settings.constants';
 import { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
 import { getPlatformSettingsUseCase } from '../get-platform-settings.use-case';
@@ -12,7 +14,7 @@ describe('getPlatformSettingsUseCase', () => {
     });
 
     /** Runs the use case with the mocked repository, applying the cast one time. */
-    const run = (): Promise<{ logRetentionDays: number }> => getPlatformSettingsUseCase(
+    const run = (): Promise<PlatformSettings> => getPlatformSettingsUseCase(
         mockPlatformSettingsRepository as unknown as PlatformSettingsRepository,
     );
 
@@ -47,6 +49,33 @@ describe('getPlatformSettingsUseCase', () => {
         const result = await run();
 
         expect(result).toEqual({ logRetentionDays: 90 });
+    });
+
+    it('returns the host of the control plane the operator saved', async () => {
+        mockPlatformSettingsRepository.find.mockResolvedValue({
+            logRetentionDays: 90,
+            gitpaasDomain: 'gitpaas.example.com',
+        });
+
+        const result = await run();
+
+        expect(result.gitpaasDomain).toBe('gitpaas.example.com');
+    });
+
+    it('leaves the host of the control plane absent while the row carries none', async () => {
+        mockPlatformSettingsRepository.find.mockResolvedValue({ logRetentionDays: 90 });
+
+        const result = await run();
+
+        expect(result.gitpaasDomain).toBeUndefined();
+    });
+
+    it('leaves the host of the control plane absent while the operator saved no row', async () => {
+        mockPlatformSettingsRepository.find.mockResolvedValue(null);
+
+        const result = await run();
+
+        expect(result.gitpaasDomain).toBeUndefined();
     });
 
     it('propagates errors thrown by the repository', async () => {

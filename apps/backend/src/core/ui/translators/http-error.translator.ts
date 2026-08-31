@@ -50,6 +50,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PROVIDER_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['DAEMON_UNREACHABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['INVALID_LOG_RETENTION', (error) => new BadRequestException(error.message, { cause: error })],
+    ['INVALID_GITPAAS_DOMAIN', (error) => new BadRequestException(error.message, { cause: error })],
     ['UPDATE_ALREADY_RUNNING', (error) => new ConflictException(error.message, { cause: error })],
     ['PLATFORM_UP_TO_DATE', (error) => new ConflictException(error.message, { cause: error })],
     ['UNKNOWN_PLATFORM_VERSION', (error) => new ConflictException(error.message, { cause: error })],

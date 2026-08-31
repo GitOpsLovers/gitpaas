@@ -17,6 +17,9 @@ export class DbPlatformSettingsEntity {
     @Column('int')
     public logRetentionDays!: number;
 
+    @Column({ type: 'text', nullable: true })
+    public gitpaasDomain!: string | null;
+
     @UpdateDateColumn({ type: 'timestamptz' })
     public updatedAt!: Date;
 }

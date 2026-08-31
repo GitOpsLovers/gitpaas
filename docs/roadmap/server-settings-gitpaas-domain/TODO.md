@@ -7,11 +7,11 @@ The domain of the control plane lives in `iac/production/.env` alone, and the in
 **Agent:** implementer
 **Paths:** `packages/contracts/src/server/platform-settings.contract.ts`, `apps/backend/src/features/server/`
 
-- [ ] 1.1 Add `gitpaasDomain` to the contract `platform-settings.contract.ts`, as an optional string with the validation of a host name.
-- [ ] 1.2 Add the column `gitpaasDomain` to `db-platform-settings.entity.ts`, nullable, with the schema step of the project.
-- [ ] 1.3 Return the field from `get-platform-settings.use-case.ts`, and accept it in `update-platform-settings.use-case.ts`.
-- [ ] 1.4 Put the guard of the administrator on `PUT /api/v1/server/settings` in `ui/controllers/server.controller.ts`, and keep the read open.
-- [ ] 1.5 Write the unit tests of the two use-cases and of the guard.
+- [x] 1.1 Add `gitpaasDomain` to the contract `platform-settings.contract.ts`, as an optional string with the validation of a host name.
+- [x] 1.2 Add the column `gitpaasDomain` to `db-platform-settings.entity.ts`, nullable, with the schema step of the project.
+- [x] 1.3 Return the field from `get-platform-settings.use-case.ts`, and accept it in `update-platform-settings.use-case.ts`.
+- [x] 1.4 Put the guard of the administrator on `PUT /api/v1/server/settings` in `ui/controllers/server.controller.ts`, and keep the read open.
+- [x] 1.5 Write the unit tests of the two use-cases and of the guard.
 
 ## Phase 2 — The check of the DNS and the file `.env`
 
