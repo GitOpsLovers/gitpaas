@@ -1,0 +1,105 @@
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.html
+  s_f412d015e13a7e::t_8ae4b63557361d 1
+apps/frontend/src/app/features/networks/ui/containers/project-networks-list/project-networks-list.component.ts
+  s_f412d015e13a7e::t_9c13d05da99800 3,28-29
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.html
+  s_f412d015e13a7e::t_b62da0626f7145 1
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.ts
+  s_f412d015e13a7e::t_2303fb44b482e4 4,24-25
+apps/frontend/src/app/features/server/ui/containers/server-overview/server-overview.component.html
+  s_f412d015e13a7e::t_4b8e262b58274d 1
+apps/frontend/src/app/features/server/ui/containers/server-overview/server-overview.component.ts
+  s_f412d015e13a7e::t_a15a7358a40471 3,30-31
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.html
+  s_f412d015e13a7e::t_4eb962e69523c4 1
+apps/frontend/src/app/features/services/ui/containers/service-add/service-add.component.ts
+  s_f412d015e13a7e::t_df5cb361b54e07 3,25-26
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_f412d015e13a7e::t_0e0be11f5b62f4 1
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_f412d015e13a7e::t_20a1fedf349cf3 4,72-73
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.html
+  s_f412d015e13a7e::t_b90fd4fac068fb 1
+apps/frontend/src/app/features/services/ui/containers/service-edit/service-edit.component.ts
+  s_f412d015e13a7e::t_d0562359d3c71d 3,27-28
+apps/frontend/src/app/layout/ui/components/breadcrumb/breadcrumb.component.html
+  s_f412d015e13a7e::t_7a3c175d7ff155 2-5
+apps/frontend/src/app/layout/ui/components/breadcrumb/breadcrumb.component.ts
+  s_f412d015e13a7e::t_676d34f953b874 3,17,26-28
+apps/frontend/src/app/pages/dashboard/dashboard.component.html
+  s_f412d015e13a7e::t_356cb3b86630a3 1
+apps/frontend/src/app/pages/dashboard/dashboard.component.ts
+  s_f412d015e13a7e::t_babe2bb2bf3533 2-4,24,27-30
+apps/frontend/src/app/pages/namespaces/add/namespace-add.component.html
+  s_f412d015e13a7e::t_87506d2ba4b105 1
+apps/frontend/src/app/pages/namespaces/add/namespace-add.component.ts
+  s_f412d015e13a7e::t_0b266787543404 2,17-18
+apps/frontend/src/app/pages/namespaces/edit/namespace-edit.component.html
+  s_f412d015e13a7e::t_edf6d278c19933 1
+apps/frontend/src/app/pages/namespaces/edit/namespace-edit.component.ts
+  s_f412d015e13a7e::t_6a5c80988a020e 2,17-18
+apps/frontend/src/app/pages/namespaces/list/namespaces-list.component.html
+  s_f412d015e13a7e::t_92e21e45fcfd51 1
+apps/frontend/src/app/pages/namespaces/list/namespaces-list.component.ts
+  s_f412d015e13a7e::t_37d3e91c375c6c 3,18-19
+apps/frontend/src/app/pages/projects/add/project-add.component.html
+  s_f412d015e13a7e::t_6089475a1a84d9 1
+apps/frontend/src/app/pages/projects/add/project-add.component.ts
+  s_f412d015e13a7e::t_dbdf2a287d75ba 2,17-18
+apps/frontend/src/app/pages/projects/edit/project-edit.component.html
+  s_f412d015e13a7e::t_35c088bce3814d 1
+apps/frontend/src/app/pages/projects/edit/project-edit.component.ts
+  s_f412d015e13a7e::t_a786c2c1cdebac 2,17-18
+apps/frontend/src/app/pages/projects/list/projects-list.component.html
+  s_f412d015e13a7e::t_f29203c8a5cfa4 1
+apps/frontend/src/app/pages/projects/list/projects-list.component.ts
+  s_f412d015e13a7e::t_f9783b82ca927e 3,18-19
+apps/frontend/src/app/pages/providers/add/provider-add.component.html
+  s_f412d015e13a7e::t_8134dc1dda05c1 1
+apps/frontend/src/app/pages/providers/add/provider-add.component.ts
+  s_f412d015e13a7e::t_57a3413018a17f 2,24-25
+apps/frontend/src/app/pages/providers/edit/provider-edit.component.html
+  s_f412d015e13a7e::t_a47d8c2ee8e302 1
+apps/frontend/src/app/pages/providers/edit/provider-edit.component.ts
+  s_f412d015e13a7e::t_62796019d16ea8 2,17-18
+apps/frontend/src/app/pages/providers/list/providers-list.component.html
+  s_f412d015e13a7e::t_e4588529cac75f 1
+apps/frontend/src/app/pages/providers/list/providers-list.component.ts
+  s_f412d015e13a7e::t_9c8053f9327317 3,18-19
+apps/frontend/src/app/pages/providers/registrations/created/provider-registration-created.component.html
+  s_f412d015e13a7e::t_1dcef67fa977b5 1
+apps/frontend/src/app/pages/providers/registrations/created/provider-registration-created.component.ts
+  s_f412d015e13a7e::t_74a5be14ed72a7 2,17-18
+apps/frontend/src/app/pages/providers/registrations/installed/provider-registration-installed.component.html
+  s_f412d015e13a7e::t_ab1213e2b71245 1
+apps/frontend/src/app/pages/providers/registrations/installed/provider-registration-installed.component.ts
+  s_f412d015e13a7e::t_96802048b5fde6 2,17-18
+docs/roadmap/ui-improvements/TODO.md
+  s_f412d015e13a7e::t_74f0bcbd736c7d 43-46
+apps/frontend/src/app/layout/ui/components/breadcrumb/breadcrumb.component.spec.ts
+  s_533686ad4fe1e7::t_8b5569017060ef 1-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6a93fa34cb2403a54a67ae3c4c498894e9366dbf",
+  "prompts": {},
+  "sessions": {
+    "s_533686ad4fe1e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5ad18701351d928b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f412d015e13a7e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78dbcc2b-fe39-4f92-9b34-f2359e362c94",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
