@@ -1,7 +1,10 @@
 import { DOMAIN_HOST_MESSAGE } from '@gitpaas/contracts';
 
 import {
+    ControlPlaneEnvWriteError,
     DaemonUnreachableError,
+    GitpaasDomainNotPointingAtHostError,
+    HostAddressUnknownError,
     InvalidGitpaasDomainError,
     InvalidLogRetentionError,
     PlatformUpToDateError,
@@ -81,6 +84,105 @@ describe('InvalidGitpaasDomainError', () => {
         const original = new Error('bad host');
 
         expect(new InvalidGitpaasDomainError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('GitpaasDomainNotPointingAtHostError', () => {
+    /** Builds the error with the addresses of one failed check. */
+    const error = (resolvedAddresses: string[] = ['198.51.100.7']): GitpaasDomainNotPointingAtHostError =>
+        new GitpaasDomainNotPointingAtHostError('gitpaas.example.com', resolvedAddresses, '203.0.113.10');
+
+    it('is a DomainError', () => {
+        expect(error()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to GitpaasDomainNotPointingAtHostError', () => {
+        expect(error().name).toBe('GitpaasDomainNotPointingAtHostError');
+    });
+
+    it('carries the GITPAAS_DOMAIN_NOT_POINTING_AT_HOST code', () => {
+        expect(error().code).toBe('GITPAAS_DOMAIN_NOT_POINTING_AT_HOST');
+    });
+
+    it('names the host, the address it resolves to and the address of this host in its message', () => {
+        expect(error().message).toBe(
+            'The domain gitpaas.example.com resolves to 198.51.100.7, and this host answers on 203.0.113.10.'
+            + ' Point the record A of gitpaas.example.com at 203.0.113.10, then save again.',
+        );
+    });
+
+    it('lists every address the host resolves to', () => {
+        expect(error(['198.51.100.7', '192.0.2.5']).message).toContain('resolves to 198.51.100.7, 192.0.2.5');
+    });
+
+    it('states that the host resolves to nothing when it resolves to no address', () => {
+        expect(error([]).message).toContain('resolves to nothing');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('ENOTFOUND');
+
+        expect(
+            new GitpaasDomainNotPointingAtHostError('gitpaas.example.com', [], '203.0.113.10', { cause: original })
+                .cause,
+        ).toBe(original);
+    });
+});
+
+describe('HostAddressUnknownError', () => {
+    it('is a DomainError', () => {
+        expect(new HostAddressUnknownError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to HostAddressUnknownError', () => {
+        expect(new HostAddressUnknownError().name).toBe('HostAddressUnknownError');
+    });
+
+    it('carries the HOST_ADDRESS_UNKNOWN code', () => {
+        expect(new HostAddressUnknownError().code).toBe('HOST_ADDRESS_UNKNOWN');
+    });
+
+    it('states that the check could not run in its message', () => {
+        expect(new HostAddressUnknownError().message).toBe(
+            'The platform could not read the public address of this host, so it cannot check the domain.'
+            + ' Try again in a moment.',
+        );
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('ETIMEDOUT');
+
+        expect(new HostAddressUnknownError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('ControlPlaneEnvWriteError', () => {
+    it('is a DomainError', () => {
+        expect(new ControlPlaneEnvWriteError('/opt/gitpaas/iac/production/.env')).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to ControlPlaneEnvWriteError', () => {
+        expect(new ControlPlaneEnvWriteError('/opt/gitpaas/iac/production/.env').name)
+            .toBe('ControlPlaneEnvWriteError');
+    });
+
+    it('carries the CONTROL_PLANE_ENV_WRITE_FAILED code', () => {
+        expect(new ControlPlaneEnvWriteError('/opt/gitpaas/iac/production/.env').code)
+            .toBe('CONTROL_PLANE_ENV_WRITE_FAILED');
+    });
+
+    it('states that the settings are kept and names the file in its message', () => {
+        expect(new ControlPlaneEnvWriteError('/opt/gitpaas/iac/production/.env').message).toBe(
+            'The settings are kept, and /opt/gitpaas/iac/production/.env could not be written.'
+            + ' Edit that file on the host, then restart the stack.',
+        );
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('EACCES');
+
+        expect(new ControlPlaneEnvWriteError('/opt/gitpaas/iac/production/.env', { cause: original }).cause)
+            .toBe(original);
     });
 });
 

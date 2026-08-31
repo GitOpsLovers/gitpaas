@@ -154,6 +154,21 @@ describe('translateError', () => {
                 .toBeInstanceOf(BadRequestException);
         });
 
+        it('maps GITPAAS_DOMAIN_NOT_POINTING_AT_HOST to a BadRequestException', () => {
+            expect(translateError(new CodedDomainError('GITPAAS_DOMAIN_NOT_POINTING_AT_HOST')))
+                .toBeInstanceOf(BadRequestException);
+        });
+
+        it('maps HOST_ADDRESS_UNKNOWN to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('HOST_ADDRESS_UNKNOWN')))
+                .toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('maps CONTROL_PLANE_ENV_WRITE_FAILED to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('CONTROL_PLANE_ENV_WRITE_FAILED')))
+                .toBeInstanceOf(ServiceUnavailableException);
+        });
+
         it('maps UPDATE_ALREADY_RUNNING to a ConflictException', () => {
             expect(translateError(new CodedDomainError('UPDATE_ALREADY_RUNNING')))
                 .toBeInstanceOf(ConflictException);

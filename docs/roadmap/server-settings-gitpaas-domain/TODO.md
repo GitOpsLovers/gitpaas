@@ -18,11 +18,11 @@ The domain of the control plane lives in `iac/production/.env` alone, and the in
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/server/`
 
-- [ ] 2.1 Write a function that resolves the domain and compares the address with the public address of the host.
-- [ ] 2.2 Call that function in `update-platform-settings.use-case.ts` before it saves, and reject the request with a clear message if the domain does not point at the host.
-- [ ] 2.3 Write an adapter that updates `CONTROL_PLANE_DOMAIN`, `CONTROL_PLANE_PROXY`, `CORS_ORIGIN` and `APP_BASE_URL` in `iac/production/.env`, and that keeps every other line of the file.
-- [ ] 2.4 Call that adapter after the row saves, and report a failure of the write without a rollback of the row.
-- [ ] 2.5 Write the unit tests of the check and of the writer, with a double of the file system.
+- [x] 2.1 Write a function that resolves the domain and compares the address with the public address of the host.
+- [x] 2.2 Call that function in `update-platform-settings.use-case.ts` before it saves, and reject the request with a clear message if the domain does not point at the host.
+- [x] 2.3 Write an adapter that updates `CONTROL_PLANE_DOMAIN`, `CONTROL_PLANE_PROXY`, `CORS_ORIGIN` and `APP_BASE_URL` in `iac/production/.env`, and that keeps every other line of the file.
+- [x] 2.4 Call that adapter after the row saves, and report a failure of the write without a rollback of the row.
+- [x] 2.5 Write the unit tests of the check and of the writer, with a double of the file system.
 
 ## Phase 3 — The field in the tab "Settings"
 

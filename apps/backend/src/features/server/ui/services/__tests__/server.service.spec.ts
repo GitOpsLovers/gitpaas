@@ -14,15 +14,18 @@ import { updatePlatformSettingsUseCase } from '../../../application/update-platf
 import { InvalidLogRetentionError } from '../../../domain/errors/server.errors';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../../infrastructure/database/db-platform-updates.repository';
+import { NodeDnsResolverAdapter } from '../../../infrastructure/dns/node-dns-resolver.adapter';
 import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
 import { DockerUpdateRunnerAdapter } from '../../../infrastructure/docker/docker-update-runner.adapter';
+import { FileControlPlaneEnvAdapter } from '../../../infrastructure/env/file-control-plane-env.adapter';
 import { BackendHealthProbeAdapter } from '../../../infrastructure/health/backend-health-probe.adapter';
 import { DockerHealthProbeAdapter } from '../../../infrastructure/health/docker-health-probe.adapter';
 import { FrontendHealthProbeAdapter } from '../../../infrastructure/health/frontend-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from '../../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
+import { HttpPublicHostAddressAdapter } from '../../../infrastructure/network/http-public-host-address.adapter';
 import { MemoryLatestReleaseStoreAdapter } from '../../../infrastructure/release/memory-latest-release-store.adapter';
 import { ServerService } from '../server.service';
 
@@ -125,6 +128,9 @@ describe('ServerService', () => {
     let mockPlatformUpdates: jest.Mocked<DatabasePlatformUpdatesRepository>;
     let mockLatestReleaseStore: jest.Mocked<MemoryLatestReleaseStoreAdapter>;
     let mockUpdateRunner: jest.Mocked<DockerUpdateRunnerAdapter>;
+    let mockDnsResolver: jest.Mocked<NodeDnsResolverAdapter>;
+    let mockPublicHostAddress: jest.Mocked<HttpPublicHostAddressAdapter>;
+    let mockControlPlaneEnvFile: jest.Mocked<FileControlPlaneEnvAdapter>;
     let sut: ServerService;
 
     beforeEach(async () => {
@@ -144,6 +150,9 @@ describe('ServerService', () => {
         mockPlatformUpdates = {} as jest.Mocked<DatabasePlatformUpdatesRepository>;
         mockLatestReleaseStore = {} as jest.Mocked<MemoryLatestReleaseStoreAdapter>;
         mockUpdateRunner = {} as jest.Mocked<DockerUpdateRunnerAdapter>;
+        mockDnsResolver = {} as jest.Mocked<NodeDnsResolverAdapter>;
+        mockPublicHostAddress = {} as jest.Mocked<HttpPublicHostAddressAdapter>;
+        mockControlPlaneEnvFile = {} as jest.Mocked<FileControlPlaneEnvAdapter>;
         mockResolveServiceVersion.mockReturnValue('2.1.0');
 
         const moduleRef = await Test.createTestingModule({
@@ -163,6 +172,9 @@ describe('ServerService', () => {
                 { provide: DatabasePlatformUpdatesRepository, useValue: mockPlatformUpdates },
                 { provide: MemoryLatestReleaseStoreAdapter, useValue: mockLatestReleaseStore },
                 { provide: DockerUpdateRunnerAdapter, useValue: mockUpdateRunner },
+                { provide: NodeDnsResolverAdapter, useValue: mockDnsResolver },
+                { provide: HttpPublicHostAddressAdapter, useValue: mockPublicHostAddress },
+                { provide: FileControlPlaneEnvAdapter, useValue: mockControlPlaneEnvFile },
             ],
         }).compile();
 
@@ -450,14 +462,19 @@ describe('ServerService', () => {
     });
 
     describe('updateSettings', () => {
-        it('delegates to the update platform settings use case with the repository and the body', async () => {
+        it('delegates to the update platform settings use case with the ports and the body', async () => {
             mockUpdatePlatformSettingsUseCase.mockResolvedValue(platformSettings);
 
             await sut.updateSettings({ logRetentionDays: 45 });
 
             expect(mockUpdatePlatformSettingsUseCase).toHaveBeenCalledTimes(1);
-            expect(mockUpdatePlatformSettingsUseCase)
-                .toHaveBeenCalledWith(mockPlatformSettings, { logRetentionDays: 45 });
+            expect(mockUpdatePlatformSettingsUseCase).toHaveBeenCalledWith(
+                mockPlatformSettings,
+                mockDnsResolver,
+                mockPublicHostAddress,
+                mockControlPlaneEnvFile,
+                { logRetentionDays: 45 },
+            );
         });
 
         it('returns the parameters produced by the use case', async () => {
