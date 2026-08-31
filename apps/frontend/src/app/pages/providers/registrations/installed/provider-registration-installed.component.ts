@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { LucideGitBranch } from '@lucide/angular';
 
 import { ProviderRegistrationInstalledComponent } from '@features/providers/ui/containers/provider-registration-installed/provider-registration-installed.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -13,6 +14,8 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Return of GitHub after the installation of the App page.
  */
 export class ProvidersRegistrationInstalledPage {
+    protected readonly icon = LucideGitBranch;
+
     protected readonly breadcrumb: BreadcrumbItem[] = [
         { label: 'Providers', link: '/providers' },
         { label: 'Add provider' },

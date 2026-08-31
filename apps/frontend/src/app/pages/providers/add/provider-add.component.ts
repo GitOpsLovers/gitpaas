@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { LucideGitBranch } from '@lucide/angular';
 
 import { ProviderPathChoiceComponent, ProviderRegistrationPath } from '@features/providers/ui/components/provider-path-choice/provider-path-choice.component';
 import { ProviderAddComponent } from '@features/providers/ui/containers/provider-add/provider-add.component';
@@ -20,6 +21,8 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Register provider page.
  */
 export class ProvidersAddPage {
+    protected readonly icon = LucideGitBranch;
+
     protected readonly breadcrumb: BreadcrumbItem[] = [
         { label: 'Providers', link: '/providers' },
         { label: 'Add provider' },

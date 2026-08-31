@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { LucideLayoutGrid } from '@lucide/angular';
+
+import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 
 interface DashboardStat {
     readonly title: string;
@@ -18,8 +21,13 @@ interface DeploymentUsage {
 @Component({
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
+    imports: [BreadcrumbComponent],
 })
 export class DashboardPage {
+    protected readonly icon = LucideLayoutGrid;
+
+    protected readonly breadcrumb: BreadcrumbItem[] = [{ label: 'Dashboard' }];
+
     public readonly stats: DashboardStat[] = [
         {
             title: 'Deployments', value: '12', delta: '+3', up: true,

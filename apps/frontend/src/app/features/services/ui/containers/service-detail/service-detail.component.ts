@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import type {
     Container, Deployment, Domain, Namespace, Network, Project, ProjectNetwork, Service, ServiceVariable,
 } from '@gitpaas/contracts';
+import { LucideLayers } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
 import { buildServiceVariableUpdateUseCase } from '../../../application/build-service-variable-update.use-case';
@@ -68,6 +69,8 @@ type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployme
  * Smart container that loads a service and shows its details across tabs.
  */
 export class ServiceDetailComponent {
+    protected readonly icon = LucideLayers;
+
     private readonly repository = inject(ServicesApiRepository);
 
     private readonly variablesRepository = inject(ServiceVariablesApiRepository);

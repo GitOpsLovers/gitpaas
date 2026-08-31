@@ -2,6 +2,7 @@ import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { Namespace } from '@gitpaas/contracts';
+import { LucideFolder } from '@lucide/angular';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
@@ -20,6 +21,8 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Project detail container component
  */
 export class ProjectDetailComponent {
+    protected readonly icon = LucideFolder;
+
     private readonly repository = inject(ProjectsApiRepository);
 
     private readonly namespacesRepository = inject(NamespacesApiRepository);

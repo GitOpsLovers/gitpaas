@@ -1,5 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
+import { LucideServer } from '@lucide/angular';
 
 import { ServerHealthComponent } from '../server-health/server-health.component';
 import { ServerMaintenanceComponent } from '../server-maintenance/server-maintenance.component';
@@ -26,6 +27,8 @@ type ServerTab = 'health' | 'maintenance' | 'settings';
  * Serves the three tabs of the screen of the server component.
  */
 export class ServerOverviewComponent {
+    protected readonly icon = LucideServer;
+
     private readonly router = inject(Router);
 
     public readonly tab = input.required<string>();

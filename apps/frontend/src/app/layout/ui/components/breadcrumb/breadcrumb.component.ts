@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideChevronRight } from '@lucide/angular';
+import { LucideChevronRight, LucideDynamicIcon, type LucideIcon } from '@lucide/angular';
 
 /**
  * A single breadcrumb entry. Provide a `link` for every crumb except the current
@@ -14,7 +14,7 @@ export interface BreadcrumbItem {
 @Component({
     selector: 'app-breadcrumb',
     templateUrl: './breadcrumb.component.html',
-    imports: [RouterLink, LucideChevronRight],
+    imports: [RouterLink, LucideChevronRight, LucideDynamicIcon],
 })
 
 /**
@@ -22,6 +22,11 @@ export interface BreadcrumbItem {
  */
 export class BreadcrumbComponent {
     public readonly items = input<BreadcrumbItem[]>([]);
+
+    /**
+     * The icon of the section, rendered before the title.
+     */
+    public readonly icon = input<LucideIcon>();
 
     protected readonly current = computed(() => this.items().at(-1));
 }
