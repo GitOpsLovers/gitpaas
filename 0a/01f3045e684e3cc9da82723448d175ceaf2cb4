@@ -1,0 +1,29 @@
+apps/frontend/src/app/layout/ui/components/sidebar/sidebar.component.html
+  s_68136190f0cf15::t_6c8aa7eeff3e4f 48,228-229
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.html
+  s_583bfe41735d06::t_d148480eff40c1 2-7,12,14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0a01f3045e684e3cc9da82723448d175ceaf2cb4",
+  "prompts": {},
+  "sessions": {
+    "s_583bfe41735d06": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-acecad2676c5c4275",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_68136190f0cf15": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a0963d4-f0ad-4fe2-be2d-a0da9c7809c4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
