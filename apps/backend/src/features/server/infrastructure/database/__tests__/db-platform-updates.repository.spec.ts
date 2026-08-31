@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 
 import { UPDATE_INITIAL_STEP } from '../../../domain/constants/platform-update.constants';
 import { DbPlatformUpdateEntity } from '../db-platform-update.entity';
@@ -17,13 +17,13 @@ const updateEntity = (overrides: Partial<DbPlatformUpdateEntity> = {}): DbPlatfo
 });
 
 describe('DatabasePlatformUpdatesRepository', () => {
-    let mockRepository: jest.Mocked<Pick<Repository<DbPlatformUpdateEntity>, 'findOne' | 'save'>>;
+    let mockRepository: jest.Mocked<Pick<Repository<DbPlatformUpdateEntity>, 'findOne' | 'save' | 'update'>>;
     let sut: DatabasePlatformUpdatesRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockRepository = { findOne: jest.fn(), save: jest.fn() };
+        mockRepository = { findOne: jest.fn(), save: jest.fn(), update: jest.fn() };
         sut = new DatabasePlatformUpdatesRepository(
             mockRepository as unknown as Repository<DbPlatformUpdateEntity>,
         );
@@ -85,6 +85,48 @@ describe('DatabasePlatformUpdatesRepository', () => {
                 error: null,
                 startedAt: '2026-08-28T10:00:00.000Z',
             });
+        });
+    });
+
+    describe('fail', () => {
+        it('writes the failed state and the reason on the row of the update', async () => {
+            mockRepository.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+            await sut.fail('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'the daemon refused the container');
+
+            expect(mockRepository.update).toHaveBeenCalledTimes(1);
+            expect(mockRepository.update).toHaveBeenCalledWith(
+                { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' },
+                { state: 'failed', error: 'the daemon refused the container' },
+            );
+        });
+    });
+
+    describe('failStale', () => {
+        const startedBefore = new Date('2026-08-28T09:45:00.000Z');
+
+        it('closes every row that still runs and that started before the moment', async () => {
+            mockRepository.update.mockResolvedValue({ affected: 2, raw: [], generatedMaps: [] });
+
+            await sut.failStale(startedBefore, 'the update left no report');
+
+            expect(mockRepository.update).toHaveBeenCalledTimes(1);
+            expect(mockRepository.update).toHaveBeenCalledWith(
+                { state: 'running', startedAt: LessThan(startedBefore) },
+                { state: 'failed', error: 'the update left no report' },
+            );
+        });
+
+        it('returns the number of rows the write closed', async () => {
+            mockRepository.update.mockResolvedValue({ affected: 2, raw: [], generatedMaps: [] });
+
+            expect(await sut.failStale(startedBefore, 'the update left no report')).toBe(2);
+        });
+
+        it('returns zero while the write reported no row', async () => {
+            mockRepository.update.mockResolvedValue({ affected: undefined, raw: [], generatedMaps: [] });
+
+            expect(await sut.failStale(startedBefore, 'the update left no report')).toBe(0);
         });
     });
 });

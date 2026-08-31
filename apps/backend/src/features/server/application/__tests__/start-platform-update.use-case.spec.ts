@@ -30,13 +30,13 @@ describe('startPlatformUpdateUseCase', () => {
 
     const openedUpdate = platformUpdate();
 
-    let mockPlatformUpdatesRepository: jest.Mocked<Pick<PlatformUpdatesRepository, 'findLast' | 'open'>>;
+    let mockPlatformUpdatesRepository: jest.Mocked<Pick<PlatformUpdatesRepository, 'findLast' | 'open' | 'fail'>>;
     let mockLatestReleaseStore: jest.Mocked<Pick<LatestReleaseStore, 'read'>>;
     let mockUpdateRunner: jest.Mocked<Pick<UpdateRunner, 'start'>>;
 
     /** Runs the use case with the mocked ports, for the given installed version. */
     const run = (installedVersion = '2.1.0'): Promise<PlatformUpdateStatus> => startPlatformUpdateUseCase(
-        mockPlatformUpdatesRepository,
+        mockPlatformUpdatesRepository as unknown as PlatformUpdatesRepository,
         mockLatestReleaseStore as unknown as LatestReleaseStore,
         mockUpdateRunner,
         installedVersion,
@@ -48,6 +48,7 @@ describe('startPlatformUpdateUseCase', () => {
         mockPlatformUpdatesRepository = {
             findLast: jest.fn().mockResolvedValue(null),
             open: jest.fn().mockResolvedValue(openedUpdate),
+            fail: jest.fn().mockResolvedValue(undefined),
         };
         mockLatestReleaseStore = { read: jest.fn().mockReturnValue(release) };
         mockUpdateRunner = { start: jest.fn().mockResolvedValue(undefined) };
@@ -157,11 +158,52 @@ describe('startPlatformUpdateUseCase', () => {
         });
     });
 
-    it('propagates a failure of the runner', async () => {
+    describe('when the runner fails to start', () => {
         const error = new Error('the daemon refused the container');
 
-        mockUpdateRunner.start.mockRejectedValue(error);
+        beforeEach(() => {
+            mockUpdateRunner.start.mockRejectedValue(error);
+        });
 
-        await expect(run()).rejects.toThrow(error);
+        it('propagates the failure', async () => {
+            await expect(run()).rejects.toThrow(error);
+        });
+
+        it('closes the row it opened, with the reason of the failure', async () => {
+            await run().catch(() => undefined);
+
+            expect(mockPlatformUpdatesRepository.fail).toHaveBeenCalledTimes(1);
+            expect(mockPlatformUpdatesRepository.fail).toHaveBeenCalledWith(
+                openedUpdate.id,
+                'the daemon refused the container',
+            );
+        });
+
+        it('closes the row with the text of a failure that is no error', async () => {
+            mockUpdateRunner.start.mockRejectedValue('the socket vanished');
+
+            await run().catch(() => undefined);
+
+            expect(mockPlatformUpdatesRepository.fail).toHaveBeenCalledWith(openedUpdate.id, 'the socket vanished');
+        });
+
+        it('closes the row before the failure reaches the caller', async () => {
+            const order: string[] = [];
+
+            // eslint-disable-next-line @typescript-eslint/require-await
+            mockPlatformUpdatesRepository.fail.mockImplementation(async () => {
+                order.push('fail');
+            });
+
+            await run().catch(() => order.push('threw'));
+
+            expect(order).toEqual(['fail', 'threw']);
+        });
+    });
+
+    it('never closes the row while the runner starts', async () => {
+        await run();
+
+        expect(mockPlatformUpdatesRepository.fail).not.toHaveBeenCalled();
     });
 });

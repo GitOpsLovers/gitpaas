@@ -42,3 +42,13 @@ export const LATEST_RELEASE_URL = `https://api.github.com/repos/${GITPAAS_REPOSI
  * The time, in milliseconds, the read of the latest release waits for GitHub.
  */
 export const LATEST_RELEASE_TIMEOUT_MS = 5_000;
+
+/**
+ * The time, in milliseconds, a row that still runs is left alone after it started.
+ */
+export const UPDATE_STALE_AFTER_MS = 15 * 60 * 1_000;
+
+/**
+ * The reason the reconciliation of the boot writes on a row that no run ever reported to.
+ */
+export const UPDATE_ABANDONED_REASON = 'The update left no report. It was closed when the backend started again.';

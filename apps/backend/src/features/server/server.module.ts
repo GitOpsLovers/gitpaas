@@ -21,6 +21,7 @@ import { GithubReleaseSourceAdapter } from './infrastructure/release/github-rele
 import { MemoryLatestReleaseStoreAdapter } from './infrastructure/release/memory-latest-release-store.adapter';
 import { ServerController } from './ui/controllers/server.controller';
 import { CheckLatestReleaseJob } from './ui/jobs/check-latest-release.job';
+import { ReconcilePlatformUpdatesJob } from './ui/jobs/reconcile-platform-updates.job';
 import { ServerService } from './ui/services/server.service';
 
 import { ServicesModule } from '@features/services/services.module';
@@ -50,6 +51,7 @@ import { ServicesModule } from '@features/services/services.module';
         HttpPublicHostAddressAdapter,
         FileControlPlaneEnvAdapter,
         CheckLatestReleaseJob,
+        ReconcilePlatformUpdatesJob,
     ],
 })
 export class ServerModule {}
