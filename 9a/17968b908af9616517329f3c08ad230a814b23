@@ -1,0 +1,37 @@
+apps/frontend/src/app/features/authentication/ui/interceptors/auth.interceptor.spec.ts
+  s_bc653d4d47da3a::t_2e925fc962e8dd 18-20,101,104-105,107-119,159-174
+apps/frontend/src/app/features/server/application/describe-request-failure.use-case.spec.ts
+  s_bc653d4d47da3a::t_db0ac1f10c936a 3,8-9,22,26,35,38,41,45,51,55
+apps/frontend/src/app/features/server/application/describe-request-failure.use-case.ts
+  s_bc653d4d47da3a::t_7899273a8ddb8f 6,11,13,21,26,30,32
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.spec.ts
+  s_bc653d4d47da3a::t_1c2500d28b9b89 1,88-102,219-228
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.ts
+  s_bc653d4d47da3a::t_cf6052ed0055e1 6,377,379
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.spec.ts
+  s_bc653d4d47da3a::t_d148f63c0fd115 67-81,416-425
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.ts
+  s_bc653d4d47da3a::t_9a9a649e8de814 13,284,303,305
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.spec.ts
+  s_bc653d4d47da3a::t_eef5129b1cee8d 1,6,14,37-51,57,82,89,137-158
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.ts
+  s_bc653d4d47da3a::t_188103b7d658e2 10,13,32-33,81,83
+apps/frontend/src/app/features/authentication/ui/interceptors/auth.interceptor.ts
+  s_bc653d4d47da3a::t_d71020e7a7f076 25,27-31,101,103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9a17968b908af9616517329f3c08ad230a814b23",
+  "prompts": {},
+  "sessions": {
+    "s_bc653d4d47da3a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "41f45017-1214-4ae0-b7eb-c38480daa587",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
