@@ -1,0 +1,51 @@
+apps/frontend/src/app/features/containers/infrastructure/api/containers-api.repository.ts
+  s_c0cb6c6129ee0d::t_31ded2254bff05 1-3,5,15-16,33-68
+apps/frontend/src/app/features/deployments/infrastructure/api/deployments-api.repository.ts
+  s_c0cb6c6129ee0d::t_d6dcfb2d4eeaf1 3,11,50-64,95-115
+apps/frontend/src/app/features/projects/ui/containers/project-detail/project-detail.component.spec.ts
+  s_c0cb6c6129ee0d::t_c2d1dd71b2eefe 12,69-71
+apps/frontend/src/app/features/services/application/compute-service-state.use-case.ts
+  s_c0cb6c6129ee0d::t_0a66baf75b36b2 1-42
+apps/frontend/src/app/features/services/domain/models/service-state.models.ts
+  s_c0cb6c6129ee0d::t_d12f742d60d41b 1-4
+apps/frontend/src/app/features/services/ui/components/service-card/service-card.component.html
+  s_c0cb6c6129ee0d::t_62ed7e90a0ac5a 14-20
+apps/frontend/src/app/features/services/ui/components/service-card/service-card.component.spec.ts
+  s_c0cb6c6129ee0d::t_fc0324d8e17c23 4-5,30,33-37,53-54,95-140
+apps/frontend/src/app/features/services/ui/components/service-card/service-card.component.ts
+  s_c0cb6c6129ee0d::t_3c94b68ae8948d 2,5-6,9-28,41-42,48-57
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.html
+  s_c0cb6c6129ee0d::t_fea555a0acae8d 16
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.spec.ts
+  s_c0cb6c6129ee0d::t_f8ca8d70e97c7c 4,7,12-13,18,28-51,64-65,71,78-81,98,101-108,122-126,229-304,313-319,332
+apps/frontend/src/app/features/services/ui/containers/services-list/services-list.component.ts
+  s_c0cb6c6129ee0d::t_bf57038d733a2c 6-7,11-13,21,31-34,45-79
+docs/roadmap/ui-improvements/TODO.md
+  s_c0cb6c6129ee0d::t_3f0af9ec05e413 33-36
+apps/frontend/src/app/features/services/application/compute-service-state.use-case.spec.ts
+  s_13771e9fa489be::t_8b1d47ab63e00a 1-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "07a12f2e515c4460485f50b15b4dd5823fa9dc51",
+  "prompts": {},
+  "sessions": {
+    "s_13771e9fa489be": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac6abf2153f52ca6e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c0cb6c6129ee0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c0a53587-76e2-42a3-9725-bf83063d34b5",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
