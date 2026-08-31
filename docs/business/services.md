@@ -6,9 +6,11 @@ This capability holds the deployable units of the platform. A service belongs to
 
 ## The service record
 
-The system SHALL keep one record per service. The record holds the identifier, the name, the identifier of the project, the identifier of the provider, the identifier of the repository, the deployment branch and the path of the compose file.
+The system SHALL keep one record per service. The record holds the identifier, the name, the description, the identifier of the project, the identifier of the provider, the identifier of the repository, the deployment branch, the path of the compose file and the date of creation.
 
 The identifier is a UUID that the database generates. The database refuses the removal of a provider that a service still names. A service with no provider is not deployable.
+
+The description is optional, and it holds an empty text when a caller gives none. It carries at most 500 characters. The date of creation is the instant the database wrote the record, and the system never changes it.
 
 **The three fields of the deployment are always present.** The column of each one refuses an empty value and carries the default of an empty text. Thus an answer of the API always holds the three fields, and a new service holds an empty text in each one, because a caller gives them after the creation. They are never absent, and they are never without a value.
 
@@ -17,7 +19,7 @@ The shared contract SHALL declare the three fields as obligatory texts.
 ### Scenario: The system gives a service
 
 - **WHEN** a client reads a service
-- **THEN** the system gives the identifier, the name, the identifier of the project, the identifier of the provider, the identifier of the repository, the deployment branch and the path of the compose file
+- **THEN** the system gives the identifier, the name, the description, the identifier of the project, the identifier of the provider, the identifier of the repository, the deployment branch, the path of the compose file and the date of creation
 
 ### Scenario: The service is new
 
@@ -48,6 +50,46 @@ This rule is applicable to every field of an answer whose column accepts no valu
 
 - **WHEN** a change declares a field of an answer with the optional form, and the column of that field accepts no value
 - **THEN** the review refuses that change, because the answer sends the key with `null` and never removes it
+
+## The bullet of the state of a service
+
+Each card of a service SHALL show a bullet that reports the live state of its containers, in the upper-right corner of the card. The bullet takes one of four colors:
+
+| State     | Color  | Meaning              |
+|-----------|--------|-----------------------|
+| `ok`      | Green  | Running               |
+| `warning` | Yellow | Unstable              |
+| `error`   | Red    | Stopped               |
+| `unknown` | Gray   | Never deployed        |
+
+The system SHALL read the containers of the service to compute the state. A container `running` gives `ok`; a container `paused` or `restarting` gives `warning`; a container `exited` or `dead` gives `error`. When the service holds several containers, the state of the card is the worst of them, in the order `ok`, `unknown`, `warning`, `error`.
+
+When the service holds no container, the system SHALL read the deployments of the service instead. A service with no deployment gives `unknown`, and a service with a deployment but no container gives `error`.
+
+### Scenario: The service runs
+
+- **WHEN** every container of the service holds the state `running`
+- **THEN** the bullet of the card shows green
+
+### Scenario: One container of the service is unstable
+
+- **WHEN** the worst container of the service holds the state `paused` or `restarting`
+- **THEN** the bullet of the card shows yellow
+
+### Scenario: The service stopped
+
+- **WHEN** the worst container of the service holds the state `exited` or `dead`
+- **THEN** the bullet of the card shows red
+
+### Scenario: The service was never deployed
+
+- **WHEN** the service holds no container, and no deployment
+- **THEN** the bullet of the card shows gray
+
+### Scenario: The service holds a deployment but no container
+
+- **WHEN** the service holds no container, and at least one deployment
+- **THEN** the bullet of the card shows red
 
 ## List of the services of a project
 
@@ -93,7 +135,7 @@ The system SHALL answer with one service at `GET /api/v1/services/:id`.
 
 The system SHALL create a service at `POST /api/v1/services`.
 
-The body holds the name and the identifier of the project. It can also hold the identifier of the provider. The system SHALL set the identifier of the repository, the deployment branch and the path of the compose file to an empty text. Thus a new service is not deployable, and a caller makes it deployable with a later change.
+The body holds the name and the identifier of the project. It can also hold the description and the identifier of the provider. The system SHALL set the identifier of the repository, the deployment branch and the path of the compose file to an empty text. Thus a new service is not deployable, and a caller makes it deployable with a later change.
 
 ### Scenario: The body is correct
 
@@ -124,7 +166,7 @@ The body holds the name and the identifier of the project. It can also hold the 
 
 The system SHALL change a service at `PUT /api/v1/services/:id`.
 
-The body holds the name, which is obligatory. The body can also hold the identifier of the provider, the identifier of the repository, the deployment branch and the path of the compose file. The system SHALL change only the fields that the body holds.
+The body holds the name, which is obligatory. The body can also hold the description, the identifier of the provider, the identifier of the repository, the deployment branch and the path of the compose file. The system SHALL change only the fields that the body holds.
 
 A caller makes a service deployable with this operation, because it gives the provider, the identifier of the repository and the deployment branch.
 
@@ -178,16 +220,18 @@ The system SHALL keep the shared images that it pulled from a registry, because 
 - **WHEN** a client deletes an available service that holds no deployment
 - **THEN** the system removes the record, it cleans the resources of the server, and it answers `204`
 
-## The field of the form
+## The fields of the form
 
-The system SHALL show a form with one field: the name of the service. The system SHALL take the identifiers of the namespace and of the project from the path.
+The system SHALL show a form with two fields: the name of the service, and its description. The system SHALL take the identifiers of the namespace and of the project from the path.
+
+The description is optional, and it takes a text area limited to 500 characters. The screen SHALL show a counter of the characters that the user typed, out of the limit.
 
 The form asks for no repository, for no branch and for no path of the compose file. A new service is therefore not deployable. The user gives those three values later, in the tab "Provider" of the detail of the service. See the requirement *The tab "Provider" configures the source* of the capability `providers`.
 
 ### Scenario: The user opens the screen
 
 - **WHEN** a signed-in user opens the screen
-- **THEN** the system shows one field for the name, and no other field
+- **THEN** the system shows an empty field for the name, and an empty field for the description
 
 ## The trail of the navigation
 
@@ -225,25 +269,25 @@ If the API refuses, the system SHALL show a message of failure, and it SHALL let
 - **WHEN** the API refuses the creation
 - **THEN** the system shows the message "Could not create service", and the user stays on the screen
 
-## The screen changes only the name
+## The screen changes only the name and the description
 
-The system SHALL show a form with one field: the name of the service.
+The system SHALL show a form with two fields: the name of the service, and its description.
 
 The screen changes no other value. The user gives the repository, the branch and the path of the compose file in the tab "Provider" of the detail of the service. See the requirement *The tab "Provider" configures the source* of the capability `providers`.
 
 ### Scenario: The user opens the screen
 
 - **WHEN** a signed-in user opens the screen
-- **THEN** the system shows one field for the name, and no other field
+- **THEN** the system shows a field for the name and a field for the description, and no other field
 
 ## The load of the service
 
-The system SHALL read the service of the path, and it SHALL put the name into the field.
+The system SHALL read the service of the path, and it SHALL put the name and the description into their fields.
 
 ### Scenario: The service arrives
 
 - **WHEN** the API answers with the service
-- **THEN** the system puts the name of that service into the field
+- **THEN** the system puts the name and the description of that service into their fields
 
 ### Scenario: The reading still runs
 
