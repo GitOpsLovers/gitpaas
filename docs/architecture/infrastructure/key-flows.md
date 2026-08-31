@@ -91,6 +91,7 @@ POST /server/update ─► open a row of `platform_updates` ─► DockerUpdateR
 - **The state travels through PostgreSQL, and not through the container that is being replaced.** The backend opens the row of `platform_updates` before it starts the container, so the screen keeps reading that same row while its own backend container is replaced underneath it.
 - **The report of the progress is best effort.** A write to `platform_updates` that fails never stops the update; the script only loses the report of that one step, and it keeps working from its own terminal.
 - **A check every six hours keeps the latest release ready to read.** `CheckLatestReleaseJob` reads the GitHub API and keeps the version it finds in memory (see the capability [server](../../business/server.md#the-check-of-the-latest-release)), so `GET /server/update` answers from that value, and not with a call to GitHub on every read.
+- **`POST /server/update/check` runs that same read on demand, for an administrator alone.** It calls the release source directly, keeps the release it finds, and answers with the same body as `GET /server/update` (see the capability [server](../../business/server.md#the-check-for-an-update-on-demand)). It runs even when `UPDATE_CHECK_ENABLED` is false, and it answers `503 Service Unavailable` when the release source does not answer, with no change to the version that the store keeps.
 
 ## Release and image publishing
 

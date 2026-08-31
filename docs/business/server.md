@@ -113,6 +113,27 @@ The system SHALL answer with the version the platform runs, the latest release, 
 - **WHEN** an administrator calls the endpoint
 - **THEN** the system answers `200` with the installed version, the latest version, and the state of the last update, when one exists
 
+## The check for an update on demand
+
+The system SHALL read the latest release at once, on the choice of an administrator, at `POST /api/v1/server/update/check`. This endpoint needs an administrator, and it runs even when `UPDATE_CHECK_ENABLED` is false, because a person asks for the check.
+
+The check answers `200` with the version the platform runs, the latest release, and the state of the last update, exactly as `GET /api/v1/server/update` does. The system SHALL answer with an error of the server when the source of GitHub does not answer, or answers with an error, and it SHALL keep the version of the last successful check in that case.
+
+### Scenario: An administrator checks for an update
+
+- **WHEN** an administrator calls the endpoint, and the source of GitHub answers
+- **THEN** the system keeps the release it read, and it answers `200` with the installed version, the latest version, and the state of the last update
+
+### Scenario: The source of GitHub fails
+
+- **WHEN** an administrator calls the endpoint, and the source of GitHub does not answer, or answers with an error
+- **THEN** the system answers with an error of the server, and it keeps the version of the last successful check
+
+### Scenario: The automatic check is off
+
+- **WHEN** the setting `UPDATE_CHECK_ENABLED` is false, and an administrator calls the endpoint
+- **THEN** the system runs the check all the same
+
 ## The start of the update
 
 The system SHALL start the update of the platform at `POST /api/v1/server/update`, for an administrator alone. The update runs inside a short-lived container, detached from the backend, so the update goes on through the restart that it brings to the backend.
@@ -145,10 +166,12 @@ The tab Maintenance SHALL show four actions, each one with a name, a short descr
 | Clear unused containers    | Remove the containers that stopped                                  |
 | Remove orphaned containers | Stop by force and remove the containers of a service that went away |
 
+The tab SHALL also show the action "Check for updates", with the button that starts the check on demand. This button stays visible even when the platform already runs the latest release, so an administrator can ask for the check at any time.
+
 ### Scenario: The user opens the screen
 
 - **WHEN** a signed-in user opens `/server/maintenance`
-- **THEN** the system shows the four actions with their descriptions
+- **THEN** the system shows the four actions with their descriptions, and the button "Check for updates"
 
 ## The question before an action
 
@@ -204,6 +227,32 @@ For the removal of the orphan containers:
 - **WHEN** the call fails, for example because the Docker daemon does not answer
 - **THEN** the system shows a message of failure that asks the user to verify that the daemon runs
 
+## The four states of the button "Check for updates"
+
+The button "Check for updates" SHALL show one of four states: idle, in progress, success and failure. The system SHALL disable the button while the check runs, and no other action of the tab blocks it, and it blocks no other action.
+
+In the state of success, the system SHALL show the outcome of the check: that a new version is available, with its number, or that the platform already runs the latest release. In the state of failure, the system SHALL show a message of the failure, and it SHALL keep the version that the page shows, because the check on demand changes nothing when it fails.
+
+### Scenario: The user starts the check
+
+- **WHEN** the user chooses the button "Check for updates"
+- **THEN** the system disables the button, and it shows that the check is in progress
+
+### Scenario: The check finds a new version
+
+- **WHEN** the check succeeds, and the latest release differs from the installed version
+- **THEN** the system shows that a new version is available, with its number, and the alert of a new version appears
+
+### Scenario: The check finds no new version
+
+- **WHEN** the check succeeds, and the latest release agrees with the installed version
+- **THEN** the system shows that the platform already runs the latest release
+
+### Scenario: The check fails
+
+- **WHEN** the call to `POST /api/v1/server/update/check` fails
+- **THEN** the system shows a message of the failure, and it keeps the version that the page shows
+
 ## The alert of a new version
 
 The tab Maintenance SHALL show an alert "A new version X.Y.Z is available" when the latest release differs from the installed version, and it SHALL show no alert when the two agree.
@@ -213,6 +262,8 @@ The alert SHALL carry a button "Update GitPaaS". The system SHALL ask the user t
 The tab SHALL hide the alert, and the button, from a user who is not an administrator.
 
 The sidebar is the second place that announces a new release (see the capability `frontend-shell`). The tab Maintenance stays the one place that runs the update.
+
+A successful check on demand SHALL refresh the state of the update, so the alert appears without a reload of the page when the check finds a new release.
 
 ### Scenario: A new release is available
 
@@ -228,6 +279,11 @@ The sidebar is the second place that announces a new release (see the capability
 
 - **WHEN** a user who is not an administrator opens the tab Maintenance
 - **THEN** the system shows neither the alert nor the button, whatever the two versions are
+
+### Scenario: A check on demand finds a new release
+
+- **WHEN** the button "Check for updates" succeeds, and the latest release differs from the installed version
+- **THEN** the alert appears with that version and the button "Update GitPaaS", with no reload of the page
 
 ## The progress of the update
 
