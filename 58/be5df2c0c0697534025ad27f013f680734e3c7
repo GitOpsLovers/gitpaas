@@ -1,0 +1,19 @@
+docs/business/projects.md
+  s_59fa6a78ec5c45::t_64516d950b6ae1 9,13-14,18,91,105,168-181,222,224-226,231,262,267,324-337
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "58be5df2c0c0697534025ad27f013f680734e3c7",
+  "prompts": {},
+  "sessions": {
+    "s_59fa6a78ec5c45": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-acaf7d7355dd84a4f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
