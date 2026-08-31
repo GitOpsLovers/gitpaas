@@ -1,3 +1,10 @@
+## [2.8.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.7.0...v2.8.0) (2026-08-31)
+
+### Features
+
+* **frontend:** add description and date to forms and cards ([#191](https://github.com/GitOpsLovers/gitpaas/issues/191)) ([b070714](https://github.com/GitOpsLovers/gitpaas/commit/b070714dba109acc94635e878052b6188ac8f7b6))
+* improve version presentation ([0a01f30](https://github.com/GitOpsLovers/gitpaas/commit/0a01f3045e684e3cc9da82723448d175ceaf2cb4))
+
 ## [2.7.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.6.0...v2.7.0) (2026-08-31)
 
 ### Features
