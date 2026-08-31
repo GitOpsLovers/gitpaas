@@ -122,3 +122,16 @@ export class UnknownPlatformVersionError extends DomainError {
         );
     }
 }
+
+/**
+ * Raised when the source of the releases of GitPaaS does not answer the check of the update.
+ */
+export class ReleaseSourceUnavailableError extends DomainError {
+    constructor(reason: string, options?: ErrorOptions) {
+        super(
+            'RELEASE_SOURCE_UNAVAILABLE',
+            `Could not read the latest release of GitPaaS: ${reason}. Try again in a moment.`,
+            options,
+        );
+    }
+}

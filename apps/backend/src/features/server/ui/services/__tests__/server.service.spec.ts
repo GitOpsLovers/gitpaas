@@ -1,6 +1,7 @@
 import type { OrphanRemovalResult, PlatformSettings, PlatformUpdateStatus, PruneResult, ReadinessResult } from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
+import { checkLatestReleaseUseCase } from '../../../application/check-latest-release.use-case';
 import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
 import { getPlatformSettingsUseCase } from '../../../application/get-platform-settings.use-case';
 import { getPlatformUpdateUseCase } from '../../../application/get-platform-update.use-case';
@@ -11,7 +12,7 @@ import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case
 import { removeOrphanedContainersUseCase } from '../../../application/remove-orphaned-containers.use-case';
 import { startPlatformUpdateUseCase } from '../../../application/start-platform-update.use-case';
 import { updatePlatformSettingsUseCase } from '../../../application/update-platform-settings.use-case';
-import { InvalidLogRetentionError } from '../../../domain/errors/server.errors';
+import { InvalidLogRetentionError, ReleaseSourceUnavailableError } from '../../../domain/errors/server.errors';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../../infrastructure/database/db-platform-updates.repository';
 import { NodeDnsResolverAdapter } from '../../../infrastructure/dns/node-dns-resolver.adapter';
@@ -26,6 +27,7 @@ import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postg
 import { ProxyHealthProbeAdapter } from '../../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
 import { HttpPublicHostAddressAdapter } from '../../../infrastructure/network/http-public-host-address.adapter';
+import { GithubReleaseSourceAdapter } from '../../../infrastructure/release/github-release-source.adapter';
 import { MemoryLatestReleaseStoreAdapter } from '../../../infrastructure/release/memory-latest-release-store.adapter';
 import { ServerService } from '../server.service';
 
@@ -39,6 +41,7 @@ jest.mock('../../../application/prune-volumes.use-case');
 jest.mock('../../../application/prune-containers.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
 jest.mock('../../../application/check-readiness.use-case');
+jest.mock('../../../application/check-latest-release.use-case');
 jest.mock('../../../application/get-server-status.use-case');
 jest.mock('../../../application/get-platform-settings.use-case');
 jest.mock('../../../application/update-platform-settings.use-case');
@@ -73,6 +76,9 @@ const mockGetPlatformUpdateUseCase = getPlatformUpdateUseCase as jest.MockedFunc
 >;
 const mockStartPlatformUpdateUseCase = startPlatformUpdateUseCase as jest.MockedFunction<
     typeof startPlatformUpdateUseCase
+>;
+const mockCheckLatestReleaseUseCase = checkLatestReleaseUseCase as jest.MockedFunction<
+    typeof checkLatestReleaseUseCase
 >;
 const mockResolveServiceVersion = resolveServiceVersion as jest.MockedFunction<typeof resolveServiceVersion>;
 
@@ -127,6 +133,7 @@ describe('ServerService', () => {
     let mockPlatformSettings: jest.Mocked<DatabasePlatformSettingsRepository>;
     let mockPlatformUpdates: jest.Mocked<DatabasePlatformUpdatesRepository>;
     let mockLatestReleaseStore: jest.Mocked<MemoryLatestReleaseStoreAdapter>;
+    let mockReleaseSource: jest.Mocked<GithubReleaseSourceAdapter>;
     let mockUpdateRunner: jest.Mocked<DockerUpdateRunnerAdapter>;
     let mockDnsResolver: jest.Mocked<NodeDnsResolverAdapter>;
     let mockPublicHostAddress: jest.Mocked<HttpPublicHostAddressAdapter>;
@@ -149,6 +156,7 @@ describe('ServerService', () => {
         mockPlatformSettings = {} as jest.Mocked<DatabasePlatformSettingsRepository>;
         mockPlatformUpdates = {} as jest.Mocked<DatabasePlatformUpdatesRepository>;
         mockLatestReleaseStore = {} as jest.Mocked<MemoryLatestReleaseStoreAdapter>;
+        mockReleaseSource = {} as jest.Mocked<GithubReleaseSourceAdapter>;
         mockUpdateRunner = {} as jest.Mocked<DockerUpdateRunnerAdapter>;
         mockDnsResolver = {} as jest.Mocked<NodeDnsResolverAdapter>;
         mockPublicHostAddress = {} as jest.Mocked<HttpPublicHostAddressAdapter>;
@@ -171,6 +179,7 @@ describe('ServerService', () => {
                 { provide: DatabasePlatformSettingsRepository, useValue: mockPlatformSettings },
                 { provide: DatabasePlatformUpdatesRepository, useValue: mockPlatformUpdates },
                 { provide: MemoryLatestReleaseStoreAdapter, useValue: mockLatestReleaseStore },
+                { provide: GithubReleaseSourceAdapter, useValue: mockReleaseSource },
                 { provide: DockerUpdateRunnerAdapter, useValue: mockUpdateRunner },
                 { provide: NodeDnsResolverAdapter, useValue: mockDnsResolver },
                 { provide: HttpPublicHostAddressAdapter, useValue: mockPublicHostAddress },
@@ -521,6 +530,43 @@ describe('ServerService', () => {
             mockGetPlatformUpdateUseCase.mockRejectedValue(error);
 
             await expect(sut.getUpdate()).rejects.toThrow(error);
+        });
+    });
+
+    describe('checkUpdate', () => {
+        it('delegates the check to the check latest release use case with the source and the store', async () => {
+            mockCheckLatestReleaseUseCase.mockResolvedValue({ tag: 'v2.2.0', version: '2.2.0' });
+            mockGetPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            await sut.checkUpdate();
+
+            expect(mockCheckLatestReleaseUseCase).toHaveBeenCalledTimes(1);
+            expect(mockCheckLatestReleaseUseCase).toHaveBeenCalledWith(mockReleaseSource, mockLatestReleaseStore);
+        });
+
+        it('reads the state of the update once the check kept the release', async () => {
+            mockCheckLatestReleaseUseCase.mockResolvedValue({ tag: 'v2.2.0', version: '2.2.0' });
+            mockGetPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            const result = await sut.checkUpdate();
+
+            expect(mockGetPlatformUpdateUseCase).toHaveBeenCalledWith(mockPlatformUpdates, mockLatestReleaseStore, '2.1.0');
+            expect(result).toBe(updateStatus);
+        });
+
+        it('reads the state of the update when the source publishes no release', async () => {
+            mockCheckLatestReleaseUseCase.mockResolvedValue(null);
+            mockGetPlatformUpdateUseCase.mockResolvedValue(updateStatus);
+
+            expect(await sut.checkUpdate()).toBe(updateStatus);
+        });
+
+        it('propagates the failure of the source, and reads no state of the update', async () => {
+            const error = new ReleaseSourceUnavailableError('GitHub answered 403');
+            mockCheckLatestReleaseUseCase.mockRejectedValue(error);
+
+            await expect(sut.checkUpdate()).rejects.toThrow(error);
+            expect(mockGetPlatformUpdateUseCase).not.toHaveBeenCalled();
         });
     });
 

@@ -8,6 +8,7 @@ import {
     InvalidGitpaasDomainError,
     InvalidLogRetentionError,
     PlatformUpToDateError,
+    ReleaseSourceUnavailableError,
     UnknownPlatformVersionError,
     UpdateAlreadyRunningError,
 } from '../server.errors';
@@ -258,5 +259,30 @@ describe('UnknownPlatformVersionError', () => {
         const original = new Error('no release');
 
         expect(new UnknownPlatformVersionError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('ReleaseSourceUnavailableError', () => {
+    it('is a DomainError', () => {
+        expect(new ReleaseSourceUnavailableError('GitHub answered 403')).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to ReleaseSourceUnavailableError', () => {
+        expect(new ReleaseSourceUnavailableError('GitHub answered 403').name).toBe('ReleaseSourceUnavailableError');
+    });
+
+    it('carries the RELEASE_SOURCE_UNAVAILABLE code', () => {
+        expect(new ReleaseSourceUnavailableError('GitHub answered 403').code).toBe('RELEASE_SOURCE_UNAVAILABLE');
+    });
+
+    it('names the reason the source gave in its message', () => {
+        expect(new ReleaseSourceUnavailableError('GitHub answered 403').message)
+            .toBe('Could not read the latest release of GitPaaS: GitHub answered 403. Try again in a moment.');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('network unreachable');
+
+        expect(new ReleaseSourceUnavailableError('network unreachable', { cause: original }).cause).toBe(original);
     });
 });

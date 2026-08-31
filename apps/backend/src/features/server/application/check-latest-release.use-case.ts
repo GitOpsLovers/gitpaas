@@ -9,6 +9,8 @@ import type { ReleaseSource } from '../domain/ports/release-source.port';
  * @param store Store of the latest release
  *
  * @returns The release the check read, or `null` when it read none
+ *
+ * @throws ReleaseSourceUnavailableError When the source does not answer, so the store keeps the release of the last check
  */
 export async function checkLatestReleaseUseCase(source: ReleaseSource, store: LatestReleaseStore): Promise<LatestRelease | null> {
     const release = await source.findLatestRelease();

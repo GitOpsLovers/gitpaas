@@ -8,6 +8,7 @@ import type {
 } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { checkLatestReleaseUseCase } from '../../application/check-latest-release.use-case';
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
 import { getPlatformSettingsUseCase } from '../../application/get-platform-settings.use-case';
 import { getPlatformUpdateUseCase } from '../../application/get-platform-update.use-case';
@@ -24,6 +25,7 @@ import type { HealthProbe } from '../../domain/ports/health-probe.port';
 import type { LatestReleaseStore } from '../../domain/ports/latest-release-store.port';
 import type { OrphanContainers } from '../../domain/ports/orphan-containers.port';
 import type { PublicHostAddress } from '../../domain/ports/public-host-address.port';
+import type { ReleaseSource } from '../../domain/ports/release-source.port';
 import type { UpdateRunner } from '../../domain/ports/update-runner.port';
 import type { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
 import type { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
@@ -41,6 +43,7 @@ import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres
 import { ProxyHealthProbeAdapter } from '../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
 import { HttpPublicHostAddressAdapter } from '../../infrastructure/network/http-public-host-address.adapter';
+import { GithubReleaseSourceAdapter } from '../../infrastructure/release/github-release-source.adapter';
 import { MemoryLatestReleaseStoreAdapter } from '../../infrastructure/release/memory-latest-release-store.adapter';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
@@ -81,6 +84,8 @@ export class ServerService {
         private readonly updates: PlatformUpdatesRepository,
         @Inject(MemoryLatestReleaseStoreAdapter)
         private readonly latestRelease: LatestReleaseStore,
+        @Inject(GithubReleaseSourceAdapter)
+        private readonly releaseSource: ReleaseSource,
         @Inject(DockerUpdateRunnerAdapter)
         private readonly updateRunner: UpdateRunner,
         @Inject(NodeDnsResolverAdapter)
@@ -179,6 +184,17 @@ export class ServerService {
      */
     public getUpdate(): Promise<PlatformUpdateStatus> {
         return getPlatformUpdateUseCase(this.updates, this.latestRelease, resolveServiceVersion());
+    }
+
+    /**
+     * Reads the latest release from its source at once, then reads the state of the update
+     *
+     * @returns The versions of the installation and the state of its last update
+     */
+    public async checkUpdate(): Promise<PlatformUpdateStatus> {
+        await checkLatestReleaseUseCase(this.releaseSource, this.latestRelease);
+
+        return this.getUpdate();
     }
 
     /**

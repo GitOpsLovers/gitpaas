@@ -7,13 +7,13 @@ GitPaaS checks for a new release every 6 hours and one time at the boot. An admi
 **Agent:** implementer
 **Paths:** apps/backend/src/features/server/
 
-- [ ] 1.1 Change the adapter of the source of GitHub so that it reports a failure instead of `null`, and keep the timeout of 5 seconds.
-- [ ] 1.2 Change the use case of the check so that it propagates that failure, and keep the previous value in the store.
-- [ ] 1.3 Add `POST /server/update/check` to the controller of the server, for an administrator alone. It runs the check, and it returns the status of the update with the code 200.
-- [ ] 1.4 Make the endpoint answer with an error of the server when the source of GitHub fails.
-- [ ] 1.5 Let the endpoint run even when `UPDATE_CHECK_ENABLED` is false, because a person asks for the check.
-- [ ] 1.6 Write the unit tests of the adapter, of the use case and of the controller.
-- [ ] 1.7 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
+- [x] 1.1 Change the adapter of the source of GitHub so that it reports a failure instead of `null`, and keep the timeout of 5 seconds.
+- [x] 1.2 Change the use case of the check so that it propagates that failure, and keep the previous value in the store.
+- [x] 1.3 Add `POST /server/update/check` to the controller of the server, for an administrator alone. It runs the check, and it returns the status of the update with the code 200.
+- [x] 1.4 Make the endpoint answer with an error of the server when the source of GitHub fails.
+- [x] 1.5 Let the endpoint run even when `UPDATE_CHECK_ENABLED` is false, because a person asks for the check.
+- [x] 1.6 Write the unit tests of the adapter, of the use case and of the controller.
+- [x] 1.7 Run `rtk pnpm run check-types --filter @gitpaas/backend`.
 
 ## Phase 2 — The button on the page of the maintenance
 
