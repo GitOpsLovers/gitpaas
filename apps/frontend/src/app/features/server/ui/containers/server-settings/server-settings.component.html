@@ -36,9 +36,78 @@
                 </p>
             </div>
 
-            <app-button type="submit" [disabled]="saving() || boundsError() !== null">
+            @if (isAdmin()) {
+                <div class="max-w-md">
+                    <app-label for="gitpaas-domain">Domain of GitPaaS</app-label>
+                    <app-input-field
+                        id="gitpaas-domain"
+                        name="gitpaas-domain"
+                        placeholder="gitpaas.example.com"
+                        [value]="gitpaasDomain()"
+                        [error]="domainError() !== null"
+                        [hint]="domainError() ?? 'The host this control plane answers on.'"
+                        (valueChange)="onGitpaasDomainChange($event)"
+                    />
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Point the record A of the domain at this host before you save. The change takes a restart of the
+                        stack, and an edit of the addresses of every GitHub App.
+                    </p>
+                </div>
+            }
+
+            @if (saveError()) {
+                <p
+                    class="rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
+                >
+                    {{ saveError() }}
+                </p>
+            }
+
+            @if (appliedDomain(); as domain) {
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+                    <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                        GitPaaS answers on {{ domain }} once you finish these steps by hand
+                    </p>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">1. Restart the stack on the host:</p>
+                    <p class="mt-1 font-mono text-sm break-all text-gray-700 dark:text-gray-300">
+                        {{ restartCommand }}
+                    </p>
+                    <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                        2. Edit the addresses of every GitHub App on GitHub:
+                    </p>
+                    <ul class="mt-1 space-y-1">
+                        @for (address of githubAppUrls(); track address.label) {
+                            <li class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="text-gray-700 dark:text-gray-300">{{ address.label }}:</span>
+                                <span class="font-mono break-all">{{ address.url }}</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (!isAdmin()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400">An administrator alone changes these parameters.</p>
+            }
+
+            <app-button
+                type="submit"
+                [disabled]="saving() || !isAdmin() || boundsError() !== null || domainError() !== null"
+            >
                 {{ saving() ? 'Saving…' : 'Save' }}
             </app-button>
         </form>
     }
 </app-component-card>
+
+<app-confirm-modal
+    [open]="confirmPending()"
+    title="Change the domain of GitPaaS"
+    [message]="confirmMessage()"
+    confirmText="Save"
+    variant="warning"
+    icon="warning"
+    [loading]="saving()"
+    (confirmed)="confirmSave()"
+    (cancelled)="cancelSave()"
+/>

@@ -29,12 +29,12 @@ The domain of the control plane lives in `iac/production/.env` alone, and the in
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/features/server/`
 
-- [ ] 3.1 Add the field of the domain to `server-settings.component.ts`, as a `linkedSignal` over `ServerApiRepository.settings()`.
-- [ ] 3.2 Add the modal of confirmation, which states that the change takes a restart of the stack.
-- [ ] 3.3 Show, after a save that succeeds, the command of the restart and the manual edit of the URLs of the GitHub App.
-- [ ] 3.4 Show the message of the check of the DNS when the backend rejects the domain.
-- [ ] 3.5 Hide or disable the field for a user who is not an administrator.
-- [ ] 3.6 Write the unit tests of the container.
+- [x] 3.1 Add the field of the domain to `server-settings.component.ts`, as a `linkedSignal` over `ServerApiRepository.settings()`.
+- [x] 3.2 Add the modal of confirmation, which states that the change takes a restart of the stack.
+- [x] 3.3 Show, after a save that succeeds, the command of the restart and the manual edit of the URLs of the GitHub App.
+- [x] 3.4 Show the message of the check of the DNS when the backend rejects the domain.
+- [x] 3.5 Hide or disable the field for a user who is not an administrator.
+- [x] 3.6 Write the unit tests of the container.
 
 ## Phase 4 — The documentation
 
