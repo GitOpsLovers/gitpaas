@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { DOCUMENT, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { PlatformUpdateStatus, User } from '@gitpaas/contracts';
@@ -83,6 +84,21 @@ const failed: PlatformUpdateStatus = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     update: { ...running.update!, state: 'failed', error: 'The migration 007 did not apply.' },
 };
+
+const SESSION_MESSAGE = 'The session of the user could not be read.';
+
+const sessionRefusal = (): HttpErrorResponse => new HttpErrorResponse({
+    status: 500,
+    error: {
+        statusCode: 500,
+        code: 'INTERNAL_SERVER_ERROR',
+        message: SESSION_MESSAGE,
+        error: 'Internal Server Error',
+        timestamp: '2026-08-31T10:00:00.000Z',
+        path: '/api/v1/auth/me',
+        requestId: 'rq-2',
+    },
+});
 
 describe('ServerMaintenanceComponent', () => {
     let value: ReturnType<typeof signal<PlatformUpdateStatus | undefined>>;
@@ -199,6 +215,16 @@ describe('ServerMaintenanceComponent', () => {
             await Promise.resolve();
 
             expect(component.isAdmin()).toBe(false);
+        });
+
+        test('shows a toast that carries the reason when the load of the user fails', async () => {
+            auth.currentUser.set(null);
+            auth.loadCurrentUser.mockReturnValue(throwError(() => sessionRefusal()));
+
+            create();
+            await Promise.resolve();
+
+            expect(toast.error).toHaveBeenCalledWith('Could not read your session', SESSION_MESSAGE);
         });
     });
 

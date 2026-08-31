@@ -64,6 +64,21 @@ const dnsRefusal = (): HttpErrorResponse => new HttpErrorResponse({
     },
 });
 
+const SESSION_MESSAGE = 'The session of the user could not be read.';
+
+const sessionRefusal = (): HttpErrorResponse => new HttpErrorResponse({
+    status: 500,
+    error: {
+        statusCode: 500,
+        code: 'INTERNAL_SERVER_ERROR',
+        message: SESSION_MESSAGE,
+        error: 'Internal Server Error',
+        timestamp: '2026-08-31T10:00:00.000Z',
+        path: '/api/v1/auth/me',
+        requestId: 'rq-2',
+    },
+});
+
 const submitEvent = (): Event => new Event('submit', { cancelable: true });
 
 describe('ServerSettingsComponent', () => {
@@ -396,6 +411,16 @@ describe('ServerSettingsComponent', () => {
             await Promise.resolve();
 
             expect(component.isAdmin()).toBe(false);
+        });
+
+        test('shows a toast that carries the reason when the read of the user fails', async () => {
+            auth.currentUser.set(null);
+            auth.loadCurrentUser.mockReturnValue(throwError(() => sessionRefusal()));
+
+            create();
+            await Promise.resolve();
+
+            expect(toast.error).toHaveBeenCalledWith('Could not read your session', SESSION_MESSAGE);
         });
 
         test('writes nothing for a user who is not an administrator', async () => {
