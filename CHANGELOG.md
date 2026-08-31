@@ -1,3 +1,10 @@
+## [2.8.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.8.0...v2.8.1) (2026-08-31)
+
+### Bug Fixes
+
+* change some maintenance copies ([e39a8b2](https://github.com/GitOpsLovers/gitpaas/commit/e39a8b2a5d69cda379f716656fed9c26976de48a))
+* **server:** prevent platform updates from hanging ([#192](https://github.com/GitOpsLovers/gitpaas/issues/192)) ([d627323](https://github.com/GitOpsLovers/gitpaas/commit/d6273231ee58ec8f38e8d9a1ece89bbfbd83ed4a))
+
 ## [2.8.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.7.0...v2.8.0) (2026-08-31)
 
 ### Features
