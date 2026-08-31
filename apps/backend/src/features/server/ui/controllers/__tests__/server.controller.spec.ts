@@ -22,6 +22,7 @@ import {
     DaemonUnreachableError,
     InvalidLogRetentionError,
     PlatformUpToDateError,
+    ReleaseSourceUnavailableError,
     UnknownPlatformVersionError,
     UpdateAlreadyRunningError,
 } from '../../../domain/errors/server.errors';
@@ -110,6 +111,7 @@ describe('ServerController', () => {
             | 'getSettings'
             | 'updateSettings'
             | 'getUpdate'
+            | 'checkUpdate'
             | 'startUpdate'
         >
     >;
@@ -128,6 +130,7 @@ describe('ServerController', () => {
             getSettings: jest.fn(),
             updateSettings: jest.fn(),
             getUpdate: jest.fn(),
+            checkUpdate: jest.fn(),
             startUpdate: jest.fn(),
         };
 
@@ -686,6 +689,51 @@ describe('ServerController', () => {
         });
     });
 
+    describe('checkUpdate', () => {
+        it('delegates the check of the latest release to the service', async () => {
+            mockServerService.checkUpdate.mockResolvedValue(updateStatus);
+
+            const result = await sut.checkUpdate();
+
+            expect(mockServerService.checkUpdate).toHaveBeenCalledTimes(1);
+            expect(result).toBe(updateStatus);
+        });
+
+        it('answers the state the check leaves when the source publishes no release', async () => {
+            mockServerService.checkUpdate.mockResolvedValue({
+                installedVersion: '2.1.0',
+                latestVersion: null,
+                update: null,
+            });
+
+            const result = await sut.checkUpdate();
+
+            expect(result).toEqual({ installedVersion: '2.1.0', latestVersion: null, update: null });
+        });
+
+        it('translates a failure of the source of GitHub into a ServiceUnavailableException', async () => {
+            mockServerService.checkUpdate.mockRejectedValue(new ReleaseSourceUnavailableError('GitHub answered 403'));
+
+            await expect(sut.checkUpdate()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('answers 503 in the envelope the client receives when the source of GitHub fails', async () => {
+            mockServerService.checkUpdate.mockRejectedValue(new ReleaseSourceUnavailableError('GitHub answered 403'));
+
+            const rejection = await sut.checkUpdate().catch((error: unknown) => error);
+
+            expect(envelopeOf(rejection).statusCode).toBe(503);
+            expect(envelopeOf(rejection).code).toBe('RELEASE_SOURCE_UNAVAILABLE');
+        });
+
+        it('propagates a failure with no translation', async () => {
+            const error = new Error('connection terminated');
+            mockServerService.checkUpdate.mockRejectedValue(error);
+
+            await expect(sut.checkUpdate()).rejects.toBe(error);
+        });
+    });
+
     describe('startUpdate', () => {
         it('delegates the start of the update to the service', async () => {
             mockServerService.startUpdate.mockResolvedValue(updateStatus);
@@ -738,6 +786,10 @@ describe('ServerController', () => {
 
         it('reserves the read of the state of the update to an administrator', () => {
             expect(rolesOf('getUpdate')).toEqual([UserRole.Admin]);
+        });
+
+        it('reserves the check of the latest release to an administrator', () => {
+            expect(rolesOf('checkUpdate')).toEqual([UserRole.Admin]);
         });
 
         it('reserves the start of the update to an administrator', () => {

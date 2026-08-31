@@ -166,6 +166,22 @@ export class ServerController {
     }
 
     /**
+     * Reads the latest release from GitHub at once, and answers the state of the update it leaves.
+     *
+     * @returns The versions of the installation and the state of its last update
+     */
+    @Post('update/check')
+    @HttpCode(200)
+    @Roles(UserRole.Admin)
+    public async checkUpdate(): Promise<PlatformUpdateStatus> {
+        try {
+            return await this.service.checkUpdate();
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
      * Starts the update of the platform towards the latest release.
      *
      * @returns The versions of the installation and the update that started
