@@ -22,9 +22,13 @@ const API_BASE_URL = environment.apiBaseUrl;
 const UNAUTHENTICATED_CODE = 'UNAUTHENTICATED';
 
 /**
- * Prefix of the public authentication endpoints.
+ * URLs of the public authentication endpoints.
  */
-const AUTH_ENDPOINT_PREFIX = `${API_BASE_URL}/auth/`;
+const PUBLIC_AUTH_URLS: readonly string[] = [
+    `${API_BASE_URL}/auth/login`,
+    `${API_BASE_URL}/auth/refresh`,
+    `${API_BASE_URL}/auth/logout`,
+];
 
 /**
  * Clones a request adding the Bearer authorization header
@@ -94,9 +98,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
 
     const isApiRequest = req.url.startsWith(API_BASE_URL);
-    const isAuthEndpoint = req.url.startsWith(AUTH_ENDPOINT_PREFIX);
+    const isPublicAuthEndpoint = PUBLIC_AUTH_URLS.includes(req.url);
 
-    if (!isApiRequest || isAuthEndpoint) {
+    if (!isApiRequest || isPublicAuthEndpoint) {
         return next(req);
     }
 

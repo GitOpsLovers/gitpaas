@@ -15,6 +15,9 @@ import { environment } from '@environments/environment';
 
 const API_URL = `${environment.apiBaseUrl}/deployments`;
 const LOGIN_URL = `${environment.apiBaseUrl}/auth/login`;
+const REFRESH_URL = `${environment.apiBaseUrl}/auth/refresh`;
+const LOGOUT_URL = `${environment.apiBaseUrl}/auth/logout`;
+const ME_URL = `${environment.apiBaseUrl}/auth/me`;
 const EXTERNAL_URL = 'https://example.com/data';
 
 const freshTokens: AuthTokens = { accessToken: 'new-access', refreshToken: 'new-refresh' };
@@ -95,13 +98,25 @@ describe('authInterceptor', () => {
             req.flush({});
         });
 
-        test('does not attach the header to auth endpoints even when a token exists', () => {
+        test('does not attach the header to the public authentication endpoints even when a token exists', () => {
             tokenStorage.accessToken.set('access-1');
 
-            http.post(LOGIN_URL, {}).subscribe();
+            for (const url of [LOGIN_URL, REFRESH_URL, LOGOUT_URL]) {
+                http.post(url, {}).subscribe();
 
-            const req = httpMock.expectOne(LOGIN_URL);
-            expect(req.request.headers.has('Authorization')).toBe(false);
+                const req = httpMock.expectOne(url);
+                expect(req.request.headers.has('Authorization')).toBe(false);
+                req.flush({});
+            }
+        });
+
+        test('attaches the Authorization header to the profile endpoint, which the API protects', () => {
+            tokenStorage.accessToken.set('access-1');
+
+            http.get(ME_URL).subscribe();
+
+            const req = httpMock.expectOne(ME_URL);
+            expect(req.request.headers.get('Authorization')).toBe('Bearer access-1');
             req.flush({});
         });
 
@@ -139,6 +154,22 @@ describe('authInterceptor', () => {
 
             expect(result).toEqual({ ok: true });
             expect(router.navigate).not.toHaveBeenCalled();
+        });
+
+        test('refreshes and retries the profile request, which is no longer exempt', () => {
+            tokenStorage.accessToken.set('old-access');
+            tokenStorage.refreshToken.set('old-refresh');
+            authRepository.refresh.mockReturnValue(of(freshTokens));
+
+            http.get(ME_URL).subscribe();
+
+            httpMock.expectOne(ME_URL).flush(unauthenticated(), UNAUTHORIZED);
+
+            const retry = httpMock.expectOne(ME_URL);
+            expect(retry.request.headers.get('Authorization')).toBe('Bearer new-access');
+            retry.flush({});
+
+            expect(authRepository.refresh).toHaveBeenCalledTimes(1);
         });
 
         test('clears storage and redirects to /signin when the refresh fails', () => {

@@ -3,6 +3,7 @@ import type { OrphanRemovalResult, PruneResult } from '@gitpaas/contracts';
 import { LucideBox, LucideDatabase, LucideLayers, LucideUnplug } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
+import { describeRequestFailureUseCase } from '../../../application/describe-request-failure.use-case';
 import { mapPlatformUpdateUseCase } from '../../../application/map-platform-update.use-case';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 import { reloadPage } from '../../../infrastructure/browser/reload-page';
@@ -373,8 +374,9 @@ export class ServerMaintenanceComponent {
 
         try {
             await lastValueFrom(this.auth.loadCurrentUser());
-        } catch {
+        } catch (error) {
             // The role stays unknown, and the panel of the update stays hidden.
+            this.toast.error('Could not read your session', describeRequestFailureUseCase(error));
         }
     }
 

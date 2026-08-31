@@ -10,7 +10,7 @@ import {
 } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
-import { describeSettingsFailureUseCase } from '../../../application/describe-settings-failure.use-case';
+import { describeRequestFailureUseCase } from '../../../application/describe-request-failure.use-case';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 
 import { AuthService } from '@features/authentication/ui/services/auth.service';
@@ -281,7 +281,7 @@ export class ServerSettingsComponent {
                 `An archived log now goes away after ${saved.logRetentionDays} day(s).`,
             );
         } catch (error) {
-            const message = describeSettingsFailureUseCase(error);
+            const message = describeRequestFailureUseCase(error);
 
             this.saveError.set(message);
             this.toast.error('Could not save settings', message);
@@ -300,8 +300,9 @@ export class ServerSettingsComponent {
 
         try {
             await lastValueFrom(this.auth.loadCurrentUser());
-        } catch {
+        } catch (error) {
             // The role stays unknown, and the form stays read-only.
+            this.toast.error('Could not read your session', describeRequestFailureUseCase(error));
         }
     }
 }

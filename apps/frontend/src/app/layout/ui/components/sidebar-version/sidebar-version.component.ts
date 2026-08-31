@@ -7,8 +7,10 @@ import { combineLatest, lastValueFrom, map } from 'rxjs';
 import { SidebarService } from '../../services/sidebar.service';
 
 import { AuthService } from '@features/authentication/ui/services/auth.service';
+import { describeRequestFailureUseCase } from '@features/server/application/describe-request-failure.use-case';
 import { mapPlatformUpdateUseCase } from '@features/server/application/map-platform-update.use-case';
 import { ServerApiRepository } from '@features/server/infrastructure/api/server-api.repository';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
     selector: 'app-sidebar-version',
@@ -26,6 +28,8 @@ export class SidebarVersionComponent {
     private readonly auth = inject(AuthService);
 
     private readonly sidebarService = inject(SidebarService);
+
+    private readonly toast = inject(ToastService);
 
     private readonly updateResource = this.repository.updateStatus(() => this.isAdmin());
 
@@ -74,8 +78,9 @@ export class SidebarVersionComponent {
 
         try {
             await lastValueFrom(this.auth.loadCurrentUser());
-        } catch {
+        } catch (error) {
             // The role stays unknown, and the block of the version stays hidden.
+            this.toast.error('Could not read your session', describeRequestFailureUseCase(error));
         }
     }
 }
