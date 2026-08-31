@@ -461,3 +461,72 @@ The tab SHALL read the parameters when it opens, and it SHALL write them when th
 
 - **WHEN** the call of the write fails
 - **THEN** the system shows a message of failure, and it keeps the value that the user wrote in the field
+
+## The domain of the control plane
+
+The system SHALL keep the domain of the control plane as a field of the parameters of the deployment system, `gitpaasDomain`, so an administrator moves GitPaaS to another domain from the tab Settings, and no longer by hand on the host. The field is optional; a platform with no domain answers on the published port, as before this field existed.
+
+The database SHALL be the source of truth of the domain, and the file `.env` of the production stack SHALL follow it. When the operator writes a domain, the system SHALL check that the domain points at this host before it keeps the value, and it SHALL refuse a domain that fails that check.
+
+### Scenario: The operator writes a sound domain
+
+- **WHEN** an administrator writes a host name that fits the rule of a host name
+- **THEN** the system checks the domain, and it keeps the value once the check passes
+
+### Scenario: The domain breaks the rule of a host name
+
+- **WHEN** an administrator writes a value that is no sound host name, or that is longer than a host name allows
+- **THEN** the system answers `400 Bad Request`, and it changes no value
+
+### Scenario: The domain does not point at this host
+
+- **WHEN** an administrator writes a host name whose DNS record resolves to an address that is not the public address of this host
+- **THEN** the system answers `400 Bad Request` with the resolved addresses and the address of the host, and it changes no value
+
+## The check of the DNS of the domain
+
+The system SHALL resolve the addresses of a domain, and SHALL compare them with the public address of the host that runs the platform, before it keeps a new domain.
+
+The check SHALL fail closed: it SHALL refuse the domain when the public address of the host cannot be read, and not treat an unknown address as a pass.
+
+### Scenario: The public address of the host is unknown
+
+- **WHEN** the platform cannot read its own public address
+- **THEN** the system answers with an error that asks the operator to try again in a moment, and it changes no value
+
+## The copy of the domain into the file of the environment
+
+Once the system keeps a new domain in the database, it SHALL copy that domain into the four variables `CONTROL_PLANE_DOMAIN`, `CONTROL_PLANE_PROXY`, `CORS_ORIGIN` and `APP_BASE_URL` of `iac/production/.env`, and it SHALL keep every other line of that file as it stood.
+
+A row that the database keeps, and a file of the environment that the copy fails to write, SHALL NOT roll back the row. The system SHALL report the failure of the write, and it SHALL name the file and ask the operator to edit it on the host and to restart the stack.
+
+### Scenario: The copy into the file succeeds
+
+- **WHEN** the database keeps the new domain, and the write of `.env` succeeds
+- **THEN** the system answers with the parameters that it keeps, and the four variables of `.env` carry the new domain
+
+### Scenario: The copy into the file fails
+
+- **WHEN** the database keeps the new domain, and the write of `.env` fails
+- **THEN** the system answers with an error that names the file, and the row that the database kept stays as it is
+
+## The manual steps after a change of the domain
+
+The write of a new domain applies nothing on its own. The tab Settings SHALL ask the operator to confirm before it writes a domain that changes, with a message that says the change takes a restart of the stack on the host, and an edit of the addresses of every GitHub App, and that asks the operator to point the domain at the host before the restart.
+
+Once the write of a changed domain succeeds, the tab SHALL show the command of the restart, and the three addresses of the GitHub App that the operator edits by hand: the Homepage URL, the Callback URL and the Setup URL, each one built from the new domain.
+
+### Scenario: The operator changes the domain
+
+- **WHEN** the operator writes a host name that differs from the one the API keeps, and saves
+- **THEN** the system opens the question of the confirmation, and it calls no endpoint until the operator confirms
+
+### Scenario: The change of the domain succeeds
+
+- **WHEN** the operator confirms, and the write succeeds
+- **THEN** the tab shows the command of the restart and the three addresses of the GitHub App, built from the new domain
+
+### Scenario: The domain fails the check of the DNS
+
+- **WHEN** the backend refuses the domain because it does not point at the host
+- **THEN** the tab shows the message of that failure, and it keeps the value that the operator wrote in the field

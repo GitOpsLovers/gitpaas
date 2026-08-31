@@ -28,8 +28,8 @@ The source comes from the `codeload` tarball endpoint of GitHub, but `--version`
 
 The installer takes one flag, and it has an equivalent environment variable:
 
-| Flag              | Environment variable | Default  | Purpose                                               |
-|-------------------|----------------------|----------|-------------------------------------------------------|
+| Flag              | Environment variable | Default  | Purpose                                                |
+|-------------------|----------------------|----------|--------------------------------------------------------|
 | `--version <tag>` | `GITPAAS_VERSION`    | `latest` | Released version tag to install (`v1.2.3` or `1.2.3`). |
 
 The install directory is `/opt/gitpaas`. The script always asks for the email of the first admin on the controlling terminal (see [Interactive admin seeding](#interactive-admin-seeding)).
@@ -40,7 +40,7 @@ Before it touches the host, the script checks that the ports `80` and `443` are 
 
 1. **Make sure that Docker is available.** If Docker or the compose plugin is missing, the script installs the two parts with the official `get.docker.com` convenience script and enables the daemon.
 2. **Find the version and get the source.** The script finds the version tag (see above) and downloads the tarball of the repository from `codeload.github.com` into `/tmp`. From that archive it extracts **only** `*/iac/production/*` into the install directory, then deletes the tarball — the install directory holds the production stack alone, with no `apps/`, no `scripts/` and no root manifests. When an installation is already there (a directory that has `iac/production/docker-compose.yml`), the script reuses it and skips the download.
-3. **Ask for the address of Let's Encrypt and for the domain of the control plane.** The script always asks for the email address of Let's Encrypt, and it stops when the answer is empty: every domain with HTTPS uses that address, and the operator can give a domain to a service even when the control plane has none. The domain of the control plane is optional: with no answer, GitPaaS stays reachable at `http://<host>:8080`, exactly as before this feature. With a domain, the script also asks for a choice of the **staging** service of Let's Encrypt, which gives an untrusted certificate but carries no rate limit, and stays a trial run.
+3. **Ask for the address of Let's Encrypt and for the domain of the control plane.** The script always asks for the email address of Let's Encrypt, and it stops when the answer is empty: every domain with HTTPS uses that address, and the operator can give a domain to a service even when the control plane has none. The domain of the control plane is optional at this step: with no answer, GitPaaS stays reachable at `http://<host>:8080`. This is the one time the installer itself asks for the domain; once the platform runs, the tab Settings of `/server` is the source of truth, and an administrator gives or changes the domain there (see the capability [server](../../business/server.md#the-domain-of-the-control-plane)).
 4. **Write `.env`.** On a **fresh** install, the script copies `iac/production/.env.example` to `.env` and fills in the secrets:
    - Random secure values for `POSTGRES_PASSWORD`, `DB_PASSWORD`, and 32-byte hex values for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` and `SECRETS_ENCRYPTION_KEY`.
    - `NODE_ENV=production`. `LETSENCRYPT_EMAIL` always carries the answer of the step above. Without a domain, `CORS_ORIGIN` and `APP_BASE_URL` point at the address of the host on port `8080`. With a domain, they point at `https://<domain>` instead, and `CONTROL_PLANE_DOMAIN` and `CONTROL_PLANE_PROXY` carry the answers too (see [Conventions](./conventions.md#environment-contract)).
