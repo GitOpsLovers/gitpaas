@@ -1,0 +1,42 @@
+apps/backend/src/features/server/application/reconcile-platform-updates.use-case.ts
+  s_bc07e467f76a8d::t_c00ad4d2be0ecb 1-16
+apps/backend/src/features/server/application/start-platform-update.use-case.ts
+  s_bc07e467f76a8d::t_9f3a93b00e88ec 52-59
+apps/backend/src/features/server/application/__tests__/reconcile-platform-updates.use-case.spec.ts
+  s_bc07e467f76a8d::t_455f1ae214ed71 1-67
+apps/backend/src/features/server/infrastructure/database/db-platform-updates.repository.ts
+  s_bc07e467f76a8d::t_d0735eda7d7aaf 4,39-51
+apps/backend/src/features/server/domain/repositories/platform-updates.repository.ts
+  s_bc07e467f76a8d::t_422a6faa2b3c15 22-39
+apps/backend/src/features/server/ui/jobs/__tests__/reconcile-platform-updates.job.spec.ts
+  s_bc07e467f76a8d::t_9c1ad1a440a420 2-80
+  s_bc07e467f76a8d::t_775eaea2714fdc 1
+apps/backend/src/features/server/application/__tests__/start-platform-update.use-case.spec.ts
+  s_bc07e467f76a8d::t_5461601044b8aa 33,39,51,161,164-205,207
+apps/backend/src/features/server/ui/jobs/reconcile-platform-updates.job.ts
+  s_bc07e467f76a8d::t_27d9456996bc0f 1-49
+apps/backend/src/features/server/domain/constants/platform-update.constants.ts
+  s_bc07e467f76a8d::t_6e49e2cef78fdd 45-54
+apps/backend/src/features/server/server.module.ts
+  s_bc07e467f76a8d::t_295482d6e81ff2 24,54
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-updates.repository.spec.ts
+  s_bc07e467f76a8d::t_694a88df0c5415 1,20,26,90-131
+scripts/update.sh
+  s_bc07e467f76a8d::t_8d0f84da7f63dc 93-98,108-113,117-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5e56638657e31d7763dbdc4a4b9b3a2ced1d1770",
+  "prompts": {},
+  "sessions": {
+    "s_bc07e467f76a8d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e9675c0c-3218-459b-a67e-6dfedb7d1baf",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
