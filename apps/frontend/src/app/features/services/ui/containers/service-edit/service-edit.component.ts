@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
-import { ServiceFormComponent } from '../../components/service-form/service-form.component';
+import { ServiceFormComponent, ServiceFormValue } from '../../components/service-form/service-form.component';
 
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -53,6 +53,8 @@ export class ServiceEditComponent {
 
     protected readonly initialName = computed(() => this.service.value()?.name ?? '');
 
+    protected readonly initialDescription = computed(() => this.service.value()?.description ?? '');
+
     protected readonly loading = computed(() => this.service.isLoading());
 
     protected readonly submitting = signal(false);
@@ -67,11 +69,11 @@ export class ServiceEditComponent {
         this.projectsRepository.namespaceId.set(this.namespaceId);
     }
 
-    protected async update(name: string): Promise<void> {
+    protected async update(value: ServiceFormValue): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const service = await lastValueFrom(this.repository.update(this.id, { name }));
+            const service = await lastValueFrom(this.repository.update(this.id, value));
 
             this.toast.success('Service updated', `“${service.name}” has been saved.`);
             this.router.navigate(['/namespaces', this.namespaceId, 'projects', this.projectId]);

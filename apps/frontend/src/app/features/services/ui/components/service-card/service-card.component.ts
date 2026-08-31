@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
 import type { Service } from '@gitpaas/contracts';
 
@@ -6,7 +7,7 @@ import { DropdownComponent } from '@shared/components/dropdown/dropdown.componen
 @Component({
     selector: 'app-service-card',
     templateUrl: './service-card.component.html',
-    imports: [DropdownComponent],
+    imports: [DatePipe, DropdownComponent],
 })
 
 /**

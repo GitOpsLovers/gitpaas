@@ -1,26 +1,38 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { ProjectFormComponent } from './project-form.component';
+import { ProjectFormComponent, ProjectFormValue } from './project-form.component';
 
 interface ProjectFormInternals {
     name: () => string;
+    description: () => string;
     onSubmit: (event: Event) => void;
-    onValueChange: (value: string | number) => void;
+    onNameChange: (value: string | number) => void;
 }
 
 describe('ProjectFormComponent', () => {
     let fixture: ComponentFixture<ProjectFormComponent>;
     let component: ProjectFormInternals;
-    let saved: string[];
+    let saved: ProjectFormValue[];
 
-    const create = (namespaceId = 'ns-1', initialName = ''): void => {
+    const create = (namespaceId = 'ns-1', initialName = '', initialDescription = ''): void => {
         fixture = TestBed.createComponent(ProjectFormComponent);
         fixture.componentRef.setInput('namespaceId', namespaceId);
         fixture.componentRef.setInput('initialName', initialName);
+        fixture.componentRef.setInput('initialDescription', initialDescription);
         component = fixture.componentInstance as unknown as ProjectFormInternals;
         saved = [];
-        fixture.componentInstance.save.subscribe((name) => saved.push(name));
+        fixture.componentInstance.save.subscribe((value) => saved.push(value));
+        fixture.detectChanges();
+    };
+
+    const textarea = (): HTMLTextAreaElement =>
+        fixture.nativeElement.querySelector('textarea[name="project-description"]') as HTMLTextAreaElement;
+
+    const type = (element: HTMLTextAreaElement, value: string): void => {
+        // eslint-disable-next-line no-param-reassign
+        element.value = value;
+        element.dispatchEvent(new Event('input'));
         fixture.detectChanges();
     };
 
@@ -62,10 +74,29 @@ describe('ProjectFormComponent', () => {
         expect(component.name()).toBe('web');
     });
 
-    test('emits the trimmed name and prevents the native submit', () => {
+    test('seeds the description from the initial value and follows later changes', () => {
+        create('ns-1', 'api', 'The API of the platform');
+
+        expect(component.description()).toBe('The API of the platform');
+        expect(textarea().value).toBe('The API of the platform');
+
+        fixture.componentRef.setInput('initialDescription', 'Renamed');
+        fixture.detectChanges();
+
+        expect(component.description()).toBe('Renamed');
+    });
+
+    test('caps the description at 500 characters', () => {
         create();
 
-        component.onValueChange('  api  ');
+        expect(textarea().getAttribute('maxlength')).toBe('500');
+    });
+
+    test('emits the trimmed name and description, and prevents the native submit', () => {
+        create();
+
+        component.onNameChange('  api  ');
+        type(textarea(), '  The API of the platform  ');
 
         const event = new Event('submit');
         const preventDefault = vi.spyOn(event, 'preventDefault');
@@ -73,13 +104,22 @@ describe('ProjectFormComponent', () => {
         component.onSubmit(event);
 
         expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(saved).toEqual(['api']);
+        expect(saved).toEqual([{ name: 'api', description: 'The API of the platform' }]);
+    });
+
+    test('emits an empty description when the field stays untouched', () => {
+        create();
+
+        component.onNameChange('api');
+        component.onSubmit(new Event('submit'));
+
+        expect(saved).toEqual([{ name: 'api', description: '' }]);
     });
 
     test('does not emit when the name is blank', () => {
         create();
 
-        component.onValueChange('   ');
+        component.onNameChange('   ');
         component.onSubmit(new Event('submit'));
 
         expect(saved).toEqual([]);

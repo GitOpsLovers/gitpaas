@@ -5,6 +5,7 @@ import type { Namespace, Project, Service } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+import { ServiceFormValue } from '../../components/service-form/service-form.component';
 
 import { ServiceAddComponent } from './service-add.component';
 
@@ -18,7 +19,7 @@ interface ServiceAddInternals {
     projectId: string;
     submitting: () => boolean;
     breadcrumb: () => BreadcrumbItem[];
-    create: (name: string) => Promise<void>;
+    create: (value: ServiceFormValue) => Promise<void>;
 }
 
 const namespace: Namespace = {
@@ -33,6 +34,8 @@ const project: Project = {
     description: 'The API project',
     createdAt: '2026-01-01T00:00:00.000Z',
 };
+
+const FORM_VALUE: ServiceFormValue = { name: 'web', description: 'The web service' };
 
 const created: Service = {
     id: 'sv-1',
@@ -157,9 +160,13 @@ describe('ServiceAddComponent', () => {
         repository.create.mockReturnValue(of(created));
         create();
 
-        await component.create('web');
+        await component.create(FORM_VALUE);
 
-        expect(repository.create).toHaveBeenCalledWith({ name: 'web', projectId: 'pr-1' });
+        expect(repository.create).toHaveBeenCalledWith({
+            name: 'web',
+            description: 'The web service',
+            projectId: 'pr-1',
+        });
         expect(toast.success).toHaveBeenCalledWith('Service created', expect.stringContaining('web'));
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1']);
         expect(toast.error).not.toHaveBeenCalled();
@@ -169,7 +176,7 @@ describe('ServiceAddComponent', () => {
         repository.create.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
-        await component.create('web');
+        await component.create(FORM_VALUE);
 
         expect(toast.error).toHaveBeenCalledWith(
             'Could not create service',
@@ -184,7 +191,7 @@ describe('ServiceAddComponent', () => {
         repository.create.mockReturnValue(NEVER);
         create();
 
-        component.create('web');
+        component.create(FORM_VALUE);
 
         expect(component.submitting()).toBe(true);
     });

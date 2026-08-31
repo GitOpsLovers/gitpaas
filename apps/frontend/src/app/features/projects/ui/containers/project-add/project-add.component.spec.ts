@@ -4,6 +4,7 @@ import type { Project } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
+import { ProjectFormValue } from '../../components/project-form/project-form.component';
 
 import { ProjectAddComponent } from './project-add.component';
 
@@ -11,8 +12,10 @@ import { ToastService } from '@shared/services/toast.service';
 
 interface ProjectAddInternals {
     submitting: () => boolean;
-    create: (name: string) => Promise<void>;
+    create: (value: ProjectFormValue) => Promise<void>;
 }
+
+const FORM_VALUE: ProjectFormValue = { name: 'api', description: 'The API project' };
 
 const created: Project = {
     id: 'pr-1',
@@ -66,9 +69,9 @@ describe('ProjectAddComponent', () => {
         repository.create.mockReturnValue(of(created));
         create();
 
-        await component.create('api');
+        await component.create(FORM_VALUE);
 
-        expect(repository.create).toHaveBeenCalledWith('ns-1', { name: 'api' });
+        expect(repository.create).toHaveBeenCalledWith('ns-1', FORM_VALUE);
         expect(toast.success).toHaveBeenCalledWith('Project created', expect.stringContaining('api'));
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects']);
         expect(toast.error).not.toHaveBeenCalled();
@@ -81,9 +84,9 @@ describe('ProjectAddComponent', () => {
         fixture.componentRef.setInput('namespaceId', 'ns-2');
         fixture.detectChanges();
 
-        await component.create('api');
+        await component.create(FORM_VALUE);
 
-        expect(repository.create).toHaveBeenCalledWith('ns-2', { name: 'api' });
+        expect(repository.create).toHaveBeenCalledWith('ns-2', FORM_VALUE);
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-2', 'projects']);
     });
 
@@ -91,7 +94,7 @@ describe('ProjectAddComponent', () => {
         repository.create.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
-        await component.create('api');
+        await component.create(FORM_VALUE);
 
         expect(toast.error).toHaveBeenCalledWith(
             'Could not create project',
@@ -106,7 +109,7 @@ describe('ProjectAddComponent', () => {
         repository.create.mockReturnValue(NEVER);
         create();
 
-        component.create('api');
+        component.create(FORM_VALUE);
 
         expect(component.submitting()).toBe(true);
     });

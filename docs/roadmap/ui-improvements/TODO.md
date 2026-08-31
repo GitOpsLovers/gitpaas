@@ -19,11 +19,11 @@ A card of a project and a card of a service show the name alone, so a user canno
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/projects/, apps/frontend/src/app/features/services/
 
-- [ ] 2.1 Change the output `save` of `project-form.component.ts` and of `service-form.component.ts` from `output<string>()` into an output of an object that holds the name and the description, and update the four containers `project-add`, `project-edit`, `service-add` and `service-edit`.
-- [ ] 2.2 Add a field `description` to the two forms, with a `<textarea>` and a limit of 500 characters, as `provider-form.component.html` does. The field is optional, and its empty value is the empty string.
-- [ ] 2.3 Show the description in `project-card` and in `service-card`, truncated after two lines. Show nothing when the description is the empty string.
-- [ ] 2.4 Show the date of creation in the two cards, with the format `{{ x.createdAt | date: 'yyyy-MM-dd' }}`.
-- [ ] 2.5 Update the unit tests of the four components and of the four containers, then run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
+- [x] 2.1 Change the output `save` of `project-form.component.ts` and of `service-form.component.ts` from `output<string>()` into an output of an object that holds the name and the description, and update the four containers `project-add`, `project-edit`, `service-add` and `service-edit`.
+- [x] 2.2 Add a field `description` to the two forms, with a `<textarea>` and a limit of 500 characters, as `provider-form.component.html` does. The field is optional, and its empty value is the empty string.
+- [x] 2.3 Show the description in `project-card` and in `service-card`, truncated after two lines. Show nothing when the description is the empty string.
+- [x] 2.4 Show the date of creation in the two cards, with the format `{{ x.createdAt | date: 'yyyy-MM-dd' }}`.
+- [x] 2.5 Update the unit tests of the four components and of the four containers, then run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
 
 ## Phase 3 — The bullet of the state of a service
 

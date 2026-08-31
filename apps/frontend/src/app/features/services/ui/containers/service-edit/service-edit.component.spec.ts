@@ -5,6 +5,7 @@ import type { Namespace, Project, Service } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
+import { ServiceFormValue } from '../../components/service-form/service-form.component';
 
 import { ServiceEditComponent } from './service-edit.component';
 
@@ -17,10 +18,11 @@ interface ServiceEditInternals {
     namespaceId: string;
     projectId: string;
     initialName: () => string;
+    initialDescription: () => string;
     loading: () => boolean;
     submitting: () => boolean;
     breadcrumb: () => BreadcrumbItem[];
-    update: (name: string) => Promise<void>;
+    update: (value: ServiceFormValue) => Promise<void>;
 }
 
 const namespace: Namespace = {
@@ -47,6 +49,8 @@ const service: Service = {
     composerPath: '',
     createdAt: '2026-01-01T00:00:00.000Z',
 };
+
+const RENAMED: ServiceFormValue = { name: 'renamed', description: 'The web service' };
 
 const ROUTE_PARAMS = { namespaceId: 'ns-1', id: 'pr-1', serviceId: 'sv-1' };
 
@@ -158,6 +162,16 @@ describe('ServiceEditComponent', () => {
             expect(component.initialName()).toBe('web');
         });
 
+        test('exposes an empty initial description until the service resolves', () => {
+            create();
+
+            expect(component.initialDescription()).toBe('');
+
+            serviceValue.set(service);
+
+            expect(component.initialDescription()).toBe('The web service');
+        });
+
         test('mirrors the resource loading state', () => {
             isLoading.set(true);
             create();
@@ -189,9 +203,9 @@ describe('ServiceEditComponent', () => {
             repository.update.mockReturnValue(of({ ...service, name: 'renamed' }));
             create();
 
-            await component.update('renamed');
+            await component.update(RENAMED);
 
-            expect(repository.update).toHaveBeenCalledWith('sv-1', { name: 'renamed' });
+            expect(repository.update).toHaveBeenCalledWith('sv-1', RENAMED);
             expect(toast.success).toHaveBeenCalledWith('Service updated', expect.stringContaining('renamed'));
             expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1']);
             expect(toast.error).not.toHaveBeenCalled();
@@ -201,7 +215,7 @@ describe('ServiceEditComponent', () => {
             repository.update.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
-            await component.update('renamed');
+            await component.update(RENAMED);
 
             expect(toast.error).toHaveBeenCalledWith(
                 'Could not update service',
@@ -218,7 +232,7 @@ describe('ServiceEditComponent', () => {
 
             expect(component.submitting()).toBe(false);
 
-            component.update('renamed');
+            component.update(RENAMED);
 
             expect(component.submitting()).toBe(true);
         });
