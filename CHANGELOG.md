@@ -1,3 +1,15 @@
+## [2.7.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.6.0...v2.7.0) (2026-08-31)
+
+### Features
+
+* **server:** add check for updates button ([#189](https://github.com/GitOpsLovers/gitpaas/issues/189)) ([2f76469](https://github.com/GitOpsLovers/gitpaas/commit/2f764699b0b1df40097df0e57e91e6fb4bb6fa7e))
+* **server:** add on-demand update check endpoint ([#188](https://github.com/GitOpsLovers/gitpaas/issues/188)) ([e35c506](https://github.com/GitOpsLovers/gitpaas/commit/e35c506590f26d88d7f7c0f546c9bddc16ddf9ae))
+* **ui-improvements:** add description and createdAt fields ([#186](https://github.com/GitOpsLovers/gitpaas/issues/186)) ([a936502](https://github.com/GitOpsLovers/gitpaas/commit/a93650288569c958ef2cdacd43fbface05afe756))
+
+### Bug Fixes
+
+* **authentication:** exempt only public auth endpoints ([#187](https://github.com/GitOpsLovers/gitpaas/issues/187)) ([5ad915e](https://github.com/GitOpsLovers/gitpaas/commit/5ad915e2049c75a8a545b9dcd193b8aad6e059ff))
+
 ## [2.6.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.5.0...v2.6.0) (2026-08-31)
 
 ### Features
