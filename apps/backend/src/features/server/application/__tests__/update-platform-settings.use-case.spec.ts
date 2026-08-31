@@ -1,22 +1,59 @@
 import type { PlatformSettings, UpdatePlatformSettingsDto } from '@gitpaas/contracts';
 
-import { InvalidGitpaasDomainError, InvalidLogRetentionError } from '../../domain/errors/server.errors';
+import { CONTROL_PLANE_ENV_PATH } from '../../domain/constants/platform-settings.constants';
+import {
+    ControlPlaneEnvWriteError,
+    GitpaasDomainNotPointingAtHostError,
+    HostAddressUnknownError,
+    InvalidGitpaasDomainError,
+    InvalidLogRetentionError,
+} from '../../domain/errors/server.errors';
+import type { ControlPlaneDomainCheck } from '../../domain/models/control-plane-domain.models';
+import type { ControlPlaneEnvFile } from '../../domain/ports/control-plane-env-file.port';
+import type { DnsResolver } from '../../domain/ports/dns-resolver.port';
+import type { PublicHostAddress } from '../../domain/ports/public-host-address.port';
 import { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
+import { checkControlPlaneDomainUseCase } from '../check-control-plane-domain.use-case';
 import { updatePlatformSettingsUseCase } from '../update-platform-settings.use-case';
+
+jest.mock('../check-control-plane-domain.use-case');
+
+const mockCheckControlPlaneDomainUseCase = checkControlPlaneDomainUseCase as jest.MockedFunction<
+    typeof checkControlPlaneDomainUseCase
+>;
+
+/** Builds the answer of the check of the domain, overriding only the fields under test. */
+const domainCheck = (overrides: Partial<ControlPlaneDomainCheck> = {}): ControlPlaneDomainCheck => ({
+    host: 'gitpaas.example.com',
+    resolvedAddresses: ['203.0.113.10'],
+    hostAddress: '203.0.113.10',
+    pointsAtHost: true,
+    ...overrides,
+});
 
 describe('updatePlatformSettingsUseCase', () => {
     let mockPlatformSettingsRepository: jest.Mocked<Pick<PlatformSettingsRepository, 'save'>>;
+    let mockDnsResolver: jest.Mocked<Pick<DnsResolver, 'resolveAddresses'>>;
+    let mockPublicHostAddress: jest.Mocked<Pick<PublicHostAddress, 'read'>>;
+    let mockControlPlaneEnvFile: jest.Mocked<Pick<ControlPlaneEnvFile, 'writeDomain'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
         mockPlatformSettingsRepository = { save: jest.fn() };
+        mockDnsResolver = { resolveAddresses: jest.fn() };
+        mockPublicHostAddress = { read: jest.fn() };
+        mockControlPlaneEnvFile = { writeDomain: jest.fn() };
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck());
     });
 
-    /** Runs the use case with the mocked repository, applying the cast one time. */
+    /** Runs the use case with the mocked collaborators, applying the casts one time. */
     const run = (updateDto: UpdatePlatformSettingsDto): Promise<PlatformSettings> =>
         updatePlatformSettingsUseCase(
             mockPlatformSettingsRepository as unknown as PlatformSettingsRepository,
+            mockDnsResolver,
+            mockPublicHostAddress,
+            mockControlPlaneEnvFile,
             updateDto,
         );
 
@@ -155,6 +192,150 @@ describe('updatePlatformSettingsUseCase', () => {
         await expect(run({ logRetentionDays: 0, gitpaasDomain: 'localhost' })).rejects.toBeInstanceOf(
             InvalidLogRetentionError,
         );
+    });
+
+    it('checks the host of the control plane with the resolver and the address of this host', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        await run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' });
+
+        expect(mockCheckControlPlaneDomainUseCase).toHaveBeenCalledTimes(1);
+        expect(mockCheckControlPlaneDomainUseCase).toHaveBeenCalledWith(
+            mockDnsResolver,
+            mockPublicHostAddress,
+            'gitpaas.example.com',
+        );
+    });
+
+    it('never checks the host when the body carries none', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        await run({ logRetentionDays: 45 });
+
+        expect(mockCheckControlPlaneDomainUseCase).not.toHaveBeenCalled();
+    });
+
+    it('checks the host before it keeps the row', async () => {
+        const order: string[] = [];
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockCheckControlPlaneDomainUseCase.mockImplementation(async () => {
+            order.push('check');
+
+            return domainCheck();
+        });
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockPlatformSettingsRepository.save.mockImplementation(async () => {
+            order.push('save');
+
+            return { logRetentionDays: 45 };
+        });
+
+        await run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' });
+
+        expect(order).toEqual(['check', 'save']);
+    });
+
+    it('throws a GitpaasDomainNotPointingAtHostError when the host resolves elsewhere', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
+            domainCheck({ resolvedAddresses: ['198.51.100.7'], pointsAtHost: false }),
+        );
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toBeInstanceOf(GitpaasDomainNotPointingAtHostError);
+    });
+
+    it('names the resolved address and the address of this host in the rejection', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
+            domainCheck({ resolvedAddresses: ['198.51.100.7'], pointsAtHost: false }),
+        );
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toThrow(/gitpaas\.example\.com resolves to 198\.51\.100\.7.*answers on 203\.0\.113\.10/);
+    });
+
+    it('reports that the host resolves to nothing when it resolves to no address', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
+            domainCheck({ resolvedAddresses: [], pointsAtHost: false }),
+        );
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toThrow(/resolves to nothing/);
+    });
+
+    it('throws a HostAddressUnknownError when the address of this host cannot be read', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
+            domainCheck({ hostAddress: null, pointsAtHost: false }),
+        );
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toBeInstanceOf(HostAddressUnknownError);
+    });
+
+    it('never keeps the row when the host does not point at this host', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck({ pointsAtHost: false }));
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toBeInstanceOf(GitpaasDomainNotPointingAtHostError);
+
+        expect(mockPlatformSettingsRepository.save).not.toHaveBeenCalled();
+        expect(mockControlPlaneEnvFile.writeDomain).not.toHaveBeenCalled();
+    });
+
+    it('writes the host into the environment of the stack once the row is kept', async () => {
+        const order: string[] = [];
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockPlatformSettingsRepository.save.mockImplementation(async () => {
+            order.push('save');
+
+            return { logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' };
+        });
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockControlPlaneEnvFile.writeDomain.mockImplementation(async () => {
+            order.push('write');
+        });
+
+        await run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' });
+
+        expect(mockControlPlaneEnvFile.writeDomain).toHaveBeenCalledTimes(1);
+        expect(mockControlPlaneEnvFile.writeDomain).toHaveBeenCalledWith('gitpaas.example.com');
+        expect(order).toEqual(['save', 'write']);
+    });
+
+    it('never writes the environment of the stack when the body carries no host', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        await run({ logRetentionDays: 45 });
+
+        expect(mockControlPlaneEnvFile.writeDomain).not.toHaveBeenCalled();
+    });
+
+    it('throws a ControlPlaneEnvWriteError when the environment of the stack refuses the write', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+        mockControlPlaneEnvFile.writeDomain.mockRejectedValue(new Error('EACCES'));
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toBeInstanceOf(ControlPlaneEnvWriteError);
+    });
+
+    it('names the file of the environment and keeps the failed write as the cause', async () => {
+        const failure = new Error('EACCES');
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+        mockControlPlaneEnvFile.writeDomain.mockRejectedValue(failure);
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toThrow(CONTROL_PLANE_ENV_PATH);
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toMatchObject({ cause: failure });
+    });
+
+    it('keeps the row when the environment of the stack refuses the write', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+        mockControlPlaneEnvFile.writeDomain.mockRejectedValue(new Error('EACCES'));
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toBeInstanceOf(ControlPlaneEnvWriteError);
+
+        expect(mockPlatformSettingsRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('propagates errors thrown by the repository', async () => {

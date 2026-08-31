@@ -18,23 +18,29 @@ import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
 import { startPlatformUpdateUseCase } from '../../application/start-platform-update.use-case';
 import { updatePlatformSettingsUseCase } from '../../application/update-platform-settings.use-case';
+import type { ControlPlaneEnvFile } from '../../domain/ports/control-plane-env-file.port';
+import type { DnsResolver } from '../../domain/ports/dns-resolver.port';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
 import type { LatestReleaseStore } from '../../domain/ports/latest-release-store.port';
 import type { OrphanContainers } from '../../domain/ports/orphan-containers.port';
+import type { PublicHostAddress } from '../../domain/ports/public-host-address.port';
 import type { UpdateRunner } from '../../domain/ports/update-runner.port';
 import type { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
 import type { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
 import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../infrastructure/database/db-platform-updates.repository';
+import { NodeDnsResolverAdapter } from '../../infrastructure/dns/node-dns-resolver.adapter';
 import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
 import { DockerUpdateRunnerAdapter } from '../../infrastructure/docker/docker-update-runner.adapter';
+import { FileControlPlaneEnvAdapter } from '../../infrastructure/env/file-control-plane-env.adapter';
 import { BackendHealthProbeAdapter } from '../../infrastructure/health/backend-health-probe.adapter';
 import { DockerHealthProbeAdapter } from '../../infrastructure/health/docker-health-probe.adapter';
 import { FrontendHealthProbeAdapter } from '../../infrastructure/health/frontend-health-probe.adapter';
 import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from '../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
+import { HttpPublicHostAddressAdapter } from '../../infrastructure/network/http-public-host-address.adapter';
 import { MemoryLatestReleaseStoreAdapter } from '../../infrastructure/release/memory-latest-release-store.adapter';
 
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
@@ -77,6 +83,12 @@ export class ServerService {
         private readonly latestRelease: LatestReleaseStore,
         @Inject(DockerUpdateRunnerAdapter)
         private readonly updateRunner: UpdateRunner,
+        @Inject(NodeDnsResolverAdapter)
+        private readonly dns: DnsResolver,
+        @Inject(HttpPublicHostAddressAdapter)
+        private readonly publicAddress: PublicHostAddress,
+        @Inject(FileControlPlaneEnvAdapter)
+        private readonly envFile: ControlPlaneEnvFile,
     ) {}
 
     /**
@@ -157,7 +169,7 @@ export class ServerService {
      * @returns Parameters the system keeps
      */
     public updateSettings(updateDto: UpdatePlatformSettingsDto): Promise<PlatformSettings> {
-        return updatePlatformSettingsUseCase(this.settings, updateDto);
+        return updatePlatformSettingsUseCase(this.settings, this.dns, this.publicAddress, this.envFile, updateDto);
     }
 
     /**

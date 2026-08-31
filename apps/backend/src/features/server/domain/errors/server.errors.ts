@@ -42,6 +42,49 @@ export class InvalidGitpaasDomainError extends DomainError {
 }
 
 /**
+ * Raised when the host the control plane must answer on resolves nowhere near this host.
+ */
+export class GitpaasDomainNotPointingAtHostError extends DomainError {
+    constructor(host: string, resolvedAddresses: string[], hostAddress: string, options?: ErrorOptions) {
+        const resolved = resolvedAddresses.length === 0
+            ? 'nothing'
+            : resolvedAddresses.join(', ');
+
+        super(
+            'GITPAAS_DOMAIN_NOT_POINTING_AT_HOST',
+            `The domain ${host} resolves to ${resolved}, and this host answers on ${hostAddress}. Point the record A of ${host} at ${hostAddress}, then save again.`,
+            options,
+        );
+    }
+}
+
+/**
+ * Raised when the platform cannot read the public address of its own host, so it checks nothing.
+ */
+export class HostAddressUnknownError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super(
+            'HOST_ADDRESS_UNKNOWN',
+            'The platform could not read the public address of this host, so it cannot check the domain. Try again in a moment.',
+            options,
+        );
+    }
+}
+
+/**
+ * Raised when the settings are kept, and the file of the environment of the stack refuses the write.
+ */
+export class ControlPlaneEnvWriteError extends DomainError {
+    constructor(path: string, options?: ErrorOptions) {
+        super(
+            'CONTROL_PLANE_ENV_WRITE_FAILED',
+            `The settings are kept, and ${path} could not be written. Edit that file on the host, then restart the stack.`,
+            options,
+        );
+    }
+}
+
+/**
  * Raised when an update of the platform starts while another one still runs.
  */
 export class UpdateAlreadyRunningError extends DomainError {
