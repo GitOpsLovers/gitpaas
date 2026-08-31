@@ -1,0 +1,19 @@
+.github/workflows/pr-verify.yml
+  s_47eabb97ba5320::t_9ee8842218dc50 5-9,27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cea8696b012c5a527481120b7be40228dc015827",
+  "prompts": {},
+  "sessions": {
+    "s_47eabb97ba5320": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6b050092-fb72-4a31-9fe1-f1c768b13058",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
