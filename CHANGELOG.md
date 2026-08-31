@@ -1,3 +1,19 @@
+## [2.6.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.5.0...v2.6.0) (2026-08-31)
+
+### Features
+
+* **server-settings:** add domain field to settings tab ([#184](https://github.com/GitOpsLovers/gitpaas/issues/184)) ([f63528c](https://github.com/GitOpsLovers/gitpaas/commit/f63528c287f8292d300e58aec4ec08f045c5cd95))
+* **server-settings:** add gitpaasDomain field to api ([#182](https://github.com/GitOpsLovers/gitpaas/issues/182)) ([ec1488e](https://github.com/GitOpsLovers/gitpaas/commit/ec1488eed545e42040f0836202a34bffb3c5e8d2))
+* **server:** validate domain and update env file ([#183](https://github.com/GitOpsLovers/gitpaas/issues/183)) ([2cf71bb](https://github.com/GitOpsLovers/gitpaas/commit/2cf71bbed6f8e39c9e10bed6c1fc6857e5ea6f06))
+* **skeleton-loaders:** add card skeletons to list containers ([#178](https://github.com/GitOpsLovers/gitpaas/issues/178)) ([17a9a38](https://github.com/GitOpsLovers/gitpaas/commit/17a9a3868181498eb9fc7be17fea15e398df6104))
+* **skeleton-loaders:** add skeleton loaders to forms and panel ([#180](https://github.com/GitOpsLovers/gitpaas/issues/180)) ([e21fa10](https://github.com/GitOpsLovers/gitpaas/commit/e21fa10e2c595ec56c92e1636d1d38a7e69c2430))
+* **skeleton-loaders:** add table row skeletons ([#179](https://github.com/GitOpsLovers/gitpaas/issues/179)) ([69405de](https://github.com/GitOpsLovers/gitpaas/commit/69405deab6c71e188df40f202f1e391bc6b5e28e))
+* **skeleton:** add shared skeleton loader component ([#177](https://github.com/GitOpsLovers/gitpaas/issues/177)) ([15f3608](https://github.com/GitOpsLovers/gitpaas/commit/15f3608d40ba5f99526b857a2c1d021581729c65))
+
+### Bug Fixes
+
+* add correcto permissions to Traefik ([a4a1c9b](https://github.com/GitOpsLovers/gitpaas/commit/a4a1c9b3fb7a4ef96b099dcf23ebe8fb631a6294))
+
 ## [2.5.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.4.0...v2.5.0) (2026-08-30)
 
 ### Features
