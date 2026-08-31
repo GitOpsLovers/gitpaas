@@ -1,6 +1,7 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import type { Namespace, Project, ProjectNetwork } from '@gitpaas/contracts';
+import { LucideNetwork } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
 import { readProjectNetworkErrorUseCase } from '../../../application/read-project-network-error.use-case';
@@ -24,6 +25,8 @@ import { ToastService } from '@shared/services/toast.service';
  * Container that lists the networks of a project and writes them.
  */
 export class ProjectNetworksListComponent {
+    protected readonly icon = LucideNetwork;
+
     private readonly repository = inject(NetworksApiRepository);
 
     private readonly namespacesRepository = inject(NamespacesApiRepository);

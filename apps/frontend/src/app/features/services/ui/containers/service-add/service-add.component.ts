@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { LucideLayers } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
@@ -21,6 +22,8 @@ import { ToastService } from '@shared/services/toast.service';
  * Service add container component
  */
 export class ServiceAddComponent {
+    protected readonly icon = LucideLayers;
+
     private readonly repository = inject(ServicesApiRepository);
 
     private readonly namespacesRepository = inject(NamespacesApiRepository);

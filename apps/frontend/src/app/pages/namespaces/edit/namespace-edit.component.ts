@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { LucideBox } from '@lucide/angular';
 
 import { NamespaceEditComponent } from '@features/namespaces/ui/containers/namespace-edit/namespace-edit.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -13,6 +14,8 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Edit namespace page.
  */
 export class NamespacesEditPage {
+    protected readonly icon = LucideBox;
+
     protected readonly breadcrumb: BreadcrumbItem[] = [
         { label: 'Namespaces', link: '/namespaces' },
         { label: 'Edit namespace' },

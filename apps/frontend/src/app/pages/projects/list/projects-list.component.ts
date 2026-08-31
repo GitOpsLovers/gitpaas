@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideFolder } from '@lucide/angular';
 
 import { ProjectsListComponent } from '@features/projects/ui/containers/projects-list/projects-list.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
@@ -14,6 +15,8 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/bread
  * Projects list page.
  */
 export class ProjectsListPage {
+    protected readonly icon = LucideFolder;
+
     public readonly namespaceId = input.required<string>();
 
     protected readonly breadcrumb: BreadcrumbItem[] = [

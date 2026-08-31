@@ -40,10 +40,10 @@ A card of a project and a card of a service show the name alone, so a user canno
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/layout/ui/components/breadcrumb/, apps/frontend/src/app/features/, apps/frontend/src/app/pages/
 
-- [ ] 4.1 Give `BreadcrumbComponent` an optional input `icon` that takes a component of Lucide, and render it before the `<h2>` of the title.
-- [ ] 4.2 Pass the icon in the 17 templates that use the breadcrumb. A project takes `folder`, a service takes `layers`, and the other sections take the icon that `sidebar.component.html` already shows.
-- [ ] 4.3 Show the title of the page of the dashboard with `BreadcrumbComponent` and the icon `grid`, because that page uses no breadcrumb today.
-- [ ] 4.4 Update the unit tests of the breadcrumb, then run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
+- [x] 4.1 Give `BreadcrumbComponent` an optional input `icon` that takes a component of Lucide, and render it before the `<h2>` of the title.
+- [x] 4.2 Pass the icon in the 17 templates that use the breadcrumb. A project takes `folder`, a service takes `layers`, and the other sections take the icon that `sidebar.component.html` already shows.
+- [x] 4.3 Show the title of the page of the dashboard with `BreadcrumbComponent` and the icon `grid`, because that page uses no breadcrumb today.
+- [x] 4.4 Update the unit tests of the breadcrumb, then run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend, and make them pass.
 
 ## Phase 5 — The documentation
 
