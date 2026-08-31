@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_4f1e17c5119066::t_6043787d47e74e 19
+docs/roadmap/update-check-button/TODO.md
+  s_4f1e17c5119066::t_1a72ad1704d0ff 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9c7896784ce05900024cf85190351197857ffc59",
+  "prompts": {},
+  "sessions": {
+    "s_4f1e17c5119066": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a90d5d3e-27b3-43a9-8cab-8332a28d7f78",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
