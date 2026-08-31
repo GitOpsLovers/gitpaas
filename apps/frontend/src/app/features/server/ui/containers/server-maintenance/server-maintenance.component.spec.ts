@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DOCUMENT, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { PlatformUpdateStatus, User } from '@gitpaas/contracts';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { PlatformUpdateView } from '../../../domain/models/platform-update.model';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
@@ -24,6 +24,10 @@ interface ServerMaintenanceInternals {
     updating: () => boolean;
     timedOut: () => boolean;
     updatePending: () => boolean;
+    checkState: () => 'idle' | 'checking' | 'succeeded' | 'failed';
+    checking: () => boolean;
+    checkMessage: () => string | null;
+    checkForUpdates: () => Promise<void>;
     showUpdate: () => boolean;
     updateConfirmMessage: () => string;
     requestPrune: (action: PruneAction) => void;
@@ -87,6 +91,21 @@ const failed: PlatformUpdateStatus = {
 
 const SESSION_MESSAGE = 'The session of the user could not be read.';
 
+const CHECK_MESSAGE = 'GitHub did not answer the read of the latest release.';
+
+const checkRefusal = (): HttpErrorResponse => new HttpErrorResponse({
+    status: 500,
+    error: {
+        statusCode: 500,
+        code: 'INTERNAL_SERVER_ERROR',
+        message: CHECK_MESSAGE,
+        error: 'Internal Server Error',
+        timestamp: '2026-08-31T10:00:00.000Z',
+        path: '/api/v1/server/update/check',
+        requestId: 'rq-3',
+    },
+});
+
 const sessionRefusal = (): HttpErrorResponse => new HttpErrorResponse({
     status: 500,
     error: {
@@ -104,8 +123,10 @@ describe('ServerMaintenanceComponent', () => {
     let value: ReturnType<typeof signal<PlatformUpdateStatus | undefined>>;
     let error: ReturnType<typeof signal<unknown>>;
     let reload: ReturnType<typeof vi.fn>;
+    let set: ReturnType<typeof vi.fn>;
     let repository: {
         updateStatus: ReturnType<typeof vi.fn>;
+        checkUpdate: ReturnType<typeof vi.fn>;
         startUpdate: ReturnType<typeof vi.fn>;
         pruneImages: ReturnType<typeof vi.fn>;
         pruneVolumes: ReturnType<typeof vi.fn>;
@@ -138,8 +159,16 @@ describe('ServerMaintenanceComponent', () => {
         value = signal<PlatformUpdateStatus | undefined>(undefined);
         error = signal<unknown>(undefined);
         reload = vi.fn();
+        // The screen writes the answer of the check into the resource, as a writable resource does.
+        set = vi.fn((status: PlatformUpdateStatus) => {
+            value.set(status);
+            error.set(undefined);
+        });
         repository = {
-            updateStatus: vi.fn().mockReturnValue({ value, error, reload }),
+            updateStatus: vi.fn().mockReturnValue({
+                value, error, reload, set,
+            }),
+            checkUpdate: vi.fn().mockReturnValue(of(upToDate)),
             startUpdate: vi.fn().mockReturnValue(of(running)),
             pruneImages: vi.fn().mockReturnValue(of({ deletedCount: 2, spaceReclaimed: 2048 })),
             pruneVolumes: vi.fn(),
@@ -281,6 +310,89 @@ describe('ServerMaintenanceComponent', () => {
 
             expect(component.update().available).toBe(false);
             expect(component.showUpdate()).toBe(false);
+        });
+    });
+
+    describe('the check of the latest release', () => {
+        test('starts with no outcome to show', () => {
+            create();
+
+            expect(component.checkState()).toBe('idle');
+            expect(component.checking()).toBe(false);
+            expect(component.checkMessage()).toBeNull();
+        });
+
+        test('says the platform runs the latest release, and announces nothing', async () => {
+            create();
+
+            await component.checkForUpdates();
+
+            expect(repository.checkUpdate).toHaveBeenCalledTimes(1);
+            expect(component.checkState()).toBe('succeeded');
+            expect(component.checkMessage()).toBe('GitPaaS already runs the latest release published.');
+            expect(component.showUpdate()).toBe(false);
+        });
+
+        test('announces the new version the check found', async () => {
+            repository.checkUpdate.mockReturnValue(of(available));
+
+            create();
+
+            await component.checkForUpdates();
+
+            expect(set).toHaveBeenCalledWith(available);
+            expect(component.update().available).toBe(true);
+            expect(component.update().latestVersion).toBe('1.5.0');
+            expect(component.checkMessage()).toBe('A new version 1.5.0 is available.');
+            expect(component.showUpdate()).toBe(true);
+        });
+
+        test('runs the check while it waits for the answer, and ends it once the answer arrives', async () => {
+            const answers = new Subject<PlatformUpdateStatus>();
+            repository.checkUpdate.mockReturnValue(answers);
+
+            create();
+
+            const check = component.checkForUpdates();
+
+            expect(component.checking()).toBe(true);
+            expect(component.checkMessage()).toBeNull();
+
+            answers.next(upToDate);
+            answers.complete();
+            await check;
+
+            expect(component.checking()).toBe(false);
+        });
+
+        test('shows the reason of a failed check, and keeps the version the page shows', async () => {
+            repository.checkUpdate.mockReturnValue(throwError(() => checkRefusal()));
+
+            create();
+            answer(upToDate);
+
+            await component.checkForUpdates();
+
+            expect(component.checkState()).toBe('failed');
+            expect(component.checkMessage()).toBe(CHECK_MESSAGE);
+            expect(component.checking()).toBe(false);
+            expect(set).not.toHaveBeenCalled();
+            expect(component.update().installedVersion).toBe('1.4.0');
+        });
+
+        test('drops the reason of the last failure once a later check succeeds', async () => {
+            repository.checkUpdate.mockReturnValue(throwError(() => checkRefusal()));
+
+            create();
+
+            await component.checkForUpdates();
+
+            repository.checkUpdate.mockReturnValue(of(available));
+
+            await component.checkForUpdates();
+
+            expect(component.checkState()).toBe('succeeded');
+            expect(component.checkMessage()).toBe('A new version 1.5.0 is available.');
         });
     });
 

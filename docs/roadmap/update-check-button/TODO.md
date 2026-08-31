@@ -20,13 +20,13 @@ GitPaaS checks for a new release every 6 hours and one time at the boot. An admi
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/server/
 
-- [ ] 2.1 Add the method that calls `POST /server/update/check` to the repository of the API of the server.
-- [ ] 2.2 Add the button "Check for updates" to the card Maintenance. It stays visible even when the version is current.
-- [ ] 2.3 Show the four states of the button: idle, in progress, success and failure. Disable the button while the check runs.
-- [ ] 2.4 Refresh the resource of the status of the update with the answer, so that the alert of the update appears when a new version exists.
-- [ ] 2.5 Show a message of error when the check fails, and keep the version that the page shows.
-- [ ] 2.6 Write the unit tests of the repository and of the component.
-- [ ] 2.7 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
+- [x] 2.1 Add the method that calls `POST /server/update/check` to the repository of the API of the server.
+- [x] 2.2 Add the button "Check for updates" to the card Maintenance. It stays visible even when the version is current.
+- [x] 2.3 Show the four states of the button: idle, in progress, success and failure. Disable the button while the check runs.
+- [x] 2.4 Refresh the resource of the status of the update with the answer, so that the alert of the update appears when a new version exists.
+- [x] 2.5 Show a message of error when the check fails, and keep the version that the page shows.
+- [x] 2.6 Write the unit tests of the repository and of the component.
+- [x] 2.7 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
 
 ## Phase 3 — The documentation
 

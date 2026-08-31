@@ -109,6 +109,15 @@ export class ServerApiRepository {
     }
 
     /**
+     * Reads the latest release published at once, and answers the state of the update it leaves.
+     *
+     * @returns The versions of the installation and the state of its last update
+     */
+    public checkUpdate(): Observable<PlatformUpdateStatus> {
+        return this.http.post<PlatformUpdateStatus>(`${this.url}/update/check`, {});
+    }
+
+    /**
      * Starts the update of the platform towards the latest release published.
      *
      * @returns The versions of the installation and the update that started
