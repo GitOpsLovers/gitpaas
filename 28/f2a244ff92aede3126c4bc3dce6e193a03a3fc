@@ -1,0 +1,19 @@
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.html
+  s_57500a6bf9aa0a::t_121d70be78cc62 12-18,58-60,62-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "28f2a244ff92aede3126c4bc3dce6e193a03a3fc",
+  "prompts": {},
+  "sessions": {
+    "s_57500a6bf9aa0a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dc5eeaae-a7cd-4cba-b50d-321214658c7e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
