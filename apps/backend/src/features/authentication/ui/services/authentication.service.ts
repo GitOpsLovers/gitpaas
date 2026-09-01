@@ -3,13 +3,19 @@ import { Inject, Injectable } from '@nestjs/common';
 import { loginUseCase } from '../../application/login.use-case';
 import { logoutUseCase } from '../../application/logout.use-case';
 import { refreshUseCase } from '../../application/refresh.use-case';
+import { verifyTwoFactorUseCase } from '../../application/verify-two-factor.use-case';
 import { AuthTokens } from '../../domain/models/auth-tokens.models';
+import { LoginResult } from '../../domain/models/login-result.models';
 import type { TokenService } from '../../domain/ports/token-service.port';
 import type { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { DatabaseRefreshTokensRepository } from '../../infrastructure/database/db-refresh-tokens.repository';
 import { JwtTokenServiceAdapter } from '../../infrastructure/security/jwt-token-service.adapter';
 import { enrichWithAuthOutcome, enrichWithTokenSubject } from '../telemetry/enrich-with-actor';
 
+import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
+import type { Totp } from '@core/domain/ports/totp.port';
+import { OtplibTotpAdapter } from '@core/infrastructure/crypto/otplib-totp.adapter';
+import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
@@ -26,21 +32,59 @@ export class AuthenticationService {
         private readonly refreshTokensRepository: RefreshTokensRepository,
         @Inject(JwtTokenServiceAdapter)
         private readonly tokenService: TokenService,
+        @Inject(OtplibTotpAdapter)
+        private readonly totp: Totp,
+        @Inject(SecretCipherAdapter)
+        private readonly secretCipher: SecretCipher,
     ) {}
 
     /**
-     * Issue a token pair for a user already validated by the local strategy
+     * Complete the first step of a login for a user already validated by the local strategy
      *
      * @param user Authenticated user
      *
-     * @returns Access + refresh token pair
+     * @returns Access + refresh token pair, or the challenge of the second factor
      */
-    public async login(user: User): Promise<AuthTokens> {
-        const tokens = await loginUseCase(this.refreshTokensRepository, this.tokenService, user);
+    public async login(user: User): Promise<LoginResult> {
+        const result = await loginUseCase(this.refreshTokensRepository, this.tokenService, user);
 
         enrichWithAuthOutcome('authenticated');
 
-        return tokens;
+        return result;
+    }
+
+    /**
+     * Complete the second step of a login, exchanging a challenge and a code for a token pair
+     *
+     * @param challengeToken The challenge the first step handed out
+     * @param code The code of six digits the client presented
+     *
+     * @returns A freshly issued access + refresh token pair
+     *
+     * @throws {InvalidTwoFactorChallengeError} When the challenge is unusable
+     * @throws {UserInactiveError} When the owning account is deactivated
+     * @throws {InvalidTotpCodeError} When the code does not match the secret of the account
+     */
+    public async verifyTwoFactor(challengeToken: string, code: string): Promise<AuthTokens> {
+        try {
+            const tokens = await verifyTwoFactorUseCase(
+                this.usersRepository,
+                this.refreshTokensRepository,
+                this.tokenService,
+                this.totp,
+                this.secretCipher,
+                challengeToken,
+                code,
+            );
+
+            enrichWithAuthOutcome('authenticated');
+
+            return tokens;
+        } catch (error) {
+            enrichWithAuthOutcome('rejected');
+
+            throw error;
+        }
     }
 
     /**

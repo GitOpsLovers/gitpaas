@@ -27,7 +27,9 @@ const issued: IssuedRefreshToken = {
 
 describe('loginUseCase', () => {
     let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'create'>>;
-    let mockTokenService: jest.Mocked<Pick<TokenService, 'signAccessToken' | 'issueRefreshToken'>>;
+    let mockTokenService: jest.Mocked<
+        Pick<TokenService, 'signAccessToken' | 'issueRefreshToken' | 'signTwoFactorChallenge'>
+    >;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -37,6 +39,7 @@ describe('loginUseCase', () => {
         mockTokenService = {
             signAccessToken: jest.fn().mockReturnValue('access.jwt.token'),
             issueRefreshToken: jest.fn().mockReturnValue(issued),
+            signTwoFactorChallenge: jest.fn().mockReturnValue('challenge.jwt.token'),
         };
     });
 
@@ -54,5 +57,43 @@ describe('loginUseCase', () => {
             expiresAt: issued.expiresAt,
         });
         expect(result).toEqual({ accessToken: 'access.jwt.token', refreshToken: issued.token });
+    });
+
+    it('never signs a challenge for an account with no second factor', async () => {
+        await loginUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            user,
+        );
+
+        expect(mockTokenService.signTwoFactorChallenge).not.toHaveBeenCalled();
+    });
+
+    it('answers a challenge naming the user when the second factor is on', async () => {
+        const guarded: User = { ...user, totpEnabledAt: new Date('2026-07-12T00:00:00.000Z') };
+
+        const result = await loginUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            guarded,
+        );
+
+        expect(mockTokenService.signTwoFactorChallenge).toHaveBeenCalledTimes(1);
+        expect(mockTokenService.signTwoFactorChallenge).toHaveBeenCalledWith(guarded.id);
+        expect(result).toEqual({ twoFactorRequired: true, challengeToken: 'challenge.jwt.token' });
+    });
+
+    it('issues no pair of tokens when the second factor is on', async () => {
+        const guarded: User = { ...user, totpEnabledAt: new Date('2026-07-12T00:00:00.000Z') };
+
+        await loginUseCase(
+            mockRefreshTokensRepository as unknown as RefreshTokensRepository,
+            mockTokenService as unknown as TokenService,
+            guarded,
+        );
+
+        expect(mockTokenService.signAccessToken).not.toHaveBeenCalled();
+        expect(mockTokenService.issueRefreshToken).not.toHaveBeenCalled();
+        expect(mockRefreshTokensRepository.create).not.toHaveBeenCalled();
     });
 });

@@ -25,7 +25,7 @@
 | Secrets         | `SECRETS_ENCRYPTION_KEY` (32 random bytes, hex; encrypts every stored provider private key and every secret variable of a service at rest)      |
 | Docker          | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                                                                     |
 | Reverse proxy   | `LETSENCRYPT_EMAIL`, `PROXY_ACME_PATH`                                                                                                          |
-| JWT             | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`                                                    |
+| JWT             | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`, `JWT_2FA_SECRET`                                  |
 
 The file carries no build argument, because CI builds the images and not the server. The frontend needs no variable of its own.
 

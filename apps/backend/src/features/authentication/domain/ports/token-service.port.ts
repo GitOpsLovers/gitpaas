@@ -1,4 +1,9 @@
-import { AccessTokenPayload, IssuedRefreshToken, RefreshTokenPayload } from '../models/token-payloads.models';
+import {
+    AccessTokenPayload,
+    IssuedRefreshToken,
+    RefreshTokenPayload,
+    TwoFactorChallengePayload,
+} from '../models/token-payloads.models';
 
 /**
  * Token signing/verification port.
@@ -43,4 +48,24 @@ export interface TokenService {
      * @returns Deterministic token hash
      */
     hashRefreshToken: (token: string) => string;
+
+    /**
+     * Signs the short-lived token that stands between the two steps of a login
+     *
+     * @param userId Identifier of the account the second step must name
+     *
+     * @returns Signed challenge token
+     */
+    signTwoFactorChallenge: (userId: string) => string;
+
+    /**
+     * Verifies the signature, the expiry and the purpose of a challenge token
+     *
+     * @param token Signed challenge token
+     *
+     * @returns Decoded challenge claims
+     *
+     * @throws When the token is malformed, tampered with, expired, or not a challenge
+     */
+    verifyTwoFactorChallenge: (token: string) => TwoFactorChallengePayload;
 }

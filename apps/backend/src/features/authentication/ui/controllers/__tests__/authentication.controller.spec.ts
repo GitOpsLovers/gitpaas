@@ -1,8 +1,13 @@
-import type { LoginDto, RefreshDto } from '@gitpaas/contracts';
+import type { LoginDto, RefreshDto, VerifyTwoFactorDto } from '@gitpaas/contracts';
 import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
+import {
+    InvalidRefreshTokenError,
+    InvalidTotpCodeError,
+    InvalidTwoFactorChallengeError,
+    UserInactiveError,
+} from '../../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../../domain/models/auth-tokens.models';
 import { AuthenticationService } from '../../services/authentication.service';
 import { AuthenticationController } from '../authentication.controller';
@@ -27,7 +32,7 @@ const user: User = {
 
 describe('AuthenticationController', () => {
     let mockAuthenticationService: jest.Mocked<
-        Pick<AuthenticationService, 'login' | 'refresh' | 'logout' | 'me'>
+        Pick<AuthenticationService, 'login' | 'verifyTwoFactor' | 'refresh' | 'logout' | 'me'>
     >;
     let sut: AuthenticationController;
 
@@ -36,6 +41,7 @@ describe('AuthenticationController', () => {
 
         mockAuthenticationService = {
             login: jest.fn(),
+            verifyTwoFactor: jest.fn(),
             refresh: jest.fn(),
             logout: jest.fn(),
             me: jest.fn(),
@@ -57,6 +63,53 @@ describe('AuthenticationController', () => {
         expect(mockAuthenticationService.login).toHaveBeenCalledTimes(1);
         expect(mockAuthenticationService.login).toHaveBeenCalledWith(user);
         expect(result).toBe(tokens);
+    });
+
+    it('login returns the challenge of the second factor, and no pair of tokens', async () => {
+        const challenge = { twoFactorRequired: true, challengeToken: 'challenge.jwt.token' } as const;
+        mockAuthenticationService.login.mockResolvedValue(challenge);
+
+        const result = await sut.login({} as LoginDto, user);
+
+        expect(result).toBe(challenge);
+        expect(result).not.toHaveProperty('accessToken');
+        expect(result).not.toHaveProperty('refreshToken');
+    });
+
+    it('verifyTwoFactor delegates the challenge and the code to the service and returns the token pair', async () => {
+        mockAuthenticationService.verifyTwoFactor.mockResolvedValue(tokens);
+
+        const verifyDto: VerifyTwoFactorDto = { challengeToken: 'challenge.jwt.token', code: '123456' };
+        const result = await sut.verifyTwoFactor(verifyDto);
+
+        expect(mockAuthenticationService.verifyTwoFactor).toHaveBeenCalledTimes(1);
+        expect(mockAuthenticationService.verifyTwoFactor).toHaveBeenCalledWith('challenge.jwt.token', '123456');
+        expect(result).toBe(tokens);
+    });
+
+    it('verifyTwoFactor answers 401 when the challenge is unusable', async () => {
+        mockAuthenticationService.verifyTwoFactor.mockRejectedValue(new InvalidTwoFactorChallengeError());
+
+        const verifyDto: VerifyTwoFactorDto = { challengeToken: 'expired', code: '123456' };
+
+        await expect(sut.verifyTwoFactor(verifyDto)).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('verifyTwoFactor answers 401 when the code does not match', async () => {
+        mockAuthenticationService.verifyTwoFactor.mockRejectedValue(new InvalidTotpCodeError());
+
+        const verifyDto: VerifyTwoFactorDto = { challengeToken: 'challenge.jwt.token', code: '000000' };
+
+        await expect(sut.verifyTwoFactor(verifyDto)).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('verifyTwoFactor propagates an unexpected failure unchanged', async () => {
+        const boom = new Error('database is down');
+        mockAuthenticationService.verifyTwoFactor.mockRejectedValue(boom);
+
+        const verifyDto: VerifyTwoFactorDto = { challengeToken: 'challenge.jwt.token', code: '123456' };
+
+        await expect(sut.verifyTwoFactor(verifyDto)).rejects.toBe(boom);
     });
 
     it('refresh delegates the raw refresh token to the service and returns the fresh pair', async () => {

@@ -1,4 +1,10 @@
-import { EmailTakenError, InvalidCurrentPasswordError, ProfileNotFoundError } from '../profile.errors';
+import {
+    EmailTakenError,
+    InvalidCurrentPasswordError,
+    ProfileNotFoundError,
+    TotpAlreadyEnabledError,
+    TotpNotStartedError,
+} from '../profile.errors';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -55,5 +61,53 @@ describe('InvalidCurrentPasswordError', () => {
 
     it('never names the password in its message', () => {
         expect(new InvalidCurrentPasswordError().message).toBe('Current password is incorrect');
+    });
+});
+
+describe('TotpNotStartedError', () => {
+    it('is a DomainError', () => {
+        expect(new TotpNotStartedError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to TotpNotStartedError', () => {
+        expect(new TotpNotStartedError().name).toBe('TotpNotStartedError');
+    });
+
+    it('carries the TOTP_NOT_STARTED code', () => {
+        expect(new TotpNotStartedError().code).toBe('TOTP_NOT_STARTED');
+    });
+
+    it('states that no setup is in progress', () => {
+        expect(new TotpNotStartedError().message).toBe('No two-factor setup is in progress');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('database is down');
+
+        expect(new TotpNotStartedError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('TotpAlreadyEnabledError', () => {
+    it('is a DomainError', () => {
+        expect(new TotpAlreadyEnabledError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to TotpAlreadyEnabledError', () => {
+        expect(new TotpAlreadyEnabledError().name).toBe('TotpAlreadyEnabledError');
+    });
+
+    it('carries the TOTP_ALREADY_ENABLED code', () => {
+        expect(new TotpAlreadyEnabledError().code).toBe('TOTP_ALREADY_ENABLED');
+    });
+
+    it('states that the second factor is already on', () => {
+        expect(new TotpAlreadyEnabledError().message).toBe('The second factor is already enabled');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('database is down');
+
+        expect(new TotpAlreadyEnabledError({ cause: original }).cause).toBe(original);
     });
 });

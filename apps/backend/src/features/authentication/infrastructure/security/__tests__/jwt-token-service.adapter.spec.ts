@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import { createHash } from 'node:crypto';
 
 import { ConfigService } from '@nestjs/config';
@@ -11,6 +12,7 @@ import { UserRole } from '@features/users/domain/models/user.models';
 
 const REFRESH_SECRET = 'refresh-secret';
 const REFRESH_EXPIRES_IN = '7d';
+const TWO_FACTOR_SECRET = 'two-factor-secret';
 
 const payload: AccessTokenPayload = {
     sub: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -39,6 +41,10 @@ describe('JwtTokenServiceAdapter', () => {
 
                 if (key === 'JWT_REFRESH_EXPIRES_IN') {
                     return REFRESH_EXPIRES_IN;
+                }
+
+                if (key === 'JWT_2FA_SECRET') {
+                    return TWO_FACTOR_SECRET;
                 }
 
                 throw new Error(`Unexpected config key ${key}`);
@@ -143,6 +149,72 @@ describe('JwtTokenServiceAdapter', () => {
 
             expect(sut.hashRefreshToken('refresh.jwt.token')).toBe(expected);
             expect(sut.hashRefreshToken('refresh.jwt.token')).toBe(expected);
+        });
+    });
+
+    describe('signTwoFactorChallenge', () => {
+        it('signs a short-lived token under the secret of the second factor, marked as a challenge', () => {
+            mockJwtService.sign.mockReturnValue('challenge.jwt.token');
+
+            const result = sut.signTwoFactorChallenge(payload.sub);
+
+            expect(mockJwtService.sign).toHaveBeenCalledTimes(1);
+            expect(mockJwtService.sign).toHaveBeenCalledWith(
+                { sub: payload.sub, typ: 'two_factor' },
+                { secret: TWO_FACTOR_SECRET, expiresIn: '5m' },
+            );
+            expect(result).toBe('challenge.jwt.token');
+        });
+
+        it('never signs the challenge under the secret of the refresh token', () => {
+            mockJwtService.sign.mockReturnValue('challenge.jwt.token');
+
+            sut.signTwoFactorChallenge(payload.sub);
+
+            expect(mockJwtService.sign).not.toHaveBeenCalledWith(expect.anything(), {
+                secret: REFRESH_SECRET,
+                expiresIn: '5m',
+            });
+        });
+
+        it('never carries the email or the role of the account', () => {
+            mockJwtService.sign.mockReturnValue('challenge.jwt.token');
+
+            sut.signTwoFactorChallenge(payload.sub);
+
+            expect(JSON.stringify(mockJwtService.sign.mock.calls[0][0])).not.toContain(payload.email);
+            expect(JSON.stringify(mockJwtService.sign.mock.calls[0][0])).not.toContain(payload.role);
+        });
+    });
+
+    describe('verifyTwoFactorChallenge', () => {
+        it('verifies the token under the secret of the second factor and returns its claims', () => {
+            const claims = { sub: payload.sub, typ: 'two_factor' };
+            mockJwtService.verify.mockReturnValue(claims);
+
+            const result = sut.verifyTwoFactorChallenge('challenge.jwt.token');
+
+            expect(mockJwtService.verify).toHaveBeenCalledWith('challenge.jwt.token', {
+                secret: TWO_FACTOR_SECRET,
+            });
+            expect(result).toBe(claims);
+        });
+
+        it('throws when the token is not marked as a challenge', () => {
+            mockJwtService.verify.mockReturnValue({ sub: payload.sub, jti: 'a-refresh-jti' });
+
+            expect(() => sut.verifyTwoFactorChallenge('refresh.jwt.token')).toThrow(
+                'The token is not a challenge of the second factor',
+            );
+        });
+
+        it('propagates the failure of the verification unchanged', () => {
+            const boom = new Error('jwt expired');
+            mockJwtService.verify.mockImplementation(() => {
+                throw boom;
+            });
+
+            expect(() => sut.verifyTwoFactorChallenge('expired')).toThrow(boom);
         });
     });
 });

@@ -74,6 +74,7 @@ const environmentSchema = z.object({
     JWT_ACCESS_EXPIRES_IN: requiredText,
     JWT_REFRESH_SECRET: requiredText,
     JWT_REFRESH_EXPIRES_IN: requiredText,
+    JWT_2FA_SECRET: requiredText,
 });
 
 /**

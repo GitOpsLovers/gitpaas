@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { disableUserTotpUseCase } from '../../application/disable-user-totp.use-case';
 import { seedAdminUseCase } from '../../application/seed-admin.use-case';
+import { User } from '../../domain/models/user.models';
 import { DatabaseUsersRepository } from '../../infrastructure/database/db-users.repository';
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
@@ -50,5 +52,18 @@ export class UsersService {
                 UsersService.name,
             );
         }
+    }
+
+    /**
+     * Turn the second factor off for a user, freeing an account whose owner lost its authenticator.
+     *
+     * @param id Identifier of the user the second factor is cleared for
+     *
+     * @returns The updated user
+     *
+     * @throws {UserNotFoundError} When no user carries that identifier
+     */
+    public disableTotp(id: string): Promise<User> {
+        return disableUserTotpUseCase(this.usersRepository, id);
     }
 }

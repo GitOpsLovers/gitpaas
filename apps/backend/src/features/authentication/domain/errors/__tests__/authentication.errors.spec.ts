@@ -1,4 +1,11 @@
-import { InvalidCredentialsError, InvalidRefreshTokenError, UserInactiveError } from '../authentication.errors';
+/* eslint-disable no-secrets/no-secrets */
+import {
+    InvalidCredentialsError,
+    InvalidRefreshTokenError,
+    InvalidTotpCodeError,
+    InvalidTwoFactorChallengeError,
+    UserInactiveError,
+} from '../authentication.errors';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -65,5 +72,53 @@ describe('InvalidRefreshTokenError', () => {
         const original = new Error('jwt expired');
 
         expect(new InvalidRefreshTokenError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('InvalidTwoFactorChallengeError', () => {
+    it('is a DomainError', () => {
+        expect(new InvalidTwoFactorChallengeError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to InvalidTwoFactorChallengeError', () => {
+        expect(new InvalidTwoFactorChallengeError().name).toBe('InvalidTwoFactorChallengeError');
+    });
+
+    it('carries the INVALID_TWO_FACTOR_CHALLENGE code', () => {
+        expect(new InvalidTwoFactorChallengeError().code).toBe('INVALID_TWO_FACTOR_CHALLENGE');
+    });
+
+    it('keeps a message that does not disclose why the challenge was rejected', () => {
+        expect(new InvalidTwoFactorChallengeError().message).toBe('Invalid two-factor challenge');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('jwt expired');
+
+        expect(new InvalidTwoFactorChallengeError({ cause: original }).cause).toBe(original);
+    });
+});
+
+describe('InvalidTotpCodeError', () => {
+    it('is a DomainError', () => {
+        expect(new InvalidTotpCodeError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to InvalidTotpCodeError', () => {
+        expect(new InvalidTotpCodeError().name).toBe('InvalidTotpCodeError');
+    });
+
+    it('carries the INVALID_TOTP_CODE code', () => {
+        expect(new InvalidTotpCodeError().code).toBe('INVALID_TOTP_CODE');
+    });
+
+    it('keeps a message that does not disclose the expected code', () => {
+        expect(new InvalidTotpCodeError().message).toBe('Invalid two-factor code');
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('clock drift');
+
+        expect(new InvalidTotpCodeError({ cause: original }).cause).toBe(original);
     });
 });

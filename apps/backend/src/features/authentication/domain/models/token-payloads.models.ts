@@ -10,8 +10,7 @@ export interface AccessTokenPayload {
 }
 
 /**
- * Claims carried by a signed refresh token. The `jti` correlates the token with
- * its persisted, revocable record.
+ * Claims carried by a signed refresh token.
  */
 export interface RefreshTokenPayload {
     sub: string;
@@ -27,4 +26,12 @@ export interface IssuedRefreshToken {
     jti: string;
     tokenHash: string;
     expiresAt: Date;
+}
+
+/**
+ * Claims carried by the short-lived token that stands between the two steps of a login.
+ */
+export interface TwoFactorChallengePayload {
+    sub: string;
+    typ: 'two_factor';
 }

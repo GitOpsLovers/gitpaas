@@ -20,6 +20,7 @@
         "JWT_ACCESS_EXPIRES_IN",
         "JWT_REFRESH_SECRET",
         "JWT_REFRESH_EXPIRES_IN",
+        "JWT_2FA_SECRET",
         "THROTTLE_TTL",
         "THROTTLE_LIMIT",
         "THROTTLE_STREAM_TTL",

@@ -1,6 +1,9 @@
 import { Test } from '@nestjs/testing';
 
+import { disableUserTotpUseCase } from '../../../application/disable-user-totp.use-case';
 import { seedAdminUseCase } from '../../../application/seed-admin.use-case';
+import { UserNotFoundError } from '../../../domain/errors/users.errors';
+import { User, UserRole } from '../../../domain/models/user.models';
 import { DatabaseUsersRepository } from '../../../infrastructure/database/db-users.repository';
 import { UsersService } from '../users.service';
 
@@ -9,8 +12,25 @@ import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adap
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 jest.mock('../../../application/seed-admin.use-case');
+jest.mock('../../../application/disable-user-totp.use-case');
 
 const mockSeedAdminUseCase = seedAdminUseCase as jest.MockedFunction<typeof seedAdminUseCase>;
+const mockDisableUserTotpUseCase = disableUserTotpUseCase as jest.MockedFunction<typeof disableUserTotpUseCase>;
+
+const USER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+
+const clearedUser: User = {
+    id: USER_ID,
+    email: 'user@example.com',
+    passwordHash: 'stored-hash',
+    displayName: 'Ada Lovelace',
+    totpSecret: null,
+    totpEnabledAt: null,
+    role: UserRole.User,
+    isActive: true,
+    createdAt: new Date('2026-07-11T00:00:00.000Z'),
+    updatedAt: new Date('2026-07-11T00:00:00.000Z'),
+};
 
 const DEV_ADMIN_EMAIL = 'admin@gitpaas.dev';
 const DEV_ADMIN_PASSWORD = 'gitpaas';
@@ -115,6 +135,25 @@ describe('UsersService', () => {
 
             expect(mockLogger.error).toHaveBeenCalledTimes(1);
             expect(mockLogger.error).toHaveBeenCalledWith('Development admin seed failed:', 'boom', 'UsersService');
+        });
+    });
+
+    describe('disableTotp', () => {
+        it('delegates to the use case with the injected repository and the identifier', async () => {
+            mockDisableUserTotpUseCase.mockResolvedValue(clearedUser);
+
+            const result = await sut.disableTotp(USER_ID);
+
+            expect(mockDisableUserTotpUseCase).toHaveBeenCalledTimes(1);
+            expect(mockDisableUserTotpUseCase).toHaveBeenCalledWith(mockUsersRepository, USER_ID);
+            expect(result).toBe(clearedUser);
+        });
+
+        it('propagates the error the use case raises', async () => {
+            const error = new UserNotFoundError(USER_ID);
+            mockDisableUserTotpUseCase.mockRejectedValue(error);
+
+            await expect(sut.disableTotp(USER_ID)).rejects.toBe(error);
         });
     });
 });
