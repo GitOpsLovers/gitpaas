@@ -163,5 +163,11 @@ export type {
     LogStatus,
     StoredLogEvent,
 } from './logs/log-event.contract';
-export { runtimeLogLineSchema, runtimeLogSourceSchema } from './logs/runtime-log.contract';
-export type { RuntimeLogLine, RuntimeLogSource } from './logs/runtime-log.contract';
+export {
+    RUNTIME_LOG_TAIL_MAX,
+    runtimeLogContainerIdSchema,
+    runtimeLogLineSchema,
+    runtimeLogsQuerySchema,
+    runtimeLogSourceSchema,
+} from './logs/runtime-log.contract';
+export type { RuntimeLogLine, RuntimeLogsQuery, RuntimeLogSource } from './logs/runtime-log.contract';
