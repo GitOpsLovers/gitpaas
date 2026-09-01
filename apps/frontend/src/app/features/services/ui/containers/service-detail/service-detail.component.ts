@@ -1,8 +1,8 @@
 import { HttpResourceRef } from '@angular/common/http';
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type {
-    Container, Deployment, Domain, Namespace, Network, Project, ProjectNetwork, Service, ServiceVariable,
+    Container, Deployment, Domain, Namespace, Network, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
 } from '@gitpaas/contracts';
 import { LucideLayers } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
@@ -10,6 +10,7 @@ import { lastValueFrom } from 'rxjs';
 import { buildServiceVariableUpdateUseCase } from '../../../application/build-service-variable-update.use-case';
 import { readServiceVariableErrorUseCase } from '../../../application/read-service-variable-error.use-case';
 import type { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
+import { RuntimeLogsApiRepository } from '../../../infrastructure/api/runtime-logs-api.repository';
 import { ServiceVariablesApiRepository } from '../../../infrastructure/api/service-variables-api.repository';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
@@ -44,6 +45,7 @@ type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployme
     providers: [
         ServicesApiRepository,
         ServiceVariablesApiRepository,
+        RuntimeLogsApiRepository,
         ProjectsApiRepository,
         DeploymentsApiRepository,
         ContainersApiRepository,
@@ -86,6 +88,8 @@ export class ServiceDetailComponent {
     private readonly networksRepository = inject(NetworksApiRepository);
 
     private readonly domainsRepository = inject(DomainsApiRepository);
+
+    private readonly runtimeLogsRepository = inject(RuntimeLogsApiRepository);
 
     private readonly toast = inject(ToastService);
 
@@ -155,6 +159,43 @@ export class ServiceDetailComponent {
     protected readonly joiningNetwork = signal(false);
 
     /**
+     * Container whose output the tab Logs shows, seeded with the first container that runs.
+     */
+    protected readonly logContainerId = linkedSignal<string | null>(() => {
+        const containers = this.containers.value() ?? [];
+
+        return (containers.find((container) => container.state === 'running') ?? containers[0])?.id ?? null;
+    });
+
+    /**
+     * Number of the lines of the history the tab Logs reads.
+     */
+    protected readonly logTail = signal(200);
+
+    /**
+     * Stored output of the shown container, oldest first.
+     */
+    // eslint-disable-next-line max-len
+    protected readonly runtimeLogs: HttpResourceRef<RuntimeLogLine[] | undefined> = this.runtimeLogsRepository.runtimeLogs(() => this.logContainerId() ?? undefined, () => this.logTail());
+
+    /**
+     * Lines the open stream of the shown container has pushed since the history was read.
+     */
+    private readonly streamedLogs = signal<RuntimeLogLine[]>([]);
+
+    /**
+     * Whether the stream of the output of the shown container stays open.
+     */
+    protected readonly logStreaming = signal(false);
+
+    /**
+     * The history of the shown container, followed by the lines the stream pushed.
+     */
+    protected readonly logLines = computed<RuntimeLogLine[]>(
+        () => [...(this.runtimeLogs.value() ?? []), ...this.streamedLogs()],
+    );
+
+    /**
      * Confirmation message naming the variable pending removal.
      */
     protected readonly removeVariableMessage = computed(
@@ -198,6 +239,29 @@ export class ServiceDetailComponent {
     constructor() {
         effect(() => {
             this.projectsRepository.namespaceId.set(this.namespaceId());
+        });
+
+        // Follow the output of the shown container while the tab Logs stays open.
+        effect((onCleanup) => {
+            const containerId = this.logContainerId();
+
+            if (this.activeTab() !== 'logs' || !containerId) {
+                return;
+            }
+
+            this.streamedLogs.set([]);
+            this.logStreaming.set(true);
+
+            const subscription = this.runtimeLogsRepository.stream(containerId).subscribe({
+                next: (line) => { this.streamedLogs.update((current) => [...current, line]); },
+                error: () => { this.logStreaming.set(false); },
+                complete: () => { this.logStreaming.set(false); },
+            });
+
+            onCleanup(() => {
+                subscription.unsubscribe();
+                this.logStreaming.set(false);
+            });
         });
     }
 

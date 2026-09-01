@@ -43,13 +43,13 @@ Kubernetes stays out of scope, because the runtime of today is Docker alone.
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/**/service-logs/
 
-- [ ] 4.1 Add the repository of the API that reads the history and that opens the stream, and reuse the reader of SSE of `deployments-api.repository.ts`.
-- [ ] 4.2 Replace the eight hard-coded lines with the data of that repository.
-- [ ] 4.3 Add the dropdown menu of the containers of the service, and read the list from `GET /api/v1/containers?serviceId=`.
-- [ ] 4.4 Add the selector of the number of the lines of the history.
-- [ ] 4.5 Show the timestamp, and mark the line of `stderr`.
-- [ ] 4.6 Add the button of the download of the output, as the modal of the deployment gives.
-- [ ] 4.7 Write the unit tests of the component and of the repository.
+- [x] 4.1 Add the repository of the API that reads the history and that opens the stream, and reuse the reader of SSE of `deployments-api.repository.ts`.
+- [x] 4.2 Replace the eight hard-coded lines with the data of that repository.
+- [x] 4.3 Add the dropdown menu of the containers of the service, and read the list from `GET /api/v1/containers?serviceId=`.
+- [x] 4.4 Add the selector of the number of the lines of the history.
+- [x] 4.5 Show the timestamp, and mark the line of `stderr`.
+- [x] 4.6 Add the button of the download of the output, as the modal of the deployment gives.
+- [x] 4.7 Write the unit tests of the component and of the repository.
 
 ## Phase 5 — The documentation
 
