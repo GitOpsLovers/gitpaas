@@ -1,0 +1,55 @@
+apps/frontend/src/app/features/authentication/ui/services/auth.service.spec.ts
+  s_0cb7053dce9286::t_804309ae9ea070 4,14-15,22,39,103-114,121-152
+apps/frontend/src/app/features/authentication/ui/containers/signin/signin.component.spec.ts
+  s_0cb7053dce9286::t_8b9ccbe1bd6204 10-13,16,18-20,25-26,30,41,60,78,113-121,133-217
+apps/frontend/src/app/layout/ui/components/header/header.ts
+  s_3e7ab6a23f6068::t_31431364b69d2e 3,6,12-17,22,37-60,73-76
+apps/frontend/src/app/features/authentication/infrastructure/api/authentication-api.repository.ts
+  s_0cb7053dce9286::t_1597328be44d05 3,23-33,36-37
+docs/roadmap/user-profile-and-2fa/TODO.md
+  s_0cb7053dce9286::t_5fd54862d976e6 59-62
+apps/frontend/src/app/layout/ui/components/header/header.spec.ts
+  s_0cb7053dce9286::t_54f0bc552265a8 1-239
+apps/frontend/src/app/features/authentication/ui/containers/signin/signin.component.ts
+  s_0cb7053dce9286::t_5e922ed2b51046 2,5,9,19,23-26,43,46-61,87-94,113-121,151-159,163,169-210
+apps/frontend/src/app/features/authentication/ui/services/auth.service.ts
+  s_0cb7053dce9286::t_4d1d1bb4fc389e 3,29-39,71,73,75-80,85-103,137-148
+apps/frontend/src/app/features/authentication/ui/containers/signin/signin.component.html
+  s_0cb7053dce9286::t_c3a3388079bd31 1-4,7-12,14-18,22-74,77-107
+apps/frontend/src/app/layout/ui/components/header/header.html
+  s_097d150133c5ec::t_6d692416e2b0c4 37-47,53,55-71
+apps/frontend/src/app/features/authentication/infrastructure/api/authentication-api.repository.spec.ts
+  s_0cb7053dce9286::t_1bef17a24d4ba9 4,37,49-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b0b8fb7abfe72c5247b8a84e0c01d50e88aae61d",
+  "prompts": {},
+  "sessions": {
+    "s_097d150133c5ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1d22e87522ae08db",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_0cb7053dce9286": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a17565b-ebff-43c1-a46d-bc982e30f8ab",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_3e7ab6a23f6068": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e5f599c8cdd9266",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
