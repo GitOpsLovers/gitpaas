@@ -8,6 +8,8 @@ import type {
     RuntimeCreateNetworkOptions,
     RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
+    RuntimeLogOptions,
+    RuntimeLogStream,
     RuntimeNetworkSummary,
     RuntimeProgressCompletion,
     RuntimeProgressListener,
@@ -174,6 +176,16 @@ export interface ContainerRuntime {
      * @returns Identifier of the container that runs
      */
     runDetachedContainer: (options: RuntimeDetachedContainerOptions) => Promise<string>;
+
+    /**
+     * Reads the output of a container.
+     *
+     * @param containerId Identifier of the container the output is read from
+     * @param options How much history is read, whether the read follows the container, and the instant it starts at
+     *
+     * @returns Stream of the lines of the output of that container
+     */
+    readContainerLogs: (containerId: string, options?: RuntimeLogOptions) => RuntimeLogStream;
 
     /**
      * Creates a compose project bound to the runtime.

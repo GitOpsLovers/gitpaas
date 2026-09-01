@@ -11,10 +11,10 @@ Kubernetes stays out of scope, because the runtime of today is Docker alone.
 **Agent:** implementer
 **Paths:** packages/contracts/src/logs/, apps/backend/src/core/
 
-- [ ] 1.1 Add the contract `RuntimeLogLine` in `packages/contracts/src/logs/`, with the timestamp, the source `stdout` or `stderr`, and the text. Do not change `LogEvent`.
-- [ ] 1.2 Add the method of the logs to the port `ContainerRuntime` in `core/domain/ports/container-runtime.port.ts`. It takes a tail, a flag of the follow and an option `since`.
-- [ ] 1.3 Implement that method in `DockerContainerRuntimeAdapter`, and reuse `docker-log.util.ts` for the frames.
-- [ ] 1.4 Write the unit tests of the adapter, for the tail and for the follow.
+- [x] 1.1 Add the contract `RuntimeLogLine` in `packages/contracts/src/logs/`, with the timestamp, the source `stdout` or `stderr`, and the text. Do not change `LogEvent`.
+- [x] 1.2 Add the method of the logs to the port `ContainerRuntime` in `core/domain/ports/container-runtime.port.ts`. It takes a tail, a flag of the follow and an option `since`.
+- [x] 1.3 Implement that method in `DockerContainerRuntimeAdapter`, and reuse `docker-log.util.ts` for the frames.
+- [x] 1.4 Write the unit tests of the adapter, for the tail and for the follow.
 
 ## Phase 2 — The store and the retention of the logs of the runtime
 

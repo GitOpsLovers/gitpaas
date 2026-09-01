@@ -1,13 +1,14 @@
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
 
+import type { RuntimeLogLine } from '@gitpaas/contracts';
 import Docker from 'dockerode';
 import DockerodeCompose from 'dockerode-compose';
 
 import { DockerContainerRuntimeAdapter } from '../docker-container-runtime.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
-import type { RuntimeBuildImageOptions, RuntimeProgressStream } from '@core/domain/models/container-runtime.models';
+import type { RuntimeBuildImageOptions, RuntimeLogStream, RuntimeProgressStream } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
@@ -86,6 +87,37 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
     daemon.createContainer = jest.fn().mockResolvedValue({ id: 'c0ffee', start: jest.fn().mockResolvedValue(undefined) });
 
     return { sut, daemon };
+};
+
+/** Builds one multiplexed log frame of the daemon: `[stream, 0, 0, 0, size(4 BE)] + payload`. */
+const logFrame = (stream: number, payload: string): Buffer => {
+    const body = Buffer.from(payload, 'utf8');
+    const header = Buffer.alloc(8);
+
+    header[0] = stream;
+    header.writeUInt32BE(body.length, 4);
+
+    return Buffer.concat([header, body]);
+};
+
+/** Stubs the read of the output of a container on the daemon, and returns that stub. */
+const stubContainerLogs = (daemon: FakeDaemon, answer: Buffer | Readable): jest.Mock => {
+    const logs = jest.fn().mockResolvedValue(answer);
+
+    daemon.getContainer.mockReturnValue({ logs });
+
+    return logs;
+};
+
+/** Drains a stream of the output of a container into the lines it yielded. */
+const collectLogLines = async (stream: RuntimeLogStream): Promise<RuntimeLogLine[]> => {
+    const lines: RuntimeLogLine[] = [];
+
+    for await (const line of stream) {
+        lines.push(line);
+    }
+
+    return lines;
 };
 
 /** Builds a build-image option set, overriding only the fields under test. */
@@ -791,6 +823,179 @@ describe('DockerContainerRuntimeAdapter', () => {
             daemon.createContainer.mockResolvedValue({ id: 'c0ffee', start: jest.fn().mockRejectedValue(error) });
 
             await expect(sut.runDetachedContainer(detachedOptions)).rejects.toThrow(error);
+        });
+    });
+
+    describe('readContainerLogs', () => {
+        it('asks the daemon for the whole timestamped history of that container, without following it', async () => {
+            const { sut, daemon } = buildSut();
+            const logs = stubContainerLogs(daemon, Buffer.alloc(0));
+
+            await collectLogLines(sut.readContainerLogs('c0ffee'));
+
+            expect(daemon.getContainer).toHaveBeenCalledWith('c0ffee');
+            expect(logs).toHaveBeenCalledWith({
+                follow: false,
+                stdout: true,
+                stderr: true,
+                timestamps: true,
+                tail: 'all',
+            });
+        });
+
+        it('narrows every frame of the history into a line, with the stream it was written to', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, Buffer.concat([
+                logFrame(1, '2024-05-01T10:00:00.000Z server started\n'),
+                logFrame(2, '2024-05-01T10:00:01.000Z connection refused\n'),
+            ]));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee'))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'server started' },
+                { timestamp: '2024-05-01T10:00:01.000Z', source: 'stderr', text: 'connection refused' },
+            ]);
+        });
+
+        it('reads the tail and the instant the caller asks for', async () => {
+            const { sut, daemon } = buildSut();
+            const logs = stubContainerLogs(daemon, Buffer.alloc(0));
+
+            await collectLogLines(sut.readContainerLogs('c0ffee', { tail: 100, since: new Date('2024-05-01T10:00:00.000Z') }));
+
+            expect(logs).toHaveBeenCalledWith({
+                follow: false,
+                stdout: true,
+                stderr: true,
+                timestamps: true,
+                tail: 100,
+                since: 1714557600,
+            });
+        });
+
+        it('yields the last line of the history even when it ends with no newline', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, logFrame(1, '2024-05-01T10:00:00.000Z the end'));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee'))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'the end' },
+            ]);
+        });
+
+        it('never yields a line for the blank output between two lines', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, logFrame(1, '2024-05-01T10:00:00.000Z one\n\n2024-05-01T10:00:02.000Z two\n'));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee'))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'one' },
+                { timestamp: '2024-05-01T10:00:02.000Z', source: 'stdout', text: 'two' },
+            ]);
+        });
+
+        it('reads the raw output of a container with a TTY as its stdout', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, Buffer.from('2024-05-01T10:00:00.000Z plain tty line\n', 'utf8'));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee'))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'plain tty line' },
+            ]);
+        });
+
+        it('follows the container when the caller asks for it', async () => {
+            const { sut, daemon } = buildSut();
+            const logs = stubContainerLogs(daemon, Readable.from([]));
+
+            await collectLogLines(sut.readContainerLogs('c0ffee', { follow: true, tail: 10 }));
+
+            expect(logs).toHaveBeenCalledWith({
+                follow: true,
+                stdout: true,
+                stderr: true,
+                timestamps: true,
+                tail: 10,
+            });
+        });
+
+        it('yields the lines of a followed stream as its chunks arrive', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, Readable.from([
+                logFrame(1, '2024-05-01T10:00:00.000Z first\n'),
+                logFrame(2, '2024-05-01T10:00:01.000Z second\n'),
+            ]));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee', { follow: true }))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'first' },
+                { timestamp: '2024-05-01T10:00:01.000Z', source: 'stderr', text: 'second' },
+            ]);
+        });
+
+        it('joins a frame of a followed stream that two chunks split', async () => {
+            const { sut, daemon } = buildSut();
+            const frame = logFrame(1, '2024-05-01T10:00:00.000Z split over two chunks\n');
+            stubContainerLogs(daemon, Readable.from([frame.subarray(0, 12), frame.subarray(12)]));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee', { follow: true }))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'split over two chunks' },
+            ]);
+        });
+
+        it('joins a line of a followed stream that two frames split', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, Readable.from([
+                logFrame(1, '2024-05-01T10:00:00.000Z half of'),
+                logFrame(1, ' one line\n'),
+            ]));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee', { follow: true }))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'half of one line' },
+            ]);
+        });
+
+        it('never mixes the unfinished line of one stream into the other one', async () => {
+            const { sut, daemon } = buildSut();
+            stubContainerLogs(daemon, Readable.from([
+                logFrame(1, '2024-05-01T10:00:00.000Z out'),
+                logFrame(2, '2024-05-01T10:00:01.000Z err\n'),
+                logFrame(1, 'put\n'),
+            ]));
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee', { follow: true }))).resolves.toEqual([
+                { timestamp: '2024-05-01T10:00:01.000Z', source: 'stderr', text: 'err' },
+                { timestamp: '2024-05-01T10:00:00.000Z', source: 'stdout', text: 'output' },
+            ]);
+        });
+
+        it('closes the followed stream once the consumer leaves the iteration', async () => {
+            const { sut, daemon } = buildSut();
+            const stream = Readable.from([
+                logFrame(1, '2024-05-01T10:00:00.000Z first\n'),
+                logFrame(1, '2024-05-01T10:00:01.000Z second\n'),
+            ]);
+            stubContainerLogs(daemon, stream);
+
+            for await (const line of sut.readContainerLogs('c0ffee', { follow: true })) {
+                expect(line.text).toBe('first');
+                break;
+            }
+
+            expect(stream.destroyed).toBe(true);
+        });
+
+        it('closes the followed stream once it ends on its own', async () => {
+            const { sut, daemon } = buildSut();
+            const stream = Readable.from([logFrame(1, '2024-05-01T10:00:00.000Z only\n')]);
+            stubContainerLogs(daemon, stream);
+
+            await collectLogLines(sut.readContainerLogs('c0ffee', { follow: true }));
+
+            expect(stream.destroyed).toBe(true);
+        });
+
+        it('propagates errors thrown while the daemon opens the output of the container', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('no such container');
+            daemon.getContainer.mockReturnValue({ logs: jest.fn().mockRejectedValue(error) });
+
+            await expect(collectLogLines(sut.readContainerLogs('c0ffee'))).rejects.toThrow(error);
         });
     });
 

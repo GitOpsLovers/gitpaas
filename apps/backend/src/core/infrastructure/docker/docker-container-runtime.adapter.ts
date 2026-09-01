@@ -1,3 +1,4 @@
+import type { RuntimeLogLine } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
 import DockerodeCompose from 'dockerode-compose';
@@ -12,6 +13,8 @@ import type {
     RuntimeCreateNetworkOptions,
     RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
+    RuntimeLogOptions,
+    RuntimeLogStream,
     RuntimeNetworkSummary,
     RuntimeProgressCompletion,
     RuntimeProgressListener,
@@ -32,12 +35,26 @@ import {
     toLabelFilter,
     toNetworkSummary,
     toPruneReport,
+    toRuntimeLogLine,
 } from './docker-container-runtime.transformer';
+import { decodeDockerLogFrames } from './docker-log.util';
 
 /**
  * Unix socket of the local Docker daemon.
  * */
 const DOCKER_SOCKET_PATH = '/var/run/docker.sock';
+
+/**
+ * The read of the output of a container, which answers with a buffer or with a stream of its own.
+ */
+interface ContainerLogsReader {
+    logs: (options: Record<string, unknown>) => Promise<Buffer | NodeJS.ReadableStream>;
+}
+
+/**
+ * Text of the output of a container that no line of it has ended yet.
+ */
+type PendingText = Record<'stdout' | 'stderr', string>;
 
 /**
  * Docker container runtime adapter.
@@ -171,8 +188,67 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         return container.id;
     }
 
+    public async *readContainerLogs(containerId: string, options: RuntimeLogOptions = {}): RuntimeLogStream {
+        // The overloads of `logs` of Dockerode key the result on a literal `follow`, which a caller
+        // decides at the runtime here. The cast keeps both shapes the daemon can answer with.
+        const container = this.getClient().getContainer(containerId) as unknown as ContainerLogsReader;
+        const source = await this.run(() => container.logs({
+            follow: options.follow ?? false,
+            stdout: true,
+            stderr: true,
+            timestamps: true,
+            tail: options.tail ?? 'all',
+            ...(options.since ? { since: Math.floor(options.since.getTime() / 1000) } : {}),
+        }));
+
+        const chunks: Iterable<Buffer> | AsyncIterable<Buffer> = Buffer.isBuffer(source) ? [source] : (source as AsyncIterable<Buffer>);
+        const pending: PendingText = { stdout: '', stderr: '' };
+        let rest: Buffer = Buffer.alloc(0);
+
+        try {
+            for await (const chunk of chunks) {
+                const decoded = decodeDockerLogFrames(Buffer.concat([rest, chunk]));
+
+                rest = decoded.rest;
+
+                for (const frame of decoded.frames) {
+                    const lines = `${pending[frame.source]}${frame.text}`.split('\n');
+
+                    pending[frame.source] = lines.pop() ?? '';
+
+                    yield* this.toLogLines(lines, frame.source);
+                }
+            }
+
+            yield* this.toLogLines([pending.stdout], 'stdout');
+            yield* this.toLogLines([pending.stderr], 'stderr');
+        } finally {
+            if (!Buffer.isBuffer(source)) {
+                (source as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.();
+            }
+        }
+    }
+
     public createComposeProject(composeFilePath: string, projectName: string): RuntimeComposeProject {
         return new DockerodeCompose(this.getClient(), composeFilePath, projectName);
+    }
+
+    /**
+     * Narrows the raw lines of one frame of output into the domain model, dropping the empty ones.
+     *
+     * @param rawLines Lines of output, as the daemon wrote them
+     * @param source Stream of the container those lines were written to
+     *
+     * @returns Normalized lines of the output of that container
+     */
+    private *toLogLines(rawLines: string[], source: 'stdout' | 'stderr'): Generator<RuntimeLogLine> {
+        const readAt = new Date();
+
+        for (const rawLine of rawLines) {
+            if (rawLine.replace(/\r$/, '').length > 0) {
+                yield toRuntimeLogLine(rawLine, source, readAt);
+            }
+        }
     }
 
     /**

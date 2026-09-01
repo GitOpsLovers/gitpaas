@@ -13,13 +13,13 @@ import {
     declareDefaultNetwork, injectEnvironment, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, stampRouting,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
-import { decodeDockerLogBuffer, toLogLines } from './docker-log.util';
 
 import type { RuntimeComposeProject, RuntimeProgressListener } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
+import { decodeDockerLogBuffer, toLogLines } from '@core/infrastructure/docker/docker-log.util';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
