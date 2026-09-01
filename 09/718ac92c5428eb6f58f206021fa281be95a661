@@ -1,0 +1,63 @@
+apps/backend/src/features/server/application/__tests__/get-platform-settings.use-case.spec.ts
+  s_c9e7a673f580c4::t_177e07b629caf7 81-107
+apps/backend/src/features/server/application/__tests__/update-platform-settings.use-case.spec.ts
+  s_c9e7a673f580c4::t_d52fa3a3b19149 151-190
+apps/backend/src/features/server/application/get-platform-settings.use-case.ts
+  s_c9e7a673f580c4::t_39011ef46ead0a 19
+apps/backend/src/features/server/application/update-platform-settings.use-case.ts
+  s_c9e7a673f580c4::t_d4b048fdfbef9b 48,81
+apps/backend/src/features/server/domain/ports/dns-resolver.port.ts
+  s_c9e7a673f580c4::t_9c57bb6618a1df 6,10
+apps/backend/src/features/server/domain/ports/public-host-address.port.ts
+  s_c9e7a673f580c4::t_08797d9f0a25ea 8
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-settings.repository.spec.ts
+  s_c9e7a673f580c4::t_c960a3e7ffc9ae 11,58,74,79-104
+apps/backend/src/features/server/infrastructure/database/__tests__/db-platform-settings.transformer.spec.ts
+  s_c9e7a673f580c4::t_ebc05248b699d9 9,29-38,40-44
+apps/backend/src/features/server/infrastructure/database/__tests__/db-public-host-address.adapter.spec.ts
+  s_c9e7a673f580c4::t_8c194eed0237a3 1-2,4-6,11-14,18-19,22,25-26,28,31-32,37-38,43-45,47
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.entity.ts
+  s_c9e7a673f580c4::t_325d95d7a940bc 23-25
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.repository.ts
+  s_c9e7a673f580c4::t_c27d3b9398830b 32
+apps/backend/src/features/server/infrastructure/database/db-platform-settings.transformer.ts
+  s_c9e7a673f580c4::t_af44e9a15956dd 16
+apps/backend/src/features/server/infrastructure/database/db-public-host-address.adapter.ts
+  s_c9e7a673f580c4::t_bd4a2a84bad598 4,6,9,12-16,19,21
+apps/backend/src/features/server/infrastructure/dns/__tests__/node-dns-resolver.adapter.spec.ts
+  s_c9e7a673f580c4::t_475073645dd00d 1,7,10,14-18,26-28,34,39-40,43,45,47-51,54-56,58-68,72,74,79,81,85-89,91,102,107,109
+apps/backend/src/features/server/infrastructure/dns/node-dns-resolver.adapter.ts
+  s_c9e7a673f580c4::t_993913b4d22ef3 1,18-39,41,43-44,46
+apps/backend/src/features/server/server.module.ts
+  s_c9e7a673f580c4::t_93db58f24417ad 8,51
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_c9e7a673f580c4::t_cc2b2183b158a4 18,139,162,185
+apps/backend/src/features/server/ui/services/server.service.ts
+  s_c9e7a673f580c4::t_cffd6a68426a02 34,93
+docs/roadmap/control-plane-domain-check/TODO.md
+  s_c9e7a673f580c4::t_99a66665c4ab32 12-15
+iac/production/migrations/021_platform_settings_public_host_address.sql
+  s_c9e7a673f580c4::t_61bc468a49a9a7 1-11
+packages/contracts/src/index.ts
+  s_c9e7a673f580c4::t_f24ebb9016c688 141
+packages/contracts/src/server/__tests__/platform-settings.contract.spec.ts
+  s_c9e7a673f580c4::t_08a47e9e6fc9f0 1-59
+packages/contracts/src/server/platform-settings.contract.ts
+  s_c9e7a673f580c4::t_124bdf9864cfac 15-19,30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "09718ac92c5428eb6f58f206021fa281be95a661",
+  "prompts": {},
+  "sessions": {
+    "s_c9e7a673f580c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f0f68248-52f1-4cc8-9956-ec0b1acf8c61",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
