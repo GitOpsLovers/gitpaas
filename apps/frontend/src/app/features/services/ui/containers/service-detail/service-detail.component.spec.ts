@@ -1,13 +1,16 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
-import type { Domain, Namespace, Project, ProjectNetwork, Service, ServiceVariable } from '@gitpaas/contracts';
-import { of, throwError } from 'rxjs';
+import type {
+    Container, Domain, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
+} from '@gitpaas/contracts';
+import { NEVER, of, Subject, throwError } from 'rxjs';
 
 import { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
+import { RuntimeLogsApiRepository } from '../../../infrastructure/api/runtime-logs-api.repository';
 import { ServiceVariablesApiRepository } from '../../../infrastructure/api/service-variables-api.repository';
 import { ServicesApiRepository } from '../../../infrastructure/api/services-api.repository';
 import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
@@ -58,6 +61,10 @@ interface ServiceDetailInternals {
     confirmDomainRemoval: () => Promise<void>;
     joiningNetwork: () => boolean;
     joinNetwork: (network: ProjectNetwork) => Promise<void>;
+    logContainerId: WritableSignal<string | null>;
+    logTail: WritableSignal<number>;
+    logStreaming: () => boolean;
+    logLines: () => RuntimeLogLine[];
 }
 
 const namespace: Namespace = {
@@ -102,6 +109,34 @@ const domain: Domain = {
 
 const draft: DomainDraft = {
     host: 'api.example.com', targetService: 'web', port: 8080, https: true,
+};
+
+const webContainer: Container = {
+    id: 'a1b2c3d4e5f6',
+    name: 'api-web-1',
+    image: 'registry.internal/app:v1',
+    state: 'exited',
+    status: 'Exited (0) 1 minute ago',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ports: [],
+};
+
+const workerContainer: Container = {
+    id: 'f6e5d4c3b2a1',
+    name: 'api-worker-1',
+    image: 'registry.internal/app:v1',
+    state: 'running',
+    status: 'Up 2 minutes',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ports: [],
+};
+
+const storedLine: RuntimeLogLine = {
+    timestamp: '2026-01-01T00:00:00.000Z', source: 'stdout', text: 'listening on port 3000',
+};
+
+const streamedLine: RuntimeLogLine = {
+    timestamp: '2026-01-01T00:00:01.000Z', source: 'stderr', text: 'connection refused',
 };
 
 const projectNetwork: ProjectNetwork = {
@@ -154,6 +189,15 @@ describe('ServiceDetailComponent', () => {
         joinProjectNetwork: ReturnType<typeof vi.fn>;
     };
     let networksResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
+    let containersValue: ReturnType<typeof signal<Container[] | undefined>>;
+    let containersRepository: { containersByService: ReturnType<typeof vi.fn> };
+    let runtimeLogsValue: ReturnType<typeof signal<RuntimeLogLine[] | undefined>>;
+    let runtimeLogsLoading: ReturnType<typeof signal<boolean>>;
+    let runtimeLines: Subject<RuntimeLogLine>;
+    let runtimeLogsRepository: {
+        runtimeLogs: ReturnType<typeof vi.fn>;
+        stream: ReturnType<typeof vi.fn>;
+    };
     let router: { navigate: ReturnType<typeof vi.fn> };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ServiceDetailComponent>;
@@ -211,6 +255,17 @@ describe('ServiceDetailComponent', () => {
             update: vi.fn(),
             remove: vi.fn(),
         };
+        containersValue = signal<Container[] | undefined>(undefined);
+        containersRepository = {
+            containersByService: vi.fn().mockReturnValue({ value: containersValue, isLoading: () => false }),
+        };
+        runtimeLogsValue = signal<RuntimeLogLine[] | undefined>(undefined);
+        runtimeLogsLoading = signal(false);
+        runtimeLines = new Subject<RuntimeLogLine>();
+        runtimeLogsRepository = {
+            runtimeLogs: vi.fn().mockReturnValue({ value: runtimeLogsValue, isLoading: runtimeLogsLoading }),
+            stream: vi.fn().mockReturnValue(runtimeLines.asObservable()),
+        };
         router = { navigate: vi.fn() };
         toast = { success: vi.fn(), error: vi.fn() };
 
@@ -229,10 +284,8 @@ describe('ServiceDetailComponent', () => {
                     { provide: ServicesApiRepository, useValue: repository },
                     { provide: ProjectsApiRepository, useValue: projectsRepository },
                     { provide: DeploymentsApiRepository, useValue: deploymentsRepository },
-                    {
-                        provide: ContainersApiRepository,
-                        useValue: { containersByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
-                    },
+                    { provide: ContainersApiRepository, useValue: containersRepository },
+                    { provide: RuntimeLogsApiRepository, useValue: runtimeLogsRepository },
                     { provide: NetworksApiRepository, useValue: networksRepository },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
                     { provide: DomainsApiRepository, useValue: domainsRepository },
@@ -688,6 +741,96 @@ describe('ServiceDetailComponent', () => {
         expect(networksResource.reload).not.toHaveBeenCalled();
         expect(component.joiningNetwork()).toBe(false);
     });
+
+    describe('the tab Logs', () => {
+        test('reads the history of the shown container with the number of the lines the operator picked', () => {
+            containersValue.set([webContainer, workerContainer]);
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+
+            const [containerAccessor, tailAccessor] = runtimeLogsRepository.runtimeLogs.mock.calls[0] as [
+                () => string | undefined, () => number,
+            ];
+
+            expect(containerAccessor()).toBe(workerContainer.id);
+            expect(tailAccessor()).toBe(200);
+
+            component.logTail.set(1000);
+
+            expect(tailAccessor()).toBe(1000);
+        });
+
+        test('shows the container that runs first, and falls back to the first container of the service', () => {
+            containersValue.set([webContainer]);
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+
+            expect(component.logContainerId()).toBe(webContainer.id);
+
+            containersValue.set([webContainer, workerContainer]);
+            fixture.detectChanges();
+
+            expect(component.logContainerId()).toBe(workerContainer.id);
+        });
+
+        test('shows the history followed by the lines the stream pushes', () => {
+            containersValue.set([workerContainer]);
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+            runtimeLogsValue.set([storedLine]);
+
+            runtimeLines.next(streamedLine);
+            fixture.detectChanges();
+
+            expect(component.logLines()).toEqual([storedLine, streamedLine]);
+        });
+
+        test('opens the stream of the shown container while the tab stays active, and closes it on another tab', () => {
+            containersValue.set([workerContainer]);
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+
+            expect(runtimeLogsRepository.stream).toHaveBeenCalledWith(workerContainer.id);
+            expect(runtimeLines.observed).toBe(true);
+            expect(component.logStreaming()).toBe(true);
+
+            fixture.componentRef.setInput('tab', 'general');
+            fixture.detectChanges();
+
+            expect(runtimeLines.observed).toBe(false);
+            expect(component.logStreaming()).toBe(false);
+        });
+
+        test('opens no stream while the service runs no container', () => {
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+
+            expect(component.logContainerId()).toBeNull();
+            expect(runtimeLogsRepository.stream).not.toHaveBeenCalled();
+            expect(component.logStreaming()).toBe(false);
+        });
+
+        test('drops the streamed lines and follows the new container when the operator picks another one', () => {
+            containersValue.set([webContainer, workerContainer]);
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+
+            runtimeLines.next(streamedLine);
+            fixture.detectChanges();
+
+            expect(component.logLines()).toEqual([streamedLine]);
+
+            component.logContainerId.set(webContainer.id);
+            fixture.detectChanges();
+
+            expect(runtimeLogsRepository.stream).toHaveBeenLastCalledWith(webContainer.id);
+            expect(component.logLines()).toEqual([]);
+        });
+
+        test('closes the stream when the daemon ends the output of a container that stopped', () => {
+            containersValue.set([workerContainer]);
+            create('ns-1', 'pr-1', 'sv-1', 'logs');
+
+            runtimeLines.complete();
+            fixture.detectChanges();
+
+            expect(component.logStreaming()).toBe(false);
+        });
+    });
 });
 
 // The template stays real here, so a test proves the outputs of the children reach the handlers of
@@ -755,7 +898,16 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                     },
                     {
                         provide: ContainersApiRepository,
-                        useValue: { containersByService: vi.fn().mockReturnValue({ value: signal(undefined) }) },
+                        useValue: {
+                            containersByService: vi.fn().mockReturnValue({ value: signal(undefined), isLoading: () => false }),
+                        },
+                    },
+                    {
+                        provide: RuntimeLogsApiRepository,
+                        useValue: {
+                            runtimeLogs: vi.fn().mockReturnValue({ value: signal(undefined), isLoading: signal(false) }),
+                            stream: vi.fn().mockReturnValue(NEVER),
+                        },
                     },
                     {
                         provide: NetworksApiRepository,

@@ -67,7 +67,16 @@
         }
 
         @case ('logs') {
-            <app-service-logs />
+            <app-service-logs
+                [containers]="containers.value() ?? []"
+                [selectedContainerId]="logContainerId()"
+                [lines]="logLines()"
+                [tail]="logTail()"
+                [loading]="runtimeLogs.isLoading()"
+                [streaming]="logStreaming()"
+                (containerSelected)="logContainerId.set($event)"
+                (tailSelected)="logTail.set($event)"
+            />
         }
     }
 </div>
