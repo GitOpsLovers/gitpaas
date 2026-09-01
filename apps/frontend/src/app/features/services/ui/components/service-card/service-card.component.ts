@@ -49,7 +49,9 @@ export class ServiceCardComponent {
     /**
      * Colour of the bullet that reports the state of the containers of the service.
      */
-    protected readonly bulletClasses = computed(() => `relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${BULLET_COLOUR[this.state()]}`);
+    protected readonly bulletClasses = computed(
+        () => `absolute -right-[3px] -top-[3px] z-10 h-2.5 w-2.5 rounded-full ${BULLET_COLOUR[this.state()]}`,
+    );
 
     /**
      * Wording of the state, for the tooltip and for the assistive technology.
