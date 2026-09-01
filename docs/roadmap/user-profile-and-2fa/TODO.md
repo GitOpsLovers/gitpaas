@@ -7,11 +7,11 @@ A user of GitPaaS reads nothing about the own account, and changes nothing in it
 **Agent:** implementer
 **Paths:** `iac/production/migrations/`, `apps/backend/src/features/users/`, `packages/contracts/src/authentication/`
 
-- [ ] 1.1 Write `017_users_profile.sql`, which adds to `users` the columns `displayName` (text, nullable), `totpSecret` (text, nullable) and `totpEnabledAt` (timestamptz, nullable).
-- [ ] 1.2 Add those three columns to `DbUserEntity`, and keep `totpSecret` out of every contract of the wire.
-- [ ] 1.3 Add to the port `UsersRepository` and to its implementation the methods that update the display name, the email address, the hash of the password and the state of the second factor.
-- [ ] 1.4 Add `displayName` and a boolean `totpEnabled` to `userSchema` of `packages/contracts`.
-- [ ] 1.5 Write the unit tests of the entity, of the repository and of the transformer.
+- [x] 1.1 Write `020_users_profile.sql`, which adds to `users` the columns `displayName` (text, nullable), `totpSecret` (text, nullable) and `totpEnabledAt` (timestamptz, nullable).
+- [x] 1.2 Add those three columns to `DbUserEntity`, and keep `totpSecret` out of every contract of the wire.
+- [x] 1.3 Add to the port `UsersRepository` and to its implementation the methods that update the display name, the email address, the hash of the password and the state of the second factor.
+- [x] 1.4 Add `displayName` and a boolean `totpEnabled` to `userSchema` of `packages/contracts`.
+- [x] 1.5 Write the unit tests of the entity, of the repository and of the transformer.
 
 ## Phase 2 — The endpoints of the profile
 

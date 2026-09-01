@@ -16,6 +16,9 @@ const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     email: 'admin@example.com',
     passwordHash: 'secret-hash',
+    displayName: null,
+    totpSecret: null,
+    totpEnabledAt: null,
     role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -176,6 +179,9 @@ describe('AuthenticationController', () => {
         const view: Omit<User, 'passwordHash'> = {
             id: user.id,
             email: user.email,
+            displayName: user.displayName,
+            totpSecret: user.totpSecret,
+            totpEnabledAt: user.totpEnabledAt,
             role: user.role,
             isActive: user.isActive,
             createdAt: user.createdAt,
@@ -190,7 +196,9 @@ describe('AuthenticationController', () => {
         expect(result).toEqual({
             id: user.id,
             email: user.email,
+            displayName: user.displayName,
             role: user.role,
+            totpEnabled: false,
             isActive: user.isActive,
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt.toISOString(),
@@ -203,6 +211,7 @@ describe('AuthenticationController', () => {
         const result = sut.me(user);
 
         expect(result).not.toHaveProperty('passwordHash');
+        expect(result).not.toHaveProperty('totpSecret');
         expect(Object.values(result)).not.toContain('secret-hash');
     });
 

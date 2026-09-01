@@ -11,7 +11,9 @@ export const userRoleSchema = z.enum(['admin', 'user']);
 export const userSchema = z.object({
     id: z.uuid(),
     email: z.email(),
+    displayName: z.string().nullable(),
     role: userRoleSchema,
+    totpEnabled: z.boolean(),
     isActive: z.boolean(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),

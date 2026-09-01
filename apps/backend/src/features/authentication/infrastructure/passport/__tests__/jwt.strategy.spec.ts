@@ -27,6 +27,9 @@ const user: User = {
     id: payload.sub,
     email: payload.email,
     passwordHash: 'hash',
+    displayName: null,
+    totpSecret: null,
+    totpEnabledAt: null,
     role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -43,6 +46,10 @@ describe('JwtStrategy', () => {
             findByEmail: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
+            updateDisplayName: jest.fn(),
+            updateEmail: jest.fn(),
+            updatePasswordHash: jest.fn(),
+            updateTotp: jest.fn(),
         };
         const config = { getOrThrow: jest.fn().mockReturnValue('access-secret') } as unknown as ConfigService;
         strategy = new JwtStrategy(usersRepository, config);

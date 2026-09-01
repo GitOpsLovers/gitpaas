@@ -42,7 +42,9 @@ const POLL_INTERVAL_MS = 2000;
 const admin: User = {
     id: 'us-1',
     email: 'admin@gitpaas.dev',
+    displayName: null,
     role: 'admin',
+    totpEnabled: false,
     isActive: true,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
