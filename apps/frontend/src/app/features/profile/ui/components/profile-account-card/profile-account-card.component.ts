@@ -4,8 +4,6 @@ import type { Profile } from '@gitpaas/contracts';
 
 import { buildAccountInitialsUseCase } from '../../../application/build-account-initials.use-case';
 
-import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
-
 /**
  * Name shown when the account carries no display name of its own.
  */
@@ -14,7 +12,8 @@ const UNNAMED = 'No display name';
 @Component({
     selector: 'app-profile-account-card',
     templateUrl: './profile-account-card.component.html',
-    imports: [DatePipe, ComponentCardComponent],
+    imports: [DatePipe],
+    host: { class: 'contents' },
 })
 
 /**

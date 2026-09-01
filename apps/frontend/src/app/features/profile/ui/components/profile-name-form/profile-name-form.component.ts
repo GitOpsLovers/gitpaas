@@ -2,14 +2,14 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import { PROFILE_DISPLAY_NAME_MAX_LENGTH } from '@gitpaas/contracts';
 
 import { ButtonComponent } from '@shared/components/button/button.component';
-import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 
 @Component({
     selector: 'app-profile-name-form',
     templateUrl: './profile-name-form.component.html',
-    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
+    imports: [LabelComponent, InputFieldComponent, ButtonComponent],
+    host: { class: 'contents' },
 })
 
 /**

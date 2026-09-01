@@ -1,5 +1,10 @@
-<app-component-card title="Email address" desc="The address you sign in with. The change signs this browser in again.">
-    <form class="space-y-6" (submit)="onSubmit($event)">
+<section>
+    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Email address</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        The address you sign in with. The change signs this browser in again.
+    </p>
+
+    <form class="mt-5 space-y-6" (submit)="onSubmit($event)">
         <div class="max-w-md">
             <app-label for="profile-email">Email address</app-label>
             <app-input-field
@@ -27,4 +32,4 @@
             {{ saving() ? 'Saving…' : 'Save' }}
         </app-button>
     </form>
-</app-component-card>
+</section>

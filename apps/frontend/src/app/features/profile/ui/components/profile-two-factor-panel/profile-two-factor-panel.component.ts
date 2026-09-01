@@ -2,14 +2,14 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import { TOTP_CODE_LENGTH, TOTP_CODE_PATTERN, type TotpSetup } from '@gitpaas/contracts';
 
 import { ButtonComponent } from '@shared/components/button/button.component';
-import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 
 @Component({
     selector: 'app-profile-two-factor-panel',
     templateUrl: './profile-two-factor-panel.component.html',
-    imports: [ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
+    imports: [LabelComponent, InputFieldComponent, ButtonComponent],
+    host: { class: 'contents' },
 })
 
 /**
