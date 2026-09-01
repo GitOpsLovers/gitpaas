@@ -1,3 +1,4 @@
+import type { RuntimeLogLine, RuntimeLogSource } from '@gitpaas/contracts';
 import type Docker from 'dockerode';
 
 import { GITPAAS_PROJECT_LABEL } from '../../domain/constants/gitpaas-labels.constants';
@@ -160,4 +161,31 @@ export function toPruneReport(deleted: readonly unknown[] | null | undefined, sp
         deletedCount: deleted?.length ?? 0,
         spaceReclaimed: spaceReclaimed ?? 0,
     };
+}
+
+/**
+ * Shape of the timestamp the daemon prefixes each line of output with, when it is asked for one.
+ */
+export const LOG_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T/;
+
+/**
+ * Narrows one raw line of the output of a container into the domain model.
+ *
+ * @param rawLine One line of output, as the daemon wrote it
+ * @param source Stream of the container the line was written to
+ * @param readAt Instant the line was read, used when the daemon wrote no timestamp
+ *
+ * @returns Normalized line of the output of a container
+ */
+export function toRuntimeLogLine(rawLine: string, source: RuntimeLogSource, readAt: Date): RuntimeLogLine {
+    const line = rawLine.replace(/\r$/, '');
+    const separator = line.indexOf(' ');
+    const stamp = separator > 0 ? line.slice(0, separator) : '';
+    const parsed = LOG_TIMESTAMP_PATTERN.test(stamp) ? new Date(stamp) : new Date(Number.NaN);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return { timestamp: readAt.toISOString(), source, text: line };
+    }
+
+    return { timestamp: parsed.toISOString(), source, text: line.slice(separator + 1) };
 }

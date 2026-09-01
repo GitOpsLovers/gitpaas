@@ -8,6 +8,7 @@ import {
     toLabelFilter,
     toNetworkSummary,
     toPruneReport,
+    toRuntimeLogLine,
 } from '../docker-container-runtime.transformer';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
@@ -262,5 +263,62 @@ describe('toPruneReport', () => {
 
     it('reports an empty deletion list as a zeroed count', () => {
         expect(toPruneReport([], 0)).toEqual({ deletedCount: 0, spaceReclaimed: 0 });
+    });
+});
+
+describe('toRuntimeLogLine', () => {
+    /** Instant a line was read, used when the daemon wrote no timestamp of its own. */
+    const readAt = new Date('2024-05-01T09:00:00.000Z');
+
+    it('splits the timestamp the daemon prefixes from the text of the line', () => {
+        expect(toRuntimeLogLine('2024-05-01T10:11:12.123456789Z server started', 'stdout', readAt)).toEqual({
+            timestamp: '2024-05-01T10:11:12.123Z',
+            source: 'stdout',
+            text: 'server started',
+        });
+    });
+
+    it('keeps the stream the line was written to', () => {
+        expect(toRuntimeLogLine('2024-05-01T10:11:12.000Z boom', 'stderr', readAt)).toEqual({
+            timestamp: '2024-05-01T10:11:12.000Z',
+            source: 'stderr',
+            text: 'boom',
+        });
+    });
+
+    it('keeps the spaces the text of the line holds', () => {
+        expect(toRuntimeLogLine('2024-05-01T10:11:12.000Z  GET /  200', 'stdout', readAt).text).toBe(' GET /  200');
+    });
+
+    it('reads an empty text for a line the daemon timestamped alone', () => {
+        expect(toRuntimeLogLine('2024-05-01T10:11:12.000Z ', 'stdout', readAt).text).toBe('');
+    });
+
+    it('falls back to the instant of the read for a line with no timestamp', () => {
+        expect(toRuntimeLogLine('server started', 'stdout', readAt)).toEqual({
+            timestamp: '2024-05-01T09:00:00.000Z',
+            source: 'stdout',
+            text: 'server started',
+        });
+    });
+
+    it('never reads a leading number that is no timestamp as one', () => {
+        expect(toRuntimeLogLine('12 items processed', 'stdout', readAt)).toEqual({
+            timestamp: '2024-05-01T09:00:00.000Z',
+            source: 'stdout',
+            text: '12 items processed',
+        });
+    });
+
+    it('falls back to the instant of the read for a leading date the calendar does not hold', () => {
+        expect(toRuntimeLogLine('2024-13-45T99:99:99Z broken', 'stdout', readAt)).toEqual({
+            timestamp: '2024-05-01T09:00:00.000Z',
+            source: 'stdout',
+            text: '2024-13-45T99:99:99Z broken',
+        });
+    });
+
+    it('trims the carriage return a line of a Windows container ends with', () => {
+        expect(toRuntimeLogLine('2024-05-01T10:11:12.000Z ready\r', 'stdout', readAt).text).toBe('ready');
     });
 });

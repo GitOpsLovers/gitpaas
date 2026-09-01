@@ -1,3 +1,5 @@
+import type { RuntimeLogLine } from '@gitpaas/contracts';
+
 /**
  * Labels a resource must carry
  */
@@ -139,3 +141,17 @@ export interface RuntimeComposeProject {
     up: () => Promise<unknown>;
     down: () => Promise<unknown>;
 }
+
+/**
+ * Criteria the read of the output of a container is scoped to.
+ */
+export interface RuntimeLogOptions {
+    tail?: number;
+    follow?: boolean;
+    since?: Date;
+}
+
+/**
+ * The lines of the output of a container, in the order the runtime wrote them.
+ */
+export type RuntimeLogStream = AsyncIterable<RuntimeLogLine>;
