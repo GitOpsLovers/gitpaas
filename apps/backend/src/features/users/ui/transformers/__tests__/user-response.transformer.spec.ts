@@ -6,6 +6,9 @@ const user = (overrides: Partial<User> = {}): User => ({
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
     email: 'operator@gitpaas.dev',
     passwordHash: 'secret-hash',
+    displayName: 'Ada Lovelace',
+    totpSecret: null,
+    totpEnabledAt: null,
     role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -18,7 +21,9 @@ describe('toUserResponse', () => {
         expect(toUserResponse(user())).toEqual({
             id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
             email: 'operator@gitpaas.dev',
+            displayName: 'Ada Lovelace',
             role: UserRole.Admin,
+            totpEnabled: false,
             isActive: true,
             createdAt: '2026-07-11T00:00:00.000Z',
             updatedAt: '2026-07-12T00:00:00.000Z',
@@ -49,7 +54,9 @@ describe('toUserResponse', () => {
         expect(toUserResponse(profile)).toEqual({
             id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
             email: 'operator@gitpaas.dev',
+            displayName: 'Ada Lovelace',
             role: UserRole.Admin,
+            totpEnabled: false,
             isActive: true,
             createdAt: '2026-07-11T00:00:00.000Z',
             updatedAt: '2026-07-12T00:00:00.000Z',
@@ -66,5 +73,33 @@ describe('toUserResponse', () => {
         const response = toUserResponse(user({ role: UserRole.User, isActive: false }));
 
         expect(response).toMatchObject({ role: UserRole.User, isActive: false });
+    });
+
+    it('carries a display name that nobody wrote as null', () => {
+        expect(toUserResponse(user({ displayName: null })).displayName).toBeNull();
+    });
+
+    it('reports the second factor as on when the user confirmed it', () => {
+        const response = toUserResponse(
+            user({ totpSecret: 'sealed-secret', totpEnabledAt: new Date('2026-07-13T00:00:00.000Z') }),
+        );
+
+        expect(response.totpEnabled).toBe(true);
+    });
+
+    it('reports the second factor as off when a setup holds a secret that nobody confirmed', () => {
+        const response = toUserResponse(user({ totpSecret: 'sealed-secret', totpEnabledAt: null }));
+
+        expect(response.totpEnabled).toBe(false);
+    });
+
+    it('never carries the secret of the second factor', () => {
+        const response = toUserResponse(
+            user({ totpSecret: 'JBSWY3DPEHPK3PXP', totpEnabledAt: new Date('2026-07-13T00:00:00.000Z') }),
+        );
+
+        expect(response).not.toHaveProperty('totpSecret');
+        expect(response).not.toHaveProperty('totpEnabledAt');
+        expect(Object.values(response)).not.toContain('JBSWY3DPEHPK3PXP');
     });
 });

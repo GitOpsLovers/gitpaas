@@ -16,6 +16,15 @@ export class DbUserEntity {
     @Column({ type: 'text' })
     public passwordHash!: string;
 
+    @Column({ type: 'text', nullable: true })
+    public displayName!: string | null;
+
+    @Column({ type: 'text', nullable: true })
+    public totpSecret!: string | null;
+
+    @Column({ type: 'timestamptz', nullable: true })
+    public totpEnabledAt!: Date | null;
+
     @Column({ type: 'text', default: UserRole.User })
     public role!: UserRole;
 

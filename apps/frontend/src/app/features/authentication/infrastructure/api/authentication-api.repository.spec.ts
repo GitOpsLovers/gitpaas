@@ -76,7 +76,9 @@ describe('AuthenticationApiRepository', () => {
         const user: User = {
             id: '1',
             email: 'user@example.com',
+            displayName: null,
             role: 'admin',
+            totpEnabled: false,
             isActive: true,
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-02T00:00:00.000Z',

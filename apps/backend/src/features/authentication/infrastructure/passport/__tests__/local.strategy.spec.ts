@@ -16,6 +16,9 @@ const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     email: 'admin@example.com',
     passwordHash: 'hash',
+    displayName: null,
+    totpSecret: null,
+    totpEnabledAt: null,
     role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -33,6 +36,10 @@ describe('LocalStrategy', () => {
             findByEmail: jest.fn(),
             findById: jest.fn(),
             create: jest.fn(),
+            updateDisplayName: jest.fn(),
+            updateEmail: jest.fn(),
+            updatePasswordHash: jest.fn(),
+            updateTotp: jest.fn(),
         };
         passwordHasher = { hash: jest.fn(), verify: jest.fn() };
         strategy = new LocalStrategy(
