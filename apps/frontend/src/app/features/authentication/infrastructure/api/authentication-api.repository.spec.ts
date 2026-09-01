@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import type { AuthTokens, User } from '@gitpaas/contracts';
+import type { AuthTokens, LoginResult, User } from '@gitpaas/contracts';
 
 import { AuthenticationApiRepository } from './authentication-api.repository';
 
@@ -34,11 +34,37 @@ describe('AuthenticationApiRepository', () => {
 
     test('login POSTs the credentials and returns the token pair', () => {
         const dto = { email: 'user@example.com', password: 'secret' };
-        let result: AuthTokens | undefined;
+        let result: LoginResult | undefined;
 
         repository.login(dto).subscribe((value) => { result = value; });
 
         const req = httpMock.expectOne(`${BASE_URL}/login`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual(dto);
+        req.flush(tokens);
+
+        expect(result).toEqual(tokens);
+    });
+
+    test('login returns the challenge when the account holds a second factor', () => {
+        const challenge = { twoFactorRequired: true as const, challengeToken: 'challenge-1' };
+        let result: LoginResult | undefined;
+
+        repository.login({ email: 'user@example.com', password: 'secret' })
+            .subscribe((value) => { result = value; });
+
+        httpMock.expectOne(`${BASE_URL}/login`).flush(challenge);
+
+        expect(result).toEqual(challenge);
+    });
+
+    test('verifyTwoFactor POSTs the challenge and the code and returns the token pair', () => {
+        const dto = { challengeToken: 'challenge-1', code: '123456' };
+        let result: AuthTokens | undefined;
+
+        repository.verifyTwoFactor(dto).subscribe((value) => { result = value; });
+
+        const req = httpMock.expectOne(`${BASE_URL}/2fa/verify`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual(dto);
         req.flush(tokens);
