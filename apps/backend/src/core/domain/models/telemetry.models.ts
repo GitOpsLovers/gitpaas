@@ -89,6 +89,8 @@ interface TelemetryEventFields {
     'deployment.compose_path'?: string;
     'deployment.attempt'?: number;
     'deployment.log_lines'?: number;
+    'container.id'?: string;
+    'container.log_lines'?: number;
     'docker.project'?: string;
 
     /* Integration context, beyond the generic dependency counters */

@@ -32,11 +32,11 @@ Kubernetes stays out of scope, because the runtime of today is Docker alone.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/logs/
 
-- [ ] 3.1 Add `GET /api/v1/logs/runtime?containerId=&tail=&since=`, which returns the history.
-- [ ] 3.2 Add `GET /api/v1/logs/runtime/stream?containerId=`, an endpoint of SSE that fans out the one stream of that container.
-- [ ] 3.3 Apply the throttler `stream`, and refuse more than 5 connections of SSE for one user.
-- [ ] 3.4 Return the error `503` when the daemon of Docker does not answer, as the feature of the containers does.
-- [ ] 3.5 Write the unit tests of the controller and of the cases of use.
+- [x] 3.1 Add `GET /api/v1/logs/runtime?containerId=&tail=&since=`, which returns the history.
+- [x] 3.2 Add `GET /api/v1/logs/runtime/stream?containerId=`, an endpoint of SSE that fans out the one stream of that container.
+- [x] 3.3 Apply the throttler `stream`, and refuse more than 5 connections of SSE for one user.
+- [x] 3.4 Return the error `503` when the daemon of Docker does not answer, as the feature of the containers does.
+- [x] 3.5 Write the unit tests of the controller and of the cases of use.
 
 ## Phase 4 — The tab Logs of the frontend
 
