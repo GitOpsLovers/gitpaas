@@ -46,6 +46,21 @@ export { userRoleSchema, userSchema } from './authentication/user.contract';
 export type { User, UserRole } from './authentication/user.contract';
 
 export {
+    PROFILE_DISPLAY_NAME_MAX_LENGTH,
+    PROFILE_PASSWORD_MIN_LENGTH,
+    profileSchema,
+    updateProfileEmailSchema,
+    updateProfileNameSchema,
+    updateProfilePasswordSchema,
+} from './profile/profile.contract';
+export type {
+    Profile,
+    UpdateProfileEmailDto,
+    UpdateProfileNameDto,
+    UpdateProfilePasswordDto,
+} from './profile/profile.contract';
+
+export {
     createProviderSchema,
     providerConnectionOutcomeSchema,
     providerConnectionTestSchema,

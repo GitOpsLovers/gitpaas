@@ -119,6 +119,19 @@ describe('translateError', () => {
                 .toBeInstanceOf(UnauthorizedException);
         });
 
+        it('maps PROFILE_NOT_FOUND to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('PROFILE_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
+        });
+
+        it('maps EMAIL_TAKEN to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('EMAIL_TAKEN'))).toBeInstanceOf(ConflictException);
+        });
+
+        it('maps INVALID_CURRENT_PASSWORD to an UnauthorizedException', () => {
+            expect(translateError(new CodedDomainError('INVALID_CURRENT_PASSWORD')))
+                .toBeInstanceOf(UnauthorizedException);
+        });
+
         it('maps PROVIDER_RESOURCE_NOT_FOUND to a NotFoundException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_RESOURCE_NOT_FOUND')))
                 .toBeInstanceOf(NotFoundException);

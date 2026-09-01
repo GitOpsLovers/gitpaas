@@ -48,6 +48,6 @@ import { SharedModule } from '@shared/shared.module';
             useClass: JwtAuthGuard,
         },
     ],
-    exports: [UsersModule],
+    exports: [UsersModule, DatabaseRefreshTokensRepository, JwtTokenServiceAdapter],
 })
 export class AuthenticationModule {}
