@@ -1,0 +1,166 @@
+apps/backend/src/core/core.module.ts
+  s_4fff9f4607cf86::t_1e0f133c9bce2e 6,12,37-38,48-49
+apps/backend/src/core/domain/ports/qr-code-renderer.port.ts
+  s_4fff9f4607cf86::t_2b28ca41655f6d 1-13
+pnpm-lock.yaml
+  h_e4f33aa49027b9 165-167,2895-2897,9356,9406,9428,9448,9453,9464,9545,10669,10781-10784,10791,13772,13906,13915,13973,13980,14012,14040,14088,14097,14116,14125,14131
+apps/backend/src/features/users/ui/services/users.service.ts
+  s_4fff9f4607cf86::t_a0e461b12245a8 3,5,56-68
+apps/backend/package.json
+  h_e4f33aa49027b9 55
+apps/backend/src/features/authentication/application/__tests__/login.use-case.spec.ts
+  s_4fff9f4607cf86::t_3670f4c6375eea 30-32,42,61-98
+apps/backend/src/features/authentication/infrastructure/security/__tests__/jwt-token-service.adapter.spec.ts
+  s_4fff9f4607cf86::t_4d8705edbacd7b 14,45-48
+  s_4fff9f4607cf86::t_5a162c238e7e96 153-218
+apps/backend/src/features/profile/ui/services/__tests__/profile.service.spec.ts
+  s_4fff9f4607cf86::t_46fd0ce6b24981 5-6,8,11,14-16,28-30,36-38,62-64,74-76,85-87,215-289
+scripts/install.sh
+  s_4fff9f4607cf86::t_1791c54cce1be3 446
+apps/backend/src/features/authentication/domain/errors/authentication.errors.ts
+  s_4fff9f4607cf86::t_216807dfa66720 38-55
+apps/backend/src/features/profile/domain/errors/profile.errors.ts
+  s_4fff9f4607cf86::t_131275403bd23f 29-46
+apps/backend/src/features/authentication/domain/errors/__tests__/authentication.errors.spec.ts
+  s_4fff9f4607cf86::t_28a7f8c0a14fc5 1-7,76-123
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_4fff9f4607cf86::t_97009f3c1c3b3a 135-155
+apps/backend/src/features/authentication/application/verify-two-factor.use-case.ts
+  s_4fff9f4607cf86::t_0d01013114ff4a 1-69
+packages/contracts/src/authentication/__tests__/two-factor.contract.spec.ts
+  s_4fff9f4607cf86::t_9eab6d801492ac 1-116
+apps/backend/src/features/profile/ui/controllers/profile.controller.ts
+  s_4fff9f4607cf86::t_5324c9ecbc6554 1-6,9,11,17,116-170
+iac/production/.env.example
+  s_4fff9f4607cf86::t_c264ff42175e64 60
+packages/contracts/src/authentication/two-factor.contract.ts
+  s_4fff9f4607cf86::t_aaadbfc2a6e02c 1-80
+apps/backend/test/setup-env.ts
+  s_4fff9f4607cf86::t_bf9fb60dc39396 45
+apps/backend/src/features/authentication/infrastructure/security/jwt-token-service.adapter.ts
+  s_4fff9f4607cf86::t_47ff254d86b36c 7-12,15-24,34-35,42,75-93
+apps/backend/src/features/authentication/application/login.use-case.ts
+  s_4fff9f4607cf86::t_c928a9ef68bc46 1,10,16,18,22-26
+apps/backend/src/features/users/domain/errors/users.errors.ts
+  s_4fff9f4607cf86::t_d05cc36961d5a3 1-10
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_4fff9f4607cf86::t_49ef9d63ea4a5e 45-49
+apps/backend/src/features/authentication/domain/models/login-result.models.ts
+  s_4fff9f4607cf86::t_70cd598559b672 1-14
+apps/backend/src/features/profile/application/start-totp-setup.use-case.ts
+  s_4fff9f4607cf86::t_6a1f60c1aa0802 1-42
+apps/backend/src/core/domain/ports/totp.port.ts
+  s_4fff9f4607cf86::t_49f6fc63007209 1-31
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_4fff9f4607cf86::t_3849489b885ae6 77
+apps/backend/src/features/authentication/domain/ports/token-service.port.ts
+  s_4fff9f4607cf86::t_532da540058bc9 1-6,51-70
+turbo.json
+  s_4fff9f4607cf86::t_54d3e233f6c0df 23
+docs/architecture/infrastructure/installation.md
+  s_adc19060a6c76c::t_2e779699d7bb06 45
+apps/backend/src/features/profile/ui/services/profile.service.ts
+  s_4fff9f4607cf86::t_869317d8002e5f 5-6,8,10,12-17,43-48,122-170
+docs/architecture/infrastructure/conventions.md
+  s_4fff9f4607cf86::t_709f250b6be3f6 28
+apps/backend/src/features/authentication/domain/models/token-payloads.models.ts
+  s_4fff9f4607cf86::t_d7a5e6a7bac65e 30-37
+  s_efd94f52541b99::t_1621bc5aec62fe 13
+apps/backend/src/features/profile/application/__tests__/enable-totp.use-case.spec.ts
+  s_4fff9f4607cf86::t_270bbe4d7b23c9 1-132
+apps/backend/src/features/authentication/ui/controllers/authentication.controller.ts
+  s_4fff9f4607cf86::t_292eea23be557a 1-9,33,37,47,53-73
+apps/backend/src/features/authentication/ui/controllers/__tests__/authentication.controller.spec.ts
+  s_4fff9f4607cf86::t_50ad56b268bafb 1,5-10,35,44,68-114
+apps/backend/src/features/users/ui/services/__tests__/users.service.spec.ts
+  s_4fff9f4607cf86::t_6d1f3101310e99 3,5-6,15,18-33,140-158
+apps/backend/src/features/users/ui/controllers/users.controller.ts
+  s_4fff9f4607cf86::t_90a3af283f5e13 1-37
+apps/backend/src/features/users/application/disable-user-totp.use-case.ts
+  s_4fff9f4607cf86::t_4caa5981c91c79 1-23
+apps/backend/src/features/users/ui/controllers/__tests__/users.controller.spec.ts
+  s_4fff9f4607cf86::t_0c95ee4e32b929 1-86
+apps/backend/jest.config.js
+  s_4fff9f4607cf86::t_c19c3d21e2134f 13
+apps/backend/src/features/users/users.module.ts
+  s_4fff9f4607cf86::t_8b6f7e9ae2db3a 6,16
+apps/backend/src/features/profile/application/disable-totp.use-case.ts
+  s_4fff9f4607cf86::t_ec4e123df9b542 1-24
+apps/backend/src/features/users/application/__tests__/disable-user-totp.use-case.spec.ts
+  s_4fff9f4607cf86::t_fefd3fbe624c9d 1-66
+apps/backend/test/stubs/otplib.stub.ts
+  s_4fff9f4607cf86::t_a0ab144ecbc695 1-3
+apps/backend/src/features/authentication/ui/services/authentication.service.ts
+  s_4fff9f4607cf86::t_27122b972ade35 6,8,15-18,35-38,42,46,48-49,53-87
+apps/backend/src/core/infrastructure/crypto/otplib-totp.adapter.ts
+  s_4fff9f4607cf86::t_7b15a6f1296025 1-55
+apps/backend/src/features/profile/domain/errors/__tests__/profile.errors.spec.ts
+  s_4fff9f4607cf86::t_43f752cfda4f36 1-7,66-113
+apps/backend/src/features/users/domain/errors/__tests__/users.errors.spec.ts
+  s_4fff9f4607cf86::t_47b1ba32ce953a 1-29
+apps/backend/src/core/infrastructure/qrcode/qrcode-renderer.adapter.ts
+  s_4fff9f4607cf86::t_5aa408b1cfdd81 1-21
+apps/backend/.env.example
+  s_4fff9f4607cf86::t_f4f154d94dd298 33
+apps/backend/src/core/infrastructure/crypto/__tests__/otplib-totp.adapter.spec.ts
+  s_4fff9f4607cf86::t_98f1508c866a0d 1-72
+apps/backend/src/features/profile/application/enable-totp.use-case.ts
+  s_4fff9f4607cf86::t_0719b64bf02e97 1-57
+apps/backend/src/features/profile/ui/controllers/__tests__/profile.controller.spec.ts
+  s_4fff9f4607cf86::t_2889f9122f952a 4-11,15,39-50,61-63,218-345
+apps/backend/src/features/authentication/ui/services/__tests__/authentication.service.spec.ts
+  s_4fff9f4607cf86::t_b7c272161d643e 6-12,20-21,29,34,61-62,70-71,79-80,97-139,223-244
+packages/contracts/src/index.ts
+  s_4fff9f4607cf86::t_0a217c23d2c2f5 47-63
+apps/backend/src/features/profile/application/__tests__/disable-totp.use-case.spec.ts
+  s_4fff9f4607cf86::t_74bd0f38f58645 1-57
+apps/backend/src/features/profile/application/__tests__/start-totp-setup.use-case.spec.ts
+  s_4fff9f4607cf86::t_025cb33d5bb607 1-140
+apps/backend/src/features/authentication/application/__tests__/verify-two-factor.use-case.spec.ts
+  s_4fff9f4607cf86::t_046b1ff10eced8 1-176
+docs/roadmap/user-profile-and-2fa/TODO.md
+  s_4fff9f4607cf86::t_2dc792e588f31f 34-40
+apps/backend/src/features/profile/domain/models/totp-setup.models.ts
+  s_4fff9f4607cf86::t_4dcef76590144d 1-8
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_4fff9f4607cf86::t_dd50939bd533a4 27,111-117
+apps/backend/src/core/infrastructure/qrcode/__tests__/qrcode-renderer.adapter.spec.ts
+  s_4fff9f4607cf86::t_0636e9fc09a6eb 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e928e44eaee1c0898c87d68965c7ee8262163b85",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_4fff9f4607cf86": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f9da1501-57f2-4882-ab10-55663ba664cc",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_adc19060a6c76c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa94fb0bc1e1ebe98",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_efd94f52541b99": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8c706d7bdbbe3921",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
