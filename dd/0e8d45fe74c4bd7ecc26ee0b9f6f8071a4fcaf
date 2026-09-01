@@ -1,0 +1,82 @@
+apps/frontend/src/app/features/profile/ui/containers/profile-overview/profile-overview.component.ts
+  s_1d9fa6c460cecd::t_3726ebf9a0a20c 1-239
+apps/frontend/src/app/features/profile/ui/containers/profile-overview/profile-overview.component.spec.ts
+  s_1d9fa6c460cecd::t_a7469f0d1b8563 2-369
+  s_1d9fa6c460cecd::t_313c7895e2890e 1
+apps/frontend/src/app/features/profile/ui/components/profile-password-form/profile-password-form.component.spec.ts
+  s_1d9fa6c460cecd::t_9154d5fe98b9c8 1-144
+apps/frontend/src/app/features/profile/ui/components/profile-email-form/profile-email-form.component.html
+  s_1d9fa6c460cecd::t_20e1f0b2e0834d 1-30
+apps/frontend/src/app/features/profile/ui/components/profile-two-factor-panel/profile-two-factor-panel.component.html
+  s_1d9fa6c460cecd::t_2a6e439b631850 1-71
+apps/frontend/src/app/pages/profile/profile.component.html
+  s_1d9fa6c460cecd::t_0ab237e34a8a6e 1
+apps/frontend/src/app/features/profile/infrastructure/api/profile-api.repository.ts
+  s_1d9fa6c460cecd::t_e1ecb5adc629e3 1-96
+apps/frontend/src/app/pages/profile/profile.component.ts
+  s_1d9fa6c460cecd::t_4a641c542fdda9 1-14
+apps/frontend/src/app/features/profile/application/build-account-initials.use-case.spec.ts
+  s_1d9fa6c460cecd::t_52a053455861ba 1-40
+docs/roadmap/user-profile-and-2fa/TODO.md
+  s_1d9fa6c460cecd::t_28bde69f9c414a 47-52
+apps/frontend/src/app/features/profile/ui/components/profile-password-form/profile-password-form.component.html
+  s_1d9fa6c460cecd::t_d5f739083ab047 1-55
+apps/frontend/src/app/features/profile/infrastructure/api/profile-api.repository.spec.ts
+  s_1d9fa6c460cecd::t_e497c43e84c0a4 2-173
+  s_1d9fa6c460cecd::t_2b787166d56374 1
+apps/frontend/src/app/app.routes.ts
+  s_1d9fa6c460cecd::t_4d408cdd099e6e 28-32
+apps/frontend/src/app/features/profile/ui/components/profile-email-form/profile-email-form.component.spec.ts
+  s_1d9fa6c460cecd::t_e01aed6e86b440 1-127
+apps/frontend/src/app/features/profile/ui/components/profile-name-form/profile-name-form.component.ts
+  s_1d9fa6c460cecd::t_fa46a37aa5e189 1-91
+apps/frontend/src/app/features/profile/ui/components/profile-account-card/profile-account-card.component.html
+  s_1d9fa6c460cecd::t_20273f6d9561c2 1-42
+apps/frontend/src/app/features/profile/ui/components/profile-email-form/profile-email-form.component.ts
+  s_1d9fa6c460cecd::t_05400043670da5 1-94
+apps/frontend/src/app/features/profile/ui/components/profile-password-form/profile-password-form.component.ts
+  s_1d9fa6c460cecd::t_0523662631ecdc 1-138
+apps/frontend/src/app/features/profile/ui/components/profile-name-form/profile-name-form.component.html
+  s_1d9fa6c460cecd::t_53ce78aea03d9b 1-29
+apps/frontend/src/app/features/profile/ui/components/profile-two-factor-panel/profile-two-factor-panel.component.spec.ts
+  s_1d9fa6c460cecd::t_b13552a8dd4e1c 2-186
+  s_1d9fa6c460cecd::t_5653c5317d1db2 1
+apps/frontend/src/app/features/profile/ui/components/profile-account-card/profile-account-card.component.ts
+  s_1d9fa6c460cecd::t_2298b569400122 1-45
+apps/frontend/src/app/features/profile/application/build-account-initials.use-case.ts
+  s_1d9fa6c460cecd::t_1f4f5860fb3fbc 1-36
+apps/frontend/src/app/features/profile/ui/components/profile-name-form/profile-name-form.component.spec.ts
+  s_1d9fa6c460cecd::t_453f6a4410bcd1 1-111
+apps/frontend/src/app/features/profile/ui/components/profile-account-card/profile-account-card.component.spec.ts
+  s_1d9fa6c460cecd::t_bde42d90dac55e 1-75
+apps/frontend/src/app/features/profile/ui/containers/profile-overview/profile-overview.component.html
+  s_1d9fa6c460cecd::t_09960cae79fa35 1-47
+apps/frontend/src/app/features/profile/ui/components/profile-two-factor-panel/profile-two-factor-panel.component.ts
+  s_1d9fa6c460cecd::t_b6701932e80761 1-97
+docs/architecture/frontend/conventions.md
+  s_ca954524b86672::t_08d69b8c4102fa 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dd0e8d45fe74c4bd7ecc26ee0b9f6f8071a4fcaf",
+  "prompts": {},
+  "sessions": {
+    "s_1d9fa6c460cecd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "787ab2b2-8068-4f34-835a-983d049365eb",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_ca954524b86672": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa49711e23170a7b7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
