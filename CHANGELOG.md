@@ -1,3 +1,19 @@
+## [2.9.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.8.1...v2.9.0) (2026-09-01)
+
+### Features
+
+* **auth:** add second factor TOTP endpoints ([#203](https://github.com/GitOpsLovers/gitpaas/issues/203)) ([2908db9](https://github.com/GitOpsLovers/gitpaas/commit/2908db99105ec0eaa2c9211aa5210f8e96cb877c))
+* **auth:** add two-step login and user header ([#205](https://github.com/GitOpsLovers/gitpaas/issues/205)) ([617a9a3](https://github.com/GitOpsLovers/gitpaas/commit/617a9a321179b9d5ab81decd6f757c4ca8d88faf))
+* **logs:** add runtime log contract and reader ([#196](https://github.com/GitOpsLovers/gitpaas/issues/196)) ([f659f33](https://github.com/GitOpsLovers/gitpaas/commit/f659f33c9d21ff2e56800a33032b9eda627a3283))
+* **logs:** add runtime log endpoints ([#198](https://github.com/GitOpsLovers/gitpaas/issues/198)) ([ef80be2](https://github.com/GitOpsLovers/gitpaas/commit/ef80be2d1777e501ce68bdf1e71edb06b232185b))
+* **logs:** add runtime log store and retention ([#197](https://github.com/GitOpsLovers/gitpaas/issues/197)) ([2a5d65b](https://github.com/GitOpsLovers/gitpaas/commit/2a5d65bd6e726f4957aa228dadf7015c330db4ce))
+* **logs:** add service logs api and component ([#199](https://github.com/GitOpsLovers/gitpaas/issues/199)) ([664804d](https://github.com/GitOpsLovers/gitpaas/commit/664804d7a2516733d51949fcf86835ede93239b3))
+* **profile:** add profile endpoints ([#202](https://github.com/GitOpsLovers/gitpaas/issues/202)) ([82502c6](https://github.com/GitOpsLovers/gitpaas/commit/82502c693c4f4c80bbcefe3f85d5f68ca28cb7fb))
+* **profile:** add profile page ([#204](https://github.com/GitOpsLovers/gitpaas/issues/204)) ([1338676](https://github.com/GitOpsLovers/gitpaas/commit/1338676e9d3b6c5caffeb9c400d6a7eaf30244a3))
+* **services:** show service state indicator ([#193](https://github.com/GitOpsLovers/gitpaas/issues/193)) ([f23946b](https://github.com/GitOpsLovers/gitpaas/commit/f23946be67731f4f680058309df05b8fa85a6137))
+* **ui:** add icon to breadcrumb title ([#194](https://github.com/GitOpsLovers/gitpaas/issues/194)) ([615bf92](https://github.com/GitOpsLovers/gitpaas/commit/615bf92105c00829fe19606bc667e88747e57fbe))
+* **users:** add profile and 2fa data schema ([#201](https://github.com/GitOpsLovers/gitpaas/issues/201)) ([aece449](https://github.com/GitOpsLovers/gitpaas/commit/aece44934e2f69463921c5528c55b5f399199b07))
+
 ## [2.8.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.8.0...v2.8.1) (2026-08-31)
 
 ### Bug Fixes
