@@ -1,0 +1,19 @@
+apps/frontend/src/app/features/services/ui/components/service-card/service-card.component.html
+  s_39d25175d21268::t_f6ac29ffdb8e1a 4-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4cf048b7a5a1ba2e8876586970b8b61bf0fcd0f5",
+  "prompts": {},
+  "sessions": {
+    "s_39d25175d21268": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b3c931ef-196f-454a-9a8f-91ca41a477b4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
