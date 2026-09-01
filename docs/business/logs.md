@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This capability keeps and gives the output of a deployment. It holds the output in two tiers — a hot store for the run and a cold archive for the history — and it gives the output as a live stream and as a flat list.
+This capability keeps and gives two kinds of output: the output of a deployment, and the output of a container of a service that runs today. It holds the output of a deployment in two tiers — a hot store for the run and a cold archive for the history — and it gives that output as a live stream and as a flat list. It follows the container that runs, and it gives its output the same way, as a history and as a live stream.
 
 ## The two tiers of the output
 
@@ -274,15 +274,82 @@ The window SHALL keep the view at the last line as the output arrives. The windo
 - **WHEN** the browser refuses the access to the clipboard
 - **THEN** the system shows no message of failure, and the window continues to work
 
-## The tab "Logs" holds no true output
+## The tab "Logs" shows the output of a container that runs
 
-The tab `logs` SHALL show a fixed set of eight lines of an example. It reads no data of the API.
+The tab `logs` of a service SHALL show the real output of one container of that service, read from the daemon that runs it. It SHALL NOT show a fixed or an invented line.
 
-The output of a run lives in the window of the tab `deployments`. This tab is the rest of a first design of the theme.
-
-This requirement records the state of today. A later change must replace it.
+The tab SHALL pick a container that runs by default, so the operator sees a live output without a choice to make first. When no container runs, the tab picks the first container of the service, and it shows the last output that container wrote before it stopped.
 
 ### Scenario: The user opens the tab of the logs
 
-- **WHEN** the user opens the tab `logs`
-- **THEN** the system shows the same eight lines of the example for every service, and it calls no endpoint
+- **WHEN** the user opens the tab `logs` of a service that runs a container
+- **THEN** the system shows the output of that container, and it keeps that output current while the tab stays open
+
+### Scenario: No container of the service runs
+
+- **WHEN** the user opens the tab `logs` of a service whose containers all stopped
+- **THEN** the system shows the last output of the first container of the service
+
+## The dropdown menu of the containers
+
+The tab SHALL give a dropdown menu with every container of the service, so the operator can read the output of one container among several, for example the container of a database next to the container of an application.
+
+### Scenario: The service holds more than one container
+
+- **WHEN** the operator opens the dropdown menu of the containers
+- **THEN** the system lists every container of the service, and it shows the output of the container the operator picks
+
+### Scenario: The service holds no container
+
+- **WHEN** the service runs no container, and never ran one
+- **THEN** the dropdown menu of the containers stays empty, and the tab shows no output
+
+## The selector of the lines of the history
+
+The tab SHALL give a selector of the number of the lines of the history that it reads, among a fixed set of choices. The tab SHALL read 200 lines by default.
+
+A larger number gives a longer history, at the cost of a slower read; the operator picks the number that its case needs.
+
+### Scenario: The operator picks a number of the lines
+
+- **WHEN** the operator picks a number of the lines of the history
+- **THEN** the system reads that many lines of the history of the shown container, oldest first
+
+## The mark of the error output
+
+The tab SHALL show the instant of each line, and it SHALL mark a line whose output came from the error stream of the container (`stderr`) apart from a line of its standard stream (`stdout`), so the operator sees a failure of the container without a read of every line.
+
+### Scenario: A container writes to its error stream
+
+- **WHEN** a container writes a line to `stderr`
+- **THEN** the system shows that line with the mark of the error stream, distinct from a line of `stdout`
+
+## The download of the output of a container
+
+The tab SHALL give an action that downloads the shown output as a text file, one line for each line of the output, with the instant, the stream and the text of that line.
+
+### Scenario: The operator downloads the output
+
+- **WHEN** the operator triggers the download of the shown output
+- **THEN** the system gives a text file that holds every shown line, in the order the tab shows them
+
+### Scenario: The container wrote no output yet
+
+- **WHEN** the shown container wrote no line yet
+- **THEN** the action of the download stays disabled
+
+## The retention of the output of a container
+
+The system SHALL remove a line of the output of a container when that line passes the retention in days that the configuration of the server holds. The server holds a value by default, so an installation whose operator set nothing still removes its old lines.
+
+Unlike the age of the archive of a deployment, the operator does not set this retention on a screen; it is a value of the configuration of the server.
+
+### Scenario: A line passes the retention
+
+- **WHEN** a line of the output of a container is older than the retention
+- **THEN** the system removes that line
+
+### Scenario: A line is inside the retention
+
+- **WHEN** a line of the output of a container is not older than the retention
+- **THEN** the system keeps it
