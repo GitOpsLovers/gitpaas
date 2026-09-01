@@ -6,9 +6,9 @@ This capability holds the operators of the platform. It keeps the record of each
 
 ## The user record
 
-The system SHALL keep one record per user. The record holds the identifier, the email, the hash of the password, the role, the state, the date of the creation and the date of the last change.
+The system SHALL keep one record per user. The record holds the identifier, the email, the hash of the password, the display name, the role, the state, the sealed secret of the second factor, the date on which the second factor turned on, the date of the creation and the date of the last change.
 
-The role is `admin` or `user`. The state `isActive` says if the user can authenticate. A new user is active if no caller gives another value.
+The role is `admin` or `user`. The state `isActive` says if the user can authenticate. A new user is active if no caller gives another value. The display name and the second factor start empty; see the capability `profile` for the way a user sets them.
 
 ### Scenario: The system reads a user
 
@@ -24,16 +24,16 @@ The system SHALL hash each password with argon2id before it writes the record. T
 - **WHEN** a caller creates a user with a password
 - **THEN** the system writes the argon2id hash into the field `passwordHash`, and it writes no other copy of the password
 
-## No endpoint creates a user
+## No endpoint creates, lists or removes a user
 
-The system SHALL give no HTTP endpoint that creates, changes or removes a user. There is no public sign-up.
+The system SHALL give no HTTP endpoint that creates, lists or removes a user. There is no public sign-up.
 
-An administrator makes a user with a different tool, directly in the database.
+An administrator makes a user with a different tool, directly in the database. A user changes the own display name, email address and password through the capability `profile`, and not through this feature. This feature registers the single route `DELETE /api/v1/users/:id/2fa`, which lets an administrator turn the second factor off for another user; see the capability `profile`.
 
-### Scenario: A client looks for an endpoint of the users
+### Scenario: A client looks for another endpoint of the users
 
-- **WHEN** a client calls any path under `/api/v1/users`
-- **THEN** the system answers `404 Not Found`, because the feature registers no controller
+- **WHEN** a client calls a path under `/api/v1/users` that is not `DELETE /:id/2fa`
+- **THEN** the system answers `404 Not Found`, because the feature registers no other route
 
 ## The administrative user of the development mode
 
