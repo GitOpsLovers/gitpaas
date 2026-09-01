@@ -38,6 +38,7 @@ A presentational component only shows data and emits events. It never injects a 
 - **Extend the style with a `className` input**, which is added to the Tailwind classes of the component. Thus a caller can change the spacing and does not make a new component.
 - Put a third-party widget behind the in-house contract (for example, the select control contains `@ng-select/ng-select`).
 - **Use the per-icon components of `@lucide/angular`** (`<svg lucideX>`). Do not use the dynamic module.
+- **Name an `output()` with a bare verb, and never with the name of a native DOM event** (`change`, `input`, `select`, `submit`, `close`, …). A template that binds `(close)` to such an output reads the native event of the host instead. Example: `start` and `cancel` broke this rule, so they became `begin` and `discard`.
 
 The Tailwind design tokens (`brand-*`, `error-*`, `success-*`, …) are defined in the `@theme` block of the global stylesheet. They come from TailAdmin.
 

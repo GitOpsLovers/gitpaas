@@ -1,0 +1,47 @@
+<app-breadcrumb [items]="breadcrumb" [icon]="icon" />
+
+@if (loadFailed()) {
+    <p class="mt-6 text-sm text-error-500">Could not load your account. Is the backend running?</p>
+} @else if (profile.isLoading()) {
+    <div class="mt-6 flex flex-col gap-4">
+        <app-skeleton variant="text" className="max-w-40" />
+        <app-skeleton variant="row" />
+        <app-skeleton variant="row" />
+    </div>
+} @else if (profile.value(); as account) {
+    <div class="mt-6 space-y-6">
+        <app-profile-account-card [profile]="account" />
+
+        <app-profile-name-form
+            [initialDisplayName]="account.displayName ?? ''"
+            [saving]="savingName()"
+            [error]="nameError()"
+            (save)="saveName($event)"
+        />
+
+        <app-profile-email-form
+            [initialEmail]="account.email"
+            [saving]="savingEmail()"
+            [error]="emailError()"
+            (save)="saveEmail($event)"
+        />
+
+        <app-profile-password-form
+            [saving]="savingPassword()"
+            [error]="passwordError()"
+            [savedCount]="passwordSavedCount()"
+            (save)="savePassword($event)"
+        />
+
+        <app-profile-two-factor-panel
+            [enabled]="account.totpEnabled"
+            [setup]="totpSetup()"
+            [busy]="savingTotp()"
+            [error]="totpError()"
+            (begin)="startTotpSetup()"
+            (enable)="enableTotp($event)"
+            (discard)="cancelTotpSetup()"
+            (disable)="disableTotp()"
+        />
+    </div>
+}
