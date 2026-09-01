@@ -38,11 +38,11 @@ The use case writes a record with the status `pending`, queues the run task, and
 
 ## Server-Sent Events (live streams)
 
-To send a long-running result to the client, the application uses Server-Sent Events: one long-lived response that carries one JSON-encoded event for each value. An SSE endpoint always has a REST companion that gives the durable history — in the `logs` feature, one endpoint for the live events of a deployment and one for its history.
+To send a long-running result to the client, the application uses Server-Sent Events: one long-lived response that carries one JSON-encoded event for each value. An SSE endpoint always has a REST companion that gives the durable history — the `logs` feature gives this pair twice: once for the events of a deployment, and once for the output of a container that runs (`GET /api/v1/logs/runtime` and `GET /api/v1/logs/runtime/stream`).
 
 A stream endpoint is not public, so it needs a Bearer token. The native `EventSource` API cannot set headers, so the frontend reads the stream with an SSE client that can send one.
 
-**Failure on a stream.** When the connection starts, the response headers are already sent. Thus the error envelope cannot be used, and a stream **never** ends with a failure: it sends a typed `error` event and then completes, with the same `code` vocabulary as the HTTP envelope. The log stream sends one of three events, each JSON-encoded in the `data` field:
+**Failure on a stream.** When the connection starts, the response headers are already sent. Thus the error envelope cannot be used, and a stream **never** ends with a failure: it sends a typed `error` event and then completes, with the same `code` vocabulary as the HTTP envelope. The deployment log stream sends one of three events, each JSON-encoded in the `data` field:
 
 ```jsonc
 { "type": "line", "data": "<one output line>" }              // one line of output
@@ -51,6 +51,8 @@ A stream endpoint is not public, so it needs a Bearer token. The native `EventSo
 ```
 
 Only the `line` event and the `end` event are written to the store and archived; the `error` event goes to the subscriber only.
+
+The stream of the runtime logs carries no `end` and no `error` event: it stays open while its container runs, and it closes with no event when the container stops or the client disconnects. It has no terminal status to report, so a failure to reach the daemon at the moment the client subscribes answers `503 Service Unavailable` before the stream opens, instead of a typed `error` event.
 
 ### Deployment log store
 
@@ -67,6 +69,25 @@ docker output ──append──► Redis stream  logs:<deploymentId>
 - **End of the log**: the terminal entry closes the subscription. Because a run can die without one, the producer also holds a short-lived lease that each append refreshes, so a reader that finds no new entry and no live lease eventually closes the stream instead of waiting for ever.
 - **Archive and grace**: `complete()` writes the terminal entry, drops the lease, copies the full stream into PostgreSQL, and keeps the Redis key for a short grace period so a slow subscriber can finish its tail. If the key is already gone, a new subscription replays the archived rows from the database.
 - **Removal**: `purge()` deletes the stream key, the lease key and the archived rows, when a deployment or a service is deleted.
+
+### Runtime log store
+
+The output of a container that runs has no terminal status to wait for, so its store keeps no lease and no completion: `RuntimeLogStore` gives the operations to append a line, read the lines already written, stream the lines to come, close the stream of a container that stopped, and flush the batch that waits. The identifier of the stream is the identifier of the container, not of a deployment.
+
+`MemoryRuntimeLogStoreAdapter` (`features/logs/infrastructure/memory/`) holds the lines that wait in an array and fans them out live over one RxJS `Subject` for each container, and it batches the write to the PostgreSQL table `runtime_logs` on the first limit that a batch reaches — `RUNTIME_LOG_FLUSH_SIZE` lines or `RUNTIME_LOG_FLUSH_INTERVAL_MS` milliseconds, whichever comes first. `onModuleDestroy` flushes the lines that still wait, so a shutdown loses none of them.
+
+```text
+docker output ──follow──► DockerRuntimeLogFollowerAdapter ──append──► buffer ──flush (size or time)──► PostgreSQL runtime_logs
+                                                                 │
+                                                                 └──► RxJS Subject ──► SSE subscriber
+```
+
+- **The follower** (`DockerRuntimeLogFollowerAdapter`, `features/logs/infrastructure/docker/`) opens one `follow: true` stream of the daemon for each container it is asked to follow, and it keeps the one stream open until it is told to `unfollow` it. The scheduled job `FollowRunningContainersJob` runs every 30 seconds, lists the containers of GitPaaS that run, follows the ones that are new, and unfollows the ones that stopped.
+- **A read against the buffer**: `read()` merges the archived rows of PostgreSQL with the lines the buffer still holds, so a caller sees a line before its batch is flushed.
+- **Opening a stream follows its container**: the use case `streamRuntimeLogsUseCase` calls `follow()` before it returns the observable, so a client that opens the stream of a container the scheduled job has not reached yet still receives its next line.
+- **Retention**: `RemoveExpiredLogsJob` removes the rows of `runtime_logs` older than `RUNTIME_LOGS_RETENTION_DAYS` (seven days by default), on the same hourly schedule and in the same bounded batches as the archive of a deployment.
+- **The rate limit**: `GET /api/v1/logs/runtime/stream` uses the throttler named `stream`, and the guard `RuntimeLogStreamGuard` refuses a sixth simultaneous connection of one user (`RUNTIME_LOG_STREAM_MAX_CONNECTIONS`).
+- **A daemon that does not answer**: the controller `RuntimeLogsController` turns a failure of the Docker daemon into `503 Service Unavailable`, as the feature of the containers does.
 
 ## Authentication
 
@@ -86,7 +107,7 @@ Each user has a role (`admin` or `user`) in the database. Role-based access cont
 The features that touch Docker use the same arrangement: a domain port gives the capability in business terms, and one infrastructure adapter speaks to the daemon. Thus the use cases stay independent of the container technology. The container runtime is structural, so `core/` owns that port.
 
 - **Deploy**: the operation extracts the source archive, builds or pulls the images the compose file needs, stops the old stack, labels each new resource, starts the stack, and captures a limited quantity of start-up output. It reports each line while it operates, so the run is visible in the live log.
-- **Logs**: one port gives the write, the read, the end and the removal of the output of a deployment. See [Deployment log store](#deployment-log-store).
+- **Logs**: one port gives the write, the read, the end and the removal of the output of a deployment, and a second port follows the output of a container that runs and gives it the same way. See [Deployment log store](#deployment-log-store) and [Runtime log store](#runtime-log-store).
 - **Cleanup**: deleting a deployment or a service removes its log rows and, for a service, the containers, the networks and the images that GitPaaS built. It is best-effort: a daemon failure does not stop the delete operation in the database.
 - **Labelling**: GitPaaS uses the same daemon as the control plane and as the third-party stacks, so every resource it creates carries a marker label and a project label. The maintenance operations of the server select only labelled resources, so they never touch the control plane.
 
