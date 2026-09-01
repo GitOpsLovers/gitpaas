@@ -6,14 +6,16 @@ This capability groups the services of the platform. A project belongs to one na
 
 ## The project record
 
-The system SHALL keep one record per project. The record holds the identifier, the name, the identifier of the namespace and the count of the services.
+The system SHALL keep one record per project. The record holds the identifier, the name, the description, the identifier of the namespace, the date of creation and the count of the services.
 
 The identifier is a UUID that the database generates. The system SHALL calculate the count of the services from the services that belong to the project.
+
+The description is optional, and it holds an empty text when a caller gives none. It carries at most 500 characters. The date of creation is the instant the database wrote the record, and the system never changes it.
 
 ### Scenario: The system gives a project
 
 - **WHEN** a client reads a project
-- **THEN** the system gives the identifier, the name, the identifier of the namespace and the count of the services
+- **THEN** the system gives the identifier, the name, the description, the identifier of the namespace, the date of creation and the count of the services
 
 ### Scenario: The system creates or changes a project
 
@@ -86,7 +88,7 @@ The system SHALL answer with one project at `GET /api/v1/namespaces/:namespaceId
 
 The system SHALL create a project at `POST /api/v1/namespaces/:namespaceId/projects`.
 
-The body holds only the name. The system SHALL take the identifier of the namespace from the path.
+The body holds the name and, optionally, the description. The system SHALL take the identifier of the namespace from the path.
 
 ### Scenario: The body is correct
 
@@ -100,7 +102,7 @@ The body holds only the name. The system SHALL take the identifier of the namesp
 
 ## Change of a project
 
-The system SHALL change the name of a project at `PUT /api/v1/namespaces/:namespaceId/projects/:id`.
+The system SHALL change the name and the description of a project at `PUT /api/v1/namespaces/:namespaceId/projects/:id`.
 
 ### Scenario: The project exists in that namespace
 
@@ -163,6 +165,20 @@ The system SHALL show one of four states:
 - **WHEN** the API answers with an empty list
 - **THEN** the screen shows the panel "No projects yet." with the button "Create your first project"
 
+## The content of a card
+
+Each card SHALL show the description of the project, truncated after two lines, and the date of creation. The card shows no description when the project holds none.
+
+### Scenario: The project holds a description
+
+- **WHEN** the list shows a project whose description is not empty
+- **THEN** the card shows that description, cut after two lines, and the date of creation
+
+### Scenario: The project holds no description
+
+- **WHEN** the list shows a project whose description is empty
+- **THEN** the card shows the date of creation alone, and no line for the description
+
 ## The actions of a card
 
 Each card SHALL give three actions:
@@ -203,14 +219,16 @@ After a removal that succeeds, the system SHALL show a message of success, and i
 - **WHEN** the user removes a project that holds services
 - **THEN** the question warns about the project only, and the services go away with it
 
-## The field of the form
+## The fields of the form
 
-The system SHALL show a form with one field: the name of the project. The system SHALL take the identifier of the namespace from the path, and the user does not give it.
+The system SHALL show a form with two fields: the name of the project, and its description. The system SHALL take the identifier of the namespace from the path, and the user does not give it.
+
+The description is optional, and it takes a text area limited to 500 characters. The screen SHALL show a counter of the characters that the user typed, out of the limit.
 
 ### Scenario: The user opens the screen
 
 - **WHEN** a signed-in user opens the screen
-- **THEN** the system shows an empty field for the name
+- **THEN** the system shows an empty field for the name, and an empty field for the description
 
 ## The check before the creation
 
@@ -241,12 +259,12 @@ The name of a project must be unique inside its namespace. See the requirement *
 
 ## The load of the project
 
-The system SHALL read the project of the path, and it SHALL put the name into the field.
+The system SHALL read the project of the path, and it SHALL put the name and the description into their fields.
 
 ### Scenario: The project arrives
 
 - **WHEN** the API answers with the project
-- **THEN** the system puts the name of that project into the field
+- **THEN** the system puts the name and the description of that project into their fields
 
 ### Scenario: The reading still runs
 
@@ -302,6 +320,20 @@ The system SHALL show one of four states:
 
 - **WHEN** the project holds no service
 - **THEN** the screen shows the panel "No services yet." with the button "Create your first service"
+
+## The content of a card of a service
+
+Each card SHALL show the description of the service, truncated after two lines, and the date of creation. The card shows no description when the service holds none. The card also shows the bullet of the live state of the service. See the requirement *The bullet of the state of a service* of the capability [services](./services.md).
+
+### Scenario: The service holds a description
+
+- **WHEN** the list shows a service whose description is not empty
+- **THEN** the card shows that description, cut after two lines, and the date of creation
+
+### Scenario: The service holds no description
+
+- **WHEN** the list shows a service whose description is empty
+- **THEN** the card shows the date of creation alone, and no line for the description
 
 ## The actions of a card of a service
 

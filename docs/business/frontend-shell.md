@@ -132,6 +132,27 @@ The system SHALL give the error state and the empty state of a screen a minimum 
 - **WHEN** the call to the API succeeds, and it returns no item
 - **THEN** the system shows the empty message at the minimum height of the loaded content, and not a shorter box
 
+## The icon of the main title
+
+The system SHALL show the icon of its section before the main title of every screen, next to the trail of the navigation.
+
+The icon names the kind of the record that the screen holds: a screen of a project shows the icon "folder", and a screen of a service shows the icon "layers". A screen that names no record of that kind shows the icon of its section of the sidebar, for example, and the dashboard shows the icon "grid".
+
+### Scenario: The user opens a screen of a project
+
+- **WHEN** a signed-in user opens a screen of a project
+- **THEN** the system shows the icon "folder" before the main title
+
+### Scenario: The user opens a screen of a service
+
+- **WHEN** a signed-in user opens a screen of a service
+- **THEN** the system shows the icon "layers" before the main title
+
+### Scenario: The user opens the dashboard
+
+- **WHEN** a signed-in user opens the dashboard
+- **THEN** the system shows the icon "grid" before the main title
+
 ## The trail of the navigation
 
 The system SHALL show a trail of the navigation at the top of each screen that lies below the first level.

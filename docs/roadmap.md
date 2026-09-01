@@ -15,4 +15,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
 - [user-profile-and-2fa](./roadmap/user-profile-and-2fa/TODO.md): the section of the profile of the user, and the second factor with Google Authenticator.
 - [service-runtime-logs](./roadmap/service-runtime-logs/TODO.md): the logs of the container that runs, in the tab Logs of a service.
-- [ui-improvements](./roadmap/ui-improvements/TODO.md): the description and the date of creation of a project and of a service, the bullet of the state of a service, and the icon of the main title.
