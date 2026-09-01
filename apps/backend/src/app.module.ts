@@ -16,6 +16,7 @@ import { DomainsModule } from '@features/domains/domains.module';
 import { LogsModule } from '@features/logs/logs.module';
 import { NamespacesModule } from '@features/namespaces/namespaces.module';
 import { NetworksModule } from '@features/networks/networks.module';
+import { ProfileModule } from '@features/profile/profile.module';
 import { ProjectsModule } from '@features/projects/projects.module';
 import { ProvidersModule } from '@features/providers/providers.module';
 import { ServerModule } from '@features/server/server.module';
@@ -49,6 +50,7 @@ import { UsersModule } from '@features/users/users.module';
         }),
         UsersModule,
         AuthenticationModule,
+        ProfileModule,
         NamespacesModule,
         ProjectsModule,
         ProvidersModule,

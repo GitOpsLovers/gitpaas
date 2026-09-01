@@ -18,13 +18,13 @@ A user of GitPaaS reads nothing about the own account, and changes nothing in it
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/profile/`, `packages/contracts/src/profile/`
 
-- [ ] 2.1 Write the contracts of the profile: the read of the profile, the change of the display name, the change of the email address, and the change of the password.
-- [ ] 2.2 Create the feature `profile` with its module, its controller `/api/v1/profile` and its use cases, all of them scoped to the user of the token.
-- [ ] 2.3 `GET /profile` returns the account with its display name, its role, its date of creation and the state of its second factor.
-- [ ] 2.4 `PATCH /profile/name` changes the display name.
-- [ ] 2.5 `PATCH /profile/email` changes the email address, refuses an address that another user holds, and returns a new pair of tokens.
-- [ ] 2.6 `PATCH /profile/password` verifies the current password, writes the new hash, revokes every refresh token with `revokeAllForUser`, and returns a new pair of tokens.
-- [ ] 2.7 Write the unit tests of the controller and of every use case.
+- [x] 2.1 Write the contracts of the profile: the read of the profile, the change of the display name, the change of the email address, and the change of the password.
+- [x] 2.2 Create the feature `profile` with its module, its controller `/api/v1/profile` and its use cases, all of them scoped to the user of the token.
+- [x] 2.3 `GET /profile` returns the account with its display name, its role, its date of creation and the state of its second factor.
+- [x] 2.4 `PATCH /profile/name` changes the display name.
+- [x] 2.5 `PATCH /profile/email` changes the email address, refuses an address that another user holds, and returns a new pair of tokens.
+- [x] 2.6 `PATCH /profile/password` verifies the current password, writes the new hash, revokes every refresh token with `revokeAllForUser`, and returns a new pair of tokens.
+- [x] 2.7 Write the unit tests of the controller and of every use case.
 
 ## Phase 3 — The second factor
 
