@@ -1,0 +1,27 @@
+docs/business.md
+  s_b94a4c2ad80a2c::t_1471beed58522c 20
+docs/business/auth.md
+  s_b94a4c2ad80a2c::t_e0d25f609844a1 11,25,30,32,34,36,61,65-99,265-280,283-285,287,289,291,293,296-305
+docs/business/frontend-shell.md
+  s_b94a4c2ad80a2c::t_87a74fef74233d 67-80,83,90,102-106
+docs/business/profile.md
+  s_b94a4c2ad80a2c::t_0f19d88a7de4bf 1-151
+docs/business/users.md
+  s_b94a4c2ad80a2c::t_de3ef7bd954a5c 9,11,27,29,31,33,35-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e0e56c178dea2e2872a2e58a5bc538fb3035d8b5",
+  "prompts": {},
+  "sessions": {
+    "s_b94a4c2ad80a2c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a08d5e15b89ce1c35",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
