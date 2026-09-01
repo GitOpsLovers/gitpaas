@@ -56,10 +56,10 @@ A user of GitPaaS reads nothing about the own account, and changes nothing in it
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/features/authentication/`, `apps/frontend/src/app/layout/`
 
-- [ ] 5.1 Show the display name, the email address and the avatar of `currentUser` in the header, in place of the literal text `Admin`.
-- [ ] 5.2 Add the link to `/profile` in the menu of the header, above the action to sign out.
-- [ ] 5.3 Add the second step to the screen of the sign-in: the field of the code of six digits appears when the login answers a challenge.
-- [ ] 5.4 Write the unit tests of the header and of the two steps of the sign-in.
+- [x] 5.1 Show the display name, the email address and the avatar of `currentUser` in the header, in place of the literal text `Admin`.
+- [x] 5.2 Add the link to `/profile` in the menu of the header, above the action to sign out.
+- [x] 5.3 Add the second step to the screen of the sign-in: the field of the code of six digits appears when the login answers a challenge.
+- [x] 5.4 Write the unit tests of the header and of the two steps of the sign-in.
 
 ## Phase 6 — The documentation
 

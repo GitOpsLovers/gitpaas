@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import type { AuthTokens } from '@gitpaas/contracts';
+import type { AuthTokens, TwoFactorChallenge } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
@@ -11,12 +11,15 @@ import { AuthService } from './auth.service';
 
 const tokens: AuthTokens = { accessToken: 'access-1', refreshToken: 'refresh-1' };
 
+const challenge: TwoFactorChallenge = { twoFactorRequired: true, challengeToken: 'challenge-1' };
+
 describe('AuthService', () => {
     let service: AuthService;
     let accessToken: ReturnType<typeof signal<string | null>>;
     let refreshTokenValue: string | null;
     let repository: {
         login: ReturnType<typeof vi.fn>;
+        verifyTwoFactor: ReturnType<typeof vi.fn>;
         logout: ReturnType<typeof vi.fn>;
         me: ReturnType<typeof vi.fn>;
     };
@@ -33,6 +36,7 @@ describe('AuthService', () => {
         refreshTokenValue = null;
         repository = {
             login: vi.fn(),
+            verifyTwoFactor: vi.fn(),
             logout: vi.fn(),
             me: vi.fn(),
         };
@@ -96,10 +100,54 @@ describe('AuthService', () => {
             expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
         });
 
+        test('stores nothing and navigates nowhere when the API answers a challenge', () => {
+            repository.login.mockReturnValue(of(challenge));
+            let result: unknown;
+
+            service.login({ email: 'user@example.com', password: 'secret' }, true)
+                .subscribe((value) => { result = value; });
+
+            expect(result).toEqual(challenge);
+            expect(tokenStorage.store).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+
         test('does not store tokens or navigate when login fails', () => {
             repository.login.mockReturnValue(throwError(() => new Error('bad credentials')));
 
             service.login({ email: 'a', password: 'b' }, false).subscribe({ error: () => {} });
+
+            expect(tokenStorage.store).not.toHaveBeenCalled();
+            expect(router.navigateByUrl).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('verifyTwoFactor', () => {
+        test('sends the challenge and the code, stores the tokens and opens the dashboard', () => {
+            repository.verifyTwoFactor.mockReturnValue(of(tokens));
+            const dto = { challengeToken: 'challenge-1', code: '123456' };
+
+            service.verifyTwoFactor(dto, true).subscribe();
+
+            expect(repository.verifyTwoFactor).toHaveBeenCalledWith(dto);
+            expect(tokenStorage.store).toHaveBeenCalledWith(tokens, true);
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+        });
+
+        test('opens the address of the return the caller kept', () => {
+            repository.verifyTwoFactor.mockReturnValue(of(tokens));
+
+            service.verifyTwoFactor({ challengeToken: 'challenge-1', code: '123456' }, false, '/providers?added=1')
+                .subscribe();
+
+            expect(router.navigateByUrl).toHaveBeenCalledWith('/providers?added=1');
+        });
+
+        test('does not store tokens or navigate when the code is refused', () => {
+            repository.verifyTwoFactor.mockReturnValue(throwError(() => new Error('bad code')));
+
+            service.verifyTwoFactor({ challengeToken: 'challenge-1', code: '000000' }, false)
+                .subscribe({ error: () => {} });
 
             expect(tokenStorage.store).not.toHaveBeenCalled();
             expect(router.navigateByUrl).not.toHaveBeenCalled();

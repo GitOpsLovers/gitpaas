@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { AuthTokens, LoginDto, User } from '@gitpaas/contracts';
+import type { AuthTokens, LoginDto, LoginResult, User, VerifyTwoFactorDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -20,10 +20,21 @@ export class AuthenticationApiRepository {
      *
      * @param dto Credentials to authenticate with
      *
+     * @returns The token pair, or the challenge of the second factor
+     */
+    public login(dto: LoginDto): Observable<LoginResult> {
+        return this.http.post<LoginResult>(`${this.url}/login`, dto);
+    }
+
+    /**
+     * Completes the second step of a login with the challenge and a code of six digits
+     *
+     * @param dto Challenge token and code of the authenticator
+     *
      * @returns Access + refresh token pair
      */
-    public login(dto: LoginDto): Observable<AuthTokens> {
-        return this.http.post<AuthTokens>(`${this.url}/login`, dto);
+    public verifyTwoFactor(dto: VerifyTwoFactorDto): Observable<AuthTokens> {
+        return this.http.post<AuthTokens>(`${this.url}/2fa/verify`, dto);
     }
 
     /**

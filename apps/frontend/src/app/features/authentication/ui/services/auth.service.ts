@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { AuthTokens, LoginDto, User } from '@gitpaas/contracts';
+import type { AuthTokens, LoginDto, LoginResult, TwoFactorChallenge, User, VerifyTwoFactorDto } from '@gitpaas/contracts';
 import { finalize, Observable, tap } from 'rxjs';
 
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
@@ -24,6 +24,17 @@ function safeDestination(returnUrl: string | null | undefined): string {
     }
 
     return returnUrl;
+}
+
+/**
+ * States that a login answered the challenge of the second factor, and no pair of tokens.
+ *
+ * @param result Answer the login gave
+ *
+ * @returns True when the answer carries a challenge
+ */
+export function isTwoFactorChallenge(result: LoginResult): result is TwoFactorChallenge {
+    return 'twoFactorRequired' in result;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,14 +68,36 @@ export class AuthService {
      * @param rememberMe When true persist the session across browser restarts
      * @param returnUrl Address to open after the sign-in; the dashboard by default
      *
+     * @returns Observable emitting the issued token pair, or the challenge of the second factor
+     */
+    public login(dto: LoginDto, rememberMe: boolean, returnUrl?: string | null): Observable<LoginResult> {
+        return this.repository.login(dto).pipe(
+            tap((result) => {
+                if (isTwoFactorChallenge(result)) {
+                    return;
+                }
+
+                this.openSession(result, rememberMe, returnUrl);
+            }),
+        );
+    }
+
+    /**
+     * Completes the second step of the login, persists the tokens and opens the asked address
+     *
+     * @param dto Challenge token and code of the authenticator
+     * @param rememberMe When true persist the session across browser restarts
+     * @param returnUrl Address to open after the sign-in; the dashboard by default
+     *
      * @returns Observable emitting the issued token pair
      */
-    public login(dto: LoginDto, rememberMe: boolean, returnUrl?: string | null): Observable<AuthTokens> {
-        return this.repository.login(dto).pipe(
-            tap((tokens) => {
-                this.tokenStorage.store(tokens, rememberMe);
-                this.router.navigateByUrl(safeDestination(returnUrl));
-            }),
+    public verifyTwoFactor(
+        dto: VerifyTwoFactorDto,
+        rememberMe: boolean,
+        returnUrl?: string | null,
+    ): Observable<AuthTokens> {
+        return this.repository.verifyTwoFactor(dto).pipe(
+            tap((tokens) => { this.openSession(tokens, rememberMe, returnUrl); }),
         );
     }
 
@@ -100,5 +133,17 @@ export class AuthService {
         return this.repository.me().pipe(
             tap((user) => { this.currentUserSignal.set(user); }),
         );
+    }
+
+    /**
+     * Persists the pair of tokens and opens the address the sign-in asked for
+     *
+     * @param tokens Pair of tokens the platform issued
+     * @param rememberMe When true persist the session across browser restarts
+     * @param returnUrl Address to open after the sign-in; the dashboard by default
+     */
+    private openSession(tokens: AuthTokens, rememberMe: boolean, returnUrl?: string | null): void {
+        this.tokenStorage.store(tokens, rememberMe);
+        this.router.navigateByUrl(safeDestination(returnUrl));
     }
 }
