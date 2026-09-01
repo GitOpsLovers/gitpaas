@@ -1,0 +1,14 @@
+AAAAAAAAAA
+  h_e4f33aa49027b9 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1ef96f0966f4ed8b972c9cc5002b893f97e3acf3",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
