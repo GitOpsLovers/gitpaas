@@ -1,0 +1,87 @@
+apps/backend/.env.example
+  s_02cc7d5abb33cd::t_b2b66d88225dff 10
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_02cc7d5abb33cd::t_4cd07bdc6581e1 139-156
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_02cc7d5abb33cd::t_3f2efd3eab746c 41-45,68
+apps/backend/src/features/logs/application/__tests__/follow-running-containers.use-case.spec.ts
+  s_02cc7d5abb33cd::t_a05847ef70c01b 1-140
+apps/backend/src/features/logs/application/follow-running-containers.use-case.ts
+  s_02cc7d5abb33cd::t_b8aae23cf6bc7f 1-36
+apps/backend/src/features/logs/application/remove-expired-runtime-logs.use-case.ts
+  s_02cc7d5abb33cd::t_48fb0828eebafd 1-31
+apps/backend/src/features/logs/domain/dtos/create-runtime-log.dto.ts
+  s_02cc7d5abb33cd::t_b3752ce3098bde 1-11
+apps/backend/src/features/logs/domain/models/runtime-log.models.ts
+  s_02cc7d5abb33cd::t_49a5dcf1fc262b 1-21
+apps/backend/src/features/logs/domain/ports/runtime-log-follower.port.ts
+  s_02cc7d5abb33cd::t_859f93587bc485 1-27
+apps/backend/src/features/logs/domain/ports/runtime-log-store.port.ts
+  s_02cc7d5abb33cd::t_615435d56ca6cf 1-53
+apps/backend/src/features/logs/domain/repositories/runtime-logs.repository.ts
+  s_02cc7d5abb33cd::t_b45a4b2a573f23 1-34
+apps/backend/src/features/logs/infrastructure/database/db-runtime-log.entity.ts
+  s_02cc7d5abb33cd::t_3acb399c114f7f 1-31
+apps/backend/src/features/logs/infrastructure/database/db-runtime-logs.repository.ts
+  s_02cc7d5abb33cd::t_4ecee5b3b2b2ff 1-58
+apps/backend/src/features/logs/infrastructure/database/db-runtime-logs.transformer.ts
+  s_02cc7d5abb33cd::t_55b2e9b483e089 1-22
+apps/backend/src/features/logs/infrastructure/docker/docker-runtime-log-follower.adapter.ts
+  s_02cc7d5abb33cd::t_ca676df947be22 1-121
+apps/backend/src/features/logs/infrastructure/memory/memory-runtime-log-store.adapter.ts
+  s_02cc7d5abb33cd::t_395df89523a71e 1-154
+apps/backend/src/features/logs/infrastructure/memory/runtime-log-store.constants.ts
+  s_02cc7d5abb33cd::t_6b42b3b624fbda 1-14
+apps/backend/src/features/logs/infrastructure/memory/runtime-log-store.transformer.ts
+  s_02cc7d5abb33cd::t_fa43c0ccd67c1b 1-42
+apps/backend/src/features/logs/logs.module.ts
+  s_02cc7d5abb33cd::t_e6302733f00ea7 6-9,12,25,32,34-36,39
+apps/backend/src/features/logs/ui/jobs/__tests__/remove-expired-logs.job.spec.ts
+  s_02cc7d5abb33cd::t_3b421f8a30453b 1-2,5,14,18,20,29-30,41,43,117-186
+apps/backend/src/features/logs/ui/jobs/follow-running-containers.job.ts
+  s_02cc7d5abb33cd::t_d2a0693e108394 1-42
+apps/backend/test/setup-env.ts
+  s_02cc7d5abb33cd::t_0caf4e7c07dc2c 39
+docs/roadmap/service-runtime-logs/TODO.md
+  s_02cc7d5abb33cd::t_98942cec5728d1 24-28
+apps/backend/src/features/logs/application/__tests__/remove-expired-runtime-logs.use-case.spec.ts
+  s_679ec15d446846::t_61490ee8ea7ff7 1-121
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-runtime-logs.repository.spec.ts
+  s_679ec15d446846::t_01a04bf67af319 1-149
+apps/backend/src/features/logs/infrastructure/database/__tests__/db-runtime-logs.transformer.spec.ts
+  s_679ec15d446846::t_b99e2a729636a4 1-40
+apps/backend/src/features/logs/infrastructure/docker/__tests__/docker-runtime-log-follower.adapter.spec.ts
+  s_679ec15d446846::t_7aca7577d09133 1-266
+apps/backend/src/features/logs/infrastructure/memory/__tests__/memory-runtime-log-store.adapter.spec.ts
+  s_679ec15d446846::t_21e15ce6bc163c 1-315
+apps/backend/src/features/logs/infrastructure/memory/__tests__/runtime-log-store.transformer.spec.ts
+  s_679ec15d446846::t_e337e8099443de 1-48
+apps/backend/src/features/logs/ui/jobs/__tests__/follow-running-containers.job.spec.ts
+  s_679ec15d446846::t_94497090a414c8 1-72
+apps/backend/src/features/logs/ui/jobs/remove-expired-logs.job.ts
+  s_679ec15d446846::t_a9edd85139ecdb 2,6,9,11,23-25,31-32,34-37,59-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "df000605575882baddf1b8f0507861d551d0b973",
+  "prompts": {},
+  "sessions": {
+    "s_02cc7d5abb33cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd0c41ec-7eae-4875-b7c8-51fda46bcee8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_679ec15d446846": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad364e604bf43cc63",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
