@@ -1,0 +1,64 @@
+packages/contracts/src/profile/profile.contract.ts
+  s_9d6cf85b5b86aa::t_c6f8410402f3d8 1-60
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_9d6cf85b5b86aa::t_c202bc25244260 42-44
+apps/backend/src/features/profile/profile.module.ts
+  s_9d6cf85b5b86aa::t_fd36803ebe521c 1-18
+apps/backend/src/core/ui/translators/__tests__/http-error.translator.spec.ts
+  s_9d6cf85b5b86aa::t_b1e24f6cee7a73 122-134
+apps/backend/src/features/profile/ui/services/profile.service.ts
+  s_9d6cf85b5b86aa::t_9a905d84c31bf0 1-106
+apps/backend/src/features/profile/application/change-password.use-case.ts
+  s_9d6cf85b5b86aa::t_3259d1b3e1d2a4 1-58
+apps/backend/src/features/profile/application/__tests__/update-display-name.use-case.spec.ts
+  s_9d6cf85b5b86aa::t_7cb4393fb6544b 1-74
+apps/backend/src/features/profile/ui/controllers/profile.controller.ts
+  s_9d6cf85b5b86aa::t_7f3992461bf69f 1-109
+apps/backend/src/features/profile/application/change-email.use-case.ts
+  s_9d6cf85b5b86aa::t_7070e7ec6cd485 1-43
+apps/backend/src/features/profile/ui/controllers/__tests__/profile.controller.spec.ts
+  s_9d6cf85b5b86aa::t_531c09be78afcb 1-196
+apps/backend/src/app.module.ts
+  s_9d6cf85b5b86aa::t_17d81cde8ab08f 19,53
+apps/backend/src/features/profile/domain/errors/__tests__/profile.errors.spec.ts
+  s_9d6cf85b5b86aa::t_76802ad386a821 1-59
+apps/backend/src/features/profile/application/__tests__/change-password.use-case.spec.ts
+  s_9d6cf85b5b86aa::t_aead06e1f5d0b8 1-181
+apps/backend/src/features/profile/application/__tests__/get-profile.use-case.spec.ts
+  s_9d6cf85b5b86aa::t_d0090b597253ed 1-65
+apps/backend/src/features/profile/application/update-display-name.use-case.ts
+  s_9d6cf85b5b86aa::t_2fa51cdd5c793c 1-29
+docs/roadmap/user-profile-and-2fa/TODO.md
+  s_9d6cf85b5b86aa::t_23b548284866ec 21-27
+apps/backend/src/features/profile/domain/errors/profile.errors.ts
+  s_9d6cf85b5b86aa::t_18dc64de783999 1-28
+packages/contracts/src/index.ts
+  s_9d6cf85b5b86aa::t_c5b337adc765d2 48-62
+apps/backend/src/features/profile/ui/services/__tests__/profile.service.spec.ts
+  s_9d6cf85b5b86aa::t_3f3595c7c44d32 1-193
+apps/backend/src/features/profile/application/get-profile.use-case.ts
+  s_9d6cf85b5b86aa::t_1e4f81d8906104 1-24
+apps/backend/src/features/authentication/authentication.module.ts
+  s_9d6cf85b5b86aa::t_8f7070f0872078 51
+apps/backend/src/features/profile/application/__tests__/change-email.use-case.spec.ts
+  s_9d6cf85b5b86aa::t_3d632f50700df8 1-135
+packages/contracts/src/profile/__tests__/profile.contract.spec.ts
+  s_9d6cf85b5b86aa::t_570b050491791b 2-107
+  s_9d6cf85b5b86aa::t_fb2375f0faf004 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "2ddfa10751672558f1cc1a097a317dac69f1b704",
+  "prompts": {},
+  "sessions": {
+    "s_9d6cf85b5b86aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d97fa95b-6627-4605-a9b4-73e2138896a9",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
