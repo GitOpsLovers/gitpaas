@@ -9,10 +9,10 @@ The check becomes advisory. The operator writes the public address of the host i
 **Agent:** implementer
 **Paths:** packages/contracts/src/server/, apps/backend/src/features/server/
 
-- [ ] 1.1 Add the field `publicHostAddress` to `platformSettingsSchema`, as an optional address IPv4 or IPv6, and add its column with its migration.
-- [ ] 1.2 Replace `HttpPublicHostAddressAdapter` with a read of that field, and delete the constants of `api.ipify.org`.
-- [ ] 1.3 Resolve the record AAAA in `NodeDnsResolverAdapter`, and return one merged list with the record A.
-- [ ] 1.4 Update the tests of the adapter of the DNS, of the port of the address of the host, and of the settings.
+- [x] 1.1 Add the field `publicHostAddress` to `platformSettingsSchema`, as an optional address IPv4 or IPv6, and add its column with its migration.
+- [x] 1.2 Replace `HttpPublicHostAddressAdapter` with a read of that field, and delete the constants of `api.ipify.org`.
+- [x] 1.3 Resolve the record AAAA in `NodeDnsResolverAdapter`, and return one merged list with the record A.
+- [x] 1.4 Update the tests of the adapter of the DNS, of the port of the address of the host, and of the settings.
 
 ## Phase 2 — The recognition of Cloudflare
 

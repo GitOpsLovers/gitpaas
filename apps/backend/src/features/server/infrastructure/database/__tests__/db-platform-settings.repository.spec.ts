@@ -8,6 +8,7 @@ const settingsEntity = (overrides: Partial<DbPlatformSettingsEntity> = {}): DbPl
     id: PLATFORM_SETTINGS_ROW_ID,
     logRetentionDays: 30,
     gitpaasDomain: null,
+    publicHostAddress: null,
     updatedAt: new Date('2026-08-21T00:00:00.000Z'),
     ...overrides,
 });
@@ -54,6 +55,7 @@ describe('DatabasePlatformSettingsRepository', () => {
                 id: PLATFORM_SETTINGS_ROW_ID,
                 logRetentionDays: 45,
                 gitpaasDomain: null,
+                publicHostAddress: null,
             });
             expect(result).toEqual({ logRetentionDays: 45 });
         });
@@ -69,8 +71,35 @@ describe('DatabasePlatformSettingsRepository', () => {
                 id: PLATFORM_SETTINGS_ROW_ID,
                 logRetentionDays: 45,
                 gitpaasDomain: 'gitpaas.example.com',
+                publicHostAddress: null,
             });
             expect(result.gitpaasDomain).toBe('gitpaas.example.com');
+        });
+
+        it('writes the public address of the host into the column of the row', async () => {
+            mockRepository.save.mockResolvedValue(
+                settingsEntity({ logRetentionDays: 45, publicHostAddress: '203.0.113.10' }),
+            );
+
+            const result = await sut.save({ logRetentionDays: 45, publicHostAddress: '203.0.113.10' });
+
+            expect(mockRepository.save).toHaveBeenCalledWith({
+                id: PLATFORM_SETTINGS_ROW_ID,
+                logRetentionDays: 45,
+                gitpaasDomain: null,
+                publicHostAddress: '203.0.113.10',
+            });
+            expect(result.publicHostAddress).toBe('203.0.113.10');
+        });
+
+        it('empties the column of the public address of the host when the parameters carry none', async () => {
+            mockRepository.save.mockResolvedValue(settingsEntity({ logRetentionDays: 45 }));
+
+            await sut.save({ logRetentionDays: 45 });
+
+            expect(mockRepository.save).toHaveBeenCalledWith(
+                expect.objectContaining({ publicHostAddress: null }),
+            );
         });
 
         it('empties the column of the host when the parameters carry none', async () => {

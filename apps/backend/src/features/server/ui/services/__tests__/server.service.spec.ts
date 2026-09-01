@@ -15,6 +15,7 @@ import { updatePlatformSettingsUseCase } from '../../../application/update-platf
 import { InvalidLogRetentionError, ReleaseSourceUnavailableError } from '../../../domain/errors/server.errors';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../../infrastructure/database/db-platform-updates.repository';
+import { DatabasePublicHostAddressAdapter } from '../../../infrastructure/database/db-public-host-address.adapter';
 import { NodeDnsResolverAdapter } from '../../../infrastructure/dns/node-dns-resolver.adapter';
 import { DockerOrphanContainersAdapter } from '../../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../../infrastructure/docker/docker-server-pruner.adapter';
@@ -26,7 +27,6 @@ import { FrontendHealthProbeAdapter } from '../../../infrastructure/health/front
 import { PostgresHealthProbeAdapter } from '../../../infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from '../../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../../infrastructure/health/redis-health-probe.adapter';
-import { HttpPublicHostAddressAdapter } from '../../../infrastructure/network/http-public-host-address.adapter';
 import { GithubReleaseSourceAdapter } from '../../../infrastructure/release/github-release-source.adapter';
 import { MemoryLatestReleaseStoreAdapter } from '../../../infrastructure/release/memory-latest-release-store.adapter';
 import { ServerService } from '../server.service';
@@ -136,7 +136,7 @@ describe('ServerService', () => {
     let mockReleaseSource: jest.Mocked<GithubReleaseSourceAdapter>;
     let mockUpdateRunner: jest.Mocked<DockerUpdateRunnerAdapter>;
     let mockDnsResolver: jest.Mocked<NodeDnsResolverAdapter>;
-    let mockPublicHostAddress: jest.Mocked<HttpPublicHostAddressAdapter>;
+    let mockPublicHostAddress: jest.Mocked<DatabasePublicHostAddressAdapter>;
     let mockControlPlaneEnvFile: jest.Mocked<FileControlPlaneEnvAdapter>;
     let sut: ServerService;
 
@@ -159,7 +159,7 @@ describe('ServerService', () => {
         mockReleaseSource = {} as jest.Mocked<GithubReleaseSourceAdapter>;
         mockUpdateRunner = {} as jest.Mocked<DockerUpdateRunnerAdapter>;
         mockDnsResolver = {} as jest.Mocked<NodeDnsResolverAdapter>;
-        mockPublicHostAddress = {} as jest.Mocked<HttpPublicHostAddressAdapter>;
+        mockPublicHostAddress = {} as jest.Mocked<DatabasePublicHostAddressAdapter>;
         mockControlPlaneEnvFile = {} as jest.Mocked<FileControlPlaneEnvAdapter>;
         mockResolveServiceVersion.mockReturnValue('2.1.0');
 
@@ -182,7 +182,7 @@ describe('ServerService', () => {
                 { provide: GithubReleaseSourceAdapter, useValue: mockReleaseSource },
                 { provide: DockerUpdateRunnerAdapter, useValue: mockUpdateRunner },
                 { provide: NodeDnsResolverAdapter, useValue: mockDnsResolver },
-                { provide: HttpPublicHostAddressAdapter, useValue: mockPublicHostAddress },
+                { provide: DatabasePublicHostAddressAdapter, useValue: mockPublicHostAddress },
                 { provide: FileControlPlaneEnvAdapter, useValue: mockControlPlaneEnvFile },
             ],
         }).compile();

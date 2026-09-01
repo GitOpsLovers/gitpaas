@@ -6,6 +6,7 @@ const settingsEntity = (overrides: Partial<DbPlatformSettingsEntity> = {}): DbPl
     id: 1,
     logRetentionDays: 30,
     gitpaasDomain: null,
+    publicHostAddress: null,
     updatedAt: new Date('2026-08-21T00:00:00.000Z'),
     ...overrides,
 });
@@ -25,7 +26,21 @@ describe('toPlatformSettings', () => {
         expect(toPlatformSettings(settingsEntity({ gitpaasDomain: null })).gitpaasDomain).toBeUndefined();
     });
 
+    it('maps the public address of the host from the row of the settings', () => {
+        const result = toPlatformSettings(settingsEntity({ publicHostAddress: '2001:db8::1' }));
+
+        expect(result.publicHostAddress).toBe('2001:db8::1');
+    });
+
+    it('leaves the public address of the host absent while the column is empty', () => {
+        expect(toPlatformSettings(settingsEntity({ publicHostAddress: null })).publicHostAddress).toBeUndefined();
+    });
+
     it('never carries the columns of the storage of the row', () => {
-        expect(Object.keys(toPlatformSettings(settingsEntity()))).toEqual(['logRetentionDays', 'gitpaasDomain']);
+        expect(Object.keys(toPlatformSettings(settingsEntity()))).toEqual([
+            'logRetentionDays',
+            'gitpaasDomain',
+            'publicHostAddress',
+        ]);
     });
 });

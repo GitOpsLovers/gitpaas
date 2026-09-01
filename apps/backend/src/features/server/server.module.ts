@@ -5,6 +5,7 @@ import { DbPlatformSettingsEntity } from './infrastructure/database/db-platform-
 import { DatabasePlatformSettingsRepository } from './infrastructure/database/db-platform-settings.repository';
 import { DbPlatformUpdateEntity } from './infrastructure/database/db-platform-update.entity';
 import { DatabasePlatformUpdatesRepository } from './infrastructure/database/db-platform-updates.repository';
+import { DatabasePublicHostAddressAdapter } from './infrastructure/database/db-public-host-address.adapter';
 import { NodeDnsResolverAdapter } from './infrastructure/dns/node-dns-resolver.adapter';
 import { DockerOrphanContainersAdapter } from './infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from './infrastructure/docker/docker-server-pruner.adapter';
@@ -16,7 +17,6 @@ import { FrontendHealthProbeAdapter } from './infrastructure/health/frontend-hea
 import { PostgresHealthProbeAdapter } from './infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from './infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from './infrastructure/health/redis-health-probe.adapter';
-import { HttpPublicHostAddressAdapter } from './infrastructure/network/http-public-host-address.adapter';
 import { GithubReleaseSourceAdapter } from './infrastructure/release/github-release-source.adapter';
 import { MemoryLatestReleaseStoreAdapter } from './infrastructure/release/memory-latest-release-store.adapter';
 import { ServerController } from './ui/controllers/server.controller';
@@ -48,7 +48,7 @@ import { ServicesModule } from '@features/services/services.module';
         GithubReleaseSourceAdapter,
         MemoryLatestReleaseStoreAdapter,
         NodeDnsResolverAdapter,
-        HttpPublicHostAddressAdapter,
+        DatabasePublicHostAddressAdapter,
         FileControlPlaneEnvAdapter,
         CheckLatestReleaseJob,
         ReconcilePlatformUpdatesJob,

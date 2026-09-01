@@ -138,6 +138,7 @@ export {
     LOG_RETENTION_MAX_DAYS,
     LOG_RETENTION_MIN_DAYS,
     platformSettingsSchema,
+    publicHostAddress,
     updatePlatformSettingsSchema,
 } from './server/platform-settings.contract';
 export type { PlatformSettings, UpdatePlatformSettingsDto } from './server/platform-settings.contract';

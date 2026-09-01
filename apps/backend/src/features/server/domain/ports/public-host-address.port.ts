@@ -5,7 +5,7 @@ export interface PublicHostAddress {
     /**
      * Reads the public address of this host.
      *
-     * @returns The address, or `null` when the platform cannot read it
+     * @returns The address, or `null` when the operator saved none
      */
     read: () => Promise<string | null>;
 }

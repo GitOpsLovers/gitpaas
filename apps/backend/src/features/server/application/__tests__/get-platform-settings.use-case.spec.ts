@@ -78,6 +78,33 @@ describe('getPlatformSettingsUseCase', () => {
         expect(result.gitpaasDomain).toBeUndefined();
     });
 
+    it('returns the public address of the host the operator saved', async () => {
+        mockPlatformSettingsRepository.find.mockResolvedValue({
+            logRetentionDays: 90,
+            publicHostAddress: '203.0.113.10',
+        });
+
+        const result = await run();
+
+        expect(result.publicHostAddress).toBe('203.0.113.10');
+    });
+
+    it('leaves the public address of the host absent while the row carries none', async () => {
+        mockPlatformSettingsRepository.find.mockResolvedValue({ logRetentionDays: 90 });
+
+        const result = await run();
+
+        expect(result.publicHostAddress).toBeUndefined();
+    });
+
+    it('leaves the public address of the host absent while the operator saved no row', async () => {
+        mockPlatformSettingsRepository.find.mockResolvedValue(null);
+
+        const result = await run();
+
+        expect(result.publicHostAddress).toBeUndefined();
+    });
+
     it('propagates errors thrown by the repository', async () => {
         const error = new Error('connection terminated');
         mockPlatformSettingsRepository.find.mockRejectedValue(error);

@@ -45,7 +45,7 @@ export async function updatePlatformSettingsUseCase(
     envFile: ControlPlaneEnvFile,
     updateDto: UpdatePlatformSettingsDto,
 ): Promise<PlatformSettings> {
-    const { gitpaasDomain, logRetentionDays } = updateDto;
+    const { gitpaasDomain, logRetentionDays, publicHostAddress } = updateDto;
 
     if (
         !Number.isInteger(logRetentionDays)
@@ -78,7 +78,7 @@ export async function updatePlatformSettingsUseCase(
         }
     }
 
-    const saved = await settings.save({ logRetentionDays, gitpaasDomain });
+    const saved = await settings.save({ logRetentionDays, gitpaasDomain, publicHostAddress });
 
     if (gitpaasDomain !== undefined) {
         try {

@@ -31,6 +31,7 @@ import type { PlatformSettingsRepository } from '../../domain/repositories/platf
 import type { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
 import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../infrastructure/database/db-platform-updates.repository';
+import { DatabasePublicHostAddressAdapter } from '../../infrastructure/database/db-public-host-address.adapter';
 import { NodeDnsResolverAdapter } from '../../infrastructure/dns/node-dns-resolver.adapter';
 import { DockerOrphanContainersAdapter } from '../../infrastructure/docker/docker-orphan-containers.adapter';
 import { DockerServerPrunerAdapter } from '../../infrastructure/docker/docker-server-pruner.adapter';
@@ -42,7 +43,6 @@ import { FrontendHealthProbeAdapter } from '../../infrastructure/health/frontend
 import { PostgresHealthProbeAdapter } from '../../infrastructure/health/postgres-health-probe.adapter';
 import { ProxyHealthProbeAdapter } from '../../infrastructure/health/proxy-health-probe.adapter';
 import { RedisHealthProbeAdapter } from '../../infrastructure/health/redis-health-probe.adapter';
-import { HttpPublicHostAddressAdapter } from '../../infrastructure/network/http-public-host-address.adapter';
 import { GithubReleaseSourceAdapter } from '../../infrastructure/release/github-release-source.adapter';
 import { MemoryLatestReleaseStoreAdapter } from '../../infrastructure/release/memory-latest-release-store.adapter';
 
@@ -90,7 +90,7 @@ export class ServerService {
         private readonly updateRunner: UpdateRunner,
         @Inject(NodeDnsResolverAdapter)
         private readonly dns: DnsResolver,
-        @Inject(HttpPublicHostAddressAdapter)
+        @Inject(DatabasePublicHostAddressAdapter)
         private readonly publicAddress: PublicHostAddress,
         @Inject(FileControlPlaneEnvAdapter)
         private readonly envFile: ControlPlaneEnvFile,

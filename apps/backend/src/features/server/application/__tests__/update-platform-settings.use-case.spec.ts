@@ -148,6 +148,46 @@ describe('updatePlatformSettingsUseCase', () => {
         });
     });
 
+    it('writes the public address of the host the administrator gives', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({
+            logRetentionDays: 45,
+            publicHostAddress: '203.0.113.10',
+        });
+
+        await run({ logRetentionDays: 45, publicHostAddress: '203.0.113.10' });
+
+        expect(mockPlatformSettingsRepository.save).toHaveBeenCalledWith({
+            logRetentionDays: 45,
+            gitpaasDomain: undefined,
+            publicHostAddress: '203.0.113.10',
+        });
+    });
+
+    it('writes an address of IPv6 as the public address of the host', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({
+            logRetentionDays: 45,
+            publicHostAddress: '2001:db8::1',
+        });
+
+        await run({ logRetentionDays: 45, publicHostAddress: '2001:db8::1' });
+
+        expect(mockPlatformSettingsRepository.save).toHaveBeenCalledWith(
+            expect.objectContaining({ publicHostAddress: '2001:db8::1' }),
+        );
+    });
+
+    it('clears the public address of the host when the body carries none', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        await run({ logRetentionDays: 45 });
+
+        expect(mockPlatformSettingsRepository.save).toHaveBeenCalledWith({
+            logRetentionDays: 45,
+            gitpaasDomain: undefined,
+            publicHostAddress: undefined,
+        });
+    });
+
     it('throws an InvalidGitpaasDomainError when the host carries a single label', async () => {
         await expect(run({ logRetentionDays: 45, gitpaasDomain: 'localhost' })).rejects.toBeInstanceOf(
             InvalidGitpaasDomainError,
