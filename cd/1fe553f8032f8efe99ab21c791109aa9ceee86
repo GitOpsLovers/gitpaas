@@ -1,0 +1,21 @@
+docs/architecture/backend/key-flows.md
+  s_993e1e3d3c9ab2::t_26aee7574b0980 41,45,55-56,73-91,110
+docs/business/logs.md
+  s_993e1e3d3c9ab2::t_480e639c4623ed 5,277,279,281,285-355
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cd1fe553f8032f8efe99ab21c791109aa9ceee86",
+  "prompts": {},
+  "sessions": {
+    "s_993e1e3d3c9ab2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a46179c37692dc316",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
