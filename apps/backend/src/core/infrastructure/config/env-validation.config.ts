@@ -39,6 +39,11 @@ const enabledFlag = z
     .transform((value) => value === 'true');
 
 /**
+ * The number of days a line of the output of a container stays, when the environment names none
+ */
+const RUNTIME_LOGS_DEFAULT_RETENTION_DAYS = 7;
+
+/**
  * Shape and constraints of the environment variables the backend understands
  */
 const environmentSchema = z.object({
@@ -60,6 +65,7 @@ const environmentSchema = z.object({
     THROTTLE_STREAM_TTL: requiredNumber,
     THROTTLE_STREAM_LIMIT: requiredNumber,
     LOGS_MAX_LINES: requiredNumber,
+    RUNTIME_LOGS_RETENTION_DAYS: requiredNumber.min(1).default(RUNTIME_LOGS_DEFAULT_RETENTION_DAYS),
     TELEMETRY_SLOW_MS: requiredNumber.default(TELEMETRY_DEFAULT_SLOW_MS),
     TELEMETRY_SAMPLE_RATE: requiredNumber.min(0).max(1).default(TELEMETRY_DEFAULT_SAMPLE_RATE),
     PROXY_ACME_PATH: optionalText,

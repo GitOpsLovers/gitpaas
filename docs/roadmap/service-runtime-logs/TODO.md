@@ -21,11 +21,11 @@ Kubernetes stays out of scope, because the runtime of today is Docker alone.
 **Agent:** implementer
 **Paths:** apps/backend/src/features/logs/
 
-- [ ] 2.1 Add a store of the logs of the runtime, keyed by the identifier of the container. Keep the port `LogStore` of the deployment as it is.
-- [ ] 2.2 Write the lines to PostgreSQL on a limit of the size or on a limit of the time, and never on a completion.
-- [ ] 2.3 Add a follower that opens one stream of the daemon for each container that runs, and that closes it when the container stops.
-- [ ] 2.4 Add the retention of X days to the job that cleans the logs, and give the value in the configuration.
-- [ ] 2.5 Write the unit tests of the store, of the follower and of the retention.
+- [x] 2.1 Add a store of the logs of the runtime, keyed by the identifier of the container. Keep the port `LogStore` of the deployment as it is.
+- [x] 2.2 Write the lines to PostgreSQL on a limit of the size or on a limit of the time, and never on a completion.
+- [x] 2.3 Add a follower that opens one stream of the daemon for each container that runs, and that closes it when the container stops.
+- [x] 2.4 Add the retention of X days to the job that cleans the logs, and give the value in the configuration.
+- [x] 2.5 Write the unit tests of the store, of the follower and of the retention.
 
 ## Phase 3 — The endpoints of the logs of the runtime
 

@@ -36,6 +36,7 @@ const PLACEHOLDER_ENV: Record<string, string> = {
     THROTTLE_STREAM_LIMIT: '10',
 
     LOGS_MAX_LINES: '1000',
+    RUNTIME_LOGS_RETENTION_DAYS: '7',
 
     JWT_ACCESS_SECRET: 'test-access-secret',
     JWT_ACCESS_EXPIRES_IN: '15m',

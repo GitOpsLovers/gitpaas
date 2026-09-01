@@ -136,6 +136,24 @@ describe('validate', () => {
         expect(() => validate(env)).toThrow(/LOGS_MAX_LINES/);
     });
 
+    it('falls back to the default retention of the output of the containers when none is given', () => {
+        const result = validate(validEnv());
+
+        expect(result.RUNTIME_LOGS_RETENTION_DAYS).toBe(7);
+    });
+
+    it('coerces the retention of the output of the containers to a number', () => {
+        const result = validate({ ...validEnv(), RUNTIME_LOGS_RETENTION_DAYS: '30' });
+
+        expect(result.RUNTIME_LOGS_RETENTION_DAYS).toBe(30);
+    });
+
+    it('rejects a retention of the output of the containers under one day', () => {
+        expect(() => validate({ ...validEnv(), RUNTIME_LOGS_RETENTION_DAYS: '0' })).toThrow(
+            /RUNTIME_LOGS_RETENTION_DAYS/,
+        );
+    });
+
     it('falls back to the default telemetry sampling settings when none are given', () => {
         const result = validate(validEnv());
 
