@@ -132,6 +132,27 @@ describe('translateError', () => {
                 .toBeInstanceOf(UnauthorizedException);
         });
 
+        it('maps INVALID_TWO_FACTOR_CHALLENGE to an UnauthorizedException', () => {
+            expect(translateError(new CodedDomainError('INVALID_TWO_FACTOR_CHALLENGE')))
+                .toBeInstanceOf(UnauthorizedException);
+        });
+
+        it('maps INVALID_TOTP_CODE to an UnauthorizedException', () => {
+            expect(translateError(new CodedDomainError('INVALID_TOTP_CODE'))).toBeInstanceOf(UnauthorizedException);
+        });
+
+        it('maps TOTP_NOT_STARTED to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('TOTP_NOT_STARTED'))).toBeInstanceOf(ConflictException);
+        });
+
+        it('maps TOTP_ALREADY_ENABLED to a ConflictException', () => {
+            expect(translateError(new CodedDomainError('TOTP_ALREADY_ENABLED'))).toBeInstanceOf(ConflictException);
+        });
+
+        it('maps USER_NOT_FOUND to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('USER_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
+        });
+
         it('maps PROVIDER_RESOURCE_NOT_FOUND to a NotFoundException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_RESOURCE_NOT_FOUND')))
                 .toBeInstanceOf(NotFoundException);

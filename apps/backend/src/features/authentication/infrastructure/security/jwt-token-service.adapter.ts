@@ -4,17 +4,26 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 
-import { AccessTokenPayload, IssuedRefreshToken, RefreshTokenPayload } from '../../domain/models/token-payloads.models';
+import {
+    AccessTokenPayload,
+    IssuedRefreshToken,
+    RefreshTokenPayload,
+    TwoFactorChallengePayload,
+} from '../../domain/models/token-payloads.models';
 import { TokenService } from '../../domain/ports/token-service.port';
 
 /**
+ * Lifetime of the token that stands between the two steps of a login.
+ */
+const TWO_FACTOR_CHALLENGE_EXPIRES_IN = '5m';
+
+/**
+ * Value of the `typ` claim that marks a token as a challenge of the second factor.
+ */
+const TWO_FACTOR_CHALLENGE_TYPE = 'two_factor';
+
+/**
  * `@nestjs/jwt`-backed implementation of the {@link TokenService} port.
- *
- * Access tokens are signed with the module-configured access secret/expiry;
- * refresh tokens are signed with a separate long-lived secret/expiry and carry
- * a random `jti` correlating them with their persisted, revocable record. The
- * stored refresh hash is a SHA-256 digest — deterministic so it can be looked
- * up and compared without a per-row salt.
  */
 @Injectable()
 export class JwtTokenServiceAdapter implements TokenService {
@@ -22,12 +31,15 @@ export class JwtTokenServiceAdapter implements TokenService {
 
     private readonly refreshExpiresIn: JwtSignOptions['expiresIn'];
 
+    private readonly twoFactorSecret: string;
+
     constructor(
         private readonly jwt: JwtService,
         config: ConfigService,
     ) {
         this.refreshSecret = config.getOrThrow<string>('JWT_REFRESH_SECRET');
         this.refreshExpiresIn = config.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN') as JwtSignOptions['expiresIn'];
+        this.twoFactorSecret = config.getOrThrow<string>('JWT_2FA_SECRET');
     }
 
     public signAccessToken(payload: AccessTokenPayload): string {
@@ -59,5 +71,24 @@ export class JwtTokenServiceAdapter implements TokenService {
 
     public hashRefreshToken(token: string): string {
         return createHash('sha256').update(token).digest('hex');
+    }
+
+    public signTwoFactorChallenge(userId: string): string {
+        const claims: TwoFactorChallengePayload = { sub: userId, typ: TWO_FACTOR_CHALLENGE_TYPE };
+
+        return this.jwt.sign(claims, {
+            secret: this.twoFactorSecret,
+            expiresIn: TWO_FACTOR_CHALLENGE_EXPIRES_IN,
+        });
+    }
+
+    public verifyTwoFactorChallenge(token: string): TwoFactorChallengePayload {
+        const payload = this.jwt.verify<TwoFactorChallengePayload>(token, { secret: this.twoFactorSecret });
+
+        if (payload.typ !== TWO_FACTOR_CHALLENGE_TYPE) {
+            throw new Error('The token is not a challenge of the second factor');
+        }
+
+        return payload;
     }
 }

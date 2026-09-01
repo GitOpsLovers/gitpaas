@@ -26,3 +26,21 @@ export class InvalidCurrentPasswordError extends DomainError {
         super('INVALID_CURRENT_PASSWORD', 'Current password is incorrect', options);
     }
 }
+
+/**
+ * Raised when a confirmation of the second factor arrives before any setup drew a secret.
+ */
+export class TotpNotStartedError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super('TOTP_NOT_STARTED', 'No two-factor setup is in progress', options);
+    }
+}
+
+/**
+ * Raised when a setup or a confirmation of the second factor reaches an account that already holds one.
+ */
+export class TotpAlreadyEnabledError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super('TOTP_ALREADY_ENABLED', 'The second factor is already enabled', options);
+    }
+}

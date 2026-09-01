@@ -42,6 +42,7 @@ const PLACEHOLDER_ENV: Record<string, string> = {
     JWT_ACCESS_EXPIRES_IN: '15m',
     JWT_REFRESH_SECRET: 'test-refresh-secret',
     JWT_REFRESH_EXPIRES_IN: '7d',
+    JWT_2FA_SECRET: 'test-2fa-secret',
 };
 
 for (const [key, value] of Object.entries(PLACEHOLDER_ENV)) {

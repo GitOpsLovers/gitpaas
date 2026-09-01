@@ -24,6 +24,7 @@ const validEnv = (): Record<string, unknown> => ({
     JWT_ACCESS_EXPIRES_IN: '15m',
     JWT_REFRESH_SECRET: 'refresh-secret',
     JWT_REFRESH_EXPIRES_IN: '7d',
+    JWT_2FA_SECRET: 'two-factor-secret',
 });
 
 describe('validate', () => {
@@ -105,6 +106,13 @@ describe('validate', () => {
         delete env.JWT_REFRESH_EXPIRES_IN;
 
         expect(() => validate(env)).toThrow(/JWT_REFRESH_EXPIRES_IN/);
+    });
+
+    it('fails fast when the secret of the second factor is missing', () => {
+        const env = validEnv();
+        delete env.JWT_2FA_SECRET;
+
+        expect(() => validate(env)).toThrow(/JWT_2FA_SECRET/);
     });
 
     it('coerces numeric ports to numbers', () => {

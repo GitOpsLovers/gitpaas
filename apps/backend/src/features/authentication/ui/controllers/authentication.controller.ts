@@ -1,5 +1,12 @@
-import { loginSchema, refreshSchema } from '@gitpaas/contracts';
-import type { AuthTokens, LoginDto, RefreshDto, User as UserResponse } from '@gitpaas/contracts';
+import { loginSchema, refreshSchema, verifyTwoFactorSchema } from '@gitpaas/contracts';
+import type {
+    AuthTokens,
+    LoginDto,
+    LoginResult,
+    RefreshDto,
+    User as UserResponse,
+    VerifyTwoFactorDto,
+} from '@gitpaas/contracts';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
@@ -23,11 +30,11 @@ export class AuthenticationController {
     constructor(private readonly service: AuthenticationService) {}
 
     /**
-     * Authenticate with email + password and receive an access/refresh token pair.
+     * Authenticate with email + password.
      *
      * @param user The user resolved and attached by the local strategy
      *
-     * @returns Access + refresh token pair
+     * @returns Access + refresh token pair, or the challenge of the second factor
      */
     @Public()
     @Throttle({ default: { limit: 5, ttl: 60_000 } })
@@ -37,10 +44,31 @@ export class AuthenticationController {
     public login(
         @Body(new ZodValidationPipe(loginSchema)) _loginDto: LoginDto,
         @CurrentUser() user: User,
-    ): Promise<AuthTokens> {
+    ): Promise<LoginResult> {
         enrichWithActor(user);
 
         return this.service.login(user);
+    }
+
+    /**
+     * Complete the second step of a login.
+     *
+     * @param verifyDto Body carrying the challenge and the code
+     *
+     * @returns A freshly issued access + refresh token pair
+     */
+    @Public()
+    @Throttle({ default: { limit: 5, ttl: 60_000 } })
+    @Post('2fa/verify')
+    @HttpCode(200)
+    public async verifyTwoFactor(
+        @Body(new ZodValidationPipe(verifyTwoFactorSchema)) verifyDto: VerifyTwoFactorDto,
+    ): Promise<AuthTokens> {
+        try {
+            return await this.service.verifyTwoFactor(verifyDto.challengeToken, verifyDto.code);
+        } catch (error) {
+            throw translateError(error);
+        }
     }
 
     /**

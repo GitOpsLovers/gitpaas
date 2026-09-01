@@ -1,9 +1,16 @@
+/* eslint-disable no-secrets/no-secrets */
 import { Test } from '@nestjs/testing';
 
 import { loginUseCase } from '../../../application/login.use-case';
 import { logoutUseCase } from '../../../application/logout.use-case';
 import { refreshUseCase } from '../../../application/refresh.use-case';
-import { InvalidRefreshTokenError, UserInactiveError } from '../../../domain/errors/authentication.errors';
+import { verifyTwoFactorUseCase } from '../../../application/verify-two-factor.use-case';
+import {
+    InvalidRefreshTokenError,
+    InvalidTotpCodeError,
+    InvalidTwoFactorChallengeError,
+    UserInactiveError,
+} from '../../../domain/errors/authentication.errors';
 import { AuthTokens } from '../../../domain/models/auth-tokens.models';
 import type { RefreshTokenPayload } from '../../../domain/models/token-payloads.models';
 import { DatabaseRefreshTokensRepository } from '../../../infrastructure/database/db-refresh-tokens.repository';
@@ -11,6 +18,8 @@ import { JwtTokenServiceAdapter } from '../../../infrastructure/security/jwt-tok
 import { AuthenticationService } from '../authentication.service';
 
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
+import { OtplibTotpAdapter } from '@core/infrastructure/crypto/otplib-totp.adapter';
+import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { User, UserRole } from '@features/users/domain/models/user.models';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
@@ -18,10 +27,12 @@ import { DatabaseUsersRepository } from '@features/users/infrastructure/database
 jest.mock('../../../application/login.use-case');
 jest.mock('../../../application/logout.use-case');
 jest.mock('../../../application/refresh.use-case');
+jest.mock('../../../application/verify-two-factor.use-case');
 
 const mockLoginUseCase = loginUseCase as jest.MockedFunction<typeof loginUseCase>;
 const mockLogoutUseCase = logoutUseCase as jest.MockedFunction<typeof logoutUseCase>;
 const mockRefreshUseCase = refreshUseCase as jest.MockedFunction<typeof refreshUseCase>;
+const mockVerifyTwoFactorUseCase = verifyTwoFactorUseCase as jest.MockedFunction<typeof verifyTwoFactorUseCase>;
 
 const tokens: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'refresh.jwt.token' };
 
@@ -48,6 +59,8 @@ describe('AuthenticationService', () => {
     let mockRefreshTokensRepository: jest.Mocked<DatabaseRefreshTokensRepository>;
     // The service verifies the presented token itself, to name the actor of the event.
     let mockTokenService: jest.Mocked<Pick<JwtTokenServiceAdapter, 'verifyRefreshToken'>>;
+    let mockTotp: jest.Mocked<OtplibTotpAdapter>;
+    let mockSecretCipher: jest.Mocked<SecretCipherAdapter>;
     let sut: AuthenticationService;
 
     beforeEach(async () => {
@@ -55,6 +68,8 @@ describe('AuthenticationService', () => {
         mockUsersRepository = {} as jest.Mocked<DatabaseUsersRepository>;
         mockRefreshTokensRepository = {} as jest.Mocked<DatabaseRefreshTokensRepository>;
         mockTokenService = { verifyRefreshToken: jest.fn().mockReturnValue(refreshPayload) };
+        mockTotp = {} as jest.Mocked<OtplibTotpAdapter>;
+        mockSecretCipher = {} as jest.Mocked<SecretCipherAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -62,6 +77,8 @@ describe('AuthenticationService', () => {
                 { provide: DatabaseUsersRepository, useValue: mockUsersRepository },
                 { provide: DatabaseRefreshTokensRepository, useValue: mockRefreshTokensRepository },
                 { provide: JwtTokenServiceAdapter, useValue: mockTokenService },
+                { provide: OtplibTotpAdapter, useValue: mockTotp },
+                { provide: SecretCipherAdapter, useValue: mockSecretCipher },
             ],
         }).compile();
 
@@ -77,6 +94,49 @@ describe('AuthenticationService', () => {
             expect(mockLoginUseCase).toHaveBeenCalledTimes(1);
             expect(mockLoginUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, user);
             expect(result).toBe(tokens);
+        });
+
+        it('returns the challenge of the second factor the use case answers', async () => {
+            const challenge = { twoFactorRequired: true, challengeToken: 'challenge.jwt.token' } as const;
+            mockLoginUseCase.mockResolvedValue(challenge);
+
+            const result = await sut.login(user);
+
+            expect(result).toBe(challenge);
+        });
+    });
+
+    describe('verifyTwoFactor', () => {
+        it('delegates to the verify use case with every collaborator and returns the token pair', async () => {
+            mockVerifyTwoFactorUseCase.mockResolvedValue(tokens);
+
+            const result = await sut.verifyTwoFactor('challenge.jwt.token', '123456');
+
+            expect(mockVerifyTwoFactorUseCase).toHaveBeenCalledTimes(1);
+            expect(mockVerifyTwoFactorUseCase).toHaveBeenCalledWith(
+                mockUsersRepository,
+                mockRefreshTokensRepository,
+                mockTokenService,
+                mockTotp,
+                mockSecretCipher,
+                'challenge.jwt.token',
+                '123456',
+            );
+            expect(result).toBe(tokens);
+        });
+
+        it('propagates an InvalidTwoFactorChallengeError raised by the use case unchanged', async () => {
+            const error = new InvalidTwoFactorChallengeError();
+            mockVerifyTwoFactorUseCase.mockRejectedValue(error);
+
+            await expect(sut.verifyTwoFactor('bad', '123456')).rejects.toBe(error);
+        });
+
+        it('propagates an InvalidTotpCodeError raised by the use case unchanged', async () => {
+            const error = new InvalidTotpCodeError();
+            mockVerifyTwoFactorUseCase.mockRejectedValue(error);
+
+            await expect(sut.verifyTwoFactor('challenge.jwt.token', '000000')).rejects.toBe(error);
         });
     });
 
@@ -159,6 +219,28 @@ describe('AuthenticationService', () => {
 
             expect(JSON.stringify(event)).not.toContain(user.email);
             expect(JSON.stringify(event)).not.toContain(user.passwordHash);
+        });
+
+        it('marks a successful second step as authenticated', async () => {
+            mockVerifyTwoFactorUseCase.mockResolvedValue(tokens);
+
+            const event = await eventOf(async () => {
+                await sut.verifyTwoFactor('challenge.jwt.token', '123456');
+            });
+
+            expect(event).toEqual({ 'auth.outcome': 'authenticated' });
+        });
+
+        it('marks a refused second step as rejected', async () => {
+            mockVerifyTwoFactorUseCase.mockRejectedValue(new InvalidTotpCodeError());
+
+            const event = await eventOf(async () => {
+                await expect(sut.verifyTwoFactor('challenge.jwt.token', '000000')).rejects.toBeInstanceOf(
+                    InvalidTotpCodeError,
+                );
+            });
+
+            expect(event).toEqual({ 'auth.outcome': 'rejected' });
         });
 
         it('names the subject of the token a successful refresh rotated', async () => {

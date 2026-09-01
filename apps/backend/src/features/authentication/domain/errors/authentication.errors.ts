@@ -35,3 +35,21 @@ export class UnauthenticatedError extends DomainError {
         super('UNAUTHENTICATED', 'Authentication required', options);
     }
 }
+
+/**
+ * Raised when the challenge of the second factor is unknown, expired, tampered with, or no longer names an account that holds a second factor.
+ */
+export class InvalidTwoFactorChallengeError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super('INVALID_TWO_FACTOR_CHALLENGE', 'Invalid two-factor challenge', options);
+    }
+}
+
+/**
+ * Raised when a code of the second factor does not match the secret of the account.
+ */
+export class InvalidTotpCodeError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super('INVALID_TOTP_CODE', 'Invalid two-factor code', options);
+    }
+}

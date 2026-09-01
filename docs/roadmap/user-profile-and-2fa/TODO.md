@@ -31,13 +31,13 @@ A user of GitPaaS reads nothing about the own account, and changes nothing in it
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/profile/`, `apps/backend/src/features/authentication/`, `packages/contracts/src/`
 
-- [ ] 3.1 `POST /profile/2fa/setup` creates a secret TOTP, seals it with `SecretCipher`, and returns the image of the QR and the key in text.
-- [ ] 3.2 `POST /profile/2fa/enable` verifies a code of six digits, and writes `totpEnabledAt`.
-- [ ] 3.3 `DELETE /profile/2fa` turns the second factor off for the user of the token.
-- [ ] 3.4 `DELETE /users/:id/2fa` turns the second factor off for another user, and the role `admin` alone reaches it.
-- [ ] 3.5 `POST /auth/login` answers a challenge with a short token when the second factor is on, and it returns no pair.
-- [ ] 3.6 `POST /auth/2fa/verify` takes that challenge and a code of six digits, and it returns the pair of tokens.
-- [ ] 3.7 Write the unit tests of every route above, of the seal of the secret and of the two steps of the login.
+- [x] 3.1 `POST /profile/2fa/setup` creates a secret TOTP, seals it with `SecretCipher`, and returns the image of the QR and the key in text.
+- [x] 3.2 `POST /profile/2fa/enable` verifies a code of six digits, and writes `totpEnabledAt`.
+- [x] 3.3 `DELETE /profile/2fa` turns the second factor off for the user of the token.
+- [x] 3.4 `DELETE /users/:id/2fa` turns the second factor off for another user, and the role `admin` alone reaches it.
+- [x] 3.5 `POST /auth/login` answers a challenge with a short token when the second factor is on, and it returns no pair.
+- [x] 3.6 `POST /auth/2fa/verify` takes that challenge and a code of six digits, and it returns the pair of tokens.
+- [x] 3.7 Write the unit tests of every route above, of the seal of the secret and of the two steps of the login.
 
 ## Phase 4 — The page of the profile
 

@@ -443,6 +443,7 @@ generate_env() {
     set_env "DB_PASSWORD" "$db_password"
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
+    set_env "JWT_2FA_SECRET" "$(rand_secret)"
     set_env "SECRETS_ENCRYPTION_KEY" "$(rand_secret)"
     set_env "NODE_ENV" "production"
     set_env "CORS_ORIGIN" "http://${HOST_ADDR}:8080"

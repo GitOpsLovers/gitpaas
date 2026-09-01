@@ -1,12 +1,20 @@
+/* eslint-disable no-secrets/no-secrets */
 import { Test } from '@nestjs/testing';
 
 import { changeEmailUseCase } from '../../../application/change-email.use-case';
 import { changePasswordUseCase } from '../../../application/change-password.use-case';
+import { disableTotpUseCase } from '../../../application/disable-totp.use-case';
+import { enableTotpUseCase } from '../../../application/enable-totp.use-case';
 import { getProfileUseCase } from '../../../application/get-profile.use-case';
+import { startTotpSetupUseCase } from '../../../application/start-totp-setup.use-case';
 import { updateDisplayNameUseCase } from '../../../application/update-display-name.use-case';
 import { ProfileNotFoundError } from '../../../domain/errors/profile.errors';
+import { TotpSetup } from '../../../domain/models/totp-setup.models';
 import { ProfileService } from '../profile.service';
 
+import { OtplibTotpAdapter } from '@core/infrastructure/crypto/otplib-totp.adapter';
+import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
+import { QrCodeRendererAdapter } from '@core/infrastructure/qrcode/qrcode-renderer.adapter';
 import { AuthTokens } from '@features/authentication/domain/models/auth-tokens.models';
 import { DatabaseRefreshTokensRepository } from '@features/authentication/infrastructure/database/db-refresh-tokens.repository';
 import { JwtTokenServiceAdapter } from '@features/authentication/infrastructure/security/jwt-token-service.adapter';
@@ -18,11 +26,17 @@ jest.mock('../../../application/get-profile.use-case');
 jest.mock('../../../application/update-display-name.use-case');
 jest.mock('../../../application/change-email.use-case');
 jest.mock('../../../application/change-password.use-case');
+jest.mock('../../../application/start-totp-setup.use-case');
+jest.mock('../../../application/enable-totp.use-case');
+jest.mock('../../../application/disable-totp.use-case');
 
 const mockGetProfileUseCase = getProfileUseCase as jest.MockedFunction<typeof getProfileUseCase>;
 const mockUpdateDisplayNameUseCase = updateDisplayNameUseCase as jest.MockedFunction<typeof updateDisplayNameUseCase>;
 const mockChangeEmailUseCase = changeEmailUseCase as jest.MockedFunction<typeof changeEmailUseCase>;
 const mockChangePasswordUseCase = changePasswordUseCase as jest.MockedFunction<typeof changePasswordUseCase>;
+const mockStartTotpSetupUseCase = startTotpSetupUseCase as jest.MockedFunction<typeof startTotpSetupUseCase>;
+const mockEnableTotpUseCase = enableTotpUseCase as jest.MockedFunction<typeof enableTotpUseCase>;
+const mockDisableTotpUseCase = disableTotpUseCase as jest.MockedFunction<typeof disableTotpUseCase>;
 
 const USER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
@@ -46,6 +60,9 @@ describe('ProfileService', () => {
     let mockRefreshTokensRepository: jest.Mocked<DatabaseRefreshTokensRepository>;
     let mockTokenService: jest.Mocked<JwtTokenServiceAdapter>;
     let mockPasswordHasher: jest.Mocked<Argon2PasswordHasherAdapter>;
+    let mockTotp: jest.Mocked<OtplibTotpAdapter>;
+    let mockQrCodeRenderer: jest.Mocked<QrCodeRendererAdapter>;
+    let mockSecretCipher: jest.Mocked<SecretCipherAdapter>;
     let sut: ProfileService;
 
     beforeEach(async () => {
@@ -55,6 +72,9 @@ describe('ProfileService', () => {
         mockRefreshTokensRepository = {} as jest.Mocked<DatabaseRefreshTokensRepository>;
         mockTokenService = {} as jest.Mocked<JwtTokenServiceAdapter>;
         mockPasswordHasher = {} as jest.Mocked<Argon2PasswordHasherAdapter>;
+        mockTotp = {} as jest.Mocked<OtplibTotpAdapter>;
+        mockQrCodeRenderer = {} as jest.Mocked<QrCodeRendererAdapter>;
+        mockSecretCipher = {} as jest.Mocked<SecretCipherAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -63,6 +83,9 @@ describe('ProfileService', () => {
                 { provide: DatabaseRefreshTokensRepository, useValue: mockRefreshTokensRepository },
                 { provide: JwtTokenServiceAdapter, useValue: mockTokenService },
                 { provide: Argon2PasswordHasherAdapter, useValue: mockPasswordHasher },
+                { provide: OtplibTotpAdapter, useValue: mockTotp },
+                { provide: QrCodeRendererAdapter, useValue: mockQrCodeRenderer },
+                { provide: SecretCipherAdapter, useValue: mockSecretCipher },
             ],
         }).compile();
 
@@ -188,6 +211,81 @@ describe('ProfileService', () => {
             mockChangePasswordUseCase.mockRejectedValue(error);
 
             await expect(sut.changePassword(USER_ID, 'old-secret', 'new-secret')).rejects.toThrow(error);
+        });
+    });
+
+    describe('startTotpSetup', () => {
+        const setup: TotpSetup = {
+            secret: 'JBSWY3DPEHPK3PXP',
+            otpauthUri: 'otpauth://totp/GitPaaS:admin@example.com?secret=JBSWY3DPEHPK3PXP',
+            qrCode: 'data:image/png;base64,AAAA',
+        };
+
+        it('delegates to the use case with every injected collaborator', async () => {
+            mockStartTotpSetupUseCase.mockResolvedValue(setup);
+
+            const result = await sut.startTotpSetup(USER_ID);
+
+            expect(mockStartTotpSetupUseCase).toHaveBeenCalledTimes(1);
+            expect(mockStartTotpSetupUseCase).toHaveBeenCalledWith(
+                mockUsersRepository,
+                mockTotp,
+                mockQrCodeRenderer,
+                mockSecretCipher,
+                USER_ID,
+            );
+            expect(result).toBe(setup);
+        });
+
+        it('propagates the error the use case raises', async () => {
+            const error = new ProfileNotFoundError();
+            mockStartTotpSetupUseCase.mockRejectedValue(error);
+
+            await expect(sut.startTotpSetup(USER_ID)).rejects.toBe(error);
+        });
+    });
+
+    describe('enableTotp', () => {
+        it('delegates to the use case with the code and returns the updated user', async () => {
+            mockEnableTotpUseCase.mockResolvedValue(user);
+
+            const result = await sut.enableTotp(USER_ID, '123456');
+
+            expect(mockEnableTotpUseCase).toHaveBeenCalledTimes(1);
+            expect(mockEnableTotpUseCase).toHaveBeenCalledWith(
+                mockUsersRepository,
+                mockTotp,
+                mockSecretCipher,
+                USER_ID,
+                '123456',
+            );
+            expect(result).toBe(user);
+        });
+
+        it('propagates the error the use case raises', async () => {
+            const error = new ProfileNotFoundError();
+            mockEnableTotpUseCase.mockRejectedValue(error);
+
+            await expect(sut.enableTotp(USER_ID, '123456')).rejects.toBe(error);
+        });
+    });
+
+    describe('disableTotp', () => {
+        it('delegates to the use case with the injected repository and returns the updated user', async () => {
+            mockDisableTotpUseCase.mockResolvedValue(user);
+
+            const result = await sut.disableTotp(USER_ID);
+
+            expect(mockDisableTotpUseCase).toHaveBeenCalledTimes(1);
+            expect(mockDisableTotpUseCase).toHaveBeenCalledWith(mockUsersRepository, USER_ID);
+            expect(result).toBe(user);
+        });
+
+        it('propagates the error the use case raises', async () => {
+            const error = new ProfileNotFoundError();
+            mockDisableTotpUseCase.mockRejectedValue(error);
+
+            await expect(sut.disableTotp(USER_ID)).rejects.toBe(error);
         });
     });
 });

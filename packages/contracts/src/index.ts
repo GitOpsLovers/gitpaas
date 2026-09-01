@@ -44,6 +44,23 @@ export { authTokensSchema, loginSchema, refreshSchema } from './authentication/a
 export type { AuthTokens, LoginDto, RefreshDto } from './authentication/authentication.contract';
 export { userRoleSchema, userSchema } from './authentication/user.contract';
 export type { User, UserRole } from './authentication/user.contract';
+export {
+    enableTotpSchema,
+    loginResultSchema,
+    TOTP_CODE_LENGTH,
+    TOTP_CODE_PATTERN,
+    totpCodeSchema,
+    totpSetupSchema,
+    twoFactorChallengeSchema,
+    verifyTwoFactorSchema,
+} from './authentication/two-factor.contract';
+export type {
+    EnableTotpDto,
+    LoginResult,
+    TotpSetup,
+    TwoFactorChallenge,
+    VerifyTwoFactorDto,
+} from './authentication/two-factor.contract';
 
 export {
     PROFILE_DISPLAY_NAME_MAX_LENGTH,

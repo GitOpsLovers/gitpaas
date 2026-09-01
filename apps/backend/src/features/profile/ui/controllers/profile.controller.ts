@@ -1,13 +1,20 @@
-import { updateProfileEmailSchema, updateProfileNameSchema, updateProfilePasswordSchema } from '@gitpaas/contracts';
+import {
+    enableTotpSchema,
+    updateProfileEmailSchema,
+    updateProfileNameSchema,
+    updateProfilePasswordSchema,
+} from '@gitpaas/contracts';
 import type {
     AuthTokens,
+    EnableTotpDto,
     Profile,
+    TotpSetup,
     UpdateProfileEmailDto,
     UpdateProfileNameDto,
     UpdateProfilePasswordDto,
 } from '@gitpaas/contracts';
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-import { Body, Controller, Get, HttpCode, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Patch, Post } from '@nestjs/common';
 
 import { ProfileService } from '../services/profile.service';
 
@@ -102,6 +109,61 @@ export class ProfileController {
                 updatePasswordDto.currentPassword,
                 updatePasswordDto.newPassword,
             );
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Start a setup of the second factor, drawing a fresh secret for the authenticated user.
+     *
+     * @param user The authenticated user attached by the JWT strategy
+     *
+     * @returns The image of the QR code, the `otpauth://` address and the key in text
+     */
+    @Post('2fa/setup')
+    @HttpCode(200)
+    public async startTotpSetup(@CurrentUser() user: User): Promise<TotpSetup> {
+        try {
+            return await this.service.startTotpSetup(user.id);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Confirm the setup of the second factor with a code of six digits.
+     *
+     * @param user The authenticated user attached by the JWT strategy
+     * @param enableDto Body carrying the code
+     *
+     * @returns The updated account
+     */
+    @Post('2fa/enable')
+    @HttpCode(200)
+    public async enableTotp(
+        @CurrentUser() user: User,
+        @Body(new ZodValidationPipe(enableTotpSchema)) enableDto: EnableTotpDto,
+    ): Promise<Profile> {
+        try {
+            return toUserResponse(await this.service.enableTotp(user.id, enableDto.code));
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Turn the second factor off for the authenticated user.
+     *
+     * @param user The authenticated user attached by the JWT strategy
+     *
+     * @returns The updated account
+     */
+    @Delete('2fa')
+    @HttpCode(200)
+    public async disableTotp(@CurrentUser() user: User): Promise<Profile> {
+        try {
+            return toUserResponse(await this.service.disableTotp(user.id));
         } catch (error) {
             throw translateError(error);
         }
