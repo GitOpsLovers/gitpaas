@@ -17,6 +17,7 @@ The future behavior lives in `docs/roadmap.md`. A page of this area moves from t
 - [logs](./business/logs.md): the output of a deployment, its stream and its archive.
 - [namespaces](./business/namespaces.md): the namespace that holds the projects.
 - [networks](./business/networks.md): the network of a stack.
+- [profile](./business/profile.md): the account of a user, and the second factor with an authenticator app.
 - [projects](./business/projects.md): the project, and the services that it holds.
 - [providers](./business/providers.md): the source control provider, and its credentials.
 - [server](./business/server.md): the health, the settings and the maintenance of the server.

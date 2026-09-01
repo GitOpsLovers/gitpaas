@@ -8,7 +8,7 @@ This capability authenticates the operators of the platform. It protects every e
 
 The system SHALL reject every request that carries no valid access token, except for the endpoints that the system marks as public.
 
-The public endpoints are the login, the token refresh, the logout and the readiness probe. There is no public sign-up, because the API has no endpoint that creates a user.
+The public endpoints are the login, the second step of the login, the token refresh, the logout and the readiness probe. There is no public sign-up, because the API has no endpoint that creates a user.
 
 ### Scenario: A request carries no token
 
@@ -22,18 +22,18 @@ The public endpoints are the login, the token refresh, the logout and the readin
 
 ### Scenario: A client calls a public endpoint
 
-- **WHEN** a client calls the login, the refresh, the logout or the readiness probe without a token
+- **WHEN** a client calls the login, the second step of the login, the refresh, the logout or the readiness probe without a token
 - **THEN** the system runs the endpoint
 
 ## Login with an email and a password
 
-The system SHALL accept an email and a password at `POST /api/v1/auth/login`, and it SHALL answer with an access token and a refresh token when the credentials are correct.
+The system SHALL accept an email and a password at `POST /api/v1/auth/login`, and it SHALL answer `200 OK` when the credentials are correct.
 
-The system SHALL compare the password against an argon2 hash. The system SHALL answer `200 OK`.
+The system SHALL compare the password against an argon2 hash. When the account carries no second factor, the answer holds the pair of tokens. When the account carries a second factor, see the requirement *Login with a second factor* below: the answer holds no pair, and the login takes one more step.
 
-### Scenario: The credentials are correct
+### Scenario: The credentials are correct, and the account carries no second factor
 
-- **WHEN** an active user posts a known email and the matching password
+- **WHEN** an active user posts a known email and the matching password, and the account carries no second factor
 - **THEN** the system answers `200` with an `accessToken` and a `refreshToken`
 
 ### Scenario: The email is unknown
@@ -58,12 +58,45 @@ The system SHALL compare the password against an argon2 hash. The system SHALL a
 
 ## Rate limit of the login
 
-The system SHALL accept a maximum of 5 login attempts in 60 seconds from one client. This limit makes a brute-force attack slower.
+The system SHALL accept a maximum of 5 requests in 60 seconds from one client, at `POST /api/v1/auth/login` and at `POST /api/v1/auth/2fa/verify` alike. This limit makes a brute-force attack slower, against the password and against the code of the second factor.
 
 ### Scenario: The client exceeds the limit
 
-- **WHEN** a client sends a sixth login request inside the same window of 60 seconds
-- **THEN** the system answers `429 Too Many Requests`, and it runs no credential check
+- **WHEN** a client sends a sixth request to one of these two routes inside the same window of 60 seconds
+- **THEN** the system answers `429 Too Many Requests`, and it runs no check of the credentials or of the code
+
+## Login with a second factor
+
+The system SHALL take the login of an account that holds a second factor in two steps. See the capability `profile` for the way an account turns the second factor on.
+
+The first step is the same call, `POST /api/v1/auth/login`, with the same email and password. When the credentials are correct and the account holds a second factor, the system SHALL answer `200` with `twoFactorRequired: true` and a short-lived `challengeToken`, and it SHALL issue no pair of tokens.
+
+The second step is `POST /api/v1/auth/2fa/verify`, with that `challengeToken` and the code of six digits that the authenticator app of the account shows. The system SHALL answer `200` with a fresh pair of tokens when the code matches the secret of the account that the challenge names.
+
+### Scenario: The credentials are correct, and the account carries a second factor
+
+- **WHEN** an active user posts a known email and the matching password, and the account carries a second factor
+- **THEN** the system answers `200` with `twoFactorRequired: true` and a `challengeToken`, and it issues no pair of tokens
+
+### Scenario: The second step carries a matching code
+
+- **WHEN** a client posts `/auth/2fa/verify` with a valid `challengeToken` and the code that the authenticator app shows for the account of that challenge
+- **THEN** the system answers `200` with a fresh `accessToken` and `refreshToken`
+
+### Scenario: The second step carries a wrong code
+
+- **WHEN** a client posts `/auth/2fa/verify` with a valid `challengeToken` and a code that does not match the secret of the account
+- **THEN** the system answers `401 Unauthorized`, and it issues no pair of tokens
+
+### Scenario: The challenge is invalid
+
+- **WHEN** a client posts `/auth/2fa/verify` with a challenge token that the system cannot verify, that expired, or that no longer names an account with a second factor
+- **THEN** the system answers `401 Unauthorized`
+
+### Scenario: The account behind the challenge was deactivated
+
+- **WHEN** a client posts `/auth/2fa/verify` with a valid challenge that names a user whose `isActive` became false
+- **THEN** the system answers `401 Unauthorized`, and it issues no pair of tokens
 
 ## Issue of the token pair
 
@@ -229,18 +262,46 @@ While the sending runs, the button carries the text "Signing in…", and the use
 - **WHEN** the user sends the form again while the first call runs
 - **THEN** the system does nothing, and it makes no second call
 
+## The second step of the screen
+
+The system SHALL show the form of the second step in place of the form of the credentials, once the first step answers the challenge of a second factor. That form holds one field, the code of six digits, and a control that drops the challenge and returns to the field of the credentials.
+
+The system SHALL keep the value of the password in no field of the second step. The control that drops the challenge SHALL clear the password from the first step as well, so a shared machine keeps no trace of it.
+
+### Scenario: The first step answers a challenge
+
+- **WHEN** the API answers the first step with `twoFactorRequired: true`
+- **THEN** the system shows the form of the code in place of the form of the credentials, and it clears the field of the code
+
+### Scenario: The user drops the challenge
+
+- **WHEN** the user chooses "Use another account"
+- **THEN** the system shows the form of the credentials again, and it clears the password and the code
+
 ## The end of the sign-in
 
-If the API accepts the credentials, the system SHALL keep the token pair and open `/dashboard`. The choice of the storage follows the box "Keep me logged in". See the requirement *The place of the token pair*.
+If the API accepts the credentials, and the account carries no second factor, the system SHALL keep the token pair and open `/dashboard`. If the account carries a second factor, the system SHALL keep the token pair and open `/dashboard` only once the second step succeeds. The choice of the storage follows the box "Keep me logged in" of the first step, in both cases. See the requirement *The place of the token pair*.
 
-If the API refuses the credentials, the system SHALL show a message that says "Sign in failed", with the text "Invalid credentials or inactive account.". The system SHALL let the user try again, and it SHALL keep the two values in the form.
+If the API refuses the first step, the system SHALL show a message that says "Sign in failed", with the text "Invalid credentials or inactive account.". The system SHALL let the user try again, and it SHALL keep the two values in the form.
 
-The message is the same for a wrong password and for an account that is not active, because the message of the API does not separate the two.
+If the API refuses the second step, the system SHALL show a message that says "Sign in failed", with the text "The code is wrong or it expired. Ask your authenticator for a fresh one.". The system SHALL let the user try the code again, without a new first step.
 
-### Scenario: The credentials are correct
+The message of the first step is the same for a wrong password and for an account that is not active, because the message of the API does not separate the two.
 
-- **WHEN** the API accepts the credentials
+### Scenario: The credentials are correct, and the account carries no second factor
+
+- **WHEN** the API accepts the credentials, and the account carries no second factor
 - **THEN** the system keeps the token pair, and it opens `/dashboard`
+
+### Scenario: The second step succeeds
+
+- **WHEN** the API accepts the code of the second step
+- **THEN** the system keeps the fresh token pair, and it opens `/dashboard`
+
+### Scenario: The second step is refused
+
+- **WHEN** the API refuses the code of the second step
+- **THEN** the system shows the message "Sign in failed", and the user can send the code again, on the same challenge
 
 ### Scenario: The credentials are not correct
 

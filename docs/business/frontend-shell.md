@@ -64,16 +64,30 @@ The system SHALL read the version and the state of the update one time, when the
 - **WHEN** a user who is not an administrator opens the application
 - **THEN** the system shows no version, and no button, in the sidebar
 
+## The header shows the account
+
+The system SHALL show the initials and the display name of the signed-in user in the header, in place of a literal placeholder. The initials come from the display name, or, when the account carries none, from the email address. While the shell does not yet know the session, the system SHALL show a generic icon of a person in place of the initials.
+
+### Scenario: The session is known
+
+- **WHEN** the shell holds the user of the session
+- **THEN** the header shows the initials in the avatar, and the display name beside it
+
+### Scenario: The account carries no display name
+
+- **WHEN** the user of the session carries no display name
+- **THEN** the header shows the placeholder "Account" in place of the display name, and the initials of the email address in the avatar
+
 ## The menu of the user
 
-The system SHALL give a menu in the header that holds the action to sign out.
+The system SHALL give a menu in the header that shows the display name and the email address of the account, that gives the link to `/profile`, and that holds the action to sign out. See the capability `profile` for the screen that the link opens.
 
 The system SHALL close the menu when the user chooses a point outside it, and when the user presses the key `Escape`.
 
 ### Scenario: The user opens the menu
 
 - **WHEN** the user chooses the control of the menu
-- **THEN** the system opens the menu
+- **THEN** the system opens the menu, and it shows the display name, the email address, the link to the profile and the action to sign out
 
 ### Scenario: The user chooses a point outside the menu
 
@@ -84,6 +98,11 @@ The system SHALL close the menu when the user chooses a point outside it, and wh
 
 - **WHEN** the menu is open, and the user presses `Escape`
 - **THEN** the system closes the menu
+
+### Scenario: The user opens the profile
+
+- **WHEN** the user chooses the link to the profile
+- **THEN** the system closes the menu, and it opens `/profile`
 
 ### Scenario: The user signs out
 
