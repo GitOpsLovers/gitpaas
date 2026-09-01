@@ -1,5 +1,7 @@
-En la pagina de mantenimiento de server de frontend, quiero separar visualmente las tareas de limpiea y borrado de la de update. Mejora esa presentación respetando el diseño.
-
 problema de cloudflare en domain! tanto en dominio de server como de servicios. Ademas añadir boton de check.
 
 Cuando instalamos Gitpaas en un VPS, si en el proceso de instalación no definimos ningun dominio, la plataforma queda disponible en http://<vps-ip>:8080, es correcto? No deberia ir por HTTPS?
+
+En la pagina de /profile, quiero que todo forme parte de la misma card. Quizas podriamos distribuirlo en columnas.
+
+El bullet de un servicio que este en la esquina superior derecha

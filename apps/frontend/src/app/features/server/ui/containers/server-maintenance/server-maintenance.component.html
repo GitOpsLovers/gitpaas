@@ -9,12 +9,13 @@
     </div>
 }
 
-<app-component-card
-    title="Maintenance"
-    desc="Reclaim disk space on the server by removing Docker resources that are no longer in use."
->
-    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
-        @if (isAdmin()) {
+@if (isAdmin()) {
+    <app-component-card
+        title="Updates"
+        desc="Check whether the server runs the latest version of GitPaaS published."
+        className="mb-6"
+    >
+        <ul class="divide-y divide-gray-100 dark:divide-gray-800">
             <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-start gap-3">
                     <span
@@ -54,8 +55,15 @@
                     </app-button>
                 </div>
             </li>
-        }
+        </ul>
+    </app-component-card>
+}
 
+<app-component-card
+    title="Cleanup"
+    desc="Reclaim disk space on the server by removing Docker resources that are no longer in use."
+>
+    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
         @for (action of actions; track action.resource) {
             <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-start gap-3">
