@@ -26,6 +26,11 @@ export const routes: Routes = [
                 title: 'Dashboard | GitPaaS',
             },
             {
+                path: 'profile',
+                loadComponent: () => import('@pages/profile/profile.component').then((m) => m.ProfilePage),
+                title: 'Profile | GitPaaS',
+            },
+            {
                 path: 'server',
                 redirectTo: 'server/health',
                 pathMatch: 'full',

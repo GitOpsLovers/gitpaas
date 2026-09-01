@@ -1,0 +1,30 @@
+<app-component-card title="Email address" desc="The address you sign in with. The change signs this browser in again.">
+    <form class="space-y-6" (submit)="onSubmit($event)">
+        <div class="max-w-md">
+            <app-label for="profile-email">Email address</app-label>
+            <app-input-field
+                id="profile-email"
+                name="profile-email"
+                type="email"
+                placeholder="name@example.com"
+                [value]="email()"
+                [disabled]="saving()"
+                [error]="emailError() !== null"
+                [hint]="emailError() ?? 'Every other session of this account stays open.'"
+                (valueChange)="onEmailChange($event)"
+            />
+        </div>
+
+        @if (error(); as message) {
+            <p
+                class="rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
+            >
+                {{ message }}
+            </p>
+        }
+
+        <app-button type="submit" [disabled]="saving() || !changed() || emailError() !== null">
+            {{ saving() ? 'Saving…' : 'Save' }}
+        </app-button>
+    </form>
+</app-component-card>

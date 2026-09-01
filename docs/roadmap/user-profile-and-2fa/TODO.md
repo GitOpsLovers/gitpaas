@@ -44,12 +44,12 @@ A user of GitPaaS reads nothing about the own account, and changes nothing in it
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/features/profile/`, `apps/frontend/src/app/app.routes.ts`
 
-- [ ] 4.1 Add the route `profile` under the shell, and its service of the API.
-- [ ] 4.2 Build the card of the account: the avatar with the initials, the display name, the email address, the role and the date of creation.
-- [ ] 4.3 Build the three forms: the display name, the email address and the password, each one with its own state of loading and of error.
-- [ ] 4.4 Build the panel of the second factor: the image of the QR, the field of the code, and the button that turns it off.
-- [ ] 4.5 Store the new pair of tokens that a change of the email address or of the password returns.
-- [ ] 4.6 Write the unit tests of the page and of the service.
+- [x] 4.1 Add the route `profile` under the shell, and its service of the API.
+- [x] 4.2 Build the card of the account: the avatar with the initials, the display name, the email address, the role and the date of creation.
+- [x] 4.3 Build the three forms: the display name, the email address and the password, each one with its own state of loading and of error.
+- [x] 4.4 Build the panel of the second factor: the image of the QR, the field of the code, and the button that turns it off.
+- [x] 4.5 Store the new pair of tokens that a change of the email address or of the password returns.
+- [x] 4.6 Write the unit tests of the page and of the service.
 
 ## Phase 5 — The header and the login of two steps
 
