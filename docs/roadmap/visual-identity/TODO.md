@@ -9,14 +9,14 @@ The organization of the information, the screens, the routes and the flow stay t
 **Agent:** implementer
 **Paths:** apps/frontend/src/styles.css
 
-- [ ] 1.1 Replace the family Outfit with Inter in the import of the font and in `--font-outfit`, and add a token of a family monospace for the code and for the logs.
-- [ ] 1.2 Replace the 91 colors of the block `@theme` with a cool slate ramp for `gray`, and with a saturated accent for `brand`. Design the light ramp first, then derive the dark one.
-- [ ] 1.3 Retune the ramps of `success`, of `warning` and of `error` against the new neutrals.
-- [ ] 1.4 Add the tokens `--radius-*` that override the default scale of Tailwind with smaller values, so the 127 sites of `rounded-*` change without an edit of a template.
-- [ ] 1.5 Retune the 8 tokens `--shadow-theme-*` to a low elevation, and check the token `--shadow-focus-ring` against the new accent.
-- [ ] 1.6 Delete the lines 321 to 946, which hold the dead CSS of ApexCharts, of jVectorMap, of Swiper and of Flatpickr.
-- [ ] 1.7 Check the contrast of the two themes on five screens: the list of the services, the panel of the health of the server, the form of a provider, a table and a modal.
-- [ ] 1.8 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
+- [x] 1.1 Replace the family Outfit with Inter in the import of the font and in `--font-outfit`, and add a token of a family monospace for the code and for the logs.
+- [x] 1.2 Replace the 91 colors of the block `@theme` with a cool slate ramp for `gray`, and with a saturated accent for `brand`. Design the light ramp first, then derive the dark one.
+- [x] 1.3 Retune the ramps of `success`, of `warning` and of `error` against the new neutrals.
+- [x] 1.4 Add the tokens `--radius-*` that override the default scale of Tailwind with smaller values, so the 127 sites of `rounded-*` change without an edit of a template.
+- [x] 1.5 Retune the 8 tokens `--shadow-theme-*` to a low elevation, and check the token `--shadow-focus-ring` against the new accent.
+- [x] 1.6 Delete the lines 321 to 946, which hold the dead CSS of ApexCharts, of jVectorMap, of Swiper and of Flatpickr.
+- [x] 1.7 Check the contrast of the two themes on five screens: the list of the services, the panel of the health of the server, the form of a provider, a table and a modal.
+- [x] 1.8 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
 
 ## Phase 2 — The shell and the mark
 
