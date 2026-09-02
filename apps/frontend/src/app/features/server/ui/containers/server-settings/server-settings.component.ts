@@ -1,12 +1,14 @@
 import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import {
+    type ControlPlaneDomainWarning,
     DOMAIN_HOST_MAX_LENGTH,
     DOMAIN_HOST_MESSAGE,
     DOMAIN_HOST_PATTERN,
     LOG_RETENTION_MAX_DAYS,
     LOG_RETENTION_MIN_DAYS,
     type PlatformSettings,
+    publicHostAddress as publicHostAddressSchema,
 } from '@gitpaas/contracts';
 import { lastValueFrom } from 'rxjs';
 
@@ -26,6 +28,11 @@ import { ToastService } from '@shared/services/toast.service';
  * Command an operator runs on the host to restart the stack with the new domain.
  */
 const RESTART_COMMAND = 'cd /opt/gitpaas/iac/production && docker compose up -d';
+
+/**
+ * Sentence shown when the public address of the host breaks the rule of an address IPv4 or IPv6.
+ */
+const HOST_ADDRESS_MESSAGE = 'Give the public address of this host, in IPv4 or in IPv6.';
 
 /**
  * Address of the GitHub App that follows the domain of the control plane.
@@ -77,6 +84,11 @@ export class ServerSettingsComponent {
      */
     protected readonly gitpaasDomain = linkedSignal<string>(() => this.settings.value()?.gitpaasDomain ?? '');
 
+    /**
+     * Public address this host answers on, as the field of the form holds it.
+     */
+    protected readonly publicHostAddress = linkedSignal<string>(() => this.settings.value()?.publicHostAddress ?? '');
+
     protected readonly saving = signal(false);
 
     /**
@@ -110,6 +122,24 @@ export class ServerSettingsComponent {
     protected readonly domain = computed(() => this.gitpaasDomain().trim().toLowerCase());
 
     /**
+     * Public address of the field, in the shape the API keeps it.
+     */
+    protected readonly hostAddress = computed(() => this.publicHostAddress().trim());
+
+    /**
+     * Names the rule that the address of the host breaks, and gives nothing when the field is sound or empty.
+     */
+    protected readonly hostAddressError = computed<string | null>(() => {
+        const address = this.hostAddress();
+
+        if (address.length === 0) {
+            return null;
+        }
+
+        return publicHostAddressSchema.safeParse(address).success ? null : HOST_ADDRESS_MESSAGE;
+    });
+
+    /**
      * Names the value that falls outside the bounds, and gives nothing when the value is sound.
      */
     protected readonly boundsError = computed<string | null>(() => {
@@ -140,6 +170,32 @@ export class ServerSettingsComponent {
     });
 
     /**
+     * Host the advisory check runs on, and nothing while the field carries no host that the API would accept.
+     */
+    private readonly checkedDomain = computed<string | undefined>(() => {
+        const host = this.domain();
+
+        return this.isAdmin() && host.length > 0 && this.domainError() === null ? host : undefined;
+    });
+
+    /**
+     * Advice of the check of the domain, which the tab reads when it opens and after each change of the host.
+     */
+    private readonly domainCheck = this.repository.domainCheck(() => this.checkedDomain());
+
+    /**
+     * Advice the last check gave, and nothing while the domain points at this host or while no check ran.
+     */
+    protected readonly domainWarning = computed<ControlPlaneDomainWarning | null>(
+        () => this.domainCheck.value()?.warning ?? null,
+    );
+
+    /**
+     * States that the check of the domain is in flight.
+     */
+    protected readonly checkingDomain = computed(() => this.domainCheck.isLoading());
+
+    /**
      * States that the field carries a host, and that this host differs from the one the API keeps.
      */
     protected readonly domainChanged = computed(() => {
@@ -151,10 +207,14 @@ export class ServerSettingsComponent {
     /**
      * Message of the confirmation, which states what the change of the domain asks for.
      */
-    protected readonly confirmMessage = computed(
-        () => `GitPaaS will answer on ${this.domain()}. The change takes a restart of the stack on the host, `
-            + 'and an edit of the addresses of every GitHub App. Point the domain at this host before you restart.',
-    );
+    protected readonly confirmMessage = computed(() => {
+        const message = `GitPaaS will answer on ${this.domain()}. The change takes a restart of the stack on the host, `
+            + 'and an edit of the addresses of every GitHub App. Point the domain at this host before you restart.';
+
+        const warning = this.domainWarning();
+
+        return warning === null ? message : `${warning.message} ${message}`;
+    });
 
     /**
      * Addresses of the GitHub App that the operator edits by hand once the domain changes.
@@ -195,6 +255,15 @@ export class ServerSettingsComponent {
      */
     protected onGitpaasDomainChange(value: string | number): void {
         this.gitpaasDomain.set(String(value));
+    }
+
+    /**
+     * Reads the field of the public address of the host, which the input gives as a string.
+     *
+     * @param value Value the field carries
+     */
+    protected onPublicHostAddressChange(value: string | number): void {
+        this.publicHostAddress.set(String(value));
     }
 
     /**
@@ -244,7 +313,8 @@ export class ServerSettingsComponent {
             && !this.saving()
             && this.logRetentionDays() !== undefined
             && this.boundsError() === null
-            && this.domainError() === null;
+            && this.domainError() === null
+            && this.hostAddressError() === null;
     }
 
     /**
@@ -258,19 +328,24 @@ export class ServerSettingsComponent {
         }
 
         const host = this.domain();
+        const address = this.hostAddress();
         const changed = this.domainChanged();
+        const acknowledged = this.domainWarning() !== null;
 
         this.saving.set(true);
         this.saveError.set(null);
         this.appliedDomain.set(null);
 
         try {
-            const saved = await lastValueFrom(this.repository.updateSettings({
+            const { domainWarning, ...saved } = await lastValueFrom(this.repository.updateSettings({
                 logRetentionDays: days,
                 gitpaasDomain: host.length === 0 ? undefined : host,
+                publicHostAddress: address.length === 0 ? undefined : address,
+                acknowledgeDomainWarning: acknowledged ? true : undefined,
             }));
 
             this.settings.value.set(saved);
+            this.domainCheck.value.set({ warning: domainWarning });
 
             if (changed) {
                 this.appliedDomain.set(saved.gitpaasDomain ?? host);
