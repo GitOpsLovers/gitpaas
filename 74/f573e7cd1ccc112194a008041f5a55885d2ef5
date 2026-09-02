@@ -1,0 +1,19 @@
+iac/production/migrations/022_runtime_logs.sql
+  s_051a3cfaeab3c8::t_50efccd6452a2e 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "74f573e7cd1ccc112194a008041f5a55885d2ef5",
+  "prompts": {},
+  "sessions": {
+    "s_051a3cfaeab3c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14cd1457-178a-4e02-bd09-7705c35ca39f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
