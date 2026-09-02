@@ -1,11 +1,11 @@
 ---
 name: frontend-design
-description: The design system of `apps/frontend` — the theme of Tailwind, the markup of the dashboard TailAdmin, and the practice of Tailwind CSS v4. Use it for a stat card, a table, a form, a button, an alert, a modal, a sidebar or a header.
+description: The design system of `apps/frontend` — the own theme of Tailwind of GitPaaS, the markup of its dashboard, and the practice of Tailwind CSS v4. Use it for a stat card, a table, a form, a button, an alert, a modal, a sidebar or a header.
 ---
 
 # The design of the frontend of GitPaaS
 
-`apps/frontend` runs Tailwind CSS v4. It already holds the markup of the dashboard TailAdmin, converted to Angular, and `apps/frontend/src/styles.css` holds every token and every custom utility.
+`apps/frontend` runs Tailwind CSS v4. It holds the own markup of the dashboard of GitPaaS, and `apps/frontend/src/styles.css` holds every token and every custom utility of its own theme: a cool slate ramp, a saturated violet accent, a small radius, and a dense rhythm.
 
 This skill holds two tiers:
 

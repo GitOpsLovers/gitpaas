@@ -5,20 +5,21 @@
 ```html
 <!-- WRONG. None of these classes exists. -->
 <div class="card-dashboard">
-<div class="tailadmin-header">
-<button class="btn-tailadmin">
+<div class="dashboard-header">
+<button class="btn-primary">
 <div class="dashboard-widget">
 ```
 
 A name that reads like a component is almost always invented. This project composes a card from the
 utilities of Tailwind, plus the tokens of its own `@theme` block.
 
-## Never use a token of the upstream template
+## Never use a token of another template
 
-The upstream template of TailAdmin runs an older generation. These names return zero result in
-`apps/frontend/src`, so never write one of them.
+A name that a search of `apps/frontend/src` returns zero result for does not exist here, whatever
+its source. This project's own tokens are `gray-*` for the neutral, `brand-*` for the accent, and
+`success-*`, `warning-*` and `error-*` for the state.
 
-| The name of the upstream template | What you use here |
+| A name of another template | What you use here |
 |---|---|
 | `boxdark`, `boxdark-2`, `strokedark` | `gray-*`, and the variant `dark:` |
 | `meta-1` to `meta-10` | `success-*`, `warning-*`, `error-*`, `brand-*` |

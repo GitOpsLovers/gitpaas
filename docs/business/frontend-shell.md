@@ -4,6 +4,27 @@
 
 This capability gives the frame around every screen of the signed-in application: the sidebar with the navigation, the header with the user menu, and the choice between the light theme and the dark theme.
 
+## The own mark of GitPaaS
+
+The system SHALL show its own mark, and not a generic one, in the sidebar. The mark carries the accent colour of GitPaaS, and no colour of a borrowed template.
+
+The wide sidebar shows the full mark, with the name beside the symbol. The narrow sidebar, and the collapsed state of the wide sidebar, show the symbol alone. The mark SHALL follow the light theme and the dark theme: a light mark on the dark background, and a dark mark on the light background.
+
+### Scenario: The sidebar is wide
+
+- **WHEN** a signed-in user opens the application, and the sidebar is wide
+- **THEN** the system shows the full mark, with the name beside the symbol
+
+### Scenario: The sidebar is narrow or collapsed
+
+- **WHEN** the sidebar is narrow, or the user collapses the wide sidebar
+- **THEN** the system shows the symbol of the mark alone
+
+### Scenario: The user changes the theme
+
+- **WHEN** the user changes between the light theme and the dark theme
+- **THEN** the mark changes with it, so it stays visible against its background
+
 ## The frame of the signed-in application
 
 The system SHALL show every signed-in screen inside one shell. The shell holds the sidebar, the header and the area of the screen.
