@@ -23,14 +23,14 @@ The organization of the information, the screens, the routes and the flow stay t
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/layout/ui/, apps/frontend/src/styles.css (the utilities of the menu), apps/frontend/public/images/logo/
 
-- [ ] 2.1 Redesign the sidebar: the rhythm of the navigation, the state of the active item, the group of the section, and the mode collapsed.
-- [ ] 2.2 Rewrite the 21 utilities `menu-item*` and `menu-dropdown-*` of `styles.css` against the new tokens.
-- [ ] 2.3 Redesign the header: the height, the border, the field of the search, and the group of the actions.
-- [ ] 2.4 Redesign the breadcrumb and the header of the page.
-- [ ] 2.5 Retune the grid of the layout and the backdrop against the new density.
-- [ ] 2.6 Draw a new mark of GitPaaS, and replace the four SVGs of the folder of the logo. The mark carries the new accent, and no hex `465FFF` stays in a file.
-- [ ] 2.7 Check the shell in the two themes, and in the three breakpoints of the mobile, of the tablet and of the desktop.
-- [ ] 2.8 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
+- [x] 2.1 Redesign the sidebar: the rhythm of the navigation, the state of the active item, the group of the section, and the mode collapsed.
+- [x] 2.2 Rewrite the 21 utilities `menu-item*` and `menu-dropdown-*` of `styles.css` against the new tokens.
+- [x] 2.3 Redesign the header: the height, the border, and the group of the actions. The header holds no field of the search, so the plan dropped that part: the product exposes no route and no endpoint of a search, and a new one falls out of the scope of this feature.
+- [x] 2.4 Redesign the breadcrumb and the header of the page.
+- [x] 2.5 Retune the grid of the layout and the backdrop against the new density.
+- [x] 2.6 Draw a new mark of GitPaaS, and replace the four SVGs of the folder of the logo. The mark carries the new accent, and no hex `465FFF` stays in a file.
+- [x] 2.7 Check the shell in the two themes, and in the three breakpoints of the mobile, of the tablet and of the desktop.
+- [x] 2.8 Run `rtk pnpm run check-types --filter @gitpaas/frontend`.
 
 ## Phase 3 — The documentation
 
