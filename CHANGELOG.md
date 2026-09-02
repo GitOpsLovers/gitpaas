@@ -1,3 +1,15 @@
+## [2.10.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.9.0...v2.10.0) (2026-09-02)
+
+### Features
+
+* improve profile UI ([8c0612c](https://github.com/GitOpsLovers/gitpaas/commit/8c0612cf1b5c69c543408282fbd1901890510d5e))
+* improve serve page UI ([28f2a24](https://github.com/GitOpsLovers/gitpaas/commit/28f2a244ff92aede3126c4bc3dce6e193a03a3fc))
+* improve service card UI ([4cf048b](https://github.com/GitOpsLovers/gitpaas/commit/4cf048b7a5a1ba2e8876586970b8b61bf0fcd0f5))
+* **server-settings:** show domain warning and acknowledgment ([#210](https://github.com/GitOpsLovers/gitpaas/issues/210)) ([659fa12](https://github.com/GitOpsLovers/gitpaas/commit/659fa12d56d474cddc80a7073f29305c4016db62))
+* **server:** add domain warning and confirmation ([#209](https://github.com/GitOpsLovers/gitpaas/issues/209)) ([06032bd](https://github.com/GitOpsLovers/gitpaas/commit/06032bdff65bddd23c94a94db8d35fce62bbce1a))
+* **server:** add public host address and AAAA resolution ([#207](https://github.com/GitOpsLovers/gitpaas/issues/207)) ([eee561c](https://github.com/GitOpsLovers/gitpaas/commit/eee561c5d6a28cf84a6041965bf8b850c78ca4c7))
+* **server:** recognize cloudflare from ip ranges ([#208](https://github.com/GitOpsLovers/gitpaas/issues/208)) ([0e5a704](https://github.com/GitOpsLovers/gitpaas/commit/0e5a7045f9c8969f37f65e105db6ad7c20be1ef8))
+
 ## [2.9.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.8.1...v2.9.0) (2026-09-01)
 
 ### Features
