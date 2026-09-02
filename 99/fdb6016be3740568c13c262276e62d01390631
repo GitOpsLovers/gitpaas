@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_2f6a3efe6f7b6a::t_4ad8da6a257690 16
+docs/roadmap/visual-identity/TODO.md
+  s_2f6a3efe6f7b6a::t_212d37842a7a50 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "99fdb6016be3740568c13c262276e62d01390631",
+  "prompts": {},
+  "sessions": {
+    "s_2f6a3efe6f7b6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "140f22f0-63a9-49c3-9275-9f7d0c7e59d5",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
