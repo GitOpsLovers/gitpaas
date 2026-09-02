@@ -1,6 +1,8 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
+    CheckControlPlaneDomainDto,
+    ControlPlaneDomainCheckResult,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
@@ -8,6 +10,7 @@ import type {
     ReadinessResult,
     ServerStatus,
     UpdatePlatformSettingsDto,
+    UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
@@ -91,10 +94,31 @@ export class ServerApiRepository {
      *
      * @param updateDto Parameters to keep
      *
-     * @returns Parameters the system keeps
+     * @returns Parameters the system keeps, and the advice of the check of the domain
      */
-    public updateSettings(updateDto: UpdatePlatformSettingsDto): Observable<PlatformSettings> {
-        return this.http.put<PlatformSettings>(`${this.url}/settings`, updateDto);
+    public updateSettings(updateDto: UpdatePlatformSettingsDto): Observable<UpdatePlatformSettingsResult> {
+        return this.http.put<UpdatePlatformSettingsResult>(`${this.url}/settings`, updateDto);
+    }
+
+    /**
+     * Resource with the advice of the check of the domain of the control plane. It stays idle while no host is given.
+     *
+     * @param host Accessor giving the host of the control plane to check, or nothing
+     *
+     * @returns Resource that resolves to the advice of the check
+     */
+    public domainCheck(host: () => string | undefined) {
+        return httpResource<ControlPlaneDomainCheckResult>(() => {
+            const gitpaasDomain = host();
+
+            if (gitpaasDomain === undefined) {
+                return undefined;
+            }
+
+            const body: CheckControlPlaneDomainDto = { gitpaasDomain };
+
+            return { url: `${this.url}/settings/domain-check`, method: 'POST', body };
+        });
     }
 
     /**

@@ -46,10 +46,41 @@
                         (valueChange)="onGitpaasDomainChange($event)"
                     />
                     <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        Point the record A of the domain at this host before you save. The change takes a restart of the
-                        stack, and an edit of the addresses of every GitHub App.
+                        Point the record A, or the record AAAA, of the domain at the public address of this host. The
+                        check below is an advice alone, and the change takes a restart of the stack, and an edit of the
+                        addresses of every GitHub App.
                     </p>
                 </div>
+
+                <div class="max-w-md">
+                    <app-label for="public-host-address">Public address of this host</app-label>
+                    <app-input-field
+                        id="public-host-address"
+                        name="public-host-address"
+                        placeholder="203.0.113.10"
+                        [value]="publicHostAddress()"
+                        [error]="hostAddressError() !== null"
+                        [hint]="hostAddressError() ?? 'The address, IPv4 or IPv6, the domain must resolve to.'"
+                        (valueChange)="onPublicHostAddressChange($event)"
+                    />
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        The check of the domain compares the answer of the DNS with this address. Leave it empty, and
+                        the check reports that it knows no address of this host.
+                    </p>
+                </div>
+
+                @if (checkingDomain()) {
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Checking the domain…</p>
+                } @else if (domainWarning(); as warning) {
+                    <div class="rounded-lg border border-warning-500/30 bg-warning-50 p-4 dark:bg-warning-500/10">
+                        <p class="text-sm font-medium text-warning-600 dark:text-warning-500">
+                            {{ warning.message }}
+                        </p>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            You may save the domain as it stands. GitPaaS keeps it once you confirm the warning.
+                        </p>
+                    </div>
+                }
             }
 
             @if (saveError()) {
@@ -89,7 +120,13 @@
 
             <app-button
                 type="submit"
-                [disabled]="saving() || !isAdmin() || boundsError() !== null || domainError() !== null"
+                [disabled]="
+                    saving() ||
+                    !isAdmin() ||
+                    boundsError() !== null ||
+                    domainError() !== null ||
+                    hostAddressError() !== null
+                "
             >
                 {{ saving() ? 'Saving…' : 'Save' }}
             </app-button>

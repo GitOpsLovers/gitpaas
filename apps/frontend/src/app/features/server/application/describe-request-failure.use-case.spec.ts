@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { describeRequestFailureUseCase } from './describe-request-failure.use-case';
 
 const DNS_MESSAGE = 'The domain gitpaas.dev resolves to 1.1.1.1, and this host answers on 2.2.2.2. '
-    + 'Point the record A of gitpaas.dev at 2.2.2.2, then save again.';
+    + 'Confirm the domain to save it as it stands.';
 
 const FORBIDDEN_MESSAGE = 'You hold no permission for this request.';
 
@@ -20,7 +20,7 @@ const envelope = (message: string | string[], code = 'GITPAAS_DOMAIN_NOT_POINTIN
 });
 
 describe('describeRequestFailureUseCase', () => {
-    test('gives the sentence of the check of the DNS that the backend carries', () => {
+    test('gives the sentence of the advice of the domain that the backend carries', () => {
         const error = new HttpErrorResponse({ status: 400, error: envelope(DNS_MESSAGE) });
 
         expect(describeRequestFailureUseCase(error)).toBe(DNS_MESSAGE);

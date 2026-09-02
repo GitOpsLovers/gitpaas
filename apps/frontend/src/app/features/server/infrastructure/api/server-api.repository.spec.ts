@@ -3,12 +3,14 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type {
+    ControlPlaneDomainCheckResult,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
     ServerStatus,
+    UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
 
 import { ServerApiRepository } from './server-api.repository';
@@ -35,6 +37,17 @@ const pruned: PruneResult = { deletedCount: 2, spaceReclaimed: 2048 };
 const orphans: OrphanRemovalResult = { removed: 1, names: ['gitpaas-api'] };
 
 const settings: PlatformSettings = { logRetentionDays: 30, gitpaasDomain: 'gitpaas.dev' };
+
+const domainCheck: ControlPlaneDomainCheckResult = {
+    warning: {
+        host: 'gitpaas.dev',
+        resolvedAddresses: ['104.16.0.1'],
+        hostAddress: '203.0.113.10',
+        reason: 'cdn',
+        provider: 'Cloudflare',
+        message: 'The domain gitpaas.dev resolves to an address of Cloudflare.',
+    },
+};
 
 const updateStatus: PlatformUpdateStatus = {
     installedVersion: '1.4.0',
@@ -166,17 +179,49 @@ describe('ServerApiRepository', () => {
             expect(resource.value()).toEqual(settings);
         });
 
-        test('writes the parameters of the deployment system', () => {
-            let result: PlatformSettings | undefined;
+        test('writes the parameters of the deployment system, and reads the advice of the check', () => {
+            let result: UpdatePlatformSettingsResult | undefined;
+            const saved: UpdatePlatformSettingsResult = { ...settings, domainWarning: null };
 
-            repository.updateSettings(settings).subscribe((value) => { result = value; });
+            repository.updateSettings({ ...settings, acknowledgeDomainWarning: true })
+                .subscribe((value) => { result = value; });
 
             const req = httpMock.expectOne(`${BASE_URL}/settings`);
             expect(req.request.method).toBe('PUT');
-            expect(req.request.body).toEqual(settings);
-            req.flush(settings);
+            expect(req.request.body).toEqual({ ...settings, acknowledgeDomainWarning: true });
+            req.flush(saved);
 
-            expect(result).toEqual(settings);
+            expect(result).toEqual(saved);
+        });
+    });
+
+    describe('the check of the domain', () => {
+        // eslint-disable-next-line vitest/expect-expect
+        test('checks no domain while the caller gives none', () => {
+            const host = signal<string | undefined>(undefined);
+
+            TestBed.runInInjectionContext(() => repository.domainCheck(() => host()));
+            TestBed.tick();
+
+            httpMock.expectNone(() => true);
+        });
+
+        test('asks for the advice of the check of the host that the caller gives', async () => {
+            const host = signal<string | undefined>(undefined);
+            const resource = TestBed.runInInjectionContext(() => repository.domainCheck(() => host()));
+            TestBed.tick();
+
+            host.set('gitpaas.dev');
+            TestBed.tick();
+
+            const req = httpMock.expectOne(`${BASE_URL}/settings/domain-check`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toEqual({ gitpaasDomain: 'gitpaas.dev' });
+            req.flush(domainCheck);
+
+            await settle();
+
+            expect(resource.value()).toEqual(domainCheck);
         });
     });
 

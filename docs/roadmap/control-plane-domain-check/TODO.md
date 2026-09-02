@@ -42,12 +42,12 @@ The check becomes advisory. The operator writes the public address of the host i
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/server/
 
-- [ ] 4.1 Add the field of the public address of the host to the form, with its validation.
-- [ ] 4.2 Call the endpoint of the check when the tab opens, and when the operator changes the domain.
-- [ ] 4.3 Show the warning in a block of warning, and show its text inside the modal of the confirmation.
-- [ ] 4.4 Send `acknowledgeDomainWarning` when the operator confirms a domain that holds a warning.
-- [ ] 4.5 Correct the hint that tells the operator to point the record A at this host.
-- [ ] 4.6 Update the tests of the container, of the repository of the API and of the use case that describes a failure.
+- [x] 4.1 Add the field of the public address of the host to the form, with its validation.
+- [x] 4.2 Call the endpoint of the check when the tab opens, and when the operator changes the domain.
+- [x] 4.3 Show the warning in a block of warning, and show its text inside the modal of the confirmation.
+- [x] 4.4 Send `acknowledgeDomainWarning` when the operator confirms a domain that holds a warning.
+- [x] 4.5 Correct the hint that tells the operator to point the record A at this host.
+- [x] 4.6 Update the tests of the container, of the repository of the API and of the use case that describes a failure.
 
 ## Phase 5 — The documentation
 
