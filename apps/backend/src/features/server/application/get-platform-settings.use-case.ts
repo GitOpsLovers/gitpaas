@@ -16,5 +16,6 @@ export async function getPlatformSettingsUseCase(settings: PlatformSettingsRepos
     return {
         logRetentionDays: saved?.logRetentionDays ?? DEFAULT_LOG_RETENTION_DAYS,
         gitpaasDomain: saved?.gitpaasDomain,
+        publicHostAddress: saved?.publicHostAddress,
     };
 }

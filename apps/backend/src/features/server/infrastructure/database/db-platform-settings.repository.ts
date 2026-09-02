@@ -29,6 +29,7 @@ export class DatabasePlatformSettingsRepository implements PlatformSettingsRepos
             id: PLATFORM_SETTINGS_ROW_ID,
             logRetentionDays: settings.logRetentionDays,
             gitpaasDomain: settings.gitpaasDomain ?? null,
+            publicHostAddress: settings.publicHostAddress ?? null,
         });
 
         return toPlatformSettings(entity);

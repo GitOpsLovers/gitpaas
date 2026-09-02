@@ -20,6 +20,9 @@ export class DbPlatformSettingsEntity {
     @Column({ type: 'text', nullable: true })
     public gitpaasDomain!: string | null;
 
+    @Column({ type: 'text', nullable: true })
+    public publicHostAddress!: string | null;
+
     @UpdateDateColumn({ type: 'timestamptz' })
     public updatedAt!: Date;
 }

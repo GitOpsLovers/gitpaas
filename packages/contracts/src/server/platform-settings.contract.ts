@@ -13,6 +13,11 @@ export const LOG_RETENTION_MIN_DAYS = 1;
 export const LOG_RETENTION_MAX_DAYS = 365;
 
 /**
+ * The public address, IPv4 or IPv6, the host reaches the internet through, as a body carries it.
+ */
+export const publicHostAddress = z.union([z.ipv4(), z.ipv6()]);
+
+/**
  * The parameters of the deployment system that the operator sets.
  */
 export const platformSettingsSchema = z.object({
@@ -22,6 +27,7 @@ export const platformSettingsSchema = z.object({
         .min(LOG_RETENTION_MIN_DAYS)
         .max(LOG_RETENTION_MAX_DAYS),
     gitpaasDomain: domainHost.optional(),
+    publicHostAddress: publicHostAddress.optional(),
 });
 
 /**

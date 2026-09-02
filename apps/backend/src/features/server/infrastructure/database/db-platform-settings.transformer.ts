@@ -13,5 +13,6 @@ export function toPlatformSettings(entity: DbPlatformSettingsEntity): PlatformSe
     return {
         logRetentionDays: entity.logRetentionDays,
         gitpaasDomain: entity.gitpaasDomain ?? undefined,
+        publicHostAddress: entity.publicHostAddress ?? undefined,
     };
 }
