@@ -11,12 +11,15 @@ import { DatabaseNamespacesRepository } from '../db-namespaces.repository';
 const namespaceEntity = (overrides: Partial<DbNamespaceEntity> = {}): DbNamespaceEntity => ({
     id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
     name: 'default',
+    description: 'The scope by default',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
 });
 
 describe('DatabaseNamespacesRepository', () => {
     const createDto: CreateNamespaceDto = {
         name: 'new-namespace',
+        description: 'The scope of the new work',
     };
 
     let mockManager: jest.Mocked<Pick<EntityManager, 'query'>>;
@@ -67,8 +70,12 @@ describe('DatabaseNamespacesRepository', () => {
                 order: { id: 'DESC' },
             });
             expect(result).toEqual<Namespace[]>([
-                { id: first.id, name: 'platform' },
-                { id: second.id, name: 'default' },
+                {
+                    id: first.id, name: 'platform', description: first.description, createdAt: first.createdAt,
+                },
+                {
+                    id: second.id, name: 'default', description: second.description, createdAt: second.createdAt,
+                },
             ]);
         });
 
@@ -93,6 +100,8 @@ describe('DatabaseNamespacesRepository', () => {
             expect(result).toEqual<Namespace>({
                 id: entity.id,
                 name: entity.name,
+                description: entity.description,
+                createdAt: entity.createdAt,
             });
         });
 
@@ -107,8 +116,8 @@ describe('DatabaseNamespacesRepository', () => {
 
     describe('create', () => {
         it('creates an entity from the DTO, saves it, and maps the saved row', async () => {
-            const entity = namespaceEntity({ name: createDto.name });
-            const saved = namespaceEntity({ name: createDto.name });
+            const entity = namespaceEntity({ name: createDto.name, description: createDto.description });
+            const saved = namespaceEntity({ name: createDto.name, description: createDto.description });
             mockRepository.create.mockReturnValue(entity);
             mockRepository.save.mockResolvedValue(saved);
 
@@ -120,6 +129,8 @@ describe('DatabaseNamespacesRepository', () => {
             expect(result).toEqual<Namespace>({
                 id: saved.id,
                 name: createDto.name,
+                description: saved.description,
+                createdAt: saved.createdAt,
             });
             expect(result).not.toBe(saved);
         });
@@ -146,11 +157,11 @@ describe('DatabaseNamespacesRepository', () => {
 
         it('merges the DTO into the found namespace, saves it, and maps the saved row', async () => {
             const existing = namespaceEntity();
-            const saved = namespaceEntity({ name: 'renamed' });
+            const saved = namespaceEntity({ name: 'renamed', description: 'The renamed scope' });
             mockRepository.findOneBy.mockResolvedValue(existing);
             mockRepository.save.mockResolvedValue(saved);
 
-            const updateDto: UpdateNamespaceDto = { name: 'renamed' };
+            const updateDto: UpdateNamespaceDto = { name: 'renamed', description: 'The renamed scope' };
             const result = await sut.update(existing.id, updateDto);
 
             expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: existing.id });
@@ -159,6 +170,8 @@ describe('DatabaseNamespacesRepository', () => {
             expect(result).toEqual<Namespace>({
                 id: saved.id,
                 name: 'renamed',
+                description: saved.description,
+                createdAt: saved.createdAt,
             });
             expect(result).not.toBe(saved);
         });

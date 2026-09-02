@@ -81,7 +81,9 @@ describe('toProject', () => {
             description: '',
             namespaceId,
             createdAt,
-            namespace: { id: namespaceId, name: 'platform' },
+            namespace: {
+                id: namespaceId, name: 'platform', description: '', createdAt,
+            },
             services: [],
         };
 

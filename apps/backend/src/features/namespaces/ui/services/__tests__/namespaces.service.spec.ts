@@ -40,6 +40,8 @@ const namespaceId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 const namespace: Namespace = {
     id: namespaceId,
     name: 'platform',
+    description: 'The control plane',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
 describe('NamespacesService', () => {

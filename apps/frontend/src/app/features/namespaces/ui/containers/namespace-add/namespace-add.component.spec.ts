@@ -4,6 +4,7 @@ import type { Namespace } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
+import type { NamespaceFormValue } from '../../components/namespace-form/namespace-form.component';
 
 import { NamespaceAddComponent } from './namespace-add.component';
 
@@ -11,10 +12,14 @@ import { ToastService } from '@shared/services/toast.service';
 
 interface NamespaceAddInternals {
     submitting: () => boolean;
-    create: (name: string) => Promise<void>;
+    create: (value: NamespaceFormValue) => Promise<void>;
 }
 
-const created: Namespace = { id: 'ns-1', name: 'platform' };
+const created: Namespace = {
+    id: 'ns-1', name: 'platform', description: 'The platform namespace', createdAt: '2026-03-14T00:00:00.000Z',
+};
+
+const formValue: NamespaceFormValue = { name: 'platform', description: 'The platform namespace' };
 
 describe('NamespaceAddComponent', () => {
     let repository: { create: ReturnType<typeof vi.fn> };
@@ -57,9 +62,9 @@ describe('NamespaceAddComponent', () => {
         repository.create.mockReturnValue(of(created));
         create();
 
-        await component.create('platform');
+        await component.create(formValue);
 
-        expect(repository.create).toHaveBeenCalledWith({ name: 'platform' });
+        expect(repository.create).toHaveBeenCalledWith({ name: 'platform', description: 'The platform namespace' });
         expect(toast.success).toHaveBeenCalledWith('Namespace created', expect.stringContaining('platform'));
         expect(router.navigate).toHaveBeenCalledWith(['/namespaces']);
         expect(toast.error).not.toHaveBeenCalled();
@@ -69,7 +74,7 @@ describe('NamespaceAddComponent', () => {
         repository.create.mockReturnValue(throwError(() => new Error('boom')));
         create();
 
-        await component.create('platform');
+        await component.create(formValue);
 
         expect(toast.error).toHaveBeenCalledWith(
             'Could not create namespace',
@@ -84,7 +89,7 @@ describe('NamespaceAddComponent', () => {
         repository.create.mockReturnValue(NEVER);
         create();
 
-        component.create('platform');
+        component.create(formValue);
 
         expect(component.submitting()).toBe(true);
     });

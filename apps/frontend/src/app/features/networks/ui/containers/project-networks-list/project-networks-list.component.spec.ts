@@ -31,7 +31,7 @@ const NAMESPACE_ID = 'ns-1';
 const PROJECT_ID = 'pr-1';
 
 const namespace: Namespace = {
-    id: NAMESPACE_ID, name: 'acme', projectsCount: 1,
+    id: NAMESPACE_ID, name: 'acme', description: '', createdAt: '2026-03-14T00:00:00.000Z', projectsCount: 1,
 };
 
 const project: Project = {

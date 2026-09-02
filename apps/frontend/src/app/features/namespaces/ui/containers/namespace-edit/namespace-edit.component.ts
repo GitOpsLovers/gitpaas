@@ -3,7 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
-import { NamespaceFormComponent } from '@features/namespaces/ui/components/namespace-form/namespace-form.component';
+import {
+    NamespaceFormComponent,
+    NamespaceFormValue,
+} from '@features/namespaces/ui/components/namespace-form/namespace-form.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -32,15 +35,17 @@ export class NamespaceEditComponent {
 
     protected readonly initialName = computed(() => this.namespace.value()?.name ?? '');
 
+    protected readonly initialDescription = computed(() => this.namespace.value()?.description ?? '');
+
     protected readonly loading = computed(() => this.namespace.isLoading());
 
     protected readonly submitting = signal(false);
 
-    protected async update(name: string): Promise<void> {
+    protected async update(value: NamespaceFormValue): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const namespace = await lastValueFrom(this.repository.update(this.id, { name }));
+            const namespace = await lastValueFrom(this.repository.update(this.id, value));
 
             this.toast.success('Namespace updated', `“${namespace.name}” has been saved.`);
             this.router.navigate(['/namespaces']);

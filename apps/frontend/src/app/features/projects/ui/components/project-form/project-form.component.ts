@@ -5,6 +5,7 @@ import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
+import { TextareaFieldComponent } from '@shared/components/textarea/textarea-field.component';
 
 /**
  * Longest description a project accepts, as the contract of the API states.
@@ -22,7 +23,7 @@ export interface ProjectFormValue {
 @Component({
     selector: 'app-project-form',
     templateUrl: './project-form.component.html',
-    imports: [RouterLink, ComponentCardComponent, LabelComponent, InputFieldComponent, ButtonComponent],
+    imports: [RouterLink, ComponentCardComponent, LabelComponent, InputFieldComponent, TextareaFieldComponent, ButtonComponent],
 })
 export class ProjectFormComponent {
     protected readonly descriptionMaxLength = DESCRIPTION_MAX_LENGTH;
@@ -57,7 +58,7 @@ export class ProjectFormComponent {
         this.name.set(value.toString());
     }
 
-    protected onDescriptionChange(event: Event): void {
-        this.description.set((event.target as HTMLTextAreaElement).value);
+    protected onDescriptionChange(value: string): void {
+        this.description.set(value);
     }
 }
