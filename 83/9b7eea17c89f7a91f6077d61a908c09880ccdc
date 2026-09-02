@@ -1,0 +1,43 @@
+apps/backend/src/features/server/application/__tests__/find-cdn-provider.spec.ts
+  s_be97cb69dd7acb::t_7d4ee03cf1b890 1-55
+apps/backend/src/features/server/application/find-cdn-provider.ts
+  s_be97cb69dd7acb::t_2b68e4d91a5b9f 1-41
+apps/backend/src/features/server/domain/constants/cloudflare-ranges.constants.ts
+  s_be97cb69dd7acb::t_ce7966454c331a 1-24
+apps/backend/src/features/server/domain/ports/cloudflare-ranges.port.ts
+  s_be97cb69dd7acb::t_823ff802638ef3 1-11
+apps/backend/src/features/server/infrastructure/cdn/cloudflare-ranges.adapter.ts
+  s_be97cb69dd7acb::t_399aaa1650b9b8 1-94
+apps/backend/src/features/server/server.module.ts
+  s_be97cb69dd7acb::t_c73efc92831cb6 4,52
+docs/roadmap/control-plane-domain-check/TODO.md
+  s_be97cb69dd7acb::t_8e0c14a317ec65 23-26
+pnpm-lock.yaml
+  s_be97cb69dd7acb::t_bea26ee83204c2 101-103,4951-4954,13564-13565
+apps/backend/src/features/server/infrastructure/cdn/__tests__/cloudflare-ranges.adapter.spec.ts
+  s_d792478fd3f3f5::t_319c242d245baf 1-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "839b7eea17c89f7a91f6077d61a908c09880ccdc",
+  "prompts": {},
+  "sessions": {
+    "s_be97cb69dd7acb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e31c57-31c6-4a73-b8eb-ea865a7f724e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d792478fd3f3f5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a656d940c372b23e4",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
