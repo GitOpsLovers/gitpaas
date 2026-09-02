@@ -30,12 +30,12 @@ The check becomes advisory. The operator writes the public address of the host i
 **Agent:** implementer
 **Paths:** packages/contracts/src/server/, apps/backend/src/features/server/, apps/backend/src/core/ui/translators/
 
-- [ ] 3.1 Add the schema of the warning with the host, the resolved addresses, the address of the host, the reason, the provider and the message.
-- [ ] 3.2 Give the four reasons one text each: the mismatch, the unknown address of the host, the empty resolution, and the recognized CDN.
-- [ ] 3.3 Extend `checkControlPlaneDomainUseCase` with the provider and the reason, and split the answer of the PUT from its request.
-- [ ] 3.4 Add the field `acknowledgeDomainWarning` to the request of the PUT; `updatePlatformSettingsUseCase` throws as today without it, and it writes and returns the warning with it.
-- [ ] 3.5 Add the endpoint `POST /server/settings/domain-check` for the administrator, which runs the check and returns the warning.
-- [ ] 3.6 Update the tests of the two use cases, of the errors, of the translator, of the service and of the controller.
+- [x] 3.1 Add the schema of the warning with the host, the resolved addresses, the address of the host, the reason, the provider and the message.
+- [x] 3.2 Give the four reasons one text each: the mismatch, the unknown address of the host, the empty resolution, and the recognized CDN.
+- [x] 3.3 Extend `checkControlPlaneDomainUseCase` with the provider and the reason, and split the answer of the PUT from its request.
+- [x] 3.4 Add the field `acknowledgeDomainWarning` to the request of the PUT; `updatePlatformSettingsUseCase` throws as today without it, and it writes and returns the warning with it.
+- [x] 3.5 Add the endpoint `POST /server/settings/domain-check` for the administrator, which runs the check and returns the warning.
+- [x] 3.6 Update the tests of the two use cases, of the errors, of the translator, of the service and of the controller.
 
 ## Phase 4 — The tab of the settings of the server
 

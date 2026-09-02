@@ -1,12 +1,15 @@
 import type {
+    ControlPlaneDomainCheckResult,
+    ControlPlaneDomainWarning,
     ErrorEnvelope,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
+    UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
-import { updatePlatformSettingsSchema } from '@gitpaas/contracts';
+import { checkControlPlaneDomainSchema, updatePlatformSettingsSchema } from '@gitpaas/contracts';
 import {
     ArgumentsHost,
     BadRequestException,
@@ -20,6 +23,8 @@ import { Test } from '@nestjs/testing';
 
 import {
     DaemonUnreachableError,
+    GitpaasDomainNotPointingAtHostError,
+    HostAddressUnknownError,
     InvalidLogRetentionError,
     PlatformUpToDateError,
     ReleaseSourceUnavailableError,
@@ -48,6 +53,16 @@ const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
 const platformSettings: PlatformSettings = { logRetentionDays: 45 };
+const settingsResult: UpdatePlatformSettingsResult = { logRetentionDays: 45, domainWarning: null };
+const domainWarning: ControlPlaneDomainWarning = {
+    host: 'gitpaas.example.com',
+    resolvedAddresses: ['104.16.0.1'],
+    hostAddress: '203.0.113.10',
+    reason: 'cdn',
+    provider: 'Cloudflare',
+    message: 'The domain gitpaas.example.com resolves to an address of Cloudflare.',
+};
+const domainCheckResult: ControlPlaneDomainCheckResult = { warning: domainWarning };
 const updateStatus: PlatformUpdateStatus = {
     installedVersion: '2.1.0',
     latestVersion: '2.2.0',
@@ -110,6 +125,7 @@ describe('ServerController', () => {
             | 'getStatus'
             | 'getSettings'
             | 'updateSettings'
+            | 'checkDomain'
             | 'getUpdate'
             | 'checkUpdate'
             | 'startUpdate'
@@ -129,6 +145,7 @@ describe('ServerController', () => {
             getStatus: jest.fn(),
             getSettings: jest.fn(),
             updateSettings: jest.fn(),
+            checkDomain: jest.fn(),
             getUpdate: jest.fn(),
             checkUpdate: jest.fn(),
             startUpdate: jest.fn(),
@@ -585,13 +602,33 @@ describe('ServerController', () => {
 
     describe('updateSettings', () => {
         it('delegates the write of the parameters to the service with the body', async () => {
-            mockServerService.updateSettings.mockResolvedValue(platformSettings);
+            mockServerService.updateSettings.mockResolvedValue(settingsResult);
 
             const result = await sut.updateSettings({ logRetentionDays: 45 });
 
             expect(mockServerService.updateSettings).toHaveBeenCalledTimes(1);
             expect(mockServerService.updateSettings).toHaveBeenCalledWith({ logRetentionDays: 45 });
-            expect(result).toBe(platformSettings);
+            expect(result).toBe(settingsResult);
+        });
+
+        it('sends the confirmation of the operator to the service', async () => {
+            mockServerService.updateSettings.mockResolvedValue(settingsResult);
+
+            await sut.updateSettings({ logRetentionDays: 45, acknowledgeDomainWarning: true });
+
+            expect(mockServerService.updateSettings).toHaveBeenCalledWith({
+                logRetentionDays: 45,
+                acknowledgeDomainWarning: true,
+            });
+        });
+
+        it('translates a domain that does not point at this host into a BadRequestException', async () => {
+            mockServerService.updateSettings.mockRejectedValue(
+                new GitpaasDomainNotPointingAtHostError(domainWarning),
+            );
+
+            await expect(sut.updateSettings({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' }))
+                .rejects.toBeInstanceOf(BadRequestException);
         });
 
         it('translates an age outside the limits into a BadRequestException', async () => {
@@ -609,10 +646,78 @@ describe('ServerController', () => {
         });
     });
 
+    describe('checkDomain', () => {
+        it('delegates the check of the domain to the service with the host of the body', async () => {
+            mockServerService.checkDomain.mockResolvedValue(domainCheckResult);
+
+            const result = await sut.checkDomain({ gitpaasDomain: 'gitpaas.example.com' });
+
+            expect(mockServerService.checkDomain).toHaveBeenCalledTimes(1);
+            expect(mockServerService.checkDomain).toHaveBeenCalledWith('gitpaas.example.com');
+            expect(result).toBe(domainCheckResult);
+        });
+
+        it('answers no warning when the domain points at this host', async () => {
+            mockServerService.checkDomain.mockResolvedValue({ warning: null });
+
+            expect(await sut.checkDomain({ gitpaasDomain: 'gitpaas.example.com' })).toEqual({ warning: null });
+        });
+
+        it('translates an unknown address of this host into a ServiceUnavailableException', async () => {
+            mockServerService.checkDomain.mockRejectedValue(new HostAddressUnknownError());
+
+            await expect(sut.checkDomain({ gitpaasDomain: 'gitpaas.example.com' }))
+                .rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('propagates an unexpected failure of the check untranslated', async () => {
+            const original = new Error('the resolver is down');
+            mockServerService.checkDomain.mockRejectedValue(original);
+
+            await expect(sut.checkDomain({ gitpaasDomain: 'gitpaas.example.com' })).rejects.toBe(original);
+        });
+    });
+
+    describe('the validation of the body of the check of the domain', () => {
+        /** Runs the body of the check through the pipe the controller binds to it. */
+        const validate = (body: unknown): unknown =>
+            new ZodValidationPipe(checkControlPlaneDomainSchema).transform(body);
+
+        it('accepts a host that follows the rule of a host name', () => {
+            expect(validate({ gitpaasDomain: 'gitpaas.example.com' }))
+                .toEqual({ gitpaasDomain: 'gitpaas.example.com' });
+        });
+
+        it('brings the host down to small letters', () => {
+            expect(validate({ gitpaasDomain: 'GitPaaS.Example.COM' }))
+                .toEqual({ gitpaasDomain: 'gitpaas.example.com' });
+        });
+
+        it('rejects a body that carries no host with a BadRequestException', () => {
+            expect(() => validate({})).toThrow(BadRequestException);
+        });
+
+        it('rejects a host of a single label with a BadRequestException', () => {
+            expect(() => validate({ gitpaasDomain: 'localhost' })).toThrow(BadRequestException);
+        });
+    });
+
     describe('the validation of the body of the write', () => {
         /** Runs the body of the write through the pipe the controller binds to it. */
         const validate = (body: unknown): unknown =>
             new ZodValidationPipe(updatePlatformSettingsSchema).transform(body);
+
+        it('accepts the confirmation of the operator', () => {
+            expect(validate({ logRetentionDays: 30, acknowledgeDomainWarning: true })).toEqual({
+                logRetentionDays: 30,
+                acknowledgeDomainWarning: true,
+            });
+        });
+
+        it('rejects a confirmation that is no boolean with a BadRequestException', () => {
+            expect(() => validate({ logRetentionDays: 30, acknowledgeDomainWarning: 'yes' }))
+                .toThrow(BadRequestException);
+        });
 
         it('accepts an age inside the limits', () => {
             expect(validate({ logRetentionDays: 30 })).toEqual({ logRetentionDays: 30 });
@@ -800,6 +905,10 @@ describe('ServerController', () => {
             expect(rolesOf('updateSettings')).toEqual([UserRole.Admin]);
         });
 
+        it('reserves the check of the domain of the control plane to an administrator', () => {
+            expect(rolesOf('checkDomain')).toEqual([UserRole.Admin]);
+        });
+
         it('leaves the other routes of the server to every authenticated user', () => {
             expect(rolesOf('getStatus')).toBeUndefined();
             expect(rolesOf('getSettings')).toBeUndefined();
@@ -826,6 +935,15 @@ describe('ServerController', () => {
 
         it('refuses the write of the parameters to a user who is no administrator', () => {
             expect(() => guard().canActivate(contextFor('updateSettings', UserRole.User)))
+                .toThrow(ForbiddenException);
+        });
+
+        it('lets an administrator check the domain of the control plane', () => {
+            expect(guard().canActivate(contextFor('checkDomain', UserRole.Admin))).toBe(true);
+        });
+
+        it('refuses the check of the domain to a user who is no administrator', () => {
+            expect(() => guard().canActivate(contextFor('checkDomain', UserRole.User)))
                 .toThrow(ForbiddenException);
         });
 

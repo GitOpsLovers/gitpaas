@@ -1,4 +1,10 @@
-import { platformSettingsSchema, publicHostAddress } from '../platform-settings.contract';
+/* eslint-disable no-secrets/no-secrets */
+import {
+    platformSettingsSchema,
+    publicHostAddress,
+    updatePlatformSettingsResultSchema,
+    updatePlatformSettingsSchema,
+} from '../platform-settings.contract';
 
 /** The parameters of the deployment system, satisfying every rule of `platformSettingsSchema`. */
 const validSettings = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
@@ -55,5 +61,62 @@ describe('platformSettingsSchema', () => {
         const result = platformSettingsSchema.safeParse(validSettings());
 
         expect(result.data?.publicHostAddress).toBeUndefined();
+    });
+});
+
+describe('updatePlatformSettingsSchema', () => {
+    it('accepts a body that carries no confirmation of the operator', () => {
+        const result = updatePlatformSettingsSchema.safeParse(validSettings());
+
+        expect(result.success).toBe(true);
+        expect(result.data?.acknowledgeDomainWarning).toBeUndefined();
+    });
+
+    it('accepts the confirmation of the operator', () => {
+        const result = updatePlatformSettingsSchema.safeParse(validSettings({ acknowledgeDomainWarning: true }));
+
+        expect(result.success).toBe(true);
+        expect(result.data?.acknowledgeDomainWarning).toBe(true);
+    });
+
+    it('rejects a confirmation that is no boolean', () => {
+        expect(updatePlatformSettingsSchema.safeParse(validSettings({ acknowledgeDomainWarning: 'yes' })).success)
+            .toBe(false);
+    });
+
+    it('carries no warning of the domain, which the answer alone holds', () => {
+        const result = updatePlatformSettingsSchema.safeParse(validSettings());
+
+        expect(result.data).not.toHaveProperty('domainWarning');
+    });
+});
+
+describe('updatePlatformSettingsResultSchema', () => {
+    it('accepts an answer that carries no warning of the domain', () => {
+        const result = updatePlatformSettingsResultSchema.safeParse(validSettings({ domainWarning: null }));
+
+        expect(result.success).toBe(true);
+        expect(result.data?.domainWarning).toBeNull();
+    });
+
+    it('accepts an answer that carries the warning of the domain', () => {
+        const result = updatePlatformSettingsResultSchema.safeParse(validSettings({
+            gitpaasDomain: 'gitpaas.example.com',
+            domainWarning: {
+                host: 'gitpaas.example.com',
+                resolvedAddresses: ['104.16.0.1'],
+                hostAddress: '203.0.113.10',
+                reason: 'cdn',
+                provider: 'Cloudflare',
+                message: 'The domain gitpaas.example.com resolves to an address of Cloudflare.',
+            },
+        }));
+
+        expect(result.success).toBe(true);
+        expect(result.data?.domainWarning?.provider).toBe('Cloudflare');
+    });
+
+    it('rejects an answer that carries no field of the warning of the domain', () => {
+        expect(updatePlatformSettingsResultSchema.safeParse(validSettings()).success).toBe(false);
     });
 });

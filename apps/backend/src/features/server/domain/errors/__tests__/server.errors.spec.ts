@@ -1,3 +1,4 @@
+import type { ControlPlaneDomainWarning } from '@gitpaas/contracts';
 import { DOMAIN_HOST_MESSAGE } from '@gitpaas/contracts';
 
 import {
@@ -89,9 +90,20 @@ describe('InvalidGitpaasDomainError', () => {
 });
 
 describe('GitpaasDomainNotPointingAtHostError', () => {
-    /** Builds the error with the addresses of one failed check. */
-    const error = (resolvedAddresses: string[] = ['198.51.100.7']): GitpaasDomainNotPointingAtHostError =>
-        new GitpaasDomainNotPointingAtHostError('gitpaas.example.com', resolvedAddresses, '203.0.113.10');
+    /** Builds the warning of one failed check, overriding only the fields under test. */
+    const warning = (overrides: Partial<ControlPlaneDomainWarning> = {}): ControlPlaneDomainWarning => ({
+        host: 'gitpaas.example.com',
+        resolvedAddresses: ['198.51.100.7'],
+        hostAddress: '203.0.113.10',
+        reason: 'mismatch',
+        provider: null,
+        message: 'The domain gitpaas.example.com resolves to 198.51.100.7, and this host answers on 203.0.113.10.',
+        ...overrides,
+    });
+
+    /** Builds the error from the warning of one failed check. */
+    const error = (overrides: Partial<ControlPlaneDomainWarning> = {}): GitpaasDomainNotPointingAtHostError =>
+        new GitpaasDomainNotPointingAtHostError(warning(overrides));
 
     it('is a DomainError', () => {
         expect(error()).toBeInstanceOf(DomainError);
@@ -105,28 +117,22 @@ describe('GitpaasDomainNotPointingAtHostError', () => {
         expect(error().code).toBe('GITPAAS_DOMAIN_NOT_POINTING_AT_HOST');
     });
 
-    it('names the host, the address it resolves to and the address of this host in its message', () => {
+    it('carries the message of the warning, and asks the operator for a confirmation', () => {
         expect(error().message).toBe(
             'The domain gitpaas.example.com resolves to 198.51.100.7, and this host answers on 203.0.113.10.'
-            + ' Point the record A of gitpaas.example.com at 203.0.113.10, then save again.',
+            + ' Confirm the domain to save it as it stands.',
         );
     });
 
-    it('lists every address the host resolves to', () => {
-        expect(error(['198.51.100.7', '192.0.2.5']).message).toContain('resolves to 198.51.100.7, 192.0.2.5');
-    });
-
-    it('states that the host resolves to nothing when it resolves to no address', () => {
-        expect(error([]).message).toContain('resolves to nothing');
+    it('carries the message of a warning of another reason', () => {
+        expect(error({ reason: 'cdn', provider: 'Cloudflare', message: 'It sits behind Cloudflare.' }).message)
+            .toBe('It sits behind Cloudflare. Confirm the domain to save it as it stands.');
     });
 
     it('chains the original error through the cause option', () => {
         const original = new Error('ENOTFOUND');
 
-        expect(
-            new GitpaasDomainNotPointingAtHostError('gitpaas.example.com', [], '203.0.113.10', { cause: original })
-                .cause,
-        ).toBe(original);
+        expect(new GitpaasDomainNotPointingAtHostError(warning(), { cause: original }).cause).toBe(original);
     });
 });
 

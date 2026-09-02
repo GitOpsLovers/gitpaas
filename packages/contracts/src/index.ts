@@ -139,9 +139,26 @@ export {
     LOG_RETENTION_MIN_DAYS,
     platformSettingsSchema,
     publicHostAddress,
+    updatePlatformSettingsResultSchema,
     updatePlatformSettingsSchema,
 } from './server/platform-settings.contract';
-export type { PlatformSettings, UpdatePlatformSettingsDto } from './server/platform-settings.contract';
+export type {
+    PlatformSettings,
+    UpdatePlatformSettingsDto,
+    UpdatePlatformSettingsResult,
+} from './server/platform-settings.contract';
+export {
+    checkControlPlaneDomainSchema,
+    controlPlaneDomainCheckResultSchema,
+    controlPlaneDomainWarningReasonSchema,
+    controlPlaneDomainWarningSchema,
+} from './server/control-plane-domain.contract';
+export type {
+    CheckControlPlaneDomainDto,
+    ControlPlaneDomainCheckResult,
+    ControlPlaneDomainWarning,
+    ControlPlaneDomainWarningReason,
+} from './server/control-plane-domain.contract';
 export {
     platformUpdateSchema,
     platformUpdateStateSchema,

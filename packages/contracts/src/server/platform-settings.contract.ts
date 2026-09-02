@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { domainHost } from '../domains/domain.contract';
 
+import { controlPlaneDomainWarningSchema } from './control-plane-domain.contract';
+
 /**
  * The shortest age, in days, that an archived log row may keep.
  */
@@ -33,7 +35,16 @@ export const platformSettingsSchema = z.object({
 /**
  * The body of the write of the parameters of the deployment system.
  */
-export const updatePlatformSettingsSchema = platformSettingsSchema;
+export const updatePlatformSettingsSchema = platformSettingsSchema.extend({
+    acknowledgeDomainWarning: z.boolean().optional(),
+});
+
+/**
+ * The answer of the write of the parameters of the deployment system.
+ */
+export const updatePlatformSettingsResultSchema = platformSettingsSchema.extend({
+    domainWarning: controlPlaneDomainWarningSchema.nullable(),
+});
 
 /**
  * The shape of the parameters of the deployment system that an answer of the API carries.
@@ -44,3 +55,8 @@ export type PlatformSettings = z.infer<typeof platformSettingsSchema>;
  * The shape of the body of the write of the parameters of the deployment system.
  */
 export type UpdatePlatformSettingsDto = z.infer<typeof updatePlatformSettingsSchema>;
+
+/**
+ * The shape of the answer of the write of the parameters of the deployment system.
+ */
+export type UpdatePlatformSettingsResult = z.infer<typeof updatePlatformSettingsResultSchema>;
