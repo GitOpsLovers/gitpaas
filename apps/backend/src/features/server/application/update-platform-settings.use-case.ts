@@ -1,4 +1,8 @@
-import type { PlatformSettings, UpdatePlatformSettingsDto } from '@gitpaas/contracts';
+import type {
+    ControlPlaneDomainWarning,
+    UpdatePlatformSettingsDto,
+    UpdatePlatformSettingsResult,
+} from '@gitpaas/contracts';
 import {
     DOMAIN_HOST_MAX_LENGTH,
     DOMAIN_HOST_PATTERN,
@@ -14,11 +18,13 @@ import {
     InvalidGitpaasDomainError,
     InvalidLogRetentionError,
 } from '../domain/errors/server.errors';
+import type { CloudflareRanges } from '../domain/ports/cloudflare-ranges.port';
 import type { ControlPlaneEnvFile } from '../domain/ports/control-plane-env-file.port';
 import type { DnsResolver } from '../domain/ports/dns-resolver.port';
 import type { PublicHostAddress } from '../domain/ports/public-host-address.port';
 import { PlatformSettingsRepository } from '../domain/repositories/platform-settings.repository';
 
+import { buildControlPlaneDomainWarning } from './build-control-plane-domain-warning';
 import { checkControlPlaneDomainUseCase } from './check-control-plane-domain.use-case';
 
 /**
@@ -27,25 +33,27 @@ import { checkControlPlaneDomainUseCase } from './check-control-plane-domain.use
  * @param settings Platform settings repository
  * @param dns Resolver of the public DNS
  * @param publicAddress Source of the public address of this host
+ * @param cloudflareRanges Source of the ranges of the addresses of Cloudflare
  * @param envFile Writer of the environment of the stack
  * @param updateDto Parameters to keep
  *
- * @returns Parameters the system keeps
+ * @returns Parameters the system keeps, and the advice of the check of the domain
  *
  * @throws InvalidLogRetentionError When the age falls outside the limits of the platform
  * @throws InvalidGitpaasDomainError When the host of the control plane breaks the rule of a host name
- * @throws HostAddressUnknownError When the public address of this host cannot be read
- * @throws GitpaasDomainNotPointingAtHostError When the host of the control plane resolves elsewhere
+ * @throws HostAddressUnknownError When the public address of this host cannot be read, and the operator confirms nothing
+ * @throws GitpaasDomainNotPointingAtHostError When the host of the control plane resolves elsewhere, and the operator confirms nothing
  * @throws ControlPlaneEnvWriteError When the row is kept and the environment of the stack refuses the write
  */
 export async function updatePlatformSettingsUseCase(
     settings: PlatformSettingsRepository,
     dns: DnsResolver,
     publicAddress: PublicHostAddress,
+    cloudflareRanges: CloudflareRanges,
     envFile: ControlPlaneEnvFile,
     updateDto: UpdatePlatformSettingsDto,
-): Promise<PlatformSettings> {
-    const { gitpaasDomain, logRetentionDays, publicHostAddress } = updateDto;
+): Promise<UpdatePlatformSettingsResult> {
+    const { acknowledgeDomainWarning, gitpaasDomain, logRetentionDays, publicHostAddress } = updateDto;
 
     if (
         !Number.isInteger(logRetentionDays)
@@ -62,19 +70,19 @@ export async function updatePlatformSettingsUseCase(
         throw new InvalidGitpaasDomainError();
     }
 
+    let domainWarning: ControlPlaneDomainWarning | null = null;
+
     if (gitpaasDomain !== undefined) {
-        const check = await checkControlPlaneDomainUseCase(dns, publicAddress, gitpaasDomain);
+        const check = await checkControlPlaneDomainUseCase(dns, publicAddress, cloudflareRanges, gitpaasDomain);
 
-        if (check.hostAddress === null) {
-            throw new HostAddressUnknownError();
-        }
+        domainWarning = buildControlPlaneDomainWarning(check);
 
-        if (!check.pointsAtHost) {
-            throw new GitpaasDomainNotPointingAtHostError(
-                check.host,
-                check.resolvedAddresses,
-                check.hostAddress,
-            );
+        if (domainWarning !== null && acknowledgeDomainWarning !== true) {
+            if (domainWarning.reason === 'host-address-unknown') {
+                throw new HostAddressUnknownError();
+            }
+
+            throw new GitpaasDomainNotPointingAtHostError(domainWarning);
         }
     }
 
@@ -88,5 +96,5 @@ export async function updatePlatformSettingsUseCase(
         }
     }
 
-    return saved;
+    return { ...saved, domainWarning };
 }

@@ -1,5 +1,6 @@
-import type { PlatformSettings, UpdatePlatformSettingsDto } from '@gitpaas/contracts';
+import type { UpdatePlatformSettingsDto, UpdatePlatformSettingsResult } from '@gitpaas/contracts';
 
+import { CLOUDFLARE_PROVIDER_NAME } from '../../domain/constants/cloudflare-ranges.constants';
 import { CONTROL_PLANE_ENV_PATH } from '../../domain/constants/platform-settings.constants';
 import {
     ControlPlaneEnvWriteError,
@@ -9,6 +10,7 @@ import {
     InvalidLogRetentionError,
 } from '../../domain/errors/server.errors';
 import type { ControlPlaneDomainCheck } from '../../domain/models/control-plane-domain.models';
+import type { CloudflareRanges } from '../../domain/ports/cloudflare-ranges.port';
 import type { ControlPlaneEnvFile } from '../../domain/ports/control-plane-env-file.port';
 import type { DnsResolver } from '../../domain/ports/dns-resolver.port';
 import type { PublicHostAddress } from '../../domain/ports/public-host-address.port';
@@ -28,13 +30,22 @@ const domainCheck = (overrides: Partial<ControlPlaneDomainCheck> = {}): ControlP
     resolvedAddresses: ['203.0.113.10'],
     hostAddress: '203.0.113.10',
     pointsAtHost: true,
+    provider: null,
+    reason: null,
     ...overrides,
 });
+
+/** Builds the answer of a check that fails, so the write asks the operator for a confirmation. */
+const failedCheck = (overrides: Partial<ControlPlaneDomainCheck> = {}): ControlPlaneDomainCheck =>
+    domainCheck({
+        resolvedAddresses: ['198.51.100.7'], pointsAtHost: false, reason: 'mismatch', ...overrides,
+    });
 
 describe('updatePlatformSettingsUseCase', () => {
     let mockPlatformSettingsRepository: jest.Mocked<Pick<PlatformSettingsRepository, 'save'>>;
     let mockDnsResolver: jest.Mocked<Pick<DnsResolver, 'resolveAddresses'>>;
     let mockPublicHostAddress: jest.Mocked<Pick<PublicHostAddress, 'read'>>;
+    let mockCloudflareRanges: jest.Mocked<Pick<CloudflareRanges, 'readRanges'>>;
     let mockControlPlaneEnvFile: jest.Mocked<Pick<ControlPlaneEnvFile, 'writeDomain'>>;
 
     beforeEach(() => {
@@ -43,16 +54,18 @@ describe('updatePlatformSettingsUseCase', () => {
         mockPlatformSettingsRepository = { save: jest.fn() };
         mockDnsResolver = { resolveAddresses: jest.fn() };
         mockPublicHostAddress = { read: jest.fn() };
+        mockCloudflareRanges = { readRanges: jest.fn() };
         mockControlPlaneEnvFile = { writeDomain: jest.fn() };
         mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck());
     });
 
     /** Runs the use case with the mocked collaborators, applying the casts one time. */
-    const run = (updateDto: UpdatePlatformSettingsDto): Promise<PlatformSettings> =>
+    const run = (updateDto: UpdatePlatformSettingsDto): Promise<UpdatePlatformSettingsResult> =>
         updatePlatformSettingsUseCase(
             mockPlatformSettingsRepository as unknown as PlatformSettingsRepository,
             mockDnsResolver,
             mockPublicHostAddress,
+            mockCloudflareRanges,
             mockControlPlaneEnvFile,
             updateDto,
         );
@@ -70,12 +83,25 @@ describe('updatePlatformSettingsUseCase', () => {
     });
 
     it('returns the parameters the repository keeps', async () => {
-        const saved = { logRetentionDays: 45 };
-        mockPlatformSettingsRepository.save.mockResolvedValue(saved);
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
 
         const result = await run({ logRetentionDays: 45 });
 
-        expect(result).toBe(saved);
+        expect(result).toEqual({ logRetentionDays: 45, domainWarning: null });
+    });
+
+    it('returns no warning of the domain when the body carries no host', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        expect((await run({ logRetentionDays: 45 })).domainWarning).toBeNull();
+    });
+
+    it('returns no warning of the domain when the host points at this host', async () => {
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        const result = await run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' });
+
+        expect(result.domainWarning).toBeNull();
     });
 
     it('accepts the shortest age the platform allows', async () => {
@@ -243,6 +269,7 @@ describe('updatePlatformSettingsUseCase', () => {
         expect(mockCheckControlPlaneDomainUseCase).toHaveBeenCalledWith(
             mockDnsResolver,
             mockPublicHostAddress,
+            mockCloudflareRanges,
             'gitpaas.example.com',
         );
     });
@@ -276,35 +303,48 @@ describe('updatePlatformSettingsUseCase', () => {
     });
 
     it('throws a GitpaasDomainNotPointingAtHostError when the host resolves elsewhere', async () => {
-        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
-            domainCheck({ resolvedAddresses: ['198.51.100.7'], pointsAtHost: false }),
-        );
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
 
         await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
             .toBeInstanceOf(GitpaasDomainNotPointingAtHostError);
     });
 
     it('names the resolved address and the address of this host in the rejection', async () => {
-        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
-            domainCheck({ resolvedAddresses: ['198.51.100.7'], pointsAtHost: false }),
-        );
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
 
         await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
             .toThrow(/gitpaas\.example\.com resolves to 198\.51\.100\.7.*answers on 203\.0\.113\.10/);
     });
 
-    it('reports that the host resolves to nothing when it resolves to no address', async () => {
+    it('asks the operator for a confirmation in the rejection', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            .toThrow(/Confirm the domain/);
+    });
+
+    it('reports that the host resolves to no address when it resolves to none', async () => {
         mockCheckControlPlaneDomainUseCase.mockResolvedValue(
-            domainCheck({ resolvedAddresses: [], pointsAtHost: false }),
+            failedCheck({ resolvedAddresses: [], reason: 'no-resolution' }),
         );
 
         await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
-            .toThrow(/resolves to nothing/);
+            .toThrow(/resolves to no address/);
+    });
+
+    it('names the provider of the CDN in the rejection when the host resolves behind one', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
+            failedCheck({ resolvedAddresses: ['104.16.0.1'], provider: CLOUDFLARE_PROVIDER_NAME, reason: 'cdn' }),
+        );
+
+        await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
+            // eslint-disable-next-line security/detect-non-literal-regexp
+            .toThrow(new RegExp(CLOUDFLARE_PROVIDER_NAME));
     });
 
     it('throws a HostAddressUnknownError when the address of this host cannot be read', async () => {
         mockCheckControlPlaneDomainUseCase.mockResolvedValue(
-            domainCheck({ hostAddress: null, pointsAtHost: false }),
+            failedCheck({ hostAddress: null, reason: 'host-address-unknown' }),
         );
 
         await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
@@ -312,13 +352,79 @@ describe('updatePlatformSettingsUseCase', () => {
     });
 
     it('never keeps the row when the host does not point at this host', async () => {
-        mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck({ pointsAtHost: false }));
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
 
         await expect(run({ logRetentionDays: 45, gitpaasDomain: 'gitpaas.example.com' })).rejects
             .toBeInstanceOf(GitpaasDomainNotPointingAtHostError);
 
         expect(mockPlatformSettingsRepository.save).not.toHaveBeenCalled();
         expect(mockControlPlaneEnvFile.writeDomain).not.toHaveBeenCalled();
+    });
+
+    it('keeps the row when the operator confirms the warning of the domain', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
+        mockPlatformSettingsRepository.save.mockResolvedValue({
+            logRetentionDays: 45,
+            gitpaasDomain: 'gitpaas.example.com',
+        });
+
+        await run({
+            logRetentionDays: 45,
+            gitpaasDomain: 'gitpaas.example.com',
+            acknowledgeDomainWarning: true,
+        });
+
+        expect(mockPlatformSettingsRepository.save).toHaveBeenCalledTimes(1);
+        expect(mockControlPlaneEnvFile.writeDomain).toHaveBeenCalledWith('gitpaas.example.com');
+    });
+
+    it('returns the warning of the domain when the operator confirms it', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
+        mockPlatformSettingsRepository.save.mockResolvedValue({
+            logRetentionDays: 45,
+            gitpaasDomain: 'gitpaas.example.com',
+        });
+
+        const result = await run({
+            logRetentionDays: 45,
+            gitpaasDomain: 'gitpaas.example.com',
+            acknowledgeDomainWarning: true,
+        });
+
+        expect(result.domainWarning).toEqual({
+            host: 'gitpaas.example.com',
+            resolvedAddresses: ['198.51.100.7'],
+            hostAddress: '203.0.113.10',
+            reason: 'mismatch',
+            provider: null,
+            message: expect.any(String),
+        });
+    });
+
+    it('keeps the row when the operator confirms an address of this host the platform ignores', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(
+            failedCheck({ hostAddress: null, reason: 'host-address-unknown' }),
+        );
+        mockPlatformSettingsRepository.save.mockResolvedValue({ logRetentionDays: 45 });
+
+        const result = await run({
+            logRetentionDays: 45,
+            gitpaasDomain: 'gitpaas.example.com',
+            acknowledgeDomainWarning: true,
+        });
+
+        expect(result.domainWarning?.reason).toBe('host-address-unknown');
+        expect(mockPlatformSettingsRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws when the confirmation of the operator is false', async () => {
+        mockCheckControlPlaneDomainUseCase.mockResolvedValue(failedCheck());
+
+        await expect(run({
+            logRetentionDays: 45,
+            gitpaasDomain: 'gitpaas.example.com',
+            acknowledgeDomainWarning: false,
+        })).rejects.toBeInstanceOf(GitpaasDomainNotPointingAtHostError);
     });
 
     it('writes the host into the environment of the stack once the row is kept', async () => {

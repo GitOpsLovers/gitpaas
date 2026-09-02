@@ -1,4 +1,6 @@
 import type {
+    CheckControlPlaneDomainDto,
+    ControlPlaneDomainCheckResult,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
@@ -6,8 +8,9 @@ import type {
     ReadinessResult,
     ServerStatus,
     UpdatePlatformSettingsDto,
+    UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
-import { updatePlatformSettingsSchema } from '@gitpaas/contracts';
+import { checkControlPlaneDomainSchema, updatePlatformSettingsSchema } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -136,15 +139,35 @@ export class ServerController {
      *
      * @param updateDto Parameters to keep
      *
-     * @returns Parameters the system keeps
+     * @returns Parameters the system keeps, and the advice of the check of the domain
      */
     @Put('settings')
     @Roles(UserRole.Admin)
     public async updateSettings(
         @Body(new ZodValidationPipe(updatePlatformSettingsSchema)) updateDto: UpdatePlatformSettingsDto,
-    ): Promise<PlatformSettings> {
+    ): Promise<UpdatePlatformSettingsResult> {
         try {
             return await this.service.updateSettings(updateDto);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Checks that a domain of the control plane points at this host. An administrator alone reaches it.
+     *
+     * @param checkDto Host of the control plane the operator considers
+     *
+     * @returns The advice of the check, or nothing when the domain points at this host
+     */
+    @Post('settings/domain-check')
+    @HttpCode(200)
+    @Roles(UserRole.Admin)
+    public async checkDomain(
+        @Body(new ZodValidationPipe(checkControlPlaneDomainSchema)) checkDto: CheckControlPlaneDomainDto,
+    ): Promise<ControlPlaneDomainCheckResult> {
+        try {
+            return await this.service.checkDomain(checkDto.gitpaasDomain);
         } catch (error) {
             throw translateError(error);
         }

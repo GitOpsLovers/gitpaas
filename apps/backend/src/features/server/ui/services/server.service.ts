@@ -1,13 +1,17 @@
 import type {
+    ControlPlaneDomainCheckResult,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
     PruneResult,
     ReadinessResult,
     UpdatePlatformSettingsDto,
+    UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { buildControlPlaneDomainWarning } from '../../application/build-control-plane-domain-warning';
+import { checkControlPlaneDomainUseCase } from '../../application/check-control-plane-domain.use-case';
 import { checkLatestReleaseUseCase } from '../../application/check-latest-release.use-case';
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
 import { getPlatformSettingsUseCase } from '../../application/get-platform-settings.use-case';
@@ -19,6 +23,7 @@ import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
 import { startPlatformUpdateUseCase } from '../../application/start-platform-update.use-case';
 import { updatePlatformSettingsUseCase } from '../../application/update-platform-settings.use-case';
+import type { CloudflareRanges } from '../../domain/ports/cloudflare-ranges.port';
 import type { ControlPlaneEnvFile } from '../../domain/ports/control-plane-env-file.port';
 import type { DnsResolver } from '../../domain/ports/dns-resolver.port';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
@@ -29,6 +34,7 @@ import type { ReleaseSource } from '../../domain/ports/release-source.port';
 import type { UpdateRunner } from '../../domain/ports/update-runner.port';
 import type { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
 import type { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
+import { CloudflareRangesAdapter } from '../../infrastructure/cdn/cloudflare-ranges.adapter';
 import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../infrastructure/database/db-platform-updates.repository';
 import { DatabasePublicHostAddressAdapter } from '../../infrastructure/database/db-public-host-address.adapter';
@@ -92,6 +98,8 @@ export class ServerService {
         private readonly dns: DnsResolver,
         @Inject(DatabasePublicHostAddressAdapter)
         private readonly publicAddress: PublicHostAddress,
+        @Inject(CloudflareRangesAdapter)
+        private readonly cloudflareRanges: CloudflareRanges,
         @Inject(FileControlPlaneEnvAdapter)
         private readonly envFile: ControlPlaneEnvFile,
     ) {}
@@ -171,10 +179,35 @@ export class ServerService {
      *
      * @param updateDto Parameters to keep
      *
-     * @returns Parameters the system keeps
+     * @returns Parameters the system keeps, and the advice of the check of the domain
      */
-    public updateSettings(updateDto: UpdatePlatformSettingsDto): Promise<PlatformSettings> {
-        return updatePlatformSettingsUseCase(this.settings, this.dns, this.publicAddress, this.envFile, updateDto);
+    public updateSettings(updateDto: UpdatePlatformSettingsDto): Promise<UpdatePlatformSettingsResult> {
+        return updatePlatformSettingsUseCase(
+            this.settings,
+            this.dns,
+            this.publicAddress,
+            this.cloudflareRanges,
+            this.envFile,
+            updateDto,
+        );
+    }
+
+    /**
+     * Checks that a domain of the control plane points at this host, and keeps nothing
+     *
+     * @param gitpaasDomain Host of the control plane the operator considers
+     *
+     * @returns The advice of the check, or nothing when the domain points at this host
+     */
+    public async checkDomain(gitpaasDomain: string): Promise<ControlPlaneDomainCheckResult> {
+        const check = await checkControlPlaneDomainUseCase(
+            this.dns,
+            this.publicAddress,
+            this.cloudflareRanges,
+            gitpaasDomain,
+        );
+
+        return { warning: buildControlPlaneDomainWarning(check) };
     }
 
     /**

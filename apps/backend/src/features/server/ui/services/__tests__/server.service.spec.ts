@@ -1,6 +1,16 @@
-import type { OrphanRemovalResult, PlatformSettings, PlatformUpdateStatus, PruneResult, ReadinessResult } from '@gitpaas/contracts';
+import type {
+    ControlPlaneDomainWarning,
+    OrphanRemovalResult,
+    PlatformSettings,
+    PlatformUpdateStatus,
+    PruneResult,
+    ReadinessResult,
+    UpdatePlatformSettingsResult,
+} from '@gitpaas/contracts';
 import { Test } from '@nestjs/testing';
 
+import { buildControlPlaneDomainWarning } from '../../../application/build-control-plane-domain-warning';
+import { checkControlPlaneDomainUseCase } from '../../../application/check-control-plane-domain.use-case';
 import { checkLatestReleaseUseCase } from '../../../application/check-latest-release.use-case';
 import { checkReadinessUseCase } from '../../../application/check-readiness.use-case';
 import { getPlatformSettingsUseCase } from '../../../application/get-platform-settings.use-case';
@@ -13,6 +23,8 @@ import { removeOrphanedContainersUseCase } from '../../../application/remove-orp
 import { startPlatformUpdateUseCase } from '../../../application/start-platform-update.use-case';
 import { updatePlatformSettingsUseCase } from '../../../application/update-platform-settings.use-case';
 import { InvalidLogRetentionError, ReleaseSourceUnavailableError } from '../../../domain/errors/server.errors';
+import type { ControlPlaneDomainCheck } from '../../../domain/models/control-plane-domain.models';
+import { CloudflareRangesAdapter } from '../../../infrastructure/cdn/cloudflare-ranges.adapter';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../../infrastructure/database/db-platform-updates.repository';
 import { DatabasePublicHostAddressAdapter } from '../../../infrastructure/database/db-public-host-address.adapter';
@@ -41,6 +53,8 @@ jest.mock('../../../application/prune-volumes.use-case');
 jest.mock('../../../application/prune-containers.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
 jest.mock('../../../application/check-readiness.use-case');
+jest.mock('../../../application/check-control-plane-domain.use-case');
+jest.mock('../../../application/build-control-plane-domain-warning');
 jest.mock('../../../application/check-latest-release.use-case');
 jest.mock('../../../application/get-server-status.use-case');
 jest.mock('../../../application/get-platform-settings.use-case');
@@ -80,6 +94,12 @@ const mockStartPlatformUpdateUseCase = startPlatformUpdateUseCase as jest.Mocked
 const mockCheckLatestReleaseUseCase = checkLatestReleaseUseCase as jest.MockedFunction<
     typeof checkLatestReleaseUseCase
 >;
+const mockCheckControlPlaneDomainUseCase = checkControlPlaneDomainUseCase as jest.MockedFunction<
+    typeof checkControlPlaneDomainUseCase
+>;
+const mockBuildControlPlaneDomainWarning = buildControlPlaneDomainWarning as jest.MockedFunction<
+    typeof buildControlPlaneDomainWarning
+>;
 const mockResolveServiceVersion = resolveServiceVersion as jest.MockedFunction<typeof resolveServiceVersion>;
 
 const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 };
@@ -94,6 +114,23 @@ const runtimeInfo: ContainerRuntimeInfo = {
     images: 12,
 };
 const platformSettings: PlatformSettings = { logRetentionDays: 45 };
+const settingsResult: UpdatePlatformSettingsResult = { logRetentionDays: 45, domainWarning: null };
+const domainCheck: ControlPlaneDomainCheck = {
+    host: 'gitpaas.example.com',
+    resolvedAddresses: ['198.51.100.7'],
+    hostAddress: '203.0.113.10',
+    pointsAtHost: false,
+    provider: null,
+    reason: 'mismatch',
+};
+const domainWarning: ControlPlaneDomainWarning = {
+    host: 'gitpaas.example.com',
+    resolvedAddresses: ['198.51.100.7'],
+    hostAddress: '203.0.113.10',
+    reason: 'mismatch',
+    provider: null,
+    message: 'The domain gitpaas.example.com resolves to 198.51.100.7.',
+};
 const updateStatus: PlatformUpdateStatus = {
     installedVersion: '2.1.0',
     latestVersion: '2.2.0',
@@ -137,6 +174,7 @@ describe('ServerService', () => {
     let mockUpdateRunner: jest.Mocked<DockerUpdateRunnerAdapter>;
     let mockDnsResolver: jest.Mocked<NodeDnsResolverAdapter>;
     let mockPublicHostAddress: jest.Mocked<DatabasePublicHostAddressAdapter>;
+    let mockCloudflareRanges: jest.Mocked<CloudflareRangesAdapter>;
     let mockControlPlaneEnvFile: jest.Mocked<FileControlPlaneEnvAdapter>;
     let sut: ServerService;
 
@@ -160,6 +198,7 @@ describe('ServerService', () => {
         mockUpdateRunner = {} as jest.Mocked<DockerUpdateRunnerAdapter>;
         mockDnsResolver = {} as jest.Mocked<NodeDnsResolverAdapter>;
         mockPublicHostAddress = {} as jest.Mocked<DatabasePublicHostAddressAdapter>;
+        mockCloudflareRanges = {} as jest.Mocked<CloudflareRangesAdapter>;
         mockControlPlaneEnvFile = {} as jest.Mocked<FileControlPlaneEnvAdapter>;
         mockResolveServiceVersion.mockReturnValue('2.1.0');
 
@@ -183,6 +222,7 @@ describe('ServerService', () => {
                 { provide: DockerUpdateRunnerAdapter, useValue: mockUpdateRunner },
                 { provide: NodeDnsResolverAdapter, useValue: mockDnsResolver },
                 { provide: DatabasePublicHostAddressAdapter, useValue: mockPublicHostAddress },
+                { provide: CloudflareRangesAdapter, useValue: mockCloudflareRanges },
                 { provide: FileControlPlaneEnvAdapter, useValue: mockControlPlaneEnvFile },
             ],
         }).compile();
@@ -472,7 +512,7 @@ describe('ServerService', () => {
 
     describe('updateSettings', () => {
         it('delegates to the update platform settings use case with the ports and the body', async () => {
-            mockUpdatePlatformSettingsUseCase.mockResolvedValue(platformSettings);
+            mockUpdatePlatformSettingsUseCase.mockResolvedValue(settingsResult);
 
             await sut.updateSettings({ logRetentionDays: 45 });
 
@@ -481,15 +521,31 @@ describe('ServerService', () => {
                 mockPlatformSettings,
                 mockDnsResolver,
                 mockPublicHostAddress,
+                mockCloudflareRanges,
                 mockControlPlaneEnvFile,
                 { logRetentionDays: 45 },
             );
         });
 
-        it('returns the parameters produced by the use case', async () => {
-            mockUpdatePlatformSettingsUseCase.mockResolvedValue(platformSettings);
+        it('sends the confirmation of the operator to the use case', async () => {
+            mockUpdatePlatformSettingsUseCase.mockResolvedValue(settingsResult);
 
-            expect(await sut.updateSettings({ logRetentionDays: 45 })).toBe(platformSettings);
+            await sut.updateSettings({ logRetentionDays: 45, acknowledgeDomainWarning: true });
+
+            expect(mockUpdatePlatformSettingsUseCase).toHaveBeenCalledWith(
+                mockPlatformSettings,
+                mockDnsResolver,
+                mockPublicHostAddress,
+                mockCloudflareRanges,
+                mockControlPlaneEnvFile,
+                { logRetentionDays: 45, acknowledgeDomainWarning: true },
+            );
+        });
+
+        it('returns the parameters produced by the use case', async () => {
+            mockUpdatePlatformSettingsUseCase.mockResolvedValue(settingsResult);
+
+            expect(await sut.updateSettings({ logRetentionDays: 45 })).toBe(settingsResult);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -497,6 +553,56 @@ describe('ServerService', () => {
             mockUpdatePlatformSettingsUseCase.mockRejectedValue(error);
 
             await expect(sut.updateSettings({ logRetentionDays: 0 })).rejects.toThrow(error);
+        });
+    });
+
+    describe('checkDomain', () => {
+        it('delegates to the check of the domain with the resolver, the address of the host and the ranges', async () => {
+            mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck);
+            mockBuildControlPlaneDomainWarning.mockReturnValue(domainWarning);
+
+            await sut.checkDomain('gitpaas.example.com');
+
+            expect(mockCheckControlPlaneDomainUseCase).toHaveBeenCalledTimes(1);
+            expect(mockCheckControlPlaneDomainUseCase).toHaveBeenCalledWith(
+                mockDnsResolver,
+                mockPublicHostAddress,
+                mockCloudflareRanges,
+                'gitpaas.example.com',
+            );
+        });
+
+        it('returns the warning built from the answer of the check', async () => {
+            mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck);
+            mockBuildControlPlaneDomainWarning.mockReturnValue(domainWarning);
+
+            const result = await sut.checkDomain('gitpaas.example.com');
+
+            expect(mockBuildControlPlaneDomainWarning).toHaveBeenCalledWith(domainCheck);
+            expect(result).toEqual({ warning: domainWarning });
+        });
+
+        it('returns no warning when the check gives none', async () => {
+            mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck);
+            mockBuildControlPlaneDomainWarning.mockReturnValue(null);
+
+            expect(await sut.checkDomain('gitpaas.example.com')).toEqual({ warning: null });
+        });
+
+        it('never keeps the parameters of the deployment system', async () => {
+            mockCheckControlPlaneDomainUseCase.mockResolvedValue(domainCheck);
+            mockBuildControlPlaneDomainWarning.mockReturnValue(null);
+
+            await sut.checkDomain('gitpaas.example.com');
+
+            expect(mockUpdatePlatformSettingsUseCase).not.toHaveBeenCalled();
+        });
+
+        it('propagates errors thrown by the check', async () => {
+            const error = new Error('the resolver is down');
+            mockCheckControlPlaneDomainUseCase.mockRejectedValue(error);
+
+            await expect(sut.checkDomain('gitpaas.example.com')).rejects.toThrow(error);
         });
     });
 
