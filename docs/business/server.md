@@ -522,33 +522,62 @@ The tab SHALL read the parameters when it opens, and it SHALL write them when th
 
 The system SHALL keep the domain of the control plane as a field of the parameters of the deployment system, `gitpaasDomain`, so an administrator moves GitPaaS to another domain from the tab Settings, and no longer by hand on the host. The field is optional; a platform with no domain answers on the published port, as before this field existed.
 
-The database SHALL be the source of truth of the domain, and the file `.env` of the production stack SHALL follow it. When the operator writes a domain, the system SHALL check that the domain points at this host before it keeps the value, and it SHALL refuse a domain that fails that check.
+The database SHALL be the source of truth of the domain, and the file `.env` of the production stack SHALL follow it. When the operator writes a domain that changes, the system SHALL check that the domain points at this host. The check is advisory: it SHALL never refuse a sound domain on its own, and it SHALL only hold the write until the operator confirms a warning that the check raises.
 
 ### Scenario: The operator writes a sound domain
 
-- **WHEN** an administrator writes a host name that fits the rule of a host name
-- **THEN** the system checks the domain, and it keeps the value once the check passes
+- **WHEN** an administrator writes a host name that fits the rule of a host name, and the check finds that it points at this host
+- **THEN** the system keeps the value, with no warning
 
 ### Scenario: The domain breaks the rule of a host name
 
 - **WHEN** an administrator writes a value that is no sound host name, or that is longer than a host name allows
 - **THEN** the system answers `400 Bad Request`, and it changes no value
 
-### Scenario: The domain does not point at this host
+### Scenario: The domain does not point at this host, and the operator confirms nothing
 
-- **WHEN** an administrator writes a host name whose DNS record resolves to an address that is not the public address of this host
-- **THEN** the system answers `400 Bad Request` with the resolved addresses and the address of the host, and it changes no value
+- **WHEN** an administrator writes a host name that the check warns about, and the request carries no confirmation
+- **THEN** the system answers `400 Bad Request` with the warning of the check, and it changes no value
 
-## The check of the DNS of the domain
+### Scenario: The operator confirms a domain the check warns about
 
-The system SHALL resolve the addresses of a domain, and SHALL compare them with the public address of the host that runs the platform, before it keeps a new domain.
+- **WHEN** the administrator writes the same host name again, with the field `acknowledgeDomainWarning` of the request
+- **THEN** the system keeps the value as it stands, and it returns the warning together with the parameters that it keeps
 
-The check SHALL fail closed: it SHALL refuse the domain when the public address of the host cannot be read, and not treat an unknown address as a pass.
+## The advisory check of the domain
 
-### Scenario: The public address of the host is unknown
+The system SHALL let the operator write the public address of this host as the field `publicHostAddress` of the parameters of the deployment system, an address IPv4 or IPv6 that stays optional. The check of the domain compares this address with the addresses the domain resolves to; a platform that carries no such address cannot tell whether a domain points at it.
 
-- **WHEN** the platform cannot read its own public address
-- **THEN** the system answers with an error that asks the operator to try again in a moment, and it changes no value
+The system SHALL resolve both the record A and the record AAAA of the domain of the control plane, and it SHALL treat every address that either record gives as an answer of the domain. It SHALL name Cloudflare as the provider of a resolved address that falls inside a published range of Cloudflare, IPv4 or IPv6, and it SHALL name no provider for an address that falls inside no such range.
+
+The check SHALL give a warning to the operator for one of four reasons alone, and the operator SHALL confirm that warning before the system keeps the domain:
+
+- **The mismatch.** The domain resolves to an address that differs from the public address of this host, and that address carries no known provider.
+- **The unknown address of the host.** The platform holds no public address of its own, so it cannot tell whether the domain points at this host.
+- **The empty resolution.** The domain resolves to no address at all, neither a record A nor a record AAAA.
+- **The recognized CDN.** The domain resolves to an address of a known provider, such as Cloudflare, that proxies the traffic toward this host.
+
+The system SHALL give the endpoint `POST /server/settings/domain-check`, for the administrator alone, which runs the check on a host without writing it, so the tab of the settings shows the warning before the operator saves.
+
+### Scenario: The domain resolves to an unrelated address
+
+- **WHEN** the check resolves the domain to an address that is neither the public address of this host nor an address of a known provider
+- **THEN** the system gives the reason `mismatch`, with the resolved addresses and the address of the host
+
+### Scenario: The platform knows no address of its own
+
+- **WHEN** the operator writes no public address of this host, or the field stays empty
+- **THEN** the check gives the reason `host-address-unknown`, and it asks the operator to write that address before it checks the domain
+
+### Scenario: The domain resolves to nothing
+
+- **WHEN** the record A and the record AAAA of the domain both give no address
+- **THEN** the check gives the reason `no-resolution`, and it asks the operator to add a record that points at the address of this host
+
+### Scenario: The domain resolves through Cloudflare
+
+- **WHEN** the resolved address falls inside a published range of Cloudflare
+- **THEN** the check gives the reason `cdn`, it names Cloudflare as the provider, and it tells the operator that the domain works while it points at this host through that provider
 
 ## The copy of the domain into the file of the environment
 
@@ -570,6 +599,8 @@ A row that the database keeps, and a file of the environment that the copy fails
 
 The write of a new domain applies nothing on its own. The tab Settings SHALL ask the operator to confirm before it writes a domain that changes, with a message that says the change takes a restart of the stack on the host, and an edit of the addresses of every GitHub App, and that asks the operator to point the domain at the host before the restart.
 
+The tab SHALL run the advisory check as the operator writes the host, before the operator even asks to save, and it SHALL show the warning of that check in a block next to the field. When the operator asks to save a domain that carries a warning, the tab SHALL fold the message of that warning into the question of the confirmation, so the operator reads it once before the write.
+
 Once the write of a changed domain succeeds, the tab SHALL show the command of the restart, and the three addresses of the GitHub App that the operator edits by hand: the Homepage URL, the Callback URL and the Setup URL, each one built from the new domain.
 
 ### Scenario: The operator changes the domain
@@ -577,12 +608,17 @@ Once the write of a changed domain succeeds, the tab SHALL show the command of t
 - **WHEN** the operator writes a host name that differs from the one the API keeps, and saves
 - **THEN** the system opens the question of the confirmation, and it calls no endpoint until the operator confirms
 
+### Scenario: The check warns while the operator writes the domain
+
+- **WHEN** the operator writes a host name that the advisory check warns about
+- **THEN** the tab shows the message of that warning in a block next to the field, before the operator asks to save
+
+### Scenario: The operator confirms a domain the check warns about
+
+- **WHEN** the operator asks to save that domain, and the question of the confirmation carries the message of the warning
+- **THEN** the operator confirms, and the tab sends the field `acknowledgeDomainWarning` with the write
+
 ### Scenario: The change of the domain succeeds
 
 - **WHEN** the operator confirms, and the write succeeds
 - **THEN** the tab shows the command of the restart and the three addresses of the GitHub App, built from the new domain
-
-### Scenario: The domain fails the check of the DNS
-
-- **WHEN** the backend refuses the domain because it does not point at the host
-- **THEN** the tab shows the message of that failure, and it keeps the value that the operator wrote in the field
