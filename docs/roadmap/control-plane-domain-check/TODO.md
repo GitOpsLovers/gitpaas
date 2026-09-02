@@ -20,10 +20,10 @@ The check becomes advisory. The operator writes the public address of the host i
 **Paths:** apps/backend/src/features/server/
 **The user installs `ipaddr.js` before this phase.**
 
-- [ ] 2.1 Add the port and the adapter that fetch the ranges of Cloudflare, IPv4 and IPv6, with a timeout and a cache.
-- [ ] 2.2 Add the function that matches one address against those ranges with `ipaddr.js`, and that names the provider.
-- [ ] 2.3 Give the failed fetch an empty list of ranges, so the check reports no provider and never throws.
-- [ ] 2.4 Write the tests of the adapter, of the cache and of the matcher.
+- [x] 2.1 Add the port and the adapter that fetch the ranges of Cloudflare, IPv4 and IPv6, with a timeout and a cache.
+- [x] 2.2 Add the function that matches one address against those ranges with `ipaddr.js`, and that names the provider.
+- [x] 2.3 Give the failed fetch an empty list of ranges, so the check reports no provider and never throws.
+- [x] 2.4 Write the tests of the adapter, of the cache and of the matcher.
 
 ## Phase 3 — The warning, and the field of the confirmation
 
