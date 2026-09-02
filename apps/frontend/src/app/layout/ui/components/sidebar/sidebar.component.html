@@ -17,10 +17,10 @@
 </ng-template>
 
 <aside
-    class="fixed flex flex-col top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200"
+    class="fixed top-0 left-0 z-50 flex h-screen flex-col border-r border-gray-200 bg-white text-gray-900 transition-all duration-200 ease-in-out dark:border-gray-800 dark:bg-gray-950"
     [ngClass]="{
-        'w-[290px]': (isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async),
-        'w-[90px]': !((isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async)),
+        'w-[260px]': (isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async),
+        'w-[68px]': !((isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async)),
         'translate-x-0': isMobileOpen$ | async,
         '-translate-x-full': !(isMobileOpen$ | async),
         'xl:translate-x-0': true,
@@ -29,41 +29,45 @@
     (mouseleave)="sidebarService.setHovered(false)"
 >
     <div
-        class="py-8 flex"
+        class="flex h-16 shrink-0 items-center border-b border-gray-200 px-3 dark:border-gray-800"
         [ngClass]="{
-            'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)),
-            'justify-start': (isExpanded$ | async) || (isHovered$ | async),
+            'justify-center': !((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)),
+            'justify-start': (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async),
         }"
     >
-        <a routerLink="/">
+        <a routerLink="/" class="flex items-center">
             @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <img class="dark:hidden" src="/images/logo/logo.svg" alt="Logo" width="150" height="40" />
-                <img class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width="150" height="40" />
+                <img class="dark:hidden" src="/images/logo/logo.svg" alt="GitPaaS" width="154" height="32" />
+                <img class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="GitPaaS" width="154" height="32" />
             } @else {
-                <img src="/images/logo/logo-icon.svg" alt="Logo" width="32" height="32" />
+                <img src="/images/logo/logo-icon.svg" alt="GitPaaS" width="28" height="28" />
             }
         </a>
     </div>
 
-    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav class="mb-6">
-            <div class="flex flex-col gap-4">
+    <div class="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-3">
+        <nav>
+            <div class="flex flex-col gap-5">
                 <!-- Menu Section -->
                 <div>
                     <h2
-                        class="mb-4 text-xs uppercase flex leading-[20px] text-gray-400"
+                        class="mb-1.5 flex h-5 items-center px-2.5 text-theme-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
                         [ngClass]="{
-                            'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)),
-                            'justify-start': (isExpanded$ | async) || (isHovered$ | async),
+                            'justify-center': !(
+                                (isExpanded$ | async) ||
+                                (isHovered$ | async) ||
+                                (isMobileOpen$ | async)
+                            ),
+                            'justify-start': (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async),
                         }"
                     >
                         @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
                             Menu
                         } @else {
-                            <svg lucideEllipsis class="size-6"></svg>
+                            <svg lucideEllipsis class="size-4"></svg>
                         }
                     </h2>
-                    <ul class="flex flex-col gap-1">
+                    <ul class="flex flex-col gap-0.5">
                         @for (nav of navItems; track $index; let i = $index) {
                             <li>
                                 @if (nav.subItems) {
@@ -73,8 +77,15 @@
                                         [class.menu-item-active]="openSubmenu === 'main-' + i"
                                         [class.menu-item-inactive]="openSubmenu !== 'main-' + i"
                                         [ngClass]="{
-                                            'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)),
-                                            'xl:justify-start': (isExpanded$ | async) || (isHovered$ | async),
+                                            'justify-center': !(
+                                                (isExpanded$ | async) ||
+                                                (isHovered$ | async) ||
+                                                (isMobileOpen$ | async)
+                                            ),
+                                            'justify-start':
+                                                (isExpanded$ | async) ||
+                                                (isHovered$ | async) ||
+                                                (isMobileOpen$ | async),
                                         }"
                                     >
                                         <span
@@ -97,7 +108,7 @@
                                             ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async))
                                         ) {
                                             <span
-                                                class="ml-auto absolute right-10 menu-dropdown-badge"
+                                                class="menu-dropdown-badge ml-auto"
                                                 [ngClass]="{
                                                     'menu-dropdown-badge-active': openSubmenu === 'main-' + i,
                                                     'menu-dropdown-badge-inactive': openSubmenu !== 'main-' + i,
@@ -109,15 +120,16 @@
                                         @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
                                             <svg
                                                 lucideChevronDown
+                                                class="menu-item-arrow size-4"
                                                 [ngClass]="{
-                                                    'rotate-180 text-brand-500': openSubmenu === 'main-' + i,
+                                                    'menu-item-arrow-active': openSubmenu === 'main-' + i,
+                                                    'menu-item-arrow-inactive': openSubmenu !== 'main-' + i,
                                                 }"
-                                                class="ml-auto w-5 h-5 transition-transform duration-200"
                                             ></svg>
                                         }
                                     </button>
                                     <div
-                                        class="overflow-hidden transition-all duration-300"
+                                        class="overflow-hidden transition-all duration-200"
                                         [id]="'main-' + i"
                                         [style.display]="
                                             (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)
@@ -131,21 +143,23 @@
                                                     : '0px',
                                         }"
                                     >
-                                        <ul class="mt-2 space-y-1 ml-9">
+                                        <ul
+                                            class="mt-0.5 ml-7.5 flex flex-col gap-0.5 border-l border-gray-200 pl-1.5 dark:border-gray-800"
+                                        >
                                             @for (subItem of nav.subItems; track $index) {
                                                 <li>
                                                     <a
                                                         [routerLink]="subItem.path"
                                                         routerLinkActive=""
                                                         (click)="onSubmenuClick()"
-                                                        class="menu-dropdown-item"
+                                                        class="menu-dropdown-item group"
                                                         [ngClass]="{
                                                             'menu-dropdown-item-inactive': !isActive(subItem.path),
                                                             'menu-dropdown-item-active': isActive(subItem.path),
                                                         }"
                                                     >
                                                         {{ subItem.name }}
-                                                        <span class="flex items-center gap-1 ml-auto">
+                                                        <span class="ml-auto flex items-center gap-1">
                                                             @if (subItem.new) {
                                                                 <span
                                                                     class="menu-dropdown-badge"
@@ -163,7 +177,7 @@
                                                             }
                                                             @if (subItem.pro) {
                                                                 <span
-                                                                    class="ml-auto menu-dropdown-badge-pro"
+                                                                    class="menu-dropdown-badge-pro"
                                                                     [ngClass]="{
                                                                         'menu-dropdown-badge-pro-active': isActive(
                                                                             subItem.path
@@ -188,7 +202,23 @@
                                             [routerLink]="nav.path"
                                             routerLinkActive="menu-item-active"
                                             class="menu-item group"
-                                            [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
+                                            [ngClass]="{
+                                                'menu-item-inactive': !isActive(nav.path),
+                                                'justify-center': !(
+                                                    (isExpanded$ | async) ||
+                                                    (isHovered$ | async) ||
+                                                    (isMobileOpen$ | async)
+                                                ),
+                                                'justify-start':
+                                                    (isExpanded$ | async) ||
+                                                    (isHovered$ | async) ||
+                                                    (isMobileOpen$ | async),
+                                            }"
+                                            [attr.title]="
+                                                (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)
+                                                    ? null
+                                                    : nav.name
+                                            "
                                         >
                                             <span
                                                 class="menu-item-icon-size"
@@ -202,15 +232,13 @@
                                                     [ngTemplateOutletContext]="{ icon: nav.icon }"
                                                 />
                                             </span>
-                                            <span class="menu-item-text">
-                                                @if (
-                                                    (isExpanded$ | async) ||
-                                                    (isHovered$ | async) ||
-                                                    (isMobileOpen$ | async)
-                                                ) {
+                                            @if (
+                                                (isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)
+                                            ) {
+                                                <span class="menu-item-text">
                                                     {{ nav.name }}
-                                                }
-                                            </span>
+                                                </span>
+                                            }
                                         </a>
                                     }
                                 }
@@ -219,9 +247,6 @@
                     </ul>
                 </div>
                 <!-- end main menu -->
-
-                <!-- Support Section -->
-                <!-- end support section -->
             </div>
         </nav>
     </div>
