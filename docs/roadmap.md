@@ -13,4 +13,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
-- [control-plane-domain-check](./roadmap/control-plane-domain-check/TODO.md): the check of the domain of the control plane accepts a domain behind a proxy, a CDN or NAT.
