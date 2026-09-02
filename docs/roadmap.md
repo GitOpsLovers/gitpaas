@@ -13,4 +13,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
-- [visual-identity](./roadmap/visual-identity/TODO.md): the own identity of the design of the frontend, in the tokens and in the shell.

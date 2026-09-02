@@ -4,7 +4,7 @@
 
 Use the sources in this order, and stop at the first one that answers your question.
 
-1. **The templates of the frontend.** They already hold the markup of TailAdmin, converted to Angular.
+1. **The templates of the frontend.** They already hold the own markup of GitPaaS.
 2. **The theme file `apps/frontend/src/styles.css`.** It defines every custom token and every custom
    utility of this project.
 3. **The official documentation of Tailwind**, for a utility of the framework itself.
