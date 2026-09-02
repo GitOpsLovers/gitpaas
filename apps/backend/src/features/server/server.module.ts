@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { CloudflareRangesAdapter } from './infrastructure/cdn/cloudflare-ranges.adapter';
 import { DbPlatformSettingsEntity } from './infrastructure/database/db-platform-settings.entity';
 import { DatabasePlatformSettingsRepository } from './infrastructure/database/db-platform-settings.repository';
 import { DbPlatformUpdateEntity } from './infrastructure/database/db-platform-update.entity';
@@ -48,6 +49,7 @@ import { ServicesModule } from '@features/services/services.module';
         GithubReleaseSourceAdapter,
         MemoryLatestReleaseStoreAdapter,
         NodeDnsResolverAdapter,
+        CloudflareRangesAdapter,
         DatabasePublicHostAddressAdapter,
         FileControlPlaneEnvAdapter,
         CheckLatestReleaseJob,
