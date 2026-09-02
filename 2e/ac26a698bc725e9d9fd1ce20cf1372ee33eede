@@ -1,0 +1,33 @@
+.claude/skills/frontend-design/SKILL.md
+  s_fc22a27e970ca4::t_84e65b84a30dec 3,8
+.claude/skills/frontend-design/references/anti-patterns.md
+  s_fc22a27e970ca4::t_e225ee99fc3af5 8-9,16,18-20,22
+.claude/skills/frontend-design/references/find-and-verify.md
+  s_fc22a27e970ca4::t_490ceccfe4cb31 7
+.claude/skills/frontend-design/references/rules.md
+  s_fc22a27e970ca4::t_de81aa110afa78 5-6,10-12
+.claude/skills/frontend-design/references/theme.md
+  s_fc22a27e970ca4::t_9c5360eeb8d493 10-14,18,40,44-46,55
+docs/architecture/frontend/conventions.md
+  s_fc22a27e970ca4::t_4216d000d14f83 43
+docs/architecture/frontend/stack.md
+  s_fc22a27e970ca4::t_9d337353569fe9 8
+docs/business/frontend-shell.md
+  s_fc22a27e970ca4::t_42a6770223b770 7-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "2eac26a698bc725e9d9fd1ce20cf1372ee33eede",
+  "prompts": {},
+  "sessions": {
+    "s_fc22a27e970ca4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a379181418704f4cf",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
