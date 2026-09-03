@@ -1,0 +1,21 @@
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_e8b55953557210::t_6a2096f58f61f9 4,97-108,116,119-122,163-164,245-248,300,337
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_e8b55953557210::t_b4a085f00fae14 48-50,53-56,574-592,613-677
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0127097a6d8bc743b60b857cbbbed23269678696",
+  "prompts": {},
+  "sessions": {
+    "s_e8b55953557210": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26a62261-7924-4c85-945f-cd3947a5d2f4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
