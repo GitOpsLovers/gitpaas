@@ -2,7 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { provideRouter, Router } from '@angular/router';
 import type { Namespace, Project } from '@gitpaas/contracts';
 
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
@@ -15,6 +16,8 @@ import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.comp
 
 interface ProjectDetailInternals {
     breadcrumb: () => BreadcrumbItem[];
+    activeTab: () => string;
+    changeTab: (tab: 'services' | 'networks') => void;
 }
 
 const namespace: Namespace = {
@@ -40,13 +43,15 @@ describe('ProjectDetailComponent', () => {
     let namespacesRepository: {
         namespaceById: ReturnType<typeof vi.fn>;
     };
+    let router: { navigate: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ProjectDetailComponent>;
     let component: ProjectDetailInternals;
 
-    const create = (namespaceId = 'ns-1', id = 'pr-1'): void => {
+    const create = (namespaceId = 'ns-1', id = 'pr-1', tab = 'services'): void => {
         fixture = TestBed.createComponent(ProjectDetailComponent);
         fixture.componentRef.setInput('namespaceId', namespaceId);
         fixture.componentRef.setInput('id', id);
+        fixture.componentRef.setInput('tab', tab);
         fixture.detectChanges();
         component = fixture.componentInstance as unknown as ProjectDetailInternals;
     };
@@ -61,6 +66,7 @@ describe('ProjectDetailComponent', () => {
         namespacesRepository = {
             namespaceById: vi.fn().mockReturnValue({ value: namespaceValue }),
         };
+        router = { navigate: vi.fn() };
 
         TestBed.configureTestingModule({
             imports: [ProjectDetailComponent],
@@ -78,6 +84,7 @@ describe('ProjectDetailComponent', () => {
 
     describe('namespace scoping', () => {
         beforeEach(() => {
+            TestBed.overrideProvider(Router, { useValue: router });
             TestBed.overrideComponent(ProjectDetailComponent, {
                 set: {
                     template: '',
@@ -157,9 +164,39 @@ describe('ProjectDetailComponent', () => {
 
             expect(component.breadcrumb()[0]).toEqual({ label: 'Namespace', link: ['/namespaces', 'ns-2', 'projects'] });
         });
+
+        test('activates the tab coming from the route', () => {
+            create('ns-1', 'pr-1', 'networks');
+
+            expect(component.activeTab()).toBe('networks');
+        });
+
+        test('falls back to the tab of the services for an unknown tab segment', () => {
+            create('ns-1', 'pr-1', 'nope');
+
+            expect(component.activeTab()).toBe('services');
+        });
+
+        test('navigates to the namespaced tab route when changing tab', () => {
+            create();
+
+            component.changeTab('networks');
+
+            expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1', 'networks']);
+        });
+
+        test('reads the project one time alone', () => {
+            create();
+
+            expect(repository.projectById).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('template', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
         beforeEach(() => {
             TestBed.overrideComponent(ProjectDetailComponent, {
                 set: {
@@ -190,11 +227,79 @@ describe('ProjectDetailComponent', () => {
         test('passes the namespace and the project down to the services list', () => {
             create();
 
-            const servicesList = fixture.debugElement.children
-                .find((child) => child.name === 'app-services-list');
+            const servicesList = fixture.debugElement.query(By.css('app-services-list'));
 
-            expect(servicesList?.componentInstance.namespaceId()).toBe('ns-1');
-            expect(servicesList?.componentInstance.projectId()).toBe('pr-1');
+            expect(servicesList.componentInstance.namespaceId()).toBe('ns-1');
+            expect(servicesList.componentInstance.projectId()).toBe('pr-1');
+        });
+
+        test('shows the two tabs of the page', () => {
+            create();
+
+            const labels = Array.from(
+                fixture.nativeElement.querySelectorAll('app-tabs button') as NodeListOf<HTMLButtonElement>,
+            ).map((button) => button.textContent?.trim());
+
+            expect(labels).toEqual(['Services', 'Networks']);
+        });
+
+        test('serves the list of the services for the tab of the services of the route', () => {
+            create();
+
+            expect(component.activeTab()).toBe('services');
+            expect(fixture.nativeElement.querySelector('app-services-list')).not.toBeNull();
+            expect(fixture.nativeElement.querySelector('app-project-networks-list')).toBeNull();
+        });
+
+        test('serves the list of the networks for the tab of the networks of the route', () => {
+            create('ns-1', 'pr-1', 'networks');
+
+            expect(fixture.nativeElement.querySelector('app-project-networks-list')).not.toBeNull();
+            expect(fixture.nativeElement.querySelector('app-services-list')).toBeNull();
+        });
+
+        test('navigates to the route of the tab when the user chooses the tab of the networks', () => {
+            create();
+
+            const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+            const networksTab = Array.from(
+                fixture.nativeElement.querySelectorAll('app-tabs button') as NodeListOf<HTMLButtonElement>,
+            ).find((button) => button.textContent?.trim() === 'Networks');
+
+            networksTab?.click();
+
+            expect(navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1', 'networks']);
+        });
+
+        test('passes the namespace and the project down to the list of the networks', () => {
+            create('ns-1', 'pr-1', 'networks');
+
+            const networksList = fixture.debugElement.query(By.css('app-project-networks-list'));
+
+            expect(networksList.componentInstance.namespaceId()).toBe('ns-1');
+            expect(networksList.componentInstance.projectId()).toBe('pr-1');
+        });
+
+        test('hides the button "Add service" outside the tab of the services', () => {
+            create('ns-1', 'pr-1', 'networks');
+
+            expect(fixture.nativeElement.querySelector('a[href$="/services/add"]')).toBeNull();
+        });
+
+        test('shows one breadcrumb alone on the tab of the networks', () => {
+            create('ns-1', 'pr-1', 'networks');
+
+            expect(fixture.nativeElement.querySelectorAll('app-breadcrumb')).toHaveLength(1);
+        });
+
+        test('offers no link to a separate page of the networks', () => {
+            create();
+
+            const hrefs = Array.from(fixture.nativeElement.querySelectorAll('a'))
+                .map((anchor) => (anchor as HTMLAnchorElement).getAttribute('href'));
+
+            expect(hrefs).not.toContain('/namespaces/ns-1/projects/pr-1/networks');
         });
     });
 });

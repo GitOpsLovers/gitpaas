@@ -1,6 +1,9 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { Namespace, Project, ProjectNetwork } from '@gitpaas/contracts';
+import { provideRouter } from '@angular/router';
+import type { ProjectNetwork } from '@gitpaas/contracts';
 import { of, throwError } from 'rxjs';
 
 import { PROJECT_NETWORK_IN_USE_MESSAGE, PROJECT_NETWORK_NAME_TAKEN_MESSAGE } from '../../../application/read-project-network-error.use-case';
@@ -8,9 +11,6 @@ import { NetworksApiRepository } from '../../../infrastructure/api/networks-api.
 
 import { ProjectNetworksListComponent } from './project-networks-list.component';
 
-import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
-import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
-import type { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
 
 interface ProjectNetworksListInternals {
@@ -19,7 +19,6 @@ interface ProjectNetworksListInternals {
     pendingRemoval: () => ProjectNetwork | null;
     removing: () => boolean;
     removeMessage: () => string;
-    breadcrumb: () => BreadcrumbItem[];
     create: (name: string) => Promise<void>;
     rename: (change: { network: ProjectNetwork; name: string }) => Promise<void>;
     requestRemoval: (network: ProjectNetwork) => void;
@@ -29,19 +28,6 @@ interface ProjectNetworksListInternals {
 const NAMESPACE_ID = 'ns-1';
 
 const PROJECT_ID = 'pr-1';
-
-const namespace: Namespace = {
-    id: NAMESPACE_ID, name: 'acme', description: '', createdAt: '2026-03-14T00:00:00.000Z', projectsCount: 1,
-};
-
-const project: Project = {
-    id: PROJECT_ID,
-    name: 'api',
-    namespaceId: NAMESPACE_ID,
-    servicesCount: 2,
-    description: 'The API project',
-    createdAt: '2026-01-01T00:00:00.000Z',
-};
 
 const network: ProjectNetwork = {
     id: 'nw-1',
@@ -74,13 +60,6 @@ describe('ProjectNetworksListComponent', () => {
         renameProjectNetwork: ReturnType<typeof vi.fn>;
         removeProjectNetwork: ReturnType<typeof vi.fn>;
     };
-    let namespacesRepository: {
-        namespaceById: ReturnType<typeof vi.fn>;
-    };
-    let projectsRepository: {
-        namespaceId: ReturnType<typeof signal<string | undefined>>;
-        projectById: ReturnType<typeof vi.fn>;
-    };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
     const create = (namespaceId = NAMESPACE_ID, projectId = PROJECT_ID): void => {
@@ -99,19 +78,11 @@ describe('ProjectNetworksListComponent', () => {
             renameProjectNetwork: vi.fn().mockReturnValue(of(network)),
             removeProjectNetwork: vi.fn().mockReturnValue(of(undefined)),
         };
-        namespacesRepository = {
-            namespaceById: vi.fn().mockReturnValue({ value: signal<Namespace | undefined>(namespace) }),
-        };
-        projectsRepository = {
-            namespaceId: signal<string | undefined>(undefined),
-            projectById: vi.fn().mockReturnValue({ value: signal<Project | undefined>(project) }),
-        };
         toast = { success: vi.fn(), error: vi.fn() };
 
         TestBed.configureTestingModule({
             imports: [ProjectNetworksListComponent],
             providers: [
-                { provide: NamespacesApiRepository, useValue: namespacesRepository },
                 { provide: ToastService, useValue: toast },
             ],
         });
@@ -120,7 +91,6 @@ describe('ProjectNetworksListComponent', () => {
                 template: '',
                 providers: [
                     { provide: NetworksApiRepository, useValue: repository },
-                    { provide: ProjectsApiRepository, useValue: projectsRepository },
                 ],
             },
         });
@@ -133,30 +103,6 @@ describe('ProjectNetworksListComponent', () => {
             const [accessor] = repository.networksByProject.mock.calls[0] as [() => string | undefined];
 
             expect(accessor()).toBe(PROJECT_ID);
-        });
-
-        test('writes the namespace of the route into the projects repository', () => {
-            create();
-
-            expect(projectsRepository.namespaceId()).toBe(NAMESPACE_ID);
-        });
-
-        test('reads the namespace of the route', () => {
-            create();
-
-            const [accessor] = namespacesRepository.namespaceById.mock.calls[0] as [() => string | undefined];
-
-            expect(accessor()).toBe(NAMESPACE_ID);
-        });
-
-        test('names the namespace, the project and the networks in the breadcrumb', () => {
-            create();
-
-            expect(component.breadcrumb()).toEqual<BreadcrumbItem[]>([
-                { label: 'acme', link: ['/namespaces', NAMESPACE_ID, 'projects'] },
-                { label: 'api', link: ['/namespaces', NAMESPACE_ID, 'projects', PROJECT_ID] },
-                { label: 'Networks' },
-            ]);
         });
 
         test('rests with no write in flight and no error', () => {
@@ -267,5 +213,58 @@ describe('ProjectNetworksListComponent', () => {
 
             expect(repository.removeProjectNetwork).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('ProjectNetworksListComponent template', () => {
+    let fixture: ComponentFixture<ProjectNetworksListComponent>;
+    let repository: {
+        networksByProject: ReturnType<typeof vi.fn>;
+    };
+
+    const create = (): void => {
+        fixture = TestBed.createComponent(ProjectNetworksListComponent);
+        fixture.componentRef.setInput('namespaceId', NAMESPACE_ID);
+        fixture.componentRef.setInput('projectId', PROJECT_ID);
+        fixture.detectChanges();
+    };
+
+    beforeEach(() => {
+        repository = {
+            networksByProject: vi.fn().mockReturnValue({
+                value: signal<ProjectNetwork[] | undefined>([network]),
+                isLoading: signal(false),
+                reload: vi.fn(),
+            }),
+        };
+
+        TestBed.configureTestingModule({
+            imports: [ProjectNetworksListComponent],
+            providers: [
+                { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
+                provideRouter([]),
+                provideHttpClient(),
+                provideHttpClientTesting(),
+            ],
+        });
+        TestBed.overrideComponent(ProjectNetworksListComponent, {
+            set: {
+                providers: [
+                    { provide: NetworksApiRepository, useValue: repository },
+                ],
+            },
+        });
+    });
+
+    test('shows no breadcrumb, because the host of the container holds the one trail', () => {
+        create();
+
+        expect(fixture.nativeElement.querySelector('app-breadcrumb')).toBeNull();
+    });
+
+    test('lists the networks of the project', () => {
+        create();
+
+        expect(fixture.nativeElement.querySelector('app-project-networks')).not.toBeNull();
     });
 });

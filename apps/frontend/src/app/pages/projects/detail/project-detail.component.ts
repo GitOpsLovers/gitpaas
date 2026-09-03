@@ -15,4 +15,6 @@ export class ProjectDetailPage {
     public readonly namespaceId = input.required<string>();
 
     public readonly id = input.required<string>();
+
+    public readonly tab = input.required<string>();
 }
