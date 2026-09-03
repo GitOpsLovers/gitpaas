@@ -31,6 +31,7 @@ const containerSummary = (
     projects: overrides.projects ?? [project, project],
     ports: [],
     networks: [],
+    mounts: [],
 });
 
 /**

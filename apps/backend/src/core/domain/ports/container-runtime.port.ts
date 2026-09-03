@@ -6,6 +6,7 @@ import type {
     RuntimeComposeProject,
     RuntimeContainerSummary,
     RuntimeCreateNetworkOptions,
+    RuntimeCreateVolumeOptions,
     RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
     RuntimeLogOptions,
@@ -16,6 +17,7 @@ import type {
     RuntimeProgressStream,
     RuntimePruneReport,
     RuntimeSelector,
+    RuntimeVolumeSummary,
 } from '../models/container-runtime.models';
 
 /**
@@ -95,6 +97,31 @@ export interface ContainerRuntime {
      * @param containerId Identifier of the container
      */
     disconnectNetwork: (network: string, containerId: string) => Promise<void>;
+
+    /**
+     * Lists the volumes matching a selector.
+     *
+     * @param selector Resources the query is scoped to
+     *
+     * @returns Summaries of the matching volumes
+     */
+    listVolumes: (selector: RuntimeSelector) => Promise<RuntimeVolumeSummary[]>;
+
+    /**
+     * Creates a volume.
+     *
+     * @param options Definition of the volume to create
+     *
+     * @returns Name of the created volume
+     */
+    createVolume: (options: RuntimeCreateVolumeOptions) => Promise<string>;
+
+    /**
+     * Removes a volume, and the data it holds with it.
+     *
+     * @param name Name of the volume to remove
+     */
+    removeVolume: (name: string) => Promise<void>;
 
     /**
      * Lists the images matching a selector.

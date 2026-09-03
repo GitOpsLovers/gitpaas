@@ -33,6 +33,17 @@ export interface RuntimePortMapping {
 }
 
 /**
+ * A filesystem a container mounts; `name` is `null` for a bind mount, which carries no name.
+ */
+export interface RuntimeContainerMount {
+    name: string | null;
+    type: string;
+    source: string;
+    destination: string;
+    readOnly: boolean;
+}
+
+/**
  * Summary of a container.
  */
 export interface RuntimeContainerSummary {
@@ -45,6 +56,7 @@ export interface RuntimeContainerSummary {
     projects: string[];
     ports: RuntimePortMapping[];
     networks: string[];
+    mounts: RuntimeContainerMount[];
 }
 
 /**
@@ -58,6 +70,17 @@ export interface RuntimeNetworkSummary {
     internal: boolean;
     attachable: boolean;
     createdAt: Date;
+}
+
+/**
+ * Summary of a volume. A volume is keyed by its name, because the runtime gives it no identifier.
+ */
+export interface RuntimeVolumeSummary {
+    name: string;
+    driver: string;
+    mountpoint: string;
+    scope: string;
+    labels: Record<string, string>;
 }
 
 /**
@@ -132,6 +155,15 @@ export interface RuntimeCreateNetworkOptions {
     name: string;
     driver?: string;
     internal?: boolean;
+}
+
+/**
+ * Definition of a volume the runtime creates.
+ */
+export interface RuntimeCreateVolumeOptions {
+    name: string;
+    driver?: string;
+    labels?: Record<string, string>;
 }
 
 /**

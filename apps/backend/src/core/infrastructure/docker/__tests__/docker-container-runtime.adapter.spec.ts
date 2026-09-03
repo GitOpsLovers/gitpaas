@@ -38,10 +38,13 @@ interface FakeDaemon {
     listContainers: jest.Mock;
     listNetworks: jest.Mock;
     listImages: jest.Mock;
+    listVolumes: jest.Mock;
     createNetwork: jest.Mock;
+    createVolume: jest.Mock;
     getContainer: jest.Mock;
     getNetwork: jest.Mock;
     getImage: jest.Mock;
+    getVolume: jest.Mock;
     pruneImages: jest.Mock;
     pruneVolumes: jest.Mock;
     pruneContainers: jest.Mock;
@@ -74,10 +77,13 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
     daemon.listContainers = jest.fn().mockResolvedValue([]);
     daemon.listNetworks = jest.fn().mockResolvedValue([]);
     daemon.listImages = jest.fn().mockResolvedValue([]);
+    daemon.listVolumes = jest.fn().mockResolvedValue({ Volumes: [], Warnings: [] });
     daemon.createNetwork = jest.fn().mockResolvedValue({ id: 'n-created' });
+    daemon.createVolume = jest.fn().mockResolvedValue({ Name: 'v-created' });
     daemon.getContainer = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
     daemon.getNetwork = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
     daemon.getImage = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
+    daemon.getVolume = jest.fn().mockReturnValue({ remove: jest.fn().mockResolvedValue(undefined) });
     daemon.pruneImages = jest.fn().mockResolvedValue({});
     daemon.pruneVolumes = jest.fn().mockResolvedValue({});
     daemon.pruneContainers = jest.fn().mockResolvedValue({});
@@ -271,6 +277,16 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(daemon.listNetworks).toHaveBeenCalledWith({ filters: { label: [] } });
         });
 
+        it('scopes the volume list to the marker of ownership of GitPaaS', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.listVolumes({ labels: getGitpaasLabels(), project: 'my-service' });
+
+            expect(daemon.listVolumes).toHaveBeenCalledWith({
+                filters: { label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'] },
+            });
+        });
+
         it('scopes the volume and container prunes to the same serialised filter', async () => {
             const { sut, daemon } = buildSut();
 
@@ -365,6 +381,13 @@ describe('DockerContainerRuntimeAdapter', () => {
                     Labels: { 'io.gitpaas.project': 'web-frontend', 'com.docker.compose.project': 'web-frontend' },
                     Ports: [{ PrivatePort: 3000, PublicPort: 8080, Type: 'tcp' }],
                     NetworkSettings: { Networks: { 'web-frontend_default': {}, 'gitpaas-proxy': {} } },
+                    Mounts: [{
+                        Name: 'web-frontend_data',
+                        Type: 'volume',
+                        Source: '/var/lib/docker/volumes/web-frontend_data/_data',
+                        Destination: '/var/lib/data',
+                        RW: false,
+                    }],
                 },
                 { Id: 'bare', Created: 0 },
             ]);
@@ -380,6 +403,13 @@ describe('DockerContainerRuntimeAdapter', () => {
                     projects: ['web-frontend', 'web-frontend'],
                     ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
                     networks: ['web-frontend_default', 'gitpaas-proxy'],
+                    mounts: [{
+                        name: 'web-frontend_data',
+                        type: 'volume',
+                        source: '/var/lib/docker/volumes/web-frontend_data/_data',
+                        destination: '/var/lib/data',
+                        readOnly: true,
+                    }],
                 },
                 {
                     id: 'bare',
@@ -391,6 +421,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     projects: [],
                     ports: [],
                     networks: [],
+                    mounts: [],
                 },
             ]);
         });
@@ -437,6 +468,95 @@ describe('DockerContainerRuntimeAdapter', () => {
             daemon.listImages.mockResolvedValue([{ Id: 'img-a' }, { Id: 'img-b' }]);
 
             await expect(sut.listImages({})).resolves.toEqual([{ id: 'img-a' }, { id: 'img-b' }]);
+        });
+    });
+
+    describe('listVolumes', () => {
+        it('narrows every volume the daemon reports through the transformer', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.listVolumes.mockResolvedValue({
+                Volumes: [{
+                    Name: 'blog_pgdata',
+                    Driver: 'local',
+                    Mountpoint: '/var/lib/docker/volumes/blog_pgdata/_data',
+                    Scope: 'local',
+                    Labels: { 'io.gitpaas.managed': 'true' },
+                }],
+                Warnings: [],
+            });
+
+            await expect(sut.listVolumes({})).resolves.toEqual([{
+                name: 'blog_pgdata',
+                driver: 'local',
+                mountpoint: '/var/lib/docker/volumes/blog_pgdata/_data',
+                scope: 'local',
+                labels: { 'io.gitpaas.managed': 'true' },
+            }]);
+        });
+
+        it('reads a daemon that matched no volume as an empty list', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.listVolumes.mockResolvedValue({ Volumes: null, Warnings: [] });
+
+            await expect(sut.listVolumes({})).resolves.toEqual([]);
+        });
+    });
+
+    describe('createVolume', () => {
+        it('creates the volume on the name, the driver and the labels it received', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.createVolume({ name: 'blog_pgdata', driver: 'local', labels: { 'io.gitpaas.managed': 'true' } });
+
+            expect(daemon.createVolume).toHaveBeenCalledWith({
+                Name: 'blog_pgdata',
+                Driver: 'local',
+                Labels: { 'io.gitpaas.managed': 'true' },
+            });
+        });
+
+        it('returns the name of the volume the daemon created', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.createVolume.mockResolvedValue({ Name: 'blog_pgdata' });
+
+            await expect(sut.createVolume({ name: 'blog_pgdata' })).resolves.toBe('blog_pgdata');
+        });
+
+        it('leaves the driver and the labels to the daemon when the caller gave none', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.createVolume({ name: 'blog_pgdata' });
+
+            expect(daemon.createVolume).toHaveBeenCalledWith({ Name: 'blog_pgdata', Driver: undefined, Labels: undefined });
+        });
+
+        it('propagates a failure of the daemon that refuses the volume', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('volume name blog_pgdata already in use');
+            daemon.createVolume.mockRejectedValue(error);
+
+            await expect(sut.createVolume({ name: 'blog_pgdata' })).rejects.toThrow(error);
+        });
+    });
+
+    describe('removeVolume', () => {
+        it('removes a volume by name', async () => {
+            const { sut, daemon } = buildSut();
+            const remove = jest.fn().mockResolvedValue(undefined);
+            daemon.getVolume.mockReturnValue({ remove });
+
+            await sut.removeVolume('blog_pgdata');
+
+            expect(daemon.getVolume).toHaveBeenCalledWith('blog_pgdata');
+            expect(remove).toHaveBeenCalledWith();
+        });
+
+        it('propagates the refusal of the daemon to remove a volume a container still holds', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('volume is in use');
+            daemon.getVolume.mockReturnValue({ remove: jest.fn().mockRejectedValue(error) });
+
+            await expect(sut.removeVolume('blog_pgdata')).rejects.toThrow(error);
         });
     });
 

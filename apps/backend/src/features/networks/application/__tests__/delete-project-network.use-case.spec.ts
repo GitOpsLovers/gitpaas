@@ -48,6 +48,7 @@ const container = (overrides: Partial<RuntimeContainerSummary> = {}): RuntimeCon
     projects: ['gitpaas-web'],
     ports: [],
     networks: [],
+    mounts: [],
     ...overrides,
 });
 

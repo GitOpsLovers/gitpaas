@@ -16,6 +16,7 @@ const containerSummary = (id: string): RuntimeContainerSummary => ({
     projects: ['blog'],
     ports: [],
     networks: [],
+    mounts: [],
 });
 
 describe('followRunningContainersUseCase', () => {

@@ -22,6 +22,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     projects: [],
     ports: [],
     networks: [],
+    mounts: [],
     ...overrides,
 });
 
