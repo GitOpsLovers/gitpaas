@@ -1,0 +1,14 @@
+iac/production/nginx.conf
+  h_e4f33aa49027b9 38-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f5edcaffb9dd8e9611d0550f282ca58530003b59",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
