@@ -108,13 +108,8 @@ export const routes: Routes = [
                             },
                             {
                                 path: ':id',
-                                loadComponent: () => import('@pages/projects/detail/project-detail.component').then((m) => m.ProjectDetailPage),
-                                title: 'Project | GitPaaS',
-                            },
-                            {
-                                path: ':id/networks',
-                                loadComponent: () => import('@pages/projects/networks/project-networks.component').then((m) => m.ProjectNetworksPage),
-                                title: 'Project networks | GitPaaS',
+                                redirectTo: ':id/services',
+                                pathMatch: 'full',
                             },
                             {
                                 path: ':id/services/add',
@@ -135,6 +130,11 @@ export const routes: Routes = [
                                 path: ':id/services/:serviceId/:tab',
                                 loadComponent: () => import('@pages/services/detail/service-detail.component').then((m) => m.ServiceDetailPage),
                                 title: 'Service | GitPaaS',
+                            },
+                            {
+                                path: ':id/:tab',
+                                loadComponent: () => import('@pages/projects/detail/project-detail.component').then((m) => m.ProjectDetailPage),
+                                title: 'Project | GitPaaS',
                             },
                         ],
                     },
