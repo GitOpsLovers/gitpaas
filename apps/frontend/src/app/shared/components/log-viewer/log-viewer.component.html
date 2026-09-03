@@ -1,0 +1,42 @@
+<div
+    #body
+    class="h-[60vh] overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
+    role="log"
+    aria-live="polite"
+    [attr.aria-label]="ariaLabel()"
+>
+    @if (loading()) {
+        <div class="space-y-2">
+            @for (row of skeletonRows; track row) {
+                <app-skeleton />
+            }
+        </div>
+    } @else {
+        @for (line of lines(); track $index) {
+            <div class="flex gap-3 whitespace-pre-wrap break-words">
+                @if (line.timestamp) {
+                    <span class="shrink-0 text-gray-400 dark:text-gray-500">
+                        {{ line.timestamp | date: 'HH:mm:ss.SSS' }}
+                    </span>
+                }
+
+                @if (line.label) {
+                    <span
+                        class="w-14 shrink-0 font-semibold"
+                        [class]="line.error ? 'text-error-500' : 'text-gray-400 dark:text-gray-500'"
+                    >
+                        {{ line.label }}
+                    </span>
+                }
+
+                <span class="min-w-0" [class.text-error-500]="line.error">{{ line.text }}</span>
+            </div>
+        } @empty {
+            <div class="text-gray-400 dark:text-gray-500">
+                {{ emptyMessage() }}
+            </div>
+        }
+
+        <ng-content></ng-content>
+    }
+</div>

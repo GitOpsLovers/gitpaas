@@ -1,11 +1,10 @@
-import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import type { Container, RuntimeLogLine } from '@gitpaas/contracts';
 import { LucideDownload, LucideLoaderCircle } from '@lucide/angular';
 
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
+import { LogViewerComponent, LogViewerLine } from '@shared/components/log-viewer/log-viewer.component';
 import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
-import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 /**
  * Numbers of the lines of the history the operator can pick from.
@@ -15,7 +14,7 @@ export const RUNTIME_LOG_TAIL_OPTIONS = [100, 200, 500, 1000, 5000] as const;
 @Component({
     selector: 'app-service-logs',
     templateUrl: './service-logs.component.html',
-    imports: [ComponentCardComponent, DatePipe, LucideDownload, LucideLoaderCircle, Select2Component, SkeletonComponent],
+    imports: [ComponentCardComponent, LogViewerComponent, LucideDownload, LucideLoaderCircle, Select2Component],
 })
 
 /**
@@ -63,9 +62,21 @@ export class ServiceLogsComponent {
     public readonly tailSelected = output<number>();
 
     /**
-     * The rows the skeleton of the output shows while the history loads.
+     * The lines of the output, in the shape the viewer of the logs takes.
      */
-    protected readonly skeletonRows = [0, 1, 2, 3, 4];
+    protected readonly viewerLines = computed<LogViewerLine[]>(() => this.lines().map((line) => ({
+        text: line.text,
+        timestamp: line.timestamp,
+        label: line.source,
+        error: line.source === 'stderr',
+    })));
+
+    /**
+     * Why the output holds no line, in the words of the state of the service.
+     */
+    protected readonly emptyMessage = computed(() => (this.containers().length === 0
+        ? 'This service runs no container yet, so it wrote no output.'
+        : 'This container wrote no output yet.'));
 
     /**
      * The containers of the service, as the options of the dropdown menu.

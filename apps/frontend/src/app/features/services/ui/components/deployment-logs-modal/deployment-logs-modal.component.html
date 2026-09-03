@@ -37,21 +37,7 @@
             </button>
         </div>
 
-        <div
-            #logBody
-            class="h-[60vh] overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
-            role="log"
-            aria-live="polite"
-            aria-label="Deployment log output"
-        >
-            @for (line of lines(); track $index) {
-                <div class="whitespace-pre-wrap break-words">{{ line }}</div>
-            } @empty {
-                <div class="text-gray-400 dark:text-gray-500">
-                    {{ emptyMessage() }}
-                </div>
-            }
-
+        <app-log-viewer [lines]="viewerLines()" [emptyMessage]="emptyMessage()" ariaLabel="Deployment log output">
             @if (failure(); as failure) {
                 <div class="mt-2 font-medium text-error-500" role="alert">
                     <span class="font-semibold">✗ {{ failure.code }}</span>
@@ -66,6 +52,6 @@
                     <div class="mt-2 font-medium text-error-500">✗ Deployment failed</div>
                 }
             }
-        </div>
+        </app-log-viewer>
     }
 </app-modal>

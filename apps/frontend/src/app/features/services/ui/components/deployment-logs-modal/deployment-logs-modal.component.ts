@@ -1,10 +1,9 @@
-import {
-    afterRenderEffect, Component, computed, effect, ElementRef, inject, input, output, signal, viewChild,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import type { Deployment, LogStatus } from '@gitpaas/contracts';
 import { LucideCheck, LucideCopy, LucideLoaderCircle, LucideX } from '@lucide/angular';
 
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
+import { LogViewerComponent, LogViewerLine } from '@shared/components/log-viewer/log-viewer.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 
 /**
@@ -34,7 +33,7 @@ const EMPTY_MESSAGES = {
 @Component({
     selector: 'app-deployment-logs-modal',
     templateUrl: './deployment-logs-modal.component.html',
-    imports: [ModalComponent, LucideCheck, LucideCopy, LucideLoaderCircle, LucideX],
+    imports: [LogViewerComponent, ModalComponent, LucideCheck, LucideCopy, LucideLoaderCircle, LucideX],
 })
 
 /**
@@ -65,6 +64,11 @@ export class DeploymentLogsModalComponent {
     public readonly finished = output();
 
     protected readonly lines = signal<string[]>([]);
+
+    /**
+     * The lines of the output, in the shape the viewer of the logs takes.
+     */
+    protected readonly viewerLines = computed<LogViewerLine[]>(() => this.lines().map((text) => ({ text })));
 
     protected readonly streaming = signal(false);
 
@@ -107,8 +111,6 @@ export class DeploymentLogsModalComponent {
                 return EMPTY_MESSAGES.none;
         }
     });
-
-    private readonly logBody = viewChild<ElementRef<HTMLElement>>('logBody');
 
     /**
      * Briefly toggled after a successful copy so the button can show feedback.
@@ -178,17 +180,6 @@ export class DeploymentLogsModalComponent {
             });
 
             onCleanup(() => { subscription.unsubscribe(); });
-        });
-
-        // Keep the log view pinned to the latest line as output arrives.
-        afterRenderEffect(() => {
-            this.lines();
-
-            const element = this.logBody()?.nativeElement;
-
-            if (element) {
-                element.scrollTop = element.scrollHeight;
-            }
         });
     }
 
