@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 
 import {
+    composeRecipe,
     declareDefaultNetwork,
     injectEnvironment,
     normalizeBuildArgs,
@@ -93,6 +94,18 @@ describe('compose-recipe.transformer', () => {
         });
     });
 
+    describe('composeRecipe', () => {
+        it('returns the recipe the compose project carries', () => {
+            const recipe = { services: { web: { image: 'nginx' } } };
+
+            expect(composeRecipe(asCompose({ recipe }))).toBe(recipe);
+        });
+
+        it('throws when the compose project carries no recipe', () => {
+            expect(() => composeRecipe(asCompose({}))).toThrow('The compose project carries no parsed recipe.');
+        });
+    });
+
     describe('recipeServices', () => {
         it('returns the recipe services when present', () => {
             const services = { web: { image: 'nginx' } };
@@ -100,9 +113,12 @@ describe('compose-recipe.transformer', () => {
             expect(recipeServices(asCompose({ recipe: { services } }))).toBe(services);
         });
 
-        it('returns an empty object when the recipe or its services are missing', () => {
-            expect(recipeServices(asCompose({}))).toEqual({});
+        it('returns an empty object when the recipe declares no services', () => {
             expect(recipeServices(asCompose({ recipe: {} }))).toEqual({});
+        });
+
+        it('throws when the compose project carries no recipe', () => {
+            expect(() => recipeServices(asCompose({}))).toThrow('The compose project carries no parsed recipe.');
         });
     });
 
@@ -144,8 +160,8 @@ describe('compose-recipe.transformer', () => {
             expect(compose.recipe.networks.default).toEqual({ internal: true });
         });
 
-        it('does nothing when the compose project carries no recipe', () => {
-            expect(() => { declareDefaultNetwork(asCompose({})); }).not.toThrow();
+        it('throws when the compose project carries no recipe, instead of leaving the default network undeclared', () => {
+            expect(() => { declareDefaultNetwork(asCompose({})); }).toThrow('The compose project carries no parsed recipe.');
         });
 
         it('gives the default network the GitPaaS labels once the stamping runs', () => {
@@ -226,7 +242,10 @@ describe('compose-recipe.transformer', () => {
 
         it('does nothing when the recipe declares no services, volumes or networks', () => {
             expect(() => { stampLabels(asCompose({ recipe: {} }), 'my-project'); }).not.toThrow();
-            expect(() => { stampLabels(asCompose({}), 'my-project'); }).not.toThrow();
+        });
+
+        it('throws when the compose project carries no recipe', () => {
+            expect(() => { stampLabels(asCompose({}), 'my-project'); }).toThrow('The compose project carries no parsed recipe.');
         });
     });
     describe('stampRouting', () => {
@@ -278,7 +297,7 @@ describe('compose-recipe.transformer', () => {
         });
 
         it('does nothing when the recipe declares no service', () => {
-            expect(stampRouting(asCompose({}), { web: { 'traefik.enable': 'true' } })).toEqual([]);
+            expect(stampRouting(asCompose({ recipe: {} }), { web: { 'traefik.enable': 'true' } })).toEqual([]);
         });
     });
 
@@ -315,7 +334,7 @@ describe('compose-recipe.transformer', () => {
         });
 
         it('does nothing when the recipe declares no service', () => {
-            expect(() => { injectEnvironment(asCompose({}), { A: 'b' }); }).not.toThrow();
+            expect(() => { injectEnvironment(asCompose({ recipe: {} }), { A: 'b' }); }).not.toThrow();
         });
     });
 });

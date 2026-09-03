@@ -98,17 +98,36 @@ function toEntryList(entries: Record<string, string>): string[] {
 }
 
 /**
+ * Returns the parsed recipe of a compose project.
+ *
+ * @param compose Compose project driven by the container runtime
+ *
+ * @throws {Error} When the compose project carries no parsed recipe
+ *
+ * @returns Parsed compose recipe
+ */
+export function composeRecipe(compose: RuntimeComposeProject): ComposeRecipe {
+    const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
+
+    if (!recipe) {
+        throw new Error('The compose project carries no parsed recipe.');
+    }
+
+    return recipe;
+}
+
+/**
  * Returns every top-level volume and network declared by a compose recipe.
  *
  * @param compose Compose project driven by the container runtime
  *
  * @returns Declared volume and network definitions
  */
-function recipeResources(compose: RuntimeComposeProject): ComposeResource[] {
-    const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
+export function recipeResources(compose: RuntimeComposeProject): ComposeResource[] {
+    const recipe = composeRecipe(compose);
     const resources: ComposeResource[] = [];
 
-    for (const collection of [recipe?.volumes, recipe?.networks]) {
+    for (const collection of [recipe.volumes, recipe.networks]) {
         if (!collection) {
             continue;
         }
@@ -143,9 +162,7 @@ export interface ResolvedBuild {
  * @returns Declared service definitions, keyed by service name
  */
 export function recipeServices(compose: RuntimeComposeProject): Record<string, ComposeService> {
-    const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
-
-    return recipe?.services ?? {};
+    return composeRecipe(compose).services ?? {};
 }
 
 /**
@@ -251,12 +268,7 @@ export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
  * @param compose Compose project driven by the container runtime
  */
 export function declareDefaultNetwork(compose: RuntimeComposeProject): void {
-    const recipe = (compose as unknown as { recipe?: ComposeRecipe }).recipe;
-
-    if (!recipe) {
-        return;
-    }
-
+    const recipe = composeRecipe(compose);
     const networks = recipe.networks ?? {};
 
     networks.default = networks.default ?? {};

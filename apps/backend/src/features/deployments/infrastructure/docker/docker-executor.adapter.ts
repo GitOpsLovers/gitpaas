@@ -84,11 +84,16 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             await this.pullWithProgress(compose, emit, builtImages);
 
+            // The declaration must precede `down()`, so that `down()` removes `<project>_default`
+            // and `up()` does not fail with a 409 on the next deployment.
+            declareDefaultNetwork(compose);
+
             emit('▶ Removing previous containers…');
             await this.run(() => compose.down());
 
+            await this.removeDefaultNetwork(projectName, emit);
+
             normalizeHealthchecks(compose);
-            declareDefaultNetwork(compose);
             stampLabels(compose, projectName);
 
             const routed = this.applyRouting(compose, routing, emit);
@@ -130,6 +135,28 @@ export class DockerExecutorAdapter implements DockerExecutor {
             return Object.keys(recipeServices(compose));
         } finally {
             await rm(directory, { recursive: true, force: true });
+        }
+    }
+
+    /**
+     * Removes the `<project>_default` network that survived `down()`, which `dockerode-compose` recreates with no catch of the code 409.
+     *
+     * @param projectName Compose project name the stack is grouped under
+     * @param emit Line emitter
+     */
+    private async removeDefaultNetwork(projectName: string, emit: DockerLogListener): Promise<void> {
+        const name = `${projectName}_default`;
+        const networks = await this.docker.listNetworks({});
+
+        for (const network of networks.filter((candidate) => candidate.name === name)) {
+            try {
+                await this.docker.removeNetwork(network.id);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+
+                emit(`✖ Could not remove the leftover network ${name}: ${message}`);
+                this.logger.warn(`Could not remove the leftover network ${name}: ${message}`, DockerExecutorAdapter.name);
+            }
         }
     }
 

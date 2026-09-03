@@ -45,11 +45,15 @@ const internals = (sut: DockerExecutorAdapter): ExecutorInternals => sut as unkn
 /**
  * Builds an executor backed by a fake container runtime exposing only the port
  * members a given test needs (`buildImage`, `pullImage`, `followProgress`,
- * `createComposeProject`). The injected `ContainerRuntime` / `AppLogger`
- * collaborators are stored under `mock*` names.
+ * `createComposeProject`). `up()` always looks the leftover networks up, so
+ * `listNetworks` answers with none unless a test overrides it. The injected
+ * `ContainerRuntime` / `AppLogger` collaborators are stored under `mock*` names.
  */
 const executorWithRuntime = (fakeRuntime: unknown): DockerExecutorAdapter => {
-    const mockContainerRuntime = fakeRuntime as ContainerRuntime;
+    const mockContainerRuntime = {
+        listNetworks: jest.fn().mockResolvedValue([]),
+        ...fakeRuntime as Record<string, unknown>,
+    } as unknown as ContainerRuntime;
     const mockLogger: jest.Mocked<AppLogger> = {
         debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
     };
@@ -567,6 +571,25 @@ describe('DockerExecutorAdapter', () => {
             expect(connectNetwork).not.toHaveBeenCalled();
         });
 
+        it('has the default network of the recipe declared by the time the previous containers are removed', async () => {
+            const recipe = { services: { web: { image: 'nginx' } } } as { services: unknown; networks?: Record<string, unknown> };
+            let networksAtDown: unknown;
+            // `down()` reads the keys of `recipe.networks`, and `stampLabels` mutates them later, so snapshot them here.
+            const down = jest.fn(() => {
+                networksAtDown = JSON.parse(JSON.stringify(recipe.networks ?? null)) as unknown;
+
+                return Promise.resolve(undefined);
+            });
+            mockCompose.instance = { recipe, down, up: jest.fn().mockResolvedValue({ services: [] }) };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], jest.fn());
+
+            expect(networksAtDown).toEqual({ default: {} });
+        });
+
         it('has the default network of the stack declared and labelled by the time the stack is created', async () => {
             const recipe = { services: { web: { image: 'nginx' } } } as { services: unknown; networks?: Record<string, unknown> };
             let networksAtUp: unknown;
@@ -585,6 +608,71 @@ describe('DockerExecutorAdapter', () => {
             expect(networksAtUp).toEqual({
                 default: { labels: { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'test-project' } },
             });
+        });
+
+        it('removes the network of the project that survived the removal of the previous containers', async () => {
+            const down = jest.fn().mockResolvedValue(undefined);
+            const composeUp = jest.fn().mockResolvedValue({ services: [] });
+            mockCompose.instance = { recipe: { services: {} }, down, up: composeUp };
+
+            const listNetworks = jest.fn().mockResolvedValue([
+                { id: 'network-1', name: 'test-project_default' },
+                { id: 'network-2', name: 'other-project_default' },
+            ]);
+            const removeNetwork = jest.fn().mockResolvedValue(undefined);
+            const sut = executorWithRuntime({ createComposeProject, listNetworks, removeNetwork });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], onLog);
+
+            expect(removeNetwork).toHaveBeenCalledTimes(1);
+            expect(removeNetwork).toHaveBeenCalledWith('network-1');
+            expect(down.mock.invocationCallOrder[0]).toBeLessThan(removeNetwork.mock.invocationCallOrder[0]);
+            expect(removeNetwork.mock.invocationCallOrder[0]).toBeLessThan(composeUp.mock.invocationCallOrder[0]);
+        });
+
+        it('never removes a network and stays silent when no network of the project survived', async () => {
+            mockCompose.instance = {
+                recipe: { services: {} },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [] }),
+            };
+
+            const listNetworks = jest.fn().mockResolvedValue([{ id: 'network-2', name: 'other-project_default' }]);
+            const removeNetwork = jest.fn();
+            const sut = executorWithRuntime({ createComposeProject, listNetworks, removeNetwork });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], onLog);
+
+            expect(removeNetwork).not.toHaveBeenCalled();
+            expect(onLog.mock.calls.map((call) => call[0])).toEqual([
+                '▶ Extracting repository…',
+                '▶ Pulling images…',
+                '▹ No registry images to pull.',
+                '▶ Removing previous containers…',
+                '▶ Creating and starting containers…',
+                '✔ Stack "test-project" is up (0 container(s))',
+            ]);
+        });
+
+        it('reports the network of the project it could not remove and still drives the stack up', async () => {
+            const composeUp = jest.fn().mockResolvedValue({ services: [] });
+            mockCompose.instance = { recipe: { services: {} }, down: jest.fn().mockResolvedValue(undefined), up: composeUp };
+
+            const listNetworks = jest.fn().mockResolvedValue([{ id: 'network-1', name: 'test-project_default' }]);
+            const removeNetwork = jest.fn().mockRejectedValue(new Error('network has active endpoints'));
+            const sut = executorWithRuntime({ createComposeProject, listNetworks, removeNetwork });
+            const onLog = jest.fn();
+
+            await expect(
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', 'test-project', {}, {}, [], onLog),
+            ).resolves.toBeUndefined();
+
+            expect(onLog).toHaveBeenCalledWith(
+                '✖ Could not remove the leftover network test-project_default: network has active endpoints',
+            );
+            expect(composeUp).toHaveBeenCalledTimes(1);
         });
 
         it('still cleans up the temp dir when an early step throws', async () => {
