@@ -14,6 +14,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     projects: ['gitpaas'],
     ports: [],
     networks: [],
+    mounts: [],
     ...overrides,
 });
 

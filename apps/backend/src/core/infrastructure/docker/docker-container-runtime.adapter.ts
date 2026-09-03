@@ -11,6 +11,7 @@ import type {
     RuntimeComposeProject,
     RuntimeContainerSummary,
     RuntimeCreateNetworkOptions,
+    RuntimeCreateVolumeOptions,
     RuntimeDetachedContainerOptions,
     RuntimeImageSummary,
     RuntimeLogOptions,
@@ -21,6 +22,7 @@ import type {
     RuntimeProgressStream,
     RuntimePruneReport,
     RuntimeSelector,
+    RuntimeVolumeSummary,
 } from '../../domain/models/container-runtime.models';
 import type { AppLogger } from '../../domain/ports/app-logger.port';
 import type { ContainerRuntime } from '../../domain/ports/container-runtime.port';
@@ -36,6 +38,7 @@ import {
     toNetworkSummary,
     toPruneReport,
     toRuntimeLogLine,
+    toVolumeSummary,
 } from './docker-container-runtime.transformer';
 import { decodeDockerLogFrames } from './docker-log.util';
 
@@ -119,6 +122,27 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
 
     public async disconnectNetwork(network: string, containerId: string): Promise<void> {
         await this.run(() => this.getClient().getNetwork(network).disconnect({ Container: containerId, Force: true }));
+    }
+
+    public async listVolumes(selector: RuntimeSelector): Promise<RuntimeVolumeSummary[]> {
+        const filters = toLabelFilter(selector);
+        const { Volumes } = await this.run(() => this.getClient().listVolumes({ filters }));
+
+        return (Volumes ?? []).map((volume) => toVolumeSummary(volume));
+    }
+
+    public async createVolume(options: RuntimeCreateVolumeOptions): Promise<string> {
+        const volume = await this.run(() => this.getClient().createVolume({
+            Name: options.name,
+            Driver: options.driver,
+            Labels: options.labels,
+        }));
+
+        return volume.Name;
+    }
+
+    public async removeVolume(name: string): Promise<void> {
+        await this.run(() => this.getClient().getVolume(name).remove());
     }
 
     public async listImages(selector: RuntimeSelector): Promise<RuntimeImageSummary[]> {

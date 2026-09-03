@@ -16,6 +16,7 @@ function containerSummary(overrides: Partial<RuntimeContainerSummary> = {}): Run
         projects: ['gitpaas-api'],
         ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
         networks: [],
+        mounts: [],
         ...overrides,
     };
 }

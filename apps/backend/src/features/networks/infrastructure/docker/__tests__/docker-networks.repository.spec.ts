@@ -37,6 +37,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     projects: ['my-service'],
     ports: [],
     networks: ['my-service_default'],
+    mounts: [],
     ...overrides,
 });
 

@@ -7,12 +7,12 @@ A service of GitPaaS keeps no record of its volumes, so a user cannot see the da
 **Agent:** implementer
 **Paths:** apps/backend/src/core/domain/, apps/backend/src/core/infrastructure/docker/
 
-- [ ] 1.1 Prove that `dockerode-compose` accepts a top-level volume with `external: true`, and report the result. If it fails, stop and report; the plan changes.
-- [ ] 1.2 Add the model `RuntimeVolumeSummary` to `core/domain/models/container-runtime.models.ts`.
-- [ ] 1.3 Add the field `mounts` to `RuntimeContainerSummary`, from the array `Mounts` of `listContainers`.
-- [ ] 1.4 Add `listVolumes`, `createVolume` and `removeVolume` to `container-runtime.port.ts`.
-- [ ] 1.5 Implement the three methods in `docker-container-runtime.adapter.ts`.
-- [ ] 1.6 Write the unit tests of the adapter, and run the checks of the backend.
+- [x] 1.1 Prove that `dockerode-compose` accepts a top-level volume with `external: true`, and report the result. If it fails, stop and report; the plan changes.
+- [x] 1.2 Add the model `RuntimeVolumeSummary` to `core/domain/models/container-runtime.models.ts`.
+- [x] 1.3 Add the field `mounts` to `RuntimeContainerSummary`, from the array `Mounts` of `listContainers`.
+- [x] 1.4 Add `listVolumes`, `createVolume` and `removeVolume` to `container-runtime.port.ts`.
+- [x] 1.5 Implement the three methods in `docker-container-runtime.adapter.ts`.
+- [x] 1.6 Write the unit tests of the adapter, and run the checks of the backend.
 
 ## Phase 2 — The feature `volumes` of the backend
 
@@ -35,8 +35,8 @@ A service of GitPaaS keeps no record of its volumes, so a user cannot see the da
 
 - [ ] 3.1 Add the key `volumes` to the interface `ComposeService` of `compose-recipe.transformer.ts`.
 - [ ] 3.2 Write `stampVolumes`, which writes the mounts of the join into the Compose service that the join names.
-- [ ] 3.3 Declare each attached volume as a top-level volume with `external: true`.
-- [ ] 3.4 Remove the volumes that GitPaaS owns when the user removes the service.
+- [ ] 3.3 Declare each attached volume as a top-level volume with `external: true`. The name of the real volume of Docker is `<composeProjectName>_<key>`, because `dockerode-compose` always prefixes the reference of the service.
+- [ ] 3.4 Remove the volumes that GitPaaS owns when the user removes the service, through `removeVolume` of the port. Never call `compose.down({ volumes: true })`, because it ignores `external`.
 - [ ] 3.5 Write the unit tests of the transformer and of the removal, and run the checks of the backend.
 
 ## Phase 4 — The tab of the frontend

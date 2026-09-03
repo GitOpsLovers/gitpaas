@@ -5,12 +5,14 @@ import { GITPAAS_PROJECT_LABEL } from '../../domain/constants/gitpaas-labels.con
 import {
     ContainerRuntimeInfo,
     LabelSelector,
+    RuntimeContainerMount,
     RuntimeContainerSummary,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
     RuntimePortMapping,
     RuntimePruneReport,
     RuntimeSelector,
+    RuntimeVolumeSummary,
 } from '../../domain/models/container-runtime.models';
 
 /**
@@ -115,6 +117,13 @@ export function toContainerSummary(info: Docker.ContainerInfo): RuntimeContainer
             type: port.Type,
         })),
         networks: Object.keys(info.NetworkSettings?.Networks ?? {}),
+        mounts: (info.Mounts ?? []).map((mount): RuntimeContainerMount => ({
+            name: mount.Name ?? null,
+            type: mount.Type,
+            source: mount.Source,
+            destination: mount.Destination,
+            readOnly: !mount.RW,
+        })),
     };
 }
 
@@ -134,6 +143,23 @@ export function toNetworkSummary(info: Docker.NetworkInspectInfo): RuntimeNetwor
         internal: info.Internal,
         attachable: info.Attachable,
         createdAt: new Date(info.Created),
+    };
+}
+
+/**
+ * Narrows a Dockerode volume summary into the domain model.
+ *
+ * @param info Dockerode volume summary
+ *
+ * @returns Normalized volume summary
+ */
+export function toVolumeSummary(info: Docker.VolumeInspectInfo): RuntimeVolumeSummary {
+    return {
+        name: info.Name,
+        driver: info.Driver,
+        mountpoint: info.Mountpoint,
+        scope: info.Scope,
+        labels: info.Labels ?? {},
     };
 }
 
