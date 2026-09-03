@@ -1,3 +1,14 @@
+## [2.12.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.11.0...v2.12.0) (2026-09-03)
+
+### Features
+
+* make logs visually stable ([141db81](https://github.com/GitOpsLovers/gitpaas/commit/141db81215df26c44984afe1266bb69ab4b684cc))
+* **projects:** show services and networks as tabs ([#222](https://github.com/GitOpsLovers/gitpaas/issues/222)) ([7b9340f](https://github.com/GitOpsLovers/gitpaas/commit/7b9340f939b7c75bba65611c6ffa7b243bd6dce9))
+
+### Bug Fixes
+
+* recreate networks on deploy ([0127097](https://github.com/GitOpsLovers/gitpaas/commit/0127097a6d8bc743b60b857cbbbed23269678696))
+
 ## [2.11.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.10.0...v2.11.0) (2026-09-03)
 
 ### Features
