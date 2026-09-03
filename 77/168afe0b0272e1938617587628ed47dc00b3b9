@@ -1,0 +1,61 @@
+apps/backend/src/core/domain/ports/container-runtime.port.ts
+  s_b8db27ee7e2b62::t_6abae58772055e 9,20,101-125
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_b8db27ee7e2b62::t_a6360f4fc64200 41,43,47,80,82,86,280-289,384-390,406-412,424,474-562
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_b8db27ee7e2b62::t_674de06478bea6 12,19,22,34-36,160-168,181-187,208,215-243,293-318
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts
+  s_b8db27ee7e2b62::t_9bb5080595cfff 14,25,41,127-147
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.transformer.ts
+  s_b8db27ee7e2b62::t_a7934bc7351450 8,15,120-126,149-165
+apps/backend/src/features/containers/infrastructure/docker/__tests__/docker-containers.repository.spec.ts
+  s_b8db27ee7e2b62::t_9ba1c40a05d938 25
+apps/backend/src/features/containers/infrastructure/docker/__tests__/docker-containers.transformer.spec.ts
+  s_b8db27ee7e2b62::t_a73fbe0872e87d 19
+apps/backend/src/features/logs/application/__tests__/follow-running-containers.use-case.spec.ts
+  s_b8db27ee7e2b62::t_d2929b3eacf57e 19
+apps/backend/src/features/logs/application/__tests__/stream-runtime-logs.use-case.spec.ts
+  s_b8db27ee7e2b62::t_6be6a4333e21a0 25
+apps/backend/src/features/networks/application/__tests__/delete-project-network.use-case.spec.ts
+  s_b8db27ee7e2b62::t_4bf310eb7b70fe 51
+apps/backend/src/features/networks/infrastructure/docker/__tests__/docker-networks.repository.spec.ts
+  s_b8db27ee7e2b62::t_6ae853d1e000e7 40
+apps/backend/src/features/server/infrastructure/docker/__tests__/docker-orphan-containers.adapter.spec.ts
+  s_b8db27ee7e2b62::t_b56f66e23e785b 34
+apps/backend/src/features/server/infrastructure/health/__tests__/backend-health-probe.adapter.spec.ts
+  s_b8db27ee7e2b62::t_ce884a00b19c0d 17
+apps/backend/src/features/server/infrastructure/health/__tests__/frontend-health-probe.adapter.spec.ts
+  s_b8db27ee7e2b62::t_7e5aa468ffe56f 17
+apps/backend/src/features/server/infrastructure/health/__tests__/proxy-health-probe.adapter.spec.ts
+  s_b8db27ee7e2b62::t_5022fe69662a94 17
+apps/backend/src/features/server/infrastructure/health/__tests__/stack-container-health-probe.adapter.spec.ts
+  s_b8db27ee7e2b62::t_f70c918e8233af 17
+apps/backend/src/core/domain/models/container-runtime.models.ts
+  s_8dda3965594ec1::t_1337f91a9ae236 35-45,59,75-85,160-168
+docs/roadmap/volumes-tab/TODO.md
+  s_b8db27ee7e2b62::t_36f6d7b48b89f0 10-15,38-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "77168afe0b0272e1938617587628ed47dc00b3b9",
+  "prompts": {},
+  "sessions": {
+    "s_8dda3965594ec1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a407f53219b4ce06d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b8db27ee7e2b62": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23b7d3f2-cfb7-4401-8159-d41bce89f978",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
