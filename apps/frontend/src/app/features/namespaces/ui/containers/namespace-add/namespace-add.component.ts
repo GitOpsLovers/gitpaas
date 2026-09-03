@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
-import { NamespaceFormComponent } from '../../components/namespace-form/namespace-form.component';
+import { NamespaceFormComponent, NamespaceFormValue } from '../../components/namespace-form/namespace-form.component';
 
 import { ToastService } from '@shared/services/toast.service';
 
@@ -25,11 +25,11 @@ export class NamespaceAddComponent {
 
     protected readonly submitting = signal(false);
 
-    protected async create(name: string): Promise<void> {
+    protected async create(value: NamespaceFormValue): Promise<void> {
         this.submitting.set(true);
 
         try {
-            const namespace = await lastValueFrom(this.repository.create({ name }));
+            const namespace = await lastValueFrom(this.repository.create(value));
 
             this.toast.success('Namespace created', `“${namespace.name}” has been created.`);
             this.router.navigate(['/namespaces']);

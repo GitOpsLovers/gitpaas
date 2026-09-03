@@ -13,5 +13,7 @@ export function toNamespace(entity: DbNamespaceEntity): Namespace {
     return {
         id: entity.id,
         name: entity.name,
+        description: entity.description,
+        createdAt: entity.createdAt,
     };
 }

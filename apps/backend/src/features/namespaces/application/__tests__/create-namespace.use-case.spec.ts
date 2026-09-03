@@ -5,11 +5,13 @@ import { NamespacesRepository } from '../../domain/repositories/namespaces.repos
 import { createNamespaceUseCase } from '../create-namespace.use-case';
 
 describe('createNamespaceUseCase', () => {
-    const createDto: CreateNamespaceDto = { name: 'platform' };
+    const createDto: CreateNamespaceDto = { name: 'platform', description: 'The control plane' };
 
     const createdNamespace: Namespace = {
         id: '9c858901-8a57-4791-81fe-4c455b099bc9',
         name: createDto.name,
+        description: 'The control plane',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
 
     let mockNamespacesRepository: jest.Mocked<Pick<NamespacesRepository, 'create'>>;
@@ -39,6 +41,40 @@ describe('createNamespaceUseCase', () => {
         );
 
         expect(result).toBe(createdNamespace);
+    });
+
+    it('hands the description of the DTO to the repository', async () => {
+        mockNamespacesRepository.create.mockResolvedValue(createdNamespace);
+
+        await createNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, createDto);
+
+        expect(mockNamespacesRepository.create).toHaveBeenCalledWith(
+            expect.objectContaining({ description: 'The control plane' }),
+        );
+    });
+
+    it('delegates a DTO that carries the name alone, with no description invented', async () => {
+        mockNamespacesRepository.create.mockResolvedValue(createdNamespace);
+
+        await createNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, {
+            name: 'platform',
+        });
+
+        expect(mockNamespacesRepository.create).toHaveBeenCalledWith({ name: 'platform' });
+    });
+
+    it('returns the description and the date of creation the repository answered', async () => {
+        mockNamespacesRepository.create.mockResolvedValue(createdNamespace);
+
+        const result = await createNamespaceUseCase(
+            mockNamespacesRepository as unknown as NamespacesRepository,
+            createDto,
+        );
+
+        expect(result).toMatchObject({
+            description: 'The control plane',
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        });
     });
 
     it('propagates errors thrown by the repository', async () => {

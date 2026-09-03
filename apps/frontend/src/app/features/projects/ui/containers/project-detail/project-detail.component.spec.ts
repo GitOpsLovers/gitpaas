@@ -18,7 +18,7 @@ interface ProjectDetailInternals {
 }
 
 const namespace: Namespace = {
-    id: 'ns-1', name: 'acme', projectsCount: 1,
+    id: 'ns-1', name: 'acme', description: '', createdAt: '2026-03-14T00:00:00.000Z', projectsCount: 1,
 };
 
 const project: Project = {

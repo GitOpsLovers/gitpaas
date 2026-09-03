@@ -7,9 +7,20 @@
                 name="namespace-name"
                 placeholder="my-namespace"
                 [value]="name()"
-                (valueChange)="onValueChange($event)"
+                (valueChange)="onNameChange($event)"
             />
         </div>
+
+        <app-textarea-field
+            id="namespace-description"
+            name="namespace-description"
+            label="Description"
+            placeholder="What this namespace is about"
+            hint="Optional."
+            [maxLength]="descriptionMaxLength"
+            [value]="description()"
+            (valueChange)="onDescriptionChange($event)"
+        />
 
         <div class="flex gap-3">
             <app-button type="submit" [disabled]="submitting() || !name().trim()">

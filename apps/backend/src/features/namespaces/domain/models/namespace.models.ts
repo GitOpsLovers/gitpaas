@@ -4,5 +4,7 @@
 export interface Namespace {
     id: string;
     name: string;
+    description: string;
+    createdAt: Date;
     projectsCount?: number;
 }

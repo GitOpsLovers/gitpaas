@@ -20,7 +20,13 @@ interface NamespacesListInternals {
     confirmDelete: () => Promise<void>;
 }
 
-const namespace: Namespace = { id: 'ns-1', name: 'platform', projectsCount: 2 };
+const namespace: Namespace = {
+    id: 'ns-1',
+    name: 'platform',
+    description: 'The platform namespace',
+    createdAt: '2026-03-14T00:00:00.000Z',
+    projectsCount: 2,
+};
 
 describe('NamespacesListComponent', () => {
     let namespaces: { reload: ReturnType<typeof vi.fn> };

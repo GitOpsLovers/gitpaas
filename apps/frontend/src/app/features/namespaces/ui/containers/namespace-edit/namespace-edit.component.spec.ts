@@ -5,6 +5,7 @@ import type { Namespace } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
+import type { NamespaceFormValue } from '../../components/namespace-form/namespace-form.component';
 
 import { NamespaceEditComponent } from './namespace-edit.component';
 
@@ -12,12 +13,17 @@ import { ToastService } from '@shared/services/toast.service';
 
 interface NamespaceEditInternals {
     initialName: () => string;
+    initialDescription: () => string;
     loading: () => boolean;
     submitting: () => boolean;
-    update: (name: string) => Promise<void>;
+    update: (value: NamespaceFormValue) => Promise<void>;
 }
 
-const namespace: Namespace = { id: 'ns-1', name: 'platform' };
+const namespace: Namespace = {
+    id: 'ns-1', name: 'platform', description: 'The platform namespace', createdAt: '2026-03-14T00:00:00.000Z',
+};
+
+const formValue: NamespaceFormValue = { name: 'renamed', description: 'The renamed namespace' };
 
 describe('NamespaceEditComponent', () => {
     let value: ReturnType<typeof signal<Namespace | undefined>>;
@@ -99,6 +105,16 @@ describe('NamespaceEditComponent', () => {
             expect(component.initialName()).toBe('platform');
         });
 
+        test('exposes an empty initial description until the namespace resolves', () => {
+            create();
+
+            expect(component.initialDescription()).toBe('');
+
+            value.set(namespace);
+
+            expect(component.initialDescription()).toBe('The platform namespace');
+        });
+
         test('mirrors the resource loading state', () => {
             isLoading.set(true);
             create();
@@ -114,9 +130,9 @@ describe('NamespaceEditComponent', () => {
             repository.update.mockReturnValue(of({ ...namespace, name: 'renamed' }));
             create();
 
-            await component.update('renamed');
+            await component.update(formValue);
 
-            expect(repository.update).toHaveBeenCalledWith('ns-1', { name: 'renamed' });
+            expect(repository.update).toHaveBeenCalledWith('ns-1', { name: 'renamed', description: 'The renamed namespace' });
             expect(toast.success).toHaveBeenCalledWith('Namespace updated', expect.stringContaining('renamed'));
             expect(router.navigate).toHaveBeenCalledWith(['/namespaces']);
             expect(toast.error).not.toHaveBeenCalled();
@@ -126,7 +142,7 @@ describe('NamespaceEditComponent', () => {
             repository.update.mockReturnValue(throwError(() => new Error('boom')));
             create();
 
-            await component.update('renamed');
+            await component.update(formValue);
 
             expect(toast.error).toHaveBeenCalledWith(
                 'Could not update namespace',
@@ -143,7 +159,7 @@ describe('NamespaceEditComponent', () => {
 
             expect(component.submitting()).toBe(false);
 
-            component.update('renamed');
+            component.update(formValue);
 
             expect(component.submitting()).toBe(true);
         });

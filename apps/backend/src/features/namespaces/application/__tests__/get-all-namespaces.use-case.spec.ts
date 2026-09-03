@@ -4,7 +4,12 @@ import { getAllNamespacesUseCase } from '../get-all-namespaces.use-case';
 
 describe('getAllNamespacesUseCase', () => {
     const namespaces: Namespace[] = [
-        { id: '9c858901-8a57-4791-81fe-4c455b099bc9', name: 'default' },
+        {
+            id: '9c858901-8a57-4791-81fe-4c455b099bc9',
+            name: 'default',
+            description: 'The scope by default',
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        },
     ];
 
     let mockNamespacesRepository: jest.Mocked<Pick<NamespacesRepository, 'getAll'>>;

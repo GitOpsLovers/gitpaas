@@ -6,6 +6,8 @@ import { z } from 'zod';
 export const namespaceSchema = z.object({
     id: z.uuid(),
     name: z.string().min(1),
+    description: z.string(),
+    createdAt: z.iso.datetime(),
     projectsCount: z.int().nonnegative().optional(),
 });
 
@@ -14,13 +16,15 @@ export const namespaceSchema = z.object({
  */
 export const createNamespaceSchema = z.strictObject({
     name: z.string().min(1),
+    description: z.string().max(500).optional(),
 });
 
 /**
- * The body that changes the name of an existing namespace.
+ * The body that changes the name and the description of an existing namespace.
  */
 export const updateNamespaceSchema = z.strictObject({
-    name: z.string().min(1),
+    name: z.string().min(1).optional(),
+    description: z.string().max(500).optional(),
 });
 
 /**

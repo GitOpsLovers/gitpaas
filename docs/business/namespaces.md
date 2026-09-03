@@ -6,14 +6,16 @@ This capability groups the projects of the platform. A namespace is the widest s
 
 ## The namespace record
 
-The system SHALL keep one record per namespace. The record holds the identifier and the name.
+The system SHALL keep one record per namespace. The record holds the identifier, the name, the description and the date of creation.
 
 The identifier is a UUID that the database generates. The name is unique across all the namespaces.
+
+The description is optional, and it holds an empty text when a caller gives none. It carries at most 500 characters. The date of creation is the instant the database wrote the record, and the system never changes it.
 
 ### Scenario: The system gives a namespace
 
 - **WHEN** a client reads a namespace
-- **THEN** the system gives the identifier and the name
+- **THEN** the system gives the identifier, the name, the description and the date of creation
 
 ### Scenario: The name is already in use
 
@@ -61,7 +63,7 @@ The identifier in the path must be a UUID.
 
 The system SHALL create a namespace at `POST /api/v1/namespaces`.
 
-The body holds only the name. The name must be a text, and it must not be empty. The system SHALL refuse a body that holds an unknown field.
+The body holds the name and, optionally, the description. The name must be a text, and it must not be empty. The system SHALL refuse a body that holds an unknown field.
 
 ### Scenario: The body is correct
 
@@ -80,12 +82,12 @@ The body holds only the name. The name must be a text, and it must not be empty.
 
 ## Change of a namespace
 
-The system SHALL change the name of a namespace at `PUT /api/v1/namespaces/:id`.
+The system SHALL change the name, the description, or both, of a namespace at `PUT /api/v1/namespaces/:id`. The name is optional in the body, so a body that holds the description alone is valid.
 
 ### Scenario: The namespace exists
 
 - **WHEN** a client puts a correct body to the identifier of an available namespace
-- **THEN** the system writes the new name, and it answers `200` with the changed namespace
+- **THEN** the system writes the change, and it answers `200` with the changed namespace
 
 ### Scenario: The namespace does not exist
 
@@ -94,7 +96,7 @@ The system SHALL change the name of a namespace at `PUT /api/v1/namespaces/:id`.
 
 ### Scenario: The body is not correct
 
-- **WHEN** a client puts a body without a name, or with an empty name
+- **WHEN** a client puts a body with an empty name
 - **THEN** the system answers `400 Bad Request`
 
 ## Removal of a namespace
@@ -141,6 +143,20 @@ The system SHALL show one of four states:
 
 - **WHEN** the API answers with an empty list
 - **THEN** the screen shows the panel "No namespaces yet." with the button "Create your first namespace"
+
+## The content of a card
+
+Each card SHALL show the description of the namespace, truncated after two lines, above the badge of the count of the projects. The card shows no description when the namespace holds none.
+
+### Scenario: The namespace holds a description
+
+- **WHEN** the list shows a namespace whose description is not empty
+- **THEN** the card shows that description, cut after two lines, above the badge of the count of the projects
+
+### Scenario: The namespace holds no description
+
+- **WHEN** the list shows a namespace whose description is empty
+- **THEN** the card shows no line for the description
 
 ## The actions of a card
 
@@ -198,14 +214,16 @@ This requirement records the state of today. A later change must show the true r
 - **WHEN** the removal fails because the namespace holds projects, or because the backend does not answer
 - **THEN** the system shows the same message in the two cases
 
-## The field of the form
+## The fields of the form
 
-The system SHALL show a form with one field: the name of the namespace. The form also gives a control that goes back to the list without a change.
+The system SHALL show a form with two fields: the name of the namespace, and its description. The form also gives a control that goes back to the list without a change.
+
+The description is optional, and it takes a text area limited to 500 characters. The screen SHALL show a counter of the characters that the user typed, out of the limit.
 
 ### Scenario: The user opens the screen
 
 - **WHEN** a signed-in user opens `/namespaces/add`
-- **THEN** the system shows an empty field for the name
+- **THEN** the system shows an empty field for the name, and an empty field for the description
 
 ## The check before the creation
 
@@ -238,14 +256,14 @@ The button carries the state of the sending, so the user cannot send the form tw
 
 ## The load of the namespace
 
-The system SHALL read the namespace of the path, and it SHALL put the name into the field.
+The system SHALL read the namespace of the path, and it SHALL put the name and the description into their fields.
 
 The system SHALL take the identifier one time, when the screen opens.
 
 ### Scenario: The namespace arrives
 
 - **WHEN** the API answers with the namespace
-- **THEN** the system puts the name of that namespace into the field
+- **THEN** the system puts the name and the description of that namespace into their fields
 
 ### Scenario: The reading still runs
 

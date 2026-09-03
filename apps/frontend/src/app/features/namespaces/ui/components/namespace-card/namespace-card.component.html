@@ -31,6 +31,10 @@
         </app-dropdown>
     </div>
 
+    @if (namespace().description) {
+        <p class="mt-2 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{{ namespace().description }}</p>
+    }
+
     @if ((namespace().projectsCount ?? 0) > 0) {
         <span
             class="mt-auto inline-flex w-fit items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"

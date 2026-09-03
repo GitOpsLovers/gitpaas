@@ -1,4 +1,8 @@
-import type { CreateNamespaceDto, UpdateNamespaceDto } from '@gitpaas/contracts';
+import type {
+    CreateNamespaceDto,
+    Namespace as NamespaceResponse,
+    UpdateNamespaceDto,
+} from '@gitpaas/contracts';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
@@ -14,6 +18,17 @@ const namespaceId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
 const namespace: Namespace = {
     id: namespaceId,
     name: 'platform',
+    description: 'The control plane',
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+};
+
+/** The shape the controller must answer with for `namespace`. */
+const namespaceResponse: NamespaceResponse = {
+    id: namespaceId,
+    name: 'platform',
+    description: 'The control plane',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    projectsCount: undefined,
 };
 
 describe('NamespacesController', () => {
@@ -51,12 +66,20 @@ describe('NamespacesController', () => {
             expect(mockNamespacesService.getAll).toHaveBeenCalledWith();
         });
 
-        it('returns the namespaces produced by the service', async () => {
+        it('returns the namespaces produced by the service, in the shape of the answer', async () => {
             mockNamespacesService.getAll.mockResolvedValue([namespace]);
 
             const result = await sut.getAll();
 
-            expect(result).toEqual([namespace]);
+            expect(result).toEqual([namespaceResponse]);
+        });
+
+        it('never lets a date of the domain reach the list of the answer', async () => {
+            mockNamespacesService.getAll.mockResolvedValue([namespace]);
+
+            const [result] = await sut.getAll();
+
+            expect(result.createdAt).toBe('2026-01-01T00:00:00.000Z');
         });
 
         it('returns an empty list when the service has no namespaces', async () => {
@@ -85,12 +108,20 @@ describe('NamespacesController', () => {
             expect(mockNamespacesService.findById).toHaveBeenCalledWith(namespaceId);
         });
 
-        it('returns the namespace produced by the service', async () => {
+        it('returns the namespace produced by the service, in the shape of the answer', async () => {
             mockNamespacesService.findById.mockResolvedValue(namespace);
 
             const result = await sut.findById(namespaceId);
 
-            expect(result).toBe(namespace);
+            expect(result).toEqual(namespaceResponse);
+        });
+
+        it('never answers the domain namespace itself', async () => {
+            mockNamespacesService.findById.mockResolvedValue(namespace);
+
+            const result = await sut.findById(namespaceId);
+
+            expect(result).not.toBe(namespace);
         });
 
         it('throws a NotFoundException when the namespace does not exist', async () => {
@@ -114,7 +145,7 @@ describe('NamespacesController', () => {
     });
 
     describe('create', () => {
-        const createDto: CreateNamespaceDto = { name: 'platform' };
+        const createDto: CreateNamespaceDto = { name: 'platform', description: 'The control plane' };
 
         it('delegates to the service with the received dto', async () => {
             mockNamespacesService.create.mockResolvedValue(namespace);
@@ -125,12 +156,12 @@ describe('NamespacesController', () => {
             expect(mockNamespacesService.create).toHaveBeenCalledWith(createDto);
         });
 
-        it('returns the created namespace', async () => {
+        it('returns the created namespace in the shape of the answer', async () => {
             mockNamespacesService.create.mockResolvedValue(namespace);
 
             const result = await sut.create(createDto);
 
-            expect(result).toBe(namespace);
+            expect(result).toEqual(namespaceResponse);
         });
 
         it('propagates errors raised by the service', async () => {
@@ -142,7 +173,7 @@ describe('NamespacesController', () => {
     });
 
     describe('update', () => {
-        const updateDto: UpdateNamespaceDto = { name: 'renamed' };
+        const updateDto: UpdateNamespaceDto = { name: 'renamed', description: 'The renamed scope' };
 
         it('delegates to the service with the received id and dto', async () => {
             mockNamespacesService.update.mockResolvedValue(namespace);
@@ -153,13 +184,27 @@ describe('NamespacesController', () => {
             expect(mockNamespacesService.update).toHaveBeenCalledWith(namespaceId, updateDto);
         });
 
-        it('returns the updated namespace produced by the service', async () => {
-            const updated: Namespace = { ...namespace, name: 'renamed' };
+        it('returns the updated namespace in the shape of the answer', async () => {
+            const updated: Namespace = { ...namespace, name: 'renamed', description: 'The renamed scope' };
             mockNamespacesService.update.mockResolvedValue(updated);
 
             const result = await sut.update(namespaceId, updateDto);
 
-            expect(result).toBe(updated);
+            expect(result).toEqual({
+                ...namespaceResponse,
+                name: 'renamed',
+                description: 'The renamed scope',
+            });
+        });
+
+        it('accepts a body that carries the description alone', async () => {
+            mockNamespacesService.update.mockResolvedValue(namespace);
+
+            await sut.update(namespaceId, { description: 'The renamed scope' });
+
+            expect(mockNamespacesService.update).toHaveBeenCalledWith(namespaceId, {
+                description: 'The renamed scope',
+            });
         });
 
         it('throws a NotFoundException when the namespace does not exist', async () => {
