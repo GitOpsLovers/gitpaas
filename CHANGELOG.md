@@ -1,3 +1,15 @@
+## [2.11.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.10.0...v2.11.0) (2026-09-03)
+
+### Features
+
+* **frontend:** design tokens for visual identity phase 1 ([#212](https://github.com/GitOpsLovers/gitpaas/issues/212)) ([62baf15](https://github.com/GitOpsLovers/gitpaas/commit/62baf157526409594095c1c38922948cc8c4fbe1))
+* **frontend:** shell and mark for visual identity phase 2 ([#213](https://github.com/GitOpsLovers/gitpaas/issues/213)) ([c221465](https://github.com/GitOpsLovers/gitpaas/commit/c2214658f91edf6bfe2d1858112789123d654dbe))
+* **namespaces:** add description and creation date ([#220](https://github.com/GitOpsLovers/gitpaas/issues/220)) ([4ceec40](https://github.com/GitOpsLovers/gitpaas/commit/4ceec40d18de679e6a8b1591cc47289ec375d14a))
+
+### Bug Fixes
+
+* add runtime logs migration ([74f573e](https://github.com/GitOpsLovers/gitpaas/commit/74f573e7cd1ccc112194a008041f5a55885d2ef5))
+
 ## [2.10.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.9.0...v2.10.0) (2026-09-02)
 
 ### Features
