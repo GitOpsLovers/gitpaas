@@ -1,0 +1,216 @@
+<app-component-card
+    title="Volumes"
+    desc="The volumes this service keeps, the volumes its Compose file declares, and the mounts its containers take."
+>
+    <app-button card-action size="sm" (btnClick)="open()">
+        <svg lucidePlus class="h-4 w-4"></svg>
+        Add Volume
+    </app-button>
+
+    <div
+        class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
+    >
+        <p>An attach and a detach take effect with the next service deployment.</p>
+    </div>
+
+    @if (loading() || volumes().length > 0) {
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead>
+                    <tr
+                        class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+                    >
+                        <th scope="col" class="px-4 py-3 font-medium">Name</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Origin</th>
+                        <th scope="col" class="px-4 py-3 font-medium">State</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Mount path</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Mode</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Containers</th>
+                        <th scope="col" class="px-4 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @if (loading()) {
+                        @for (row of skeletonRows; track row) {
+                            <tr>
+                                <td class="px-4" colspan="7">
+                                    <app-skeleton variant="row" />
+                                </td>
+                            </tr>
+                        }
+                    } @else {
+                        @for (volume of volumes(); track volume.id) {
+                            <tr class="text-gray-600 dark:text-gray-300">
+                                <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <svg lucideHardDrive class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
+                                        <span
+                                            class="block max-w-[14rem] truncate font-mono"
+                                            [title]="volume.daemonName"
+                                        >
+                                            {{ volume.name }}
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ originLabel(volume.origin) }}</td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                        [class]="stateBadgeClass(volume.state)"
+                                    >
+                                        {{ stateLabel(volume.state) }}
+                                    </span>
+                                    @if (stateHint(volume.state); as hint) {
+                                        <p class="mt-1.5 max-w-[18rem] text-xs text-gray-500 dark:text-gray-400">
+                                            {{ hint }}
+                                        </p>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap font-mono">
+                                    {{ volume.mount?.containerPath ?? '—' }}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ modeLabel(volume) }}</td>
+                                <td class="px-4 py-3">
+                                    @if (volume.containers.length > 0) {
+                                        <span class="block max-w-[14rem] truncate font-mono">
+                                            {{ volume.containers.join(', ') }}
+                                        </span>
+                                    } @else {
+                                        —
+                                    }
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-end gap-2">
+                                        @if (isManaged(volume)) {
+                                            <app-button variant="outline" size="xs" (btnClick)="edit(volume)">
+                                                <svg lucidePencil class="h-4 w-4"></svg>
+                                            </app-button>
+
+                                            @if (volume.mount) {
+                                                <app-button
+                                                    variant="danger"
+                                                    size="xs"
+                                                    [disabled]="saving()"
+                                                    (btnClick)="detach.emit(volume)"
+                                                >
+                                                    <svg lucideUnlink class="h-4 w-4"></svg>
+                                                </app-button>
+                                            } @else {
+                                                <app-button variant="outline" size="xs" (btnClick)="mount(volume)">
+                                                    <svg lucideLink class="h-4 w-4"></svg>
+                                                </app-button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    } @else {
+        <p class="flex min-h-55 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            No volumes yet. Create the first one with the button above.
+        </p>
+    }
+
+    @if (formVisible()) {
+        <form class="space-y-6 border-t border-gray-100 pt-6 dark:border-gray-800" (submit)="onSubmit($event)">
+            <div class="grid gap-4 sm:grid-cols-3">
+                @if (needsName()) {
+                    <div>
+                        <app-label for="volume-name">Name</app-label>
+                        <app-input-field
+                            id="volume-name"
+                            name="volume-name"
+                            placeholder="uploads"
+                            [value]="name()"
+                            [error]="error() !== null"
+                            (valueChange)="onNameChange($event)"
+                        />
+                    </div>
+                }
+
+                @if (needsMount()) {
+                    <div>
+                        <app-label for="volume-compose-service">Compose service</app-label>
+                        @if (composeServices().length > 0) {
+                            <app-select2
+                                [options]="composeServiceOptions()"
+                                [value]="composeServiceName()"
+                                (valueChange)="composeServiceName.set($event)"
+                                placeholder="Select a compose service…"
+                            />
+                        } @else {
+                            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                Deploy this service once, so GitPaaS can read the compose services of its recipe.
+                            </p>
+                        }
+                    </div>
+
+                    <div>
+                        <app-label for="volume-container-path">Mount path</app-label>
+                        <app-input-field
+                            id="volume-container-path"
+                            name="volume-container-path"
+                            placeholder="/var/lib/app/uploads"
+                            [value]="containerPath()"
+                            [error]="error() !== null"
+                            (valueChange)="onContainerPathChange($event)"
+                        />
+                    </div>
+                }
+            </div>
+
+            @if (needsMount()) {
+                <div class="flex items-center gap-3">
+                    <input
+                        id="volume-read-only"
+                        name="volume-read-only"
+                        type="checkbox"
+                        [checked]="readOnly()"
+                        (change)="readOnly.set($any($event.target).checked)"
+                        class="h-5 w-5 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900"
+                    />
+                    <label
+                        for="volume-read-only"
+                        class="cursor-pointer text-sm font-normal text-gray-700 dark:text-gray-400"
+                    >
+                        Mount this volume read-only, so the container reads its data and writes none.
+                    </label>
+                </div>
+            }
+
+            @if (error()) {
+                <p class="text-sm text-error-500">{{ error() }}</p>
+            }
+
+            <div class="flex items-center gap-2">
+                <app-button type="submit" size="sm" [disabled]="saving() || !canSubmit()">
+                    @switch (mode()) {
+                        @case ('rename') {
+                            <svg lucidePencil class="h-4 w-4"></svg>
+                            {{ saving() ? 'Saving…' : 'Save name' }}
+                        }
+
+                        @case ('attach') {
+                            <svg lucideLink class="h-4 w-4"></svg>
+                            {{ saving() ? 'Saving…' : 'Attach volume' }}
+                        }
+
+                        @default {
+                            <svg lucidePlus class="h-4 w-4"></svg>
+                            {{ saving() ? 'Saving…' : 'Create volume' }}
+                        }
+                    }
+                </app-button>
+
+                <app-button variant="outline" size="sm" (btnClick)="close()">
+                    <svg lucideX class="h-4 w-4"></svg>
+                    Cancel
+                </app-button>
+            </div>
+        </form>
+    }
+</app-component-card>
