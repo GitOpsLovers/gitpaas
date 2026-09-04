@@ -40,12 +40,16 @@
                                         {{ stateLabel(network.state) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ network.driver }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ network.scope }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ network.internal ? 'Yes' : 'No' }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ network.attachable ? 'Yes' : 'No' }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ network.driver ?? '—' }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ network.scope ?? '—' }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ flagLabel(network.internal) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ flagLabel(network.attachable) }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">
-                                    {{ network.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                                    @if (network.createdAt) {
+                                        {{ network.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                                    } @else {
+                                        —
+                                    }
                                 </td>
                             </tr>
                         }

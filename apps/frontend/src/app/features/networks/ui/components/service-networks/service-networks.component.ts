@@ -16,6 +16,8 @@ const STATE_LABELS: Record<NetworkState, string> = {
     attached: 'Attached',
     declared: 'Declared',
     connected: 'Connected',
+    joining: 'Joining',
+    leaving: 'Leaving',
 };
 
 @Component({
@@ -100,9 +102,27 @@ export class ServiceNetworksComponent {
                 return 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500';
             case 'connected':
                 return 'bg-blue-light-50 text-blue-light-600 dark:bg-blue-light-500/15 dark:text-blue-light-400';
+            case 'joining':
+            case 'leaving':
+                return 'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-500';
             default:
                 return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
         }
+    }
+
+    /**
+     * Formats a flag of a network, which the daemon does not carry for every state.
+     *
+     * @param flag Flag the record carries, when the daemon holds the network
+     *
+     * @returns `Yes`, `No`, or a placeholder when the flag is absent
+     */
+    protected flagLabel(flag?: boolean): string {
+        if (flag === undefined) {
+            return '—';
+        }
+
+        return flag ? 'Yes' : 'No';
     }
 
     /**

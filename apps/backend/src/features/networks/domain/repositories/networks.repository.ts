@@ -23,4 +23,13 @@ export interface NetworksRepository {
      * @returns Networks the containers of the service are connected to
      */
     listConnectedByService: (service: Service) => Promise<Network[]>;
+
+    /**
+     * Gets one network of the daemon by the name it carries there.
+     *
+     * @param name Name of the network on the daemon
+     *
+     * @returns Network, or `null` when the daemon holds none under that name
+     */
+    findByName: (name: string) => Promise<Network | null>;
 }

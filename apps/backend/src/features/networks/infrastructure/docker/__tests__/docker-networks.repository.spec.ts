@@ -201,4 +201,61 @@ describe('DockerNetworksRepository', () => {
             expect(result).toEqual([]);
         });
     });
+
+    describe('findByName', () => {
+        it('reads every network of the daemon, with no selector', async () => {
+            await sut.findByName('gitpaas-project-net');
+
+            expect(mockListNetworks).toHaveBeenCalledTimes(1);
+            expect(mockListNetworks).toHaveBeenCalledWith({});
+        });
+
+        it('returns the network the daemon carries under that name, in the domain shape', async () => {
+            mockListNetworks.mockResolvedValue([
+                networkSummary({ name: 'my-service_default' }),
+                networkSummary({ id: 'b2c3d4', name: 'gitpaas-project-net', internal: true }),
+            ]);
+
+            const result = await sut.findByName('gitpaas-project-net');
+
+            expect(result).toEqual<Network>({
+                id: 'b2c3d4',
+                name: 'gitpaas-project-net',
+                driver: 'bridge',
+                scope: 'local',
+                internal: true,
+                attachable: true,
+                createdAt: new Date('2025-07-11T00:00:00.000Z'),
+            });
+        });
+
+        it('returns null when the daemon holds no network under that name', async () => {
+            mockListNetworks.mockResolvedValue([networkSummary({ name: 'my-service_default' })]);
+
+            const result = await sut.findByName('gitpaas-project-net');
+
+            expect(result).toBeNull();
+        });
+
+        it('returns null when the daemon holds no network at all', async () => {
+            const result = await sut.findByName('gitpaas-project-net');
+
+            expect(result).toBeNull();
+        });
+
+        it('matches the name exactly, and never a network whose name only holds it', async () => {
+            mockListNetworks.mockResolvedValue([networkSummary({ name: 'gitpaas-project-net-2' })]);
+
+            const result = await sut.findByName('gitpaas-project-net');
+
+            expect(result).toBeNull();
+        });
+
+        it('propagates an error the daemon raises', async () => {
+            const error = new Error('daemon unreachable');
+            mockListNetworks.mockRejectedValue(error);
+
+            await expect(sut.findByName('gitpaas-project-net')).rejects.toThrow(error);
+        });
+    });
 });
