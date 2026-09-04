@@ -1,0 +1,35 @@
+docs/roadmap/service-network-state/TODO.md
+  s_99d84abb01d69b::t_08085be1f26028 29,31-32
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.html
+  s_cf72abbd42e42d::t_78f5338f0aa973 1-4,45-47
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.ts
+  s_cf72abbd42e42d::t_a051b861398013 23-30,99-110
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.spec.ts
+  s_cf72abbd42e42d::t_37788b365cfbbc 41-52,98-105,141-183
+apps/frontend/src/app/features/networks/infrastructure/api/networks-api.repository.spec.ts
+  s_cf72abbd42e42d::t_84836d2732a8e8 32-43,96-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "156fca8c7acff7ebb0f8870b30a996c021731d1d",
+  "prompts": {},
+  "sessions": {
+    "s_99d84abb01d69b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "582b5913-0dfa-40c6-be98-bbf657782a2e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cf72abbd42e42d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ada27979b7fa6cf5f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
