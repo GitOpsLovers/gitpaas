@@ -1,0 +1,39 @@
+apps/backend/src/features/deployments/application/__tests__/get-built-image-tag.use-case.spec.ts
+  s_4d17cd5090c4a7::t_8565f7cfcc4717 1-23
+apps/backend/src/features/deployments/application/__tests__/get-default-network-name.use-case.spec.ts
+  s_4d17cd5090c4a7::t_13337e4bb980be 1-29
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_4d17cd5090c4a7::t_f5c874ee4242dc 250-274
+apps/backend/src/features/deployments/application/get-built-image-tag.use-case.ts
+  s_4d17cd5090c4a7::t_e5b48c3f116eb9 1-15
+apps/backend/src/features/deployments/application/get-default-network-name.use-case.ts
+  s_4d17cd5090c4a7::t_f621aceef6ade7 1-31
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_4d17cd5090c4a7::t_0aa8fbb6ad67d0 144,147,149-166,172,174,177,180-216,218,222,228,232
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_4d17cd5090c4a7::t_89d4d009aa544d 48-50,86,93,103-118,126,319,718,737,747-748,757-761,811,822
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_4d17cd5090c4a7::t_e572a114c0284e 6-7,46-50,61,283-311,314-316,318,320-327,329
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_4d17cd5090c4a7::t_f6c599ef163b0f 10-11,91-94,102,195,198,201-202,345
+apps/backend/src/features/volumes/application/__tests__/get-volume-daemon-name.use-case.spec.ts
+  s_4d17cd5090c4a7::t_099050be75e3d6 26-48
+docs/roadmap/container-naming/TODO.md
+  s_4d17cd5090c4a7::t_25089a60368f5e 36-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f676dc4e4f5d68027ec2f26ceec1a66ed7144c38",
+  "prompts": {},
+  "sessions": {
+    "s_4d17cd5090c4a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc174721-b177-476b-a9ef-488ba5df5f8d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
