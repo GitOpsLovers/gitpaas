@@ -35,6 +35,7 @@ describe('createDeploymentUseCase', () => {
         description: '',
         projectId: 'a1b2c3d4-0000-0000-0000-000000000000',
         providerId,
+        composeProject: 'gitpaas_web',
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',

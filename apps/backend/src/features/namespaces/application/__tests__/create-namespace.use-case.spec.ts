@@ -85,4 +85,15 @@ describe('createNamespaceUseCase', () => {
             createNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, createDto),
         ).rejects.toThrow(error);
     });
+
+    it('delegates a name that holds an uppercase letter and a space, because the daemon receives a normalized name', async () => {
+        mockNamespacesRepository.create.mockResolvedValue(createdNamespace);
+
+        await createNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, {
+            ...createDto,
+            name: 'My Platform',
+        });
+
+        expect(mockNamespacesRepository.create).toHaveBeenCalledWith({ ...createDto, name: 'My Platform' });
+    });
 });

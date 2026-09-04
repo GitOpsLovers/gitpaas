@@ -1,5 +1,6 @@
-import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+import type { UpdateServiceDto } from '@gitpaas/contracts';
 
+import { CreateServiceWithComposeProjectDto } from '../dtos/create-service-with-compose-project.dto';
 import { Service } from '../models/service.models';
 
 /**
@@ -34,11 +35,11 @@ export interface ServicesRepository {
     /**
      * Create a new service
      *
-     * @param createDto Data for creating the service
+     * @param createDto Data for creating the service, including the name of its compose project
      *
      * @returns Created service
      */
-    create: (createDto: CreateServiceDto) => Promise<Service>;
+    create: (createDto: CreateServiceWithComposeProjectDto) => Promise<Service>;
 
     /**
      * Update an existing service

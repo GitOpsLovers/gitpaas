@@ -17,6 +17,10 @@ import type { DeploymentsRepository } from '@features/deployments/domain/reposit
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
+import type { NamespacesRepository } from '@features/namespaces/domain/repositories/namespaces.repository';
+import { DatabaseNamespacesRepository } from '@features/namespaces/infrastructure/database/db-namespaces.repository';
+import type { ProjectsRepository } from '@features/projects/domain/repositories/projects.repository';
+import { DatabaseProjectsRepository } from '@features/projects/infrastructure/database/db-projects.repository';
 
 /**
  * Services service
@@ -32,6 +36,10 @@ export class ServicesService {
         private readonly serviceRuntimeResources: ServiceRuntimeResources,
         @Inject(RedisLogStoreAdapter)
         private readonly logStore: LogStore,
+        @Inject(DatabaseProjectsRepository)
+        private readonly projectsRepository: ProjectsRepository,
+        @Inject(DatabaseNamespacesRepository)
+        private readonly namespacesRepository: NamespacesRepository,
     ) {}
 
     public getAllByProject(projectId: string): Promise<Service[]> {
@@ -49,7 +57,12 @@ export class ServicesService {
     }
 
     public async create(createDto: CreateServiceDto): Promise<Service> {
-        const service = await createServiceUseCase(this.repository, createDto);
+        const service = await createServiceUseCase(
+            this.repository,
+            this.projectsRepository,
+            this.namespacesRepository,
+            createDto,
+        );
 
         enrichWithService(service);
 

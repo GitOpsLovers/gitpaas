@@ -1,6 +1,9 @@
-import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+/* eslint-disable no-secrets/no-secrets */
+import type { UpdateServiceDto } from '@gitpaas/contracts';
 import { Repository } from 'typeorm';
 
+import { CreateServiceWithComposeProjectDto } from '../../../domain/dtos/create-service-with-compose-project.dto';
+import { ServiceNameTakenError } from '../../../domain/errors/service.errors';
 import { DbServiceEntity } from '../db-service.entity';
 import { DatabaseServicesRepository } from '../db-services.repository';
 
@@ -13,6 +16,12 @@ const foreignKeyViolation = Object.assign(
     { code: '23503', driverError: { code: '23503' } },
 );
 
+/** The failure PostgreSQL raises when the name of a service is already used in its project. */
+const uniqueViolation = Object.assign(
+    new Error('duplicate key value violates unique constraint "UQ_services_projectId_name"'),
+    { code: '23505', driverError: { code: '23505' } },
+);
+
 /**
  * Builds a service database-entity fixture, overriding only the fields under test.
  */
@@ -21,6 +30,7 @@ const serviceEntity = (overrides: Partial<DbServiceEntity> = {}): DbServiceEntit
     name: 'checkout',
     description: '',
     projectId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+    composeProject: 'gitpaas_web',
     providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
     repositoryId: 'repo-1',
     deploymentBranch: 'main',
@@ -32,9 +42,10 @@ const serviceEntity = (overrides: Partial<DbServiceEntity> = {}): DbServiceEntit
 describe('DatabaseServicesRepository', () => {
     const projectId = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
 
-    const createDto: CreateServiceDto = {
+    const createDto: CreateServiceWithComposeProjectDto = {
         name: 'new-service',
         projectId,
+        composeProject: 'gitpaas_web',
         providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
     };
 
@@ -138,7 +149,11 @@ describe('DatabaseServicesRepository', () => {
         });
 
         it('writes a service that names no provider and maps its provider to null', async () => {
-            const dtoWithoutProvider: CreateServiceDto = { name: 'new-service', projectId };
+            const dtoWithoutProvider: CreateServiceWithComposeProjectDto = {
+                name: 'new-service',
+                projectId,
+                composeProject: 'gitpaas_web',
+            };
             const entity = serviceEntity({ name: dtoWithoutProvider.name, providerId: null });
             mockRepository.create.mockReturnValue(entity);
             mockRepository.save.mockResolvedValue(entity);
@@ -176,6 +191,16 @@ describe('DatabaseServicesRepository', () => {
             await expect(sut.create(createDto)).rejects.not.toThrow(/foreign key constraint/);
         });
 
+        it('raises ServiceNameTakenError when the write violates the unique name of the project', async () => {
+            mockRepository.create.mockReturnValue(serviceEntity());
+            mockRepository.save.mockRejectedValue(uniqueViolation);
+
+            await expect(sut.create(createDto)).rejects.toBeInstanceOf(ServiceNameTakenError);
+            await expect(sut.create(createDto)).rejects.toThrow(
+                `Service ${createDto.name} already exists in project ${projectId}`,
+            );
+        });
+
         it('propagates any other write failure unchanged', async () => {
             const original = new Error('connection terminated');
             mockRepository.create.mockReturnValue(serviceEntity());
@@ -208,6 +233,14 @@ describe('DatabaseServicesRepository', () => {
             expect(mockRepository.merge).toHaveBeenCalledWith(existing, updateDto);
             expect(mockRepository.save).toHaveBeenCalledWith(existing);
             expect(result).toEqual(saved);
+        });
+
+        it('raises ServiceNameTakenError when the rename violates the unique name of the project', async () => {
+            const existing = serviceEntity();
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockRejectedValue(uniqueViolation);
+
+            await expect(sut.update(existing.id, { name: 'renamed' })).rejects.toBeInstanceOf(ServiceNameTakenError);
         });
     });
 

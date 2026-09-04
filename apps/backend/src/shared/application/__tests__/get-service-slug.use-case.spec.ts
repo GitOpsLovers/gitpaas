@@ -22,6 +22,10 @@ describe('get-service-slug.use-case', () => {
             expect(getServiceSlug({ id: 'abc', name })).toBe(expected);
         });
 
+        it('never holds an underscore, because the slug feeds a hostname', () => {
+            expect(getServiceSlug({ id: 'abc', name: 'Billing_API' })).toBe('billing-api');
+        });
+
         it.each([
             ['punctuation only', '!!!'],
             ['whitespace only', '   '],

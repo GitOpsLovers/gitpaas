@@ -92,4 +92,24 @@ describe('updateNamespaceUseCase', () => {
             updateNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id, updateDto),
         ).rejects.toThrow(error);
     });
+
+    it('delegates a new name that holds an uppercase letter and a space, because the daemon receives a normalized name', async () => {
+        mockNamespacesRepository.update.mockResolvedValue(updatedNamespace);
+
+        await updateNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id, {
+            name: 'My Renamed Scope',
+        });
+
+        expect(mockNamespacesRepository.update).toHaveBeenCalledWith(id, { name: 'My Renamed Scope' });
+    });
+
+    it('delegates a body that changes the description alone, because it names no name', async () => {
+        mockNamespacesRepository.update.mockResolvedValue(updatedNamespace);
+
+        await updateNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id, {
+            description: 'The renamed scope',
+        });
+
+        expect(mockNamespacesRepository.update).toHaveBeenCalledWith(id, { description: 'The renamed scope' });
+    });
 });

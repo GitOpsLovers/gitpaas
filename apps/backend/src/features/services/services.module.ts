@@ -9,6 +9,8 @@ import { ServicesService } from './ui/services/services.service';
 
 import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { LogsModule } from '@features/logs/logs.module';
+import { NamespacesModule } from '@features/namespaces/namespaces.module';
+import { ProjectsModule } from '@features/projects/projects.module';
 
 /**
  * Services feature module.
@@ -17,6 +19,8 @@ import { LogsModule } from '@features/logs/logs.module';
     imports: [
         TypeOrmModule.forFeature([DbServiceEntity]),
         LogsModule,
+        NamespacesModule,
+        ProjectsModule,
         forwardRef(() => DeploymentsModule),
     ],
     controllers: [ServicesController],

@@ -56,6 +56,7 @@ describe('DockerVolumesRepository', () => {
         description: '',
         projectId: 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60',
         providerId: null,
+        composeProject: 'gitpaas_web',
         repositoryId: '42',
         deploymentBranch: 'main',
         composerPath: 'docker-compose.yml',

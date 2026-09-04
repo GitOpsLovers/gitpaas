@@ -8,6 +8,7 @@ const service = (overrides: Partial<Service> = {}): Service => ({
     description: 'The gateway of the API',
     projectId: 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60',
     providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
+    composeProject: 'gitpaas_web',
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
@@ -44,6 +45,10 @@ describe('toServiceResponse', () => {
 
     it('carries the empty description of a service that holds none', () => {
         expect(toServiceResponse(service({ description: '' })).description).toBe('');
+    });
+
+    it('never lets the name of the compose project reach the answer', () => {
+        expect(toServiceResponse(service())).not.toHaveProperty('composeProject');
     });
 
     it('carries a null provider when the service names none', () => {

@@ -14,6 +14,7 @@ const service = (overrides: Partial<Service> = {}): Service => {
         description: '',
         projectId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
         providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
+        composeProject: 'gitpaas_web',
         repositoryId: 'repo-1',
         deploymentBranch: 'main',
         composerPath: 'services/checkout',

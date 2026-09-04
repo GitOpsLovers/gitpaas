@@ -22,6 +22,7 @@ const service: Service = {
     description: 'The gateway of the API',
     projectId,
     providerId,
+    composeProject: 'gitpaas_web',
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',

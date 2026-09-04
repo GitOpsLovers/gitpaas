@@ -6,6 +6,7 @@ export interface Service {
     name: string;
     description: string;
     projectId: string;
+    composeProject: string;
     providerId: string | null;
     repositoryId: string;
     deploymentBranch: string;

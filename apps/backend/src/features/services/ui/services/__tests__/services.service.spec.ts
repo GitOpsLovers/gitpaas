@@ -14,6 +14,8 @@ import { ServicesService } from '../services.service';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
+import { DatabaseNamespacesRepository } from '@features/namespaces/infrastructure/database/db-namespaces.repository';
+import { DatabaseProjectsRepository } from '@features/projects/infrastructure/database/db-projects.repository';
 
 jest.mock('../../../application/create-service.use-case');
 jest.mock('../../../application/delete-service.use-case');
@@ -47,6 +49,7 @@ const service: Service = {
     description: 'The gateway of the API',
     projectId,
     providerId,
+    composeProject: 'gitpaas_web',
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',
@@ -58,6 +61,8 @@ describe('ServicesService', () => {
     let mockDeploymentsRepository: jest.Mocked<DatabaseDeploymentsRepository>;
     let mockServiceRuntimeResources: jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
+    let mockProjectsRepository: jest.Mocked<DatabaseProjectsRepository>;
+    let mockNamespacesRepository: jest.Mocked<DatabaseNamespacesRepository>;
     let sut: ServicesService;
 
     beforeEach(async () => {
@@ -67,6 +72,8 @@ describe('ServicesService', () => {
         mockDeploymentsRepository = {} as jest.Mocked<DatabaseDeploymentsRepository>;
         mockServiceRuntimeResources = {} as jest.Mocked<DockerServiceRuntimeResourcesAdapter>;
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
+        mockProjectsRepository = {} as jest.Mocked<DatabaseProjectsRepository>;
+        mockNamespacesRepository = {} as jest.Mocked<DatabaseNamespacesRepository>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -75,6 +82,8 @@ describe('ServicesService', () => {
                 { provide: DatabaseDeploymentsRepository, useValue: mockDeploymentsRepository },
                 { provide: DockerServiceRuntimeResourcesAdapter, useValue: mockServiceRuntimeResources },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
+                { provide: DatabaseProjectsRepository, useValue: mockProjectsRepository },
+                { provide: DatabaseNamespacesRepository, useValue: mockNamespacesRepository },
             ],
         }).compile();
 
@@ -158,7 +167,12 @@ describe('ServicesService', () => {
             await sut.create(createDto);
 
             expect(mockCreateServiceUseCase).toHaveBeenCalledTimes(1);
-            expect(mockCreateServiceUseCase).toHaveBeenCalledWith(mockServicesRepository, createDto);
+            expect(mockCreateServiceUseCase).toHaveBeenCalledWith(
+                mockServicesRepository,
+                mockProjectsRepository,
+                mockNamespacesRepository,
+                createDto,
+            );
         });
 
         it('returns the created service', async () => {
@@ -176,7 +190,12 @@ describe('ServicesService', () => {
 
             const result = await sut.create(dtoWithoutProvider);
 
-            expect(mockCreateServiceUseCase).toHaveBeenCalledWith(mockServicesRepository, dtoWithoutProvider);
+            expect(mockCreateServiceUseCase).toHaveBeenCalledWith(
+                mockServicesRepository,
+                mockProjectsRepository,
+                mockNamespacesRepository,
+                dtoWithoutProvider,
+            );
             expect(result).toBe(serviceWithoutProvider);
         });
 

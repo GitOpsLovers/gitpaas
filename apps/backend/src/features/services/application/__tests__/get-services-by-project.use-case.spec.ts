@@ -12,6 +12,7 @@ describe('getServicesByProjectUseCase', () => {
             description: '',
             projectId,
             providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
+            composeProject: 'gitpaas_web',
             repositoryId: '42',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
