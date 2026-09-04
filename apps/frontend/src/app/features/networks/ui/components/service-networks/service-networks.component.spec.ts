@@ -38,6 +38,18 @@ const connected: Network = {
     state: 'connected',
 };
 
+const joiningNetwork: Network = {
+    id: 'nw-1',
+    name: 'backend',
+    state: 'joining',
+};
+
+const leavingNetwork: Network = {
+    id: 'net-4',
+    name: 'cache',
+    state: 'leaving',
+};
+
 const backend: ProjectNetwork = {
     id: 'nw-1',
     projectId: 'pr-1',
@@ -83,6 +95,14 @@ describe('ServiceNetworksComponent', () => {
     const skeletons = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody app-skeleton')];
 
+    const cells = (index: number): string[] =>
+        // eslint-disable-next-line security/detect-object-injection
+        rows().map((row) => row.querySelectorAll('td')[index]?.textContent?.trim() ?? '');
+
+    const stateHints = (): string[] =>
+        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody tr td:nth-child(2) p')]
+            .map((element) => element.textContent?.trim() ?? '');
+
     const headers = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
 
@@ -116,6 +136,49 @@ describe('ServiceNetworksComponent', () => {
             expect(first).toContain('Attached');
             expect(second).toContain('Declared');
             expect(third).toContain('Connected');
+        });
+
+        test('shows the two states that wait for a deployment', () => {
+            create([joiningNetwork, leavingNetwork]);
+
+            const [first, second] = rows().map((element) => element.textContent ?? '');
+
+            expect(first).toContain('Joining');
+            expect(second).toContain('Leaving');
+        });
+
+        test('states on a joining row and on a leaving row that the next deployment applies the change', () => {
+            create([joiningNetwork, leavingNetwork]);
+
+            expect(stateHints()).toEqual([
+                'The next deployment connects the container to this network.',
+                'The next deployment disconnects the container from this network.',
+            ]);
+        });
+
+        test('states nothing under the badge of a state the daemon already holds', () => {
+            create([attached, declared, connected]);
+
+            expect(stateHints()).toEqual([]);
+        });
+
+        test('shows a dash in every column the daemon does not fill', () => {
+            create([joiningNetwork]);
+
+            expect(cells(2)).toEqual(['—']);
+            expect(cells(3)).toEqual(['—']);
+            expect(cells(4)).toEqual(['—']);
+            expect(cells(5)).toEqual(['—']);
+            expect(cells(6)).toEqual(['—']);
+        });
+
+        test('describes the list as the declarations, the containers and the networks of the project', () => {
+            create([]);
+
+            expect(text()).toContain(
+                'The networks this service declares, the networks its containers hold, '
+                + 'and the networks of its project it joins or leaves at the next deployment.',
+            );
         });
 
         test('says that the service holds no network when the list is empty', () => {
