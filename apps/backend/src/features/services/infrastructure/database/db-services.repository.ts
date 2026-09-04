@@ -1,8 +1,9 @@
-import type { CreateServiceDto, UpdateServiceDto } from '@gitpaas/contracts';
+import type { UpdateServiceDto } from '@gitpaas/contracts';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { CreateServiceWithComposeProjectDto } from '../../domain/dtos/create-service-with-compose-project.dto';
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
@@ -41,14 +42,14 @@ export class DatabaseServicesRepository implements ServicesRepository {
         return toService(service);
     }
 
-    public async create(createDto: CreateServiceDto): Promise<Service> {
+    public async create(createDto: CreateServiceWithComposeProjectDto): Promise<Service> {
         try {
             const service = this.repository.create(createDto);
             const saved = await this.repository.save(service);
 
             return toService(saved);
         } catch (error) {
-            throw toServicePersistenceError(error, createDto.projectId, createDto.providerId);
+            throw toServicePersistenceError(error, createDto.projectId, createDto.name, createDto.providerId);
         }
     }
 
@@ -66,7 +67,7 @@ export class DatabaseServicesRepository implements ServicesRepository {
 
             return toService(saved);
         } catch (error) {
-            throw toServicePersistenceError(error, service.projectId, updateDto.providerId);
+            throw toServicePersistenceError(error, service.projectId, updateDto.name, updateDto.providerId);
         }
     }
 

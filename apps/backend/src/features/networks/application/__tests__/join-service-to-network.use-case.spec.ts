@@ -30,6 +30,7 @@ const service = (overrides: Partial<Service> = {}): Service => ({
     description: '',
     projectId,
     providerId: null,
+    composeProject: 'gitpaas_web',
     repositoryId: '42',
     deploymentBranch: 'main',
     composerPath: 'docker-compose.yml',

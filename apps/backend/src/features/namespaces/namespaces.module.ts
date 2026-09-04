@@ -16,5 +16,6 @@ import { NamespacesService } from './ui/services/namespaces.service';
         NamespacesService,
         DatabaseNamespacesRepository,
     ],
+    exports: [DatabaseNamespacesRepository],
 })
 export class NamespacesModule {}

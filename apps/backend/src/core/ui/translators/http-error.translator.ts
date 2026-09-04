@@ -34,6 +34,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PROVIDER_REGISTRATION_EXPIRED', (error) => new NotFoundException(error.message, { cause: error })],
     ['PROVIDER_REGISTRATION_STEP_CONFLICT', (error) => new ConflictException(error.message, { cause: error })],
     ['SERVICE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
+    ['SERVICE_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
     ['SERVICE_NOT_DEPLOYABLE', (error) => new BadRequestException(error.message, { cause: error })],
     ['PROVIDER_REPOSITORY_UNREACHABLE', (error) => new BadRequestException(error.message, { cause: error })],
     ['INVALID_CREDENTIALS', (error) => new UnauthorizedException(error.message, { cause: error })],

@@ -1,4 +1,4 @@
-import { ServiceNotFoundError } from '../service.errors';
+import { ServiceNameTakenError, ServiceNotFoundError } from '../service.errors';
 
 import { DomainError } from '@core/domain/errors/domain.error';
 
@@ -33,5 +33,33 @@ describe('ServiceNotFoundError', () => {
         const original = new Error('connection lost');
 
         expect(new ServiceNotFoundError(serviceId, { cause: original }).cause).toBe(original);
+    });
+});
+
+describe('ServiceNameTakenError', () => {
+    const projectId = 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60';
+
+    it('is a DomainError', () => {
+        expect(new ServiceNameTakenError(projectId, 'api')).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to ServiceNameTakenError', () => {
+        expect(new ServiceNameTakenError(projectId, 'api').name).toBe('ServiceNameTakenError');
+    });
+
+    it('carries the SERVICE_NAME_TAKEN code', () => {
+        expect(new ServiceNameTakenError(projectId, 'api').code).toBe('SERVICE_NAME_TAKEN');
+    });
+
+    it('builds a message carrying the name and the project', () => {
+        expect(new ServiceNameTakenError(projectId, 'api').message).toBe(
+            `Service api already exists in project ${projectId}`,
+        );
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('duplicate key');
+
+        expect(new ServiceNameTakenError(projectId, 'api', { cause: original }).cause).toBe(original);
     });
 });

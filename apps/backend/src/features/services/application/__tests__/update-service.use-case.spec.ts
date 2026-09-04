@@ -19,6 +19,7 @@ describe('updateServiceUseCase', () => {
         name: updateDto.name,
         description: 'The gateway of the API',
         projectId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        composeProject: 'gitpaas_web',
         providerId: 'c3d4e5f6-a7b8-4c9d-8e1f-2a3b4c5d6e7f',
         repositoryId: '42',
         deploymentBranch: 'main',
@@ -58,6 +59,28 @@ describe('updateServiceUseCase', () => {
         const result = await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto);
 
         expect(result).toBeNull();
+    });
+
+    it('delegates a new name that holds an uppercase letter and a space, because the daemon receives a normalized name', async () => {
+        mockServicesRepository.update.mockResolvedValue(updatedService);
+
+        await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, {
+            ...updateDto,
+            name: 'The API',
+        });
+
+        expect(mockServicesRepository.update).toHaveBeenCalledWith(id, { ...updateDto, name: 'The API' });
+    });
+
+    it('never sends the name of the compose project to the repository, because a rename keeps it', async () => {
+        mockServicesRepository.update.mockResolvedValue(updatedService);
+
+        await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto);
+
+        expect(mockServicesRepository.update).toHaveBeenCalledWith(
+            id,
+            expect.not.objectContaining({ composeProject: expect.anything() }),
+        );
     });
 
     it('propagates errors thrown by the repository', async () => {
