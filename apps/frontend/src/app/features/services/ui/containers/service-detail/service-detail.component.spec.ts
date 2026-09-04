@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import type {
-    Container, Domain, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
+    Container, Domain, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable, Volume,
 } from '@gitpaas/contracts';
 import { NEVER, of, Subject, throwError } from 'rxjs';
 
@@ -29,6 +29,9 @@ import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api
 import { PROJECT_NETWORK_NAME_TAKEN_MESSAGE } from '@features/networks/application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
+import type { VolumeDraft } from '@features/volumes/domain/models/volume.models';
+import { VolumesApiRepository } from '@features/volumes/infrastructure/api/volumes-api.repository';
+import { VolumeAttach, VolumeRename } from '@features/volumes/ui/components/service-volumes/service-volumes.component';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
 
@@ -61,6 +64,12 @@ interface ServiceDetailInternals {
     confirmDomainRemoval: () => Promise<void>;
     joiningNetwork: () => boolean;
     joinNetwork: (network: ProjectNetwork) => Promise<void>;
+    savingVolume: () => boolean;
+    volumeError: () => string | null;
+    createVolume: (draft: VolumeDraft) => Promise<void>;
+    renameVolume: (change: VolumeRename) => Promise<void>;
+    attachVolume: (change: VolumeAttach) => Promise<void>;
+    detachVolume: (volume: Volume) => Promise<void>;
     logContainerId: WritableSignal<string | null>;
     logTail: WritableSignal<number>;
     logStreaming: () => boolean;
@@ -139,6 +148,20 @@ const streamedLine: RuntimeLogLine = {
     timestamp: '2026-01-01T00:00:01.000Z', source: 'stderr', text: 'connection refused',
 };
 
+const volume: Volume = {
+    id: 'vl-1',
+    name: 'uploads',
+    daemonName: 'api-web_gitpaas-uploads',
+    origin: 'gitpaas',
+    state: 'mounted',
+    mount: { composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false },
+    containers: ['api-web-1'],
+};
+
+const volumeDraft: VolumeDraft = {
+    name: 'uploads', composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false,
+};
+
 const projectNetwork: ProjectNetwork = {
     id: 'nw-1',
     projectId: 'pr-1',
@@ -189,6 +212,14 @@ describe('ServiceDetailComponent', () => {
         joinProjectNetwork: ReturnType<typeof vi.fn>;
     };
     let networksResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
+    let volumesRepository: {
+        volumesByService: ReturnType<typeof vi.fn>;
+        create: ReturnType<typeof vi.fn>;
+        rename: ReturnType<typeof vi.fn>;
+        attach: ReturnType<typeof vi.fn>;
+        detach: ReturnType<typeof vi.fn>;
+    };
+    let volumesResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let containersValue: ReturnType<typeof signal<Container[] | undefined>>;
     let containersRepository: { containersByService: ReturnType<typeof vi.fn> };
     let runtimeLogsValue: ReturnType<typeof signal<RuntimeLogLine[] | undefined>>;
@@ -248,6 +279,14 @@ describe('ServiceDetailComponent', () => {
             networksByProject: vi.fn().mockReturnValue({ value: signal(undefined) }),
             joinProjectNetwork: vi.fn(),
         };
+        volumesResource = { value: signal(undefined), reload: vi.fn() };
+        volumesRepository = {
+            volumesByService: vi.fn().mockReturnValue(volumesResource),
+            create: vi.fn(),
+            rename: vi.fn(),
+            attach: vi.fn(),
+            detach: vi.fn(),
+        };
         variablesResource = { value: signal(undefined), reload: vi.fn() };
         variablesRepository = {
             variablesByService: vi.fn().mockReturnValue(variablesResource),
@@ -289,6 +328,7 @@ describe('ServiceDetailComponent', () => {
                     { provide: NetworksApiRepository, useValue: networksRepository },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },
                     { provide: DomainsApiRepository, useValue: domainsRepository },
+                    { provide: VolumesApiRepository, useValue: volumesRepository },
                 ],
             },
         });
@@ -475,7 +515,7 @@ describe('ServiceDetailComponent', () => {
         create();
 
         expect(component.tabs.map((entry) => entry.id)).toEqual([
-            'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'logs',
+            'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'volumes', 'logs',
         ]);
     });
 
@@ -577,7 +617,7 @@ describe('ServiceDetailComponent', () => {
         create();
 
         expect(component.tabs.map((entry) => entry.id)).toEqual([
-            'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'logs',
+            'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'volumes', 'logs',
         ]);
     });
 
@@ -740,6 +780,115 @@ describe('ServiceDetailComponent', () => {
         expect(toast.error).toHaveBeenCalledWith('Could not join the network', PROJECT_NETWORK_NAME_TAKEN_MESSAGE);
         expect(networksResource.reload).not.toHaveBeenCalled();
         expect(component.joiningNetwork()).toBe(false);
+    });
+
+    describe('the tab Volumes', () => {
+        test('offers the volumes tab between the network tab and the logs tab', () => {
+            create();
+
+            expect(component.tabs.map((entry) => entry.id)).toEqual([
+                'general', 'provider', 'environment', 'domains', 'deployments', 'containers', 'network', 'volumes', 'logs',
+            ]);
+        });
+
+        test('activates the volumes tab coming from the route', () => {
+            create('ns-1', 'pr-1', 'sv-1', 'volumes');
+
+            expect(component.activeTab()).toBe('volumes');
+        });
+
+        test('loads the volumes of the service of the route', () => {
+            create();
+
+            const [accessor] = volumesRepository.volumesByService.mock.calls[0] as [() => string | undefined];
+
+            expect(accessor()).toBe('sv-1');
+        });
+
+        test('creates a volume, reloads the list and announces the next deployment', async () => {
+            volumesRepository.create.mockReturnValue(of(volume));
+            create();
+
+            await component.createVolume(volumeDraft);
+
+            expect(volumesRepository.create).toHaveBeenCalledWith('sv-1', volumeDraft);
+            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
+            expect(component.volumeError()).toBeNull();
+            expect(component.savingVolume()).toBe(false);
+        });
+
+        test('names the rule the API refused when the creation fails, and reloads nothing', async () => {
+            volumesRepository.create.mockReturnValue(throwError(() => new HttpErrorResponse({
+                status: 409,
+                error: {
+                    statusCode: 409,
+                    code: 'VOLUME_MOUNT_PATH_TAKEN',
+                    message: 'Another volume of the service already mounts at /var/lib/app/uploads',
+                    error: 'Conflict',
+                    timestamp: '2026-09-04T00:00:00.000Z',
+                    path: '/services/sv-1/volumes',
+                    requestId: 'req-1',
+                },
+            })));
+            create();
+
+            await component.createVolume(volumeDraft);
+
+            expect(component.volumeError()).toBe('Another volume of the service already mounts at /var/lib/app/uploads');
+            expect(volumesResource.reload).not.toHaveBeenCalled();
+            expect(component.savingVolume()).toBe(false);
+        });
+
+        test('renames a volume and reloads the list', async () => {
+            volumesRepository.rename.mockReturnValue(of({ ...volume, name: 'assets' }));
+            create();
+
+            await component.renameVolume({ volume, name: 'assets' });
+
+            expect(volumesRepository.rename).toHaveBeenCalledWith('sv-1', 'vl-1', { name: 'assets' });
+            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
+            expect(toast.success).toHaveBeenCalled();
+        });
+
+        test('attaches a volume to a compose service and reloads the list', async () => {
+            volumesRepository.attach.mockReturnValue(of(undefined));
+            create();
+
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            const draft = { composeServiceName: 'worker', containerPath: '/data', readOnly: true };
+
+            await component.attachVolume({ volume, draft });
+
+            expect(volumesRepository.attach).toHaveBeenCalledWith('sv-1', 'vl-1', draft);
+            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
+            expect(component.volumeError()).toBeNull();
+        });
+
+        test('detaches a volume, reloads the list and announces the next deployment', async () => {
+            volumesRepository.detach.mockReturnValue(of(undefined));
+            create();
+
+            await component.detachVolume(volume);
+
+            expect(volumesRepository.detach).toHaveBeenCalledWith('sv-1', 'vl-1');
+            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
+            expect(toast.success).toHaveBeenCalled();
+            expect(component.savingVolume()).toBe(false);
+        });
+
+        test('announces the failure of a detach in a toast, and reloads nothing', async () => {
+            volumesRepository.detach.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
+            create();
+
+            await component.detachVolume(volume);
+
+            expect(toast.error).toHaveBeenCalledWith(
+                'Could not detach the volume',
+                'Something went wrong. Please try again.',
+            );
+            expect(volumesResource.reload).not.toHaveBeenCalled();
+            expect(component.savingVolume()).toBe(false);
+        });
     });
 
     describe('the tab Logs', () => {
@@ -927,6 +1076,18 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                             claim: vi.fn(),
                             update: vi.fn(),
                             remove: vi.fn(),
+                        },
+                    },
+                    {
+                        provide: VolumesApiRepository,
+                        useValue: {
+                            volumesByService: vi.fn().mockReturnValue({
+                                value: signal([]), isLoading: signal(false), reload: vi.fn(),
+                            }),
+                            create: vi.fn(),
+                            rename: vi.fn(),
+                            attach: vi.fn(),
+                            detach: vi.fn(),
                         },
                     },
                 ],

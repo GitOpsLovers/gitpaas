@@ -66,6 +66,20 @@
             />
         }
 
+        @case ('volumes') {
+            <app-service-volumes
+                [volumes]="volumes.value() ?? []"
+                [composeServices]="composeServices.value() ?? []"
+                [loading]="volumes.isLoading()"
+                [saving]="savingVolume()"
+                [error]="volumeError()"
+                (create)="createVolume($event)"
+                (rename)="renameVolume($event)"
+                (attach)="attachVolume($event)"
+                (detach)="detachVolume($event)"
+            />
+        }
+
         @case ('logs') {
             <app-service-logs
                 [containers]="containers.value() ?? []"

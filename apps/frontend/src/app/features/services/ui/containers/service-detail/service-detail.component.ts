@@ -3,6 +3,7 @@ import { Component, computed, effect, inject, input, linkedSignal, signal } from
 import { Router } from '@angular/router';
 import type {
     Container, Deployment, Domain, Namespace, Network, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
+    Volume,
 } from '@gitpaas/contracts';
 import { LucideLayers } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
@@ -32,12 +33,16 @@ import { readProjectNetworkErrorUseCase } from '@features/networks/application/r
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
+import type { VolumeDraft } from '@features/volumes/domain/models/volume.models';
+import { VolumesApiRepository } from '@features/volumes/infrastructure/api/volumes-api.repository';
+import { ServiceVolumesComponent, VolumeAttach, VolumeRename } from '@features/volumes/ui/components/service-volumes/service-volumes.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 import { ToastService } from '@shared/services/toast.service';
 
-type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployments' | 'containers' | 'network' | 'logs';
+type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployments' | 'containers' | 'network'
+    | 'volumes' | 'logs';
 
 @Component({
     selector: 'app-service-detail',
@@ -51,6 +56,7 @@ type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployme
         ContainersApiRepository,
         NetworksApiRepository,
         DomainsApiRepository,
+        VolumesApiRepository,
     ],
     imports: [
         BreadcrumbComponent,
@@ -64,6 +70,7 @@ type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployme
         ServiceNetworksComponent,
         ServiceProviderComponent,
         ServiceVariablesComponent,
+        ServiceVolumesComponent,
         TabsComponent],
 })
 
@@ -88,6 +95,8 @@ export class ServiceDetailComponent {
     private readonly networksRepository = inject(NetworksApiRepository);
 
     private readonly domainsRepository = inject(DomainsApiRepository);
+
+    private readonly volumesRepository = inject(VolumesApiRepository);
 
     private readonly runtimeLogsRepository = inject(RuntimeLogsApiRepository);
 
@@ -120,6 +129,8 @@ export class ServiceDetailComponent {
     protected readonly projectNetworks: HttpResourceRef<ProjectNetwork[] | undefined> = this.networksRepository.networksByProject(() => this.projectId());
 
     protected readonly domains: HttpResourceRef<Domain[] | undefined> = this.domainsRepository.domainsByService(() => this.serviceId());
+
+    protected readonly volumes: HttpResourceRef<Volume[] | undefined> = this.volumesRepository.volumesByService(() => this.serviceId());
 
     // eslint-disable-next-line max-len
     protected readonly composeServices: HttpResourceRef<string[] | undefined> = this.deploymentsRepository.composeServicesByService(() => this.serviceId());
@@ -157,6 +168,10 @@ export class ServiceDetailComponent {
     protected readonly removingDomain = signal(false);
 
     protected readonly joiningNetwork = signal(false);
+
+    protected readonly savingVolume = signal(false);
+
+    protected readonly volumeError = signal<string | null>(null);
 
     /**
      * Container whose output the tab Logs shows, seeded with the first container that runs.
@@ -213,6 +228,7 @@ export class ServiceDetailComponent {
         { id: 'deployments', label: 'Deployments' },
         { id: 'containers', label: 'Containers' },
         { id: 'network', label: 'Network' },
+        { id: 'volumes', label: 'Volumes' },
         { id: 'logs', label: 'Logs' },
     ];
 
@@ -527,6 +543,93 @@ export class ServiceDetailComponent {
             );
         } finally {
             this.joiningNetwork.set(false);
+        }
+    }
+
+    /**
+     * Creates a volume of the service, which the same call attaches to one service of its Compose file.
+     *
+     * @param draft Name, compose service, mount path and mode the form holds
+     */
+    protected async createVolume(draft: VolumeDraft): Promise<void> {
+        this.savingVolume.set(true);
+        this.volumeError.set(null);
+
+        try {
+            await lastValueFrom(this.volumesRepository.create(this.serviceId(), draft));
+
+            this.volumes.reload();
+            this.toast.success('Volume created', `“${draft.name}” mounts after the next deployment.`);
+        } catch (error) {
+            this.volumeError.set(readServiceVariableErrorUseCase(error, 'The volume could not be created. Please try again.'));
+        } finally {
+            this.savingVolume.set(false);
+        }
+    }
+
+    /**
+     * Renames a volume the service already holds.
+     *
+     * @param change Volume of the service and the name the form holds
+     */
+    protected async renameVolume(change: VolumeRename): Promise<void> {
+        this.savingVolume.set(true);
+        this.volumeError.set(null);
+
+        try {
+            await lastValueFrom(this.volumesRepository.rename(this.serviceId(), change.volume.id, { name: change.name }));
+
+            this.volumes.reload();
+            this.toast.success('Volume saved', `“${change.name}” keeps the data of this service.`);
+        } catch (error) {
+            this.volumeError.set(readServiceVariableErrorUseCase(error, 'The volume could not be saved. Please try again.'));
+        } finally {
+            this.savingVolume.set(false);
+        }
+    }
+
+    /**
+     * Attaches a volume of the service to one service of its Compose file.
+     *
+     * @param change Volume of the service and the mount the form holds
+     */
+    protected async attachVolume(change: VolumeAttach): Promise<void> {
+        this.savingVolume.set(true);
+        this.volumeError.set(null);
+
+        try {
+            await lastValueFrom(this.volumesRepository.attach(this.serviceId(), change.volume.id, change.draft));
+
+            this.volumes.reload();
+            this.toast.success('Volume attached', `“${change.volume.name}” mounts after the next deployment.`);
+        } catch (error) {
+            this.volumeError.set(readServiceVariableErrorUseCase(error, 'The volume could not be attached. Please try again.'));
+        } finally {
+            this.savingVolume.set(false);
+        }
+    }
+
+    /**
+     * Detaches a volume from the service of the Compose file that mounts it.
+     *
+     * @param volume Volume the service stops mounting
+     */
+    protected async detachVolume(volume: Volume): Promise<void> {
+        this.savingVolume.set(true);
+        this.volumeError.set(null);
+
+        try {
+            await lastValueFrom(this.volumesRepository.detach(this.serviceId(), volume.id));
+
+            this.volumes.reload();
+            this.toast.success('Volume detached', `“${volume.name}” stops mounting after the next deployment.`);
+        } catch (error) {
+            this.toast.error(
+                'Could not detach the volume',
+                readServiceVariableErrorUseCase(error, 'Something went wrong. Please try again.'),
+            );
+        } finally {
+            this.savingVolume.set(false);
         }
     }
 

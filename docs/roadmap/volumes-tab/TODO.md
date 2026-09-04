@@ -44,12 +44,12 @@ A service of GitPaaS keeps no record of its volumes, so a user cannot see the da
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/volumes/, apps/frontend/src/app/features/services/ui/containers/service-detail/
 
-- [ ] 4.1 Write `VolumesApiRepository`, with the read of the list and the four writes.
-- [ ] 4.2 Write the presentational component `ServiceVolumesComponent`: one table with the name, the origin, the state, the mount path, the mode and the containers that use the volume.
-- [ ] 4.3 Write the form that creates a volume and attaches it: the Compose service, the mount path and the mode read-only.
-- [ ] 4.4 Add the member `volumes` to the union `ServiceTab`, to the array `tabs` and to the `@switch` of the container.
-- [ ] 4.5 Show the warning that an attach and a detach wait for the next deployment.
-- [ ] 4.6 Write the unit tests of the component and of the repository, and run the checks of the frontend.
+- [x] 4.1 Write `VolumesApiRepository`, with the read of the list and the four writes.
+- [x] 4.2 Write the presentational component `ServiceVolumesComponent`: one table with the name, the origin, the state, the mount path, the mode and the containers that use the volume.
+- [x] 4.3 Write the form that creates a volume and attaches it: the Compose service, the mount path and the mode read-only.
+- [x] 4.4 Add the member `volumes` to the union `ServiceTab`, to the array `tabs` and to the `@switch` of the container.
+- [x] 4.5 Show the warning that an attach and a detach wait for the next deployment.
+- [x] 4.6 Write the unit tests of the component and of the repository, and run the checks of the frontend.
 
 ## Phase 5 — The documentation
 
