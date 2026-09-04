@@ -11,23 +11,23 @@ The attachment of the container itself does not change, and no deployment starts
 **Agent:** implementer
 **Paths:** packages/contracts/src/networks/, apps/backend/src/features/networks/
 
-- [ ] 1.1 Add `joining` and `leaving` to `networkStateSchema`, and make `driver`, `scope`, `internal`, `attachable` and `createdAt` optional in `networkSchema` (`packages/contracts/src/networks/network.contract.ts`).
-- [ ] 1.2 Mirror the two states and the optional fields in `NetworkState` and `Network` (`apps/backend/src/features/networks/domain/models/network.models.ts`).
-- [ ] 1.3 Add a read of one network by its name of the daemon to `NetworksRepository`, and implement it in `DockerNetworksRepository`.
-- [ ] 1.4 Take `ServiceNetworksRepository` as a third parameter of `getNetworksByServiceUseCase`, and merge its rows with the two reads of the daemon.
-- [ ] 1.5 Give a joined network the state `connected` when a container holds it, and `joining` when no container holds it.
-- [ ] 1.6 Give the state `leaving` to a network of the project that a container holds, and that the join no longer holds.
-- [ ] 1.7 Show the name of the user for every network of the project, and carry the identifier of the project network as the `id` of a row of the state `joining`.
-- [ ] 1.8 Inject `DatabaseServiceNetworksRepository` into `NetworksService`, and extend the unit tests of the use case, of the repository and of the service.
+- [x] 1.1 Add `joining` and `leaving` to `networkStateSchema`, and make `driver`, `scope`, `internal`, `attachable` and `createdAt` optional in `networkSchema` (`packages/contracts/src/networks/network.contract.ts`).
+- [x] 1.2 Mirror the two states and the optional fields in `NetworkState` and `Network` (`apps/backend/src/features/networks/domain/models/network.models.ts`).
+- [x] 1.3 Add a read of one network by its name of the daemon to `NetworksRepository`, and implement it in `DockerNetworksRepository`.
+- [x] 1.4 Take `ServiceNetworksRepository` as a third parameter of `getNetworksByServiceUseCase`, and merge its rows with the two reads of the daemon.
+- [x] 1.5 Give a joined network the state `connected` when a container holds it, and `joining` when no container holds it.
+- [x] 1.6 Give the state `leaving` to a network of the project that a container holds, and that the join no longer holds.
+- [x] 1.7 Show the name of the user for every network of the project, and carry the identifier of the project network as the `id` of a row of the state `joining`.
+- [x] 1.8 Inject `DatabaseServiceNetworksRepository` into `NetworksService`, and extend the unit tests of the use case, of the repository and of the service.
 
 ## Phase 2 — The two states in the tab
 
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/networks/
 
-- [ ] 2.1 Add `joining` and `leaving` to `STATE_LABELS` and to `stateBadgeClass` (`service-networks.component.ts`).
+- [x] 2.1 Add `joining` and `leaving` to `STATE_LABELS` and to `stateBadgeClass` (`service-networks.component.ts`).
 - [ ] 2.2 Show a hint on a row of the state `joining` or `leaving`, which states that the next deployment applies the change.
-- [ ] 2.3 Show a dash in the columns Driver, Scope, Internal, Attachable and Created when the field is absent.
+- [x] 2.3 Show a dash in the columns Driver, Scope, Internal, Attachable and Created when the field is absent.
 - [ ] 2.4 Correct the description of the card, which says today that the list holds the networks of the stack and of the containers.
 - [ ] 2.5 Extend the unit tests of the component and of `networks-api.repository.ts`.
 

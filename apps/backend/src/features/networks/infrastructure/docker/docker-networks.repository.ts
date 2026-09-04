@@ -41,4 +41,11 @@ export class DockerNetworksRepository implements NetworksRepository {
 
         return networks.filter((network) => names.has(network.name)).map(toNetwork);
     }
+
+    public async findByName(name: string): Promise<Network | null> {
+        const networks = await this.client.listNetworks({});
+        const found = networks.find((network) => network.name === name);
+
+        return found ? toNetwork(found) : null;
+    }
 }

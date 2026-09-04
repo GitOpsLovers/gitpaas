@@ -17,7 +17,7 @@ export function toNetworkResponse(network: NetworkStatus): NetworkResponse {
         scope: network.scope,
         internal: network.internal,
         attachable: network.attachable,
-        createdAt: network.createdAt.toISOString(),
+        createdAt: network.createdAt?.toISOString(),
         state: network.state,
     };
 }

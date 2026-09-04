@@ -2,6 +2,8 @@ import { Test } from '@nestjs/testing';
 
 import { getNetworksByServiceUseCase } from '../../../application/get-networks-by-service.use-case';
 import { NetworkStatus } from '../../../domain/models/network.models';
+import { DatabaseProjectNetworksRepository } from '../../../infrastructure/database/db-project-networks.repository';
+import { DatabaseServiceNetworksRepository } from '../../../infrastructure/database/db-service-networks.repository';
 import { DockerNetworksRepository } from '../../../infrastructure/docker/docker-networks.repository';
 import { NetworksService } from '../networks.service';
 
@@ -31,20 +33,28 @@ const networks: NetworkStatus[] = [
 
 describe('NetworksService', () => {
     let mockServicesRepository: jest.Mocked<Pick<DatabaseServicesRepository, 'findById'>>;
-    let mockNetworksRepository: jest.Mocked<Pick<DockerNetworksRepository, 'listByService' | 'listConnectedByService'>>;
+    let mockNetworksRepository: jest.Mocked<
+        Pick<DockerNetworksRepository, 'listByService' | 'listConnectedByService' | 'findByName'>
+    >;
+    let mockServiceNetworksRepository: jest.Mocked<Pick<DatabaseServiceNetworksRepository, 'listByService'>>;
+    let mockProjectNetworksRepository: jest.Mocked<Pick<DatabaseProjectNetworksRepository, 'listByProject'>>;
     let sut: NetworksService;
 
     beforeEach(async () => {
         jest.clearAllMocks();
 
         mockServicesRepository = { findById: jest.fn() };
-        mockNetworksRepository = { listByService: jest.fn(), listConnectedByService: jest.fn() };
+        mockNetworksRepository = { listByService: jest.fn(), listConnectedByService: jest.fn(), findByName: jest.fn() };
+        mockServiceNetworksRepository = { listByService: jest.fn() };
+        mockProjectNetworksRepository = { listByProject: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 NetworksService,
                 { provide: DatabaseServicesRepository, useValue: mockServicesRepository },
                 { provide: DockerNetworksRepository, useValue: mockNetworksRepository },
+                { provide: DatabaseServiceNetworksRepository, useValue: mockServiceNetworksRepository },
+                { provide: DatabaseProjectNetworksRepository, useValue: mockProjectNetworksRepository },
             ],
         }).compile();
 
@@ -52,7 +62,7 @@ describe('NetworksService', () => {
     });
 
     describe('getByService', () => {
-        it('delegates to the use case with both repositories and the service id', async () => {
+        it('delegates to the use case with the four repositories and the service id', async () => {
             mockGetNetworksByServiceUseCase.mockResolvedValue(networks);
 
             await sut.getByService(serviceId);
@@ -61,6 +71,8 @@ describe('NetworksService', () => {
             expect(mockGetNetworksByServiceUseCase).toHaveBeenCalledWith(
                 mockServicesRepository,
                 mockNetworksRepository,
+                mockServiceNetworksRepository,
+                mockProjectNetworksRepository,
                 serviceId,
             );
         });

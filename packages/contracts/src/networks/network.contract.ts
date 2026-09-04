@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * Where a network of a service stands.
  */
-export const networkStateSchema = z.enum(['attached', 'declared', 'connected']);
+export const networkStateSchema = z.enum(['attached', 'declared', 'connected', 'joining', 'leaving']);
 
 /**
  * A network of the stack of one service, on the wire.
@@ -11,11 +11,11 @@ export const networkStateSchema = z.enum(['attached', 'declared', 'connected']);
 export const networkSchema = z.object({
     id: z.string(),
     name: z.string(),
-    driver: z.string(),
-    scope: z.string(),
-    internal: z.boolean(),
-    attachable: z.boolean(),
-    createdAt: z.iso.datetime(),
+    driver: z.string().optional(),
+    scope: z.string().optional(),
+    internal: z.boolean().optional(),
+    attachable: z.boolean().optional(),
+    createdAt: z.iso.datetime().optional(),
     state: networkStateSchema,
 });
 

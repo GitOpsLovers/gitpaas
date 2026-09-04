@@ -1,7 +1,10 @@
 import { HttpException } from '@nestjs/common';
 
 import { Network, NetworkStatus } from '../../domain/models/network.models';
+import { ProjectNetwork } from '../../domain/models/project-network.models';
 import { NetworksRepository } from '../../domain/repositories/networks.repository';
+import { ProjectNetworksRepository } from '../../domain/repositories/project-networks.repository';
+import { ServiceNetworksRepository } from '../../domain/repositories/service-networks.repository';
 import { getNetworksByServiceUseCase } from '../get-networks-by-service.use-case';
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
@@ -17,6 +20,15 @@ const network = (overrides: Partial<Network> = {}): Network => ({
     internal: false,
     attachable: false,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
+    ...overrides,
+});
+
+/** Builds a network of the project fixture, overriding only the fields under test. */
+const projectNetwork = (overrides: Partial<ProjectNetwork> = {}): ProjectNetwork => ({
+    id: '9f8e7d6c-5b4a-4392-8172-6d5c4b3a2f10',
+    projectId: 'b2a2132b-d6b7-464a-8aaf-c659a3ca0d60',
+    name: 'cache',
+    daemonName: 'gitpaas-b2a2132b-9f8e7d6c',
     ...overrides,
 });
 
@@ -38,12 +50,18 @@ describe('getNetworksByServiceUseCase', () => {
     const declared = [network()];
 
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
-    let mockNetworksRepository: jest.Mocked<Pick<NetworksRepository, 'listByService' | 'listConnectedByService'>>;
+    let mockNetworksRepository: jest.Mocked<
+        Pick<NetworksRepository, 'listByService' | 'listConnectedByService' | 'findByName'>
+    >;
+    let mockServiceNetworksRepository: jest.Mocked<Pick<ServiceNetworksRepository, 'listByService'>>;
+    let mockProjectNetworksRepository: jest.Mocked<Pick<ProjectNetworksRepository, 'listByProject'>>;
 
     /** Runs the use case with the mocked repositories. */
     const run = (id = serviceId): Promise<NetworkStatus[]> => getNetworksByServiceUseCase(
         mockServicesRepository as unknown as ServicesRepository,
         mockNetworksRepository,
+        mockServiceNetworksRepository as unknown as ServiceNetworksRepository,
+        mockProjectNetworksRepository as unknown as ProjectNetworksRepository,
         id,
     );
 
@@ -54,7 +72,10 @@ describe('getNetworksByServiceUseCase', () => {
         mockNetworksRepository = {
             listByService: jest.fn().mockResolvedValue(declared),
             listConnectedByService: jest.fn().mockResolvedValue([]),
+            findByName: jest.fn().mockResolvedValue(null),
         };
+        mockServiceNetworksRepository = { listByService: jest.fn().mockResolvedValue([]) };
+        mockProjectNetworksRepository = { listByProject: jest.fn().mockResolvedValue([]) };
     });
 
     it('resolves the service by its identifier before listing networks', async () => {
@@ -71,6 +92,20 @@ describe('getNetworksByServiceUseCase', () => {
         expect(mockNetworksRepository.listByService).toHaveBeenCalledWith(service);
         expect(mockNetworksRepository.listConnectedByService).toHaveBeenCalledTimes(1);
         expect(mockNetworksRepository.listConnectedByService).toHaveBeenCalledWith(service);
+    });
+
+    it('delegates the read of the joins to the service networks repository with the service id', async () => {
+        await run();
+
+        expect(mockServiceNetworksRepository.listByService).toHaveBeenCalledTimes(1);
+        expect(mockServiceNetworksRepository.listByService).toHaveBeenCalledWith(serviceId);
+    });
+
+    it('delegates the read of the networks of the project to the project of the resolved service', async () => {
+        await run();
+
+        expect(mockProjectNetworksRepository.listByProject).toHaveBeenCalledTimes(1);
+        expect(mockProjectNetworksRepository.listByProject).toHaveBeenCalledWith(service.projectId);
     });
 
     it('returns an empty list when the service holds no network at all', async () => {
@@ -98,6 +133,8 @@ describe('getNetworksByServiceUseCase', () => {
         await expect(run()).rejects.toThrow(ServiceNotFoundError);
         expect(mockNetworksRepository.listByService).not.toHaveBeenCalled();
         expect(mockNetworksRepository.listConnectedByService).not.toHaveBeenCalled();
+        expect(mockServiceNetworksRepository.listByService).not.toHaveBeenCalled();
+        expect(mockProjectNetworksRepository.listByProject).not.toHaveBeenCalled();
     });
 
     it('propagates errors thrown while resolving the service', async () => {
@@ -118,6 +155,13 @@ describe('getNetworksByServiceUseCase', () => {
     it('propagates errors thrown by the read of the connected networks', async () => {
         const error = new Error('daemon unreachable');
         mockNetworksRepository.listConnectedByService.mockRejectedValue(error);
+
+        await expect(run()).rejects.toThrow(error);
+    });
+
+    it('propagates errors thrown by the read of the joins', async () => {
+        const error = new Error('db unreachable');
+        mockServiceNetworksRepository.listByService.mockRejectedValue(error);
 
         await expect(run()).rejects.toThrow(error);
     });
@@ -223,6 +267,111 @@ describe('getNetworksByServiceUseCase', () => {
             await run();
 
             expect(summary).not.toHaveProperty('state');
+        });
+    });
+
+    describe('the merge of the joins of the service', () => {
+        const joined = projectNetwork();
+
+        beforeEach(() => {
+            mockNetworksRepository.listByService.mockResolvedValue([]);
+            mockProjectNetworksRepository.listByProject.mockResolvedValue([joined]);
+            mockServiceNetworksRepository.listByService.mockResolvedValue([joined]);
+        });
+
+        it('reads the network of the daemon by the name the network of the project carries there', async () => {
+            await run();
+
+            expect(mockNetworksRepository.findByName).toHaveBeenCalledTimes(1);
+            expect(mockNetworksRepository.findByName).toHaveBeenCalledWith(joined.daemonName);
+        });
+
+        it('gives the state joining to a joined network that no container holds', async () => {
+            mockNetworksRepository.findByName.mockResolvedValue(network({ id: 'daemon-id', name: joined.daemonName }));
+
+            const result = await run();
+
+            expect(result).toEqual<NetworkStatus[]>([
+                { ...network({ id: joined.id, name: joined.name }), state: 'joining' },
+            ]);
+        });
+
+        it('carries the identifier of the network of the project on a row of the state joining', async () => {
+            mockNetworksRepository.findByName.mockResolvedValue(network({ id: 'daemon-id', name: joined.daemonName }));
+
+            const result = await run();
+
+            expect(result[0]).toMatchObject({ id: joined.id, name: joined.name });
+        });
+
+        it('holds the identifier, the name and the state alone when the daemon holds no such network', async () => {
+            mockNetworksRepository.findByName.mockResolvedValue(null);
+
+            const result = await run();
+
+            expect(result).toEqual<NetworkStatus[]>([{ id: joined.id, name: joined.name, state: 'joining' }]);
+        });
+
+        it('gives the state connected to a joined network that a container holds', async () => {
+            mockNetworksRepository.listConnectedByService.mockResolvedValue([
+                network({ id: 'daemon-id', name: joined.daemonName }),
+            ]);
+
+            const result = await run();
+
+            expect(result).toEqual<NetworkStatus[]>([
+                { ...network({ id: 'daemon-id', name: joined.name }), state: 'connected' },
+            ]);
+        });
+
+        it('never reads the daemon again for a joined network that a container holds', async () => {
+            mockNetworksRepository.listConnectedByService.mockResolvedValue([
+                network({ name: joined.daemonName }),
+            ]);
+
+            await run();
+
+            expect(mockNetworksRepository.findByName).not.toHaveBeenCalled();
+        });
+
+        it('gives the state leaving to a network of the project that a container holds with no join', async () => {
+            mockServiceNetworksRepository.listByService.mockResolvedValue([]);
+            mockNetworksRepository.listConnectedByService.mockResolvedValue([
+                network({ id: 'daemon-id', name: joined.daemonName }),
+            ]);
+
+            const result = await run();
+
+            expect(result).toEqual<NetworkStatus[]>([
+                { ...network({ id: 'daemon-id', name: joined.name }), state: 'leaving' },
+            ]);
+        });
+
+        it('keeps the state connected on a network the containers hold that belongs to no project', async () => {
+            mockServiceNetworksRepository.listByService.mockResolvedValue([]);
+            mockProjectNetworksRepository.listByProject.mockResolvedValue([]);
+            mockNetworksRepository.listConnectedByService.mockResolvedValue([network({ name: 'foreign' })]);
+
+            const result = await run();
+
+            expect(result).toEqual<NetworkStatus[]>([{ ...network({ name: 'foreign' }), state: 'connected' }]);
+        });
+
+        it('lists the networks of the stack, then the ones of the containers, then the joining ones', async () => {
+            const leaving = projectNetwork({ id: 'leaving-id', name: 'logs', daemonName: 'gitpaas-b2a2132b-leaving' });
+            mockNetworksRepository.listByService.mockResolvedValue([network({ name: 'declared-a' })]);
+            mockProjectNetworksRepository.listByProject.mockResolvedValue([joined, leaving]);
+            mockNetworksRepository.listConnectedByService.mockResolvedValue([
+                network({ name: leaving.daemonName }),
+            ]);
+
+            const result = await run();
+
+            expect(result.map((entry) => [entry.name, entry.state])).toEqual([
+                ['declared-a', 'declared'],
+                ['logs', 'leaving'],
+                ['cache', 'joining'],
+            ]);
         });
     });
 });
