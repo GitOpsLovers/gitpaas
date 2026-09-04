@@ -39,6 +39,7 @@ export async function deleteServiceUseCase(
     await serviceRuntimeResources.removeRouting(service);
     await serviceRuntimeResources.removeContainers(service);
     await serviceRuntimeResources.removeNetworks(service);
+    await serviceRuntimeResources.removeVolumes(service);
     await serviceRuntimeResources.removeImages(service);
 
     for (const deployment of deployments) {

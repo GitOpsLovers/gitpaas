@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
+import type { VolumeMount } from '@features/volumes/domain/models/volume.models';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
@@ -35,6 +36,11 @@ type ComposeLabels = ComposeEntries;
 type ComposeEnvironment = ComposeEntries;
 
 /**
+ * An entry of the `volumes` block of a compose service, in either the short (`source:target`) or the long (object) form.
+ */
+type ComposeServiceVolume = string | Record<string, unknown>;
+
+/**
  * The subset of a compose service the executor reads/rewrites.
  */
 interface ComposeService {
@@ -43,6 +49,7 @@ interface ComposeService {
     healthcheck?: ComposeHealthcheck;
     labels?: ComposeLabels;
     environment?: ComposeEnvironment;
+    volumes?: ComposeServiceVolume[];
 }
 
 /**
@@ -50,6 +57,7 @@ interface ComposeService {
  */
 interface ComposeResource {
     labels?: ComposeLabels;
+    external?: boolean;
 }
 
 /**
@@ -342,4 +350,43 @@ export function injectEnvironment(compose: RuntimeComposeProject, environment: R
             ...environment,
         });
     }
+}
+
+/**
+ * The mount one volume of the service takes in the recipe of the deployment.
+ */
+export interface ComposeVolumeMount extends VolumeMount {
+    daemonKey: string;
+}
+
+/**
+ * Mounts every volume of the service in the compose service that its mount names, and declares each one as an external top-level volume.
+ *
+ * @param compose Compose project driven by the container runtime
+ * @param mounts Mounts of the volumes of the service, each one naming the compose service it belongs to
+ *
+ * @returns The names of the compose services that received a mount
+ */
+export function stampVolumes(compose: RuntimeComposeProject, mounts: ComposeVolumeMount[]): string[] {
+    const recipe = composeRecipe(compose);
+    const services = recipe.services ?? {};
+    const stamped = new Set<string>();
+
+    for (const mount of mounts) {
+        const service = services[mount.composeServiceName];
+
+        if (!service) {
+            continue;
+        }
+
+        service.volumes = [
+            ...service.volumes ?? [],
+            `${mount.daemonKey}:${mount.containerPath}${mount.readOnly ? ':ro' : ''}`,
+        ];
+
+        recipe.volumes = { ...recipe.volumes, [mount.daemonKey]: { external: true } };
+        stamped.add(mount.composeServiceName);
+    }
+
+    return [...stamped];
 }

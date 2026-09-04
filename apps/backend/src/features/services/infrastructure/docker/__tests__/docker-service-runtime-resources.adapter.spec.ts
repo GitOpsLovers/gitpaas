@@ -11,8 +11,10 @@ import type {
     RuntimeImageSummary,
     RuntimeNetworkSummary,
     RuntimeSelector,
+    RuntimeVolumeSummary,
 } from '@core/domain/models/container-runtime.models';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { GITPAAS_VOLUME_KEY_PREFIX } from '@features/volumes/application/get-volume-daemon-name.use-case';
 
 /** Compose project label the runtime maps a project scope onto, kept here to describe host resources. */
 const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
@@ -35,6 +37,11 @@ const networkSummary = (id: string): RuntimeNetworkSummary => ({ id } as Runtime
  * already filtered the list down to the project's GitPaaS-labelled images).
  */
 const imageSummary = (id: string): RuntimeImageSummary => ({ id });
+
+/**
+ * Builds a volume summary carrying only the name the SUT reads.
+ */
+const volumeSummary = (name: string): RuntimeVolumeSummary => ({ name } as RuntimeVolumeSummary);
 
 /**
  * Applies a runtime selector to a resource's labels exactly as the daemon does
@@ -73,13 +80,15 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     let mockListContainers: jest.Mock;
     let mockListNetworks: jest.Mock;
     let mockListImages: jest.Mock;
+    let mockListVolumes: jest.Mock;
     let mockRemoveContainer: jest.Mock;
     let mockRemoveNetwork: jest.Mock;
     let mockRemoveImage: jest.Mock;
+    let mockRemoveVolume: jest.Mock;
     let mockDisconnectNetwork: jest.Mock;
     let mockContainerRuntime: jest.Mocked<Pick<
         DockerContainerRuntimeAdapter,
-        'listContainers' | 'listNetworks' | 'listImages' | 'removeContainer' | 'removeNetwork' | 'removeImage' | 'disconnectNetwork'
+        'listContainers' | 'listNetworks' | 'listImages' | 'listVolumes' | 'removeContainer' | 'removeNetwork' | 'removeImage' | 'removeVolume' | 'disconnectNetwork'
     >>;
     let sut: DockerServiceRuntimeResourcesAdapter;
 
@@ -89,18 +98,22 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         mockListContainers = jest.fn().mockResolvedValue([]);
         mockListNetworks = jest.fn().mockResolvedValue([]);
         mockListImages = jest.fn().mockResolvedValue([]);
+        mockListVolumes = jest.fn().mockResolvedValue([]);
         mockRemoveContainer = jest.fn().mockResolvedValue(undefined);
         mockRemoveNetwork = jest.fn().mockResolvedValue(undefined);
         mockRemoveImage = jest.fn().mockResolvedValue(undefined);
+        mockRemoveVolume = jest.fn().mockResolvedValue(undefined);
         mockDisconnectNetwork = jest.fn().mockResolvedValue(undefined);
 
         mockContainerRuntime = {
             listContainers: mockListContainers,
             listNetworks: mockListNetworks,
             listImages: mockListImages,
+            listVolumes: mockListVolumes,
             removeContainer: mockRemoveContainer,
             removeNetwork: mockRemoveNetwork,
             removeImage: mockRemoveImage,
+            removeVolume: mockRemoveVolume,
             disconnectNetwork: mockDisconnectNetwork,
         };
 
@@ -236,6 +249,63 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         });
     });
 
+    describe('removeVolumes', () => {
+        /** Name on the daemon of a volume GitPaaS owns, as Compose prefixes it with the project. */
+        const ownedName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`;
+
+        it('lists volumes scoped to the GitPaaS marker and the service project', async () => {
+            await sut.removeVolumes(service);
+
+            expect(mockListVolumes).toHaveBeenCalledWith(projectSelector);
+        });
+
+        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
+            const unnamed: Service = { ...service, name: '!!!' };
+
+            await sut.removeVolumes(unnamed);
+
+            expect(mockListVolumes).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` });
+        });
+
+        it('removes every volume GitPaaS owns, by its name on the daemon', async () => {
+            const secondName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
+            mockListVolumes.mockResolvedValue([volumeSummary(ownedName), volumeSummary(secondName)]);
+
+            await sut.removeVolumes(service);
+
+            expect(mockRemoveVolume).toHaveBeenCalledTimes(2);
+            expect(mockRemoveVolume).toHaveBeenCalledWith(ownedName);
+            expect(mockRemoveVolume).toHaveBeenCalledWith(secondName);
+        });
+
+        it('never removes a volume the Compose file of the user declares', async () => {
+            mockListVolumes.mockResolvedValue([volumeSummary(`${projectName}_pgdata`), volumeSummary('pgdata')]);
+
+            await sut.removeVolumes(service);
+
+            expect(mockRemoveVolume).not.toHaveBeenCalled();
+        });
+
+        it('catches a single volume failure and continues with the rest', async () => {
+            const secondName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
+            mockListVolumes.mockResolvedValue([volumeSummary(ownedName), volumeSummary(secondName)]);
+            mockRemoveVolume.mockRejectedValueOnce(new Error('volume is in use'));
+
+            await expect(sut.removeVolumes(service)).resolves.toBeUndefined();
+
+            expect(mockRemoveVolume).toHaveBeenCalledTimes(2);
+            expect(mockRemoveVolume).toHaveBeenCalledWith(secondName);
+        });
+
+        it('does not throw when the runtime is unreachable while listing', async () => {
+            mockListVolumes.mockRejectedValue(new Error('daemon down'));
+
+            await expect(sut.removeVolumes(service)).resolves.toBeUndefined();
+
+            expect(mockRemoveVolume).not.toHaveBeenCalled();
+        });
+    });
+
     describe('removeImages', () => {
         it('asks the runtime for the project\'s GitPaaS-labelled images only', async () => {
             await sut.removeImages(service);
@@ -308,6 +378,24 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         /** A third-party container grouped under the very same compose project name. */
         const foreignContainer = { id: 'ctr-foreign', labels: { [COMPOSE_PROJECT_LABEL]: projectName } };
 
+        /** Volume GitPaaS created for this service: marked, and keyed with the GitPaaS prefix. */
+        const ownedVolume = {
+            name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`,
+            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: projectName },
+        };
+        /** Volume the Compose file of the user declares: same stack, but its data is not GitPaaS's to drop. */
+        const composeVolume = {
+            name: `${projectName}_pgdata`,
+            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: projectName },
+        };
+        /** Volume of another service of GitPaaS, marked but scoped to a different project. */
+        const otherProjectVolume = {
+            name: `other-service_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`,
+            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: 'other-service' },
+        };
+        /** Unlabelled host volume from `docker volume create`, never GitPaaS's to remove. */
+        const hostVolume = { name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}stray`, labels: undefined };
+
         beforeEach(() => {
             mockListImages.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
                 [builtImage, lookalikeImage, otherProjectImage, pulledImage]
@@ -318,6 +406,11 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
                 [ownContainer, foreignContainer]
                     .filter((container) => matchesSelector(container.labels, selector))
                     .map((container) => containerSummary(container.id)),
+            ));
+            mockListVolumes.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
+                [ownedVolume, composeVolume, otherProjectVolume, hostVolume]
+                    .filter((volume) => matchesSelector(volume.labels, selector))
+                    .map((volume) => volumeSummary(volume.name)),
             ));
         });
 
@@ -337,6 +430,16 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             expect(mockRemoveContainer).toHaveBeenCalledTimes(1);
             expect(mockRemoveContainer).toHaveBeenCalledWith('ctr-own', { force: true, removeVolumes: true });
             expect(mockRemoveContainer).not.toHaveBeenCalledWith('ctr-foreign', expect.anything());
+        });
+
+        it('removes only its own volume, sparing the compose volume, another project and an unlabelled host volume', async () => {
+            await sut.removeVolumes(service);
+
+            expect(mockRemoveVolume).toHaveBeenCalledTimes(1);
+            expect(mockRemoveVolume).toHaveBeenCalledWith(ownedVolume.name);
+            expect(mockRemoveVolume).not.toHaveBeenCalledWith(composeVolume.name);
+            expect(mockRemoveVolume).not.toHaveBeenCalledWith(otherProjectVolume.name);
+            expect(mockRemoveVolume).not.toHaveBeenCalledWith(hostVolume.name);
         });
     });
 });

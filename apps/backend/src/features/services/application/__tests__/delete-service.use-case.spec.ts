@@ -55,6 +55,7 @@ describe('deleteServiceUseCase', () => {
             removeRouting: jest.fn().mockResolvedValue(undefined),
             removeContainers: jest.fn().mockResolvedValue(undefined),
             removeNetworks: jest.fn().mockResolvedValue(undefined),
+            removeVolumes: jest.fn().mockResolvedValue(undefined),
             removeImages: jest.fn().mockResolvedValue(undefined),
         };
         mockLogStore = {
@@ -72,6 +73,7 @@ describe('deleteServiceUseCase', () => {
         expect(mockServiceRuntimeResources.removeRouting).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeContainers).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeNetworks).not.toHaveBeenCalled();
+        expect(mockServiceRuntimeResources.removeVolumes).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeImages).not.toHaveBeenCalled();
         expect(mockLogStore.purge).not.toHaveBeenCalled();
         expect(mockServicesRepository.delete).not.toHaveBeenCalled();
@@ -90,11 +92,13 @@ describe('deleteServiceUseCase', () => {
         expect(mockServiceRuntimeResources.removeContainers).toHaveBeenCalledWith(service);
         expect(mockServiceRuntimeResources.removeNetworks).toHaveBeenCalledTimes(1);
         expect(mockServiceRuntimeResources.removeNetworks).toHaveBeenCalledWith(service);
+        expect(mockServiceRuntimeResources.removeVolumes).toHaveBeenCalledTimes(1);
+        expect(mockServiceRuntimeResources.removeVolumes).toHaveBeenCalledWith(service);
         expect(mockServiceRuntimeResources.removeImages).toHaveBeenCalledTimes(1);
         expect(mockServiceRuntimeResources.removeImages).toHaveBeenCalledWith(service);
     });
 
-    it('tears the runtime resources down in dependency order: routing, then containers, then networks, then images', async () => {
+    it('tears the runtime resources down in dependency order: routing, then containers, then networks, then volumes, then images', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
         mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
         mockServicesRepository.delete.mockResolvedValue(true);
@@ -104,11 +108,13 @@ describe('deleteServiceUseCase', () => {
         const routingOrder = mockServiceRuntimeResources.removeRouting.mock.invocationCallOrder[0];
         const containersOrder = mockServiceRuntimeResources.removeContainers.mock.invocationCallOrder[0];
         const networksOrder = mockServiceRuntimeResources.removeNetworks.mock.invocationCallOrder[0];
+        const volumesOrder = mockServiceRuntimeResources.removeVolumes.mock.invocationCallOrder[0];
         const imagesOrder = mockServiceRuntimeResources.removeImages.mock.invocationCallOrder[0];
 
         expect(routingOrder).toBeLessThan(containersOrder);
         expect(containersOrder).toBeLessThan(networksOrder);
-        expect(networksOrder).toBeLessThan(imagesOrder);
+        expect(networksOrder).toBeLessThan(volumesOrder);
+        expect(volumesOrder).toBeLessThan(imagesOrder);
     });
 
     it('purges the log buffer of every enumerated deployment', async () => {
@@ -163,6 +169,7 @@ describe('deleteServiceUseCase', () => {
         expect(mockServiceRuntimeResources.removeRouting).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeContainers).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeNetworks).not.toHaveBeenCalled();
+        expect(mockServiceRuntimeResources.removeVolumes).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeImages).not.toHaveBeenCalled();
         expect(mockLogStore.purge).not.toHaveBeenCalled();
     });

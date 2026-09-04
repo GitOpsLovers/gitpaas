@@ -33,11 +33,11 @@ A service of GitPaaS keeps no record of its volumes, so a user cannot see the da
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/infrastructure/docker/, apps/backend/src/features/services/
 
-- [ ] 3.1 Add the key `volumes` to the interface `ComposeService` of `compose-recipe.transformer.ts`.
-- [ ] 3.2 Write `stampVolumes`, which writes the mounts of the join into the Compose service that the join names.
-- [ ] 3.3 Declare each attached volume as a top-level volume with `external: true`. The name of the real volume of Docker is `<composeProjectName>_<key>`, because `dockerode-compose` always prefixes the reference of the service.
-- [ ] 3.4 Remove the volumes that GitPaaS owns when the user removes the service, through `removeVolume` of the port. Never call `compose.down({ volumes: true })`, because it ignores `external`.
-- [ ] 3.5 Write the unit tests of the transformer and of the removal, and run the checks of the backend.
+- [x] 3.1 Add the key `volumes` to the interface `ComposeService` of `compose-recipe.transformer.ts`.
+- [x] 3.2 Write `stampVolumes`, which writes the mounts of the join into the Compose service that the join names.
+- [x] 3.3 Declare each attached volume as a top-level volume with `external: true`. The name of the real volume of Docker is `<composeProjectName>_<key>`, because `dockerode-compose` always prefixes the reference of the service.
+- [x] 3.4 Remove the volumes that GitPaaS owns when the user removes the service, through `removeVolume` of the port. Never call `compose.down({ volumes: true })`, because it ignores `external`.
+- [x] 3.5 Write the unit tests of the transformer and of the removal, and run the checks of the backend.
 
 ## Phase 4 — The tab of the frontend
 
