@@ -1,0 +1,33 @@
+apps/backend/src/features/services/domain/ports/service-runtime-resources.port.ts
+  s_71e14560c00862::t_28ecaefe0f6389 28-34
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_71e14560c00862::t_569fea9d2dcccb 13,16,342-438
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_71e14560c00862::t_180c0ae867082d 6,38-42,52,60,354-392
+apps/backend/src/features/services/infrastructure/docker/__tests__/docker-service-runtime-resources.adapter.spec.ts
+  s_71e14560c00862::t_a8563cb4ce9756 14,17,41-45,83,87,91,101,105,112,116,252-308,381-398,410-414,434-443
+docs/roadmap/volumes-tab/TODO.md
+  s_71e14560c00862::t_638825ec2b3ac0 36-40
+apps/backend/src/features/services/application/delete-service.use-case.ts
+  s_71e14560c00862::t_e01bd157ddf982 42
+apps/backend/src/features/services/application/__tests__/delete-service.use-case.spec.ts
+  s_71e14560c00862::t_f9ffc208c64245 58,76,95-96,101,111,116-117,172
+apps/backend/src/features/services/infrastructure/docker/docker-service-runtime-resources.adapter.ts
+  s_71e14560c00862::t_1a8a2db87cdb4c 11-14,78-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "35765fa466ec9fb74448e5a4c321ce866a4f681c",
+  "prompts": {},
+  "sessions": {
+    "s_71e14560c00862": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "921cdbe7-1295-4813-9b75-7bf3646d53ce",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
