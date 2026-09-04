@@ -1,3 +1,14 @@
+## [2.13.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.12.0...v2.13.0) (2026-09-04)
+
+### Features
+
+* **backend:** add volumes feature ([#227](https://github.com/GitOpsLovers/gitpaas/issues/227)) ([a40d921](https://github.com/GitOpsLovers/gitpaas/commit/a40d9218d45a4dd85fe6a3870e6bff64481b45ec))
+* **frontend:** add volumes tab to service detail ([#229](https://github.com/GitOpsLovers/gitpaas/issues/229)) ([47d7886](https://github.com/GitOpsLovers/gitpaas/commit/47d78860f9073a1d56d4a40741395552878d1066))
+* **networks:** add joining and leaving states to tab ([#225](https://github.com/GitOpsLovers/gitpaas/issues/225)) ([17f338b](https://github.com/GitOpsLovers/gitpaas/commit/17f338b9b425620142405e1c1957986be7a3fd1d))
+* **networks:** merge database join with daemon reads ([#224](https://github.com/GitOpsLovers/gitpaas/issues/224)) ([7532a1a](https://github.com/GitOpsLovers/gitpaas/commit/7532a1a299203856f95456cfd0c920eba9f885d3))
+* **runtime:** add volume operations ([#223](https://github.com/GitOpsLovers/gitpaas/issues/223)) ([871e099](https://github.com/GitOpsLovers/gitpaas/commit/871e0993eaf255b804fa7506ad5caa92a721d14e))
+* **volumes:** mount volumes and remove them on delete ([#228](https://github.com/GitOpsLovers/gitpaas/issues/228)) ([30e8e45](https://github.com/GitOpsLovers/gitpaas/commit/30e8e45dfc2ba5c3bbd28f5ab38364769c127bd4))
+
 ## [2.12.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.11.0...v2.12.0) (2026-09-03)
 
 ### Features
