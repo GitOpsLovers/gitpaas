@@ -13,7 +13,6 @@ import { getVolumeDaemonKeyUseCase, getVolumeDaemonNameUseCase } from './get-vol
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Use case for creating a volume of a service, and for attaching it in the same call.
@@ -57,7 +56,7 @@ export async function createVolumeUseCase(
 
     const id = randomUUID();
     const daemonKey = getVolumeDaemonKeyUseCase(id);
-    const daemonName = getVolumeDaemonNameUseCase(getServiceSlug(service), daemonKey);
+    const daemonName = getVolumeDaemonNameUseCase(service.composeProject, daemonKey);
 
     await daemonVolumesRepository.create(service, daemonName);
 

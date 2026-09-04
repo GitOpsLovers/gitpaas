@@ -16,11 +16,6 @@ import { getTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 /**
  * Database-backed deployment queue.
- *
- * Persists every enqueued task as a row in `deployment_queue_tasks` for
- * durability across restarts, and uses an internal RxJS `Subject` purely as the
- * in-process dispatch channel to the runner (preserving its per-project
- * serialization). No queue state lives only in memory.
  */
 @Injectable()
 export class DatabaseDeploymentQueueAdapter implements DeploymentQueue {

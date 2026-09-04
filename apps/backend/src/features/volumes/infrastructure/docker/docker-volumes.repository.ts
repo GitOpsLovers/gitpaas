@@ -5,13 +5,13 @@ import { DaemonVolumesRepository } from '../../domain/repositories/daemon-volume
 
 import { toDaemonVolume } from './docker-volumes.transformer';
 
+import { GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeSelector } from '@core/domain/models/container-runtime.models';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { COMPOSE_PROJECT_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import { Service } from '@features/services/domain/models/service.models';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Docker volumes repository
@@ -43,7 +43,11 @@ export class DockerVolumesRepository implements DaemonVolumesRepository {
     public async create(service: Service, daemonName: string): Promise<void> {
         await this.client.createVolume({
             name: daemonName,
-            labels: { ...getGitpaasLabels(), [COMPOSE_PROJECT_LABEL]: getServiceSlug(service) },
+            labels: {
+                ...getGitpaasLabels(),
+                [GITPAAS_SERVICE_LABEL]: service.id,
+                [COMPOSE_PROJECT_LABEL]: service.composeProject,
+            },
         });
     }
 
@@ -52,9 +56,9 @@ export class DockerVolumesRepository implements DaemonVolumesRepository {
      *
      * @param service Service the resources belong to
      *
-     * @returns Selector of the labels of GitPaaS and of the slug of the service
+     * @returns Selector of the labels of GitPaaS and of the identifier of the service
      */
     private getSelector(service: Service): RuntimeSelector {
-        return { labels: getGitpaasLabels(), project: getServiceSlug(service) };
+        return { labels: getGitpaasLabels(), service: service.id };
     }
 }

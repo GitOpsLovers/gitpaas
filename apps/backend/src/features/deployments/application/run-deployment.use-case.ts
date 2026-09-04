@@ -1,6 +1,6 @@
 import { ServiceNotDeployableError } from '../domain/errors/deployment.errors';
 import { DeploymentRunTask } from '../domain/models/deployment-run-task.models';
-import { DockerExecutor } from '../domain/ports/docker-executor.port';
+import { DeploymentTarget, DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
@@ -15,7 +15,9 @@ import { ProvidersRepository } from '@features/providers/domain/repositories/pro
 import { getServiceEnvironmentUseCase } from '@features/service-environment/application/get-service-environment.use-case';
 import { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
+import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Loads the service of a deployment, and the credentials its provider gives to the provider client.
@@ -25,7 +27,7 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
  * @param providersRepository Providers repository
  * @param deploymentId Deployment being run
  *
- * @returns Identifier of the service, and the credentials of its provider
+ * @returns The service of the deployment, and the credentials of its provider
  *
  * @throws ServiceNotFoundError When the deployment or its service no longer exists
  * @throws ServiceNotDeployableError When the service names no provider
@@ -36,7 +38,7 @@ async function loadServiceContext(
     servicesRepository: ServicesRepository,
     providersRepository: ProvidersRepository,
     deploymentId: string,
-): Promise<{ serviceId: string; credentials: ProviderCredentials }> {
+): Promise<{ service: Service; credentials: ProviderCredentials }> {
     const deployment = await deploymentsRepository.findById(deploymentId);
     const service = deployment ? await servicesRepository.findById(deployment.serviceId) : null;
 
@@ -50,7 +52,7 @@ async function loadServiceContext(
 
     const credentials = await getProviderCredentialsUseCase(providersRepository, service.providerId);
 
-    return { serviceId: service.id, credentials };
+    return { service, credentials };
 }
 
 /**
@@ -86,7 +88,7 @@ export async function runDeploymentUseCase(
     await deploymentsRepository.update(payload.deploymentId, { status: 'running' });
 
     try {
-        const { serviceId, credentials } = await loadServiceContext(
+        const { service, credentials } = await loadServiceContext(
             deploymentsRepository,
             servicesRepository,
             providersRepository,
@@ -94,13 +96,18 @@ export async function runDeploymentUseCase(
         );
 
         const archive = await providerClient.getRepositoryArchive(credentials, payload.repositoryId, payload.commit);
-        const environment = await getServiceEnvironmentUseCase(serviceVariablesRepository, secretCipher, serviceId);
-        const domains = await domainsRepository.getByService(serviceId);
+        const environment = await getServiceEnvironmentUseCase(serviceVariablesRepository, secretCipher, service.id);
+        const domains = await domainsRepository.getByService(service.id);
         const routing = reverseProxy.buildRouting(domains);
-        const projectNetworks = await serviceNetworksRepository.listByService(serviceId);
+        const projectNetworks = await serviceNetworksRepository.listByService(service.id);
         const networks = projectNetworks.map((network) => network.daemonName);
+        const target: DeploymentTarget = {
+            serviceId: service.id,
+            projectName: service.composeProject,
+            networkAlias: getServiceSlug(service),
+        };
 
-        await dockerExecutor.up(archive, payload.composerPath, payload.projectName, environment, routing, networks, (line) => {
+        await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, (line) => {
             logStore.append(payload.deploymentId, line).catch(() => undefined);
         });
 

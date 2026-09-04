@@ -20,13 +20,13 @@ Today GitPaaS names a compose project from the name of the service alone, and it
 **Agent:** implementer
 **Paths:** apps/backend/src/core/infrastructure/docker/, apps/backend/src/features/{deployments,containers,networks,volumes,services,server}/
 
-- [ ] 2.1 Stamp the label `com.gitpaas.service` with the identifier of the service on every container, network and volume that a deployment creates.
-- [ ] 2.2 Read the stored column `composeProject` in place of the computed slug in every caller of `getServiceSlug`.
-- [ ] 2.3 Select by the label `com.gitpaas.service` in place of the label of the compose project, in the repositories of the containers, of the networks and of the volumes.
-- [ ] 2.4 Select by the same label in the cleanup of a service that the user deletes, and in the removal of an orphan container.
-- [ ] 2.5 Stop the containers of the one service at the start of a deployment, in place of the whole compose project.
-- [ ] 2.6 Serialize the queue of the deployments by the identifier of the service, in place of the name of the compose project.
-- [ ] 2.7 Write the unit tests of the changed repositories and use cases.
+- [x] 2.1 Stamp the label `com.gitpaas.service` with the identifier of the service on every container, network and volume that a deployment creates.
+- [x] 2.2 Read the stored column `composeProject` in place of the computed slug in every caller of `getServiceSlug`.
+- [x] 2.3 Select by the label `com.gitpaas.service` in place of the label of the compose project, in the repositories of the containers, of the networks and of the volumes.
+- [x] 2.4 Select by the same label in the cleanup of a service that the user deletes, and in the removal of an orphan container.
+- [x] 2.5 Stop the containers of the one service at the start of a deployment, in place of the whole compose project.
+- [x] 2.6 Serialize the queue of the deployments by the identifier of the service, in place of the name of the compose project.
+- [x] 2.7 Write the unit tests of the changed repositories and use cases.
 
 ## Phase 3 — The names that derive from the compose project
 

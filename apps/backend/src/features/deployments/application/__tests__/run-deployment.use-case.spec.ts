@@ -23,6 +23,7 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {
         deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
+        serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
         repositoryId: 42,
         commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
         composerPath: 'docker-compose.yml',
@@ -45,6 +46,13 @@ describe('runDeploymentUseCase', () => {
     } satisfies Service;
 
     const deployment = { id: payload.deploymentId, serviceId: service.id } as Deployment;
+
+    /** The stack of the service, as the use case addresses it on the daemon. */
+    const target = {
+        serviceId: service.id,
+        projectName: service.composeProject,
+        networkAlias: 'my-service',
+    };
 
     const credentials: ProviderCredentials = {
         providerId: service.providerId,
@@ -198,7 +206,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
     });
 
-    it('brings the stack up with the archive, compose path, project name and a log listener', async () => {
+    it('brings the stack up with the archive, compose path, stack of the service and a log listener', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);
 
@@ -207,7 +215,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,
-            payload.projectName,
+            target,
             {},
             {},
             [],
@@ -231,7 +239,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,
-            payload.projectName,
+            target,
             {},
             routing,
             [],
@@ -256,7 +264,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,
-            payload.projectName,
+            target,
             {},
             {},
             [networks[0].daemonName, 'gitpaas-p-2'],
@@ -288,7 +296,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,
-            payload.projectName,
+            target,
             {},
             {},
             [],
@@ -382,7 +390,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,
-            payload.projectName,
+            target,
             { DATABASE_URL: 'postgres://db', API_TOKEN: 'the-token' },
             {},
             [],
@@ -401,7 +409,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,
-            payload.projectName,
+            target,
             {},
             {},
             [],

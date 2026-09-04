@@ -1,7 +1,7 @@
 import type { RuntimeLogLine, RuntimeLogSource } from '@gitpaas/contracts';
 import type Docker from 'dockerode';
 
-import { GITPAAS_PROJECT_LABEL } from '../../domain/constants/gitpaas-labels.constants';
+import { GITPAAS_PROJECT_LABEL, GITPAAS_SERVICE_LABEL } from '../../domain/constants/gitpaas-labels.constants';
 import {
     ContainerRuntimeInfo,
     LabelSelector,
@@ -71,9 +71,12 @@ export function toContainerRuntimeInfo(raw: DockerDaemonInfo): ContainerRuntimeI
  * @returns Label filter fragment the daemon's `filters` query expects
  */
 export function toLabelFilter(selector: RuntimeSelector): DockerLabelFilter {
-    const labels: LabelSelector = selector.project === undefined
+    const withProject: LabelSelector = selector.project === undefined
         ? selector.labels ?? {}
         : { ...selector.labels, [COMPOSE_PROJECT_LABEL]: selector.project };
+    const labels: LabelSelector = selector.service === undefined
+        ? withProject
+        : { ...withProject, [GITPAAS_SERVICE_LABEL]: selector.service };
 
     return {
         label: Object.entries(labels).map(([key, value]) => (value === null ? key : `${key}=${value}`)),
@@ -111,6 +114,8 @@ export function toContainerSummary(info: Docker.ContainerInfo): RuntimeContainer
         // eslint-disable-next-line security/detect-object-injection
         projects: [labels[GITPAAS_PROJECT_LABEL], labels[COMPOSE_PROJECT_LABEL]]
             .filter((project): project is string => typeof project === 'string'),
+        // eslint-disable-next-line security/detect-object-injection
+        serviceId: labels[GITPAAS_SERVICE_LABEL] ?? null,
         ports: (info.Ports ?? []).map((port): RuntimePortMapping => ({
             privatePort: port.PrivatePort,
             publicPort: port.PublicPort ?? null,

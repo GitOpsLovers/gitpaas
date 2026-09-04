@@ -199,10 +199,11 @@ describe('createDeploymentUseCase', () => {
         expect(mockQueue.enqueue).toHaveBeenCalledTimes(1);
         expect(mockQueue.enqueue).toHaveBeenCalledWith({
             deploymentId: createdDeployment.id,
+            serviceId: service.id,
             repositoryId: 42,
             commit: createdDeployment.commit,
             composerPath: 'docker-compose.yml',
-            projectName: 'my-service',
+            projectName: 'gitpaas_web',
         });
     });
 });

@@ -11,7 +11,6 @@ import { getVolumeDaemonViewUseCase, getVolumeStatusUseCase } from './get-volume
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Use case for changing the display name of a volume of a service.
@@ -70,7 +69,7 @@ export async function renameVolumeUseCase(
 
     return getVolumeStatusUseCase(
         renamed,
-        getVolumeDaemonNameUseCase(getServiceSlug(service), renamed.daemonKey),
+        getVolumeDaemonNameUseCase(service.composeProject, renamed.daemonKey),
         mounts.find((mount) => mount.volumeId === volumeId) ?? null,
         view,
     );

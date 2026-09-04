@@ -5,6 +5,7 @@ import {
     GITPAAS_MANAGED_LABEL,
     GITPAAS_MANAGED_VALUE,
     GITPAAS_PROJECT_LABEL,
+    GITPAAS_SERVICE_LABEL,
 } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeContainerSummary, RuntimeSelector } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
@@ -15,20 +16,21 @@ const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
 
 /**
  * Builds a container summary as the runtime reports it: the GitPaaS project
- * first, then the compose one, exactly as the executor stamps them at creation
- * time.
+ * first, then the compose one, and the identifier of the service the executor
+ * stamps on every container of a stack.
  */
 const containerSummary = (
-    project: string,
-    overrides: { id?: string; names?: string[]; projects?: string[] } = {},
+    name: string,
+    overrides: { id?: string; names?: string[]; projects?: string[]; serviceId?: string | null } = {},
 ): RuntimeContainerSummary => ({
-    id: overrides.id ?? `id-${project}`,
-    names: overrides.names ?? [`/${project}-app-1`],
+    id: overrides.id ?? `id-${name}`,
+    names: overrides.names ?? [`/${name}-app-1`],
     image: 'app:latest',
     state: 'running',
     status: 'Up 3 minutes',
     createdAt: new Date('2025-07-11T00:00:00.000Z'),
-    projects: overrides.projects ?? [project, project],
+    projects: overrides.projects ?? [name, name],
+    serviceId: overrides.serviceId === undefined ? `svc-${name}` : overrides.serviceId,
     ports: [],
     networks: [],
     mounts: [],
@@ -46,18 +48,24 @@ const hostContainer = (name: string, labels: Record<string, string>): { labels: 
         names: [`/${name}`],
         // eslint-disable-next-line security/detect-object-injection
         projects: [labels[GITPAAS_PROJECT_LABEL], labels[COMPOSE_PROJECT_LABEL]].filter((project) => project !== undefined),
+        // eslint-disable-next-line security/detect-object-injection
+        serviceId: labels[GITPAAS_SERVICE_LABEL] ?? null,
     }),
 });
 
 /**
  * Applies a runtime selector to a container's labels exactly as the daemon does
  * once the adapter has serialised it: every selector label must match (a `null`
- * value only requires the label to be present) and a `null` project scope
- * requires the compose project label to be there at all. Lets a test drive the
+ * value only requires the label to be present), and a `null` service scope
+ * requires the label of the service to be there at all. Lets a test drive the
  * SUT against a realistic, unfiltered host container set.
  */
 const matchesSelector = (labels: Record<string, string>, selector: RuntimeSelector): boolean => {
-    const required = { ...selector.labels, ...(selector.project === undefined ? {} : { [COMPOSE_PROJECT_LABEL]: selector.project }) };
+    const required = {
+        ...selector.labels,
+        ...(selector.project === undefined ? {} : { [COMPOSE_PROJECT_LABEL]: selector.project }),
+        ...(selector.service === undefined ? {} : { [GITPAAS_SERVICE_LABEL]: selector.service }),
+    };
 
     // eslint-disable-next-line security/detect-object-injection
     return Object.entries(required).every(([key, value]) => (value === null ? key in labels : labels[key] === value));
@@ -88,51 +96,50 @@ describe('DockerOrphanContainersAdapter', () => {
         );
     });
 
-    it('lists only GitPaaS-managed containers belonging to some project, all states included', async () => {
+    it('lists only GitPaaS-managed containers carrying the label of a service, all states included', async () => {
         await sut.removeOrphaned([]);
 
         expect(mockListContainers).toHaveBeenCalledTimes(1);
         expect(mockListContainers).toHaveBeenCalledWith(
-            { labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE }, project: null },
+            { labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE }, service: null },
             true,
         );
     });
 
-    it('force-removes containers whose project is not known, dropping volumes', async () => {
+    it('force-removes containers whose service is not known, dropping volumes', async () => {
         mockListContainers.mockResolvedValue([containerSummary('orphan')]);
 
-        const result = await sut.removeOrphaned(['known']);
+        const result = await sut.removeOrphaned(['svc-known']);
 
         expect(mockRemoveContainer).toHaveBeenCalledWith('id-orphan', { force: true, removeVolumes: true });
         expect(result).toEqual({ removed: 1, names: ['orphan-app-1'] });
     });
 
-    it('leaves containers of known projects untouched', async () => {
+    it('leaves containers of known services untouched', async () => {
         mockListContainers.mockResolvedValue([containerSummary('known')]);
 
-        const result = await sut.removeOrphaned(['known']);
+        const result = await sut.removeOrphaned(['svc-known']);
 
         expect(mockRemoveContainer).not.toHaveBeenCalled();
         expect(result).toEqual({ removed: 0, names: [] });
     });
 
-    it('reads the project the runtime reports first, in preference to the later ones', async () => {
+    it('removes the deleted service and spares its sibling, when both share one compose project', async () => {
         mockListContainers.mockResolvedValue([
-            containerSummary('mismatch', { projects: ['known', 'stale'] }),
+            containerSummary('alive', { projects: ['gitpaas_web', 'gitpaas_web'], serviceId: 'svc-alive' }),
+            containerSummary('gone', { projects: ['gitpaas_web', 'gitpaas_web'], serviceId: 'svc-gone' }),
         ]);
 
-        const result = await sut.removeOrphaned(['known']);
+        const result = await sut.removeOrphaned(['svc-alive']);
 
-        expect(mockRemoveContainer).not.toHaveBeenCalled();
-        expect(result).toEqual({ removed: 0, names: [] });
+        expect(mockRemoveContainer).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({ removed: 1, names: ['gone-app-1'] });
     });
 
-    it('falls back to the next reported project when the GitPaaS one is absent', async () => {
-        mockListContainers.mockResolvedValue([
-            containerSummary('known', { projects: ['known'] }),
-        ]);
+    it('never removes a container that carries no label of a service', async () => {
+        mockListContainers.mockResolvedValue([containerSummary('legacy', { serviceId: null })]);
 
-        const result = await sut.removeOrphaned(['known']);
+        const result = await sut.removeOrphaned([]);
 
         expect(mockRemoveContainer).not.toHaveBeenCalled();
         expect(result).toEqual({ removed: 0, names: [] });
@@ -161,7 +168,7 @@ describe('DockerOrphanContainersAdapter', () => {
             containerSummary('orphan-b'),
         ]);
 
-        const result = await sut.removeOrphaned(['known']);
+        const result = await sut.removeOrphaned(['svc-known']);
 
         expect(mockRemoveContainer).toHaveBeenCalledTimes(2);
         expect(result).toEqual({ removed: 2, names: ['orphan-a-app-1', 'orphan-b-app-1'] });
@@ -212,26 +219,29 @@ describe('DockerOrphanContainersAdapter', () => {
         const unlabelledControlPlane = hostContainer('gitpaas-backend-1', { [COMPOSE_PROJECT_LABEL]: 'gitpaas' });
         /** A plain `docker run` container with no labels whatsoever. */
         const unlabelled = hostContainer('standalone-nginx', {});
-        /** A GitPaaS container whose project still has a service behind it. */
+        /** A GitPaaS container whose service still exists. */
         const known = hostContainer('known-app-1', {
             [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
-            [GITPAAS_PROJECT_LABEL]: 'known',
-            [COMPOSE_PROJECT_LABEL]: 'known',
+            [GITPAAS_PROJECT_LABEL]: 'gitpaas_web',
+            [GITPAAS_SERVICE_LABEL]: 'svc-known',
+            [COMPOSE_PROJECT_LABEL]: 'gitpaas_web',
         });
         /** A GitPaaS container whose service was deleted: the only legitimate target. */
         const orphan = hostContainer('orphan-app-1', {
             [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
-            [GITPAAS_PROJECT_LABEL]: 'orphan',
-            [COMPOSE_PROJECT_LABEL]: 'orphan',
+            [GITPAAS_PROJECT_LABEL]: 'gitpaas_web',
+            [GITPAAS_SERVICE_LABEL]: 'svc-orphan',
+            [COMPOSE_PROJECT_LABEL]: 'gitpaas_web',
         });
         /** A marked control-plane container: no service matches it, yet it is protected. */
         const markedControlPlane = hostContainer('gitpaas-dev-backend-1', {
             [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
             [GITPAAS_PROJECT_LABEL]: 'gitpaas-dev',
+            [GITPAAS_SERVICE_LABEL]: 'svc-control-plane',
             [COMPOSE_PROJECT_LABEL]: 'gitpaas-dev',
         });
-        /** Marked, but outside any compose stack, so it is out of the sweep's scope. */
-        const markedWithoutComposeProject = hostContainer('gitpaas-oneoff', {
+        /** Marked, but carrying no service, so it is out of the sweep's scope. */
+        const markedWithoutService = hostContainer('gitpaas-oneoff', {
             [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
             [GITPAAS_PROJECT_LABEL]: 'oneoff',
         });
@@ -250,12 +260,12 @@ describe('DockerOrphanContainersAdapter', () => {
                 known,
                 orphan,
                 markedControlPlane,
-                markedWithoutComposeProject,
+                markedWithoutService,
             ]));
         });
 
         it('removes only the GitPaaS-managed orphan, sparing every unlabelled and control-plane container', async () => {
-            const result = await sut.removeOrphaned(['known']);
+            const result = await sut.removeOrphaned(['svc-known']);
 
             expect(result).toEqual({ removed: 1, names: ['orphan-app-1'] });
             expect(mockRemoveContainer).toHaveBeenCalledTimes(1);
@@ -266,11 +276,11 @@ describe('DockerOrphanContainersAdapter', () => {
             ['an unlabelled third-party compose container', 'id-unrelated-db-1'],
             ['an unlabelled control-plane container', 'id-gitpaas-backend-1'],
             ['an unlabelled standalone container', 'id-standalone-nginx'],
-            ['a marked container whose project still has a service', 'id-known-app-1'],
+            ['a marked container whose service still exists', 'id-known-app-1'],
             ['a marked control-plane container', 'id-gitpaas-dev-backend-1'],
-            ['a marked container outside any compose stack', 'id-gitpaas-oneoff'],
+            ['a marked container that carries no service', 'id-gitpaas-oneoff'],
         ])('never touches %s', async (_case, id) => {
-            await sut.removeOrphaned(['known']);
+            await sut.removeOrphaned(['svc-known']);
 
             expect(mockRemoveContainer).not.toHaveBeenCalledWith(id, expect.anything());
         });

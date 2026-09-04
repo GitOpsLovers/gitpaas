@@ -20,6 +20,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     status: 'Up 3 minutes',
     createdAt: new Date(1_752_192_000 * 1000),
     projects: ['my-service', 'my-service'],
+    serviceId: null,
     ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
     networks: [],
     mounts: [],
@@ -52,22 +53,21 @@ describe('DockerContainersRepository', () => {
         sut = new DockerContainersRepository(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
     });
 
-    it('lists all containers scoped to the GitPaaS marker and the service project', async () => {
+    it('lists all containers scoped to the GitPaaS marker and the identifier of the service', async () => {
         await sut.listByService(service);
 
         expect(mockListContainers).toHaveBeenCalledTimes(1);
-        expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, project: 'my-service' }, true);
+        expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, service: service.id }, true);
     });
 
-    it('falls back to a service-<id> project when the name slugifies to empty', async () => {
-        const unnamed: Service = { ...service, name: '!!!' };
+    it('keeps two services of one compose project apart, because the selector never holds the compose project', async () => {
+        const sibling: Service = { ...service, id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' };
 
-        await sut.listByService(unnamed);
+        await sut.listByService(service);
+        await sut.listByService(sibling);
 
-        expect(mockListContainers).toHaveBeenCalledWith(
-            { labels: managedLabels, project: `service-${unnamed.id}` },
-            true,
-        );
+        expect(mockListContainers).toHaveBeenNthCalledWith(1, { labels: managedLabels, service: service.id }, true);
+        expect(mockListContainers).toHaveBeenNthCalledWith(2, { labels: managedLabels, service: sibling.id }, true);
     });
 
     it('maps a full container summary into the domain model', async () => {
@@ -117,12 +117,13 @@ describe('DockerContainersRepository', () => {
     });
 
     it('never surfaces a container the runtime did not select for the service', async () => {
-        const owned = containerSummary({ id: 'aaaaaaaaaaaaaaaaaaaaaaaa' });
-        const foreign = containerSummary({ id: 'bbbbbbbbbbbbbbbbbbbbbbbb', projects: [] });
+        const owned = containerSummary({ id: 'aaaaaaaaaaaaaaaaaaaaaaaa', serviceId: service.id });
+        // A sibling service of the very same compose project, which the selector must leave out.
+        const sibling = containerSummary({ id: 'bbbbbbbbbbbbbbbbbbbbbbbb', serviceId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
         // Honours the requested selector the way the runtime does, so the SUT is
         // driven against an unfiltered host set rather than a pre-filtered one.
         mockListContainers.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
-            [owned, foreign].filter((container) => container.projects.includes(String(selector.project))),
+            [owned, sibling].filter((container) => container.serviceId === selector.service),
         ));
 
         const result = await sut.listByService(service);

@@ -6,6 +6,7 @@ describe('toQueuedDeploymentTask', () => {
         const entity: DbDeploymentQueueTaskEntity = {
             id: 'q-1',
             deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
+            serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
             repositoryId: 42,
             commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
             composerPath: 'docker-compose.yml',
@@ -21,6 +22,7 @@ describe('toQueuedDeploymentTask', () => {
         expect(toQueuedDeploymentTask(entity)).toEqual({
             id: 'q-1',
             deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
+            serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
             repositoryId: 42,
             commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
             composerPath: 'docker-compose.yml',
@@ -35,6 +37,7 @@ describe('toQueuedDeploymentTask', () => {
         const entity: DbDeploymentQueueTaskEntity = {
             id: 'q-2',
             deploymentId: 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b',
+            serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
             repositoryId: 7,
             commit: 'abc123',
             composerPath: 'compose.yaml',
@@ -58,6 +61,7 @@ describe('toQueuedDeploymentTask', () => {
         const entity: DbDeploymentQueueTaskEntity = {
             id: 'q-3',
             deploymentId: 'c1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b',
+            serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
             repositoryId: 7,
             commit: 'abc123',
             composerPath: 'compose.yaml',

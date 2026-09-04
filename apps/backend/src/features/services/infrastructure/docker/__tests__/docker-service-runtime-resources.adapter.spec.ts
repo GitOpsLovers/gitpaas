@@ -4,7 +4,7 @@ import { DockerServiceRuntimeResourcesAdapter } from '../docker-service-runtime-
 import {
     GITPAAS_MANAGED_LABEL,
     GITPAAS_MANAGED_VALUE,
-    GITPAAS_PROJECT_LABEL,
+    GITPAAS_SERVICE_LABEL,
 } from '@core/domain/constants/gitpaas-labels.constants';
 import type {
     RuntimeContainerSummary,
@@ -46,8 +46,8 @@ const volumeSummary = (name: string): RuntimeVolumeSummary => ({ name } as Runti
 /**
  * Applies a runtime selector to a resource's labels exactly as the daemon does
  * once the adapter has serialised it: every selector label must match (a `null`
- * value only requires the label to be present) and a project scope is matched on
- * the compose project label. Lets a test drive the SUT against a realistic,
+ * value only requires the label to be present), a project scope is matched on the
+ * compose project label and a service scope on the label of the service. Lets a test drive the SUT against a realistic,
  * unfiltered host resource set.
  */
 const matchesSelector = (labels: Record<string, string> | undefined, selector: RuntimeSelector): boolean => {
@@ -55,6 +55,7 @@ const matchesSelector = (labels: Record<string, string> | undefined, selector: R
     const required = {
         ...selector.labels,
         ...(selector.project === undefined ? {} : { [COMPOSE_PROJECT_LABEL]: selector.project }),
+        ...(selector.service === undefined ? {} : { [GITPAAS_SERVICE_LABEL]: selector.service }),
     };
 
     // eslint-disable-next-line security/detect-object-injection
@@ -74,9 +75,12 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         composerPath: 'docker-compose.yml',
         createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
-    const projectName = 'my-service';
-    const projectSelector = { labels: managedLabels, project: projectName };
-    const imageSelector = { labels: { ...managedLabels, [GITPAAS_PROJECT_LABEL]: projectName } };
+    /** Name of the compose project of the service, which its siblings of the same project share. */
+    const projectName = service.composeProject;
+    /** Selector that scopes every teardown to the one service, and never to its compose project. */
+    const serviceSelector = { labels: managedLabels, service: service.id };
+    /** A sibling service of the very same compose project, whose resources the teardown must spare. */
+    const siblingServiceId = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 
     let mockListContainers: jest.Mock;
     let mockListNetworks: jest.Mock;
@@ -122,10 +126,10 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('removeRouting', () => {
-        it('lists containers scoped to the GitPaaS marker and the service project', async () => {
+        it('lists containers scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.removeRouting(service);
 
-            expect(mockListContainers).toHaveBeenCalledWith(projectSelector, true);
+            expect(mockListContainers).toHaveBeenCalledWith(serviceSelector, true);
         });
 
         it('detaches every container of the service from the network of the proxy', async () => {
@@ -166,18 +170,10 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('removeContainers', () => {
-        it('lists containers scoped to the GitPaaS marker and the service project', async () => {
+        it('lists containers scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.removeContainers(service);
 
-            expect(mockListContainers).toHaveBeenCalledWith(projectSelector, true);
-        });
-
-        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
-            const unnamed: Service = { ...service, name: '!!!' };
-
-            await sut.removeContainers(unnamed);
-
-            expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` }, true);
+            expect(mockListContainers).toHaveBeenCalledWith(serviceSelector, true);
         });
 
         it('force-removes each container of the service', async () => {
@@ -209,18 +205,10 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('removeNetworks', () => {
-        it('lists networks scoped to the GitPaaS marker and the service project', async () => {
+        it('lists networks scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.removeNetworks(service);
 
-            expect(mockListNetworks).toHaveBeenCalledWith(projectSelector);
-        });
-
-        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
-            const unnamed: Service = { ...service, name: '!!!' };
-
-            await sut.removeNetworks(unnamed);
-
-            expect(mockListNetworks).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` });
+            expect(mockListNetworks).toHaveBeenCalledWith(serviceSelector);
         });
 
         it('removes each compose network of the service', async () => {
@@ -254,18 +242,10 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         /** Name on the daemon of a volume GitPaaS owns, as Compose prefixes it with the project. */
         const ownedName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`;
 
-        it('lists volumes scoped to the GitPaaS marker and the service project', async () => {
+        it('lists volumes scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.removeVolumes(service);
 
-            expect(mockListVolumes).toHaveBeenCalledWith(projectSelector);
-        });
-
-        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
-            const unnamed: Service = { ...service, name: '!!!' };
-
-            await sut.removeVolumes(unnamed);
-
-            expect(mockListVolumes).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` });
+            expect(mockListVolumes).toHaveBeenCalledWith(serviceSelector);
         });
 
         it('removes every volume GitPaaS owns, by its name on the daemon', async () => {
@@ -308,10 +288,10 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('removeImages', () => {
-        it('asks the runtime for the project\'s GitPaaS-labelled images only', async () => {
+        it('asks the runtime for the GitPaaS-labelled images of the service only', async () => {
             await sut.removeImages(service);
 
-            expect(mockListImages).toHaveBeenCalledWith(imageSelector);
+            expect(mockListImages).toHaveBeenCalledWith(serviceSelector);
         });
 
         it('removes every image the runtime reports for the project', async () => {
@@ -329,7 +309,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
             const [selector] = mockListImages.mock.calls[0] as [RuntimeSelector];
 
-            expect(Object.keys(selector)).toEqual(['labels']);
+            expect(Object.keys(selector)).toEqual(['labels', 'service']);
             expect(selector).not.toHaveProperty('reference');
         });
 
@@ -352,94 +332,98 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('against an unfiltered host set, with the runtime honouring the selector', () => {
-        /** Image GitPaaS built for this service: labelled, so it is the teardown target. */
-        const builtImage = {
-            id: 'img-built',
-            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [GITPAAS_PROJECT_LABEL]: projectName },
+        /** Labels every resource of the service under test carries. */
+        const ownLabels = {
+            [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
+            [GITPAAS_SERVICE_LABEL]: service.id,
+            [COMPOSE_PROJECT_LABEL]: projectName,
         };
+        /** Labels a sibling service of the very same compose project carries. */
+        const siblingLabels = {
+            [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE,
+            [GITPAAS_SERVICE_LABEL]: siblingServiceId,
+            [COMPOSE_PROJECT_LABEL]: projectName,
+        };
+
+        /** Image GitPaaS built for this service: labelled, so it is the teardown target. */
+        const builtImage = { id: 'img-built', labels: ownLabels };
         /**
          * Unrelated host image that happens to share the `<projectName>_` tag
          * prefix the old heuristic matched on. It carries no GitPaaS labels, so it
          * must survive — this is the regression the label filter replaced.
          */
         const lookalikeImage = { id: 'img-lookalike', labels: {} };
-        /** Another service's GitPaaS-built image: marked, but for a different project. */
-        const otherProjectImage = {
-            id: 'img-other',
-            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [GITPAAS_PROJECT_LABEL]: 'other-service' },
-        };
+        /** Image of a sibling service of the same compose project: marked, but not this service's. */
+        const siblingImage = { id: 'img-sibling', labels: siblingLabels };
         /** Shared pulled base image, unlabelled and never GitPaaS's to remove. */
         const pulledImage = { id: 'img-node', labels: undefined };
 
-        /** GitPaaS's own container for the project. */
-        const ownContainer = {
-            id: 'ctr-own',
-            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: projectName },
-        };
+        /** GitPaaS's own container for the service. */
+        const ownContainer = { id: 'ctr-own', labels: ownLabels };
         /** A third-party container grouped under the very same compose project name. */
         const foreignContainer = { id: 'ctr-foreign', labels: { [COMPOSE_PROJECT_LABEL]: projectName } };
+        /** Container of a sibling service of the same compose project, which must keep running. */
+        const siblingContainer = { id: 'ctr-sibling', labels: siblingLabels };
 
         /** Volume GitPaaS created for this service: marked, and keyed with the GitPaaS prefix. */
         const ownedVolume = {
             name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`,
-            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: projectName },
+            labels: ownLabels,
         };
         /** Volume the Compose file of the user declares: same stack, but its data is not GitPaaS's to drop. */
-        const composeVolume = {
-            name: `${projectName}_pgdata`,
-            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: projectName },
-        };
-        /** Volume of another service of GitPaaS, marked but scoped to a different project. */
-        const otherProjectVolume = {
-            name: `other-service_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`,
-            labels: { [GITPAAS_MANAGED_LABEL]: GITPAAS_MANAGED_VALUE, [COMPOSE_PROJECT_LABEL]: 'other-service' },
+        const composeVolume = { name: `${projectName}_pgdata`, labels: ownLabels };
+        /** Volume of a sibling service of the same compose project, marked but not this service's. */
+        const siblingVolume = {
+            name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`,
+            labels: siblingLabels,
         };
         /** Unlabelled host volume from `docker volume create`, never GitPaaS's to remove. */
         const hostVolume = { name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}stray`, labels: undefined };
 
         beforeEach(() => {
             mockListImages.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
-                [builtImage, lookalikeImage, otherProjectImage, pulledImage]
+                [builtImage, lookalikeImage, siblingImage, pulledImage]
                     .filter((image) => matchesSelector(image.labels, selector))
                     .map((image) => imageSummary(image.id)),
             ));
             mockListContainers.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
-                [ownContainer, foreignContainer]
+                [ownContainer, foreignContainer, siblingContainer]
                     .filter((container) => matchesSelector(container.labels, selector))
                     .map((container) => containerSummary(container.id)),
             ));
             mockListVolumes.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
-                [ownedVolume, composeVolume, otherProjectVolume, hostVolume]
+                [ownedVolume, composeVolume, siblingVolume, hostVolume]
                     .filter((volume) => matchesSelector(volume.labels, selector))
                     .map((volume) => volumeSummary(volume.name)),
             ));
         });
 
-        it('removes only the project\'s GitPaaS-labelled image, sparing a same-prefix host image', async () => {
+        it('removes only the image of the service, sparing a same-prefix host image and the image of a sibling', async () => {
             await sut.removeImages(service);
 
             expect(mockRemoveImage).toHaveBeenCalledTimes(1);
             expect(mockRemoveImage).toHaveBeenCalledWith('img-built', { force: true });
             expect(mockRemoveImage).not.toHaveBeenCalledWith('img-lookalike', expect.anything());
-            expect(mockRemoveImage).not.toHaveBeenCalledWith('img-other', expect.anything());
+            expect(mockRemoveImage).not.toHaveBeenCalledWith('img-sibling', expect.anything());
             expect(mockRemoveImage).not.toHaveBeenCalledWith('img-node', expect.anything());
         });
 
-        it('removes only its own container, sparing a foreign container sharing the compose project name', async () => {
+        it('removes only its own container, sparing a foreign one and a sibling sharing the compose project name', async () => {
             await sut.removeContainers(service);
 
             expect(mockRemoveContainer).toHaveBeenCalledTimes(1);
             expect(mockRemoveContainer).toHaveBeenCalledWith('ctr-own', { force: true, removeVolumes: true });
             expect(mockRemoveContainer).not.toHaveBeenCalledWith('ctr-foreign', expect.anything());
+            expect(mockRemoveContainer).not.toHaveBeenCalledWith('ctr-sibling', expect.anything());
         });
 
-        it('removes only its own volume, sparing the compose volume, another project and an unlabelled host volume', async () => {
+        it('removes only its own volume, sparing the compose volume, a sibling and an unlabelled host volume', async () => {
             await sut.removeVolumes(service);
 
             expect(mockRemoveVolume).toHaveBeenCalledTimes(1);
             expect(mockRemoveVolume).toHaveBeenCalledWith(ownedVolume.name);
             expect(mockRemoveVolume).not.toHaveBeenCalledWith(composeVolume.name);
-            expect(mockRemoveVolume).not.toHaveBeenCalledWith(otherProjectVolume.name);
+            expect(mockRemoveVolume).not.toHaveBeenCalledWith(siblingVolume.name);
             expect(mockRemoveVolume).not.toHaveBeenCalledWith(hostVolume.name);
         });
     });

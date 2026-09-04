@@ -10,7 +10,6 @@ import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docke
 import { PROXY_NETWORK } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.constants';
 import { Service } from '@features/services/domain/models/service.models';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Docker networks repository
@@ -20,14 +19,14 @@ export class DockerNetworksRepository implements NetworksRepository {
     constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
     public async listByService(service: Service): Promise<Network[]> {
-        const selector = { labels: getGitpaasLabels(), project: getServiceSlug(service) };
+        const selector = { labels: getGitpaasLabels(), service: service.id };
         const networks = await this.client.listNetworks(selector);
 
         return networks.map(toNetwork);
     }
 
     public async listConnectedByService(service: Service): Promise<Network[]> {
-        const selector = { labels: getGitpaasLabels(), project: getServiceSlug(service) };
+        const selector = { labels: getGitpaasLabels(), service: service.id };
         const containers = await this.client.listContainers(selector, true);
         const names = new Set(containers.flatMap((container) => container.networks));
 

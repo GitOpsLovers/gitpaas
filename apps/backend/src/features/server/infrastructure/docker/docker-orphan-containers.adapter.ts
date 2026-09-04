@@ -23,28 +23,22 @@ export class DockerOrphanContainersAdapter implements OrphanContainers {
     ) {}
 
     /**
-     * Force-removes GitPaaS-managed containers whose project isn't in the known
-     * set. Only containers carrying the GitPaaS ownership marker *and* belonging
-     * to some project are considered, so the control plane, system/DinD
-     * containers and unrelated third-party stacks are never touched. As a
-     * belt-and-braces guard, the GitPaaS control-plane projects are skipped
-     * whatever their labels.
+     * Force-removes GitPaaS-managed containers whose service isn't in the known set.
+     * labels.
      *
-     * @param knownProjects Compose project names of the services that still exist
+     * @param knownServiceIds Identifiers of the services that still exist
      *
      * @returns Number of orphaned containers removed and their friendly names
      */
-    public async removeOrphaned(knownProjects: string[]): Promise<OrphanRemovalResult> {
-        const known = new Set(knownProjects);
+    public async removeOrphaned(knownServiceIds: string[]): Promise<OrphanRemovalResult> {
+        const known = new Set(knownServiceIds);
 
-        const candidates = await this.client.listContainers({ labels: getGitpaasLabels(), project: null }, true);
+        const candidates = await this.client.listContainers({ labels: getGitpaasLabels(), service: null }, true);
 
         const names: string[] = [];
 
         for (const container of candidates) {
-            const [project] = container.projects;
-
-            if (known.has(project) || this.isControlPlane(container)) {
+            if (container.serviceId === null || known.has(container.serviceId) || this.isControlPlane(container)) {
                 continue;
             }
 

@@ -7,13 +7,14 @@ import { pipeline } from 'node:stream/promises';
 import { Inject, Injectable } from '@nestjs/common';
 import * as tar from 'tar';
 
-import { DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
+import { DeploymentTarget, DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import {
     declareDefaultNetwork, injectEnvironment, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, stampRouting,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
 
+import { GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeComposeProject, RuntimeProgressListener } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
@@ -60,12 +61,13 @@ export class DockerExecutorAdapter implements DockerExecutor {
     public async up(
         archive: Buffer,
         composePath: string,
-        projectName: string,
+        target: DeploymentTarget,
         environment: Record<string, string>,
         routing: RoutingLabels,
         networks: string[],
         onLog?: DockerLogListener,
     ): Promise<void> {
+        const { serviceId, projectName, networkAlias } = target;
         const emit = (line: string): void => onLog?.(line);
         const directory = await mkdtemp(join(tmpdir(), 'gitpaas-deploy-'));
 
@@ -78,23 +80,26 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             // Build local `build:` services first (streaming their output), which
             // rewrites them into plain image services in the recipe.
-            const builtImages = await this.buildServices(compose, composeFile, projectName, emit);
+            const builtImages = await this.buildServices(compose, composeFile, projectName, serviceId, emit);
 
             emit('▶ Pulling images…');
 
             await this.pullWithProgress(compose, emit, builtImages);
 
-            // The declaration must precede `down()`, so that `down()` removes `<project>_default`
-            // and `up()` does not fail with a 409 on the next deployment.
+            // Declared so that `up()` creates `<project>_default` with the labels of GitPaaS, and
+            // so that the network it leaves behind is the one `removeDefaultNetwork` knows to drop.
             declareDefaultNetwork(compose);
 
             emit('▶ Removing previous containers…');
-            await this.run(() => compose.down());
 
+            // Only the containers of this service go down: a sibling service of the same compose
+            // project keeps running, which `compose.down()` would have stopped too.
+            await this.removeServiceContainers(serviceId, emit);
+            await this.removeServiceNetworks(serviceId, emit);
             await this.removeDefaultNetwork(projectName, emit);
 
             normalizeHealthchecks(compose);
-            stampLabels(compose, projectName);
+            stampLabels(compose, projectName, serviceId);
 
             const routed = this.applyRouting(compose, routing, emit);
 
@@ -111,7 +116,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             // The networks of the project are external to the recipe too, so the containers of the
             // stack join them once it is up, under the slug of the service.
-            await this.attachToProjectNetworks(containers, networks, projectName, emit);
+            await this.attachToProjectNetworks(containers, networks, networkAlias, emit);
 
             for (const container of containers) {
                 await this.captureStartupLogs(container, emit);
@@ -139,7 +144,52 @@ export class DockerExecutorAdapter implements DockerExecutor {
     }
 
     /**
-     * Removes the `<project>_default` network that survived `down()`, which `dockerode-compose` recreates with no catch of the code 409.
+     * Removes every container the previous deployment of the service left behind.
+     *
+     * @param serviceId Identifier of the service whose containers go down
+     * @param emit Line emitter
+     */
+    private async removeServiceContainers(serviceId: string, emit: DockerLogListener): Promise<void> {
+        const containers = await this.docker.listContainers({ labels: getGitpaasLabels(), service: serviceId }, true);
+
+        for (const container of containers) {
+            try {
+                await this.docker.removeContainer(container.id, { force: true });
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+
+                emit(`✖ Could not remove the previous container ${container.id.slice(0, 12)}: ${message}`);
+                this.logger.warn(
+                    `Could not remove the previous container ${container.id}: ${message}`,
+                    DockerExecutorAdapter.name,
+                );
+            }
+        }
+    }
+
+    /**
+     * Removes every network the previous deployment of the service created.
+     *
+     * @param serviceId Identifier of the service whose networks go down
+     * @param emit Line emitter
+     */
+    private async removeServiceNetworks(serviceId: string, emit: DockerLogListener): Promise<void> {
+        const networks = await this.docker.listNetworks({ labels: getGitpaasLabels(), service: serviceId });
+
+        for (const network of networks) {
+            try {
+                await this.docker.removeNetwork(network.id);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+
+                emit(`✖ Could not remove the previous network ${network.name}: ${message}`);
+                this.logger.warn(`Could not remove the previous network ${network.name}: ${message}`, DockerExecutorAdapter.name);
+            }
+        }
+    }
+
+    /**
+     * Removes the `<project>_default` network that survived the previous deployment, which `dockerode-compose` recreates with no catch of the code 409.
      *
      * @param projectName Compose project name the stack is grouped under
      * @param emit Line emitter
@@ -223,21 +273,21 @@ export class DockerExecutorAdapter implements DockerExecutor {
      *
      * @param containers Started containers of the stack
      * @param networks Names on the daemon of the networks of the project
-     * @param projectName Compose project name, which is the slug the containers answer to on those networks
+     * @param networkAlias Alias the containers answer to on those networks
      * @param emit Line emitter
      */
     private async attachToProjectNetworks(
         containers: StartedContainer[],
         networks: string[],
-        projectName: string,
+        networkAlias: string,
         emit: DockerLogListener,
     ): Promise<void> {
         for (const network of networks) {
             for (const container of containers) {
                 try {
-                    await this.docker.connectNetwork(network, container.id, [projectName]);
+                    await this.docker.connectNetwork(network, container.id, [networkAlias]);
 
-                    emit(`▶ Attached ${container.id.slice(0, 12)} to the network ${network} as ${projectName}.`);
+                    emit(`▶ Attached ${container.id.slice(0, 12)} to the network ${network} as ${networkAlias}.`);
                 } catch (error) {
                     const message = error instanceof Error ? error.message : String(error);
 
@@ -267,6 +317,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * @param compose Compose project driven by the container runtime
      * @param composeFile Absolute path to the compose file (build contexts are relative to its dir)
      * @param projectName Compose project name, used to tag built images
+     * @param serviceId Identifier of the service, stamped on every image the stack builds
      * @param emit Line emitter
      *
      * @returns The set of image tags that were built locally (never pulled from a registry)
@@ -275,6 +326,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
         compose: RuntimeComposeProject,
         composeFile: string,
         projectName: string,
+        serviceId: string,
         emit: DockerLogListener,
     ): Promise<Set<string>> {
         const services = recipeServices(compose);
@@ -291,7 +343,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             emit(`▶ Building ${name} (${tag})…`);
 
-            await this.buildImage(build, tag, projectName, emit);
+            await this.buildImage(build, tag, projectName, serviceId, emit);
 
             // Treat the freshly built image as a normal image service: `up()` will run
             // it and the pull step will skip it (it isn't in any registry).
@@ -309,9 +361,16 @@ export class DockerExecutorAdapter implements DockerExecutor {
      * @param build Resolved build definition
      * @param tag Image tag to apply
      * @param projectName Compose project name, stamped on the image as a GitPaaS label
+     * @param serviceId Identifier of the service, stamped on the image so that the cleanup of one service spares the images of its siblings
      * @param emit Line emitter
      */
-    private async buildImage(build: ResolvedBuild, tag: string, projectName: string, emit: DockerLogListener): Promise<void> {
+    private async buildImage(
+        build: ResolvedBuild,
+        tag: string,
+        projectName: string,
+        serviceId: string,
+        emit: DockerLogListener,
+    ): Promise<void> {
         // `tar.c` returns a Minipass `Pack` stream — runtime-compatible with, but not
         // structurally typed as, a Node readable, so cast for dockerode's signature.
         const context = tar.c({ cwd: build.contextPath, gzip: false }, ['.']) as unknown as NodeJS.ReadableStream;
@@ -321,7 +380,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
             dockerfile: build.dockerfile,
             buildArgs: build.buildargs,
             target: build.target,
-            labels: getGitpaasLabels(projectName),
+            labels: { ...getGitpaasLabels(projectName), [GITPAAS_SERVICE_LABEL]: serviceId },
         });
 
         await this.followBuild(stream, emit);

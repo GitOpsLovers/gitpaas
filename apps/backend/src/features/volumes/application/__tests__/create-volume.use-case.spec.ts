@@ -114,7 +114,7 @@ describe('createVolumeUseCase', () => {
         expect(mockDaemonVolumesRepository.create).toHaveBeenCalledTimes(1);
         expect(mockDaemonVolumesRepository.create).toHaveBeenCalledWith(
             service(),
-            expect.stringContaining('api_gitpaas-'),
+            expect.stringContaining('gitpaas_web_gitpaas-'),
         );
     });
 
@@ -160,7 +160,7 @@ describe('createVolumeUseCase', () => {
 
         expect(result.state).toBe('pending');
         expect(result.containers).toEqual([]);
-        expect(result.daemonName).toBe(`api_gitpaas-${result.id}`);
+        expect(result.daemonName).toBe(`gitpaas_web_gitpaas-${result.id}`);
     });
 
     it('propagates the failure of the daemon, and writes no row', async () => {

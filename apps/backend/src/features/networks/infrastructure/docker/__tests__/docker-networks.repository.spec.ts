@@ -35,6 +35,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     status: 'Up 2 hours',
     createdAt: new Date('2025-07-11T00:00:00.000Z'),
     projects: ['my-service'],
+    serviceId: null,
     ports: [],
     networks: ['my-service_default'],
     mounts: [],
@@ -70,19 +71,21 @@ describe('DockerNetworksRepository', () => {
     });
 
     describe('listByService', () => {
-        it('lists networks scoped to the GitPaaS marker and the service project', async () => {
+        it('lists networks scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.listByService(service);
 
             expect(mockListNetworks).toHaveBeenCalledTimes(1);
-            expect(mockListNetworks).toHaveBeenCalledWith({ labels: managedLabels, project: 'my-service' });
+            expect(mockListNetworks).toHaveBeenCalledWith({ labels: managedLabels, service: service.id });
         });
 
-        it('falls back to a service-<id> project when the name slugifies to empty', async () => {
-            const unnamed: Service = { ...service, name: '!!!' };
+        it('keeps two services of one compose project apart, because the selector never holds the compose project', async () => {
+            const sibling: Service = { ...service, id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' };
 
-            await sut.listByService(unnamed);
+            await sut.listByService(service);
+            await sut.listByService(sibling);
 
-            expect(mockListNetworks).toHaveBeenCalledWith({ labels: managedLabels, project: `service-${unnamed.id}` });
+            expect(mockListNetworks).toHaveBeenNthCalledWith(1, { labels: managedLabels, service: service.id });
+            expect(mockListNetworks).toHaveBeenNthCalledWith(2, { labels: managedLabels, service: sibling.id });
         });
 
         it('maps a full network summary into the domain model', async () => {
@@ -117,7 +120,7 @@ describe('DockerNetworksRepository', () => {
             await sut.listConnectedByService(service);
 
             expect(mockListContainers).toHaveBeenCalledTimes(1);
-            expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, project: 'my-service' }, true);
+            expect(mockListContainers).toHaveBeenCalledWith({ labels: managedLabels, service: service.id }, true);
         });
 
         it('reads every network on the daemon to resolve the ones the containers hold', async () => {

@@ -5,12 +5,11 @@ import type { OrphanRemovalResult } from '@gitpaas/contracts';
  */
 export interface OrphanContainers {
     /**
-     * Force-removes GitPaaS containers whose compose project isn't in the
-     * known set.
+     * Force-removes GitPaaS containers whose service isn't in the known set.
      *
-     * @param knownProjects Compose project names of the services that still exist
+     * @param knownServiceIds Identifiers of the services that still exist
      *
      * @returns Number of orphaned containers removed and their friendly names
      */
-    removeOrphaned: (knownProjects: string[]) => Promise<OrphanRemovalResult>;
+    removeOrphaned: (knownServiceIds: string[]) => Promise<OrphanRemovalResult>;
 }
