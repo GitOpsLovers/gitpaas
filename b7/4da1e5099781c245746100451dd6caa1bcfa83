@@ -1,0 +1,23 @@
+docs/business.md
+  s_5af5c1f9aaa56c::t_d61750c3a5a5f7 27
+docs/business/services.md
+  s_5af5c1f9aaa56c::t_c93c67f265ca91 203-205,212,323,325,327
+docs/business/volumes.md
+  s_5af5c1f9aaa56c::t_42d394210f5f95 1-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b74da1e5099781c245746100451dd6caa1bcfa83",
+  "prompts": {},
+  "sessions": {
+    "s_5af5c1f9aaa56c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a3e0cbc80111d50a2",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
