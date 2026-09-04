@@ -1,0 +1,19 @@
+docs/business/networks.md
+  s_fd294f15d1a0e7::t_58fc45ed6f6d1d 15,58,63-66,73-82,94,96,103-107,210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "708a63a00d29d7495dd4a7e82f141daef495e46a",
+  "prompts": {},
+  "sessions": {
+    "s_fd294f15d1a0e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9d33ceadf1abfe8e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
