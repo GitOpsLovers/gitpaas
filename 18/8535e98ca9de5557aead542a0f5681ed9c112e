@@ -1,0 +1,125 @@
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.transformer.spec.ts
+  s_68c110af086329::t_052fdbf27a0467 1,17,30,45,58,73,90,117,127,131,137,145,153,160,166-173,176-182,188,192
+apps/backend/src/features/services/application/update-service.use-case.ts
+  s_68c110af086329::t_6ae78dba3f6f13 9-11
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_9a18c96d3015ed::t_3d6ac7769aa37f 25
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_9a18c96d3015ed::t_c61f58e6b640fc 20-23,39-42,60-65
+apps/backend/src/features/services/application/__tests__/update-service.use-case.spec.ts
+  s_9a18c96d3015ed::t_02c074012a323e 22,64-85
+apps/backend/src/shared/application/get-name-slug.use-case.ts
+  s_9a18c96d3015ed::t_7ab7f593325274 1-15
+apps/backend/src/features/namespaces/namespaces.module.ts
+  s_9a18c96d3015ed::t_afa09ff42dcab3 19
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_9a18c96d3015ed::t_00575f09520235 37
+docs/roadmap/container-naming/TODO.md
+  s_9a18c96d3015ed::t_e9a51821060531 1-60
+apps/backend/src/features/networks/application/__tests__/get-networks-by-service.use-case.spec.ts
+  s_9a18c96d3015ed::t_c5ead305069478 44
+apps/backend/src/features/services/application/__tests__/find-service-by-id.use-case.spec.ts
+  s_9a18c96d3015ed::t_cb660805d5d822 14
+apps/backend/src/features/containers/infrastructure/docker/__tests__/docker-containers.repository.spec.ts
+  s_9a18c96d3015ed::t_ac21870cd26ac0 36
+docs/roadmap.md
+  s_9a18c96d3015ed::t_7bad900c8b1046 16
+apps/backend/src/features/services/infrastructure/docker/__tests__/docker-service-runtime-resources.adapter.spec.ts
+  s_9a18c96d3015ed::t_c69f506c7ca541 71
+apps/backend/src/features/volumes/application/__tests__/rename-volume.use-case.spec.ts
+  s_9a18c96d3015ed::t_f716a6ebb5c57c 26
+apps/backend/src/features/services/domain/repositories/services.repository.ts
+  s_9a18c96d3015ed::t_059ef55f0a313d 1,3,38,42
+apps/backend/src/features/volumes/application/__tests__/create-volume.use-case.spec.ts
+  s_9a18c96d3015ed::t_518d548794d991 23
+apps/backend/src/features/namespaces/application/__tests__/create-namespace.use-case.spec.ts
+  s_9a18c96d3015ed::t_8382267c8e7067 88-98
+apps/backend/src/features/volumes/application/__tests__/get-volume-status.use-case.spec.ts
+  s_9a18c96d3015ed::t_9ac4b1e558fffa 23
+apps/backend/src/features/namespaces/application/__tests__/update-namespace.use-case.spec.ts
+  s_9a18c96d3015ed::t_b8047e787ff66f 95-114
+apps/backend/src/features/deployments/application/__tests__/get-compose-services.use-case.spec.ts
+  s_9a18c96d3015ed::t_f2c20a4c15e669 27
+apps/backend/src/features/containers/application/__tests__/get-containers-by-service.use-case.spec.ts
+  s_9a18c96d3015ed::t_1822cbd43d38cb 20
+apps/backend/src/features/services/services.module.ts
+  s_9a18c96d3015ed::t_351ca74132f574 12-13,22-23
+apps/backend/src/shared/application/get-compose-project-name.use-case.ts
+  s_9a18c96d3015ed::t_f4b992d22a3f90 1-24
+apps/backend/src/features/networks/application/__tests__/join-service-to-network.use-case.spec.ts
+  s_9a18c96d3015ed::t_8584b0c35843bf 33
+apps/backend/src/features/volumes/infrastructure/docker/__tests__/docker-volumes.repository.spec.ts
+  s_9a18c96d3015ed::t_2e6375782a5745 59
+apps/backend/src/shared/application/__tests__/get-compose-project-name.use-case.spec.ts
+  s_9a18c96d3015ed::t_dccba38bb512f3 1-63
+apps/backend/src/features/services/application/__tests__/get-services-by-project.use-case.spec.ts
+  s_9a18c96d3015ed::t_46011b3300030e 15
+apps/backend/src/features/services/application/create-service.use-case.ts
+  s_68c110af086329::t_c051918d231fd8 6-11,13-17,20-21,25-27,29-47
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_9a18c96d3015ed::t_0fc3ff48702899 38
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_9a18c96d3015ed::t_90b904c3c32923 1,6,34,39-48,73
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_9a18c96d3015ed::t_be94d4cf2a8ce9 1,4-5,18-23,32,44,47,151-155,193-202,236-243
+apps/backend/src/features/services/application/__tests__/delete-service.use-case.spec.ts
+  s_9a18c96d3015ed::t_0f5222e7a6ea22 19
+apps/backend/src/features/services/infrastructure/database/db-services.repository.ts
+  s_9a18c96d3015ed::t_4abd0edc50ea33 1,6,45,52,70
+apps/backend/src/features/volumes/application/__tests__/get-volumes-by-service.use-case.spec.ts
+  s_9a18c96d3015ed::t_8560754bccabb6 24
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_9a18c96d3015ed::t_c07507c50d9c98 40
+apps/backend/src/features/services/ui/transformers/__tests__/service-response.transformer.spec.ts
+  s_68c110af086329::t_83ee015e2e2a90 11,50-53
+apps/backend/src/features/services/domain/errors/__tests__/service.errors.spec.ts
+  s_9a18c96d3015ed::t_ed5dc3e4d05acf 1,38-65
+apps/backend/src/features/server/application/__tests__/remove-orphaned-containers.use-case.spec.ts
+  s_9a18c96d3015ed::t_5d08cbc66963a5 17
+apps/backend/src/features/services/infrastructure/database/db-service.entity.ts
+  s_9a18c96d3015ed::t_65490a44e3ef44 1,10,24-26
+apps/backend/src/features/services/domain/dtos/create-service-with-compose-project.dto.ts
+  s_9a18c96d3015ed::t_d689a26bb87eec 1-11
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_9a18c96d3015ed::t_59e185e7394f21 17-18,52,64-65,75-76,85-86,170-175,193-198
+apps/backend/src/features/services/domain/models/service.models.ts
+  s_9a18c96d3015ed::t_416654ac00847b 9
+iac/production/migrations/024_services_compose_project.sql
+  s_68c110af086329::t_60bc0f4c1ac5ce 1-65
+apps/backend/src/features/services/application/__tests__/create-service.use-case.spec.ts
+  s_68c110af086329::t_6071f1019dbceb 7-13,16-17,22,26-44,49-50,59-69,73-75,77-78,80,82-83,86,89-90,92-94,96-104,107-109,111-114,116-128,130-133,137-160,165
+apps/backend/src/features/networks/infrastructure/docker/__tests__/docker-networks.repository.spec.ts
+  s_9a18c96d3015ed::t_d61d8ec79c4478 51
+apps/backend/src/features/services/domain/errors/service.errors.ts
+  s_9a18c96d3015ed::t_a6e8d3786dd996 11-19
+apps/backend/src/shared/application/__tests__/get-name-slug.use-case.spec.ts
+  s_9a18c96d3015ed::t_8caa0c13b41175 1-36
+apps/backend/src/shared/application/__tests__/get-service-slug.use-case.spec.ts
+  s_9a18c96d3015ed::t_f1503129a21573 25-28
+apps/backend/src/shared/application/get-service-slug.use-case.ts
+  s_9a18c96d3015ed::t_3740283de6b12d 4-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "188535e98ca9de5557aead542a0f5681ed9c112e",
+  "prompts": {},
+  "sessions": {
+    "s_68c110af086329": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a601bc0f07f68156c",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_9a18c96d3015ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "847d52e0-7390-4382-9c08-b3664a37069e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
