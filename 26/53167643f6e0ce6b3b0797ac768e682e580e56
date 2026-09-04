@@ -1,0 +1,54 @@
+apps/backend/src/features/networks/ui/transformers/network-response.transformer.ts
+  s_6820fc390d208a::t_a7de12ed4e7b51 20
+apps/backend/src/features/networks/infrastructure/docker/__tests__/docker-networks.repository.spec.ts
+  s_6820fc390d208a::t_8a610e9a9a6473 204-260
+apps/backend/src/features/networks/domain/repositories/networks.repository.ts
+  s_6820fc390d208a::t_5cd7a692997851 26-34
+packages/contracts/src/networks/network.contract.ts
+  s_6820fc390d208a::t_68931e1bad686b 6,14-18
+apps/backend/src/features/networks/ui/services/networks.service.ts
+  s_6820fc390d208a::t_09d46e7277d412 6-9,25-28,32,39-45
+apps/backend/src/features/networks/infrastructure/docker/docker-networks.repository.ts
+  s_6820fc390d208a::t_1b08bc92c6c7dc 44-50
+apps/backend/src/features/networks/application/get-networks-by-service.use-case.ts
+  s_6820fc390d208a::t_a4e38209402708 2,4-5,11,14,16,18-19,23,25-41,43-48,50-55,59-78,82-83,93-94,103,106-107,110-125
+apps/backend/src/features/networks/ui/transformers/__tests__/network-response.transformer.spec.ts
+  s_6820fc390d208a::t_afaa92126be043 49-77
+apps/backend/src/features/networks/application/__tests__/get-networks-by-service.use-case.spec.ts
+  s_6820fc390d208a::t_91ed2abc1127b5 4,6-7,26-34,53-57,63-64,75,77-78,97-110,136-137,162-168,272-376
+apps/backend/src/features/networks/ui/services/__tests__/networks.service.spec.ts
+  s_6820fc390d208a::t_dd9301ee0fee92 5-6,36-40,47-49,56-57,65,74-75
+apps/backend/src/features/networks/domain/models/network.models.ts
+  s_6820fc390d208a::t_ac8c36e1daa685 4,12-16
+docs/roadmap/service-network-state/TODO.md
+  s_6820fc390d208a::t_0d0974c7d4fdf6 14-21
+  s_6820fc390d208a::t_f4543d19fe3679 28,30
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.html
+  s_cbe4ce57644bcd::t_3f2704f8dcae67 43-46,48-52
+apps/frontend/src/app/features/networks/ui/components/service-networks/service-networks.component.ts
+  s_cbe4ce57644bcd::t_3253bb774ce6e3 19-20,105-107,113-127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "2653167643f6e0ce6b3b0797ac768e682e580e56",
+  "prompts": {},
+  "sessions": {
+    "s_6820fc390d208a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "39ed42c0-3753-41ef-badb-cec568e2c683",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_cbe4ce57644bcd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a507fada5f654fd6b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
