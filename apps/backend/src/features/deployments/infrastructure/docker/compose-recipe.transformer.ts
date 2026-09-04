@@ -1,5 +1,7 @@
 import { resolve } from 'node:path';
 
+import { COMPOSE_DEFAULT_NETWORK_KEY, getDefaultNetworkKeyUseCase } from '../../application/get-default-network-name.use-case';
+
 import { GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
@@ -42,6 +44,11 @@ type ComposeEnvironment = ComposeEntries;
 type ComposeServiceVolume = string | Record<string, unknown>;
 
 /**
+ * The `networks` block of a compose service, in either the list or the map form.
+ */
+type ComposeServiceNetworks = string[] | Record<string, unknown>;
+
+/**
  * The subset of a compose service the executor reads/rewrites.
  */
 interface ComposeService {
@@ -51,6 +58,7 @@ interface ComposeService {
     labels?: ComposeLabels;
     environment?: ComposeEnvironment;
     volumes?: ComposeServiceVolume[];
+    networks?: ComposeServiceNetworks;
 }
 
 /**
@@ -104,6 +112,28 @@ function toEntryMap(entries?: ComposeEntries): Record<string, string> {
  */
 function toEntryList(entries: Record<string, string>): string[] {
     return Object.entries(entries).map(([key, value]) => `${key}=${value}`);
+}
+
+/**
+ * Rebinds the `default` entry of the `networks` block of one compose service onto the key of its service.
+ *
+ * @param networks `networks` block of the compose service, if any
+ * @param key Key the default network carries in the recipe
+ *
+ * @returns The rebound `networks` block of the compose service
+ */
+function rebindDefaultNetwork(networks: ComposeServiceNetworks | undefined, key: string): ComposeServiceNetworks {
+    if (networks === undefined) {
+        return [key];
+    }
+
+    if (Array.isArray(networks)) {
+        return networks.map((name) => (name === COMPOSE_DEFAULT_NETWORK_KEY ? key : name));
+    }
+
+    const { [COMPOSE_DEFAULT_NETWORK_KEY]: declared, ...rest } = networks;
+
+    return COMPOSE_DEFAULT_NETWORK_KEY in networks ? { ...rest, [key]: declared } : networks;
 }
 
 /**
@@ -272,16 +302,25 @@ export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
 }
 
 /**
- * Declares the `default` network of the recipe, which `dockerode-compose` otherwise creates as a bare `<project>_default` with no label.
+ * Declares the default network of the recipe under the key of the service, which `dockerode-compose` otherwise creates as a bare `<project>_default` with no label.
  *
  * @param compose Compose project driven by the container runtime
+ * @param serviceId Identifier of the service the stack belongs to
+ *
+ * @returns Key the default network carries in the recipe
  */
-export function declareDefaultNetwork(compose: RuntimeComposeProject): void {
+export function declareDefaultNetwork(compose: RuntimeComposeProject, serviceId: string): string {
     const recipe = composeRecipe(compose);
-    const networks = recipe.networks ?? {};
+    const key = getDefaultNetworkKeyUseCase(serviceId);
+    const { default: declared, ...networks } = recipe.networks ?? {};
 
-    networks.default = networks.default ?? {};
-    recipe.networks = networks;
+    recipe.networks = { ...networks, [key]: declared ?? {} };
+
+    for (const service of Object.values(recipeServices(compose))) {
+        service.networks = rebindDefaultNetwork(service.networks, key);
+    }
+
+    return key;
 }
 
 /**

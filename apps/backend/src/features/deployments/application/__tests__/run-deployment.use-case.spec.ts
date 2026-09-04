@@ -247,6 +247,31 @@ describe('runDeploymentUseCase', () => {
         );
     });
 
+    it('names the stack of the service with its stored compose project, and never with a computed one', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        const [, , stack] = mockDockerExecutor.up.mock.calls[0];
+
+        expect(stack.projectName).toBe(service.composeProject);
+        expect(stack.serviceId).toBe(service.id);
+    });
+
+    it('gives the containers the short slug of the service as their alias, because the compose project holds an underscore', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        const [, , stack] = mockDockerExecutor.up.mock.calls[0];
+
+        expect(stack.networkAlias).toBe('my-service');
+        expect(stack.networkAlias).not.toContain('_');
+        expect(stack.projectName).toContain('_');
+    });
+
     it('gives the executor the daemon names of the networks of the project the service joined', async () => {
         const networks = [
             projectNetwork(),
