@@ -19,14 +19,14 @@ A service of GitPaaS keeps no record of its volumes, so a user cannot see the da
 **Agent:** implementer
 **Paths:** apps/backend/src/features/volumes/, packages/contracts/src/volumes/
 
-- [ ] 2.1 Write the contracts of `packages/contracts/src/volumes/`: the volume, its state and the payloads of the write.
-- [ ] 2.2 Write the entity `DbVolumeEntity` and the join entity `DbServiceVolumeEntity`, with `serviceId`, `volumeId`, `containerPath`, `readOnly` and `composeServiceName`.
-- [ ] 2.3 Ask the user how the schema of production takes the two new tables, because `synchronize` is false there.
-- [ ] 2.4 Write `DockerVolumesRepository`, which selects by the labels of GitPaaS and by the slug of the service.
-- [ ] 2.5 Write the use cases: list by service, create, rename, attach and detach.
-- [ ] 2.6 Derive the state of each volume: `mounted`, `pending`, `missing`, `declared` or `orphan`.
-- [ ] 2.7 Validate the mount path: it starts with `/`, it is not `/` and not a path of the system, and it is unique in the service.
-- [ ] 2.8 Write the controller, the service of the UI, the transformer and the module, and write their unit tests.
+- [x] 2.1 Write the contracts of `packages/contracts/src/volumes/`: the volume, its state and the payloads of the write.
+- [x] 2.2 Write the entity `DbVolumeEntity` and the join entity `DbServiceVolumeEntity`, with `serviceId`, `volumeId`, `containerPath`, `readOnly` and `composeServiceName`.
+- [x] 2.3 Ask the user how the schema of production takes the two new tables, because `synchronize` is false there.
+- [x] 2.4 Write `DockerVolumesRepository`, which selects by the labels of GitPaaS and by the slug of the service.
+- [x] 2.5 Write the use cases: list by service, create, rename, attach and detach.
+- [x] 2.6 Derive the state of each volume: `mounted`, `pending`, `missing`, `declared` or `orphan`.
+- [x] 2.7 Validate the mount path: it starts with `/`, it is not `/` and not a path of the system, and it is unique in the service.
+- [x] 2.8 Write the controller, the service of the UI, the transformer and the module, and write their unit tests.
 
 ## Phase 3 — The deployment, and the removal of a service
 

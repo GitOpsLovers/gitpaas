@@ -23,6 +23,7 @@ import { ServerModule } from '@features/server/server.module';
 import { ServiceEnvironmentModule } from '@features/service-environment/service-environment.module';
 import { ServicesModule } from '@features/services/services.module';
 import { UsersModule } from '@features/users/users.module';
+import { VolumesModule } from '@features/volumes/volumes.module';
 
 /**
  * Main application module
@@ -61,6 +62,7 @@ import { UsersModule } from '@features/users/users.module';
         LogsModule,
         ContainersModule,
         NetworksModule,
+        VolumesModule,
         ServerModule,
     ],
     controllers: [AppController],
