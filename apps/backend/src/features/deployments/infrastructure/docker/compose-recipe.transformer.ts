@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 
+import { GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
@@ -288,9 +289,10 @@ export function declareDefaultNetwork(compose: RuntimeComposeProject): void {
  *
  * @param compose Compose project driven by the container runtime
  * @param projectName Compose project name the stack is grouped under
+ * @param serviceId Identifier of the service the stack belongs to, which isolates its resources from those of its siblings
  */
-export function stampLabels(compose: RuntimeComposeProject, projectName: string): void {
-    const gitpaas = getGitpaasLabels(projectName);
+export function stampLabels(compose: RuntimeComposeProject, projectName: string, serviceId: string): void {
+    const gitpaas = { ...getGitpaasLabels(projectName), [GITPAAS_SERVICE_LABEL]: serviceId };
 
     for (const [name, service] of Object.entries(recipeServices(compose))) {
         service.labels = toEntryList({

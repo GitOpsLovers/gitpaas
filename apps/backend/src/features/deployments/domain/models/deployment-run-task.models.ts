@@ -3,6 +3,7 @@
  */
 export interface DeploymentRunTask {
     deploymentId: string;
+    serviceId: string;
     repositoryId: number;
     commit: string;
     composerPath: string;

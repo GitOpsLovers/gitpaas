@@ -1,7 +1,7 @@
 import { DaemonVolume } from '../../../domain/models/daemon-volume.models';
 import { DockerVolumesRepository } from '../docker-volumes.repository';
 
-import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE } from '@core/domain/constants/gitpaas-labels.constants';
+import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type {
     RuntimeContainerMount,
     RuntimeContainerSummary,
@@ -43,6 +43,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     status: 'Up 2 hours',
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     projects: ['my-service'],
+    serviceId: null,
     ports: [],
     networks: [],
     mounts: [containerMount()],
@@ -84,21 +85,21 @@ describe('DockerVolumesRepository', () => {
     });
 
     describe('listByService', () => {
-        it('lists the volumes scoped to the marker of GitPaaS and to the slug of the service', async () => {
+        it('lists the volumes scoped to the marker of GitPaaS and to the identifier of the service', async () => {
             await sut.listByService(service);
 
             expect(mockListVolumes).toHaveBeenCalledTimes(1);
-            expect(mockListVolumes).toHaveBeenCalledWith({ labels: managedLabels, project: 'my-service' });
+            expect(mockListVolumes).toHaveBeenCalledWith({ labels: managedLabels, service: service.id });
         });
 
-        it('falls back to a project service-<id> when the name slugifies to empty', async () => {
-            const unnamed: Service = { ...service, name: '!!!' };
+        it('keeps two services of one compose project apart, because the selector never holds the compose project', async () => {
+            const sibling: Service = { ...service, id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' };
 
-            await sut.listByService(unnamed);
+            await sut.listByService(service);
+            await sut.listByService(sibling);
 
-            expect(mockListVolumes).toHaveBeenCalledWith({
-                labels: managedLabels, project: `service-${unnamed.id}`,
-            });
+            expect(mockListVolumes).toHaveBeenNthCalledWith(1, { labels: managedLabels, service: service.id });
+            expect(mockListVolumes).toHaveBeenNthCalledWith(2, { labels: managedLabels, service: sibling.id });
         });
 
         it('maps every summary of the runtime into the domain model', async () => {
@@ -124,7 +125,7 @@ describe('DockerVolumesRepository', () => {
 
             expect(mockListContainers).toHaveBeenCalledTimes(1);
             expect(mockListContainers).toHaveBeenCalledWith(
-                { labels: managedLabels, project: 'my-service' },
+                { labels: managedLabels, service: service.id },
                 true,
             );
         });
@@ -168,13 +169,17 @@ describe('DockerVolumesRepository', () => {
     });
 
     describe('create', () => {
-        it('creates the volume with the labels of GitPaaS and of the Compose project of the service', async () => {
+        it('creates the volume with the labels of GitPaaS, of the service and of the Compose project of the service', async () => {
             await sut.create(service, 'my-service_gitpaas-1');
 
             expect(mockCreateVolume).toHaveBeenCalledTimes(1);
             expect(mockCreateVolume).toHaveBeenCalledWith({
                 name: 'my-service_gitpaas-1',
-                labels: { ...managedLabels, [COMPOSE_PROJECT_LABEL]: 'my-service' },
+                labels: {
+                    ...managedLabels,
+                    [GITPAAS_SERVICE_LABEL]: service.id,
+                    [COMPOSE_PROJECT_LABEL]: 'gitpaas_web',
+                },
             });
         });
 

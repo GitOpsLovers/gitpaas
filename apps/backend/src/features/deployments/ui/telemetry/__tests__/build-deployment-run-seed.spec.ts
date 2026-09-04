@@ -14,6 +14,7 @@ const rootPackageVersion = (JSON.parse(readFileSync(join(__dirname, '../../../..
 const queuedTask = (overrides: Partial<QueuedDeploymentTask> = {}): QueuedDeploymentTask => ({
     id: 'task-1',
     deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
+    serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     repositoryId: 42,
     commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
     composerPath: 'docker-compose.yml',

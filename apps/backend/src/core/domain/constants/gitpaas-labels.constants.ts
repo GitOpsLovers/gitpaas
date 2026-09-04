@@ -9,6 +9,11 @@ export const GITPAAS_MANAGED_LABEL = 'io.gitpaas.managed';
 export const GITPAAS_PROJECT_LABEL = 'io.gitpaas.project';
 
 /**
+ * Label carrying the identifier of the GitPaaS service a resource belongs to.
+ */
+export const GITPAAS_SERVICE_LABEL = 'com.gitpaas.service';
+
+/**
  * Value of the GitPaaS ownership marker.
  */
 export const GITPAAS_MANAGED_VALUE = 'true';

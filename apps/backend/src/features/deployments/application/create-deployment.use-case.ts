@@ -16,7 +16,6 @@ import { ProviderClient } from '@features/providers/domain/ports/provider-client
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Resolves the head commit of the deployment branch, with the credentials of the provider.
@@ -103,10 +102,11 @@ export async function createDeploymentUseCase(
 
     await deploymentQueue.enqueue({
         deploymentId: deployment.id,
+        serviceId: service.id,
         repositoryId: Number(service.repositoryId),
         commit: deployment.commit ?? deployment.branch,
         composerPath: deployment.composerPath,
-        projectName: getServiceSlug(service),
+        projectName: service.composeProject,
     });
 
     return deployment;

@@ -14,6 +14,7 @@ const containerSummary = (id: string): RuntimeContainerSummary => ({
     status: 'Up 2 minutes',
     createdAt: new Date('2026-08-21T11:00:00.000Z'),
     projects: ['blog'],
+    serviceId: null,
     ports: [],
     networks: [],
     mounts: [],

@@ -13,6 +13,7 @@ export function toQueuedDeploymentTask(entity: DbDeploymentQueueTaskEntity): Que
     return {
         id: entity.id,
         deploymentId: entity.deploymentId,
+        serviceId: entity.serviceId,
         repositoryId: entity.repositoryId,
         commit: entity.commit,
         composerPath: entity.composerPath,

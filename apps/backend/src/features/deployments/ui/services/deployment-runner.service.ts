@@ -98,7 +98,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
     public async onModuleInit(): Promise<void> {
         this.subscription = this.deploymentQueue.dequeued$
             .pipe(
-                groupBy((task) => task.projectName),
+                groupBy((task) => task.serviceId),
                 mergeMap((group) =>
                     group.pipe(
                         concatMap((task) =>

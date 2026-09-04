@@ -14,6 +14,7 @@ function containerSummary(overrides: Partial<RuntimeContainerSummary> = {}): Run
         status: 'Up 2 hours',
         createdAt: new Date(1_700_000_000 * 1000),
         projects: ['gitpaas-api'],
+        serviceId: null,
         ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
         networks: [],
         mounts: [],

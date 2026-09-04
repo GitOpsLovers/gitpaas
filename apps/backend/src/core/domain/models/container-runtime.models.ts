@@ -21,6 +21,7 @@ export interface ContainerRuntimeInfo {
 export interface RuntimeSelector {
     labels?: LabelSelector;
     project?: string | null;
+    service?: string | null;
 }
 
 /**
@@ -54,6 +55,7 @@ export interface RuntimeContainerSummary {
     status: string;
     createdAt: Date;
     projects: string[];
+    serviceId: string | null;
     ports: RuntimePortMapping[];
     networks: string[];
     mounts: RuntimeContainerMount[];

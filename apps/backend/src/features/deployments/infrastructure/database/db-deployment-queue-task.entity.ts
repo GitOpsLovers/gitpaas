@@ -13,6 +13,9 @@ export class DbDeploymentQueueTaskEntity {
     @Column('uuid')
     public deploymentId!: string;
 
+    @Column('uuid')
+    public serviceId!: string;
+
     @Column('int')
     public repositoryId!: number;
 

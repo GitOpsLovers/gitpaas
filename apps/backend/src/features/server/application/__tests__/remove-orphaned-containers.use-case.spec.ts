@@ -33,10 +33,10 @@ describe('removeOrphanedContainersUseCase', () => {
         mockServicesRepository = { getAll: jest.fn().mockResolvedValue([]) };
     });
 
-    it('computes known compose project names from every service and passes them to the repository', async () => {
+    it('collects the identifier of every service and passes them to the repository', async () => {
         mockServicesRepository.getAll.mockResolvedValue([
-            service({ name: 'Checkout API' }),
-            service({ name: 'billing-svc' }),
+            service({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', name: 'Checkout API' }),
+            service({ id: 'd4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a', name: 'billing-svc' }),
         ]);
 
         await removeOrphanedContainersUseCase(
@@ -45,18 +45,27 @@ describe('removeOrphanedContainersUseCase', () => {
         );
 
         expect(mockServicesRepository.getAll).toHaveBeenCalledTimes(1);
-        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith(['checkout-api', 'billing-svc']);
+        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith([
+            'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+            'd4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a',
+        ]);
     });
 
-    it('falls back to the id-based project name when the slug is empty', async () => {
-        mockServicesRepository.getAll.mockResolvedValue([service({ id: 'svc-7', name: '///' })]);
+    it('keeps two services of one compose project apart, because the known set holds no compose project', async () => {
+        mockServicesRepository.getAll.mockResolvedValue([
+            service({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', composeProject: 'gitpaas_web' }),
+            service({ id: 'd4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a', composeProject: 'gitpaas_web' }),
+        ]);
 
         await removeOrphanedContainersUseCase(
             mockOrphanContainers,
             mockServicesRepository as unknown as ServicesRepository,
         );
 
-        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith(['service-svc-7']);
+        expect(mockOrphanContainers.removeOrphaned).toHaveBeenCalledWith([
+            'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+            'd4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a',
+        ]);
     });
 
     it('returns the result produced by the repository', async () => {

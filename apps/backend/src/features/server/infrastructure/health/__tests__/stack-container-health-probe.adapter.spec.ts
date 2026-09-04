@@ -12,6 +12,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     status: 'Up 3 hours',
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     projects: ['gitpaas'],
+    serviceId: null,
     ports: [],
     networks: [],
     mounts: [],

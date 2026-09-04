@@ -23,6 +23,9 @@ import type { RuntimeComposeProject } from '@core/domain/models/container-runtim
  */
 const asCompose = (fixture: unknown): RuntimeComposeProject => fixture as RuntimeComposeProject;
 
+/** Identifier of the service the stamped stack belongs to. */
+const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+
 describe('compose-recipe.transformer', () => {
     describe('toNanoseconds', () => {
         it('passes a raw number through unchanged (assumed nanoseconds)', () => {
@@ -170,10 +173,16 @@ describe('compose-recipe.transformer', () => {
             const compose = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
 
             declareDefaultNetwork(asCompose(compose));
-            stampLabels(asCompose(compose), 'my-project');
+            stampLabels(asCompose(compose), 'my-project', serviceId);
 
             expect(compose.recipe.networks).toEqual({
-                default: { labels: { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' } },
+                default: {
+                    labels: {
+                        'io.gitpaas.managed': 'true',
+                        'io.gitpaas.project': 'my-project',
+                        'com.gitpaas.service': '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+                    },
+                },
             });
         });
     });
@@ -183,11 +192,12 @@ describe('compose-recipe.transformer', () => {
             const web = {} as { labels?: unknown };
             const compose = { recipe: { services: { web } } };
 
-            stampLabels(asCompose(compose), 'my-project');
+            stampLabels(asCompose(compose), 'my-project', serviceId);
 
             expect(web.labels).toEqual([
                 'io.gitpaas.managed=true',
                 'io.gitpaas.project=my-project',
+                'com.gitpaas.service=3f2504e0-4f89-41d3-9a0c-0305e82c3301',
                 'com.docker.compose.project=my-project',
                 'com.docker.compose.service=web',
             ]);
@@ -197,13 +207,14 @@ describe('compose-recipe.transformer', () => {
             const web = { labels: ['traefik.enable=true', 'bare'] } as { labels?: unknown };
             const compose = { recipe: { services: { web } } };
 
-            stampLabels(asCompose(compose), 'my-project');
+            stampLabels(asCompose(compose), 'my-project', serviceId);
 
             expect(web.labels).toEqual([
                 'traefik.enable=true',
                 'bare=',
                 'io.gitpaas.managed=true',
                 'io.gitpaas.project=my-project',
+                'com.gitpaas.service=3f2504e0-4f89-41d3-9a0c-0305e82c3301',
                 'com.docker.compose.project=my-project',
                 'com.docker.compose.service=web',
             ]);
@@ -213,13 +224,14 @@ describe('compose-recipe.transformer', () => {
             const web = { labels: { 'app.tier': 'edge', 'app.replicas': 2 } } as { labels?: unknown };
             const compose = { recipe: { services: { web } } };
 
-            stampLabels(asCompose(compose), 'my-project');
+            stampLabels(asCompose(compose), 'my-project', serviceId);
 
             expect(web.labels).toEqual([
                 'app.tier=edge',
                 'app.replicas=2',
                 'io.gitpaas.managed=true',
                 'io.gitpaas.project=my-project',
+                'com.gitpaas.service=3f2504e0-4f89-41d3-9a0c-0305e82c3301',
                 'com.docker.compose.project=my-project',
                 'com.docker.compose.service=web',
             ]);
@@ -234,20 +246,24 @@ describe('compose-recipe.transformer', () => {
                 },
             };
 
-            stampLabels(asCompose(compose), 'my-project');
+            stampLabels(asCompose(compose), 'my-project', serviceId);
 
-            const gitpaas = { 'io.gitpaas.managed': 'true', 'io.gitpaas.project': 'my-project' };
+            const gitpaas = {
+                'io.gitpaas.managed': 'true',
+                'io.gitpaas.project': 'my-project',
+                'com.gitpaas.service': '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+            };
             expect(compose.recipe.volumes.data).toEqual({ labels: gitpaas });
             expect(compose.recipe.volumes.cache).toEqual({ labels: { keep: 'me', ...gitpaas } });
             expect(compose.recipe.networks.edge).toEqual({ labels: gitpaas });
         });
 
         it('does nothing when the recipe declares no services, volumes or networks', () => {
-            expect(() => { stampLabels(asCompose({ recipe: {} }), 'my-project'); }).not.toThrow();
+            expect(() => { stampLabels(asCompose({ recipe: {} }), 'my-project', serviceId); }).not.toThrow();
         });
 
         it('throws when the compose project carries no recipe', () => {
-            expect(() => { stampLabels(asCompose({}), 'my-project'); }).toThrow('The compose project carries no parsed recipe.');
+            expect(() => { stampLabels(asCompose({}), 'my-project', serviceId); }).toThrow('The compose project carries no parsed recipe.');
         });
     });
     describe('stampRouting', () => {

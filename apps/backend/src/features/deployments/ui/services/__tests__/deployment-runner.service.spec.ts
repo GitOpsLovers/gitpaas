@@ -63,6 +63,7 @@ const defer = <T = void>(): Deferred<T> => {
 const task: QueuedDeploymentTask = {
     id: 'task-1',
     deploymentId: '9c858901-8a57-4791-81fe-4c455b099bc9',
+    serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     repositoryId: 42,
     commit: '2b8c1f0a9e4d7c6b5a4f3e2d1c0b9a8f7e6d5c4b',
     composerPath: 'docker-compose.yml',
@@ -72,12 +73,15 @@ const task: QueuedDeploymentTask = {
     parentRequestId: null,
 };
 
-/** Builds a queued task deriving unique ids from the given project name. */
-const taskFor = (projectName: string, id: string, deploymentId: string): QueuedDeploymentTask => ({
+/**
+ * Builds a queued task for the given service. Every task keeps one compose project, so a test
+ * that drives two services proves the runner serializes on the service and not on that project.
+ */
+const taskFor = (serviceId: string, id: string, deploymentId: string): QueuedDeploymentTask => ({
     ...task,
     id,
     deploymentId,
-    projectName,
+    serviceId,
 });
 
 describe('DeploymentRunnerService', () => {
@@ -417,8 +421,8 @@ describe('DeploymentRunnerService', () => {
     });
 
     it('contains a markFailed rejection and keeps draining the queue', async () => {
-        const taskA = taskFor('gitpaas', 'task-a', 'deploy-a');
-        const taskB = taskFor('gitpaas', 'task-b', 'deploy-b');
+        const taskA = taskFor('svc-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('svc-a', 'task-b', 'deploy-b');
         const markFailedError = new Error('database down');
 
         mockRunDeploymentUseCase.mockRejectedValueOnce(new Error('boom'));
@@ -459,7 +463,7 @@ describe('DeploymentRunnerService', () => {
 
         await sut.onModuleInit();
 
-        dequeued.next(taskFor('gitpaas', 'task-a', 'deploy-a'));
+        dequeued.next(taskFor('svc-a', 'task-a', 'deploy-a'));
         await flush();
 
         expect(mockLogger.error).toHaveBeenCalledTimes(1);
@@ -469,7 +473,7 @@ describe('DeploymentRunnerService', () => {
             'DeploymentRunnerService',
         );
 
-        dequeued.next(taskFor('gitpaas', 'task-b', 'deploy-b'));
+        dequeued.next(taskFor('svc-a', 'task-b', 'deploy-b'));
         await flush();
 
         expect(runSpy).toHaveBeenCalledTimes(2);
@@ -486,15 +490,15 @@ describe('DeploymentRunnerService', () => {
         expect(mockRunDeploymentUseCase).not.toHaveBeenCalled();
     });
 
-    it('serializes runs for the same project so the next waits for the current to finish', async () => {
+    it('serializes runs for the same service so the next waits for the current to finish', async () => {
         const first = defer();
         const second = defer();
         mockRunDeploymentUseCase
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('gitpaas', 'task-a', 'deploy-a');
-        const taskB = taskFor('gitpaas', 'task-b', 'deploy-b');
+        const taskA = taskFor('svc-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('svc-a', 'task-b', 'deploy-b');
 
         await sut.onModuleInit();
         dequeued.next(taskA);
@@ -542,15 +546,15 @@ describe('DeploymentRunnerService', () => {
         await flush();
     });
 
-    it('runs distinct projects concurrently without waiting for each other', async () => {
+    it('runs distinct services of one compose project concurrently, without waiting for each other', async () => {
         const first = defer();
         const second = defer();
         mockRunDeploymentUseCase
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('project-a', 'task-a', 'deploy-a');
-        const taskB = taskFor('project-b', 'task-b', 'deploy-b');
+        const taskA = taskFor('svc-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('svc-b', 'task-b', 'deploy-b');
 
         await sut.onModuleInit();
         dequeued.next(taskA);
@@ -595,15 +599,15 @@ describe('DeploymentRunnerService', () => {
         await flush();
     });
 
-    it('keeps draining the same project after a run rejects, marking it failed', async () => {
+    it('keeps draining the same service after a run rejects, marking it failed', async () => {
         const first = defer();
         const second = defer();
         mockRunDeploymentUseCase
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
-        const taskA = taskFor('gitpaas', 'task-a', 'deploy-a');
-        const taskB = taskFor('gitpaas', 'task-b', 'deploy-b');
+        const taskA = taskFor('svc-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('svc-a', 'task-b', 'deploy-b');
 
         await sut.onModuleInit();
         dequeued.next(taskA);
@@ -612,7 +616,7 @@ describe('DeploymentRunnerService', () => {
 
         expect(mockRunDeploymentUseCase).toHaveBeenCalledTimes(1);
 
-        // First run fails: the error is contained and the next same-project run proceeds.
+        // First run fails: the error is contained and the next run of the same service proceeds.
         first.reject(new Error('boom'));
         await flush();
 
@@ -640,15 +644,15 @@ describe('DeploymentRunnerService', () => {
         await flush();
     });
 
-    it('keeps other projects running after an unrelated project run rejects', async () => {
+    it('keeps other services running after an unrelated service run rejects', async () => {
         const failing = defer();
         const healthy = defer();
         mockRunDeploymentUseCase
             .mockReturnValueOnce(failing.promise)
             .mockReturnValueOnce(healthy.promise);
 
-        const taskA = taskFor('project-a', 'task-a', 'deploy-a');
-        const taskB = taskFor('project-b', 'task-b', 'deploy-b');
+        const taskA = taskFor('svc-a', 'task-a', 'deploy-a');
+        const taskB = taskFor('svc-b', 'task-b', 'deploy-b');
 
         await sut.onModuleInit();
         dequeued.next(taskA);
@@ -660,7 +664,7 @@ describe('DeploymentRunnerService', () => {
         failing.reject(new Error('boom'));
         await flush();
 
-        // The other project's run is unaffected and still resolves cleanly.
+        // The other service's run is unaffected and still resolves cleanly.
         expect(mockTelemetryWriter.emit).toHaveBeenCalledTimes(1);
         expect(emittedEvent()).toEqual(
             expect.objectContaining({ 'task.id': taskA.id, 'deployment.status': 'failed' }),

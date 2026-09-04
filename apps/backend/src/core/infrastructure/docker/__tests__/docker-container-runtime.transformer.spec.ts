@@ -87,6 +87,24 @@ describe('toLabelFilter', () => {
         });
     });
 
+    it('maps a service scope onto the label of the service, keeping the marker', () => {
+        expect(toLabelFilter({ labels: getGitpaasLabels(), service: 'svc-1' })).toEqual({
+            label: ['io.gitpaas.managed=true', 'com.gitpaas.service=svc-1'],
+        });
+    });
+
+    it('emits a bare key of the service for a null service, matching any service at all', () => {
+        expect(toLabelFilter({ labels: getGitpaasLabels(), service: null })).toEqual({
+            label: ['io.gitpaas.managed=true', 'com.gitpaas.service'],
+        });
+    });
+
+    it('keeps the compose project and the service together when the selector carries both', () => {
+        expect(toLabelFilter({ labels: getGitpaasLabels(), project: 'gitpaas_web', service: 'svc-1' })).toEqual({
+            label: ['io.gitpaas.managed=true', 'com.docker.compose.project=gitpaas_web', 'com.gitpaas.service=svc-1'],
+        });
+    });
+
     it('emits a bare compose project key for a null project, matching any project at all', () => {
         expect(toLabelFilter({ labels: getGitpaasLabels(), project: null })).toEqual({
             label: ['io.gitpaas.managed=true', 'com.docker.compose.project'],
@@ -176,6 +194,7 @@ describe('toContainerSummary', () => {
             status: 'Up 3 minutes',
             createdAt: new Date(1_752_192_000 * 1000),
             projects: ['web-frontend', 'web-frontend'],
+            serviceId: null,
             ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
             networks: ['web-frontend_default', 'gitpaas-proxy'],
             mounts: [{
@@ -186,6 +205,18 @@ describe('toContainerSummary', () => {
                 readOnly: false,
             }],
         });
+    });
+
+    it('reads the identifier of the service from the label the deployment stamps', () => {
+        const info = containerInfo({ Id: 'id', Labels: { 'com.gitpaas.service': 'svc-1' } });
+
+        expect(toContainerSummary(info).serviceId).toBe('svc-1');
+    });
+
+    it('reports no service for a container that carries no label of a service', () => {
+        const info = containerInfo({ Id: 'id', Labels: { 'com.docker.compose.project': 'compose-name' } });
+
+        expect(toContainerSummary(info).serviceId).toBeNull();
     });
 
     it('reads the GitPaaS project label before the compose one', () => {
@@ -209,6 +240,7 @@ describe('toContainerSummary', () => {
         const result = toContainerSummary(containerInfo({ Id: 'id', Created: 0 }));
 
         expect(result.names).toEqual([]);
+        expect(result.serviceId).toBeNull();
         expect(result.ports).toEqual([]);
         expect(result.projects).toEqual([]);
         expect(result.networks).toEqual([]);

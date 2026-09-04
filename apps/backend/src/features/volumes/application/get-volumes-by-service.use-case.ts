@@ -12,7 +12,6 @@ import { getVolumeDaemonViewUseCase, getVolumeStatusUseCase, VolumeDaemonView } 
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Gives the volumes the daemon holds and the database does not the state `orphan`.
@@ -72,7 +71,7 @@ export async function getVolumesByServiceUseCase(
         throw new ServiceNotFoundError(serviceId);
     }
 
-    const composeProjectName = getServiceSlug(service);
+    const composeProjectName = service.composeProject;
 
     const [volumes, mounts, view] = await Promise.all([
         volumesRepository.listByService(serviceId),

@@ -3,13 +3,9 @@ import type { OrphanRemovalResult } from '@gitpaas/contracts';
 import { OrphanContainers } from '../domain/ports/orphan-containers.port';
 
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Use case for force-removing orphaned GitPaaS containers from the server.
- *
- * Computes the project names of every existing service and asks the
- * repository to remove any GitPaaS container whose project isn't among them.
  *
  * @param orphanContainers Orphan containers repository
  * @param servicesRepository Services repository
@@ -21,7 +17,7 @@ export async function removeOrphanedContainersUseCase(
     servicesRepository: ServicesRepository,
 ): Promise<OrphanRemovalResult> {
     const services = await servicesRepository.getAll();
-    const knownProjects = services.map(getServiceSlug);
+    const knownServiceIds = services.map((service) => service.id);
 
-    return orphanContainers.removeOrphaned(knownProjects);
+    return orphanContainers.removeOrphaned(knownServiceIds);
 }
