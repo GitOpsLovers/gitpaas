@@ -24,3 +24,4 @@ The future behavior lives in `docs/roadmap.md`. A page of this area moves from t
 - [service-environment](./business/service-environment.md): the variable of a service, plain or secret, and its tab "Environment".
 - [services](./business/services.md): the service, its configuration and its detail.
 - [users](./business/users.md): the user record, and the password.
+- [volumes](./business/volumes.md): the volume of a service, its origin and its state.

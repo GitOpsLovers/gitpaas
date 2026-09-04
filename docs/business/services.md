@@ -200,15 +200,16 @@ After the removal of the record, the system SHALL clean the server in this order
 
 1. Remove the containers of the service.
 2. Remove the networks of the service.
-3. Remove the images that the system built for the service.
-4. Remove the log entries of each deployment of the service.
+3. Remove the volumes of the origin `gitpaas` that the service holds. See the requirement *The removal of a service removes the volumes it owns* of the capability [volumes](./volumes.md).
+4. Remove the images that the system built for the service.
+5. Remove the log entries of each deployment of the service.
 
 The system SHALL keep the shared images that it pulled from a registry, because another service can use them.
 
 ### Scenario: The service exists
 
 - **WHEN** a client deletes an available service
-- **THEN** the system removes the record, it removes the containers, the networks and the built images of the service, it removes the log entries of each deployment, and it answers `204`
+- **THEN** the system removes the record, it removes the containers, the networks, the owned volumes and the built images of the service, it removes the log entries of each deployment, and it answers `204`
 
 ### Scenario: The service does not exist
 
@@ -319,11 +320,11 @@ If the API refuses, the system SHALL show a message of failure, and it SHALL let
 - **WHEN** the API refuses the change
 - **THEN** the system shows the message "Could not update service", and the user stays on the screen
 
-## The eight tabs of the screen
+## The nine tabs of the screen
 
-The system SHALL show eight tabs, in this order: `general`, `provider`, `environment`, `domains`, `deployments`, `containers`, `network` and `logs`.
+The system SHALL show nine tabs, in this order: `general`, `provider`, `environment`, `domains`, `deployments`, `containers`, `network`, `volumes` and `logs`.
 
-The tab `environment` manages the variables the service gives to its containers. See the capability `service-environment`. The tab `domains` manages the public address of the service, and its certificate. See the capability `domains`.
+The tab `environment` manages the variables the service gives to its containers. See the capability `service-environment`. The tab `domains` manages the public address of the service, and its certificate. See the capability `domains`. The tab `volumes` manages the data the service keeps across a redeploy. See the capability [volumes](./volumes.md).
 
 The path holds the tab. A path that names no tab opens `general`. A path that names an unknown tab also shows `general`.
 
