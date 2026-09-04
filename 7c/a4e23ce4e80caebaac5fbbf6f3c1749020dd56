@@ -1,0 +1,37 @@
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_4f1d8cef040725::t_19f4f436aeb316 69-82
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_4f1d8cef040725::t_76098b88ff8bbd 8,32-34,67-72,151-164,215-222,282-289,331,518,620,785-892,1080-1091
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_4f1d8cef040725::t_c00b79d8dc86f8 6,36-38,44-45,59,73,99-100,133-134,172-175,231,549-635
+apps/frontend/src/app/features/volumes/domain/models/volume.models.ts
+  s_4f1d8cef040725::t_bdd10e084789e0 1-15
+apps/frontend/src/app/features/volumes/infrastructure/api/volumes-api.repository.spec.ts
+  s_4f1d8cef040725::t_23dbd63ede2f3b 1-174
+apps/frontend/src/app/features/volumes/infrastructure/api/volumes-api.repository.ts
+  s_4f1d8cef040725::t_98aea2bb787b86 1-91
+apps/frontend/src/app/features/volumes/ui/components/service-volumes/service-volumes.component.html
+  s_4f1d8cef040725::t_07f6dfc21717b8 1-213
+apps/frontend/src/app/features/volumes/ui/components/service-volumes/service-volumes.component.spec.ts
+  s_4f1d8cef040725::t_5f7ae72e19e6b5 1-432
+apps/frontend/src/app/features/volumes/ui/components/service-volumes/service-volumes.component.ts
+  s_4f1d8cef040725::t_e0c21c1e3ebf91 1-410
+docs/roadmap/volumes-tab/TODO.md
+  s_4f1d8cef040725::t_099c5f8a369f5c 47-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7ca4e23ce4e80caebaac5fbbf6f3c1749020dd56",
+  "prompts": {},
+  "sessions": {
+    "s_4f1d8cef040725": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce231b32-a772-4def-abac-de61724ab121",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
