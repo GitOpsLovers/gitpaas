@@ -1,0 +1,116 @@
+apps/backend/src/features/volumes/application/get-volumes-by-service.use-case.ts
+  s_caaea0167eb577::t_060547e4adb743 1-94
+apps/backend/src/features/volumes/infrastructure/docker/docker-volumes.repository.ts
+  s_caaea0167eb577::t_f175f4255bd9c1 1-60
+apps/backend/src/features/volumes/ui/transformers/__tests__/volume-response.transformer.spec.ts
+  s_caaea0167eb577::t_0baeaf7ee478b3 1-53
+apps/backend/src/features/volumes/infrastructure/database/__tests__/db-volumes.transformer.spec.ts
+  s_caaea0167eb577::t_7c315bf0d45188 1-47
+apps/backend/src/features/volumes/application/get-volume-daemon-name.use-case.ts
+  s_caaea0167eb577::t_5623d1f99ddb62 1-41
+apps/backend/src/features/volumes/domain/repositories/service-volumes.repository.ts
+  s_caaea0167eb577::t_25f1508bacf25f 1-34
+apps/backend/src/features/volumes/infrastructure/docker/__tests__/docker-volumes.repository.spec.ts
+  s_caaea0167eb577::t_bfaad448e27d51 1-188
+apps/backend/src/features/volumes/infrastructure/docker/docker-volumes.transformer.ts
+  s_caaea0167eb577::t_a2b7cd9b09d8e2 1-18
+apps/backend/src/features/volumes/domain/errors/volume.errors.ts
+  s_caaea0167eb577::t_a2199dc4671c3e 1-37
+apps/backend/src/features/volumes/infrastructure/database/__tests__/db-service-volumes.repository.spec.ts
+  s_caaea0167eb577::t_fdf0a400fd87ef 2-122
+  s_caaea0167eb577::t_7298c178ecd2df 1
+apps/backend/src/features/volumes/infrastructure/database/__tests__/db-volumes.repository.spec.ts
+  s_caaea0167eb577::t_66d446c60f08c1 1-132
+apps/backend/src/features/volumes/application/__tests__/rename-volume.use-case.spec.ts
+  s_caaea0167eb577::t_693eb28789f055 1-166
+apps/backend/src/app.module.ts
+  s_caaea0167eb577::t_39b7e84a9299e4 26,65
+apps/backend/src/features/volumes/application/get-volume-status.use-case.ts
+  s_caaea0167eb577::t_b2941e3bcc41f7 1-104
+apps/backend/src/features/volumes/infrastructure/database/db-service-volume.entity.ts
+  s_caaea0167eb577::t_597412f865e8d7 1-34
+apps/backend/src/features/volumes/ui/services/volumes.service.ts
+  s_caaea0167eb577::t_62e4e06cd1143d 1-119
+apps/backend/src/features/volumes/application/__tests__/detach-volume.use-case.spec.ts
+  s_caaea0167eb577::t_b380f8ba52c42e 1-73
+apps/backend/src/features/volumes/domain/models/volume.models.ts
+  s_caaea0167eb577::t_39a5db48768fd8 1-51
+apps/backend/src/features/volumes/application/rename-volume.use-case.ts
+  s_caaea0167eb577::t_3ac7679aaeb95f 1-77
+apps/backend/src/features/volumes/application/__tests__/attach-volume.use-case.spec.ts
+  s_caaea0167eb577::t_8c74bc63c2a61b 1-107
+apps/backend/src/features/volumes/infrastructure/database/db-service-volumes.repository.ts
+  s_caaea0167eb577::t_caeaa376c96139 1-59
+apps/backend/src/features/volumes/application/__tests__/create-volume.use-case.spec.ts
+  s_caaea0167eb577::t_d5edc8b6723c67 1-174
+apps/backend/src/features/volumes/application/assert-mount-path-free.use-case.ts
+  s_caaea0167eb577::t_19064a8b2b273d 1-23
+apps/backend/src/features/volumes/application/create-volume.use-case.ts
+  s_caaea0167eb577::t_ee8b04ac65a4c6 1-85
+apps/backend/src/features/volumes/application/__tests__/get-volume-status.use-case.spec.ts
+  s_caaea0167eb577::t_c313b9c90c2ee3 1-188
+apps/backend/src/features/volumes/ui/controllers/__tests__/volumes.controller.spec.ts
+  s_caaea0167eb577::t_c39c0343a18217 1-197
+apps/backend/src/features/volumes/infrastructure/database/db-service-volumes.transformer.ts
+  s_caaea0167eb577::t_04e203e7d94dd6 1-19
+apps/backend/src/features/volumes/infrastructure/docker/__tests__/docker-volumes.transformer.spec.ts
+  s_caaea0167eb577::t_4c38c8289ca689 1-32
+apps/backend/src/features/volumes/application/__tests__/assert-mount-path-free.use-case.spec.ts
+  s_caaea0167eb577::t_17f988bdba2842 1-48
+apps/backend/src/features/volumes/application/__tests__/get-volumes-by-service.use-case.spec.ts
+  s_caaea0167eb577::t_6fa98ffc678d01 1-200
+docs/roadmap/volumes-tab/TODO.md
+  s_caaea0167eb577::t_a952aa74feb4bf 22-29
+apps/backend/src/features/volumes/volumes.module.ts
+  s_caaea0167eb577::t_9d19ad84240517 1-26
+apps/backend/src/features/volumes/application/detach-volume.use-case.ts
+  s_caaea0167eb577::t_7560d4f622b180 1-33
+packages/contracts/src/volumes/__tests__/volume.contract.spec.ts
+  s_caaea0167eb577::t_c5a11e28f9ae6e 1-167
+apps/backend/src/features/volumes/application/__tests__/get-volume-daemon-name.use-case.spec.ts
+  s_caaea0167eb577::t_58aabc1ad2c271 1-34
+apps/backend/src/features/volumes/ui/transformers/volume-response.transformer.ts
+  s_caaea0167eb577::t_bf8f91d20e1a74 1-24
+packages/contracts/src/index.ts
+  s_caaea0167eb577::t_f4390d0089910f 194-225
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_caaea0167eb577::t_e034ce52b926c7 73-76
+apps/backend/src/features/volumes/infrastructure/database/db-volumes.repository.ts
+  s_caaea0167eb577::t_d167f00e1ea977 1-67
+apps/backend/src/features/volumes/application/attach-volume.use-case.ts
+  s_caaea0167eb577::t_f338d749a1dc08 1-43
+apps/backend/src/features/volumes/infrastructure/database/__tests__/db-service-volumes.transformer.spec.ts
+  s_caaea0167eb577::t_a21dfd86f65c92 1-45
+apps/backend/src/features/volumes/infrastructure/database/db-volume.entity.ts
+  s_caaea0167eb577::t_d9636a7a7a71be 1-33
+apps/backend/src/features/volumes/infrastructure/database/db-volumes.transformer.ts
+  s_caaea0167eb577::t_acda5e42e02450 1-20
+apps/backend/src/features/volumes/ui/services/__tests__/volumes.service.spec.ts
+  s_caaea0167eb577::t_85f060cf5cff5d 1-207
+apps/backend/src/features/volumes/domain/repositories/volumes.repository.ts
+  s_caaea0167eb577::t_75187b7dcd990c 1-43
+packages/contracts/src/volumes/volume.contract.ts
+  s_caaea0167eb577::t_9eec18bb4b88bc 1-199
+apps/backend/src/features/volumes/domain/repositories/daemon-volumes.repository.ts
+  s_caaea0167eb577::t_c4950414b37cd5 1-34
+apps/backend/src/features/volumes/domain/models/daemon-volume.models.ts
+  s_caaea0167eb577::t_7e24cb47b916af 1-16
+apps/backend/src/features/volumes/ui/controllers/volumes.controller.ts
+  s_caaea0167eb577::t_a2e34394953740 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "662e363f9799f798a785d0a0386483a47267f460",
+  "prompts": {},
+  "sessions": {
+    "s_caaea0167eb577": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8fb340f-abd5-4347-83a4-f58665c7b356",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
