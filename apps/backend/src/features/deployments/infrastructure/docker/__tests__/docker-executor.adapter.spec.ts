@@ -45,6 +45,9 @@ interface ExecutorInternals {
  */
 const internals = (sut: DockerExecutorAdapter): ExecutorInternals => sut as unknown as ExecutorInternals;
 
+/** Identifier of the service whose stack the executor drives. */
+const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+
 /**
  * Builds an executor backed by a fake container runtime exposing only the port
  * members a given test needs (`buildImage`, `pullImage`, `followProgress`,
@@ -80,14 +83,14 @@ describe('DockerExecutorAdapter', () => {
             const cache = { image: 'redis:7' };
             const compose = { recipe: { services: { web, cache } } };
 
-            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', '3f2504e0-4f89-41d3-9a0c-0305e82c3301', jest.fn());
+            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', serviceId, jest.fn());
 
             expect(buildImage).toHaveBeenCalledTimes(1);
 
             const [, options] = buildImage.mock.calls[0] as [unknown, Record<string, unknown>];
 
             expect(options).toEqual({
-                tag: 'my-project_web',
+                tag: `my-project_${serviceId}_web`,
                 dockerfile: 'Dockerfile',
                 buildArgs: undefined,
                 target: undefined,
@@ -97,8 +100,22 @@ describe('DockerExecutorAdapter', () => {
                     'com.gitpaas.service': '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
                 },
             });
-            expect(built).toEqual(new Set(['my-project_web']));
-            expect(web).toEqual({ image: 'my-project_web' });
+            expect(built).toEqual(new Set([`my-project_${serviceId}_web`]));
+            expect(web).toEqual({ image: `my-project_${serviceId}_web` });
+        });
+
+        it('tags the image of one service apart from the image a sibling service builds under the same name', async () => {
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const buildImage = jest.fn().mockResolvedValue({});
+            const sut = executorWithRuntime({ buildImage, followProgress });
+            const sibling = 'c9d0e1f2-a3b4-4c5d-8e9f-0a1b2c3d4e5f';
+            const compose = { recipe: { services: { web: { build: 'app' } } } };
+            const siblingCompose = { recipe: { services: { web: { build: 'app' } } } };
+
+            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', serviceId, jest.fn());
+            const siblingBuilt = await internals(sut).buildServices(siblingCompose, '/repo/docker-compose.yml', 'my-project', sibling, jest.fn());
+
+            expect([...built]).not.toEqual([...siblingBuilt]);
         });
 
         it('builds nothing when no service declares a build context', async () => {
@@ -106,7 +123,7 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ buildImage, followProgress: jest.fn() });
             const compose = { recipe: { services: { cache: { image: 'redis:7' } } } };
 
-            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', '3f2504e0-4f89-41d3-9a0c-0305e82c3301', jest.fn());
+            const built = await internals(sut).buildServices(compose, '/repo/docker-compose.yml', 'my-project', serviceId, jest.fn());
 
             expect(buildImage).not.toHaveBeenCalled();
             expect(built).toEqual(new Set());
@@ -299,7 +316,7 @@ describe('DockerExecutorAdapter', () => {
 
         /** Builds the stack of the service under test, overriding only the fields under test. */
         const target = (overrides: Partial<DeploymentTarget> = {}): DeploymentTarget => ({
-            serviceId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+            serviceId,
             projectName: 'test-project',
             networkAlias: 'my-service',
             ...overrides,
@@ -698,7 +715,7 @@ describe('DockerExecutorAdapter', () => {
 
             await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
 
-            expect(networksAtTeardown).toEqual({ default: {} });
+            expect(networksAtTeardown).toEqual({ [`${serviceId}_default`]: {} });
         });
 
         it('has the default network of the stack declared and labelled by the time the stack is created', async () => {
@@ -717,7 +734,7 @@ describe('DockerExecutorAdapter', () => {
             await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
 
             expect(networksAtUp).toEqual({
-                default: {
+                [`${serviceId}_default`]: {
                     labels: {
                         'io.gitpaas.managed': 'true',
                         'io.gitpaas.project': 'test-project',
@@ -727,7 +744,8 @@ describe('DockerExecutorAdapter', () => {
             });
         });
 
-        it('removes the network of the project that survived the removal of the previous containers', async () => {
+        it('removes the default network of the service that survived the removal of the previous containers, and spares the one of a sibling service', async () => {
+            const sibling = 'c9d0e1f2-a3b4-4c5d-8e9f-0a1b2c3d4e5f';
             const down = jest.fn().mockResolvedValue(undefined);
             const composeUp = jest.fn().mockResolvedValue({ services: [] });
             mockCompose.instance = { recipe: { services: {} }, down, up: composeUp };
@@ -736,7 +754,11 @@ describe('DockerExecutorAdapter', () => {
             // with no service scope reports the leftovers of the host.
             const listNetworks = jest.fn((selector: { service?: string | null }) => Promise.resolve(
                 selector.service === undefined
-                    ? [{ id: 'network-1', name: 'test-project_default' }, { id: 'network-2', name: 'other-project_default' }]
+                    ? [
+                        { id: 'network-1', name: `test-project_${serviceId}_default` },
+                        { id: 'network-2', name: 'test-project_default' },
+                        { id: 'network-3', name: `test-project_${sibling}_default` },
+                    ]
                     : [],
             ));
             const removeNetwork = jest.fn().mockResolvedValue(undefined);
@@ -786,7 +808,7 @@ describe('DockerExecutorAdapter', () => {
             mockCompose.instance = { recipe: { services: {} }, down: jest.fn().mockResolvedValue(undefined), up: composeUp };
 
             const listNetworks = jest.fn((selector: { service?: string | null }) => Promise.resolve(
-                selector.service === undefined ? [{ id: 'network-1', name: 'test-project_default' }] : [],
+                selector.service === undefined ? [{ id: 'network-1', name: `test-project_${serviceId}_default` }] : [],
             ));
             const removeNetwork = jest.fn().mockRejectedValue(new Error('network has active endpoints'));
             const sut = executorWithRuntime({ createComposeProject, listNetworks, removeNetwork });
@@ -797,7 +819,7 @@ describe('DockerExecutorAdapter', () => {
             ).resolves.toBeUndefined();
 
             expect(onLog).toHaveBeenCalledWith(
-                '✖ Could not remove the leftover network test-project_default: network has active endpoints',
+                `✖ Could not remove the leftover network test-project_${serviceId}_default: network has active endpoints`,
             );
             expect(composeUp).toHaveBeenCalledTimes(1);
         });

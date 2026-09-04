@@ -33,11 +33,11 @@ Today GitPaaS names a compose project from the name of the service alone, and it
 **Agent:** implementer
 **Paths:** apps/backend/src/features/{deployments,volumes}/
 
-- [ ] 3.1 Add the identifier of the service to the tag of a locally built image, because two services of one project can hold the same name of a compose service.
-- [ ] 3.2 Give the default network a name that holds the identifier of the service, and remove that network on a delete.
-- [ ] 3.3 Keep the short slug of the service as the DNS alias on a project network, because `_` is not valid in a hostname.
-- [ ] 3.4 Confirm that the name of a volume on the daemon stays unique, and correct the prefix if it does not.
-- [ ] 3.5 Write the unit tests of the three names.
+- [x] 3.1 Add the identifier of the service to the tag of a locally built image, because two services of one project can hold the same name of a compose service.
+- [x] 3.2 Give the default network a name that holds the identifier of the service, and remove that network on a delete.
+- [x] 3.3 Keep the short slug of the service as the DNS alias on a project network, because `_` is not valid in a hostname.
+- [x] 3.4 Confirm that the name of a volume on the daemon stays unique, and correct the prefix if it does not.
+- [x] 3.5 Write the unit tests of the three names.
 
 ## Phase 4 — The copy of the data of a volume
 

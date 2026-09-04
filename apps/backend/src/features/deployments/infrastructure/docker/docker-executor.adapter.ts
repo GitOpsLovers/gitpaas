@@ -7,6 +7,8 @@ import { pipeline } from 'node:stream/promises';
 import { Inject, Injectable } from '@nestjs/common';
 import * as tar from 'tar';
 
+import { getBuiltImageTagUseCase } from '../../application/get-built-image-tag.use-case';
+import { getDefaultNetworkNameUseCase } from '../../application/get-default-network-name.use-case';
 import { DeploymentTarget, DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import {
@@ -86,9 +88,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             await this.pullWithProgress(compose, emit, builtImages);
 
-            // Declared so that `up()` creates `<project>_default` with the labels of GitPaaS, and
-            // so that the network it leaves behind is the one `removeDefaultNetwork` knows to drop.
-            declareDefaultNetwork(compose);
+            // Declared so that `up()` creates the default network under the key of the service, with
+            // the labels of GitPaaS, and so that the network it leaves behind is the one
+            // `removeDefaultNetwork` knows to drop.
+            declareDefaultNetwork(compose, serviceId);
 
             emit('▶ Removing previous containers…');
 
@@ -96,7 +99,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
             // project keeps running, which `compose.down()` would have stopped too.
             await this.removeServiceContainers(serviceId, emit);
             await this.removeServiceNetworks(serviceId, emit);
-            await this.removeDefaultNetwork(projectName, emit);
+            await this.removeDefaultNetwork(projectName, serviceId, emit);
 
             normalizeHealthchecks(compose);
             stampLabels(compose, projectName, serviceId);
@@ -189,13 +192,14 @@ export class DockerExecutorAdapter implements DockerExecutor {
     }
 
     /**
-     * Removes the `<project>_default` network that survived the previous deployment, which `dockerode-compose` recreates with no catch of the code 409.
+     * Removes the default network of the service that survived the previous deployment, which `dockerode-compose` recreates with no catch of the code 409.
      *
      * @param projectName Compose project name the stack is grouped under
+     * @param serviceId Identifier of the service whose default network goes down
      * @param emit Line emitter
      */
-    private async removeDefaultNetwork(projectName: string, emit: DockerLogListener): Promise<void> {
-        const name = `${projectName}_default`;
+    private async removeDefaultNetwork(projectName: string, serviceId: string, emit: DockerLogListener): Promise<void> {
+        const name = getDefaultNetworkNameUseCase(projectName, serviceId);
         const networks = await this.docker.listNetworks({});
 
         for (const network of networks.filter((candidate) => candidate.name === name)) {
@@ -338,7 +342,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
                 continue;
             }
 
-            const tag = `${projectName}_${name}`;
+            const tag = getBuiltImageTagUseCase(projectName, serviceId, name);
             const build = resolveBuild(service.build, baseDir);
 
             emit(`▶ Building ${name} (${tag})…`);

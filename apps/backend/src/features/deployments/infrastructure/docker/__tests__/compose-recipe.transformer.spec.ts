@@ -141,42 +141,95 @@ describe('compose-recipe.transformer', () => {
     });
 
     describe('declareDefaultNetwork', () => {
-        it('declares the default network on a recipe that declares none', () => {
+        it('declares the default network under the key of the service on a recipe that declares none', () => {
             const compose = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
 
-            declareDefaultNetwork(asCompose(compose));
+            const key = declareDefaultNetwork(asCompose(compose), serviceId);
 
-            expect(compose.recipe.networks).toEqual({ default: {} });
+            expect(key).toBe(`${serviceId}_default`);
+            expect(compose.recipe.networks).toEqual({ [`${serviceId}_default`]: {} });
+        });
+
+        it('never declares a bare default network, which a sibling service of the same project would share', () => {
+            const compose = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: Record<string, unknown> } };
+
+            declareDefaultNetwork(asCompose(compose), serviceId);
+
+            expect(compose.recipe.networks).not.toHaveProperty('default');
+        });
+
+        it('gives two services of one project two distinct keys for their default network', () => {
+            const sibling = 'c9d0e1f2-a3b4-4c5d-8e9f-0a1b2c3d4e5f';
+            const first = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
+            const second = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
+
+            expect(declareDefaultNetwork(asCompose(first), serviceId)).not.toBe(declareDefaultNetwork(asCompose(second), sibling));
         });
 
         it('adds the default network beside the networks the recipe already declares', () => {
             const compose = { recipe: { services: {}, networks: { edge: null } } };
 
-            declareDefaultNetwork(asCompose(compose));
+            declareDefaultNetwork(asCompose(compose), serviceId);
 
-            expect(compose.recipe.networks).toEqual({ edge: null, default: {} });
+            expect(compose.recipe.networks).toEqual({ edge: null, [`${serviceId}_default`]: {} });
         });
 
-        it('keeps the definition of a default network the recipe declares itself', () => {
+        it('keeps the definition of a default network the recipe declares itself, under the key of the service', () => {
             const compose = { recipe: { services: {}, networks: { default: { internal: true } } } };
 
-            declareDefaultNetwork(asCompose(compose));
+            declareDefaultNetwork(asCompose(compose), serviceId);
 
-            expect(compose.recipe.networks.default).toEqual({ internal: true });
+            expect(compose.recipe.networks).toEqual({ [`${serviceId}_default`]: { internal: true } });
+        });
+
+        it('joins a service that declares no network to the default network of the service', () => {
+            const web = {} as { networks?: unknown };
+            const compose = { recipe: { services: { web } } };
+
+            declareDefaultNetwork(asCompose(compose), serviceId);
+
+            expect(web.networks).toEqual([`${serviceId}_default`]);
+        });
+
+        it('rebinds the default entry of a service that lists its networks, and keeps the others', () => {
+            const web = { networks: ['default', 'edge'] } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { edge: null } } };
+
+            declareDefaultNetwork(asCompose(compose), serviceId);
+
+            expect(web.networks).toEqual([`${serviceId}_default`, 'edge']);
+        });
+
+        it('rebinds the default entry of a service that maps its networks, and keeps its definition', () => {
+            const web = { networks: { default: { aliases: ['api'] }, edge: null } } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { edge: null } } };
+
+            declareDefaultNetwork(asCompose(compose), serviceId);
+
+            expect(web.networks).toEqual({ edge: null, [`${serviceId}_default`]: { aliases: ['api'] } });
+        });
+
+        it('keeps the networks of a service that joins none of the default network', () => {
+            const web = { networks: ['edge'] } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { edge: null } } };
+
+            declareDefaultNetwork(asCompose(compose), serviceId);
+
+            expect(web.networks).toEqual(['edge']);
         });
 
         it('throws when the compose project carries no recipe, instead of leaving the default network undeclared', () => {
-            expect(() => { declareDefaultNetwork(asCompose({})); }).toThrow('The compose project carries no parsed recipe.');
+            expect(() => { declareDefaultNetwork(asCompose({}), serviceId); }).toThrow('The compose project carries no parsed recipe.');
         });
 
         it('gives the default network the GitPaaS labels once the stamping runs', () => {
             const compose = { recipe: { services: {} } } as { recipe: { services: unknown; networks?: unknown } };
 
-            declareDefaultNetwork(asCompose(compose));
+            declareDefaultNetwork(asCompose(compose), serviceId);
             stampLabels(asCompose(compose), 'my-project', serviceId);
 
             expect(compose.recipe.networks).toEqual({
-                default: {
+                [`${serviceId}_default`]: {
                     labels: {
                         'io.gitpaas.managed': 'true',
                         'io.gitpaas.project': 'my-project',
