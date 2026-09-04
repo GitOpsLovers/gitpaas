@@ -26,6 +26,13 @@ export interface ServiceRuntimeResources {
     removeNetworks: (service: Service) => Promise<void>;
 
     /**
+     * Removes the volumes GitPaaS owns for the service on the server.
+     *
+     * @param service Service whose volumes should be removed
+     */
+    removeVolumes: (service: Service) => Promise<void>;
+
+    /**
      * Removes the images the service owns on the server.
      *
      * @param service Service whose images should be removed
