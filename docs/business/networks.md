@@ -12,7 +12,7 @@ The system SHALL answer with the networks of one service at `GET /api/v1/network
 
 The parameter `serviceId` is obligatory, and it must be a UUID.
 
-Each network of the answer holds the identifier, the name, the driver, the scope, the state of the internal flag, the state of the attachable flag, the date of the creation and the state of the network. See the requirement *The state of a network of a service* for that state.
+Each network of the answer holds the identifier, the name and the state of the network. It holds the driver, the scope, the state of the internal flag, the state of the attachable flag and the date of the creation only when the daemon holds the network; a network of the project in the state `joining` can carry none of them, because the daemon does not hold it under a container of the service yet. See the requirement *The state of a network of a service* for that state.
 
 ### Scenario: The service holds networks
 
@@ -55,16 +55,30 @@ The system SHALL calculate the slug of the service in the same way as the capabi
 
 ## The state of a network of a service
 
-The system SHALL give each network of a service one of three states, from the networks its containers hold besides the networks its stack declares:
+The system SHALL give each network of a service one of five states, from the networks its containers hold, the networks its stack declares, and the networks of its project the service joined or left:
 
 1. **`attached`.** The stack declares the network, and a container of the service holds it.
 2. **`declared`.** The stack declares the network, and no container of the service holds it.
 3. **`connected`.** No declaration names the network, and a container of the service holds it. A network of the project that the service joined carries this state, until a change of the compose stack declares it.
+4. **`joining`.** The service joined a network of its project, and no container of the service holds it yet. The next deployment of the service connects the container.
+5. **`leaving`.** The service left a network of its project, and a container of the service still holds it. The next deployment of the service disconnects the container.
+
+A network of the project, in the state `connected`, `joining` or `leaving`, shows the name that the user gave it, and not the name it carries on the daemon.
 
 ### Scenario: A network the service joined besides its stack
 
 - **WHEN** a container of the service holds a network that its stack does not declare
 - **THEN** the system gives that network the state `connected`, together with the networks that the state `attached` or `declared` covers
+
+### Scenario: A join that no container holds yet
+
+- **WHEN** the service joined a network of its project, and no container of the service holds that network
+- **THEN** the system gives that network the state `joining`, with the name the user gave the network
+
+### Scenario: A leave that a container still holds
+
+- **WHEN** the service left a network of its project, and a container of the service still holds that network
+- **THEN** the system gives that network the state `leaving`, with the name the user gave the network
 
 ## The daemon is not reachable
 
@@ -77,14 +91,19 @@ The system SHALL answer `503 Service Unavailable` if the Docker daemon does not 
 
 ## The tab "Network" of a service
 
-The tab `network` SHALL show the networks of the service, and it SHALL let the user join the service to a network of its project.
+The tab `network` SHALL show the networks the stack of the service declares, the networks its containers hold besides, and the networks of its project the service joins or leaves, and it SHALL let the user join the service to a network of its project.
 
-The tab shows its own state of the reading. The control that joins a network lists the networks of the project of the service; if the project holds none, the tab says so, and it points to the page of the networks of the project instead of the control.
+The tab shows its own state of the reading. A network in the state `joining` or `leaving` carries a hint under its badge, which states that the next deployment applies the change. The columns Driver, Scope, Internal, Attachable and Created show a dash for a network the daemon does not hold under a container of the service. The control that joins a network lists the networks of the project of the service; if the project holds none, the tab says so, and it points to the page of the networks of the project instead of the control.
 
 ### Scenario: The user opens the tab of the networks
 
 - **WHEN** the user opens the tab `network`
 - **THEN** the system shows the networks of the service, or the state of the reading
+
+### Scenario: A network waits for the next deployment
+
+- **WHEN** a network of the service carries the state `joining` or `leaving`
+- **THEN** the system shows a hint under its badge, which states that the next deployment applies the change
 
 ### Scenario: The project of the service holds no network
 
@@ -188,7 +207,7 @@ The removal of the project itself also removes the networks of that project on t
 
 The system SHALL let a service join a network of its own project, at `POST /api/v1/projects/:projectId/networks/:id/services`, and it SHALL answer `204 No Content`.
 
-The join only records that the service belongs to the network. The containers of the service reach that network at the next deployment of the service, with the compose project of the service as their alias on it.
+The join only records that the service belongs to the network. The containers of the service reach that network at the next deployment of the service, with the compose project of the service as their alias on it. Until that deployment, the tab of the networks of the service shows that network in the state `joining`. See the requirement *The tab "Network" of a service* for that hint.
 
 ### Scenario: The join succeeds
 
