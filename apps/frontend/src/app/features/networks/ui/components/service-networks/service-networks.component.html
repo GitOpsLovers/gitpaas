@@ -1,4 +1,7 @@
-<app-component-card title="Networks" desc="The networks this service declares, and the networks its containers hold.">
+<app-component-card
+    title="Networks"
+    desc="The networks this service declares, the networks its containers hold, and the networks of its project it joins or leaves at the next deployment."
+>
     @if (loading() || networks().length > 0) {
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
@@ -39,6 +42,9 @@
                                     >
                                         {{ stateLabel(network.state) }}
                                     </span>
+                                    @if (stateHint(network.state); as hint) {
+                                        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{{ hint }}</p>
+                                    }
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ network.driver ?? '—' }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ network.scope ?? '—' }}</td>

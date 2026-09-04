@@ -29,6 +29,18 @@ const network: Network = {
     state: 'attached',
 };
 
+const joiningNetwork: Network = {
+    id: NETWORK_ID,
+    name: 'backend',
+    state: 'joining',
+};
+
+const leavingNetwork: Network = {
+    id: 'net-def',
+    name: 'cache',
+    state: 'leaving',
+};
+
 const projectNetwork: ProjectNetwork = {
     id: NETWORK_ID,
     projectId: PROJECT_ID,
@@ -79,6 +91,39 @@ describe('NetworksApiRepository', () => {
             await settle();
 
             expect(resource.value()).toEqual([network]);
+        });
+
+        test('exposes a joining row and a leaving row, which carry no field of the daemon', async () => {
+            const resource = TestBed.runInInjectionContext(
+                () => repository.networksByService(() => SERVICE_ID),
+            );
+            TestBed.tick();
+
+            httpMock.expectOne(SERVICE_NETWORKS_URL).flush([joiningNetwork, leavingNetwork]);
+            await settle();
+
+            expect(resource.value()).toEqual([joiningNetwork, leavingNetwork]);
+        });
+
+        test('re-requests the networks under the new service when the identifier changes', async () => {
+            const serviceId = signal(SERVICE_ID);
+            const resource = TestBed.runInInjectionContext(
+                () => repository.networksByService(() => serviceId()),
+            );
+            TestBed.tick();
+
+            httpMock.expectOne(SERVICE_NETWORKS_URL).flush([network]);
+            await settle();
+
+            serviceId.set('sv-2');
+            TestBed.tick();
+
+            const req = httpMock.expectOne(`${environment.apiBaseUrl}/networks?serviceId=sv-2`);
+            expect(req.request.method).toBe('GET');
+            req.flush([joiningNetwork]);
+            await settle();
+
+            expect(resource.value()).toEqual([joiningNetwork]);
         });
 
         test('issues no request while the service identifier is undefined', () => {

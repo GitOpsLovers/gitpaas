@@ -20,6 +20,14 @@ const STATE_LABELS: Record<NetworkState, string> = {
     leaving: 'Leaving',
 };
 
+/**
+ * The hint a state that waits for a deployment carries under its badge.
+ */
+const STATE_HINTS: Partial<Record<NetworkState, string>> = {
+    joining: 'The next deployment connects the container to this network.',
+    leaving: 'The next deployment disconnects the container from this network.',
+};
+
 @Component({
     selector: 'app-service-networks',
     templateUrl: './service-networks.component.html',
@@ -86,6 +94,18 @@ export class ServiceNetworksComponent {
     protected stateLabel(state: NetworkState): string {
         // eslint-disable-next-line security/detect-object-injection
         return STATE_LABELS[state];
+    }
+
+    /**
+     * Gives the hint of the state of a network, which a state that waits for a deployment carries.
+     *
+     * @param state State the record carries
+     *
+     * @returns The hint of that state, or `undefined` when the state waits for nothing
+     */
+    protected stateHint(state: NetworkState): string | undefined {
+        // eslint-disable-next-line security/detect-object-injection
+        return STATE_HINTS[state];
     }
 
     /**

@@ -26,10 +26,10 @@ The attachment of the container itself does not change, and no deployment starts
 **Paths:** apps/frontend/src/app/features/networks/
 
 - [x] 2.1 Add `joining` and `leaving` to `STATE_LABELS` and to `stateBadgeClass` (`service-networks.component.ts`).
-- [ ] 2.2 Show a hint on a row of the state `joining` or `leaving`, which states that the next deployment applies the change.
+- [x] 2.2 Show a hint on a row of the state `joining` or `leaving`, which states that the next deployment applies the change.
 - [x] 2.3 Show a dash in the columns Driver, Scope, Internal, Attachable and Created when the field is absent.
-- [ ] 2.4 Correct the description of the card, which says today that the list holds the networks of the stack and of the containers.
-- [ ] 2.5 Extend the unit tests of the component and of `networks-api.repository.ts`.
+- [x] 2.4 Correct the description of the card, which says today that the list holds the networks of the stack and of the containers.
+- [x] 2.5 Extend the unit tests of the component and of `networks-api.repository.ts`.
 
 ## Phase 3 — The documentation of the behavior
 
