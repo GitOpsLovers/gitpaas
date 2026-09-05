@@ -1,0 +1,19 @@
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_2a3106864a3194::t_410cc3ef24b209 15-16,104-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fabaeccb592e0d0d38725af941096f153541bd40",
+  "prompts": {},
+  "sessions": {
+    "s_2a3106864a3194": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "53ec831a-5bc8-443f-b663-c3a56711fd81",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
