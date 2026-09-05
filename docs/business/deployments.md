@@ -103,18 +103,18 @@ The system SHALL keep each run task as a row of a queue table, and not only in t
 
 ## The order of the runs
 
-The system SHALL run the tasks of the same compose project one after the other. Thus a new deployment never runs at the same time as the removal of the previous stack of that project.
+The system SHALL run the tasks of the same service one after the other. Thus a new deployment never runs at the same time as the removal of the containers of the previous deployment of that service.
 
-The system SHALL run the tasks of different compose projects at the same time.
+The system SHALL run the tasks of different services at the same time.
 
-### Scenario: Two deployments of the same compose project
+### Scenario: Two deployments of the same service
 
-- **WHEN** the queue holds two tasks that carry the same name of the compose project
+- **WHEN** the queue holds two tasks of the same service
 - **THEN** the system starts the second task only after the first task ends
 
-### Scenario: Two deployments of different compose projects
+### Scenario: Two deployments of different services
 
-- **WHEN** the queue holds two tasks that carry different names of the compose project
+- **WHEN** the queue holds two tasks of different services
 - **THEN** the system runs the two tasks at the same time
 
 ## New attempts and the dead-letter state
@@ -146,9 +146,12 @@ The system SHALL do these steps for each run task:
 
 1. Set the status of the deployment to `running`.
 2. Load the credentials of the provider of the service.
-3. Get the archive of the repository at the selected commit from the provider client, with those credentials.
-4. Run the Docker executor. It extracts the archive, it builds the local services, it pulls the images of the registry, it stops the previous stack, and it starts the new stack.
-5. Set the status to `success` or to `failed`.
+3. Copy the data of a volume that carries an old name into the volume of its new name. See the requirement *The copy of the data of a volume of an old name* of the capability [volumes](./volumes.md).
+4. Get the archive of the repository at the selected commit from the provider client, with those credentials.
+5. Run the Docker executor. It extracts the archive, it builds the local services, it pulls the images of the registry, it stops the containers of the service alone, and it starts the new containers.
+6. Set the status to `success` or to `failed`.
+
+The stop of the step 5 reaches the containers of the one service alone, and never the whole compose project, so a sibling service of the same project keeps running while this service deploys.
 
 The runner SHALL NOT keep the output itself. It SHALL send each line of the executor to the write port of the logs, and it SHALL call the completion of that port with the terminal status.
 

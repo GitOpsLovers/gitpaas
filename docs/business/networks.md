@@ -39,13 +39,11 @@ Each network of the answer holds the identifier, the name and the state of the n
 The system SHALL select the networks that the stack of a service declares by two conditions together:
 
 1. The network carries the label that marks a resource of the platform.
-2. The name of the compose project of the network agrees with the slug of the service.
-
-The system SHALL calculate the slug of the service in the same way as the capability `containers`.
+2. The network carries the label `com.gitpaas.service` with the identifier of the service.
 
 ### Scenario: A network of another service
 
-- **WHEN** the server holds a network of a different compose project
+- **WHEN** the server holds a network that carries the label `com.gitpaas.service` of a different service
 - **THEN** the system does not count that network among the declared networks of the service
 
 ### Scenario: A network that no platform label marks
@@ -207,7 +205,7 @@ The removal of the project itself also removes the networks of that project on t
 
 The system SHALL let a service join a network of its own project, at `POST /api/v1/projects/:projectId/networks/:id/services`, and it SHALL answer `204 No Content`.
 
-The join only records that the service belongs to the network. The containers of the service reach that network at the next deployment of the service, with the compose project of the service as their alias on it. Until that deployment, the tab of the networks of the service shows that network in the state `joining`. See the requirement *The tab "Network" of a service* for that hint.
+The join only records that the service belongs to the network. The containers of the service reach that network at the next deployment of the service, with the short slug of the service as their alias on it, because the underscore of the name of the compose project of the service is not valid in a hostname. Until that deployment, the tab of the networks of the service shows that network in the state `joining`. See the requirement *The tab "Network" of a service* for that hint.
 
 ### Scenario: The join succeeds
 

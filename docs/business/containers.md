@@ -32,20 +32,24 @@ Each container of the answer holds the identifier, the name, the image, the stat
 - **WHEN** a client calls the endpoint without `serviceId`, or with a value that is no UUID
 - **THEN** the system answers `400 Bad Request`
 
+## The name of a container
+
+The system SHALL give a container the name `<namespace>_<project>_<compose service>_1`, where `<namespace>_<project>` is the name of the compose project of the service, and `<compose service>` is the name the recipe of the service gives the compose service that starts the container.
+
+The system SHALL calculate the name of the compose project from the name of the namespace and the name of the project, once at the creation of the service, and it SHALL keep that name for the life of the service. Each segment turns to small letters, and each run of a character that is not a letter or a digit turns into one underscore. Two services of one project can declare the same name of a compose service, because the identifier of the service also marks every container, network and image that its stack makes; the label of that identifier, and not the name on the daemon, tells the containers of the two services apart.
+
 ## The selection of the containers of a service
 
 The system SHALL select the containers by two conditions together:
 
 1. The container carries the label that marks a resource of the platform.
-2. The name of the compose project of the container agrees with the slug of the service.
-
-The system SHALL calculate the slug from the name of the service. It puts the name into small letters, and it replaces each group of other characters with one hyphen. If the result is empty, the system uses the identifier of the service instead.
+2. The container carries the label `com.gitpaas.service` with the identifier of the service.
 
 The system SHALL list the containers that stopped as well. Thus the operator sees a container that failed.
 
 ### Scenario: A container of another service
 
-- **WHEN** the server runs a container of a different compose project
+- **WHEN** the server runs a container that carries the label `com.gitpaas.service` of a different service
 - **THEN** the system does not give that container
 
 ### Scenario: A container that no platform label marks
@@ -57,6 +61,17 @@ The system SHALL list the containers that stopped as well. Thus the operator see
 
 - **WHEN** a container of the service stopped
 - **THEN** the system gives that container, with its state and its status
+
+## The manual step after the change of the convention of the name
+
+The system SHALL keep a container of an old name running until its service deploys again; it stops no container by itself. The operator SHALL re-deploy every service once, so each container, network and volume takes its new name, and so a volume that carries an old name copies its data over. See the requirement *The copy of the data of a volume of an old name* of the capability [volumes](./volumes.md).
+
+Once every service redeployed, the operator SHALL remove by hand the containers that still carry an old name, because GitPaaS keeps neither a record nor a schedule that removes them.
+
+### Scenario: The operator re-deploys after the change
+
+- **WHEN** the operator triggers a deployment of a service that still runs containers of an old name
+- **THEN** the new deployment starts the containers under the new convention, and the containers of the old name keep running until the operator removes them
 
 ## The daemon is not reachable
 
