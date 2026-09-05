@@ -1,3 +1,9 @@
+## [2.16.2](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.1...v2.16.2) (2026-09-05)
+
+### Bug Fixes
+
+* allow volume naming as paths ([fabaecc](https://github.com/GitOpsLovers/gitpaas/commit/fabaeccb592e0d0d38725af941096f153541bd40))
+
 ## [2.16.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.0...v2.16.1) (2026-09-05)
 
 ### Bug Fixes
