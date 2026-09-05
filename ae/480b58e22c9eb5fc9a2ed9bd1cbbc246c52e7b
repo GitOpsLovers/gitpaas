@@ -1,0 +1,57 @@
+apps/backend/src/features/volumes/volumes.module.ts
+  s_2aa91c3c786920::t_c17b78388b4807 1,19
+apps/backend/src/features/volumes/domain/repositories/daemon-volumes.repository.ts
+  s_2aa91c3c786920::t_356d77a509a970 27-35,43-50
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_2aa91c3c786920::t_8a4e8efa3fa748 22-28,100-101,115-116,150-158,517-564
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_2aa91c3c786920::t_ac8602d0429531 43-46,77-80,160-161
+apps/backend/src/features/deployments/deployments.module.ts
+  s_2aa91c3c786920::t_7529f7a1703c84 19,33
+apps/backend/src/features/volumes/application/copy-legacy-volumes.use-case.ts
+  s_d4f38c3314950e::t_e599f25457443d 1-71
+apps/backend/src/core/domain/models/container-runtime.models.ts
+  s_2aa91c3c786920::t_62576cc0be5116 153-157
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_2aa91c3c786920::t_6f5c13a49bafb9 20-22,70-71,86-87,105-110,123
+apps/backend/src/core/domain/ports/container-runtime.port.ts
+  s_2aa91c3c786920::t_b232700a615fe2 15,208-216
+docs/roadmap/container-naming/TODO.md
+  s_2aa91c3c786920::t_10fb79b10fba35 47-50
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_2aa91c3c786920::t_c0243526522268 99-100,134-135,162-163,204-205,527-528,549-550,588-589,605-606,653-654
+apps/backend/src/features/volumes/infrastructure/docker/__tests__/docker-volumes.repository.spec.ts
+  s_2aa91c3c786920::t_14a1ad4b7b1f4c 70-72,74-77,87-91,93-98,210-277
+apps/backend/src/features/volumes/infrastructure/docker/docker-volumes.repository.ts
+  s_2aa91c3c786920::t_8082921b8a049b 16-30,58-64,76-120
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts
+  s_2aa91c3c786920::t_f46c6c53b5fced 20,58-64,223-248
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_2aa91c3c786920::t_a6dfa0f38a54ad 951-1031
+apps/backend/src/features/volumes/application/__tests__/copy-legacy-volumes.use-case.spec.ts
+  s_d4f38c3314950e::t_45c100aa77138b 1-191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ae480b58e22c9eb5fc9a2ed9bd1cbbc246c52e7b",
+  "prompts": {},
+  "sessions": {
+    "s_2aa91c3c786920": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f4b2981c-005d-4e49-bc8b-72d2217c9d9f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d4f38c3314950e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a3cdfe64aebcdcd8f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
