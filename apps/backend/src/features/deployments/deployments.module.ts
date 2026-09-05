@@ -16,6 +16,7 @@ import { NetworksModule } from '@features/networks/networks.module';
 import { ProvidersModule } from '@features/providers/providers.module';
 import { ServiceEnvironmentModule } from '@features/service-environment/service-environment.module';
 import { ServicesModule } from '@features/services/services.module';
+import { VolumesModule } from '@features/volumes/volumes.module';
 
 /**
  * Deployments feature module.
@@ -29,6 +30,7 @@ import { ServicesModule } from '@features/services/services.module';
         DomainsModule,
         LogsModule,
         forwardRef(() => NetworksModule),
+        forwardRef(() => VolumesModule),
     ],
     controllers: [DeploymentsController],
     providers: [

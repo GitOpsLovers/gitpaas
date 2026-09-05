@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { DbServiceVolumeEntity } from './infrastructure/database/db-service-volume.entity';
@@ -16,7 +16,7 @@ import { ServicesModule } from '@features/services/services.module';
  */
 @Module({
     imports: [
-        ServicesModule,
+        forwardRef(() => ServicesModule),
         TypeOrmModule.forFeature([DbVolumeEntity, DbServiceVolumeEntity]),
     ],
     controllers: [VolumesController],

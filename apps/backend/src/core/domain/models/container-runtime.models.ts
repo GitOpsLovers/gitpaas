@@ -151,6 +151,11 @@ export interface RuntimeDetachedContainerOptions {
 }
 
 /**
+ * Definition of a container the runtime runs to its end, and that it removes once it exits.
+ */
+export type RuntimeOneShotContainerOptions = Omit<RuntimeDetachedContainerOptions, 'removeOnExit'>;
+
+/**
  * Definition of a network the runtime creates.
  */
 export interface RuntimeCreateNetworkOptions {

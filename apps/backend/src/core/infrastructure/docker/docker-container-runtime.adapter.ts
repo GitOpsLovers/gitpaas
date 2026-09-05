@@ -17,6 +17,7 @@ import type {
     RuntimeLogOptions,
     RuntimeLogStream,
     RuntimeNetworkSummary,
+    RuntimeOneShotContainerOptions,
     RuntimeProgressCompletion,
     RuntimeProgressListener,
     RuntimeProgressStream,
@@ -52,6 +53,13 @@ const DOCKER_SOCKET_PATH = '/var/run/docker.sock';
  */
 interface ContainerLogsReader {
     logs: (options: Record<string, unknown>) => Promise<Buffer | NodeJS.ReadableStream>;
+}
+
+/**
+ * The end of the run of a container, which Dockerode answers with an untyped payload.
+ */
+interface ContainerWaiter {
+    wait: () => Promise<{ StatusCode: number }>;
 }
 
 /**
@@ -210,6 +218,32 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         await this.run(() => container.start());
 
         return container.id;
+    }
+
+    public async runContainerToCompletion(options: RuntimeOneShotContainerOptions): Promise<number> {
+        const container = await this.run(() => this.getClient().createContainer({
+            Image: options.image,
+            Cmd: options.command,
+            name: options.name,
+            Labels: options.labels,
+            HostConfig: {
+                Binds: options.binds,
+                AutoRemove: false,
+            },
+        }));
+
+        // The overloads of `wait` of Dockerode answer with `any`. The cast names the one field read here.
+        const waiter = container as unknown as ContainerWaiter;
+
+        try {
+            await this.run(() => container.start());
+
+            const { StatusCode } = await this.run(() => waiter.wait());
+
+            return StatusCode;
+        } finally {
+            await this.run(() => container.remove({ force: true })).catch(() => undefined);
+        }
     }
 
     public async *readContainerLogs(containerId: string, options: RuntimeLogOptions = {}): RuntimeLogStream {

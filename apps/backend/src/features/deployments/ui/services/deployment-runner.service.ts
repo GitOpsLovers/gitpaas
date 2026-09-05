@@ -40,6 +40,10 @@ import type { ServiceVariablesRepository } from '@features/service-environment/d
 import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
+import type { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
+import type { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
+import { DatabaseVolumesRepository } from '@features/volumes/infrastructure/database/db-volumes.repository';
+import { DockerVolumesRepository } from '@features/volumes/infrastructure/docker/docker-volumes.repository';
 
 /**
  * Nanoseconds in one millisecond, used to turn the monotonic clock into a duration.
@@ -70,6 +74,10 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly domainsRepository: DomainsRepository,
         @Inject(DatabaseServiceNetworksRepository)
         private readonly serviceNetworksRepository: ServiceNetworksRepository,
+        @Inject(DatabaseVolumesRepository)
+        private readonly volumesRepository: VolumesRepository,
+        @Inject(DockerVolumesRepository)
+        private readonly daemonVolumesRepository: DaemonVolumesRepository,
         @Inject(GithubProviderClientAdapter)
         private readonly providerClient: ProviderClient,
         @Inject(DockerExecutorAdapter)
@@ -149,6 +157,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.serviceVariablesRepository,
                     this.domainsRepository,
                     this.serviceNetworksRepository,
+                    this.volumesRepository,
+                    this.daemonVolumesRepository,
                     this.providerClient,
                     this.dockerExecutor,
                     this.reverseProxy,

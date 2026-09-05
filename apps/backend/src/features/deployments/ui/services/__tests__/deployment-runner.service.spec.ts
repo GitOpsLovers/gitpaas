@@ -28,6 +28,8 @@ import { DatabaseProvidersRepository } from '@features/providers/infrastructure/
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
+import { DatabaseVolumesRepository } from '@features/volumes/infrastructure/database/db-volumes.repository';
+import { DockerVolumesRepository } from '@features/volumes/infrastructure/docker/docker-volumes.repository';
 
 jest.mock('../../../application/run-deployment.use-case');
 
@@ -94,6 +96,8 @@ describe('DeploymentRunnerService', () => {
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockDomainsRepository: jest.Mocked<DatabaseDomainsRepository>;
     let mockServiceNetworksRepository: jest.Mocked<DatabaseServiceNetworksRepository>;
+    let mockVolumesRepository: jest.Mocked<DatabaseVolumesRepository>;
+    let mockDaemonVolumesRepository: jest.Mocked<DockerVolumesRepository>;
     let mockReverseProxy: jest.Mocked<TraefikReverseProxyAdapter>;
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let dequeued: Subject<QueuedDeploymentTask>;
@@ -127,6 +131,8 @@ describe('DeploymentRunnerService', () => {
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockDomainsRepository = {} as jest.Mocked<DatabaseDomainsRepository>;
         mockServiceNetworksRepository = {} as jest.Mocked<DatabaseServiceNetworksRepository>;
+        mockVolumesRepository = {} as jest.Mocked<DatabaseVolumesRepository>;
+        mockDaemonVolumesRepository = {} as jest.Mocked<DockerVolumesRepository>;
         mockReverseProxy = {} as jest.Mocked<TraefikReverseProxyAdapter>;
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         dequeued = new Subject<QueuedDeploymentTask>();
@@ -153,6 +159,8 @@ describe('DeploymentRunnerService', () => {
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: DatabaseDomainsRepository, useValue: mockDomainsRepository },
                 { provide: DatabaseServiceNetworksRepository, useValue: mockServiceNetworksRepository },
+                { provide: DatabaseVolumesRepository, useValue: mockVolumesRepository },
+                { provide: DockerVolumesRepository, useValue: mockDaemonVolumesRepository },
                 { provide: TraefikReverseProxyAdapter, useValue: mockReverseProxy },
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseDeploymentQueueAdapter, useValue: mockQueue },
@@ -193,6 +201,8 @@ describe('DeploymentRunnerService', () => {
             mockServiceVariablesRepository,
             mockDomainsRepository,
             mockServiceNetworksRepository,
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -514,6 +524,8 @@ describe('DeploymentRunnerService', () => {
             mockServiceVariablesRepository,
             mockDomainsRepository,
             mockServiceNetworksRepository,
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -534,6 +546,8 @@ describe('DeploymentRunnerService', () => {
             mockServiceVariablesRepository,
             mockDomainsRepository,
             mockServiceNetworksRepository,
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -571,6 +585,8 @@ describe('DeploymentRunnerService', () => {
             mockServiceVariablesRepository,
             mockDomainsRepository,
             mockServiceNetworksRepository,
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -586,6 +602,8 @@ describe('DeploymentRunnerService', () => {
             mockServiceVariablesRepository,
             mockDomainsRepository,
             mockServiceNetworksRepository,
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
@@ -632,6 +650,8 @@ describe('DeploymentRunnerService', () => {
             mockServiceVariablesRepository,
             mockDomainsRepository,
             mockServiceNetworksRepository,
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
             mockProviderClient,
             mockDockerExecutor,
             mockReverseProxy,
