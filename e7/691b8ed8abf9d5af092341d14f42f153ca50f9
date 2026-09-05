@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_4ed39ce47b0b56::t_1aed3ba855e7ad 17
+docs/roadmap/database-maintenance/TODO.md
+  s_4ed39ce47b0b56::t_6586de19b385d6 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e7691b8ed8abf9d5af092341d14f42f153ca50f9",
+  "prompts": {},
+  "sessions": {
+    "s_4ed39ce47b0b56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6dee118e-33fd-4bb8-9cc2-00b6e55585a2",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
