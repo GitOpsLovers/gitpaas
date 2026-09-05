@@ -301,16 +301,15 @@ export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
 }
 
 /**
- * Declares the default network of the recipe under the key of the service, which `dockerode-compose` otherwise creates as a bare `<project>_default` with no label.
+ * Declares the default network of the recipe under the key of the deployment, which `dockerode-compose` otherwise creates as a bare `<project>_default` with no label.
  *
  * @param compose Compose project driven by the container runtime
- * @param serviceId Identifier of the service the stack belongs to
  *
  * @returns Key the default network carries in the recipe
  */
-export function declareDefaultNetwork(compose: RuntimeComposeProject, serviceId: string): string {
+export function declareDefaultNetwork(compose: RuntimeComposeProject): string {
     const recipe = composeRecipe(compose);
-    const key = getDefaultNetworkKeyUseCase(serviceId);
+    const key = getDefaultNetworkKeyUseCase();
     const { default: declared, ...networks } = recipe.networks ?? {};
 
     recipe.networks = { ...networks, [key]: declared ?? {} };

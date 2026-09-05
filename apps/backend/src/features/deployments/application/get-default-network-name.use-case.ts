@@ -4,24 +4,21 @@
 export const COMPOSE_DEFAULT_NETWORK_KEY = 'default';
 
 /**
- * Use case for building the key the default network of one service carries inside the Compose file.
- *
- * @param serviceId Identifier of the service the network belongs to
+ * Use case for building the key the default network of a deployment carries inside the Compose file.
  *
  * @returns Key of the default network inside the Compose file
  */
-export function getDefaultNetworkKeyUseCase(serviceId: string): string {
-    return `${serviceId}_${COMPOSE_DEFAULT_NETWORK_KEY}`;
+export function getDefaultNetworkKeyUseCase(): string {
+    return `network_${COMPOSE_DEFAULT_NETWORK_KEY}`;
 }
 
 /**
- * Use case for building the name the default network of one service carries on the daemon, which Compose prefixes with its project.
+ * Use case for building the name the default network of a deployment carries on the daemon, which Compose prefixes with its project.
  *
- * @param composeProjectName Name of the Compose project of the service
- * @param serviceId Identifier of the service the network belongs to
+ * @param composeProjectName Name of the Compose project of the deployment
  *
  * @returns Name of the default network on the daemon
  */
-export function getDefaultNetworkNameUseCase(composeProjectName: string, serviceId: string): string {
-    return `${composeProjectName}_${getDefaultNetworkKeyUseCase(serviceId)}`;
+export function getDefaultNetworkNameUseCase(composeProjectName: string): string {
+    return `${composeProjectName}_${getDefaultNetworkKeyUseCase()}`;
 }

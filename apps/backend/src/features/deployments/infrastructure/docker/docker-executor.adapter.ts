@@ -89,10 +89,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             await this.pullWithProgress(compose, emit, builtImages);
 
-            // Declared so that `up()` creates the default network under the key of the service, with
-            // the labels of GitPaaS, and so that the network it leaves behind is the one
-            // `removeDefaultNetwork` knows to drop.
-            declareDefaultNetwork(compose, serviceId);
+            declareDefaultNetwork(compose);
 
             emit('▶ Removing previous containers…');
 
@@ -100,7 +97,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
             // project keeps running, which `compose.down()` would have stopped too.
             await this.removeServiceContainers(serviceId, emit);
             await this.removeServiceNetworks(serviceId, emit);
-            await this.removeDefaultNetwork(projectName, serviceId, emit);
+            await this.removeDefaultNetwork(projectName, emit);
 
             normalizeHealthchecks(compose);
             stampLabels(compose, projectName, serviceId);
@@ -193,14 +190,13 @@ export class DockerExecutorAdapter implements DockerExecutor {
     }
 
     /**
-     * Removes the default network of the service that survived the previous deployment, which `dockerode-compose` recreates with no catch of the code 409.
+     * Removes the default network of the deployment that survived the previous deployment, which `dockerode-compose` recreates with no catch of the code 409.
      *
      * @param projectName Compose project name the stack is grouped under
-     * @param serviceId Identifier of the service whose default network goes down
      * @param emit Line emitter
      */
-    private async removeDefaultNetwork(projectName: string, serviceId: string, emit: DockerLogListener): Promise<void> {
-        const name = getDefaultNetworkNameUseCase(projectName, serviceId);
+    private async removeDefaultNetwork(projectName: string, emit: DockerLogListener): Promise<void> {
+        const name = getDefaultNetworkNameUseCase(projectName);
         const networks = await this.docker.listNetworks({});
 
         for (const network of networks.filter((candidate) => candidate.name === name)) {
