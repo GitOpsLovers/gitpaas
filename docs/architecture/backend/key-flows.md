@@ -87,7 +87,7 @@ docker output ──follow──► DockerRuntimeLogFollowerAdapter ──append
 - **Opening a stream follows its container**: the use case `streamRuntimeLogsUseCase` calls `follow()` before it returns the observable, so a client that opens the stream of a container the scheduled job has not reached yet still receives its next line.
 - **Retention**: `RemoveExpiredLogsJob` removes the rows of `runtime_logs` older than `RUNTIME_LOGS_RETENTION_DAYS` (seven days by default), on the same hourly schedule and in the same bounded batches as the archive of a deployment.
 - **The rate limit**: `GET /api/v1/logs/runtime/stream` uses the throttler named `stream`, and the guard `RuntimeLogStreamGuard` refuses a sixth simultaneous connection of one user (`RUNTIME_LOG_STREAM_MAX_CONNECTIONS`).
-- **A daemon that does not answer**: the controller `RuntimeLogsController` turns a failure of the Docker daemon into `503 Service Unavailable`, as the feature of the containers does.
+- **A daemon that does not answer**: the controller `RuntimeLogsController` turns a `DaemonUnreachableError` into `503 Service Unavailable`, as the feature of the containers does, and it rethrows every other failure.
 
 ## Authentication
 
@@ -136,11 +136,11 @@ A service holds a set of variables in `features/service-environment/`: a name, a
 All the failures use one path, from the layer that finds the failure to the JSON that the client reads.
 
 - **`application/`**: a use case finds the business condition and throws a domain error. This is the usual source.
-- **`infrastructure/`**: an adapter or a repository can also throw a domain error, but only to change a vendor failure into a business condition, keeping the initial error in `{ cause }`.
+- **`infrastructure/`**: an adapter or a repository can also throw a domain error, but only to change a vendor failure into a business condition, keeping the initial error in `{ cause }`. The two Docker adapters pass every failure of dockerode through `toDaemonFailure` (`core/infrastructure/docker/docker-error.util.ts`), which gives a `DaemonUnreachableError` and lets an answer the daemon itself gave, such as a `404` or a `409`, pass unchanged.
 - **`ui/services/`**: the services do no error work; they call the use case and let the error go up.
 - **`ui/controllers/`**: the controller is the only location that knows HTTP. Its catch block is `throw translateError(error)`.
 
-`core/domain/errors/domain.error.ts` holds the abstract `DomainError` base class. Each subclass gives a stable **`code`** (for example `SERVICE_NOT_FOUND`) that the client relies on instead of the message text. `core/ui/translators/http-error.translator.ts` has one `translateError` function and a translation map, so the controllers do not repeat a catch block: an `HttpException` passes through unchanged, a mapped `DomainError` becomes its mapped exception, and any other error either takes the caller's `unexpected` policy or passes through to become a 500.
+`core/domain/errors/domain.error.ts` holds the abstract `DomainError` base class. Each subclass gives a stable **`code`** (for example `SERVICE_NOT_FOUND`) that the client relies on instead of the message text. `core/ui/translators/http-error.translator.ts` has one `translateError` function and a translation map, so the controllers do not repeat a catch block: an `HttpException` passes through unchanged, a mapped `DomainError` becomes its mapped exception, and any other error passes through, so the global filter turns it into a `500` with the code `SERVER_ERROR`. The optional `unexpected` policy replaces that pass-through, and no controller uses it today: a controller that owns a message for the daemon catches a `DaemonUnreachableError` itself, and it rethrows every other error. Thus a `503` never covers a failure of another origin.
 
 ### The error envelope
 

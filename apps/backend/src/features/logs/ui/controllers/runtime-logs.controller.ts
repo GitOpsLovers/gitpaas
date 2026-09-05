@@ -9,6 +9,7 @@ import { map, Observable } from 'rxjs';
 import { RuntimeLogStreamGuard } from '../guards/runtime-log-stream.guard';
 import { RuntimeLogsService } from '../services/runtime-logs.service';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -65,7 +66,11 @@ export class RuntimeLogsController {
 
             return lines.pipe(map((line) => ({ data: JSON.stringify(line) })));
         } catch (error) {
-            throw translateError(error, () => new ServiceUnavailableException(DAEMON_UNREACHABLE_MESSAGE, { cause: error }));
+            if (error instanceof DaemonUnreachableError) {
+                throw new ServiceUnavailableException(DAEMON_UNREACHABLE_MESSAGE, { cause: error });
+            }
+
+            throw translateError(error);
         }
     }
 }

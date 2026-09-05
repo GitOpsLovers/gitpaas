@@ -6,6 +6,7 @@ import { Container } from '../../../domain/models/container.models';
 import { ContainersService } from '../../services/containers.service';
 import { ContainersController } from '../containers.controller';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 
@@ -110,31 +111,47 @@ describe('ContainersController', () => {
             await expect(sut.getByService(serviceId)).rejects.toBe(original);
         });
 
-        it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            mockContainersService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
+        it('translates a failure of the daemon into a ServiceUnavailableException', async () => {
+            mockContainersService.getByService.mockRejectedValue(new DaemonUnreachableError());
 
             await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
-        it('includes remediation guidance in the wrapped error message', async () => {
-            mockContainersService.getByService.mockRejectedValue(new Error('ECONNREFUSED'));
+        it('answers that failure of the daemon with a 503', async () => {
+            mockContainersService.getByService.mockRejectedValue(new DaemonUnreachableError());
+
+            const error = await sut.getByService(serviceId).catch((caught: unknown) => caught);
+
+            expect((error as ServiceUnavailableException).getStatus()).toBe(503);
+        });
+
+        it('includes remediation guidance in the message of that exception', async () => {
+            mockContainersService.getByService.mockRejectedValue(new DaemonUnreachableError());
 
             await expect(sut.getByService(serviceId)).rejects.toThrow(/Could not reach the server Docker daemon/);
         });
 
-        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
-            mockContainersService.getByService.mockRejectedValue('boom');
-
-            await expect(sut.getByService(serviceId)).rejects.toBeInstanceOf(ServiceUnavailableException);
-        });
-
-        it('chains the original failure as the cause, which the global filter logs', async () => {
-            const original = new Error('ECONNREFUSED');
-            mockContainersService.getByService.mockRejectedValue(original);
+        it('chains the failure of the daemon as the cause, so the envelope carries its code', async () => {
+            const daemonFailure = new DaemonUnreachableError({ cause: new Error('ECONNREFUSED') });
+            mockContainersService.getByService.mockRejectedValue(daemonFailure);
 
             const error = await sut.getByService(serviceId).catch((caught: unknown) => caught);
 
-            expect((error as Error).cause).toBe(original);
+            expect((error as Error).cause).toBe(daemonFailure);
+            expect(((error as Error).cause as DaemonUnreachableError).code).toBe('DAEMON_UNREACHABLE');
+        });
+
+        it('rethrows a failure of the database unchanged, so the client receives a 500', async () => {
+            const original = new Error('database connection terminated');
+            mockContainersService.getByService.mockRejectedValue(original);
+
+            await expect(sut.getByService(serviceId)).rejects.toBe(original);
+        });
+
+        it('rethrows a rejection value that is not a failure of the daemon unchanged', async () => {
+            mockContainersService.getByService.mockRejectedValue('boom');
+
+            await expect(sut.getByService(serviceId)).rejects.toBe('boom');
         });
     });
 

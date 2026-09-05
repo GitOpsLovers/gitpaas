@@ -56,6 +56,8 @@ The system SHALL answer with the volumes of one service at `GET /api/v1/services
 
 Each volume of the answer holds the identifier, the name, the name on the daemon, the origin, the state, the containers that hold it right now, and, when GitPaaS holds a mount for it, the compose service, the mount path and the mode of that mount. A volume in the state `orphan` carries no mount.
 
+The system SHALL answer `503 Service Unavailable` only when the read fails because the daemon is not reachable. A read that fails for another reason, such as a failure of the database, SHALL answer `500 Internal Server Error` with the code `SERVER_ERROR`, so a `503` states an outage of the server alone and never hides a fault of the platform.
+
 ### Scenario: The service holds volumes
 
 - **WHEN** a client calls the endpoint with the identifier of an available service
@@ -65,6 +67,11 @@ Each volume of the answer holds the identifier, the name, the name on the daemon
 
 - **WHEN** the read of the volumes of a service fails because the daemon is not reachable
 - **THEN** the system answers `503 Service Unavailable` with a message that asks the operator to verify that the server runs and that it is reachable
+
+### Scenario: The read fails for another reason
+
+- **WHEN** the read of the volumes of a service fails for a reason other than a daemon that is not reachable
+- **THEN** the system answers `500 Internal Server Error` with the code `SERVER_ERROR`
 
 ## Creation of a volume
 

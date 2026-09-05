@@ -22,7 +22,6 @@ import { HttpAdapterHost, Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 
 import {
-    DaemonUnreachableError,
     GitpaasDomainNotPointingAtHostError,
     HostAddressUnknownError,
     InvalidLogRetentionError,
@@ -34,6 +33,7 @@ import {
 import { ServerService } from '../../services/server.service';
 import { ServerController } from '../server.controller';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
@@ -90,6 +90,11 @@ const notReadyResult: ReadinessResult = {
         { name: 'docker', status: 'down' },
     ],
 };
+
+/** Builds the failure the Docker adapters raise when the daemon does not answer. */
+const daemonFailure = (original: unknown = new Error('ECONNREFUSED')): DaemonUnreachableError => (
+    new DaemonUnreachableError({ cause: original })
+);
 
 /**
  * Runs the thrown value through the global exception filter, so the specs assert the
@@ -257,25 +262,25 @@ describe('ServerController', () => {
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.getStatus.mockRejectedValue(daemonFailure());
 
             await expect(sut.getStatus()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('includes remediation guidance in the wrapped error message', async () => {
-            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.getStatus.mockRejectedValue(daemonFailure());
 
             await expect(sut.getStatus()).rejects.toThrow(/Could not reach the server Docker daemon/);
         });
 
-        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+        it('rethrows a rejection value that did not come from the daemon unchanged', async () => {
             mockServerService.getStatus.mockRejectedValue('boom');
 
-            await expect(sut.getStatus()).rejects.toBeInstanceOf(ServiceUnavailableException);
+            await expect(sut.getStatus()).rejects.toBe('boom');
         });
 
         it('chains a DaemonUnreachableError as the cause, which the global filter reads', async () => {
-            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.getStatus.mockRejectedValue(daemonFailure());
 
             const error = await sut.getStatus().catch((caught: unknown) => caught);
 
@@ -284,7 +289,7 @@ describe('ServerController', () => {
 
         it('keeps the original failure behind the domain error, which the global filter logs', async () => {
             const original = new Error('ECONNREFUSED');
-            mockServerService.getStatus.mockRejectedValue(original);
+            mockServerService.getStatus.mockRejectedValue(daemonFailure(original));
 
             const error = await sut.getStatus().catch((caught: unknown) => caught);
 
@@ -292,7 +297,7 @@ describe('ServerController', () => {
         });
 
         it('publishes the DAEMON_UNREACHABLE code in the envelope the client receives', async () => {
-            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.getStatus.mockRejectedValue(daemonFailure());
 
             const error = await sut.getStatus().catch((caught: unknown) => caught);
 
@@ -300,13 +305,22 @@ describe('ServerController', () => {
         });
 
         it('keeps the remediation message of the endpoint in that envelope', async () => {
-            mockServerService.getStatus.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.getStatus.mockRejectedValue(daemonFailure());
 
             const error = await sut.getStatus().catch((caught: unknown) => caught);
 
             expect(envelopeOf(error).message).toBe(
                 'Could not reach the server Docker daemon. Verify the server is running and reachable.',
             );
+        });
+
+        it('answers 500 with SERVER_ERROR when the failure did not come from the daemon', async () => {
+            mockServerService.getStatus.mockRejectedValue(new Error('database connection terminated'));
+
+            const error = await sut.getStatus().catch((caught: unknown) => caught);
+
+            expect(envelopeOf(error).statusCode).toBe(500);
+            expect(envelopeOf(error).code).toBe('SERVER_ERROR');
         });
     });
 
@@ -359,33 +373,33 @@ describe('ServerController', () => {
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            mockServerService.pruneImages.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneImages.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneImages()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('names the images resource in the wrapped error message', async () => {
-            mockServerService.pruneImages.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneImages.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneImages()).rejects.toThrow(/Could not prune images/);
         });
 
         it('includes remediation guidance in the wrapped error message', async () => {
-            mockServerService.pruneImages.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneImages.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneImages()).rejects.toThrow(
                 /Verify the server is running and reachable/,
             );
         });
 
-        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+        it('rethrows a rejection value that did not come from the daemon unchanged', async () => {
             mockServerService.pruneImages.mockRejectedValue('boom');
 
-            await expect(sut.pruneImages()).rejects.toBeInstanceOf(ServiceUnavailableException);
+            await expect(sut.pruneImages()).rejects.toBe('boom');
         });
 
         it('chains a DaemonUnreachableError as the cause, so the envelope carries its code', async () => {
-            mockServerService.pruneImages.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneImages.mockRejectedValue(daemonFailure());
 
             const error = await sut.pruneImages().catch((caught: unknown) => caught);
 
@@ -435,21 +449,21 @@ describe('ServerController', () => {
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            mockServerService.pruneVolumes.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneVolumes.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneVolumes()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('names the volumes resource in the wrapped error message', async () => {
-            mockServerService.pruneVolumes.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneVolumes.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneVolumes()).rejects.toThrow(/Could not prune volumes/);
         });
 
-        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+        it('rethrows a rejection value that did not come from the daemon unchanged', async () => {
             mockServerService.pruneVolumes.mockRejectedValue('boom');
 
-            await expect(sut.pruneVolumes()).rejects.toBeInstanceOf(ServiceUnavailableException);
+            await expect(sut.pruneVolumes()).rejects.toBe('boom');
         });
     });
 
@@ -495,21 +509,21 @@ describe('ServerController', () => {
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            mockServerService.pruneContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneContainers.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('names the containers resource in the wrapped error message', async () => {
-            mockServerService.pruneContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.pruneContainers.mockRejectedValue(daemonFailure());
 
             await expect(sut.pruneContainers()).rejects.toThrow(/Could not prune containers/);
         });
 
-        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+        it('rethrows a rejection value that did not come from the daemon unchanged', async () => {
             mockServerService.pruneContainers.mockRejectedValue('boom');
 
-            await expect(sut.pruneContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
+            await expect(sut.pruneContainers()).rejects.toBe('boom');
         });
     });
 
@@ -556,29 +570,29 @@ describe('ServerController', () => {
         });
 
         it('wraps an unexpected error into a ServiceUnavailableException', async () => {
-            mockServerService.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.removeOrphanedContainers.mockRejectedValue(daemonFailure());
 
             await expect(sut.removeOrphanedContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
         it('names the orphaned containers resource in the wrapped error message', async () => {
-            mockServerService.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.removeOrphanedContainers.mockRejectedValue(daemonFailure());
 
             await expect(sut.removeOrphanedContainers()).rejects.toThrow(/Could not prune orphaned containers/);
         });
 
         it('includes remediation guidance in the wrapped error message', async () => {
-            mockServerService.removeOrphanedContainers.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockServerService.removeOrphanedContainers.mockRejectedValue(daemonFailure());
 
             await expect(sut.removeOrphanedContainers()).rejects.toThrow(
                 /Verify the server is running and reachable/,
             );
         });
 
-        it('wraps non-Error rejection values into a ServiceUnavailableException', async () => {
+        it('rethrows a rejection value that did not come from the daemon unchanged', async () => {
             mockServerService.removeOrphanedContainers.mockRejectedValue('boom');
 
-            await expect(sut.removeOrphanedContainers()).rejects.toBeInstanceOf(ServiceUnavailableException);
+            await expect(sut.removeOrphanedContainers()).rejects.toBe('boom');
         });
     });
 
@@ -876,7 +890,7 @@ describe('ServerController', () => {
         });
 
         it('translates an unreachable daemon into a ServiceUnavailableException', async () => {
-            mockServerService.startUpdate.mockRejectedValue(new Error('connect ENOENT /var/run/docker.sock'));
+            mockServerService.startUpdate.mockRejectedValue(daemonFailure(new Error('connect ENOENT /var/run/docker.sock')));
 
             await expect(sut.startUpdate()).rejects.toBeInstanceOf(ServiceUnavailableException);
         });

@@ -8,6 +8,7 @@ import DockerodeCompose from 'dockerode-compose';
 import { DockerContainerRuntimeAdapter } from '../docker-container-runtime.adapter';
 
 import { GITPAAS_MANAGED_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_PROJECT_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import type { RuntimeBuildImageOptions, RuntimeLogStream, RuntimeProgressStream } from '@core/domain/models/container-runtime.models';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
@@ -330,12 +331,12 @@ describe('DockerContainerRuntimeAdapter', () => {
             await expect(sut.ping()).resolves.toBe(false);
         });
 
-        it('propagates errors thrown while pinging the daemon', async () => {
+        it('wraps a failure of the socket raised while pinging the daemon', async () => {
             const { sut, daemon } = buildSut();
             const error = new Error('docker daemon unreachable');
             daemon.ping.mockRejectedValue(error);
 
-            await expect(sut.ping()).rejects.toThrow(error);
+            await expect(sut.ping()).rejects.toBeInstanceOf(DaemonUnreachableError);
         });
     });
 
@@ -358,12 +359,15 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(daemon.info).toHaveBeenCalledWith();
         });
 
-        it('propagates errors thrown while querying the daemon info', async () => {
+        it('wraps a failure of the socket raised while querying the daemon info', async () => {
             const { sut, daemon } = buildSut();
             const error = new Error('docker daemon unreachable');
             daemon.info.mockRejectedValue(error);
 
-            await expect(sut.info()).rejects.toThrow(error);
+            const caught = await sut.info().catch((rejection: unknown) => rejection);
+
+            expect(caught).toBeInstanceOf(DaemonUnreachableError);
+            expect((caught as Error).cause).toBe(error);
         });
     });
 
@@ -534,7 +538,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates a failure of the daemon that refuses the volume', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('volume name blog_pgdata already in use');
+            const error = Object.assign(new Error('volume name blog_pgdata already in use'), { statusCode: 409 });
             daemon.createVolume.mockRejectedValue(error);
 
             await expect(sut.createVolume({ name: 'blog_pgdata' })).rejects.toThrow(error);
@@ -555,7 +559,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates the refusal of the daemon to remove a volume a container still holds', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('volume is in use');
+            const error = Object.assign(new Error('volume is in use'), { statusCode: 409 });
             daemon.getVolume.mockReturnValue({ remove: jest.fn().mockRejectedValue(error) });
 
             await expect(sut.removeVolume('blog_pgdata')).rejects.toThrow(error);
@@ -588,7 +592,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates a failure of the daemon that refuses the network', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('network with name gitpaas-p1-n1 already exists');
+            const error = Object.assign(new Error('network with name gitpaas-p1-n1 already exists'), { statusCode: 409 });
             daemon.createNetwork.mockRejectedValue(error);
 
             await expect(sut.createNetwork({ name: 'gitpaas-p1-n1' })).rejects.toThrow(error);
@@ -693,7 +697,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates a removal failure to the caller', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('container is restarting');
+            const error = Object.assign(new Error('container is restarting'), { statusCode: 409 });
             daemon.getContainer.mockReturnValue({ remove: jest.fn().mockRejectedValue(error) });
 
             await expect(sut.removeContainer('c1', { force: true })).rejects.toThrow(error);
@@ -800,7 +804,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates a build failure to the caller', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('no such file or directory: Dockerfile');
+            const error = Object.assign(new Error('no such file or directory: Dockerfile'), { statusCode: 400 });
             daemon.buildImage.mockRejectedValue(error);
 
             await expect(sut.buildImage(Readable.from([]), buildOptions())).rejects.toThrow(error);
@@ -827,7 +831,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates a pull failure to the caller', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('manifest unknown');
+            const error = Object.assign(new Error('manifest unknown'), { statusCode: 404 });
             daemon.pull.mockRejectedValue(error);
 
             await expect(sut.pullImage('node:does-not-exist')).rejects.toThrow(error);
@@ -933,18 +937,18 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates a failure of the daemon that refuses the container', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('no such image');
+            const error = Object.assign(new Error('no such image'), { statusCode: 404 });
             daemon.createContainer.mockRejectedValue(error);
 
             await expect(sut.runDetachedContainer(detachedOptions)).rejects.toThrow(error);
         });
 
-        it('propagates a failure of the start of the container', async () => {
+        it('wraps a 500 of the daemon raised by the start of the container', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('port is already allocated');
+            const error = Object.assign(new Error('port is already allocated'), { statusCode: 500 });
             daemon.createContainer.mockResolvedValue({ id: 'c0ffee', start: jest.fn().mockRejectedValue(error) });
 
-            await expect(sut.runDetachedContainer(detachedOptions)).rejects.toThrow(error);
+            await expect(sut.runDetachedContainer(detachedOptions)).rejects.toBeInstanceOf(DaemonUnreachableError);
         });
     });
 
@@ -1012,7 +1016,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('removes the container and propagates the failure when the run throws', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('no such volume');
+            const error = Object.assign(new Error('no such volume'), { statusCode: 404 });
             const container = { ...oneShotContainer(), start: jest.fn().mockRejectedValue(error) };
             daemon.createContainer.mockResolvedValue(container);
 
@@ -1195,7 +1199,7 @@ describe('DockerContainerRuntimeAdapter', () => {
 
         it('propagates errors thrown while the daemon opens the output of the container', async () => {
             const { sut, daemon } = buildSut();
-            const error = new Error('no such container');
+            const error = Object.assign(new Error('no such container'), { statusCode: 404 });
             daemon.getContainer.mockReturnValue({ logs: jest.fn().mockRejectedValue(error) });
 
             await expect(collectLogLines(sut.readContainerLogs('c0ffee'))).rejects.toThrow(error);
@@ -1234,6 +1238,42 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(first).not.toBe(second);
             expect(DockerMock).toHaveBeenCalledTimes(1);
             expect(DockerodeComposeMock.mock.calls[0][0]).toBe(DockerodeComposeMock.mock.calls[1][0]);
+        });
+    });
+
+    describe('the failures of a call to the daemon', () => {
+        it('wraps a failure of the socket in a DaemonUnreachableError', async () => {
+            const { sut, daemon } = buildSut();
+            const socketFailure = new Error('connect ENOENT /var/run/docker.sock');
+            daemon.listContainers.mockRejectedValue(socketFailure);
+
+            await expect(sut.listContainers({})).rejects.toBeInstanceOf(DaemonUnreachableError);
+        });
+
+        it('chains that failure of the socket as the cause of the domain error', async () => {
+            const { sut, daemon } = buildSut();
+            const socketFailure = new Error('connect ENOENT /var/run/docker.sock');
+            daemon.listContainers.mockRejectedValue(socketFailure);
+
+            const error = await sut.listContainers({}).catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBe(socketFailure);
+        });
+
+        it('lets a 404 the daemon answered pass unchanged, so its meaning survives', async () => {
+            const { sut, daemon } = buildSut();
+            const notFound = Object.assign(new Error('no such container'), { statusCode: 404 });
+            daemon.getContainer.mockReturnValue({ remove: jest.fn().mockRejectedValue(notFound) });
+
+            await expect(sut.removeContainer('c1')).rejects.toBe(notFound);
+        });
+
+        it('lets a 409 the daemon answered pass unchanged, so its meaning survives', async () => {
+            const { sut, daemon } = buildSut();
+            const conflict = Object.assign(new Error('volume is in use'), { statusCode: 409 });
+            daemon.createVolume.mockRejectedValue(conflict);
+
+            await expect(sut.createVolume({ name: 'data' })).rejects.toBe(conflict);
         });
     });
 });

@@ -23,9 +23,9 @@ import {
     UseGuards,
 } from '@nestjs/common';
 
-import { DaemonUnreachableError } from '../../domain/errors/server.errors';
 import { ServerService } from '../services/server.service';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
@@ -69,10 +69,14 @@ export class ServerController {
                 ...info,
             };
         } catch (error) {
-            throw translateError(error, () => new ServiceUnavailableException(
-                'Could not reach the server Docker daemon. Verify the server is running and reachable.',
-                { cause: new DaemonUnreachableError({ cause: error }) },
-            ));
+            if (error instanceof DaemonUnreachableError) {
+                throw new ServiceUnavailableException(
+                    'Could not reach the server Docker daemon. Verify the server is running and reachable.',
+                    { cause: error },
+                );
+            }
+
+            throw translateError(error);
         }
     }
 
@@ -216,10 +220,14 @@ export class ServerController {
         try {
             return await this.service.startUpdate();
         } catch (error) {
-            throw translateError(error, () => new ServiceUnavailableException(
-                'Could not start the update of the platform. Verify the server is running and reachable.',
-                { cause: new DaemonUnreachableError({ cause: error }) },
-            ));
+            if (error instanceof DaemonUnreachableError) {
+                throw new ServiceUnavailableException(
+                    'Could not start the update of the platform. Verify the server is running and reachable.',
+                    { cause: error },
+                );
+            }
+
+            throw translateError(error);
         }
     }
 
@@ -235,10 +243,14 @@ export class ServerController {
         try {
             return await action();
         } catch (error) {
-            throw translateError(error, () => new ServiceUnavailableException(
-                `Could not prune ${resource}. Verify the server is running and reachable.`,
-                { cause: new DaemonUnreachableError({ cause: error }) },
-            ));
+            if (error instanceof DaemonUnreachableError) {
+                throw new ServiceUnavailableException(
+                    `Could not prune ${resource}. Verify the server is running and reachable.`,
+                    { cause: error },
+                );
+            }
+
+            throw translateError(error);
         }
     }
 }

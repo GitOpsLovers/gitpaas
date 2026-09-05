@@ -77,10 +77,17 @@ Once every service redeployed, the operator SHALL remove by hand the containers 
 
 The system SHALL answer `503 Service Unavailable` if the Docker daemon does not answer. The message asks the operator to verify that the server runs and that it is reachable.
 
+The `503` belongs to that failure alone. A read that fails for another reason, such as a failure of the database, SHALL answer `500 Internal Server Error` with the code `SERVER_ERROR`, so a `503` states an outage of the server alone and never hides a fault of the platform.
+
 ### Scenario: The daemon does not answer
 
 - **WHEN** the read of the containers fails because the daemon is not reachable
 - **THEN** the system answers `503 Service Unavailable` with that message
+
+### Scenario: The read fails for another reason
+
+- **WHEN** the read of the containers fails for a reason other than a daemon that is not reachable
+- **THEN** the system answers `500 Internal Server Error` with the code `SERVER_ERROR`
 
 ## The tab "Containers"
 

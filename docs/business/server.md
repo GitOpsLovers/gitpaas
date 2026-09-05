@@ -27,6 +27,22 @@ The system SHALL run every probe at the same time. A probe that gives `false`, a
 - **WHEN** a client calls the probe without an access token
 - **THEN** the system runs the probe, because the endpoint is public
 
+## The status of an unexpected failure
+
+The system SHALL answer `503 Service Unavailable` only when a call to the Docker daemon does not reach it. The message of the answer names the operation of the endpoint, and it asks the operator to verify that the server runs and that it is reachable.
+
+Every other unexpected failure, such as a failure of the database, SHALL answer `500 Internal Server Error` with the code `SERVER_ERROR`. Thus a `503` states an outage of the server alone, and it never hides a fault of the platform. The rule holds for the state of the daemon, for the removal of the unused resources, for the removal of the orphan containers and for the start of the update.
+
+### Scenario: A call does not reach the daemon
+
+- **WHEN** an operation of this capability fails because the daemon is not reachable
+- **THEN** the system answers `503 Service Unavailable` with the message of that operation
+
+### Scenario: An operation fails for another reason
+
+- **WHEN** an operation of this capability fails for a reason other than a daemon that is not reachable
+- **THEN** the system answers `500 Internal Server Error` with the code `SERVER_ERROR`
+
 ## The state of the Docker daemon
 
 The system SHALL answer with the information of the Docker daemon at `GET /api/v1/server/status`.
