@@ -8,6 +8,7 @@ import { RuntimeLogStreamGuard } from '../../guards/runtime-log-stream.guard';
 import { RuntimeLogsService } from '../../services/runtime-logs.service';
 import { RuntimeLogsController } from '../runtime-logs.controller';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 
@@ -157,24 +158,40 @@ describe('RuntimeLogsController', () => {
         });
 
         it('wraps a failure of the daemon into a ServiceUnavailableException', async () => {
-            mockRuntimeLogsService.streamByContainer.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockRuntimeLogsService.streamByContainer.mockRejectedValue(new DaemonUnreachableError());
 
             await expect(sut.streamByContainer(containerId)).rejects.toBeInstanceOf(ServiceUnavailableException);
         });
 
+        it('answers that failure of the daemon with a 503', async () => {
+            mockRuntimeLogsService.streamByContainer.mockRejectedValue(new DaemonUnreachableError());
+
+            const error = await sut.streamByContainer(containerId).catch((caught: unknown) => caught);
+
+            expect((error as ServiceUnavailableException).getStatus()).toBe(503);
+        });
+
         it('includes remediation guidance in the wrapped error message', async () => {
-            mockRuntimeLogsService.streamByContainer.mockRejectedValue(new Error('ECONNREFUSED'));
+            mockRuntimeLogsService.streamByContainer.mockRejectedValue(new DaemonUnreachableError());
 
             await expect(sut.streamByContainer(containerId)).rejects.toThrow(/Could not reach the server Docker daemon/);
         });
 
-        it('chains the original failure as the cause, which the global filter logs', async () => {
-            const original = new Error('ECONNREFUSED');
-            mockRuntimeLogsService.streamByContainer.mockRejectedValue(original);
+        it('chains the failure of the daemon as the cause, so the envelope carries its code', async () => {
+            const daemonFailure = new DaemonUnreachableError({ cause: new Error('ECONNREFUSED') });
+            mockRuntimeLogsService.streamByContainer.mockRejectedValue(daemonFailure);
 
             const error = await sut.streamByContainer(containerId).catch((caught: unknown) => caught);
 
-            expect((error as Error).cause).toBe(original);
+            expect((error as Error).cause).toBe(daemonFailure);
+            expect(((error as Error).cause as DaemonUnreachableError).code).toBe('DAEMON_UNREACHABLE');
+        });
+
+        it('rethrows a failure of the database unchanged, so the client receives a 500', async () => {
+            const original = new Error('database connection terminated');
+            mockRuntimeLogsService.streamByContainer.mockRejectedValue(original);
+
+            await expect(sut.streamByContainer(containerId)).rejects.toBe(original);
         });
 
         it('rethrows any HttpException raised by the service unchanged', async () => {

@@ -22,6 +22,7 @@ import {
 import { VolumesService } from '../services/volumes.service';
 import { toVolumeResponse } from '../transformers/volume-response.transformer';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
@@ -44,10 +45,14 @@ export class VolumesController {
 
             return volumes.map(toVolumeResponse);
         } catch (error) {
-            throw translateError(error, () => new ServiceUnavailableException(
-                'Could not reach the server Docker daemon. Verify the server is running and reachable',
-                { cause: error },
-            ));
+            if (error instanceof DaemonUnreachableError) {
+                throw new ServiceUnavailableException(
+                    'Could not reach the server Docker daemon. Verify the server is running and reachable.',
+                    { cause: error },
+                );
+            }
+
+            throw translateError(error);
         }
     }
 

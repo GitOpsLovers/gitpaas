@@ -7,6 +7,7 @@ import * as tar from 'tar';
 import type { DeploymentTarget } from '../../../domain/ports/docker-executor.port';
 import { DockerExecutorAdapter } from '../docker-executor.adapter';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 
@@ -38,6 +39,7 @@ interface ExecutorInternals {
     followPull: (stream: unknown, emit: (line: string) => void) => Promise<void>;
     followBuild: (stream: unknown, emit: (line: string) => void) => Promise<void>;
     captureStartupLogs: (container: unknown, emit: (line: string) => void) => Promise<void>;
+    run: <T>(operation: () => Promise<T>) => Promise<T>;
 }
 
 /**
@@ -880,6 +882,45 @@ describe('DockerExecutorAdapter', () => {
 
             await expect(sut.listComposeServices(Buffer.from('archive'), 'docker-compose.yml')).rejects.toThrow('bad yaml');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
+        });
+    });
+
+    describe('the failures of a call to the daemon', () => {
+        /** Builds a failure dockerode raises when the daemon itself answered the call. */
+        const daemonAnswer = (statusCode: number, message: string): Error => (
+            Object.assign(new Error(message), { statusCode })
+        );
+
+        it('wraps a failure of the socket in a DaemonUnreachableError', async () => {
+            const sut = executorWithRuntime({});
+            const socketFailure = new Error('connect ENOENT /var/run/docker.sock');
+
+            await expect(internals(sut).run(() => Promise.reject(socketFailure)))
+                .rejects.toBeInstanceOf(DaemonUnreachableError);
+        });
+
+        it('chains that failure of the socket as the cause of the domain error', async () => {
+            const sut = executorWithRuntime({});
+            const socketFailure = new Error('connect ENOENT /var/run/docker.sock');
+
+            const error = await internals(sut).run(() => Promise.reject(socketFailure))
+                .catch((caught: unknown) => caught);
+
+            expect((error as Error).cause).toBe(socketFailure);
+        });
+
+        it('lets a 404 the daemon answered pass unchanged, so its meaning survives', async () => {
+            const sut = executorWithRuntime({});
+            const notFound = daemonAnswer(404, 'no such container');
+
+            await expect(internals(sut).run(() => Promise.reject(notFound))).rejects.toBe(notFound);
+        });
+
+        it('lets a 409 the daemon answered pass unchanged, so its meaning survives', async () => {
+            const sut = executorWithRuntime({});
+            const conflict = daemonAnswer(409, 'network already exists');
+
+            await expect(internals(sut).run(() => Promise.reject(conflict))).rejects.toBe(conflict);
         });
     });
 });

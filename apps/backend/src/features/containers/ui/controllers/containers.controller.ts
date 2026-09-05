@@ -4,6 +4,7 @@ import { Controller, Get, ParseUUIDPipe, Query, ServiceUnavailableException } fr
 import { ContainersService } from '../services/containers.service';
 import { toContainerResponse } from '../transformers/container-response.transformer';
 
+import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.errors';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { translateError } from '@core/ui/translators/http-error.translator';
 
@@ -30,10 +31,14 @@ export class ContainersController {
 
             return service.map(toContainerResponse);
         } catch (error) {
-            throw translateError(error, () => new ServiceUnavailableException(
-                'Could not reach the server Docker daemon. Verify the server is running and reachable.',
-                { cause: error },
-            ));
+            if (error instanceof DaemonUnreachableError) {
+                throw new ServiceUnavailableException(
+                    'Could not reach the server Docker daemon. Verify the server is running and reachable.',
+                    { cause: error },
+                );
+            }
+
+            throw translateError(error);
         }
     }
 }

@@ -22,6 +22,7 @@ import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
+import { toDaemonFailure } from '@core/infrastructure/docker/docker-error.util';
 import { decodeDockerLogBuffer, toLogLines } from '@core/infrastructure/docker/docker-log.util';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
@@ -543,7 +544,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
         } catch (error) {
             recordDependencyCall('docker', performance.now() - startedAt, true);
 
-            throw error;
+            throw toDaemonFailure(error);
         }
     }
 }

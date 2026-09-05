@@ -41,6 +41,7 @@ import {
     toRuntimeLogLine,
     toVolumeSummary,
 } from './docker-container-runtime.transformer';
+import { toDaemonFailure } from './docker-error.util';
 import { decodeDockerLogFrames } from './docker-log.util';
 
 /**
@@ -328,7 +329,7 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         } catch (error) {
             recordDependencyCall('docker', performance.now() - startedAt, true);
 
-            throw error;
+            throw toDaemonFailure(error);
         }
     }
 
