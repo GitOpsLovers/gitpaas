@@ -17,7 +17,7 @@ import { ServiceVariablesRepository } from '@features/service-environment/domain
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { copyLegacyVolumesUseCase } from '@features/volumes/application/copy-legacy-volumes.use-case';
+import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-compose-volumes.use-case';
 import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
 import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
@@ -68,7 +68,7 @@ async function loadServiceContext(
  * @param domainsRepository Domains repository
  * @param serviceNetworksRepository Service networks repository, which holds the networks of the project the service joined
  * @param volumesRepository Volumes repository, which holds the volumes the service declares
- * @param daemonVolumesRepository Daemon volumes repository, which carries the data of a volume of an old name over
+ * @param daemonVolumesRepository Daemon volumes repository, which reads the volumes the Compose project holds
  * @param providerClient Provider client port
  * @param dockerExecutor Docker executor
  * @param reverseProxy Reverse proxy, which builds the labels of the routing of the service
@@ -106,8 +106,6 @@ export async function runDeploymentUseCase(
             logStore.append(payload.deploymentId, line).catch(() => undefined);
         };
 
-        await copyLegacyVolumesUseCase(volumesRepository, daemonVolumesRepository, service, emit);
-
         const archive = await providerClient.getRepositoryArchive(credentials, payload.repositoryId, payload.commit);
         const environment = await getServiceEnvironmentUseCase(serviceVariablesRepository, secretCipher, service.id);
         const domains = await domainsRepository.getByService(service.id);
@@ -121,6 +119,10 @@ export async function runDeploymentUseCase(
         };
 
         await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, emit);
+
+        // The record of a volume Compose created never fails a deployment the daemon already brought up.
+        await adoptComposeVolumesUseCase(volumesRepository, daemonVolumesRepository, service)
+            .catch(() => { emit('▹ The volumes of the Compose file could not be recorded.'); });
 
         await deploymentsRepository.update(payload.deploymentId, { status: 'success' });
         await logStore.complete(payload.deploymentId, 'success');

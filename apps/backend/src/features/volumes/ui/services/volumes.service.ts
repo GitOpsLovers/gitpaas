@@ -63,7 +63,6 @@ export class VolumesService {
             this.servicesRepository,
             this.volumesRepository,
             this.serviceVolumesRepository,
-            this.daemonVolumesRepository,
             serviceId,
             createDto,
         );

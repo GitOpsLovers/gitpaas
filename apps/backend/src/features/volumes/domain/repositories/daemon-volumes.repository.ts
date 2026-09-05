@@ -7,7 +7,7 @@ import { Service } from '@features/services/domain/models/service.models';
  */
 export interface DaemonVolumesRepository {
     /**
-     * Lists every volume the daemon holds for the stack of a service
+     * Lists every volume the daemon holds under the Compose project of a service
      *
      * @param service Service the volumes belong to
      *

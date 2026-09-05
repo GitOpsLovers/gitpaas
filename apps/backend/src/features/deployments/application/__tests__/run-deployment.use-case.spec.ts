@@ -19,13 +19,13 @@ import type { StoredServiceVariable } from '@features/service-environment/domain
 import { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { copyLegacyVolumesUseCase } from '@features/volumes/application/copy-legacy-volumes.use-case';
+import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-compose-volumes.use-case';
 import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
 import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
 
-jest.mock('@features/volumes/application/copy-legacy-volumes.use-case');
+jest.mock('@features/volumes/application/adopt-compose-volumes.use-case');
 
-const mockCopyLegacyVolumesUseCase = copyLegacyVolumesUseCase as jest.MockedFunction<typeof copyLegacyVolumesUseCase>;
+const mockAdoptComposeVolumesUseCase = adoptComposeVolumesUseCase as jest.MockedFunction<typeof adoptComposeVolumesUseCase>;
 
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {
@@ -155,7 +155,7 @@ describe('runDeploymentUseCase', () => {
             create: jest.fn().mockResolvedValue(undefined),
             copyData: jest.fn().mockResolvedValue(undefined),
         };
-        mockCopyLegacyVolumesUseCase.mockResolvedValue(undefined);
+        mockAdoptComposeVolumesUseCase.mockResolvedValue(undefined);
         mockDockerExecutor = {
             up: jest.fn(),
         };
@@ -515,51 +515,42 @@ describe('runDeploymentUseCase', () => {
         expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'boom' });
     });
 
-    it('carries the data of the volumes of the service over before it brings the stack up', async () => {
+    it('records the volumes Compose created once the stack is up', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);
 
         await run();
 
-        expect(mockCopyLegacyVolumesUseCase).toHaveBeenCalledTimes(1);
-        expect(mockCopyLegacyVolumesUseCase).toHaveBeenCalledWith(
+        expect(mockAdoptComposeVolumesUseCase).toHaveBeenCalledTimes(1);
+        expect(mockAdoptComposeVolumesUseCase).toHaveBeenCalledWith(
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             service,
-            expect.any(Function),
         );
-        expect(mockCopyLegacyVolumesUseCase.mock.invocationCallOrder[0])
-            .toBeLessThan(mockDockerExecutor.up.mock.invocationCallOrder[0]);
+        expect(mockAdoptComposeVolumesUseCase.mock.invocationCallOrder[0])
+            .toBeGreaterThan(mockDockerExecutor.up.mock.invocationCallOrder[0]);
     });
 
-    it('writes the line of a copy of a volume into the log of the deployment', async () => {
-        mockCopyLegacyVolumesUseCase.mockImplementation((_volumes, _daemonVolumes, _service, onLine) => {
-            onLine('▹ Copied the data of the volume data from my-service_gitpaas-1 into gitpaas_web_gitpaas-1.');
+    it('records no volume when the stack never came up', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockRejectedValue(new Error('compose failed'));
 
-            return Promise.resolve();
-        });
+        await run();
+
+        expect(mockAdoptComposeVolumesUseCase).not.toHaveBeenCalled();
+    });
+
+    it('keeps the deployment successful when the record of the volumes of Compose fails', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
         mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockAdoptComposeVolumesUseCase.mockRejectedValue(new Error('daemon down'));
 
         await run();
 
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
         expect(mockLogStore.append).toHaveBeenCalledWith(
             payload.deploymentId,
-            '▹ Copied the data of the volume data from my-service_gitpaas-1 into gitpaas_web_gitpaas-1.',
+            '▹ The volumes of the Compose file could not be recorded.',
         );
-    });
-
-    it('fails the run and starts no stack when the copy of a volume throws', async () => {
-        mockCopyLegacyVolumesUseCase.mockRejectedValue(new Error('the copy of the volume failed'));
-        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-
-        await run();
-
-        expect(mockDockerExecutor.up).not.toHaveBeenCalled();
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
-            status: 'failed',
-            error: 'the copy of the volume failed',
-        });
-        expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
     });
 });

@@ -101,21 +101,29 @@ describe('DockerVolumesRepository', () => {
     });
 
     describe('listByService', () => {
-        it('lists the volumes scoped to the marker of GitPaaS and to the identifier of the service', async () => {
+        it('lists the volumes scoped to the Compose project of the service, which Compose alone stamps', async () => {
             await sut.listByService(service);
 
             expect(mockListVolumes).toHaveBeenCalledTimes(1);
-            expect(mockListVolumes).toHaveBeenCalledWith({ labels: managedLabels, service: service.id });
+            expect(mockListVolumes).toHaveBeenCalledWith({ project: service.composeProject });
         });
 
-        it('keeps two services of one compose project apart, because the selector never holds the compose project', async () => {
-            const sibling: Service = { ...service, id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' };
+        it('never scopes the listing to the labels of GitPaaS, which a volume of Compose never carries', async () => {
+            await sut.listByService(service);
+
+            expect(mockListVolumes).not.toHaveBeenCalledWith(
+                expect.objectContaining({ labels: managedLabels }),
+            );
+        });
+
+        it('keeps two Compose projects apart', async () => {
+            const sibling: Service = { ...service, composeProject: 'gitpaas_blog' };
 
             await sut.listByService(service);
             await sut.listByService(sibling);
 
-            expect(mockListVolumes).toHaveBeenNthCalledWith(1, { labels: managedLabels, service: service.id });
-            expect(mockListVolumes).toHaveBeenNthCalledWith(2, { labels: managedLabels, service: sibling.id });
+            expect(mockListVolumes).toHaveBeenNthCalledWith(1, { project: 'gitpaas_web' });
+            expect(mockListVolumes).toHaveBeenNthCalledWith(2, { project: 'gitpaas_blog' });
         });
 
         it('maps every summary of the runtime into the domain model', async () => {
