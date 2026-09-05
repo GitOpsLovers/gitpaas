@@ -67,15 +67,15 @@ Each operation answers `200` with the count of the removed resources and the spa
 
 ## The removal of the orphan containers
 
-The system SHALL remove the containers of the platform whose compose project agrees with no available service, at `POST /api/v1/server/containers/orphaned`.
+The system SHALL remove the containers of the platform whose label `com.gitpaas.service` names no available service, at `POST /api/v1/server/containers/orphaned`.
 
-The system SHALL first read every service, and it SHALL calculate the name of the compose project of each one. The system SHALL then remove by force every container of the platform whose project is not in that set.
+The system SHALL first read every service, and it SHALL keep the set of their identifiers. The system SHALL then remove by force every container of the platform whose label `com.gitpaas.service` is absent, or whose value is not in that set.
 
 The answer holds the count of the removed containers and their names.
 
 ### Scenario: The server holds orphan containers
 
-- **WHEN** a container of the platform carries the name of a compose project that no available service gives
+- **WHEN** a container of the platform carries the label `com.gitpaas.service` of a service that no longer exists
 - **THEN** the system removes that container by force, and it answers `200` with the count and the names
 
 ### Scenario: The server holds no orphan container

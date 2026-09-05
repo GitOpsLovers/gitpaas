@@ -147,6 +147,27 @@ The container of the service still holds the volume until the next deployment re
 - **WHEN** a client detaches a volume that the service holds no mount for
 - **THEN** the system raises `VOLUME_NOT_ATTACHED`, and it answers `404 Not Found`
 
+## The copy of the data of a volume of an old name
+
+The system SHALL copy the data of a volume that carries an old name into the volume of its new name, at the start of a deployment, when the daemon holds the volume of the old name and holds no volume of the new name yet. The system SHALL create the volume of the new name, and it SHALL copy the data with a container made for that one copy.
+
+The system SHALL write one line into the log of the deployment for each volume it copies. The volume of the old name stays on the daemon; the copy takes its data, and it removes nothing.
+
+### Scenario: A volume of an old name exists
+
+- **WHEN** a deployment starts, the daemon holds a volume of the old name of the service, and it holds no volume of the new name
+- **THEN** the system creates the volume of the new name, it copies the data of the old volume into it, and it writes one line of the copy into the log of the deployment
+
+### Scenario: The volume of the new name already exists
+
+- **WHEN** a deployment starts, and the daemon already holds a volume of the new name
+- **THEN** the system copies no data, because the volume of the new name already carries the data of the service
+
+### Scenario: No volume of an old name exists
+
+- **WHEN** a deployment starts, and the daemon holds no volume of the old name of the service
+- **THEN** the system copies no data
+
 ## The removal of a service removes the volumes it owns
 
 The removal of a service SHALL remove, on the daemon, every volume of the origin `gitpaas` that the service holds. The removal SHALL keep every volume of the origin `compose`, because that volume belongs to the recipe of the user, and its data survives the service. See the requirement *Removal of a service* of the capability [services](./services.md) for the order of the cleanup of the server.
