@@ -1,3 +1,9 @@
+## [2.15.2](https://github.com/GitOpsLovers/gitpaas/compare/v2.15.1...v2.15.2) (2026-09-05)
+
+### Bug Fixes
+
+* correct volume names ([ce40867](https://github.com/GitOpsLovers/gitpaas/commit/ce40867456d08c2c76c39cc2f4950b26dc6a000b))
+
 ## [2.15.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.15.0...v2.15.1) (2026-09-05)
 
 ### Bug Fixes
