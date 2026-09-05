@@ -1,3 +1,9 @@
+## [2.16.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.0...v2.16.1) (2026-09-05)
+
+### Bug Fixes
+
+* stabilize network names ([a15a4e2](https://github.com/GitOpsLovers/gitpaas/commit/a15a4e2d998d7d94411aa6e24c98cb4139c56c64))
+
 ## [2.16.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.15.2...v2.16.0) (2026-09-05)
 
 ### Features

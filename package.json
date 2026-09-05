@@ -1,6 +1,6 @@
 {
   "name": "@gitopslovers/gitpaas",
-  "version": "2.16.0",
+  "version": "2.16.1",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
