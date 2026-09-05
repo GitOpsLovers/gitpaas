@@ -19,6 +19,13 @@ import type { StoredServiceVariable } from '@features/service-environment/domain
 import { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
 import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { copyLegacyVolumesUseCase } from '@features/volumes/application/copy-legacy-volumes.use-case';
+import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
+import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
+
+jest.mock('@features/volumes/application/copy-legacy-volumes.use-case');
+
+const mockCopyLegacyVolumesUseCase = copyLegacyVolumesUseCase as jest.MockedFunction<typeof copyLegacyVolumesUseCase>;
 
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {
@@ -90,6 +97,8 @@ describe('runDeploymentUseCase', () => {
     let mockServiceVariablesRepository: jest.Mocked<Pick<ServiceVariablesRepository, 'getStoredByService'>>;
     let mockDomainsRepository: jest.Mocked<Pick<DomainsRepository, 'getByService'>>;
     let mockServiceNetworksRepository: jest.Mocked<Pick<ServiceNetworksRepository, 'listByService'>>;
+    let mockVolumesRepository: jest.Mocked<Pick<VolumesRepository, 'listByService'>>;
+    let mockDaemonVolumesRepository: jest.Mocked<Pick<DaemonVolumesRepository, 'findByName' | 'create' | 'copyData'>>;
     let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
     let mockReverseProxy: jest.Mocked<Pick<ReverseProxy, 'buildRouting'>>;
     let mockSecretCipher: jest.Mocked<SecretCipher>;
@@ -103,6 +112,8 @@ describe('runDeploymentUseCase', () => {
             mockServiceVariablesRepository as unknown as ServiceVariablesRepository,
             mockDomainsRepository as unknown as DomainsRepository,
             mockServiceNetworksRepository as unknown as ServiceNetworksRepository,
+            mockVolumesRepository as unknown as VolumesRepository,
+            mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
             mockProviderClient as unknown as ProviderClient,
             mockDockerExecutor as unknown as DockerExecutor,
             mockReverseProxy as unknown as ReverseProxy,
@@ -136,6 +147,15 @@ describe('runDeploymentUseCase', () => {
         mockServiceNetworksRepository = {
             listByService: jest.fn().mockResolvedValue([]),
         };
+        mockVolumesRepository = {
+            listByService: jest.fn().mockResolvedValue([]),
+        };
+        mockDaemonVolumesRepository = {
+            findByName: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(undefined),
+            copyData: jest.fn().mockResolvedValue(undefined),
+        };
+        mockCopyLegacyVolumesUseCase.mockResolvedValue(undefined);
         mockDockerExecutor = {
             up: jest.fn(),
         };
@@ -493,5 +513,53 @@ describe('runDeploymentUseCase', () => {
         await run();
 
         expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'boom' });
+    });
+
+    it('carries the data of the volumes of the service over before it brings the stack up', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        expect(mockCopyLegacyVolumesUseCase).toHaveBeenCalledTimes(1);
+        expect(mockCopyLegacyVolumesUseCase).toHaveBeenCalledWith(
+            mockVolumesRepository,
+            mockDaemonVolumesRepository,
+            service,
+            expect.any(Function),
+        );
+        expect(mockCopyLegacyVolumesUseCase.mock.invocationCallOrder[0])
+            .toBeLessThan(mockDockerExecutor.up.mock.invocationCallOrder[0]);
+    });
+
+    it('writes the line of a copy of a volume into the log of the deployment', async () => {
+        mockCopyLegacyVolumesUseCase.mockImplementation((_volumes, _daemonVolumes, _service, onLine) => {
+            onLine('▹ Copied the data of the volume data from my-service_gitpaas-1 into gitpaas_web_gitpaas-1.');
+
+            return Promise.resolve();
+        });
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(undefined);
+
+        await run();
+
+        expect(mockLogStore.append).toHaveBeenCalledWith(
+            payload.deploymentId,
+            '▹ Copied the data of the volume data from my-service_gitpaas-1 into gitpaas_web_gitpaas-1.',
+        );
+    });
+
+    it('fails the run and starts no stack when the copy of a volume throws', async () => {
+        mockCopyLegacyVolumesUseCase.mockRejectedValue(new Error('the copy of the volume failed'));
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+
+        await run();
+
+        expect(mockDockerExecutor.up).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: 'the copy of the volume failed',
+        });
+        expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
     });
 });

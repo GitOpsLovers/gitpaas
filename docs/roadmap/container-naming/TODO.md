@@ -44,10 +44,10 @@ Today GitPaaS names a compose project from the name of the service alone, and it
 **Agent:** implementer
 **Paths:** apps/backend/src/features/{volumes,deployments}/
 
-- [ ] 4.1 At a deployment, find the volume that carries the old name when the volume of the new name is absent.
-- [ ] 4.2 Create the new volume, and copy the data with a temporary container.
-- [ ] 4.3 Write one line into the log of the deployment for each volume that the system copies.
-- [ ] 4.4 Write the unit tests of the copy.
+- [x] 4.1 At a deployment, find the volume that carries the old name when the volume of the new name is absent.
+- [x] 4.2 Create the new volume, and copy the data with a temporary container.
+- [x] 4.3 Write one line into the log of the deployment for each volume that the system copies.
+- [x] 4.4 Write the unit tests of the copy.
 
 ## Phase 5 — The documentation
 

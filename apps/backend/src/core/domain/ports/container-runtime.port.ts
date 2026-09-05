@@ -12,6 +12,7 @@ import type {
     RuntimeLogOptions,
     RuntimeLogStream,
     RuntimeNetworkSummary,
+    RuntimeOneShotContainerOptions,
     RuntimeProgressCompletion,
     RuntimeProgressListener,
     RuntimeProgressStream,
@@ -203,6 +204,15 @@ export interface ContainerRuntime {
      * @returns Identifier of the container that runs
      */
     runDetachedContainer: (options: RuntimeDetachedContainerOptions) => Promise<string>;
+
+    /**
+     * Creates a container, waits for it to exit, and removes it once it ended.
+     *
+     * @param options Definition of the container to run
+     *
+     * @returns Code the container exited with
+     */
+    runContainerToCompletion: (options: RuntimeOneShotContainerOptions) => Promise<number>;
 
     /**
      * Reads the output of a container.

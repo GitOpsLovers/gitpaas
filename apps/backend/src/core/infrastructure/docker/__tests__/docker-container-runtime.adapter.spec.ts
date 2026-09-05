@@ -948,6 +948,87 @@ describe('DockerContainerRuntimeAdapter', () => {
         });
     });
 
+    describe('runContainerToCompletion', () => {
+        /** The definition of the temporary container that copies the data of one volume into another. */
+        const oneShotOptions = {
+            image: 'busybox:1.37',
+            command: ['sh', '-c', 'cp -a /gitpaas/source/. /gitpaas/target/'],
+            binds: ['old_volume:/gitpaas/source:ro', 'new_volume:/gitpaas/target'],
+            labels: { 'com.gitpaas.managed': 'true' },
+        };
+
+        /** Builds the container of one run, with the code it exits with. */
+        const oneShotContainer = (statusCode = 0): {
+            id: string;
+            start: jest.Mock;
+            wait: jest.Mock;
+            remove: jest.Mock;
+        } => ({
+            id: 'c0ffee',
+            start: jest.fn().mockResolvedValue(undefined),
+            wait: jest.fn().mockResolvedValue({ StatusCode: statusCode }),
+            remove: jest.fn().mockResolvedValue(undefined),
+        });
+
+        it('creates the container on the image, the command, the mounts and the labels it received, and never removes it on its own', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.createContainer.mockResolvedValue(oneShotContainer());
+
+            await sut.runContainerToCompletion(oneShotOptions);
+
+            expect(daemon.createContainer).toHaveBeenCalledWith({
+                Image: 'busybox:1.37',
+                Cmd: ['sh', '-c', 'cp -a /gitpaas/source/. /gitpaas/target/'],
+                name: undefined,
+                Labels: { 'com.gitpaas.managed': 'true' },
+                HostConfig: {
+                    Binds: ['old_volume:/gitpaas/source:ro', 'new_volume:/gitpaas/target'],
+                    AutoRemove: false,
+                },
+            });
+        });
+
+        it('starts the container, waits for its end and returns the code it exited with', async () => {
+            const { sut, daemon } = buildSut();
+            const container = oneShotContainer(2);
+            daemon.createContainer.mockResolvedValue(container);
+
+            await expect(sut.runContainerToCompletion(oneShotOptions)).resolves.toBe(2);
+
+            expect(container.start).toHaveBeenCalledTimes(1);
+            expect(container.wait).toHaveBeenCalledTimes(1);
+            expect(container.start.mock.invocationCallOrder[0]).toBeLessThan(container.wait.mock.invocationCallOrder[0]);
+        });
+
+        it('removes the container once it ended', async () => {
+            const { sut, daemon } = buildSut();
+            const container = oneShotContainer();
+            daemon.createContainer.mockResolvedValue(container);
+
+            await sut.runContainerToCompletion(oneShotOptions);
+
+            expect(container.remove).toHaveBeenCalledWith({ force: true });
+        });
+
+        it('removes the container and propagates the failure when the run throws', async () => {
+            const { sut, daemon } = buildSut();
+            const error = new Error('no such volume');
+            const container = { ...oneShotContainer(), start: jest.fn().mockRejectedValue(error) };
+            daemon.createContainer.mockResolvedValue(container);
+
+            await expect(sut.runContainerToCompletion(oneShotOptions)).rejects.toThrow(error);
+            expect(container.remove).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns the code of the container even when its removal fails', async () => {
+            const { sut, daemon } = buildSut();
+            const container = { ...oneShotContainer(), remove: jest.fn().mockRejectedValue(new Error('removal in progress')) };
+            daemon.createContainer.mockResolvedValue(container);
+
+            await expect(sut.runContainerToCompletion(oneShotOptions)).resolves.toBe(0);
+        });
+    });
+
     describe('readContainerLogs', () => {
         it('asks the daemon for the whole timestamped history of that container, without following it', async () => {
             const { sut, daemon } = buildSut();

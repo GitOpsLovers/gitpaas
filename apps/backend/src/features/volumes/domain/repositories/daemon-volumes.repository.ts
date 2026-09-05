@@ -25,10 +25,27 @@ export interface DaemonVolumesRepository {
     listMountsByService: (service: Service) => Promise<DaemonVolumeMount[]>;
 
     /**
+     * Reads one volume of the daemon by the name it carries there, whatever labels it holds
+     *
+     * @param daemonName Name of the volume on the daemon
+     *
+     * @returns Volume of the daemon, or `null` when the daemon holds none of that name
+     */
+    findByName: (daemonName: string) => Promise<DaemonVolume | null>;
+
+    /**
      * Creates a volume of a service on the daemon, with the labels the stack of the service carries
      *
      * @param service Service the volume belongs to
      * @param daemonName Name the volume takes on the daemon
      */
     create: (service: Service, daemonName: string) => Promise<void>;
+
+    /**
+     * Copies every file of one volume of the daemon into another one, with a temporary container
+     *
+     * @param sourceName Name of the volume the data is read from
+     * @param targetName Name of the volume the data is written into
+     */
+    copyData: (sourceName: string, targetName: string) => Promise<void>;
 }

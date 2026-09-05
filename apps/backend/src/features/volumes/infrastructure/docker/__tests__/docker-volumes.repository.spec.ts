@@ -67,8 +67,14 @@ describe('DockerVolumesRepository', () => {
     let mockListVolumes: jest.Mock;
     let mockListContainers: jest.Mock;
     let mockCreateVolume: jest.Mock;
+    let mockPullImage: jest.Mock;
+    let mockFollowProgress: jest.Mock;
+    let mockRunContainerToCompletion: jest.Mock;
     let mockContainerRuntime: jest.Mocked<
-        Pick<DockerContainerRuntimeAdapter, 'listVolumes' | 'listContainers' | 'createVolume'>
+        Pick<
+            DockerContainerRuntimeAdapter,
+            'listVolumes' | 'listContainers' | 'createVolume' | 'pullImage' | 'followProgress' | 'runContainerToCompletion'
+        >
     >;
     let sut: DockerVolumesRepository;
 
@@ -78,8 +84,18 @@ describe('DockerVolumesRepository', () => {
         mockListVolumes = jest.fn().mockResolvedValue([]);
         mockListContainers = jest.fn().mockResolvedValue([]);
         mockCreateVolume = jest.fn().mockResolvedValue('my-service_pgdata');
+        mockPullImage = jest.fn().mockResolvedValue('pull-stream');
+        mockFollowProgress = jest.fn((_stream: unknown, onFinished: (error: unknown) => void) => {
+            onFinished(null);
+        });
+        mockRunContainerToCompletion = jest.fn().mockResolvedValue(0);
         mockContainerRuntime = {
-            listVolumes: mockListVolumes, listContainers: mockListContainers, createVolume: mockCreateVolume,
+            listVolumes: mockListVolumes,
+            listContainers: mockListContainers,
+            createVolume: mockCreateVolume,
+            pullImage: mockPullImage,
+            followProgress: mockFollowProgress,
+            runContainerToCompletion: mockRunContainerToCompletion,
         };
         sut = new DockerVolumesRepository(mockContainerRuntime as unknown as DockerContainerRuntimeAdapter);
     });
@@ -189,6 +205,74 @@ describe('DockerVolumesRepository', () => {
             mockCreateVolume.mockRejectedValue(error);
 
             await expect(sut.create(service, 'my-service_gitpaas-1')).rejects.toThrow(error);
+        });
+    });
+
+    describe('findByName', () => {
+        it('reads the volumes of the daemon with no filter, because a volume of an old name carries no label of GitPaaS', async () => {
+            await sut.findByName('my-service_gitpaas-1');
+
+            expect(mockListVolumes).toHaveBeenCalledTimes(1);
+            expect(mockListVolumes).toHaveBeenCalledWith({});
+        });
+
+        it('maps the volume the daemon holds under that name into the domain model', async () => {
+            mockListVolumes.mockResolvedValue([
+                volumeSummary({ name: 'other' }),
+                volumeSummary({ name: 'my-service_gitpaas-1', mountpoint: '/var/lib/docker/volumes/my-service_gitpaas-1/_data' }),
+            ]);
+
+            await expect(sut.findByName('my-service_gitpaas-1')).resolves.toEqual<DaemonVolume>({
+                name: 'my-service_gitpaas-1',
+                driver: 'local',
+                mountpoint: '/var/lib/docker/volumes/my-service_gitpaas-1/_data',
+            });
+        });
+
+        it('gives null when the daemon holds no volume of that name', async () => {
+            mockListVolumes.mockResolvedValue([volumeSummary({ name: 'other' })]);
+
+            await expect(sut.findByName('my-service_gitpaas-1')).resolves.toBeNull();
+        });
+    });
+
+    describe('copyData', () => {
+        it('pulls the image of the copy before it runs the temporary container', async () => {
+            await sut.copyData('my-service_gitpaas-1', 'gitpaas_web_gitpaas-1');
+
+            expect(mockPullImage).toHaveBeenCalledTimes(1);
+            expect(mockPullImage).toHaveBeenCalledWith('busybox:1.37');
+            expect(mockPullImage.mock.invocationCallOrder[0])
+                .toBeLessThan(mockRunContainerToCompletion.mock.invocationCallOrder[0]);
+        });
+
+        it('copies the data with a temporary container that reads the source read-only and carries the marker of GitPaaS', async () => {
+            await sut.copyData('my-service_gitpaas-1', 'gitpaas_web_gitpaas-1');
+
+            expect(mockRunContainerToCompletion).toHaveBeenCalledTimes(1);
+            expect(mockRunContainerToCompletion).toHaveBeenCalledWith({
+                image: 'busybox:1.37',
+                command: ['sh', '-c', 'cp -a /gitpaas/source/. /gitpaas/target/'],
+                binds: ['my-service_gitpaas-1:/gitpaas/source:ro', 'gitpaas_web_gitpaas-1:/gitpaas/target'],
+                labels: managedLabels,
+            });
+        });
+
+        it('throws when the temporary container ends with a code other than zero, so the deployment never starts on empty data', async () => {
+            mockRunContainerToCompletion.mockResolvedValue(1);
+
+            await expect(sut.copyData('my-service_gitpaas-1', 'gitpaas_web_gitpaas-1')).rejects.toThrow(
+                'The copy of the volume my-service_gitpaas-1 into gitpaas_web_gitpaas-1 ended with the code 1',
+            );
+        });
+
+        it('propagates the failure of the pull, and runs no container', async () => {
+            mockFollowProgress.mockImplementation((_stream: unknown, onFinished: (error: unknown) => void) => {
+                onFinished(new Error('no such image'));
+            });
+
+            await expect(sut.copyData('my-service_gitpaas-1', 'gitpaas_web_gitpaas-1')).rejects.toThrow('no such image');
+            expect(mockRunContainerToCompletion).not.toHaveBeenCalled();
         });
     });
 });
