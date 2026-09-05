@@ -1,0 +1,41 @@
+apps/backend/src/features/services/application/__tests__/create-service.use-case.spec.ts
+  s_7e62cd660fa632::t_022142f25e51c8 50,86-89,106,110,117-125,143,154
+apps/backend/src/shared/application/__tests__/get-compose-project-name.use-case.spec.ts
+  s_7e62cd660fa632::t_75d9d219fcbc01 5,9,11-16,19,24,26,31-36,43,52-57,62-97,101-105,111-135
+apps/frontend/src/app/features/services/ui/components/service-form/service-form.component.html
+  s_7e62cd660fa632::t_244505a1e6b72f 10-11,34
+apps/frontend/src/app/features/services/ui/components/service-form/service-form.component.ts
+  s_7e62cd660fa632::t_47b749742f90ad 1,3,35-36,55-75,81
+docs/business/services.md
+  s_7e62cd660fa632::t_29268513c1e114 140-141,164,173-174,194,254-256,260-271,316-318,322-333
+packages/contracts/src/index.ts
+  s_7e62cd660fa632::t_09e8f3ad4d49d5 10-17
+packages/contracts/src/services/service.contract.ts
+  s_7e62cd660fa632::t_0c7ee25b0aa7fa 3-26,46,56
+apps/backend/src/features/services/application/create-service.use-case.ts
+  s_49e5eb6e6b8acd::t_af9aa08d354ded 43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4a92d1f48cd2c57850e999576fd74660d85b5cd0",
+  "prompts": {},
+  "sessions": {
+    "s_49e5eb6e6b8acd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aacc1b3f41408e207",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_7e62cd660fa632": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c19147c-bf34-4bdf-950b-fdcc2217ed9f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
