@@ -11,5 +11,6 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 
 ## The features
 
+- [custom-network-names](./roadmap/custom-network-names/TODO.md): the name of a Docker network derived from the namespace, the project and the network, with no UUID.
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
