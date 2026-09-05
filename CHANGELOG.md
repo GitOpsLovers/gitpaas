@@ -1,3 +1,12 @@
+## [2.14.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.13.0...v2.14.0) (2026-09-05)
+
+### Features
+
+* **backend:** add compose project column to services ([#231](https://github.com/GitOpsLovers/gitpaas/issues/231)) ([70cbd95](https://github.com/GitOpsLovers/gitpaas/commit/70cbd9513c792f291642abe1888242db19c7d7d7))
+* **backend:** stamp service label and select by label ([#232](https://github.com/GitOpsLovers/gitpaas/issues/232)) ([e347924](https://github.com/GitOpsLovers/gitpaas/commit/e3479242098303c520d3f960d68d268e2421a883))
+* **deployments:** add names derived from compose project ([#233](https://github.com/GitOpsLovers/gitpaas/issues/233)) ([7532f77](https://github.com/GitOpsLovers/gitpaas/commit/7532f77c2909199ded96ccc8c027c8757e979240))
+* **volumes:** copy legacy volume data on deployment ([#234](https://github.com/GitOpsLovers/gitpaas/issues/234)) ([1ad32c8](https://github.com/GitOpsLovers/gitpaas/commit/1ad32c864e5746c2157dc2c559ae96556f993b43))
+
 ## [2.13.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.12.0...v2.13.0) (2026-09-04)
 
 ### Features
