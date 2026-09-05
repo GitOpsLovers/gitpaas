@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { SERVICE_NAME_MAX_LENGTH, SERVICE_NAME_MESSAGE } from '@gitpaas/contracts';
 
 import { ServiceFormComponent, ServiceFormValue } from './service-form.component';
 
@@ -26,6 +27,13 @@ describe('ServiceFormComponent', () => {
         fixture.componentInstance.save.subscribe((value) => saved.push(value));
         fixture.detectChanges();
     };
+
+    const submitButton = (): HTMLButtonElement =>
+        fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+    const nameHint = (): string | null =>
+        fixture.nativeElement.querySelector('#service-name')?.parentElement?.querySelector('p')?.textContent?.trim()
+        ?? null;
 
     const textarea = (): HTMLTextAreaElement =>
         fixture.nativeElement.querySelector('textarea[name="service-description"]') as HTMLTextAreaElement;
@@ -122,6 +130,50 @@ describe('ServiceFormComponent', () => {
         create();
 
         component.onNameChange('   ');
+        component.onSubmit(new Event('submit'));
+
+        expect(saved).toEqual([]);
+    });
+
+    test('shows the message of the contract when the name holds no letter and no digit', () => {
+        create();
+
+        component.onNameChange('---');
+        fixture.detectChanges();
+
+        expect(nameHint()).toBe(SERVICE_NAME_MESSAGE);
+        expect(submitButton().disabled).toBe(true);
+    });
+
+    test('does not emit a name that holds no letter and no digit', () => {
+        create();
+
+        component.onNameChange('-_.');
+        component.onSubmit(new Event('submit'));
+
+        expect(saved).toEqual([]);
+    });
+
+    test('shows no message while the name is blank or holds one usable character', () => {
+        create();
+
+        expect(nameHint()).toBeNull();
+
+        component.onNameChange('-a-');
+        fixture.detectChanges();
+
+        expect(nameHint()).toBeNull();
+        expect(submitButton().disabled).toBe(false);
+    });
+
+    test('refuses a name longer than the greatest count of the contract', () => {
+        create();
+
+        component.onNameChange('a'.repeat(SERVICE_NAME_MAX_LENGTH + 1));
+        fixture.detectChanges();
+
+        expect(nameHint()).toBe(`Give a name of ${SERVICE_NAME_MAX_LENGTH} characters at most.`);
+
         component.onSubmit(new Event('submit'));
 
         expect(saved).toEqual([]);

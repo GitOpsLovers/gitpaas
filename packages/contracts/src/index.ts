@@ -7,7 +7,14 @@ export type { CreateProjectDto, Project, UpdateProjectDto } from './projects/pro
 export { createNamespaceSchema, namespaceSchema, updateNamespaceSchema } from './namespaces/namespace.contract';
 export type { CreateNamespaceDto, Namespace, UpdateNamespaceDto } from './namespaces/namespace.contract';
 
-export { createServiceSchema, serviceSchema, updateServiceSchema } from './services/service.contract';
+export {
+    createServiceSchema,
+    SERVICE_NAME_MAX_LENGTH,
+    SERVICE_NAME_MESSAGE,
+    SERVICE_NAME_PATTERN,
+    serviceSchema,
+    updateServiceSchema,
+} from './services/service.contract';
 export type { CreateServiceDto, Service, UpdateServiceDto } from './services/service.contract';
 
 export {

@@ -1,5 +1,6 @@
-import { Component, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SERVICE_NAME_MAX_LENGTH, SERVICE_NAME_MESSAGE, SERVICE_NAME_PATTERN } from '@gitpaas/contracts';
 
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
@@ -31,6 +32,8 @@ export interface ServiceFormValue {
 export class ServiceFormComponent {
     protected readonly descriptionMaxLength = DESCRIPTION_MAX_LENGTH;
 
+    protected readonly nameMaxLength = SERVICE_NAME_MAX_LENGTH;
+
     public readonly namespaceId = input.required<string>();
 
     public readonly projectId = input.required<string>();
@@ -49,12 +52,33 @@ export class ServiceFormComponent {
 
     protected readonly description = linkedSignal(() => this.initialDescription());
 
+    /**
+     * Names the rule that the name breaks, and gives nothing while the name is sound or still blank.
+     */
+    protected readonly nameError = computed<string | null>(() => {
+        const value = this.name().trim();
+
+        if (value.length === 0) {
+            return null;
+        }
+
+        if (value.length > this.nameMaxLength) {
+            return `Give a name of ${this.nameMaxLength} characters at most.`;
+        }
+
+        if (!SERVICE_NAME_PATTERN.test(value)) {
+            return SERVICE_NAME_MESSAGE;
+        }
+
+        return null;
+    });
+
     protected onSubmit(event: Event): void {
         event.preventDefault();
 
         const value = this.name().trim();
 
-        if (value) {
+        if (value && this.nameError() === null) {
             this.save.emit({ name: value, description: this.description().trim() });
         }
     }

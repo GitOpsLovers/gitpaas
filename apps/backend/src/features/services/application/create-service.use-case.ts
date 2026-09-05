@@ -40,5 +40,8 @@ export async function createServiceUseCase(
         throw new NamespaceNotFoundError(project.namespaceId);
     }
 
-    return repository.create({ ...createDto, composeProject: getComposeProjectName(namespace, project) });
+    return repository.create({
+        ...createDto,
+        composeProject: getComposeProjectName(namespace, project, { name: createDto.name }),
+    });
 }

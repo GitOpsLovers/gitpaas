@@ -47,7 +47,7 @@ describe('createServiceUseCase', () => {
         name: createDto.name,
         description: 'The gateway of the API',
         projectId,
-        composeProject: 'gitpaas_web',
+        composeProject: 'gitpaas_web_api',
         providerId,
         repositoryId: '42',
         deploymentBranch: 'main',
@@ -83,7 +83,10 @@ describe('createServiceUseCase', () => {
         await run();
 
         expect(mockServicesRepository.create).toHaveBeenCalledTimes(1);
-        expect(mockServicesRepository.create).toHaveBeenCalledWith({ ...createDto, composeProject: 'gitpaas_web' });
+        expect(mockServicesRepository.create).toHaveBeenCalledWith({
+            ...createDto,
+            composeProject: 'gitpaas_web_api',
+        });
     });
 
     it('reads the namespace of the project of the service', async () => {
@@ -100,18 +103,26 @@ describe('createServiceUseCase', () => {
         await run();
 
         expect(mockServicesRepository.create).toHaveBeenCalledWith(
-            expect.objectContaining({ composeProject: 'git_paas_io_my_web' }),
+            expect.objectContaining({ composeProject: 'git_paas_io_my_web_api' }),
         );
     });
 
-    it('normalizes an uppercase letter and a space of the two names, and raises no error', async () => {
+    it('normalizes an uppercase letter and a space of the names, and raises no error', async () => {
         mockNamespacesRepository.findById.mockResolvedValue(namespace({ name: 'Personal' }));
         mockProjectsRepository.findById.mockResolvedValue(project({ name: 'Common Databases' }));
 
         await run();
 
         expect(mockServicesRepository.create).toHaveBeenCalledWith(
-            expect.objectContaining({ composeProject: 'personal_common_databases' }),
+            expect.objectContaining({ composeProject: 'personal_common_databases_api' }),
+        );
+    });
+
+    it('falls back to the segment service when the name of the service holds no usable character', async () => {
+        await run({ ...createDto, name: '###' });
+
+        expect(mockServicesRepository.create).toHaveBeenCalledWith(
+            expect.objectContaining({ composeProject: 'gitpaas_web_service' }),
         );
     });
 
@@ -129,7 +140,7 @@ describe('createServiceUseCase', () => {
 
         expect(mockServicesRepository.create).toHaveBeenCalledWith({
             ...dtoWithoutProvider,
-            composeProject: 'gitpaas_web',
+            composeProject: 'gitpaas_web_api',
         });
         expect(result.providerId).toBeNull();
     });
@@ -140,7 +151,7 @@ describe('createServiceUseCase', () => {
         expect(mockServicesRepository.create).toHaveBeenCalledWith({
             ...createDto,
             name: 'The API',
-            composeProject: 'gitpaas_web',
+            composeProject: 'gitpaas_web_the_api',
         });
     });
 

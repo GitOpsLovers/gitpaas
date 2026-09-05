@@ -137,6 +137,8 @@ The system SHALL create a service at `POST /api/v1/services`.
 
 The body holds the name and the identifier of the project. It can also hold the description and the identifier of the provider. The system SHALL set the identifier of the repository, the deployment branch and the path of the compose file to an empty text. Thus a new service is not deployable, and a caller makes it deployable with a later change.
 
+The system SHALL refuse a name that holds no letter and no digit, and a name that holds more than 255 characters. When the name holds no letter and no digit, the answer carries the message `The name holds at least one letter or one number`. The name becomes one segment of the name of the compose project of the service, so a name with no usable character makes two services of one project collide in Docker.
+
 ### Scenario: The body is correct
 
 - **WHEN** a client posts a name, the identifier of an available project and the identifier of an available provider
@@ -159,7 +161,7 @@ The body holds the name and the identifier of the project. It can also hold the 
 
 ### Scenario: The body is not correct
 
-- **WHEN** a client posts a body without a name, with an empty name, without a `projectId`, or with a value that is no UUID
+- **WHEN** a client posts a body without a name, with an empty name, with a name that holds no letter and no digit, with a name of more than 255 characters, without a `projectId`, or with a value that is no UUID
 - **THEN** the system answers `400 Bad Request`
 
 ## Change of a service
@@ -167,6 +169,8 @@ The body holds the name and the identifier of the project. It can also hold the 
 The system SHALL change a service at `PUT /api/v1/services/:id`.
 
 The body holds the name, which is obligatory. The body can also hold the description, the identifier of the provider, the identifier of the repository, the deployment branch and the path of the compose file. The system SHALL change only the fields that the body holds.
+
+The name follows the same rule as the name of the creation: it SHALL hold at least one letter or one digit, and it SHALL hold no more than 255 characters.
 
 A caller makes a service deployable with this operation, because it gives the provider, the identifier of the repository and the deployment branch.
 
@@ -187,7 +191,7 @@ A caller makes a service deployable with this operation, because it gives the pr
 
 ### Scenario: The body is not correct
 
-- **WHEN** a client puts a body without a name, or with an empty name
+- **WHEN** a client puts a body without a name, with an empty name, with a name that holds no letter and no digit, or with a name of more than 255 characters
 - **THEN** the system answers `400 Bad Request`
 
 ## Removal of a service
@@ -247,12 +251,24 @@ Until the name of the project arrives from the API, the second part shows the wo
 
 ## The check before the creation
 
-The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL do nothing.
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL show no message, and it SHALL disable the button that sends the form.
+
+If the name holds more than 255 characters, the system SHALL show the message "Give a name of 255 characters at most.". If the name holds no letter and no digit, the system SHALL show the message "The name holds at least one letter or one number". While a message stands, the button that sends the form stays disabled, so such a name never reaches the API.
 
 ### Scenario: The name is empty
 
-- **WHEN** the user sends the form with an empty name
-- **THEN** the system does nothing, and the user stays on the screen
+- **WHEN** the user gives an empty name
+- **THEN** the system shows no message, and the button that sends the form is disabled
+
+### Scenario: The name is too long
+
+- **WHEN** the user gives a name of more than 255 characters
+- **THEN** the system shows the message "Give a name of 255 characters at most.", and the button that sends the form is disabled
+
+### Scenario: The name holds no letter and no digit
+
+- **WHEN** the user gives a name that holds no letter and no digit
+- **THEN** the system shows the message "The name holds at least one letter or one number", and the button that sends the form is disabled
 
 ## The end of the creation
 
@@ -297,12 +313,24 @@ The system SHALL read the service of the path, and it SHALL put the name and the
 
 ## The check before the change
 
-The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL do nothing.
+The system SHALL remove the empty places at the two ends of the name. If the name is empty after that, the system SHALL show no message, and it SHALL disable the button that sends the form.
+
+If the name holds more than 255 characters, the system SHALL show the message "Give a name of 255 characters at most.". If the name holds no letter and no digit, the system SHALL show the message "The name holds at least one letter or one number". While a message stands, the button that sends the form stays disabled, so such a name never reaches the API.
 
 ### Scenario: The name is empty
 
-- **WHEN** the user sends the form with an empty name
-- **THEN** the system does nothing, and the user stays on the screen
+- **WHEN** the user gives an empty name
+- **THEN** the system shows no message, and the button that sends the form is disabled
+
+### Scenario: The name is too long
+
+- **WHEN** the user gives a name of more than 255 characters
+- **THEN** the system shows the message "Give a name of 255 characters at most.", and the button that sends the form is disabled
+
+### Scenario: The name holds no letter and no digit
+
+- **WHEN** the user gives a name that holds no letter and no digit
+- **THEN** the system shows the message "The name holds at least one letter or one number", and the button that sends the form is disabled
 
 ## The end of the change
 
