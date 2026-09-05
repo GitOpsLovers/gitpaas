@@ -21,7 +21,7 @@ describe('copyLegacyVolumesUseCase', () => {
     };
 
     const legacyName = 'my-service_gitpaas-1';
-    const daemonName = 'gitpaas_web_gitpaas-1';
+    const daemonName = 'gitpaas_web_my-service_gitpaas-1';
 
     /** Builds a volume of the service, overriding only the fields under test. */
     const volume = (overrides: Partial<Volume> = {}): Volume => ({
@@ -106,7 +106,7 @@ describe('copyLegacyVolumesUseCase', () => {
         expect(onLine).toHaveBeenNthCalledWith(1, `▹ Copied the data of the volume data from ${legacyName} into ${daemonName}.`);
         expect(onLine).toHaveBeenNthCalledWith(
             2,
-            '▹ Copied the data of the volume cache from my-service_gitpaas-2 into gitpaas_web_gitpaas-2.',
+            '▹ Copied the data of the volume cache from my-service_gitpaas-2 into gitpaas_web_my-service_gitpaas-2.',
         );
     });
 
@@ -139,20 +139,6 @@ describe('copyLegacyVolumesUseCase', () => {
         expect(onLine).not.toHaveBeenCalled();
     });
 
-    it('never touches the daemon when the old name and the new name are the same', async () => {
-        mockVolumesRepository.listByService.mockResolvedValue([volume()]);
-
-        await copyLegacyVolumesUseCase(
-            mockVolumesRepository as unknown as VolumesRepository,
-            mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
-            { ...service, name: 'my-service', composeProject: 'my-service' },
-            onLine,
-        );
-
-        expect(mockDaemonVolumesRepository.findByName).not.toHaveBeenCalled();
-        expect(mockDaemonVolumesRepository.copyData).not.toHaveBeenCalled();
-    });
-
     it('copies the volume of the next one when one volume of the service needs none', async () => {
         mockVolumesRepository.listByService.mockResolvedValue([
             volume(),
@@ -163,7 +149,7 @@ describe('copyLegacyVolumesUseCase', () => {
         await run();
 
         expect(mockDaemonVolumesRepository.copyData).toHaveBeenCalledTimes(1);
-        expect(mockDaemonVolumesRepository.copyData).toHaveBeenCalledWith('my-service_gitpaas-2', 'gitpaas_web_gitpaas-2');
+        expect(mockDaemonVolumesRepository.copyData).toHaveBeenCalledWith('my-service_gitpaas-2', 'gitpaas_web_my-service_gitpaas-2');
     });
 
     it('propagates the failure of the copy, so the deployment never starts on empty data', async () => {

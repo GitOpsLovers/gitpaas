@@ -84,7 +84,7 @@ export class DockerServiceRuntimeResourcesAdapter implements ServiceRuntimeResou
             const volumes = await this.client.listVolumes(selector);
 
             for (const volume of volumes) {
-                const key = getVolumeDaemonKeyFromNameUseCase(service.composeProject, volume.name);
+                const key = getVolumeDaemonKeyFromNameUseCase(service, volume.name);
 
                 // A volume the Compose file declares belongs to the user's recipe, so its data survives the service.
                 if (!key.startsWith(GITPAAS_VOLUME_KEY_PREFIX)) {

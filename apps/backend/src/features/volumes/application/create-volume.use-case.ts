@@ -56,7 +56,7 @@ export async function createVolumeUseCase(
 
     const id = randomUUID();
     const daemonKey = getVolumeDaemonKeyUseCase(id);
-    const daemonName = getVolumeDaemonNameUseCase(service.composeProject, daemonKey);
+    const daemonName = getVolumeDaemonNameUseCase(service, daemonKey);
 
     await daemonVolumesRepository.create(service, daemonName);
 

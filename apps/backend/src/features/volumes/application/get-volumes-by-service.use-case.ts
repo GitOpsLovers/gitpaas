@@ -11,26 +11,27 @@ import {
 import { getVolumeDaemonViewUseCase, getVolumeStatusUseCase, VolumeDaemonView } from './get-volume-status.use-case';
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
+import { Service } from '@features/services/domain/models/service.models';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 
 /**
  * Gives the volumes the daemon holds and the database does not the state `orphan`.
  *
  * @param view Reads of the daemon of the service
- * @param composeProjectName Name of the Compose project of the service
+ * @param service Service the volumes belong to
  * @param knownNames Names on the daemon of the volumes the database holds
  *
  * @returns Volumes of the daemon that no row of the database claims
  */
 function toOrphanVolumes(
     view: VolumeDaemonView,
-    composeProjectName: string,
+    service: Service,
     knownNames: Set<string>,
 ): VolumeStatus[] {
     return [...view.volumes.values()]
         .filter((daemonVolume) => !knownNames.has(daemonVolume.name))
         .map<VolumeStatus>((daemonVolume) => {
-            const key = getVolumeDaemonKeyFromNameUseCase(composeProjectName, daemonVolume.name);
+            const key = getVolumeDaemonKeyFromNameUseCase(service, daemonVolume.name);
 
             return {
                 id: daemonVolume.name,
@@ -71,8 +72,6 @@ export async function getVolumesByServiceUseCase(
         throw new ServiceNotFoundError(serviceId);
     }
 
-    const composeProjectName = service.composeProject;
-
     const [volumes, mounts, view] = await Promise.all([
         volumesRepository.listByService(serviceId),
         serviceVolumesRepository.listByService(serviceId),
@@ -82,12 +81,12 @@ export async function getVolumesByServiceUseCase(
     const mountsByVolume = new Map<string, ServiceVolumeMount>(mounts.map((mount) => [mount.volumeId, mount]));
     const declared = volumes.map((volume) => getVolumeStatusUseCase(
         volume,
-        getVolumeDaemonNameUseCase(composeProjectName, volume.daemonKey),
+        getVolumeDaemonNameUseCase(service, volume.daemonKey),
         mountsByVolume.get(volume.id) ?? null,
         view,
     ));
 
     const knownNames = new Set(declared.map((volume) => volume.daemonName));
 
-    return [...declared, ...toOrphanVolumes(view, composeProjectName, knownNames)];
+    return [...declared, ...toOrphanVolumes(view, service, knownNames)];
 }

@@ -77,6 +77,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     };
     /** Name of the compose project of the service, which its siblings of the same project share. */
     const projectName = service.composeProject;
+    /** Prefix every volume of the service carries on the daemon: the compose project, then the slug of the service. */
+    const volumePrefix = `${projectName}_my-service`;
     /** Selector that scopes every teardown to the one service, and never to its compose project. */
     const serviceSelector = { labels: managedLabels, service: service.id };
     /** A sibling service of the very same compose project, whose resources the teardown must spare. */
@@ -239,8 +241,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('removeVolumes', () => {
-        /** Name on the daemon of a volume GitPaaS owns, as Compose prefixes it with the project. */
-        const ownedName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`;
+        /** Name on the daemon of a volume GitPaaS owns, prefixed with the project and the slug of the service. */
+        const ownedName = `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`;
 
         it('lists volumes scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.removeVolumes(service);
@@ -249,7 +251,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         });
 
         it('removes every volume GitPaaS owns, by its name on the daemon', async () => {
-            const secondName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
+            const secondName = `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
             mockListVolumes.mockResolvedValue([volumeSummary(ownedName), volumeSummary(secondName)]);
 
             await sut.removeVolumes(service);
@@ -268,7 +270,7 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         });
 
         it('catches a single volume failure and continues with the rest', async () => {
-            const secondName = `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
+            const secondName = `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
             mockListVolumes.mockResolvedValue([volumeSummary(ownedName), volumeSummary(secondName)]);
             mockRemoveVolume.mockRejectedValueOnce(new Error('volume is in use'));
 
@@ -367,18 +369,18 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
 
         /** Volume GitPaaS created for this service: marked, and keyed with the GitPaaS prefix. */
         const ownedVolume = {
-            name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`,
+            name: `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`,
             labels: ownLabels,
         };
         /** Volume the Compose file of the user declares: same stack, but its data is not GitPaaS's to drop. */
-        const composeVolume = { name: `${projectName}_pgdata`, labels: ownLabels };
+        const composeVolume = { name: `${volumePrefix}_pgdata`, labels: ownLabels };
         /** Volume of a sibling service of the same compose project, marked but not this service's. */
         const siblingVolume = {
-            name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`,
+            name: `${projectName}_other-service_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`,
             labels: siblingLabels,
         };
         /** Unlabelled host volume from `docker volume create`, never GitPaaS's to remove. */
-        const hostVolume = { name: `${projectName}_${GITPAAS_VOLUME_KEY_PREFIX}stray`, labels: undefined };
+        const hostVolume = { name: `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}stray`, labels: undefined };
 
         beforeEach(() => {
             mockListImages.mockImplementation((selector: RuntimeSelector) => Promise.resolve(

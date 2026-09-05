@@ -69,7 +69,7 @@ export async function renameVolumeUseCase(
 
     return getVolumeStatusUseCase(
         renamed,
-        getVolumeDaemonNameUseCase(service.composeProject, renamed.daemonKey),
+        getVolumeDaemonNameUseCase(service, renamed.daemonKey),
         mounts.find((mount) => mount.volumeId === volumeId) ?? null,
         view,
     );

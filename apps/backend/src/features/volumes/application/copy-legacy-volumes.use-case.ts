@@ -22,7 +22,7 @@ export type VolumeCopyListener = (line: string) => void;
  * @returns Name the volume carries on the daemon under the old convention
  */
 export function getVolumeLegacyDaemonNameUseCase(service: Service, daemonKey: string): string {
-    return getVolumeDaemonNameUseCase(getServiceSlug(service), daemonKey);
+    return `${getServiceSlug(service)}_${daemonKey}`;
 }
 
 /**
@@ -44,12 +44,8 @@ export async function copyLegacyVolumesUseCase(
     const volumes = await volumesRepository.listByService(service.id);
 
     for (const volume of volumes) {
-        const daemonName = getVolumeDaemonNameUseCase(service.composeProject, volume.daemonKey);
+        const daemonName = getVolumeDaemonNameUseCase(service, volume.daemonKey);
         const legacyName = getVolumeLegacyDaemonNameUseCase(service, volume.daemonKey);
-
-        if (legacyName === daemonName) {
-            continue;
-        }
 
         const current = await daemonVolumesRepository.findByName(daemonName);
 

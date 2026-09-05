@@ -12,7 +12,7 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
 const serviceId = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 const volumeId = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
 const daemonKey = `gitpaas-${volumeId}`;
-const daemonName = `gitpaas_web_${daemonKey}`;
+const daemonName = `gitpaas_web_api_${daemonKey}`;
 
 /** Builds a service fixture, overriding only the fields under test. */
 const service = (overrides: Partial<Service> = {}): Service => ({
@@ -94,7 +94,7 @@ describe('getVolumesByServiceUseCase', () => {
         await expect(run()).resolves.toEqual([]);
     });
 
-    it('builds the name of the daemon from the Compose project of the service and the key of the volume', async () => {
+    it('builds the name of the daemon from the Compose project, the slug of the service and the key of the volume', async () => {
         mockVolumesRepository.listByService.mockResolvedValue([volume()]);
         mockDaemonVolumesRepository.listByService.mockResolvedValue([daemonVolume()]);
 
@@ -146,14 +146,14 @@ describe('getVolumesByServiceUseCase', () => {
     });
 
     it('gives the state orphan to a volume of the daemon that the database does not hold', async () => {
-        mockDaemonVolumesRepository.listByService.mockResolvedValue([daemonVolume({ name: 'gitpaas_web_pgdata' })]);
+        mockDaemonVolumesRepository.listByService.mockResolvedValue([daemonVolume({ name: 'gitpaas_web_api_pgdata' })]);
 
         const [result] = await run();
 
         expect(result).toEqual({
-            id: 'gitpaas_web_pgdata',
+            id: 'gitpaas_web_api_pgdata',
             name: 'pgdata',
-            daemonName: 'gitpaas_web_pgdata',
+            daemonName: 'gitpaas_web_api_pgdata',
             origin: 'compose',
             state: 'orphan',
             driver: 'local',
@@ -181,9 +181,9 @@ describe('getVolumesByServiceUseCase', () => {
     });
 
     it('names the containers that mount an orphan', async () => {
-        mockDaemonVolumesRepository.listByService.mockResolvedValue([daemonVolume({ name: 'gitpaas_web_pgdata' })]);
+        mockDaemonVolumesRepository.listByService.mockResolvedValue([daemonVolume({ name: 'gitpaas_web_api_pgdata' })]);
         mockDaemonVolumesRepository.listMountsByService.mockResolvedValue([
-            { volumeName: 'gitpaas_web_pgdata', containerName: 'api-db-1' },
+            { volumeName: 'gitpaas_web_api_pgdata', containerName: 'api-db-1' },
         ]);
 
         const [result] = await run();
