@@ -1,3 +1,13 @@
+## [2.15.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.14.0...v2.15.0) (2026-09-05)
+
+### Features
+
+* **errors:** answer 503 only when the daemon fails ([#236](https://github.com/GitOpsLovers/gitpaas/issues/236)) ([bb282a6](https://github.com/GitOpsLovers/gitpaas/commit/bb282a6ee6b44b3b9420bd9af13cae2d6d284bbf))
+
+### Bug Fixes
+
+* add volumes migration ([c4dc77a](https://github.com/GitOpsLovers/gitpaas/commit/c4dc77a3afb7b1e0674c16e8ec95eedd451da7c6))
+
 ## [2.14.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.13.0...v2.14.0) (2026-09-05)
 
 ### Features
