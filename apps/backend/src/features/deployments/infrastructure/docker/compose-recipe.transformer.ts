@@ -282,6 +282,74 @@ export function resolveBuild(build: ComposeBuild, baseDir: string): ResolvedBuil
 }
 
 /**
+ * Tells whether the source of an entry of the `volumes` block of a service names a path of the host, and not a named volume.
+ *
+ * @param source Source of the entry, which is the part before the first `:`
+ *
+ * @returns True when the source names a path of the host
+ */
+export function isBindMountSource(source: string): boolean {
+    return source.startsWith('~') || source.includes('/');
+}
+
+/**
+ * Resolves the source of a bind mount against the directory of the compose file, which the daemon needs as an absolute path.
+ *
+ * @param source Source of the bind mount
+ * @param baseDir Directory containing the compose file
+ *
+ * @returns The absolute source, or the source unchanged when it already is absolute or starts with `~`
+ */
+export function resolveBindSource(source: string, baseDir: string): string {
+    return source.startsWith('/') || source.startsWith('~') ? source : resolve(baseDir, source);
+}
+
+/**
+ * Resolves one entry of the `volumes` block of a service, in either the short or the long form.
+ *
+ * @param volume Entry of the `volumes` block
+ * @param baseDir Directory containing the compose file
+ *
+ * @returns The entry with an absolute bind source, or the entry unchanged when it declares a named volume
+ */
+export function resolveServiceVolume(volume: ComposeServiceVolume, baseDir: string): ComposeServiceVolume {
+    if (typeof volume === 'string') {
+        const [source, ...rest] = volume.trim().split(':');
+
+        // A lone path declares an anonymous volume, and carries no source on the host.
+        if (rest.length === 0 || !isBindMountSource(source)) {
+            return volume;
+        }
+
+        return [resolveBindSource(source, baseDir), ...rest].join(':');
+    }
+
+    const { type, source } = volume as { type?: unknown; source?: unknown };
+
+    if (typeof source !== 'string' || (type === undefined ? !isBindMountSource(source) : type !== 'bind')) {
+        return volume;
+    }
+
+    return { ...volume, source: resolveBindSource(source, baseDir) };
+}
+
+/**
+ * Rewrites the source of every bind mount of the recipe into an absolute path, which stops the daemon from reading it as the name of a volume to create.
+ *
+ * @param compose Compose project driven by the container runtime
+ * @param baseDir Directory containing the compose file
+ */
+export function resolveBindMounts(compose: RuntimeComposeProject, baseDir: string): void {
+    for (const service of Object.values(recipeServices(compose))) {
+        if (!service.volumes) {
+            continue;
+        }
+
+        service.volumes = service.volumes.map((volume) => resolveServiceVolume(volume, baseDir));
+    }
+}
+
+/**
  * Rewrites every service's healthcheck durations into numeric nanoseconds.
  *
  * @param compose Compose project driven by the container runtime

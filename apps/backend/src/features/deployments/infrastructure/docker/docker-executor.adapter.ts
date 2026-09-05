@@ -12,7 +12,8 @@ import { getDefaultNetworkNameUseCase } from '../../application/get-default-netw
 import { DeploymentTarget, DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import {
-    declareDefaultNetwork, injectEnvironment, normalizeHealthchecks, recipeServices, resolveBuild, stampLabels, stampRouting,
+    declareDefaultNetwork, injectEnvironment, normalizeHealthchecks, recipeServices, resolveBindMounts, resolveBuild, stampLabels,
+    stampRouting,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
 
@@ -100,6 +101,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
             await this.removeDefaultNetwork(projectName, emit);
 
             normalizeHealthchecks(compose);
+
+            // A relative bind mount reaches the daemon as the name of a volume to create, so its source turns absolute first.
+            resolveBindMounts(compose, dirname(composeFile));
             stampLabels(compose, projectName, serviceId);
 
             const routed = this.applyRouting(compose, routing, emit);

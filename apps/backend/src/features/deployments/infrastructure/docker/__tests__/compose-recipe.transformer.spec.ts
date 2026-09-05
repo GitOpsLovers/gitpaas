@@ -5,8 +5,10 @@ import {
     declareDefaultNetwork,
     injectEnvironment,
     normalizeBuildArgs,
+    isBindMountSource,
     normalizeHealthchecks,
     recipeServices,
+    resolveBindMounts,
     resolveBuild,
     stampLabels,
     stampRouting,
@@ -135,6 +137,114 @@ describe('compose-recipe.transformer', () => {
 
             expect(withCheck.healthcheck).toEqual({ interval: 5e9, timeout: 2e9, start_period: 0 });
             expect(withoutCheck.healthcheck).toBeUndefined();
+        });
+    });
+
+    describe('isBindMountSource', () => {
+        it('reads a source with no separator as the name of a volume', () => {
+            expect(isBindMountSource('pgadmin_data')).toBe(false);
+            expect(isBindMountSource('db-data.1')).toBe(false);
+        });
+
+        it('reads a relative, an absolute and a home source as a path of the host', () => {
+            expect(isBindMountSource('./config/servers.json')).toBe(true);
+            expect(isBindMountSource('../shared/data')).toBe(true);
+            expect(isBindMountSource('/srv/config')).toBe(true);
+            expect(isBindMountSource('~/config')).toBe(true);
+        });
+
+        it('reads a bare relative source that holds a separator as a path of the host', () => {
+            expect(isBindMountSource('config/servers.json')).toBe(true);
+        });
+    });
+
+    describe('resolveBindMounts', () => {
+        it('leaves the entry of a named volume untouched, which keeps its adoption and its prefix', () => {
+            const service = { volumes: ['pgadmin_data:/var/lib/pgadmin'] };
+
+            resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual(['pgadmin_data:/var/lib/pgadmin']);
+        });
+
+        it('resolves a relative bind mount against the directory of the compose file, and keeps its options', () => {
+            const service = { volumes: ['./config/servers.json:/pgadmin4/servers.json.template:ro'] };
+
+            resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual([`${resolve('/repo/stack', './config/servers.json')}:/pgadmin4/servers.json.template:ro`]);
+        });
+
+        it('resolves a bind mount that names its parent directory', () => {
+            const service = { volumes: ['../shared/data:/data'] };
+
+            resolveBindMounts(asCompose({ recipe: { services: { app: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual([`${resolve('/repo/stack', '../shared/data')}:/data`]);
+        });
+
+        it('leaves an absolute bind mount and its read-only option untouched', () => {
+            const service = { volumes: ['/srv/config/servers.json:/pgadmin4/servers.json:ro'] };
+
+            resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual(['/srv/config/servers.json:/pgadmin4/servers.json:ro']);
+        });
+
+        it('never rewrites a lone path, which declares an anonymous volume', () => {
+            const service = { volumes: ['/var/lib/pgadmin'] };
+
+            resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual(['/var/lib/pgadmin']);
+        });
+
+        it('resolves the source of the long form when it declares a bind, and keeps its other keys', () => {
+            const service = {
+                volumes: [{
+                    type: 'bind', source: './config', target: '/etc/app', read_only: true,
+                }],
+            };
+
+            resolveBindMounts(asCompose({ recipe: { services: { app: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual([{
+                type: 'bind', source: resolve('/repo/stack', './config'), target: '/etc/app', read_only: true,
+            }]);
+        });
+
+        it('leaves the long form of a named volume untouched', () => {
+            const service = { volumes: [{ type: 'volume', source: 'pgadmin_data', target: '/var/lib/pgadmin' }] };
+
+            resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual([{ type: 'volume', source: 'pgadmin_data', target: '/var/lib/pgadmin' }]);
+        });
+
+        it('resolves every entry of a service that mixes a named volume with two bind mounts', () => {
+            const service = {
+                volumes: [
+                    'pgadmin_data:/var/lib/pgadmin',
+                    './config/servers.json:/pgadmin4/servers.json.template:ro',
+                    './config/init-pgadmin.sh:/init-pgadmin.sh:ro',
+                ],
+            };
+
+            resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack');
+
+            expect(service.volumes).toEqual([
+                'pgadmin_data:/var/lib/pgadmin',
+                `${resolve('/repo/stack', './config/servers.json')}:/pgadmin4/servers.json.template:ro`,
+                `${resolve('/repo/stack', './config/init-pgadmin.sh')}:/init-pgadmin.sh:ro`,
+            ]);
+        });
+
+        it('never fails on a service that declares no volume', () => {
+            const service = { image: 'nginx' } as { image: string; volumes?: unknown };
+
+            resolveBindMounts(asCompose({ recipe: { services: { web: service } } }), '/repo/stack');
+
+            expect(service.volumes).toBeUndefined();
         });
     });
 
