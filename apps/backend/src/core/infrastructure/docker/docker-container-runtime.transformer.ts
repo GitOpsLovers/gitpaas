@@ -38,6 +38,12 @@ export type DockerLabelFilter = { label: string[] };
 export type DockerImagePruneFilter = { label: string[]; dangling: string[] };
 
 /**
+ * A Docker volume prune filter fragment, as the daemon's `filters` query expects it.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DockerVolumePruneFilter = { label: string[]; all: string[] };
+
+/**
  * Compose label Docker stamps on every resource it groups under a stack.
  */
 export const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
@@ -92,6 +98,20 @@ export function toLabelFilter(selector: RuntimeSelector): DockerLabelFilter {
  */
 export function toImagePruneFilter(selector: RuntimeSelector): DockerImagePruneFilter {
     return { ...toLabelFilter(selector), dangling: ['false'] };
+}
+
+/**
+ * Serialises a domain selector into the daemon's `filters` shape for a volume prune.
+ *
+ * Since API 1.42 the daemon prunes anonymous volumes alone, unless the `all` filter asks for
+ * the named ones too. Every volume GitPaaS creates is named, so the prune needs that filter.
+ *
+ * @param selector Domain selector describing the volumes to match
+ *
+ * @returns Volume prune filter fragment the daemon's `filters` query expects
+ */
+export function toVolumePruneFilter(selector: RuntimeSelector): DockerVolumePruneFilter {
+    return { ...toLabelFilter(selector), all: ['true'] };
 }
 
 /**

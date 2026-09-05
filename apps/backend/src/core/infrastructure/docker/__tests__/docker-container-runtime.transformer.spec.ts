@@ -9,6 +9,7 @@ import {
     toNetworkSummary,
     toPruneReport,
     toRuntimeLogLine,
+    toVolumePruneFilter,
     toVolumeSummary,
 } from '../docker-container-runtime.transformer';
 
@@ -159,6 +160,36 @@ describe('toImagePruneFilter', () => {
         expect(toImagePruneFilter({ labels: getGitpaasLabels() })).toEqual({
             label: ['io.gitpaas.managed=true'],
             dangling: ['false'],
+        });
+    });
+});
+
+describe('toVolumePruneFilter', () => {
+    it('keeps the serialised label filter of the selector', () => {
+        expect(toVolumePruneFilter({ labels: getGitpaasLabels(), project: 'my-service' })).toEqual({
+            label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'],
+            all: ['true'],
+        });
+    });
+
+    it('adds the all=true filter, so a named volume is pruned and not only an anonymous one', () => {
+        expect(toVolumePruneFilter({ labels: getGitpaasLabels() })).toEqual({
+            label: ['io.gitpaas.managed=true'],
+            all: ['true'],
+        });
+    });
+
+    it('keeps the all=true filter when the selector is empty', () => {
+        expect(toVolumePruneFilter({})).toEqual({ label: [], all: ['true'] });
+    });
+
+    it('hands out a fresh filter per call, so a caller mutating one cannot widen another', () => {
+        const first = toVolumePruneFilter({ labels: getGitpaasLabels() });
+        first.all.push('false');
+
+        expect(toVolumePruneFilter({ labels: getGitpaasLabels() })).toEqual({
+            label: ['io.gitpaas.managed=true'],
+            all: ['true'],
         });
     });
 });

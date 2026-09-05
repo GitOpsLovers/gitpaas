@@ -39,6 +39,7 @@ import {
     toNetworkSummary,
     toPruneReport,
     toRuntimeLogLine,
+    toVolumePruneFilter,
     toVolumeSummary,
 } from './docker-container-runtime.transformer';
 import { toDaemonFailure } from './docker-error.util';
@@ -173,7 +174,7 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
     }
 
     public async pruneVolumes(selector: RuntimeSelector): Promise<RuntimePruneReport> {
-        const filters = toLabelFilter(selector);
+        const filters = toVolumePruneFilter(selector);
         const { VolumesDeleted, SpaceReclaimed } = await this.run(() => this.getClient().pruneVolumes({ filters }));
 
         return toPruneReport(VolumesDeleted, SpaceReclaimed);

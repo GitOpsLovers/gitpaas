@@ -288,15 +288,30 @@ describe('DockerContainerRuntimeAdapter', () => {
             });
         });
 
-        it('scopes the volume and container prunes to the same serialised filter', async () => {
+        it('scopes the volume and container prunes to the same serialised label filter', async () => {
             const { sut, daemon } = buildSut();
 
             await sut.pruneVolumes({ labels: getGitpaasLabels() });
             await sut.pruneContainers({ labels: getGitpaasLabels(), project: 'my-service' });
 
-            expect(daemon.pruneVolumes).toHaveBeenCalledWith({ filters: { label: ['io.gitpaas.managed=true'] } });
+            expect(daemon.pruneVolumes).toHaveBeenCalledWith({
+                filters: { label: ['io.gitpaas.managed=true'], all: ['true'] },
+            });
             expect(daemon.pruneContainers).toHaveBeenCalledWith({
                 filters: { label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'] },
+            });
+        });
+
+        it('adds the all=true filter to the volume prune, so a named volume is pruned too', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.pruneVolumes({ labels: getGitpaasLabels(), project: 'my-service' });
+
+            expect(daemon.pruneVolumes).toHaveBeenCalledWith({
+                filters: {
+                    label: ['io.gitpaas.managed=true', 'com.docker.compose.project=my-service'],
+                    all: ['true'],
+                },
             });
         });
     });
