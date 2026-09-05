@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_08f20c9b4d556b::t_0cf31f9c820e6b 14
+docs/roadmap/custom-network-names/TODO.md
+  s_08f20c9b4d556b::t_4056aef01eb07c 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8ac5184466c3cac96eaea6033cd5ba8987369450",
+  "prompts": {},
+  "sessions": {
+    "s_08f20c9b4d556b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "03fad8d2-4378-489d-9777-cfec9dd0c7d9",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
