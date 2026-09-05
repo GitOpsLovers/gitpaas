@@ -1,3 +1,9 @@
+## [2.15.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.15.0...v2.15.1) (2026-09-05)
+
+### Bug Fixes
+
+* clean unused volumes ([8cc82b3](https://github.com/GitOpsLovers/gitpaas/commit/8cc82b3e0f2eb2d5ebc8f049847950821b49dd2c))
+
 ## [2.15.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.14.0...v2.15.0) (2026-09-05)
 
 ### Features
