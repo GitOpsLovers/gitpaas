@@ -1,3 +1,13 @@
+## [2.16.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.15.2...v2.16.0) (2026-09-05)
+
+### Features
+
+* **volumes:** adopt compose-based volume naming ([#237](https://github.com/GitOpsLovers/gitpaas/issues/237)) ([8c81233](https://github.com/GitOpsLovers/gitpaas/commit/8c81233019453c08977a9fc6cc73216a6d8230e2))
+
+### Bug Fixes
+
+* change service names ([4a92d1f](https://github.com/GitOpsLovers/gitpaas/commit/4a92d1f48cd2c57850e999576fd74660d85b5cd0))
+
 ## [2.15.2](https://github.com/GitOpsLovers/gitpaas/compare/v2.15.1...v2.15.2) (2026-09-05)
 
 ### Bug Fixes
