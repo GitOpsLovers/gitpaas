@@ -2,7 +2,6 @@ import type { CreateVolumeDto } from '@gitpaas/contracts';
 
 import { VolumeMountPathTakenError, VolumeNameTakenError } from '../../domain/errors/volume.errors';
 import { ServiceVolumeMount, Volume } from '../../domain/models/volume.models';
-import { DaemonVolumesRepository } from '../../domain/repositories/daemon-volumes.repository';
 import { ServiceVolumesRepository } from '../../domain/repositories/service-volumes.repository';
 import { VolumesRepository } from '../../domain/repositories/volumes.repository';
 import { createVolumeUseCase } from '../create-volume.use-case';
@@ -33,7 +32,7 @@ const volume = (overrides: Partial<Volume> = {}): Volume => ({
     id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
     serviceId,
     name: 'data',
-    daemonKey: 'gitpaas-b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+    daemonKey: 'data',
     origin: 'gitpaas',
     ...overrides,
 });
@@ -55,7 +54,6 @@ describe('createVolumeUseCase', () => {
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
     let mockVolumesRepository: jest.Mocked<Pick<VolumesRepository, 'listByService' | 'create'>>;
     let mockServiceVolumesRepository: jest.Mocked<Pick<ServiceVolumesRepository, 'listByService' | 'attach'>>;
-    let mockDaemonVolumesRepository: jest.Mocked<Pick<DaemonVolumesRepository, 'create'>>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -63,7 +61,6 @@ describe('createVolumeUseCase', () => {
         mockServicesRepository = { findById: jest.fn() };
         mockVolumesRepository = { listByService: jest.fn(), create: jest.fn() };
         mockServiceVolumesRepository = { listByService: jest.fn(), attach: jest.fn() };
-        mockDaemonVolumesRepository = { create: jest.fn() };
 
         mockServicesRepository.findById.mockResolvedValue(service());
         mockVolumesRepository.listByService.mockResolvedValue([]);
@@ -76,7 +73,6 @@ describe('createVolumeUseCase', () => {
         mockServicesRepository as unknown as ServicesRepository,
         mockVolumesRepository as unknown as VolumesRepository,
         mockServiceVolumesRepository as unknown as ServiceVolumesRepository,
-        mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
         serviceId,
         dto,
     );
@@ -87,8 +83,8 @@ describe('createVolumeUseCase', () => {
         await expect(run()).rejects.toBeInstanceOf(ServiceNotFoundError);
     });
 
-    it('throws when the service already holds a volume of that name', async () => {
-        mockVolumesRepository.listByService.mockResolvedValue([volume()]);
+    it('throws when another volume of the service carries that name under another key', async () => {
+        mockVolumesRepository.listByService.mockResolvedValue([volume({ daemonKey: 'legacy' })]);
 
         await expect(run()).rejects.toBeInstanceOf(VolumeNameTakenError);
     });
@@ -99,39 +95,29 @@ describe('createVolumeUseCase', () => {
         await expect(run()).rejects.toBeInstanceOf(VolumeMountPathTakenError);
     });
 
-    it('creates nothing on the daemon when the mount path is taken', async () => {
+    it('writes no row when the mount path is taken', async () => {
         mockServiceVolumesRepository.listByService.mockResolvedValue([mount()]);
 
         await expect(run()).rejects.toThrow();
 
-        expect(mockDaemonVolumesRepository.create).not.toHaveBeenCalled();
         expect(mockVolumesRepository.create).not.toHaveBeenCalled();
     });
 
-    it('creates the volume on the daemon under the name of the Compose project, the slug of the service and the key of GitPaaS', async () => {
+    it('writes the volume with the origin gitpaas, because GitPaaS owns the record', async () => {
         await run();
 
-        expect(mockDaemonVolumesRepository.create).toHaveBeenCalledTimes(1);
-        expect(mockDaemonVolumesRepository.create).toHaveBeenCalledWith(
-            service(),
-            expect.stringContaining('gitpaas_web_api_gitpaas-'),
-        );
-    });
-
-    it('writes the volume with the origin gitpaas, because GitPaaS owns it', async () => {
-        await run();
-
+        expect(mockVolumesRepository.create).toHaveBeenCalledTimes(1);
         expect(mockVolumesRepository.create).toHaveBeenCalledWith(expect.objectContaining({
             serviceId, name: 'data', origin: 'gitpaas',
         }));
     });
 
-    it('builds the key of the volume from its own id', async () => {
+    it('takes the name of the body as the key of the Compose file, which Compose creates the volume from', async () => {
         await run();
 
         const [created] = mockVolumesRepository.create.mock.calls[0] ?? [];
 
-        expect(created?.daemonKey).toBe(`gitpaas-${created?.id}`);
+        expect(created?.daemonKey).toBe('data');
     });
 
     it('attaches the created volume to the service of the Compose file the body names', async () => {
@@ -155,21 +141,52 @@ describe('createVolumeUseCase', () => {
         );
     });
 
-    it('gives the created volume the state pending, because the mount waits for the next deployment', async () => {
+    it('gives the created volume the state pending, because the next deployment creates it on the daemon', async () => {
         const result = await run();
 
         expect(result.state).toBe('pending');
         expect(result.containers).toEqual([]);
-        expect(result.daemonName).toBe(`gitpaas_web_api_gitpaas-${result.id}`);
+        expect(result.daemonName).toBe('gitpaas_web_data');
     });
 
-    it('propagates the failure of the daemon, and writes no row', async () => {
-        const error = new Error('daemon down');
+    describe('when the service already holds a volume of that key', () => {
+        beforeEach(() => {
+            mockVolumesRepository.listByService.mockResolvedValue([volume({ name: 'archive' })]);
+        });
 
-        mockDaemonVolumesRepository.create.mockRejectedValue(error);
+        it('writes no second row, because the volume of the daemon keeps its data', async () => {
+            await run();
 
-        await expect(run()).rejects.toThrow(error);
+            expect(mockVolumesRepository.create).not.toHaveBeenCalled();
+        });
 
-        expect(mockVolumesRepository.create).not.toHaveBeenCalled();
+        it('attaches the mount of the body to the volume that already exists', async () => {
+            await run();
+
+            expect(mockServiceVolumesRepository.attach).toHaveBeenCalledTimes(1);
+            expect(mockServiceVolumesRepository.attach).toHaveBeenCalledWith(serviceId, volume().id, {
+                composeServiceName: 'app', containerPath: '/data', readOnly: false,
+            });
+        });
+
+        it('answers with the volume that already exists, and with the name it carries on the daemon', async () => {
+            const result = await run();
+
+            expect(result).toEqual(expect.objectContaining({
+                id: volume().id, name: 'archive', daemonName: 'gitpaas_web_data', state: 'pending',
+            }));
+        });
+
+        it('keeps the mount path the volume itself already holds', async () => {
+            mockServiceVolumesRepository.listByService.mockResolvedValue([mount({ volumeId: volume().id })]);
+
+            await expect(run()).resolves.toEqual(expect.objectContaining({ id: volume().id }));
+        });
+
+        it('throws when another volume of the service already mounts at that path', async () => {
+            mockServiceVolumesRepository.listByService.mockResolvedValue([mount()]);
+
+            await expect(run()).rejects.toBeInstanceOf(VolumeMountPathTakenError);
+        });
     });
 });

@@ -110,7 +110,7 @@ describe('VolumesService', () => {
             name: 'data', composeServiceName: 'app', containerPath: '/data', readOnly: false,
         };
 
-        it('sends every repository, the service and the body to the use case', async () => {
+        it('sends the repositories of the database, the service and the body to the use case', async () => {
             mockCreateVolumeUseCase.mockResolvedValue(volume);
 
             await sut.create(serviceId, createDto);
@@ -119,7 +119,6 @@ describe('VolumesService', () => {
                 mockServicesRepository,
                 mockVolumesRepository,
                 mockServiceVolumesRepository,
-                mockDaemonVolumesRepository,
                 serviceId,
                 createDto,
             );

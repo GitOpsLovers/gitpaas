@@ -64,7 +64,7 @@ The system SHALL list the containers that stopped as well. Thus the operator see
 
 ## The manual step after the change of the convention of the name
 
-The system SHALL keep a container of an old name running until its service deploys again; it stops no container by itself. The operator SHALL re-deploy every service once, so each container, network and volume takes its new name, and so a volume that carries an old name copies its data over. See the requirement *The copy of the data of a volume of an old name* of the capability [volumes](./volumes.md).
+The system SHALL keep a container of an old name running until its service deploys again; it stops no container by itself. The operator SHALL re-deploy every service once, so each container and network takes its new name. A volume of an old name keeps its data under that name; GitPaaS copies none of it, and the operator handles the migration of its data to a volume of the new name by hand.
 
 Once every service redeployed, the operator SHALL remove by hand the containers that still carry an old name, because GitPaaS keeps neither a record nor a schedule that removes them.
 

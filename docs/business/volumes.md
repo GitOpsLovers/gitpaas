@@ -8,10 +8,22 @@ This capability keeps the data of a service, so a container writes files that su
 
 The system SHALL mark each volume of a service with one of two origins:
 
-1. **`gitpaas`.** GitPaaS created the volume, and it keeps the record of it.
-2. **`compose`.** The Compose file of the service declares the volume, and no record of GitPaaS names it; the daemon alone holds it.
+1. **`gitpaas`.** A client of GitPaaS created the record of the volume.
+2. **`compose`.** The Compose file of the service declares the volume, and no client of GitPaaS created its record; the adoption after a deployment recorded it.
 
-The key of a volume that GitPaaS owns starts with `gitpaas-` inside the Compose file, and its name on the daemon carries the prefix of the Compose project of the service, because Compose always prefixes the volume of a service with the name of its project.
+Docker Compose alone creates the volume on the daemon, from the key it carries inside the Compose file of the user; GitPaaS creates no volume on the daemon, of either origin. The name a volume carries on the daemon is the key of the Compose file, with the prefix of the Compose project of the service, because Compose always prefixes the volume of a project with its name.
+
+After a deployment, the system SHALL read the volumes of the Compose project on the daemon, and it SHALL record, with the origin `compose`, every key that the database does not hold yet. A volume that already exists, of either origin, keeps its data; the system never recreates it.
+
+### Scenario: A deployment brings up a volume the database does not hold
+
+- **WHEN** a deployment finishes, and the daemon holds a volume of the Compose project that no record of GitPaaS names
+- **THEN** the system records that volume with the origin `compose`
+
+### Scenario: A deployment brings up a volume the database already holds
+
+- **WHEN** a deployment finishes, and the daemon holds a volume of a key the database already holds for the service
+- **THEN** the system records no new volume, and the data of the existing volume stays
 
 ## The five states of a volume
 
@@ -154,30 +166,9 @@ The container of the service still holds the volume until the next deployment re
 - **WHEN** a client detaches a volume that the service holds no mount for
 - **THEN** the system raises `VOLUME_NOT_ATTACHED`, and it answers `404 Not Found`
 
-## The copy of the data of a volume of an old name
+## The removal of a service removes every volume it holds
 
-The system SHALL copy the data of a volume that carries an old name into the volume of its new name, at the start of a deployment, when the daemon holds the volume of the old name and holds no volume of the new name yet. The system SHALL create the volume of the new name, and it SHALL copy the data with a container made for that one copy.
-
-The system SHALL write one line into the log of the deployment for each volume it copies. The volume of the old name stays on the daemon; the copy takes its data, and it removes nothing.
-
-### Scenario: A volume of an old name exists
-
-- **WHEN** a deployment starts, the daemon holds a volume of the old name of the service, and it holds no volume of the new name
-- **THEN** the system creates the volume of the new name, it copies the data of the old volume into it, and it writes one line of the copy into the log of the deployment
-
-### Scenario: The volume of the new name already exists
-
-- **WHEN** a deployment starts, and the daemon already holds a volume of the new name
-- **THEN** the system copies no data, because the volume of the new name already carries the data of the service
-
-### Scenario: No volume of an old name exists
-
-- **WHEN** a deployment starts, and the daemon holds no volume of the old name of the service
-- **THEN** the system copies no data
-
-## The removal of a service removes the volumes it owns
-
-The removal of a service SHALL remove, on the daemon, every volume of the origin `gitpaas` that the service holds. The removal SHALL keep every volume of the origin `compose`, because that volume belongs to the recipe of the user, and its data survives the service. See the requirement *Removal of a service* of the capability [services](./services.md) for the order of the cleanup of the server.
+The removal of a service SHALL remove, on the daemon, every volume that carries the label of the service, whatever its origin. GitPaaS stamps that label on every volume its recipe declares, of the origin `gitpaas` and of the origin `compose` alike, so the removal reaches every volume of the service, and none of a sibling service. See the requirement *Removal of a service* of the capability [services](./services.md) for the order of the cleanup of the server.
 
 ### Scenario: The service holds a volume of GitPaaS
 
@@ -187,7 +178,7 @@ The removal of a service SHALL remove, on the daemon, every volume of the origin
 ### Scenario: The service holds a volume the Compose file declares
 
 - **WHEN** a client removes a service that holds a volume of the origin `compose`
-- **THEN** the system keeps that volume on the daemon
+- **THEN** the system removes that volume on the daemon as well
 
 ## The tab "Volumes" of a service
 

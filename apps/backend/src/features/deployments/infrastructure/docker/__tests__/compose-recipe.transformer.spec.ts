@@ -10,10 +10,8 @@ import {
     resolveBuild,
     stampLabels,
     stampRouting,
-    stampVolumes,
     toNanoseconds,
 } from '../compose-recipe.transformer';
-import type { ComposeVolumeMount } from '../compose-recipe.transformer';
 
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 
@@ -406,103 +404,6 @@ describe('compose-recipe.transformer', () => {
 
         it('does nothing when the recipe declares no service', () => {
             expect(() => { injectEnvironment(asCompose({ recipe: {} }), { A: 'b' }); }).not.toThrow();
-        });
-    });
-    describe('stampVolumes', () => {
-        /** Builds the mount of a volume of the service, overriding only the fields under test. */
-        const volumeMount = (overrides: Partial<ComposeVolumeMount> = {}): ComposeVolumeMount => ({
-            daemonKey: 'gitpaas-6c9f0f2e',
-            composeServiceName: 'web',
-            containerPath: '/var/lib/data',
-            readOnly: false,
-            ...overrides,
-        });
-
-        it('mounts the volume in the compose service the mount names, and declares it as an external top-level volume', () => {
-            const compose = { recipe: { services: { web: { image: 'nginx' } } } } as {
-                recipe: { services: { web: { image: string; volumes?: unknown } }; volumes?: unknown };
-            };
-
-            const stamped = stampVolumes(asCompose(compose), [volumeMount()]);
-
-            expect(stamped).toEqual(['web']);
-            expect(compose.recipe.services.web.volumes).toEqual(['gitpaas-6c9f0f2e:/var/lib/data']);
-            expect(compose.recipe.volumes).toEqual({ 'gitpaas-6c9f0f2e': { external: true } });
-        });
-
-        it('marks a read-only mount with the ":ro" suffix of compose', () => {
-            const compose = { recipe: { services: { web: {} as { volumes?: unknown } } } };
-
-            stampVolumes(asCompose(compose), [volumeMount({ readOnly: true })]);
-
-            expect(compose.recipe.services.web.volumes).toEqual(['gitpaas-6c9f0f2e:/var/lib/data:ro']);
-        });
-
-        it('keeps the volumes the compose file already declares, on the service and on the top level', () => {
-            const compose = {
-                recipe: {
-                    services: { web: { volumes: ['./public:/usr/share/nginx/html:ro'] } },
-                    volumes: { cache: null },
-                },
-            };
-
-            stampVolumes(asCompose(compose), [volumeMount()]);
-
-            expect(compose.recipe.services.web.volumes).toEqual([
-                './public:/usr/share/nginx/html:ro',
-                'gitpaas-6c9f0f2e:/var/lib/data',
-            ]);
-            expect(compose.recipe.volumes).toEqual({ cache: null, 'gitpaas-6c9f0f2e': { external: true } });
-        });
-
-        it('mounts every volume the service holds, and reports each compose service once', () => {
-            const compose = {
-                recipe: {
-                    services: {
-                        web: {} as { volumes?: unknown },
-                        worker: {} as { volumes?: unknown },
-                    },
-                },
-            };
-
-            const stamped = stampVolumes(asCompose(compose), [
-                volumeMount(),
-                volumeMount({ daemonKey: 'gitpaas-uploads', containerPath: '/srv/uploads' }),
-                volumeMount({ daemonKey: 'gitpaas-queue', composeServiceName: 'worker', containerPath: '/var/queue' }),
-            ]);
-
-            expect(stamped).toEqual(['web', 'worker']);
-            expect(compose.recipe.services.web.volumes).toEqual([
-                'gitpaas-6c9f0f2e:/var/lib/data',
-                'gitpaas-uploads:/srv/uploads',
-            ]);
-            expect(compose.recipe.services.worker.volumes).toEqual(['gitpaas-queue:/var/queue']);
-        });
-
-        it('skips a mount whose compose service the recipe lost, and declares no volume for it', () => {
-            const compose = { recipe: { services: { web: {} } } } as {
-                recipe: { services: { web: { volumes?: unknown } }; volumes?: unknown };
-            };
-
-            const stamped = stampVolumes(asCompose(compose), [volumeMount({ composeServiceName: 'worker' })]);
-
-            expect(stamped).toEqual([]);
-            expect(compose.recipe.volumes).toBeUndefined();
-        });
-
-        it('leaves the recipe untouched when the service holds no volume', () => {
-            const compose = { recipe: { services: { web: { image: 'nginx' } } } };
-
-            expect(stampVolumes(asCompose(compose), [])).toEqual([]);
-            expect(compose.recipe.services.web).toEqual({ image: 'nginx' });
-        });
-
-        it('does nothing when the recipe declares no service', () => {
-            expect(stampVolumes(asCompose({ recipe: {} }), [volumeMount()])).toEqual([]);
-        });
-
-        it('throws when the compose project carries no parsed recipe', () => {
-            expect(() => { stampVolumes(asCompose({}), [volumeMount()]); }).toThrow('The compose project carries no parsed recipe.');
         });
     });
 });

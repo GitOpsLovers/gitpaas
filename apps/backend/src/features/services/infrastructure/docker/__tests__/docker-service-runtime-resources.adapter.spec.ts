@@ -14,7 +14,6 @@ import type {
     RuntimeVolumeSummary,
 } from '@core/domain/models/container-runtime.models';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
-import { GITPAAS_VOLUME_KEY_PREFIX } from '@features/volumes/application/get-volume-daemon-name.use-case';
 
 /** Compose project label the runtime maps a project scope onto, kept here to describe host resources. */
 const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
@@ -77,8 +76,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     };
     /** Name of the compose project of the service, which its siblings of the same project share. */
     const projectName = service.composeProject;
-    /** Prefix every volume of the service carries on the daemon: the compose project, then the slug of the service. */
-    const volumePrefix = `${projectName}_my-service`;
+    /** Prefix every volume of the service carries on the daemon, which Compose builds from its project alone. */
+    const volumePrefix = projectName;
     /** Selector that scopes every teardown to the one service, and never to its compose project. */
     const serviceSelector = { labels: managedLabels, service: service.id };
     /** A sibling service of the very same compose project, whose resources the teardown must spare. */
@@ -241,8 +240,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
     });
 
     describe('removeVolumes', () => {
-        /** Name on the daemon of a volume GitPaaS owns, prefixed with the project and the slug of the service. */
-        const ownedName = `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`;
+        /** Name on the daemon of a volume of the service, which Compose prefixes with the name of its project. */
+        const ownedName = `${volumePrefix}_pgdata`;
 
         it('lists volumes scoped to the GitPaaS marker and the identifier of the service', async () => {
             await sut.removeVolumes(service);
@@ -250,8 +249,8 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             expect(mockListVolumes).toHaveBeenCalledWith(serviceSelector);
         });
 
-        it('removes every volume GitPaaS owns, by its name on the daemon', async () => {
-            const secondName = `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
+        it('removes every volume the runtime reports for the service, by its name on the daemon', async () => {
+            const secondName = `${volumePrefix}_uploads`;
             mockListVolumes.mockResolvedValue([volumeSummary(ownedName), volumeSummary(secondName)]);
 
             await sut.removeVolumes(service);
@@ -261,16 +260,18 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             expect(mockRemoveVolume).toHaveBeenCalledWith(secondName);
         });
 
-        it('never removes a volume the Compose file of the user declares', async () => {
-            mockListVolumes.mockResolvedValue([volumeSummary(`${projectName}_pgdata`), volumeSummary('pgdata')]);
+        it('removes a volume the Compose file of the user declares, whatever the shape of its key', async () => {
+            mockListVolumes.mockResolvedValue([volumeSummary(`${projectName}_pg_data`), volumeSummary('pgdata')]);
 
             await sut.removeVolumes(service);
 
-            expect(mockRemoveVolume).not.toHaveBeenCalled();
+            expect(mockRemoveVolume).toHaveBeenCalledTimes(2);
+            expect(mockRemoveVolume).toHaveBeenCalledWith(`${projectName}_pg_data`);
+            expect(mockRemoveVolume).toHaveBeenCalledWith('pgdata');
         });
 
         it('catches a single volume failure and continues with the rest', async () => {
-            const secondName = `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`;
+            const secondName = `${volumePrefix}_uploads`;
             mockListVolumes.mockResolvedValue([volumeSummary(ownedName), volumeSummary(secondName)]);
             mockRemoveVolume.mockRejectedValueOnce(new Error('volume is in use'));
 
@@ -367,20 +368,14 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
         /** Container of a sibling service of the same compose project, which must keep running. */
         const siblingContainer = { id: 'ctr-sibling', labels: siblingLabels };
 
-        /** Volume GitPaaS created for this service: marked, and keyed with the GitPaaS prefix. */
-        const ownedVolume = {
-            name: `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}3f2504e0`,
-            labels: ownLabels,
-        };
-        /** Volume the Compose file of the user declares: same stack, but its data is not GitPaaS's to drop. */
-        const composeVolume = { name: `${volumePrefix}_pgdata`, labels: ownLabels };
+        /** Volume Compose created for this service, marked with the labels of GitPaaS. */
+        const ownedVolume = { name: `${volumePrefix}_pgdata`, labels: ownLabels };
+        /** Second volume of the stack of this service, marked the very same way. */
+        const composeVolume = { name: `${volumePrefix}_uploads`, labels: ownLabels };
         /** Volume of a sibling service of the same compose project, marked but not this service's. */
-        const siblingVolume = {
-            name: `${projectName}_other-service_${GITPAAS_VOLUME_KEY_PREFIX}9c858901`,
-            labels: siblingLabels,
-        };
+        const siblingVolume = { name: 'gitpaas_other-service_pgdata', labels: siblingLabels };
         /** Unlabelled host volume from `docker volume create`, never GitPaaS's to remove. */
-        const hostVolume = { name: `${volumePrefix}_${GITPAAS_VOLUME_KEY_PREFIX}stray`, labels: undefined };
+        const hostVolume = { name: `${volumePrefix}_stray`, labels: undefined };
 
         beforeEach(() => {
             mockListImages.mockImplementation((selector: RuntimeSelector) => Promise.resolve(
@@ -419,12 +414,12 @@ describe('DockerServiceRuntimeResourcesAdapter', () => {
             expect(mockRemoveContainer).not.toHaveBeenCalledWith('ctr-sibling', expect.anything());
         });
 
-        it('removes only its own volume, sparing the compose volume, a sibling and an unlabelled host volume', async () => {
+        it('removes every volume of its own stack, sparing a sibling and an unlabelled host volume', async () => {
             await sut.removeVolumes(service);
 
-            expect(mockRemoveVolume).toHaveBeenCalledTimes(1);
+            expect(mockRemoveVolume).toHaveBeenCalledTimes(2);
             expect(mockRemoveVolume).toHaveBeenCalledWith(ownedVolume.name);
-            expect(mockRemoveVolume).not.toHaveBeenCalledWith(composeVolume.name);
+            expect(mockRemoveVolume).toHaveBeenCalledWith(composeVolume.name);
             expect(mockRemoveVolume).not.toHaveBeenCalledWith(siblingVolume.name);
             expect(mockRemoveVolume).not.toHaveBeenCalledWith(hostVolume.name);
         });

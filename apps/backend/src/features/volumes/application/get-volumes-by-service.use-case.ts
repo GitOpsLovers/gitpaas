@@ -3,11 +3,7 @@ import { DaemonVolumesRepository } from '../domain/repositories/daemon-volumes.r
 import { ServiceVolumesRepository } from '../domain/repositories/service-volumes.repository';
 import { VolumesRepository } from '../domain/repositories/volumes.repository';
 
-import {
-    getVolumeDaemonKeyFromNameUseCase,
-    getVolumeDaemonNameUseCase,
-    GITPAAS_VOLUME_KEY_PREFIX,
-} from './get-volume-daemon-name.use-case';
+import { getVolumeDaemonKeyFromNameUseCase, getVolumeDaemonNameUseCase } from './get-volume-daemon-name.use-case';
 import { getVolumeDaemonViewUseCase, getVolumeStatusUseCase, VolumeDaemonView } from './get-volume-status.use-case';
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
@@ -35,9 +31,10 @@ function toOrphanVolumes(
 
             return {
                 id: daemonVolume.name,
+                // The Compose file of the user declares every volume of the stack, so no record of GitPaaS names this one.
                 name: key,
                 daemonName: daemonVolume.name,
-                origin: key.startsWith(GITPAAS_VOLUME_KEY_PREFIX) ? 'gitpaas' : 'compose',
+                origin: 'compose',
                 state: 'orphan',
                 driver: daemonVolume.driver,
                 mountpoint: daemonVolume.mountpoint,

@@ -36,7 +36,8 @@ export class DockerVolumesRepository implements DaemonVolumesRepository {
     constructor(@Inject(DockerContainerRuntimeAdapter) private readonly client: ContainerRuntime) {}
 
     public async listByService(service: Service): Promise<DaemonVolume[]> {
-        const volumes = await this.client.listVolumes(this.getSelector(service));
+        // Compose stamps its project alone on the volume it creates, and never the labels of GitPaaS.
+        const volumes = await this.client.listVolumes({ project: service.composeProject });
 
         return volumes.map(toDaemonVolume);
     }
