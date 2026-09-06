@@ -223,6 +223,11 @@ describe('translateError', () => {
                 .toBeInstanceOf(ServiceUnavailableException);
         });
 
+        it('maps DATABASE_DEBUG_NETWORK_UNKNOWN to a ServiceUnavailableException', () => {
+            expect(translateError(new CodedDomainError('DATABASE_DEBUG_NETWORK_UNKNOWN')))
+                .toBeInstanceOf(ServiceUnavailableException);
+        });
+
         it('maps PROVIDER_MANIFEST_CODE_REJECTED to a BadRequestException', () => {
             expect(translateError(new CodedDomainError('PROVIDER_MANIFEST_CODE_REJECTED')))
                 .toBeInstanceOf(BadRequestException);

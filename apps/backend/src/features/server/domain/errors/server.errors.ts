@@ -119,3 +119,16 @@ export class ReleaseSourceUnavailableError extends DomainError {
         );
     }
 }
+
+/**
+ * Raised when the session of the debug of the database finds no network of PostgreSQL to join.
+ */
+export class DatabaseDebugNetworkUnknownError extends DomainError {
+    constructor(options?: ErrorOptions) {
+        super(
+            'DATABASE_DEBUG_NETWORK_UNKNOWN',
+            'The platform could not find the network of PostgreSQL, so the console of the debug would reach no database. Verify the stack of GitPaaS runs.',
+            options,
+        );
+    }
+}

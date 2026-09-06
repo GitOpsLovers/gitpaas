@@ -64,6 +64,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['PLATFORM_UP_TO_DATE', (error) => new ConflictException(error.message, { cause: error })],
     ['UNKNOWN_PLATFORM_VERSION', (error) => new ConflictException(error.message, { cause: error })],
     ['RELEASE_SOURCE_UNAVAILABLE', (error) => new ServiceUnavailableException(error.message, { cause: error })],
+    ['DATABASE_DEBUG_NETWORK_UNKNOWN', (error) => new ServiceUnavailableException(error.message, { cause: error })],
     ['VARIABLE_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['VARIABLE_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
     ['DOMAIN_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],

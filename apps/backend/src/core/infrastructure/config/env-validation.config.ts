@@ -44,6 +44,16 @@ const enabledFlag = z
 const RUNTIME_LOGS_DEFAULT_RETENTION_DAYS = 7;
 
 /**
+ * The port the container of pgAdmin publishes on the host, when the environment names none
+ */
+const PGADMIN_DEFAULT_PORT = 5050;
+
+/**
+ * The pinned image the session of the debug of the database runs, when the environment names none
+ */
+const PGADMIN_DEFAULT_IMAGE = 'elestio/pgadmin:REL-9_16';
+
+/**
  * Shape and constraints of the environment variables the backend understands
  */
 const environmentSchema = z.object({
@@ -68,6 +78,8 @@ const environmentSchema = z.object({
     RUNTIME_LOGS_RETENTION_DAYS: requiredNumber.min(1).default(RUNTIME_LOGS_DEFAULT_RETENTION_DAYS),
     TELEMETRY_SLOW_MS: requiredNumber.default(TELEMETRY_DEFAULT_SLOW_MS),
     TELEMETRY_SAMPLE_RATE: requiredNumber.min(0).max(1).default(TELEMETRY_DEFAULT_SAMPLE_RATE),
+    PGADMIN_PORT: requiredNumber.int().min(1).max(65535).default(PGADMIN_DEFAULT_PORT),
+    PGADMIN_IMAGE: requiredText.default(PGADMIN_DEFAULT_IMAGE),
     PROXY_ACME_PATH: optionalText,
     DEPLOY_SPOOL_DIR: optionalText,
     UPDATE_CHECK_ENABLED: enabledFlag,
