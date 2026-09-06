@@ -1,3 +1,14 @@
+## [2.19.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.18.0...v2.19.0) (2026-09-06)
+
+### Features
+
+* **frontend:** add database maintenance section ([#245](https://github.com/GitOpsLovers/gitpaas/issues/245)) ([4d39714](https://github.com/GitOpsLovers/gitpaas/commit/4d397144196f0082bb4e7ece592b1cfda55b33f3))
+* **server:** add the debug session of the database ([#244](https://github.com/GitOpsLovers/gitpaas/issues/244)) ([4960f57](https://github.com/GitOpsLovers/gitpaas/commit/4960f57ae1e2f57739b3d1a6d4228ba3c86967eb))
+
+### Bug Fixes
+
+* renove volumes of ephemeral containers ([73c3e1c](https://github.com/GitOpsLovers/gitpaas/commit/73c3e1c033be92cc9ea642785dd7a9bf1affa609))
+
 ## [2.18.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.17.0...v2.18.0) (2026-09-06)
 
 ### Features
