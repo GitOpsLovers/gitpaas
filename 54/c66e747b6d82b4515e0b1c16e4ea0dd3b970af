@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_9602cb4de521d6::t_ae9bc5a9d93707 17
+docs/roadmap/docker-inspector/TODO.md
+  s_9602cb4de521d6::t_ae03d87252d35d 1-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "54c66e747b6d82b4515e0b1c16e4ea0dd3b970af",
+  "prompts": {},
+  "sessions": {
+    "s_9602cb4de521d6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "710da894-6baa-4b89-a179-23cd7d0359e1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
