@@ -9,6 +9,7 @@ import {
     RuntimeContainerSummary,
     RuntimeImageSummary,
     RuntimeNetworkSummary,
+    RuntimePortBinding,
     RuntimePortMapping,
     RuntimePruneReport,
     RuntimeSelector,
@@ -239,4 +240,48 @@ export function toRuntimeLogLine(rawLine: string, source: RuntimeLogSource, read
     }
 
     return { timestamp: parsed.toISOString(), source, text: line.slice(separator + 1) };
+}
+
+/**
+ * Names one port of a container the way the daemon keys it, as `<port>/<protocol>`.
+ *
+ * @param binding Publication of one port of a container on one port of the host
+ *
+ * @returns Key of the port, as the daemon expects it
+ */
+export function toPortKey(binding: RuntimePortBinding): string {
+    return `${binding.containerPort}/${binding.protocol ?? 'tcp'}`;
+}
+
+/**
+ * Widens the environment of a container into the entries `KEY=value` the daemon expects.
+ *
+ * @param env Environment of the container, one value for one name
+ *
+ * @returns Entries of the environment, as the daemon expects them
+ */
+export function toEnvironmentEntries(env: Record<string, string>): string[] {
+    return Object.entries(env).map(([name, value]) => `${name}=${value}`);
+}
+
+/**
+ * Widens the published ports of a container into the set of ports the daemon exposes.
+ *
+ * @param bindings Publications of the ports of the container
+ *
+ * @returns Set of the exposed ports, as the daemon expects it
+ */
+export function toExposedPorts(bindings: RuntimePortBinding[]): Record<string, Record<string, never>> {
+    return Object.fromEntries(bindings.map((binding) => [toPortKey(binding), {}]));
+}
+
+/**
+ * Widens the published ports of a container into the bindings of the host the daemon binds.
+ *
+ * @param bindings Publications of the ports of the container
+ *
+ * @returns Bindings of the host, as the daemon expects them
+ */
+export function toPortBindings(bindings: RuntimePortBinding[]): Record<string, Array<{ HostPort: string }>> {
+    return Object.fromEntries(bindings.map((binding) => [toPortKey(binding), [{ HostPort: String(binding.hostPort) }]]));
 }

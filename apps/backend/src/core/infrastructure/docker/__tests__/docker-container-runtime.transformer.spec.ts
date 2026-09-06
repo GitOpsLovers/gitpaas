@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import type Docker from 'dockerode';
 
 import {
@@ -6,7 +7,10 @@ import {
     toImagePruneFilter,
     toImageSummary,
     toLabelFilter,
+    toEnvironmentEntries,
+    toExposedPorts,
     toNetworkSummary,
+    toPortBindings,
     toPruneReport,
     toRuntimeLogLine,
     toVolumePruneFilter,
@@ -473,5 +477,51 @@ describe('toRuntimeLogLine', () => {
 
     it('trims the carriage return a line of a Windows container ends with', () => {
         expect(toRuntimeLogLine('2024-05-01T10:11:12.000Z ready\r', 'stdout', readAt).text).toBe('ready');
+    });
+});
+
+describe('toEnvironmentEntries', () => {
+    it('maps every name of the environment onto an entry `KEY=value`', () => {
+        expect(toEnvironmentEntries({ PGADMIN_DEFAULT_EMAIL: 'admin@gitpaas.dev', PGADMIN_LISTEN_PORT: '80' })).toEqual([
+            'PGADMIN_DEFAULT_EMAIL=admin@gitpaas.dev',
+            'PGADMIN_LISTEN_PORT=80',
+        ]);
+    });
+
+    it('keeps a value that holds an equals sign whole', () => {
+        expect(toEnvironmentEntries({ PGADMIN_DEFAULT_PASSWORD: 'a=b=c' })).toEqual(['PGADMIN_DEFAULT_PASSWORD=a=b=c']);
+    });
+
+    it('returns no entry for an empty environment', () => {
+        expect(toEnvironmentEntries({})).toEqual([]);
+    });
+});
+
+describe('toExposedPorts', () => {
+    it('keys every exposed port on its protocol, and defaults that protocol to tcp', () => {
+        expect(toExposedPorts([
+            { containerPort: 80, hostPort: 5050 },
+            { containerPort: 53, hostPort: 5353, protocol: 'udp' },
+        ])).toEqual({ '80/tcp': {}, '53/udp': {} });
+    });
+
+    it('exposes nothing when the caller published no port', () => {
+        expect(toExposedPorts([])).toEqual({});
+    });
+});
+
+describe('toPortBindings', () => {
+    it('binds every published port of the container to its port of the host, written as text', () => {
+        expect(toPortBindings([
+            { containerPort: 80, hostPort: 5050 },
+            { containerPort: 53, hostPort: 5353, protocol: 'udp' },
+        ])).toEqual({
+            '80/tcp': [{ HostPort: '5050' }],
+            '53/udp': [{ HostPort: '5353' }],
+        });
+    });
+
+    it('binds nothing when the caller published no port', () => {
+        expect(toPortBindings([])).toEqual({});
     });
 });

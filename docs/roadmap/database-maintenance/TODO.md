@@ -7,9 +7,9 @@ An operator who must inspect the database of GitPaaS in production has no tool: 
 **Agent:** implementer
 **Paths:** `apps/backend/src/core/domain/models/`, `apps/backend/src/core/infrastructure/docker/`
 
-- [ ] 1.1 Add the optional fields `env`, `portBindings` and `network` to `RuntimeDetachedContainerOptions`.
-- [ ] 1.2 Map those fields in `runDetachedContainer` of `DockerContainerRuntimeAdapter` to `Env`, `ExposedPorts`, `HostConfig.PortBindings` and `NetworkingConfig`.
-- [ ] 1.3 Write the unit tests of the three new fields, and keep the existing calls of `runDetachedContainer` correct with no field.
+- [x] 1.1 Add the optional fields `env`, `portBindings` and `network` to `RuntimeDetachedContainerOptions`.
+- [x] 1.2 Map those fields in `runDetachedContainer` of `DockerContainerRuntimeAdapter` to `Env`, `ExposedPorts`, `HostConfig.PortBindings` and `NetworkingConfig`.
+- [x] 1.3 Write the unit tests of the three new fields, and keep the existing calls of `runDetachedContainer` correct with no field.
 
 ## Phase 2 — The session of the debug of the database
 
