@@ -1,0 +1,31 @@
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_8acdf4aaa07d5f::t_9127ae119effa7 954-1021
+  s_8acdf4aaa07d5f::t_507b72281e7289 1
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_8acdf4aaa07d5f::t_dfeb4cd6e90c2f 10-11,13,482-527
+  s_8acdf4aaa07d5f::t_88700f392ae51a 1
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.transformer.ts
+  s_8acdf4aaa07d5f::t_d1cf2d9b385b73 12,244-287
+docs/roadmap/database-maintenance/TODO.md
+  s_8acdf4aaa07d5f::t_9ace68afe9e1ee 10-12
+apps/backend/src/core/domain/models/container-runtime.models.ts
+  s_8acdf4aaa07d5f::t_19e3256f42d56f 151-162,168-171
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.adapter.ts
+  s_8acdf4aaa07d5f::t_6af839fa2ed6ea 36-37,42,212,218-219,223,225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e4a49f24ae6d4acbb5e893a327e01558771be723",
+  "prompts": {},
+  "sessions": {
+    "s_8acdf4aaa07d5f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b77c4063-3f25-475a-957a-b39a31a40f2c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
