@@ -32,14 +32,14 @@ GitPaaS reads Docker only through the label of a service, so an operator cannot 
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/features/docker/`, `apps/frontend/src/app/app.routes.ts`, `apps/frontend/src/app/layout/ui/components/sidebar/`
 
-- [ ] 3.1 Add the route `docker/:tab` to `app.routes.ts`, with the default tab `containers`.
-- [ ] 3.2 Add the entry `Docker` to the array `navItems` of the sidebar.
-- [ ] 3.3 Create the container of the page, which uses the shared `TabsComponent` for the four tabs.
-- [ ] 3.4 Create the service of data that calls the four endpoints with `httpResource`.
-- [ ] 3.5 Create the four components of table inside a `ComponentCardComponent`, with the columns of the plan.
-- [ ] 3.6 Add the button of manual refresh, and the states of load, of error and of empty table.
-- [ ] 3.7 Write the unit tests of the components and of the service.
-- [ ] 3.8 Run `rtk pnpm run check-types --filter @gitpaas/frontend` and the tests of the frontend.
+- [x] 3.1 Add the route `docker/:tab` to `app.routes.ts`, with the default tab `containers`.
+- [x] 3.2 Add the entry `Docker` to the array `navItems` of the sidebar.
+- [x] 3.3 Create the container of the page, which uses the shared `TabsComponent` for the four tabs.
+- [x] 3.4 Create the service of data that calls the four endpoints with `httpResource`.
+- [x] 3.5 Create the four components of table inside a `ComponentCardComponent`, with the columns of the plan.
+- [x] 3.6 Add the button of manual refresh, and the states of load, of error and of empty table.
+- [x] 3.7 Write the unit tests of the components and of the service.
+- [x] 3.8 Run `rtk pnpm run check-types --filter @gitpaas/frontend` and the tests of the frontend.
 
 ## Phase 4 — The documentation
 

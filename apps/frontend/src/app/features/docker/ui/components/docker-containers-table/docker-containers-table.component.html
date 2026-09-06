@@ -1,0 +1,92 @@
+<app-component-card title="Containers" desc="Every container of the Docker host, the stopped ones included.">
+    <app-button card-action variant="outline" size="sm" [disabled]="loading()" (btnClick)="refresh.emit()">
+        <svg lucideRotateCw class="h-4 w-4"></svg>
+        Refresh
+    </app-button>
+
+    @if (error()) {
+        <p
+            class="flex min-h-40 items-center rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
+        >
+            {{ error() }}
+        </p>
+    } @else if (loading() || containers().length > 0) {
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead>
+                    <tr
+                        class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+                    >
+                        <th scope="col" class="px-4 py-3 font-medium">Name</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Image</th>
+                        <th scope="col" class="px-4 py-3 font-medium">State</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Status</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Ports</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Networks</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Mounts</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Created</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @if (loading()) {
+                        @for (row of skeletonRows; track row) {
+                            <tr>
+                                <td class="px-4" colspan="8">
+                                    <app-skeleton variant="row" />
+                                </td>
+                            </tr>
+                        }
+                    } @else {
+                        @for (container of containers(); track container.id) {
+                            <tr class="text-gray-600 dark:text-gray-300">
+                                <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                    <span class="block max-w-[16rem] truncate" [title]="formatName(container.names)">
+                                        {{ formatName(container.names) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="block max-w-[16rem] truncate" [title]="container.image">
+                                        {{ container.image }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
+                                        [class]="stateBadgeClass(container.state)"
+                                    >
+                                        {{ container.state }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ container.status }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ formatPorts(container.ports) }}</td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="block max-w-[14rem] truncate"
+                                        [title]="formatNetworks(container.networks)"
+                                    >
+                                        {{ formatNetworks(container.networks) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="block max-w-[14rem] truncate font-mono"
+                                        [title]="formatMounts(container.mounts)"
+                                    >
+                                        {{ formatMounts(container.mounts) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    {{ container.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    } @else {
+        <p class="flex min-h-55 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            The Docker host holds no container.
+        </p>
+    }
+</app-component-card>
