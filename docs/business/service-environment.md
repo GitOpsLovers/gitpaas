@@ -84,6 +84,29 @@ A change of a variable SHALL take effect at the next deployment. It SHALL NOT re
 - **WHEN** a deployment of a service starts, and the service holds one plain variable and one secret
 - **THEN** every container of the stack receives the plain value and the decrypted secret in its environment
 
+## The recipe interpolates a reference to a variable of the service
+
+The system SHALL substitute every reference to a variable of the service, held anywhere in the text of the compose recipe, with the plain value or the decrypted value of that variable, before it builds the images of the stack. Thus a `build.arg` of the recipe reads a variable of the service, though the build itself receives no variable in its environment (see *A variable reaches the containers, and never the build*, above). The variables of the section "Environments" of the service are the one source; a file `.env` of the repository of the service takes no part.
+
+A reference takes one of four forms: `${VAR}`, `$VAR`, `${VAR:-default}` and `${VAR-default}`. The form `${VAR:-default}` gives the default when the service holds no such variable, and also when it holds one with an empty value. The form `${VAR-default}` gives the default when the service holds no such variable alone. `$$` is not a reference; it gives one literal `$`.
+
+A reference to a variable that the service does not hold, and that carries no default, gives an empty text. The system logs no error for it, and it stops no deployment.
+
+### Scenario: A build argument reads a variable of the service
+
+- **WHEN** the compose recipe of a service holds a `build.arg` with a reference to a variable of the service
+- **THEN** the system substitutes that reference with the value of the variable before it builds the image
+
+### Scenario: A variable is not set
+
+- **WHEN** the compose recipe holds a reference to a variable that the service does not hold, and the reference carries no default
+- **THEN** the system substitutes it with an empty text, and it does not stop the deployment
+
+### Scenario: The escape of the dollar sign
+
+- **WHEN** the compose recipe holds `$$`
+- **THEN** the system substitutes it with one literal `$`
+
 ## A secret that cannot be decrypted stops the deployment
 
 The system SHALL fail a deployment, with a message that names the variable and never its value, when a secret of the service cannot be decrypted. It SHALL start no stack.

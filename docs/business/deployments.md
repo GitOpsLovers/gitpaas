@@ -151,6 +151,8 @@ The system SHALL do these steps for each run task:
 5. Record the volumes Compose created for the stack that the database does not hold yet. See the requirement *The origin of a volume* of the capability [volumes](./volumes.md).
 6. Set the status to `success` or to `failed`.
 
+Within step 4, before the executor builds the images, the system interpolates the compose recipe with the variables of the service (see *The recipe interpolates a reference to a variable of the service* of the capability [service-environment](./service-environment.md)). Thus a `build.arg` of the recipe reads a variable of the service. A file `.env` of the repository takes no part; the variables of the service are the one source.
+
 The stop of the step 4 reaches the containers of the one service alone, and never the whole compose project, so a sibling service of the same project keeps running while this service deploys.
 
 The extraction of the step 4 lands in the folder of the deployment, and a bind mount that the Compose file declares resolves against that folder. See the requirement *The bind mount of a Compose file* of the capability [volumes](./volumes.md), and the [environment contract](../architecture/infrastructure/conventions.md#environment-contract) for the variable `DEPLOY_SPOOL_DIR` that names the folder.
