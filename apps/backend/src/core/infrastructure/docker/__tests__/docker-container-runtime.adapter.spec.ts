@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
 
@@ -947,6 +948,74 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(daemon.createContainer).toHaveBeenCalledWith(expect.objectContaining({
                 name: 'gitpaas-updater',
                 HostConfig: expect.objectContaining({ AutoRemove: true }),
+            }));
+        });
+
+        it('never asks for an environment, a published port or a network when the caller gave none', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer(detachedOptions);
+
+            const [created] = daemon.createContainer.mock.calls[0] as [Record<string, unknown>];
+
+            expect(created).not.toHaveProperty('Env');
+            expect(created).not.toHaveProperty('ExposedPorts');
+            expect(created).not.toHaveProperty('NetworkingConfig');
+            expect(created.HostConfig).not.toHaveProperty('PortBindings');
+        });
+
+        it('passes the environment of the caller as the entries the daemon expects', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer({
+                ...detachedOptions,
+                env: { PGADMIN_DEFAULT_EMAIL: 'admin@gitpaas.dev', PGADMIN_DEFAULT_PASSWORD: 'secret' },
+            });
+
+            expect(daemon.createContainer).toHaveBeenCalledWith(expect.objectContaining({
+                Env: ['PGADMIN_DEFAULT_EMAIL=admin@gitpaas.dev', 'PGADMIN_DEFAULT_PASSWORD=secret'],
+            }));
+        });
+
+        it('exposes each published port, and binds it to the port of the host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer({
+                ...detachedOptions,
+                portBindings: [{ containerPort: 80, hostPort: 5050 }],
+            });
+
+            expect(daemon.createContainer).toHaveBeenCalledWith(expect.objectContaining({
+                ExposedPorts: { '80/tcp': {} },
+                HostConfig: expect.objectContaining({ PortBindings: { '80/tcp': [{ HostPort: '5050' }] } }),
+            }));
+        });
+
+        it('keeps the mounts and the removal of the container beside its published ports', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer({
+                ...detachedOptions,
+                removeOnExit: true,
+                portBindings: [{ containerPort: 53, hostPort: 5353, protocol: 'udp' }],
+            });
+
+            expect(daemon.createContainer).toHaveBeenCalledWith(expect.objectContaining({
+                HostConfig: {
+                    Binds: detachedOptions.binds,
+                    AutoRemove: true,
+                    PortBindings: { '53/udp': [{ HostPort: '5353' }] },
+                },
+            }));
+        });
+
+        it('joins the container to the one network the caller named', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.runDetachedContainer({ ...detachedOptions, network: 'gitpaas_internal' });
+
+            expect(daemon.createContainer).toHaveBeenCalledWith(expect.objectContaining({
+                NetworkingConfig: { EndpointsConfig: { gitpaas_internal: {} } },
             }));
         });
 

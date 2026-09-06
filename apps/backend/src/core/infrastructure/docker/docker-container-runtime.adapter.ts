@@ -33,10 +33,13 @@ import { recordDependencyCall } from '../telemetry/telemetry-deps';
 import {
     toContainerRuntimeInfo,
     toContainerSummary,
+    toEnvironmentEntries,
+    toExposedPorts,
     toImagePruneFilter,
     toImageSummary,
     toLabelFilter,
     toNetworkSummary,
+    toPortBindings,
     toPruneReport,
     toRuntimeLogLine,
     toVolumePruneFilter,
@@ -206,15 +209,20 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
     }
 
     public async runDetachedContainer(options: RuntimeDetachedContainerOptions): Promise<string> {
+        const bindings = options.portBindings ?? [];
         const container = await this.run(() => this.getClient().createContainer({
             Image: options.image,
             Cmd: options.command,
             name: options.name,
             Labels: options.labels,
+            ...(options.env ? { Env: toEnvironmentEntries(options.env) } : {}),
+            ...(bindings.length > 0 ? { ExposedPorts: toExposedPorts(bindings) } : {}),
             HostConfig: {
                 Binds: options.binds,
                 AutoRemove: options.removeOnExit ?? false,
+                ...(bindings.length > 0 ? { PortBindings: toPortBindings(bindings) } : {}),
             },
+            ...(options.network ? { NetworkingConfig: { EndpointsConfig: { [options.network]: {} } } } : {}),
         }));
 
         await this.run(() => container.start());

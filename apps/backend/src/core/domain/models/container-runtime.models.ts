@@ -148,12 +148,27 @@ export interface RuntimeDetachedContainerOptions {
     name?: string;
     labels?: Record<string, string>;
     removeOnExit?: boolean;
+    env?: Record<string, string>;
+    portBindings?: RuntimePortBinding[];
+    network?: string;
+}
+
+/**
+ * Publication of one port of a container on one port of the host.
+ */
+export interface RuntimePortBinding {
+    containerPort: number;
+    hostPort: number;
+    protocol?: 'tcp' | 'udp';
 }
 
 /**
  * Definition of a container the runtime runs to its end, and that it removes once it exits.
  */
-export type RuntimeOneShotContainerOptions = Omit<RuntimeDetachedContainerOptions, 'removeOnExit'>;
+export type RuntimeOneShotContainerOptions = Omit<
+    RuntimeDetachedContainerOptions,
+    'removeOnExit' | 'env' | 'portBindings' | 'network'
+>;
 
 /**
  * Definition of a network the runtime creates.
