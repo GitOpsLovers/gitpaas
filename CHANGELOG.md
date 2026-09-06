@@ -1,3 +1,15 @@
+## [2.17.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.3...v2.17.0) (2026-09-06)
+
+### Features
+
+* **deployments:** interpolate compose recipe variables ([#239](https://github.com/GitOpsLovers/gitpaas/issues/239)) ([7482e02](https://github.com/GitOpsLovers/gitpaas/commit/7482e02bd6e2045a091464844f4947833a70f496))
+* improve OTP field ([a2bbf21](https://github.com/GitOpsLovers/gitpaas/commit/a2bbf21707d6b7021b05b4862a14c4059d642758))
+* **runtime:** add env, port and network options ([#238](https://github.com/GitOpsLovers/gitpaas/issues/238)) ([491baaa](https://github.com/GitOpsLovers/gitpaas/commit/491baaaf313f8bd7582da7c5269e04cea6dcc0ae))
+
+### Bug Fixes
+
+* show previous logs of a deployed container ([e28f48d](https://github.com/GitOpsLovers/gitpaas/commit/e28f48d068052d54386fb0dd36f83bd913f4a589))
+
 ## [2.16.3](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.2...v2.16.3) (2026-09-06)
 
 ### Bug Fixes
