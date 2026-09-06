@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_2dd94eebb3c053::t_484fd579f9c6e1 17
+docs/roadmap/ephemeral-container-state/TODO.md
+  s_2dd94eebb3c053::t_85edf630563ee9 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ea4b4d470f8757dcf06828ac69123da7574cf676",
+  "prompts": {},
+  "sessions": {
+    "s_2dd94eebb3c053": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3539a184-23ba-4968-991e-acecc1455e4e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
