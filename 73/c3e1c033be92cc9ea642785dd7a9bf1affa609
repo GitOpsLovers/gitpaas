@@ -1,0 +1,29 @@
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_92a25cfd4ec633::t_947ee24d8f12a7 454-471
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_c211bccd8c46bf::t_648a4462e119d1 203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "73c3e1c033be92cc9ea642785dd7a9bf1affa609",
+  "prompts": {},
+  "sessions": {
+    "s_92a25cfd4ec633": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b958e59a-c785-42ea-9d81-9f7539aab1c5",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_c211bccd8c46bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1f86a8d17130843d",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
