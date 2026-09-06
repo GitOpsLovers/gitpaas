@@ -1,5 +1,7 @@
 import type {
     ControlPlaneDomainCheckResult,
+    DatabaseDebugSession,
+    DatabaseDebugStatus,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
@@ -9,11 +11,13 @@ import type {
     UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { buildControlPlaneDomainWarning } from '../../application/build-control-plane-domain-warning';
 import { checkControlPlaneDomainUseCase } from '../../application/check-control-plane-domain.use-case';
 import { checkLatestReleaseUseCase } from '../../application/check-latest-release.use-case';
 import { checkReadinessUseCase } from '../../application/check-readiness.use-case';
+import { getDatabaseDebugStatusUseCase } from '../../application/get-database-debug-status.use-case';
 import { getPlatformSettingsUseCase } from '../../application/get-platform-settings.use-case';
 import { getPlatformUpdateUseCase } from '../../application/get-platform-update.use-case';
 import { getServerStatusUseCase } from '../../application/get-server-status.use-case';
@@ -21,10 +25,14 @@ import { pruneContainersUseCase } from '../../application/prune-containers.use-c
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
+import { startDatabaseDebugUseCase } from '../../application/start-database-debug.use-case';
 import { startPlatformUpdateUseCase } from '../../application/start-platform-update.use-case';
+import { stopDatabaseDebugUseCase } from '../../application/stop-database-debug.use-case';
 import { updatePlatformSettingsUseCase } from '../../application/update-platform-settings.use-case';
+import type { DatabaseDebugSettings } from '../../domain/models/database-debug.models';
 import type { CloudflareRanges } from '../../domain/ports/cloudflare-ranges.port';
 import type { ControlPlaneEnvFile } from '../../domain/ports/control-plane-env-file.port';
+import type { DebugRole } from '../../domain/ports/debug-role.port';
 import type { DnsResolver } from '../../domain/ports/dns-resolver.port';
 import type { HealthProbe } from '../../domain/ports/health-probe.port';
 import type { LatestReleaseStore } from '../../domain/ports/latest-release-store.port';
@@ -35,6 +43,7 @@ import type { UpdateRunner } from '../../domain/ports/update-runner.port';
 import type { PlatformSettingsRepository } from '../../domain/repositories/platform-settings.repository';
 import type { PlatformUpdatesRepository } from '../../domain/repositories/platform-updates.repository';
 import { CloudflareRangesAdapter } from '../../infrastructure/cdn/cloudflare-ranges.adapter';
+import { DatabaseDebugRoleAdapter } from '../../infrastructure/database/db-debug-role.adapter';
 import { DatabasePlatformSettingsRepository } from '../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../infrastructure/database/db-platform-updates.repository';
 import { DatabasePublicHostAddressAdapter } from '../../infrastructure/database/db-public-host-address.adapter';
@@ -64,6 +73,11 @@ import { DatabaseServicesRepository } from '@features/services/infrastructure/da
  */
 @Injectable()
 export class ServerService {
+    /**
+     * The parameters one session of the debug of the database runs under.
+     */
+    private readonly debugSettings: DatabaseDebugSettings;
+
     constructor(
         private readonly pruner: DockerServerPrunerAdapter,
         @Inject(DockerOrphanContainersAdapter)
@@ -102,7 +116,21 @@ export class ServerService {
         private readonly cloudflareRanges: CloudflareRanges,
         @Inject(FileControlPlaneEnvAdapter)
         private readonly envFile: ControlPlaneEnvFile,
-    ) {}
+        @Inject(DatabaseDebugRoleAdapter)
+        private readonly debugRole: DebugRole,
+        config: ConfigService,
+    ) {
+        const hostPort = config.getOrThrow<number>('PGADMIN_PORT');
+
+        this.debugSettings = {
+            image: config.getOrThrow<string>('PGADMIN_IMAGE'),
+            hostPort,
+            consoleUrl: `http://${new URL(config.getOrThrow<string>('APP_BASE_URL')).hostname}:${hostPort}`,
+            databaseHost: config.getOrThrow<string>('DB_HOST'),
+            databasePort: config.getOrThrow<number>('DB_PORT'),
+            databaseName: config.getOrThrow<string>('DB_NAME'),
+        };
+    }
 
     /**
      * Removes dangling images from the server
@@ -237,5 +265,32 @@ export class ServerService {
      */
     public startUpdate(): Promise<PlatformUpdateStatus> {
         return startPlatformUpdateUseCase(this.updates, this.latestRelease, this.updateRunner, resolveServiceVersion());
+    }
+
+    /**
+     * Reads the state of the session of the debug of the database
+     *
+     * @returns Whether a console of the debug runs, and the address it answers on
+     */
+    public getDatabaseDebug(): Promise<DatabaseDebugStatus> {
+        return getDatabaseDebugStatusUseCase(this.containerRuntime, this.debugSettings.consoleUrl);
+    }
+
+    /**
+     * Starts the session of the debug of the database
+     *
+     * @returns The address of the console, and the passwords the caller gives one time
+     */
+    public startDatabaseDebug(): Promise<DatabaseDebugSession> {
+        return startDatabaseDebugUseCase(this.containerRuntime, this.debugRole, this.debugSettings);
+    }
+
+    /**
+     * Ends the session of the debug of the database
+     *
+     * @returns The state the session leaves, which is always stopped
+     */
+    public stopDatabaseDebug(): Promise<DatabaseDebugStatus> {
+        return stopDatabaseDebugUseCase(this.containerRuntime, this.debugRole);
     }
 }

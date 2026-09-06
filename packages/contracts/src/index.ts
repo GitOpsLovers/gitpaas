@@ -142,6 +142,18 @@ export type { ServerStatus } from './server/server-status.contract';
 export { orphanRemovalResultSchema, pruneResultSchema } from './server/maintenance.contract';
 export type { OrphanRemovalResult, PruneResult } from './server/maintenance.contract';
 export {
+    databaseDebugConnectionSchema,
+    databaseDebugConsoleSchema,
+    databaseDebugSessionSchema,
+    databaseDebugStatusSchema,
+} from './server/database-debug.contract';
+export type {
+    DatabaseDebugConnection,
+    DatabaseDebugConsole,
+    DatabaseDebugSession,
+    DatabaseDebugStatus,
+} from './server/database-debug.contract';
+export {
     LOG_RETENTION_MAX_DAYS,
     LOG_RETENTION_MIN_DAYS,
     platformSettingsSchema,

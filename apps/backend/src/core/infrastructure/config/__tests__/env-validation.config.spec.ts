@@ -200,6 +200,37 @@ describe('validate', () => {
         );
     });
 
+    it('falls back to the port 5050 of pgAdmin when the environment names none', () => {
+        expect(validate(validEnv()).PGADMIN_PORT).toBe(5050);
+    });
+
+    it('coerces the port of pgAdmin to a number', () => {
+        expect(validate({ ...validEnv(), PGADMIN_PORT: '5555' }).PGADMIN_PORT).toBe(5555);
+    });
+
+    it('rejects a port of pgAdmin outside the range of the ports', () => {
+        expect(() => validate({ ...validEnv(), PGADMIN_PORT: '0' })).toThrow(/PGADMIN_PORT/);
+        expect(() => validate({ ...validEnv(), PGADMIN_PORT: '70000' })).toThrow(/PGADMIN_PORT/);
+    });
+
+    it('rejects a port of pgAdmin that is not a whole number', () => {
+        expect(() => validate({ ...validEnv(), PGADMIN_PORT: '5050.5' })).toThrow(/PGADMIN_PORT/);
+    });
+
+    it('falls back to a pinned image of pgAdmin when the environment names none', () => {
+        expect(validate(validEnv()).PGADMIN_IMAGE).toBe('elestio/pgadmin:REL-9_16');
+    });
+
+    it('keeps the configured image of pgAdmin', () => {
+        expect(validate({ ...validEnv(), PGADMIN_IMAGE: 'dpage/pgadmin4:9.8' }).PGADMIN_IMAGE).toBe(
+            'dpage/pgadmin4:9.8',
+        );
+    });
+
+    it('rejects an empty image of pgAdmin', () => {
+        expect(() => validate({ ...validEnv(), PGADMIN_IMAGE: '' })).toThrow(/PGADMIN_IMAGE/);
+    });
+
     it('accepts an absent store of ACME, since the local proxy issues no certificate', () => {
         expect(() => validate(validEnv())).not.toThrow();
         expect(validate(validEnv()).PROXY_ACME_PATH).toBeUndefined();

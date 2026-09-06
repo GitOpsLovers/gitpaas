@@ -3,6 +3,7 @@ import { DOMAIN_HOST_MESSAGE } from '@gitpaas/contracts';
 
 import {
     ControlPlaneEnvWriteError,
+    DatabaseDebugNetworkUnknownError,
     GitpaasDomainNotPointingAtHostError,
     HostAddressUnknownError,
     InvalidGitpaasDomainError,
@@ -265,5 +266,31 @@ describe('ReleaseSourceUnavailableError', () => {
         const original = new Error('network unreachable');
 
         expect(new ReleaseSourceUnavailableError('network unreachable', { cause: original }).cause).toBe(original);
+    });
+});
+
+describe('DatabaseDebugNetworkUnknownError', () => {
+    it('is a DomainError', () => {
+        expect(new DatabaseDebugNetworkUnknownError()).toBeInstanceOf(DomainError);
+    });
+
+    it('sets its name to DatabaseDebugNetworkUnknownError', () => {
+        expect(new DatabaseDebugNetworkUnknownError().name).toBe('DatabaseDebugNetworkUnknownError');
+    });
+
+    it('carries the DATABASE_DEBUG_NETWORK_UNKNOWN code', () => {
+        expect(new DatabaseDebugNetworkUnknownError().code).toBe('DATABASE_DEBUG_NETWORK_UNKNOWN');
+    });
+
+    it('states that no network of PostgreSQL was found', () => {
+        expect(new DatabaseDebugNetworkUnknownError().message).toBe(
+            'The platform could not find the network of PostgreSQL, so the console of the debug would reach no database. Verify the stack of GitPaaS runs.',
+        );
+    });
+
+    it('chains the original error through the cause option', () => {
+        const original = new Error('no container');
+
+        expect(new DatabaseDebugNetworkUnknownError({ cause: original }).cause).toBe(original);
     });
 });

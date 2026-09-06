@@ -1,6 +1,8 @@
 import type {
     CheckControlPlaneDomainDto,
     ControlPlaneDomainCheckResult,
+    DatabaseDebugSession,
+    DatabaseDebugStatus,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
@@ -15,6 +17,7 @@ import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
     Controller,
+    Delete,
     Get,
     HttpCode,
     Post,
@@ -227,6 +230,52 @@ export class ServerController {
                 );
             }
 
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Reads the state of the session of the debug of the database. An administrator alone reaches it.
+     *
+     * @returns Whether a console of the debug runs, and the address it answers on
+     */
+    @Get('database-debug')
+    @Roles(UserRole.Admin)
+    public async getDatabaseDebug(): Promise<DatabaseDebugStatus> {
+        try {
+            return await this.service.getDatabaseDebug();
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Starts the session of the debug of the database. An administrator alone reaches it.
+     *
+     * @returns The address of the console, and the passwords that are given this one time
+     */
+    @Post('database-debug')
+    @HttpCode(200)
+    @Roles(UserRole.Admin)
+    public async startDatabaseDebug(): Promise<DatabaseDebugSession> {
+        try {
+            return await this.service.startDatabaseDebug();
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
+    /**
+     * Ends the session of the debug of the database. An administrator alone reaches it.
+     *
+     * @returns The state the session leaves, which is always stopped
+     */
+    @Delete('database-debug')
+    @Roles(UserRole.Admin)
+    public async stopDatabaseDebug(): Promise<DatabaseDebugStatus> {
+        try {
+            return await this.service.stopDatabaseDebug();
+        } catch (error) {
             throw translateError(error);
         }
     }

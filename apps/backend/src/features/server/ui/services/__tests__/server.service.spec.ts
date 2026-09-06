@@ -7,6 +7,7 @@ import type {
     ReadinessResult,
     UpdatePlatformSettingsResult,
 } from '@gitpaas/contracts';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 
 import { buildControlPlaneDomainWarning } from '../../../application/build-control-plane-domain-warning';
@@ -25,6 +26,7 @@ import { updatePlatformSettingsUseCase } from '../../../application/update-platf
 import { InvalidLogRetentionError, ReleaseSourceUnavailableError } from '../../../domain/errors/server.errors';
 import type { ControlPlaneDomainCheck } from '../../../domain/models/control-plane-domain.models';
 import { CloudflareRangesAdapter } from '../../../infrastructure/cdn/cloudflare-ranges.adapter';
+import { DatabaseDebugRoleAdapter } from '../../../infrastructure/database/db-debug-role.adapter';
 import { DatabasePlatformSettingsRepository } from '../../../infrastructure/database/db-platform-settings.repository';
 import { DatabasePlatformUpdatesRepository } from '../../../infrastructure/database/db-platform-updates.repository';
 import { DatabasePublicHostAddressAdapter } from '../../../infrastructure/database/db-public-host-address.adapter';
@@ -156,6 +158,16 @@ const readinessResult: ReadinessResult = {
     ],
 };
 
+/** The values of the environment the service reads once, at its construction. */
+const environment: Record<string, string | number> = {
+    PGADMIN_PORT: 5050,
+    PGADMIN_IMAGE: 'elestio/pgadmin:REL-9_16',
+    APP_BASE_URL: 'https://gitpaas.example.com',
+    DB_HOST: 'postgres',
+    DB_PORT: 5432,
+    DB_NAME: 'gitpaas',
+};
+
 describe('ServerService', () => {
     let mockPruner: jest.Mocked<DockerServerPrunerAdapter>;
     let mockOrphanContainers: jest.Mocked<DockerOrphanContainersAdapter>;
@@ -176,6 +188,7 @@ describe('ServerService', () => {
     let mockPublicHostAddress: jest.Mocked<DatabasePublicHostAddressAdapter>;
     let mockCloudflareRanges: jest.Mocked<CloudflareRangesAdapter>;
     let mockControlPlaneEnvFile: jest.Mocked<FileControlPlaneEnvAdapter>;
+    let mockDebugRole: jest.Mocked<DatabaseDebugRoleAdapter>;
     let sut: ServerService;
 
     beforeEach(async () => {
@@ -200,6 +213,12 @@ describe('ServerService', () => {
         mockPublicHostAddress = {} as jest.Mocked<DatabasePublicHostAddressAdapter>;
         mockCloudflareRanges = {} as jest.Mocked<CloudflareRangesAdapter>;
         mockControlPlaneEnvFile = {} as jest.Mocked<FileControlPlaneEnvAdapter>;
+        mockDebugRole = {} as jest.Mocked<DatabaseDebugRoleAdapter>;
+
+        const mockConfigService = {
+            // eslint-disable-next-line security/detect-object-injection
+            getOrThrow: jest.fn((key: string) => environment[key]),
+        } as unknown as ConfigService;
         mockResolveServiceVersion.mockReturnValue('2.1.0');
 
         const moduleRef = await Test.createTestingModule({
@@ -224,6 +243,8 @@ describe('ServerService', () => {
                 { provide: DatabasePublicHostAddressAdapter, useValue: mockPublicHostAddress },
                 { provide: CloudflareRangesAdapter, useValue: mockCloudflareRanges },
                 { provide: FileControlPlaneEnvAdapter, useValue: mockControlPlaneEnvFile },
+                { provide: DatabaseDebugRoleAdapter, useValue: mockDebugRole },
+                { provide: ConfigService, useValue: mockConfigService },
             ],
         }).compile();
 
