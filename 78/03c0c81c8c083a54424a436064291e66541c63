@@ -1,0 +1,33 @@
+apps/backend/src/core/application/__tests__/pull-image.use-case.spec.ts
+  s_4a3235251a300f::t_35f3ea546502d7 1-74
+apps/backend/src/core/application/pull-image.use-case.ts
+  s_4a3235251a300f::t_bf536fceabdaf7 1-31
+apps/backend/src/features/server/application/__tests__/start-database-debug.use-case.spec.ts
+  s_4a3235251a300f::t_1c1f140d8ad996 1-2,55-57,72-73,83,92-97,112,196,206-223
+apps/backend/src/features/server/application/start-database-debug.use-case.ts
+  s_1c0fcfe3af9e91::t_ec34b991dfc621 18,58,69-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7803c0c81c8c083a54424a436064291e66541c63",
+  "prompts": {},
+  "sessions": {
+    "s_1c0fcfe3af9e91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac559a45262b77778",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_4a3235251a300f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fd76518d-a963-4bbc-8a30-e997ce119167",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
