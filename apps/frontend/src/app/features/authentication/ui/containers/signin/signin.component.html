@@ -80,12 +80,14 @@
                 Code of the authenticator
                 <span class="text-error-500">*</span>
             </app-label>
-            <app-input-field
+            <app-input-otp
                 id="signin-code"
                 name="code"
-                placeholder="123456"
+                className="mt-1.5"
+                [length]="codeLength"
                 [value]="code()"
                 [disabled]="submitting()"
+                [autoFocus]="true"
                 [hint]="codeLength + ' digits.'"
                 (valueChange)="updateCode($event)"
             />

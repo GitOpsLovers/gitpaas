@@ -1,0 +1,27 @@
+<div>
+    <div [class]="containerClasses">
+        @for (digit of digits(); track $index) {
+            <input
+                #box
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="1"
+                [id]="$index === 0 ? id() : id() + '-' + $index"
+                [name]="name() + '-' + $index"
+                [attr.aria-label]="'Digit ' + ($index + 1) + ' of ' + length()"
+                [value]="digit"
+                [disabled]="disabled()"
+                [class]="boxClasses"
+                (input)="onInput($index, $event)"
+                (keydown)="onKeydown($index, $event)"
+                (paste)="onPaste($index, $event)"
+                (focus)="onFocus($event)"
+            />
+        }
+    </div>
+
+    @if (hint(); as hintText) {
+        <p [class]="hintClasses">{{ hintText }}</p>
+    }
+</div>

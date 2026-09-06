@@ -9,6 +9,7 @@ import { environment } from '@environments/environment';
 import { AuthService, isTwoFactorChallenge } from '@features/authentication/ui/services/auth.service';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
+import { InputOtpComponent } from '@shared/components/input-otp/input-otp.component';
 import { LabelComponent } from '@shared/components/label/label.component';
 import { ToastService } from '@shared/services/toast.service';
 
@@ -65,7 +66,7 @@ const CODE_REFUSED = {
 @Component({
     selector: 'app-signin-form',
     templateUrl: './signin.component.html',
-    imports: [FormsModule, LucideEye, LucideEyeOff, LabelComponent, InputFieldComponent, ButtonComponent],
+    imports: [FormsModule, LucideEye, LucideEyeOff, LabelComponent, InputFieldComponent, InputOtpComponent, ButtonComponent],
 })
 export class SigninComponent {
     private readonly authService = inject(AuthService);
