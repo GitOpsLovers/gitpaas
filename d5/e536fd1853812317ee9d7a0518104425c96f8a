@@ -1,0 +1,21 @@
+docs/architecture/infrastructure/conventions.md
+  s_662e142fe83617::t_187857d73ec5b2 30,38
+docs/business/server.md
+  s_662e142fe83617::t_8b6dc28f2061a3 176,192-230,233-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d5e536fd1853812317ee9d7a0518104425c96f8a",
+  "prompts": {},
+  "sessions": {
+    "s_662e142fe83617": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d1587fcd-9d1e-49b2-ad77-8ded9642edcc",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
