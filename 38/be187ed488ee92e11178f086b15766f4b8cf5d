@@ -1,0 +1,73 @@
+apps/backend/src/core/domain/constants/gitpaas-labels.constants.ts
+  s_8d0cfff8ea9655::t_12a6f3c2a555cd 25-29
+apps/backend/src/core/domain/models/container-runtime.models.ts
+  s_8d0cfff8ea9655::t_2c8c6b6944a31e 59
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.adapter.spec.ts
+  s_8d0cfff8ea9655::t_0a9153d370d063 425,445
+apps/backend/src/core/infrastructure/docker/__tests__/docker-container-runtime.transformer.spec.ts
+  s_8d0cfff8ea9655::t_b736ba769034e4 233,258-269,292
+apps/backend/src/core/infrastructure/docker/docker-container-runtime.transformer.ts
+  s_8d0cfff8ea9655::t_5a7df06811d602 4,140-141
+apps/backend/src/features/containers/application/__tests__/get-containers-by-service.use-case.spec.ts
+  s_8d0cfff8ea9655::t_c318f73bc0bab4 35
+apps/backend/src/features/containers/domain/models/container.models.ts
+  s_8d0cfff8ea9655::t_dd798338fad1fd 20
+apps/backend/src/features/containers/infrastructure/docker/__tests__/docker-containers.repository.spec.ts
+  s_8d0cfff8ea9655::t_4bbcd20308186c 24,87
+apps/backend/src/features/containers/infrastructure/docker/__tests__/docker-containers.transformer.spec.ts
+  s_8d0cfff8ea9655::t_f290764351eea3 18,35,40-43
+apps/backend/src/features/containers/infrastructure/docker/docker-containers.transformer.ts
+  s_8d0cfff8ea9655::t_cb7f329066b6b9 20
+apps/backend/src/features/containers/ui/controllers/__tests__/containers.controller.spec.ts
+  s_8d0cfff8ea9655::t_593dc801354589 23,36
+apps/backend/src/features/containers/ui/services/__tests__/containers.service.spec.ts
+  s_8d0cfff8ea9655::t_c1d660b1e2c03c 27
+apps/backend/src/features/containers/ui/transformers/__tests__/container-response.transformer.spec.ts
+  s_8d0cfff8ea9655::t_731eef7c7f50be 12,26,31-34
+apps/backend/src/features/containers/ui/transformers/container-response.transformer.ts
+  s_8d0cfff8ea9655::t_042f84a32c362f 20
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_8d0cfff8ea9655::t_14042d5b012543 450-491
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_8d0cfff8ea9655::t_e8d708e32755c6 5,50-54,66,425-454,464-469,472,474
+apps/backend/src/features/logs/application/__tests__/follow-running-containers.use-case.spec.ts
+  s_8d0cfff8ea9655::t_7a044098fd4b51 18
+apps/backend/src/features/logs/application/__tests__/stream-runtime-logs.use-case.spec.ts
+  s_8d0cfff8ea9655::t_e639d6305b79f6 24
+apps/backend/src/features/networks/application/__tests__/delete-project-network.use-case.spec.ts
+  s_8d0cfff8ea9655::t_e57340ac0e6e43 50
+apps/backend/src/features/networks/infrastructure/docker/__tests__/docker-networks.repository.spec.ts
+  s_8d0cfff8ea9655::t_985cac7153d7b0 39
+apps/backend/src/features/server/infrastructure/docker/__tests__/docker-orphan-containers.adapter.spec.ts
+  s_8d0cfff8ea9655::t_7233caea4fa230 34
+apps/backend/src/features/server/infrastructure/health/__tests__/backend-health-probe.adapter.spec.ts
+  s_8d0cfff8ea9655::t_02754f57fb37d6 16
+apps/backend/src/features/server/infrastructure/health/__tests__/frontend-health-probe.adapter.spec.ts
+  s_8d0cfff8ea9655::t_082dabff6a3d49 16
+apps/backend/src/features/server/infrastructure/health/__tests__/proxy-health-probe.adapter.spec.ts
+  s_8d0cfff8ea9655::t_620284db5f85ec 16
+apps/backend/src/features/server/infrastructure/health/__tests__/stack-container-health-probe.adapter.spec.ts
+  s_8d0cfff8ea9655::t_3c6db9d1fcaae8 16
+apps/backend/src/features/volumes/infrastructure/docker/__tests__/docker-volumes.repository.spec.ts
+  s_8d0cfff8ea9655::t_aad79c83c86d52 47
+docs/roadmap/ephemeral-container-state/TODO.md
+  s_8d0cfff8ea9655::t_9fac5b30f0090b 14-20
+packages/contracts/src/containers/container.contract.ts
+  s_8d0cfff8ea9655::t_b98dd8ee248714 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "38be187ed488ee92e11178f086b15766f4b8cf5d",
+  "prompts": {},
+  "sessions": {
+    "s_8d0cfff8ea9655": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "478286db-45f1-4d6c-a757-883c3f3a86df",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
