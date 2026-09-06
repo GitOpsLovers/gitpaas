@@ -1,0 +1,21 @@
+docs/business/containers.md
+  s_906f534571f685::t_055c0c2d378161 13,65-99,131-132,139-143
+docs/business/services.md
+  s_906f534571f685::t_30c554bb509d82 56,63,66,68-72,89-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0c83656401e50728f13ea95ce6062d23dd340603",
+  "prompts": {},
+  "sessions": {
+    "s_906f534571f685": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23e23f59-2605-4d87-aa18-dc9e306a7912",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
