@@ -14,3 +14,4 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [security-hardening](./roadmap/security-hardening/TODO.md): the audit of the security of the three areas, and the phases that close it.
 - [final-compose-file-card](./roadmap/final-compose-file-card/TODO.md): the card of the tab General that shows the final Compose file of a service.
+- [docker-inspector](./roadmap/docker-inspector/TODO.md): the section Docker that shows the resources of the host in four tables.
