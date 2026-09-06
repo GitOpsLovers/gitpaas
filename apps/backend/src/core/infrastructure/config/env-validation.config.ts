@@ -51,7 +51,7 @@ const PGADMIN_DEFAULT_PORT = 5050;
 /**
  * The pinned image the session of the debug of the database runs, when the environment names none
  */
-const PGADMIN_DEFAULT_IMAGE = 'elestio/pgadmin:REL-9_16';
+const PGADMIN_DEFAULT_IMAGE = 'elestio/pgadmin:REL-9_17';
 
 /**
  * Shape and constraints of the environment variables the backend understands

@@ -12,6 +12,7 @@ describe('toNetwork', () => {
             internal: false,
             attachable: true,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
+            labels: { 'io.gitpaas.managed': 'true' },
         };
 
         expect(toNetwork(info)).toEqual({
@@ -34,6 +35,7 @@ describe('toNetwork', () => {
             internal: true,
             attachable: false,
             createdAt: new Date('2026-01-01T12:30:00.000Z'),
+            labels: {},
         };
 
         const result = toNetwork(info);

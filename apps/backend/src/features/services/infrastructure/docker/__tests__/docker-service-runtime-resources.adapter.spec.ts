@@ -35,7 +35,7 @@ const networkSummary = (id: string): RuntimeNetworkSummary => ({ id } as Runtime
  * Builds an image summary carrying only the id the SUT reads (the runtime has
  * already filtered the list down to the project's GitPaaS-labelled images).
  */
-const imageSummary = (id: string): RuntimeImageSummary => ({ id });
+const imageSummary = (id: string): RuntimeImageSummary => ({ id } as RuntimeImageSummary);
 
 /**
  * Builds a volume summary carrying only the name the SUT reads.

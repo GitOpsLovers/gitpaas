@@ -5,7 +5,7 @@ import type { ContainerRuntime } from '../../domain/ports/container-runtime.port
 import { pullImageUseCase } from '../pull-image.use-case';
 
 describe('pullImageUseCase', () => {
-    const reference = 'elestio/pgadmin:REL-9_16';
+    const reference = 'elestio/pgadmin:REL-9_17';
 
     let stream: RuntimeProgressStream;
     let mockContainerRuntime: jest.Mocked<Pick<ContainerRuntime, 'pullImage' | 'followProgress'>>;

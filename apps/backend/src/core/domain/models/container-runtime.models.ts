@@ -22,6 +22,7 @@ export interface RuntimeSelector {
     labels?: LabelSelector;
     project?: string | null;
     service?: string | null;
+    host?: boolean;
 }
 
 /**
@@ -73,10 +74,11 @@ export interface RuntimeNetworkSummary {
     internal: boolean;
     attachable: boolean;
     createdAt: Date;
+    labels: Record<string, string>;
 }
 
 /**
- * Summary of a volume. A volume is keyed by its name, because the runtime gives it no identifier.
+ * Summary of a volume.
  */
 export interface RuntimeVolumeSummary {
     name: string;
@@ -84,6 +86,7 @@ export interface RuntimeVolumeSummary {
     mountpoint: string;
     scope: string;
     labels: Record<string, string>;
+    createdAt: Date | null;
 }
 
 /**
@@ -91,6 +94,9 @@ export interface RuntimeVolumeSummary {
  */
 export interface RuntimeImageSummary {
     id: string;
+    tags: string[];
+    size: number;
+    createdAt: Date;
 }
 
 /**

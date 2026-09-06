@@ -7,12 +7,12 @@ GitPaaS reads Docker only through the label of a service, so an operator cannot 
 **Agent:** implementer
 **Paths:** `apps/backend/src/core/`
 
-- [ ] 1.1 Extend `RuntimeSelector` so that a listing of the whole host produces no filter of labels in `toLabelFilter`.
-- [ ] 1.2 Add `all` to the options of `listContainers`, so that the port returns the stopped containers too.
-- [ ] 1.3 Extend `RuntimeImageSummary` with the tags, the size and the date, and fill them in `toImageSummary`.
-- [ ] 1.4 Extend the summaries of the volume and of the network with the fields that the tables need.
-- [ ] 1.5 Keep the current behavior of the scoped callers of the port, and prove it with their unit tests.
-- [ ] 1.6 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the tests of the backend.
+- [x] 1.1 Extend `RuntimeSelector` so that a listing of the whole host produces no filter of labels in `toLabelFilter`.
+- [x] 1.2 Add `all` to the options of `listContainers`, so that the port returns the stopped containers too.
+- [x] 1.3 Extend `RuntimeImageSummary` with the tags, the size and the date, and fill them in `toImageSummary`.
+- [x] 1.4 Extend the summaries of the volume and of the network with the fields that the tables need.
+- [x] 1.5 Keep the current behavior of the scoped callers of the port, and prove it with their unit tests.
+- [x] 1.6 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the tests of the backend.
 
 ## Phase 2 — The four endpoints of Docker
 

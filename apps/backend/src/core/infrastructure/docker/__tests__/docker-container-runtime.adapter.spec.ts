@@ -459,6 +459,14 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(daemon.listContainers).toHaveBeenNthCalledWith(1, { all: true, filters: { label: [] } });
             expect(daemon.listContainers).toHaveBeenNthCalledWith(2, { all: false, filters: { label: [] } });
         });
+
+        it('lists every container of the host, with no filter of labels, for a selector of the host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.listContainers({ host: true }, true);
+
+            expect(daemon.listContainers).toHaveBeenCalledWith({ all: true, filters: {} });
+        });
     });
 
     describe('listNetworks', () => {
@@ -472,6 +480,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                 Internal: false,
                 Attachable: true,
                 Created: '2025-07-11T00:00:00.000Z',
+                Labels: { 'io.gitpaas.managed': 'true' },
             }]);
 
             await expect(sut.listNetworks({})).resolves.toEqual([{
@@ -482,16 +491,48 @@ describe('DockerContainerRuntimeAdapter', () => {
                 internal: false,
                 attachable: true,
                 createdAt: new Date('2025-07-11T00:00:00.000Z'),
+                labels: { 'io.gitpaas.managed': 'true' },
             }]);
+        });
+
+        it('lists every network of the host, with no filter of labels, for a selector of the host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.listNetworks({ host: true });
+
+            expect(daemon.listNetworks).toHaveBeenCalledWith({ filters: {} });
         });
     });
 
     describe('listImages', () => {
-        it('exposes the identifier of every image the daemon reports', async () => {
+        it('narrows every image the daemon reports through the transformer', async () => {
             const { sut, daemon } = buildSut();
-            daemon.listImages.mockResolvedValue([{ Id: 'img-a' }, { Id: 'img-b' }]);
+            daemon.listImages.mockResolvedValue([
+                {
+                    Id: 'img-a', RepoTags: ['gitpaas/blog:latest'], Size: 128_000_000, Created: 1_752_192_000,
+                },
+                { Id: 'img-b', Size: 0, Created: 0 },
+            ]);
 
-            await expect(sut.listImages({})).resolves.toEqual([{ id: 'img-a' }, { id: 'img-b' }]);
+            await expect(sut.listImages({})).resolves.toEqual([
+                {
+                    id: 'img-a',
+                    tags: ['gitpaas/blog:latest'],
+                    size: 128_000_000,
+                    createdAt: new Date(1_752_192_000 * 1000),
+                },
+                {
+                    id: 'img-b', tags: [], size: 0, createdAt: new Date(0),
+                },
+            ]);
+        });
+
+        it('lists every image of the host, with no filter of labels, for a selector of the host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.listImages({ host: true });
+
+            expect(daemon.listImages).toHaveBeenCalledWith({ filters: {} });
         });
     });
 
@@ -505,6 +546,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     Mountpoint: '/var/lib/docker/volumes/blog_pgdata/_data',
                     Scope: 'local',
                     Labels: { 'io.gitpaas.managed': 'true' },
+                    CreatedAt: '2025-07-11T00:00:00.000Z',
                 }],
                 Warnings: [],
             });
@@ -515,7 +557,16 @@ describe('DockerContainerRuntimeAdapter', () => {
                 mountpoint: '/var/lib/docker/volumes/blog_pgdata/_data',
                 scope: 'local',
                 labels: { 'io.gitpaas.managed': 'true' },
+                createdAt: new Date('2025-07-11T00:00:00.000Z'),
             }]);
+        });
+
+        it('lists every volume of the host, with no filter of labels, for a selector of the host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.listVolumes({ host: true });
+
+            expect(daemon.listVolumes).toHaveBeenCalledWith({ filters: {} });
         });
 
         it('reads a daemon that matched no volume as an empty list', async () => {

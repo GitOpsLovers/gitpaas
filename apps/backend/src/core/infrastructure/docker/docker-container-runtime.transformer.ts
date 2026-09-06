@@ -27,22 +27,29 @@ interface DockerDaemonInfo {
 }
 
 /**
+ * The instant the daemon reports a volume was created at.
+ */
+interface DockerVolumeCreation {
+    CreatedAt?: string;
+}
+
+/**
  * A Docker label filter fragment, as the daemon's `filters` query expects it.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type DockerLabelFilter = { label: string[] };
+export type DockerLabelFilter = { label?: string[] };
 
 /**
  * A Docker image prune filter fragment, as the daemon's `filters` query expects it.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type DockerImagePruneFilter = { label: string[]; dangling: string[] };
+export type DockerImagePruneFilter = { label?: string[]; dangling: string[] };
 
 /**
  * A Docker volume prune filter fragment, as the daemon's `filters` query expects it.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type DockerVolumePruneFilter = { label: string[]; all: string[] };
+export type DockerVolumePruneFilter = { label?: string[]; all: string[] };
 
 /**
  * Compose label Docker stamps on every resource it groups under a stack.
@@ -78,6 +85,10 @@ export function toContainerRuntimeInfo(raw: DockerDaemonInfo): ContainerRuntimeI
  * @returns Label filter fragment the daemon's `filters` query expects
  */
 export function toLabelFilter(selector: RuntimeSelector): DockerLabelFilter {
+    if (selector.host === true) {
+        return {};
+    }
+
     const withProject: LabelSelector = selector.project === undefined
         ? selector.labels ?? {}
         : { ...selector.labels, [COMPOSE_PROJECT_LABEL]: selector.project };
@@ -171,6 +182,7 @@ export function toNetworkSummary(info: Docker.NetworkInspectInfo): RuntimeNetwor
         internal: info.Internal,
         attachable: info.Attachable,
         createdAt: new Date(info.Created),
+        labels: info.Labels ?? {},
     };
 }
 
@@ -182,12 +194,15 @@ export function toNetworkSummary(info: Docker.NetworkInspectInfo): RuntimeNetwor
  * @returns Normalized volume summary
  */
 export function toVolumeSummary(info: Docker.VolumeInspectInfo): RuntimeVolumeSummary {
+    const { CreatedAt } = info as Docker.VolumeInspectInfo & DockerVolumeCreation;
+
     return {
         name: info.Name,
         driver: info.Driver,
         mountpoint: info.Mountpoint,
         scope: info.Scope,
         labels: info.Labels ?? {},
+        createdAt: CreatedAt === undefined ? null : new Date(CreatedAt),
     };
 }
 
@@ -199,7 +214,12 @@ export function toVolumeSummary(info: Docker.VolumeInspectInfo): RuntimeVolumeSu
  * @returns Normalized image summary
  */
 export function toImageSummary(info: Docker.ImageInfo): RuntimeImageSummary {
-    return { id: info.Id };
+    return {
+        id: info.Id,
+        tags: info.RepoTags ?? [],
+        size: info.Size,
+        createdAt: new Date(info.Created * 1000),
+    };
 }
 
 /**

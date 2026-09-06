@@ -21,6 +21,7 @@ const volumeSummary = (overrides: Partial<RuntimeVolumeSummary> = {}): RuntimeVo
     mountpoint: '/var/lib/docker/volumes/my-service_pgdata/_data',
     scope: 'local',
     labels: { [COMPOSE_PROJECT_LABEL]: 'my-service' },
+    createdAt: null,
     ...overrides,
 });
 

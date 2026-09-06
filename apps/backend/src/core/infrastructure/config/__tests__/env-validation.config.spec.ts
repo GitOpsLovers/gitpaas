@@ -218,7 +218,7 @@ describe('validate', () => {
     });
 
     it('falls back to a pinned image of pgAdmin when the environment names none', () => {
-        expect(validate(validEnv()).PGADMIN_IMAGE).toBe('elestio/pgadmin:REL-9_16');
+        expect(validate(validEnv()).PGADMIN_IMAGE).toBe('elestio/pgadmin:REL-9_17');
     });
 
     it('keeps the configured image of pgAdmin', () => {

@@ -161,7 +161,7 @@ const readinessResult: ReadinessResult = {
 /** The values of the environment the service reads once, at its construction. */
 const environment: Record<string, string | number> = {
     PGADMIN_PORT: 5050,
-    PGADMIN_IMAGE: 'elestio/pgadmin:REL-9_16',
+    PGADMIN_IMAGE: 'elestio/pgadmin:REL-9_17',
     APP_BASE_URL: 'https://gitpaas.example.com',
     DB_HOST: 'postgres',
     DB_PORT: 5432,
