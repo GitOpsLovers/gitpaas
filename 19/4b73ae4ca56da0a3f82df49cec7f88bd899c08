@@ -1,0 +1,57 @@
+apps/backend/src/features/docker/ui/transformers/__tests__/docker-response.transformer.spec.ts
+  s_96fc09c6a23d0f::t_87cd2bd6dd4aa8 1-188
+apps/backend/src/features/docker/docker.module.ts
+  s_96fc09c6a23d0f::t_b345bf4f805f5f 1-13
+apps/backend/src/features/docker/application/__tests__/list-host-containers.use-case.spec.ts
+  s_96fc09c6a23d0f::t_9574d8ae944e80 1-65
+apps/backend/src/app.module.ts
+  s_96fc09c6a23d0f::t_b70cf3060139a8 15,65
+docs/roadmap/docker-inspector/TODO.md
+  s_96fc09c6a23d0f::t_22f34877017226 22-28
+apps/backend/src/features/docker/domain/constants/docker-host.constants.ts
+  s_96fc09c6a23d0f::t_dc49c03ef383bb 1-6
+packages/contracts/src/docker/docker.contract.ts
+  s_96fc09c6a23d0f::t_5157bafae378df 1-90
+apps/backend/src/features/docker/application/list-host-images.use-case.ts
+  s_96fc09c6a23d0f::t_f8fedff335d4ef 1-15
+apps/backend/src/features/docker/ui/controllers/__tests__/docker.controller.spec.ts
+  s_96fc09c6a23d0f::t_8801ca8a7570ff 1-300
+packages/contracts/src/index.ts
+  s_96fc09c6a23d0f::t_b0703a9c8f6d1d 191-205
+apps/backend/src/features/docker/application/__tests__/list-host-networks.use-case.spec.ts
+  s_96fc09c6a23d0f::t_4df5df5a37c193 1-61
+apps/backend/src/features/docker/ui/transformers/docker-response.transformer.ts
+  s_96fc09c6a23d0f::t_2dfabae212327d 1-83
+apps/backend/src/features/docker/application/list-host-networks.use-case.ts
+  s_96fc09c6a23d0f::t_f2de9ddac1524c 1-15
+apps/backend/src/features/docker/ui/services/__tests__/docker.service.spec.ts
+  s_96fc09c6a23d0f::t_ad5ff8b4903613 1-185
+apps/backend/src/features/docker/application/list-host-containers.use-case.ts
+  s_96fc09c6a23d0f::t_34877210e59060 1-15
+apps/backend/src/features/docker/application/__tests__/list-host-volumes.use-case.spec.ts
+  s_96fc09c6a23d0f::t_da99dfe9b94e62 1-57
+apps/backend/src/features/docker/application/__tests__/list-host-images.use-case.spec.ts
+  s_96fc09c6a23d0f::t_f38a9fc7625622 1-55
+apps/backend/src/features/docker/ui/controllers/docker.controller.ts
+  s_96fc09c6a23d0f::t_72b88b978097bb 1-89
+apps/backend/src/features/docker/application/list-host-volumes.use-case.ts
+  s_96fc09c6a23d0f::t_d47bbefb6bb1b2 1-15
+apps/backend/src/features/docker/ui/services/docker.service.ts
+  s_96fc09c6a23d0f::t_51bbcfc9a8127d 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "194b73ae4ca56da0a3f82df49cec7f88bd899c08",
+  "prompts": {},
+  "sessions": {
+    "s_96fc09c6a23d0f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5d79528b-1495-480b-9b1e-9c20ecd99275",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
