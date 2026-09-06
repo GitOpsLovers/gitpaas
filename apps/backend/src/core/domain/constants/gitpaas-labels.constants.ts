@@ -22,3 +22,8 @@ export const GITPAAS_MANAGED_VALUE = 'true';
  * Project names of the GitPaaS control plane itself.
  */
 export const GITPAAS_CONTROL_PLANE_PROJECTS: readonly string[] = ['gitpaas', 'gitpaas-dev'];
+
+/**
+ * Label marking a resource that runs one time and then exits, such as an initialization or a migration.
+ */
+export const GITPAAS_EPHEMERAL_LABEL = 'io.gitpaas.ephemeral';

@@ -447,6 +447,54 @@ describe('compose-recipe.transformer', () => {
             expect(compose.recipe.networks.edge).toEqual({ labels: gitpaas });
         });
 
+        it('marks as ephemeral the service another one waits for with the condition of a successful completion', () => {
+            const migrate = {} as { labels?: unknown };
+            const web = { depends_on: { migrate: { condition: 'service_completed_successfully' } } } as { labels?: unknown };
+            const compose = { recipe: { services: { migrate, web } } };
+
+            stampLabels(asCompose(compose), 'my-project', serviceId);
+
+            expect(migrate.labels).toContain('io.gitpaas.ephemeral=true');
+            expect(web.labels).not.toContain('io.gitpaas.ephemeral=true');
+        });
+
+        it('never marks as ephemeral a service another one waits for with a different condition, or through the list form', () => {
+            const database = {} as { labels?: unknown };
+            const cache = {} as { labels?: unknown };
+            const web = {
+                depends_on: { database: { condition: 'service_healthy' } },
+            } as { labels?: unknown };
+            const worker = { depends_on: ['cache'] } as { labels?: unknown };
+            const compose = {
+                recipe: {
+                    services: {
+                        database, cache, web, worker,
+                    },
+                },
+            };
+
+            stampLabels(asCompose(compose), 'my-project', serviceId);
+
+            expect(database.labels).not.toContain('io.gitpaas.ephemeral=true');
+            expect(cache.labels).not.toContain('io.gitpaas.ephemeral=true');
+        });
+
+        it('keeps the mark of a service the compose file of the user already declares as ephemeral', () => {
+            const migrate = { labels: ['io.gitpaas.ephemeral=true'] } as { labels?: unknown };
+            const compose = { recipe: { services: { migrate } } };
+
+            stampLabels(asCompose(compose), 'my-project', serviceId);
+
+            expect(migrate.labels).toEqual([
+                'io.gitpaas.ephemeral=true',
+                'io.gitpaas.managed=true',
+                'io.gitpaas.project=my-project',
+                'com.gitpaas.service=3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+                'com.docker.compose.project=my-project',
+                'com.docker.compose.service=migrate',
+            ]);
+        });
+
         it('does nothing when the recipe declares no services, volumes or networks', () => {
             expect(() => { stampLabels(asCompose({ recipe: {} }), 'my-project', serviceId); }).not.toThrow();
         });

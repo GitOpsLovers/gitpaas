@@ -36,6 +36,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     createdAt: new Date('2025-07-11T00:00:00.000Z'),
     projects: ['my-service'],
     serviceId: null,
+    ephemeral: false,
     ports: [],
     networks: ['my-service_default'],
     mounts: [],

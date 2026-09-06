@@ -21,6 +21,7 @@ const containerSummary = (overrides: Partial<RuntimeContainerSummary> = {}): Run
     createdAt: new Date(1_752_192_000 * 1000),
     projects: ['my-service', 'my-service'],
     serviceId: null,
+    ephemeral: false,
     ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
     networks: [],
     mounts: [],
@@ -83,6 +84,7 @@ describe('DockerContainersRepository', () => {
                 state: 'running',
                 status: 'Up 3 minutes',
                 createdAt: new Date(1_752_192_000 * 1000),
+                ephemeral: false,
                 ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
             },
         ]);

@@ -17,6 +17,7 @@ export function toContainer(info: RuntimeContainerSummary): Container {
         state: info.state,
         status: info.status,
         createdAt: info.createdAt,
+        ephemeral: info.ephemeral,
         ports: info.ports.map((port) => ({
             privatePort: port.privatePort,
             publicPort: port.publicPort,

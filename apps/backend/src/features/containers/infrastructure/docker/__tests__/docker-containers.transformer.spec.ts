@@ -15,6 +15,7 @@ function containerSummary(overrides: Partial<RuntimeContainerSummary> = {}): Run
         createdAt: new Date(1_700_000_000 * 1000),
         projects: ['gitpaas-api'],
         serviceId: null,
+        ephemeral: false,
         ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
         networks: [],
         mounts: [],
@@ -31,8 +32,13 @@ describe('toContainer', () => {
             state: 'running',
             status: 'Up 2 hours',
             createdAt: new Date(1_700_000_000 * 1000),
+            ephemeral: false,
             ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
         });
+    });
+
+    it('carries the mark of a one-shot container of the summary into the domain model', () => {
+        expect(toContainer(containerSummary({ ephemeral: true })).ephemeral).toBe(true);
     });
 
     it('falls back to the first 12 chars of the id when the summary has no names', () => {

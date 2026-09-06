@@ -17,5 +17,6 @@ export interface Container {
     state: string;
     status: string;
     createdAt: Date;
+    ephemeral: boolean;
     ports: ContainerPort[];
 }

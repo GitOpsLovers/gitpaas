@@ -17,6 +17,7 @@ export function toContainerResponse(container: Container): ContainerResponse {
         state: container.state,
         status: container.status,
         createdAt: container.createdAt.toISOString(),
+        ephemeral: container.ephemeral,
         ports: container.ports,
     };
 }

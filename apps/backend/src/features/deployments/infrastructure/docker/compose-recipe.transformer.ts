@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 
 import { COMPOSE_DEFAULT_NETWORK_KEY, getDefaultNetworkKeyUseCase } from '../../application/get-default-network-name.use-case';
 
-import { GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
+import { GITPAAS_EPHEMERAL_LABEL, GITPAAS_MANAGED_VALUE, GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeComposeProject } from '@core/domain/models/container-runtime.models';
 import { COMPOSE_PROJECT_LABEL, COMPOSE_SERVICE_LABEL } from '@core/infrastructure/docker/docker-container-runtime.transformer';
 import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
@@ -48,6 +48,11 @@ type ComposeServiceVolume = string | Record<string, unknown>;
 type ComposeServiceNetworks = string[] | Record<string, unknown>;
 
 /**
+ * The `depends_on` block of a compose service, in either the list (names) or the map (conditions) form.
+ */
+type ComposeDependsOn = string[] | Record<string, { condition?: string }>;
+
+/**
  * The subset of a compose service the executor reads/rewrites.
  */
 interface ComposeService {
@@ -58,6 +63,7 @@ interface ComposeService {
     environment?: ComposeEnvironment;
     volumes?: ComposeServiceVolume[];
     networks?: ComposeServiceNetworks;
+    depends_on?: ComposeDependsOn;
 }
 
 /**
@@ -417,6 +423,36 @@ export function declareDefaultNetwork(compose: RuntimeComposeProject): string {
 }
 
 /**
+ * Condition a compose service declares when it waits for another one to run one time and exit.
+ */
+export const COMPOSE_COMPLETED_CONDITION = 'service_completed_successfully';
+
+/**
+ * Returns the names of the services another service waits for with the condition of a successful completion, which marks them as one-shot.
+ *
+ * @param services Declared service definitions, keyed by service name
+ *
+ * @returns Names of the one-shot services
+ */
+export function oneShotServices(services: Record<string, ComposeService>): Set<string> {
+    const names = new Set<string>();
+
+    for (const { depends_on: dependsOn } of Object.values(services)) {
+        if (!dependsOn || Array.isArray(dependsOn)) {
+            continue;
+        }
+
+        for (const [name, dependency] of Object.entries(dependsOn)) {
+            if (dependency?.condition === COMPOSE_COMPLETED_CONDITION) {
+                names.add(name);
+            }
+        }
+    }
+
+    return names;
+}
+
+/**
  * Stamps the GitPaaS ownership labels on every resource the stack will create.
  *
  * @param compose Compose project driven by the container runtime
@@ -425,11 +461,17 @@ export function declareDefaultNetwork(compose: RuntimeComposeProject): string {
  */
 export function stampLabels(compose: RuntimeComposeProject, projectName: string, serviceId: string): void {
     const gitpaas = { ...getGitpaasLabels(projectName), [GITPAAS_SERVICE_LABEL]: serviceId };
+    const services = recipeServices(compose);
+    const oneShot = oneShotServices(services);
 
-    for (const [name, service] of Object.entries(recipeServices(compose))) {
+    for (const [name, service] of Object.entries(services)) {
+        const declared = toEntryMap(service.labels);
+        const ephemeral = oneShot.has(name) || GITPAAS_EPHEMERAL_LABEL in declared;
+
         service.labels = toEntryList({
-            ...toEntryMap(service.labels),
+            ...declared,
             ...gitpaas,
+            ...(ephemeral && { [GITPAAS_EPHEMERAL_LABEL]: GITPAAS_MANAGED_VALUE }),
             [COMPOSE_PROJECT_LABEL]: projectName,
             [COMPOSE_SERVICE_LABEL]: name,
         });

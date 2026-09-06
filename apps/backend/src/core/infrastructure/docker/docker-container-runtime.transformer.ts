@@ -1,7 +1,7 @@
 import type { RuntimeLogLine, RuntimeLogSource } from '@gitpaas/contracts';
 import type Docker from 'dockerode';
 
-import { GITPAAS_PROJECT_LABEL, GITPAAS_SERVICE_LABEL } from '../../domain/constants/gitpaas-labels.constants';
+import { GITPAAS_EPHEMERAL_LABEL, GITPAAS_PROJECT_LABEL, GITPAAS_SERVICE_LABEL } from '../../domain/constants/gitpaas-labels.constants';
 import {
     ContainerRuntimeInfo,
     LabelSelector,
@@ -137,6 +137,8 @@ export function toContainerSummary(info: Docker.ContainerInfo): RuntimeContainer
             .filter((project): project is string => typeof project === 'string'),
         // eslint-disable-next-line security/detect-object-injection
         serviceId: labels[GITPAAS_SERVICE_LABEL] ?? null,
+        // eslint-disable-next-line security/detect-object-injection
+        ephemeral: labels[GITPAAS_EPHEMERAL_LABEL] !== undefined,
         ports: (info.Ports ?? []).map((port): RuntimePortMapping => ({
             privatePort: port.PrivatePort,
             publicPort: port.PublicPort ?? null,

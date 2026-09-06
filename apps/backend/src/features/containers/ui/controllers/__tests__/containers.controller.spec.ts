@@ -20,6 +20,7 @@ const containers: Container[] = [
         state: 'running',
         status: 'Up 2 hours',
         createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        ephemeral: false,
         ports: [{ privatePort: 80, publicPort: 8080, type: 'tcp' }],
     },
 ];
@@ -32,6 +33,7 @@ const containerResponses: ContainerResponse[] = [
         state: 'running',
         status: 'Up 2 hours',
         createdAt: '2026-01-01T00:00:00.000Z',
+        ephemeral: false,
         ports: [{ privatePort: 80, publicPort: 8080, type: 'tcp' }],
     },
 ];

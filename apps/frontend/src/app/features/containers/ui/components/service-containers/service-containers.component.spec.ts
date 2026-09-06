@@ -10,6 +10,7 @@ const running: Container = {
     state: 'running',
     status: 'Up 3 minutes',
     createdAt: '2026-01-01T10:00:00.000Z',
+    ephemeral: false,
     ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
 };
 

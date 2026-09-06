@@ -32,6 +32,7 @@ const container = (state: string): Container => ({
     state,
     status: 'Up 2 minutes',
     createdAt: '2026-01-01T00:00:00.000Z',
+    ephemeral: false,
     ports: [],
 });
 
