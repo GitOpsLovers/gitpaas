@@ -1,0 +1,23 @@
+apps/backend/src/features/logs/domain/constants/runtime-log-stream.constants.ts
+  s_58b9a5cc4ff9ac::t_5535718244fe52 5-9
+apps/backend/src/features/logs/infrastructure/docker/__tests__/docker-runtime-log-follower.adapter.spec.ts
+  s_58b9a5cc4ff9ac::t_d3b161135fab1c 4,136,140-143
+apps/backend/src/features/logs/infrastructure/docker/docker-runtime-log-follower.adapter.ts
+  s_58b9a5cc4ff9ac::t_5890c70e25eddb 4,42-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e28f48d068052d54386fb0dd36f83bd913f4a589",
+  "prompts": {},
+  "sessions": {
+    "s_58b9a5cc4ff9ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a68c346d-b4b5-46bf-ad36-ef51d3685888",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
