@@ -10,6 +10,7 @@ import {
     recipeServices,
     resolveBindMounts,
     resolveBuild,
+    setComposeRecipe,
     stampLabels,
     stampRouting,
     toNanoseconds,
@@ -108,6 +109,17 @@ describe('compose-recipe.transformer', () => {
 
         it('throws when the compose project carries no recipe', () => {
             expect(() => composeRecipe(asCompose({}))).toThrow('The compose project carries no parsed recipe.');
+        });
+    });
+
+    describe('setComposeRecipe', () => {
+        it('binds the given recipe onto the compose project, which every later read then returns', () => {
+            const compose = asCompose({ recipe: { services: { web: { image: 'nginx' } } } });
+            const replacement = { services: { web: { image: 'nginx:1.4.0' } } };
+
+            setComposeRecipe(compose, replacement);
+
+            expect(composeRecipe(compose)).toBe(replacement);
         });
     });
 

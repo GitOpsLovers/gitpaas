@@ -155,6 +155,17 @@ export function composeRecipe(compose: RuntimeComposeProject): ComposeRecipe {
 }
 
 /**
+ * Binds a parsed recipe onto a compose project, which every later step of the stack then reads.
+ *
+ * @param compose Compose project driven by the container runtime
+ * @param recipe Parsed compose recipe the project carries from now on
+ */
+export function setComposeRecipe(compose: RuntimeComposeProject, recipe: ComposeRecipe): void {
+    // eslint-disable-next-line no-param-reassign
+    (compose as unknown as { recipe: ComposeRecipe }).recipe = recipe;
+}
+
+/**
  * Returns every top-level volume and network declared by a compose recipe.
  *
  * @param compose Compose project driven by the container runtime

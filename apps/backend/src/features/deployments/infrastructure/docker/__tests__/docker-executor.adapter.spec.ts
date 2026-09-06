@@ -348,6 +348,13 @@ describe('DockerExecutorAdapter', () => {
             tarXMock.mockReturnValue(new Writable({ objectMode: true, write: (_c, _e, cb): void => { cb(); } }));
         });
 
+        /**
+         * Reads the recipe the compose project carries at this moment. The interpolation of the
+         * variables binds a new recipe onto the project, so a test that reads the recipe while the
+         * stack runs reads this one, and never the fixture that it shaped.
+         */
+        const liveRecipe = <TRecipe>(): TRecipe => (mockCompose.instance as { recipe: TRecipe }).recipe;
+
         /** Drives an empty stack up, which is the shortest path through the extraction of the repository. */
         const upWithEmptyRecipe = async (sut: DockerExecutorAdapter): Promise<void> => {
             mockCompose.instance = {
@@ -517,10 +524,12 @@ describe('DockerExecutorAdapter', () => {
             };
             let stampedAtUp: unknown;
             const composeUp = jest.fn(() => {
+                const live = liveRecipe<typeof recipe>();
+
                 stampedAtUp = {
-                    service: web.labels,
-                    volume: recipe.volumes.data,
-                    network: recipe.networks.edge,
+                    service: live.services.web.labels,
+                    volume: live.volumes.data,
+                    network: live.networks.edge,
                 };
 
                 return Promise.resolve({ services: [] });
@@ -555,7 +564,7 @@ describe('DockerExecutorAdapter', () => {
             const web = { image: 'nginx', environment: ['PORT=8080'] } as { image: string; environment?: unknown };
             let environmentAtUp: unknown;
             const composeUp = jest.fn(() => {
-                environmentAtUp = web.environment;
+                environmentAtUp = liveRecipe<{ services: { web: typeof web } }>().services.web.environment;
 
                 return Promise.resolve({ services: [] });
             });
@@ -577,12 +586,33 @@ describe('DockerExecutorAdapter', () => {
             expect(environmentAtUp).toEqual(['PORT=8080', 'DATABASE_URL=postgres://db']);
         });
 
+        it('has the references of the recipe substituted by the time the images are built, so a build arg reads a variable of the service', async () => {
+            const web = { build: { context: '${CONTEXT:-app}', args: ['VERSION=${TAG}'] } };
+            mockCompose.instance = {
+                recipe: { services: { web } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [] }),
+            };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const buildImage = jest.fn().mockResolvedValue({});
+            const sut = executorWithRuntime({ createComposeProject, buildImage, followProgress });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), { TAG: '1.4.0' }, {}, [], jest.fn());
+
+            const [, options] = buildImage.mock.calls[0] as [unknown, { buildArgs?: unknown }];
+            const [contextOptions] = (tar.c as unknown as jest.Mock).mock.calls[0] as [{ cwd: string }];
+
+            expect(options.buildArgs).toEqual({ VERSION: '1.4.0' });
+            expect(contextOptions.cwd).toBe(join(tempDir, 'app'));
+        });
+
         it('stamps the routing on the named service and attaches its container to the proxy network', async () => {
             const web = { image: 'nginx' } as { image: string; labels?: unknown };
             let labelsAtUp: unknown;
             const container = startedContainer('web');
             const composeUp = jest.fn(() => {
-                labelsAtUp = web.labels;
+                labelsAtUp = liveRecipe<{ services: { web: typeof web } }>().services.web.labels;
 
                 return Promise.resolve({ services: [container] });
             });
@@ -758,7 +788,7 @@ describe('DockerExecutorAdapter', () => {
             let networksAtTeardown: unknown;
             // `stampLabels` mutates the networks of the recipe later, so snapshot them at the teardown.
             const listContainers = jest.fn(() => {
-                networksAtTeardown = JSON.parse(JSON.stringify(recipe.networks ?? null)) as unknown;
+                networksAtTeardown = JSON.parse(JSON.stringify(liveRecipe<typeof recipe>().networks ?? null)) as unknown;
 
                 return Promise.resolve([]);
             });
@@ -782,7 +812,7 @@ describe('DockerExecutorAdapter', () => {
             const recipe = { services: { web: { image: 'nginx' } } } as { services: unknown; networks?: Record<string, unknown> };
             let networksAtUp: unknown;
             const composeUp = jest.fn(() => {
-                networksAtUp = recipe.networks;
+                networksAtUp = liveRecipe<typeof recipe>().networks;
 
                 return Promise.resolve({ services: [] });
             });
