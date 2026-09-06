@@ -1,0 +1,14 @@
+iac/development/docker-compose.yml
+  h_e4f33aa49027b9 100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "db5ef9a6a9018ab770452b0aca524b66e8ba0373",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
