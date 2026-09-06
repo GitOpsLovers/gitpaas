@@ -1,0 +1,31 @@
+apps/frontend/src/app/features/authentication/ui/containers/signin/signin.component.html
+  s_d1cc2e75e94fdd::t_5e98073fad4b0d 83,86-87,90
+apps/frontend/src/app/shared/components/input-otp/input-otp.component.html
+  s_d1cc2e75e94fdd::t_f39b36737d75bb 1-27
+apps/frontend/src/app/features/authentication/ui/containers/signin/signin.component.ts
+  s_2f29a6c408ed4f::t_5357da906ec83f 12,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a2bbf21707d6b7021b05b4862a14c4059d642758",
+  "prompts": {},
+  "sessions": {
+    "s_2f29a6c408ed4f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a02bc5b9-6873-4014-95df-1b92246c5584",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_d1cc2e75e94fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fb38c158-1a8d-42c1-914c-0085c149ba5d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
