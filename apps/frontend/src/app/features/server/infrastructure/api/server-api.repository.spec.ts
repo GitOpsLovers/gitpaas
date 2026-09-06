@@ -4,6 +4,8 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type {
     ControlPlaneDomainCheckResult,
+    DatabaseDebugSession,
+    DatabaseDebugStatus,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
@@ -46,6 +48,22 @@ const domainCheck: ControlPlaneDomainCheckResult = {
         reason: 'cdn',
         provider: 'Cloudflare',
         message: 'The domain gitpaas.dev resolves to an address of Cloudflare.',
+    },
+};
+
+const debugStopped: DatabaseDebugStatus = { running: false, url: null };
+
+const debugRunning: DatabaseDebugStatus = { running: true, url: 'http://203.0.113.10:5050' };
+
+const debugSession: DatabaseDebugSession = {
+    url: 'http://203.0.113.10:5050',
+    console: { email: 'debug@gitpaas.local', password: 'console-secret' },
+    connection: {
+        host: 'gitpaas-postgres',
+        port: 5432,
+        database: 'gitpaas',
+        role: 'gitpaas_debug',
+        password: 'role-secret',
     },
 };
 
@@ -266,6 +284,64 @@ describe('ServerApiRepository', () => {
             req.flush(updateStatus);
 
             expect(result).toEqual(updateStatus);
+        });
+    });
+
+    describe('the state of the debug of the database', () => {
+        // eslint-disable-next-line vitest/expect-expect
+        test('reads no state while the caller allows none', () => {
+            const enabled = signal(false);
+
+            TestBed.runInInjectionContext(() => repository.databaseDebug(() => enabled()));
+            TestBed.tick();
+
+            httpMock.expectNone(() => true);
+        });
+
+        test('reads the state of the session once the caller allows it', async () => {
+            const enabled = signal(false);
+            const resource = TestBed.runInInjectionContext(() => repository.databaseDebug(() => enabled()));
+            TestBed.tick();
+
+            enabled.set(true);
+            TestBed.tick();
+
+            const req = httpMock.expectOne(`${BASE_URL}/database-debug`);
+            expect(req.request.method).toBe('GET');
+            req.flush(debugRunning);
+
+            await settle();
+
+            expect(resource.value()).toEqual(debugRunning);
+        });
+    });
+
+    describe('startDatabaseDebug', () => {
+        test('starts the session of the debug, and answers the passwords it gives one time', () => {
+            let result: DatabaseDebugSession | undefined;
+
+            repository.startDatabaseDebug().subscribe((value) => { result = value; });
+
+            const req = httpMock.expectOne(`${BASE_URL}/database-debug`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toEqual({});
+            req.flush(debugSession);
+
+            expect(result).toEqual(debugSession);
+        });
+    });
+
+    describe('stopDatabaseDebug', () => {
+        test('ends the session of the debug, and answers the state it leaves', () => {
+            let result: DatabaseDebugStatus | undefined;
+
+            repository.stopDatabaseDebug().subscribe((value) => { result = value; });
+
+            const req = httpMock.expectOne(`${BASE_URL}/database-debug`);
+            expect(req.request.method).toBe('DELETE');
+            req.flush(debugStopped);
+
+            expect(result).toEqual(debugStopped);
         });
     });
 

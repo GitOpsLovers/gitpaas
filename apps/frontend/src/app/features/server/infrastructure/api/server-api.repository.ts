@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import type {
     CheckControlPlaneDomainDto,
     ControlPlaneDomainCheckResult,
+    DatabaseDebugSession,
+    DatabaseDebugStatus,
     OrphanRemovalResult,
     PlatformSettings,
     PlatformUpdateStatus,
@@ -148,5 +150,34 @@ export class ServerApiRepository {
      */
     public startUpdate(): Observable<PlatformUpdateStatus> {
         return this.http.post<PlatformUpdateStatus>(`${this.url}/update`, {});
+    }
+
+    /**
+     * Resource with the state of the session of the debug of the database.
+     *
+     * @param enabled Accessor telling whether the read may run
+     *
+     * @returns Resource that resolves to the state of the session of the debug
+     */
+    public databaseDebug(enabled: () => boolean) {
+        return httpResource<DatabaseDebugStatus>(() => (enabled() ? `${this.url}/database-debug` : undefined));
+    }
+
+    /**
+     * Starts the session of the debug of the database.
+     *
+     * @returns The address of the console, and the passwords that are given this one time
+     */
+    public startDatabaseDebug(): Observable<DatabaseDebugSession> {
+        return this.http.post<DatabaseDebugSession>(`${this.url}/database-debug`, {});
+    }
+
+    /**
+     * Ends the session of the debug of the database.
+     *
+     * @returns The state the session leaves, which is always stopped
+     */
+    public stopDatabaseDebug(): Observable<DatabaseDebugStatus> {
+        return this.http.delete<DatabaseDebugStatus>(`${this.url}/database-debug`);
     }
 }

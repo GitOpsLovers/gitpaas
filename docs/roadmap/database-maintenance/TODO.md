@@ -30,11 +30,11 @@ An operator who must inspect the database of GitPaaS in production has no tool: 
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/features/server/`
 
-- [ ] 3.1 Add the three methods of the debug of the database to `ServerApiRepository`.
-- [ ] 3.2 Add the section "Database maintenance" to `ServerMaintenanceComponent`, visible to the administrator alone, with the button "Debug" that toggles the state.
-- [ ] 3.3 Show the URL and the generated passwords one time after the start, with a warning that says that the connection uses plain HTTP.
-- [ ] 3.4 Ask for a confirmation with `ConfirmModalComponent` before the start, and report the result with `ToastService`.
-- [ ] 3.5 Write the unit tests of the new state of the component and of the repository.
+- [x] 3.1 Add the three methods of the debug of the database to `ServerApiRepository`.
+- [x] 3.2 Add the section "Database maintenance" to `ServerMaintenanceComponent`, visible to the administrator alone, with the button "Debug" that toggles the state.
+- [x] 3.3 Show the URL and the generated passwords one time after the start, with a warning that says that the connection uses plain HTTP.
+- [x] 3.4 Ask for a confirmation with `ConfirmModalComponent` before the start, and report the result with `ToastService`.
+- [x] 3.5 Write the unit tests of the new state of the component and of the repository.
 
 ## Phase 4 — The documentation
 

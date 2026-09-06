@@ -1,6 +1,14 @@
 import { Component, computed, DestroyRef, DOCUMENT, effect, inject, signal } from '@angular/core';
-import type { OrphanRemovalResult, PruneResult } from '@gitpaas/contracts';
-import { LucideBox, LucideDatabase, LucideLayers, LucideLoaderCircle, LucideRefreshCw, LucideUnplug } from '@lucide/angular';
+import type { DatabaseDebugSession, OrphanRemovalResult, PruneResult } from '@gitpaas/contracts';
+import {
+    LucideBox,
+    LucideBug,
+    LucideDatabase,
+    LucideLayers,
+    LucideLoaderCircle,
+    LucideRefreshCw,
+    LucideUnplug,
+} from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
 
 import { describeRequestFailureUseCase } from '../../../application/describe-request-failure.use-case';
@@ -68,6 +76,7 @@ const UPDATE_TIMEOUT_MS = 10 * 60 * 1000;
         LucideBox,
         LucideLayers,
         LucideDatabase,
+        LucideBug,
         LucideUnplug,
         LucideRefreshCw,
         LucideLoaderCircle,
@@ -87,6 +96,8 @@ export class ServerMaintenanceComponent {
     private readonly document = inject(DOCUMENT);
 
     private readonly updateResource = this.repository.updateStatus(() => this.isAdmin());
+
+    private readonly debugResource = this.repository.databaseDebug(() => this.isAdmin());
 
     private pollHandle: ReturnType<typeof setInterval> | null = null;
 
@@ -131,9 +142,24 @@ export class ServerMaintenanceComponent {
             + 'removed from the server. This cannot be undone.',
     } as const;
 
+    protected readonly debugAction = {
+        label: 'Debug',
+        title: 'Database maintenance',
+        description: 'Open a read-only console on the database of GitPaaS, with a role and a password made for it.',
+        confirmMessage:
+            'A console of the database opens on the server, and it answers over plain HTTP, with no certificate. '
+            + 'The passwords are shown one time. Stop the session as soon as the inspection ends.',
+    } as const;
+
     protected readonly pending = signal<PruneAction | null>(null);
 
     protected readonly orphanPending = signal(false);
+
+    protected readonly debugPending = signal(false);
+
+    protected readonly debugBusy = signal(false);
+
+    protected readonly debugSession = signal<DatabaseDebugSession | null>(null);
 
     protected readonly running = signal(false);
 
@@ -169,6 +195,20 @@ export class ServerMaintenanceComponent {
      */
     protected readonly showUpdate = computed(
         () => this.isAdmin() && (this.update().available || this.update().failed || this.updating() || this.timedOut()),
+    );
+
+    /**
+     * Whether a console of the debug of the database runs right now.
+     */
+    protected readonly debugActive = computed(
+        () => (this.debugResource.error() ? false : this.debugResource.value()?.running ?? false),
+    );
+
+    /**
+     * Address the console of the debug of the database answers on, while one runs.
+     */
+    protected readonly debugUrl = computed(
+        () => (this.debugResource.error() ? null : this.debugResource.value()?.url ?? null),
     );
 
     /**
@@ -303,6 +343,49 @@ export class ServerMaintenanceComponent {
     }
 
     /**
+     * Toggles the session of the debug of the database. A start asks for a confirmation, and a stop runs at once.
+     */
+    protected async toggleDebug(): Promise<void> {
+        if (this.debugActive()) {
+            await this.stopDebug();
+
+            return;
+        }
+
+        this.debugPending.set(true);
+    }
+
+    /**
+     * Dismisses the confirmation dialog of the debug of the database without starting a session.
+     */
+    protected cancelDebug(): void {
+        this.debugPending.set(false);
+    }
+
+    /**
+     * Starts the session of the debug of the database pending confirmation.
+     */
+    protected async confirmDebug(): Promise<void> {
+        this.debugBusy.set(true);
+
+        try {
+            const session = await lastValueFrom(this.repository.startDatabaseDebug());
+
+            this.debugSession.set(session);
+            this.debugResource.set({ running: true, url: session.url });
+            this.toast.success(
+                'Debug session started',
+                'The console of the database is open. The passwords below are shown this one time.',
+            );
+        } catch (error) {
+            this.toast.error('Debug session failed to start', describeRequestFailureUseCase(error));
+        } finally {
+            this.debugBusy.set(false);
+            this.debugPending.set(false);
+        }
+    }
+
+    /**
      * Reads the latest release published at once, and shows the state of the update it leaves.
      */
     protected async checkForUpdates(): Promise<void> {
@@ -358,6 +441,28 @@ export class ServerMaintenanceComponent {
         } finally {
             this.running.set(false);
             this.updatePending.set(false);
+        }
+    }
+
+    /**
+     * Ends the session of the debug of the database, and forgets the passwords it gave.
+     */
+    private async stopDebug(): Promise<void> {
+        this.debugBusy.set(true);
+
+        try {
+            const status = await lastValueFrom(this.repository.stopDatabaseDebug());
+
+            this.debugSession.set(null);
+            this.debugResource.set(status);
+            this.toast.success(
+                'Debug session stopped',
+                'The console of the database is removed, and the role of the debug can no longer sign in.',
+            );
+        } catch (error) {
+            this.toast.error('Debug session failed to stop', describeRequestFailureUseCase(error));
+        } finally {
+            this.debugBusy.set(false);
         }
     }
 
