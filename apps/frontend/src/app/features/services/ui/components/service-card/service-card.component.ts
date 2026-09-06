@@ -14,6 +14,7 @@ const BULLET_COLOUR: Record<ServiceState, string> = {
     warning: 'bg-warning-500',
     error: 'bg-error-500',
     unknown: 'bg-gray-400',
+    idle: 'bg-gray-400',
 };
 
 /**
@@ -24,6 +25,7 @@ const BULLET_LABEL: Record<ServiceState, string> = {
     warning: 'Unstable',
     error: 'Stopped',
     unknown: 'Never deployed',
+    idle: 'Completed',
 };
 
 @Component({
