@@ -1,3 +1,9 @@
+## [2.16.3](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.2...v2.16.3) (2026-09-06)
+
+### Bug Fixes
+
+* add directory for deployments to avoid volumes mounting fails ([8664958](https://github.com/GitOpsLovers/gitpaas/commit/8664958c20b4e031f959f85dd2951892ef509366))
+
 ## [2.16.2](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.1...v2.16.2) (2026-09-05)
 
 ### Bug Fixes
