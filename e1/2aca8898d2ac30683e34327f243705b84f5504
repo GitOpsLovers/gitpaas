@@ -1,0 +1,33 @@
+apps/backend/src/core/application/__tests__/pull-image.use-case.spec.ts
+  s_4a3235251a300f::t_733b9d377ee6ca 8
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_4a3235251a300f::t_a117736b75542f 221
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_4a3235251a300f::t_806a249afaebf4 54
+apps/backend/src/features/server/application/__tests__/get-database-debug-status.use-case.spec.ts
+  s_4a3235251a300f::t_e9cfbc1ed0adc4 16
+apps/backend/src/features/server/application/__tests__/start-database-debug.use-case.spec.ts
+  s_4a3235251a300f::t_64c9100e26456e 25
+apps/backend/src/features/server/application/__tests__/stop-database-debug.use-case.spec.ts
+  s_4a3235251a300f::t_b874cc6a9a9408 17
+apps/backend/src/features/server/ui/services/__tests__/server.service.spec.ts
+  s_4a3235251a300f::t_06cc65cfc85242 164
+docs/architecture/infrastructure/conventions.md
+  s_4a3235251a300f::t_fd6940d6a599b0 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e12aca8898d2ac30683e34327f243705b84f5504",
+  "prompts": {},
+  "sessions": {
+    "s_4a3235251a300f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fd76518d-a963-4bbc-8a30-e997ce119167",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
