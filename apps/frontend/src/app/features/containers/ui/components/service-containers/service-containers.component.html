@@ -43,6 +43,14 @@
                                     >
                                         {{ container.state }}
                                     </span>
+                                    @if (container.ephemeral) {
+                                        <span
+                                            class="ml-2 inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                                            title="This container runs one time, for an initialization or a migration."
+                                        >
+                                            One-shot
+                                        </span>
+                                    }
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ container.status }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ formatPorts(container.ports) }}</td>

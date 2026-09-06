@@ -23,6 +23,13 @@ const exited: Container = {
     ports: [],
 };
 
+const oneShot: Container = {
+    ...exited,
+    id: 'ct-3',
+    name: 'gitpaas-sv-1-migrate-1',
+    ephemeral: true,
+};
+
 describe('ServiceContainersComponent', () => {
     let fixture: ComponentFixture<ServiceContainersComponent>;
 
@@ -70,6 +77,19 @@ describe('ServiceContainersComponent', () => {
         create([exited]);
 
         expect(rows()[0]?.textContent).toContain('—');
+    });
+
+    test('marks a one-shot container with a badge, and keeps its state', () => {
+        create([oneShot]);
+
+        expect(rows()[0]?.textContent).toContain('One-shot');
+        expect(rows()[0]?.textContent).toContain('exited');
+    });
+
+    test('marks no badge on a container that runs more than one time', () => {
+        create([running]);
+
+        expect(rows()[0]?.textContent).not.toContain('One-shot');
     });
 
     test('says that the service runs no container when the list is empty', () => {

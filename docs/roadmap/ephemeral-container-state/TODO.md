@@ -24,11 +24,11 @@ The interface of GitPaaS gives no way to mark a service; the mark comes from the
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/services/, apps/frontend/src/app/features/containers/
 
-- [ ] 2.1 Add the value `idle` to the type `ServiceState`, with the color `bg-gray-400` and the title `Completed` in `service-card.component.ts`.
-- [ ] 2.2 In `compute-service-state.use-case.ts`, remove a container that holds `ephemeral` and that exited, then apply the rule of the worst container to the containers that stay.
-- [ ] 2.3 In the same file, give the state `idle` when the removal empties the list, and keep a one-shot container that runs, which gives `ok`.
-- [ ] 2.4 Show a badge `One-shot` on a container that holds `ephemeral` in `service-containers.component`, and keep its state as it is.
-- [ ] 2.5 Repair the fixtures of the tests of the frontend that the new field breaks, and add the tests of the three cases: the main container runs and the one-shot exited, every container is one-shot and exited, and a one-shot container runs.
+- [x] 2.1 Add the value `idle` to the type `ServiceState`, with the color `bg-gray-400` and the title `Completed` in `service-card.component.ts`.
+- [x] 2.2 In `compute-service-state.use-case.ts`, remove a container that holds `ephemeral` and that exited, then apply the rule of the worst container to the containers that stay.
+- [x] 2.3 In the same file, give the state `idle` when the removal empties the list, and keep a one-shot container that runs, which gives `ok`.
+- [x] 2.4 Show a badge `One-shot` on a container that holds `ephemeral` in `service-containers.component`, and keep its state as it is.
+- [x] 2.5 Repair the fixtures of the tests of the frontend that the new field breaks, and add the tests of the three cases: the main container runs and the one-shot exited, every container is one-shot and exited, and a one-shot container runs.
 
 ## Phase 3 — The documentation of the behavior
 

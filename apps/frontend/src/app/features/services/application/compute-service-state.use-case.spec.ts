@@ -2,14 +2,14 @@ import type { Container } from '@gitpaas/contracts';
 
 import { computeServiceStateUseCase } from './compute-service-state.use-case';
 
-const container = (state: string): Container => ({
+const container = (state: string, ephemeral = false): Container => ({
     id: `ct-${state}`,
     name: `web-${state}`,
     image: 'nginx:latest',
     state,
     status: 'Up 2 minutes',
     createdAt: '2026-01-01T00:00:00.000Z',
-    ephemeral: false,
+    ephemeral,
     ports: [],
 });
 
@@ -50,6 +50,26 @@ describe('computeServiceStateUseCase', () => {
 
     test('reads the state of the container without regard to its case', () => {
         expect(computeServiceStateUseCase([container('Running')], true)).toBe('ok');
+    });
+
+    test('ignores a one-shot container that completed, and keeps the state of the container that runs', () => {
+        expect(computeServiceStateUseCase([container('running'), container('exited', true)], true)).toBe('ok');
+    });
+
+    test('reports the service as completed when every one-shot container exited', () => {
+        expect(computeServiceStateUseCase([container('exited', true), container('exited', true)], true)).toBe('idle');
+    });
+
+    test('reports the health of a one-shot container that still runs', () => {
+        expect(computeServiceStateUseCase([container('running', true)], true)).toBe('ok');
+    });
+
+    test('keeps the worst state when a container that is not one-shot exited', () => {
+        expect(computeServiceStateUseCase([container('running'), container('exited')], true)).toBe('error');
+    });
+
+    test('keeps a one-shot container that is dead, which reports an error', () => {
+        expect(computeServiceStateUseCase([container('running'), container('dead', true)], true)).toBe('error');
     });
 
     test('reports nothing known when the container carries a state it does not map', () => {

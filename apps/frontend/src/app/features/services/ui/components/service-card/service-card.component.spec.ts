@@ -121,6 +121,13 @@ describe('ServiceCardComponent', () => {
             expect(bullet().getAttribute('aria-label')).toBe('Never deployed');
         });
 
+        test('paints the bullet grey and names it when every container completed', () => {
+            create(service(), 'idle');
+
+            expect(bullet().className).toContain('bg-gray-400');
+            expect(bullet().getAttribute('aria-label')).toBe('Completed');
+        });
+
         test('paints the bullet grey when the caller gives no state', () => {
             create(service());
 
