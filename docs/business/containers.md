@@ -10,7 +10,7 @@ The system SHALL answer with the containers of one service at `GET /api/v1/conta
 
 The parameter `serviceId` is obligatory, and it must be a UUID.
 
-Each container of the answer holds the identifier, the name, the image, the state, the status, the date of the creation and the list of the published ports. Each port holds the private port, the public port and the kind of the protocol. The public port holds `null` if the container publishes no port to the server.
+Each container of the answer holds the identifier, the name, the image, the state, the status, the date of the creation, the mark `ephemeral` and the list of the published ports. Each port holds the private port, the public port and the kind of the protocol. The public port holds `null` if the container publishes no port to the server.
 
 ### Scenario: The service runs containers
 
@@ -62,6 +62,41 @@ The system SHALL list the containers that stopped as well. Thus the operator see
 - **WHEN** a container of the service stopped
 - **THEN** the system gives that container, with its state and its status
 
+## The one-shot container
+
+A stack can hold a container that runs one time, for an initialization or a migration, and that exits when its work ends. The system SHALL carry that mark in the field `ephemeral` of the container, which holds `true` for a one-shot container and `false` for every other one. The field is always present, and it is never absent.
+
+The system SHALL mark a compose service as one-shot at the deployment, in two cases:
+
+1. Another compose service of the stack waits for it with the condition `service_completed_successfully`.
+2. The compose file of the user already declares the label `io.gitpaas.ephemeral` on it.
+
+In both cases the system stamps the label `io.gitpaas.ephemeral` on the compose service, and the read of the containers turns that label into the field `ephemeral`. The interface of GitPaaS gives no way to mark a service; the mark comes from the compose file of the user alone.
+
+The state of a service ignores a one-shot container that exited, so one initialization that completed does not turn the bullet of the card red. See the requirement *The bullet of the state of a service* of the capability [services](./services.md).
+
+**A stack that the operator deployed before this feature carries no such label.** The system stamps the label at the deployment alone, and it changes no container that already runs. The operator SHALL deploy such a service one more time, so that its one-shot containers take the label and the state of the service counts them correctly.
+
+### Scenario: Another compose service waits for the completion
+
+- **WHEN** a compose service of the stack waits for another one with the condition `service_completed_successfully`
+- **THEN** the deployment stamps the label `io.gitpaas.ephemeral` on the service it waits for, and the answer holds `ephemeral` with the value `true` for that container
+
+### Scenario: The compose file declares the label
+
+- **WHEN** the compose file of the user declares the label `io.gitpaas.ephemeral` on a compose service
+- **THEN** the deployment keeps that label, and the answer holds `ephemeral` with the value `true` for that container
+
+### Scenario: The container is no one-shot container
+
+- **WHEN** no compose service waits for the completion of a compose service, and its compose file declares no such label
+- **THEN** the answer holds `ephemeral` with the value `false` for that container
+
+### Scenario: The stack is of before this feature
+
+- **WHEN** the operator reads the containers of a service that he deployed before this feature
+- **THEN** every container holds `ephemeral` with the value `false`, until he deploys the service one more time
+
 ## The manual step after the change of the convention of the name
 
 The system SHALL keep a container of an old name running until its service deploys again; it stops no container by itself. The operator SHALL re-deploy every service once, so each container and network takes its new name. A volume of an old name keeps its data under that name; GitPaaS copies none of it, and the operator handles the migration of its data to a volume of the new name by hand.
@@ -93,9 +128,16 @@ The `503` belongs to that failure alone. A read that fails for another reason, s
 
 The tab `containers` SHALL show the containers of the service.
 
+The tab SHALL show the badge `One-shot` beside the state of a container that holds `ephemeral`. The badge explains that the container runs one time, and the state of the container stays as the daemon reports it. Thus the operator reads a container `exited` of the stack, and he knows that this exit is the end of one run and not a failure.
+
 The tab shows its own state of the reading.
 
 ### Scenario: The user opens the tab of the containers
 
 - **WHEN** the user opens the tab `containers`
 - **THEN** the system shows the containers of the service, or the state of the reading
+
+### Scenario: The tab shows a one-shot container
+
+- **WHEN** the tab shows a container that holds `ephemeral`
+- **THEN** the system shows the badge `One-shot` beside the state of that container
