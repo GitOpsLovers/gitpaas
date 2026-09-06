@@ -1,3 +1,9 @@
+## [2.19.2](https://github.com/GitOpsLovers/gitpaas/compare/v2.19.1...v2.19.2) (2026-09-06)
+
+### Bug Fixes
+
+* change database debugging user email ([c0a8060](https://github.com/GitOpsLovers/gitpaas/commit/c0a806019390f855519404ebb316675fa23b74e3))
+
 ## [2.19.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.19.0...v2.19.1) (2026-09-06)
 
 ### Bug Fixes
