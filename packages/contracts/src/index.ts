@@ -188,6 +188,21 @@ export type { PlatformUpdate, PlatformUpdateState, PlatformUpdateStatus } from '
 export { containerPortSchema, containerSchema } from './containers/container.contract';
 export type { Container, ContainerPort } from './containers/container.contract';
 
+export {
+    dockerContainerSchema,
+    dockerImageSchema,
+    dockerMountSchema,
+    dockerNetworkSchema,
+    dockerVolumeSchema,
+} from './docker/docker.contract';
+export type {
+    DockerContainer,
+    DockerImage,
+    DockerMount,
+    DockerNetwork,
+    DockerVolume,
+} from './docker/docker.contract';
+
 export { networkSchema, networkStateSchema } from './networks/network.contract';
 export type { Network, NetworkState } from './networks/network.contract';
 
