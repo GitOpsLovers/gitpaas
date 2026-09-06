@@ -1,0 +1,21 @@
+docs/business/deployments.md
+  s_3ac5e4862d5d10::t_81c3d61324244f 154-155
+docs/business/service-environment.md
+  s_3ac5e4862d5d10::t_7f633350123b8c 87-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ee755bc415a7264d3ef8457fe7703bcff33ce53b",
+  "prompts": {},
+  "sessions": {
+    "s_3ac5e4862d5d10": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a04faefaa08967e85",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
