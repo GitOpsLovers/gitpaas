@@ -10,6 +10,7 @@ describe('toDaemonVolume', () => {
             mountpoint: '/var/lib/docker/volumes/api_pgdata/_data',
             scope: 'local',
             labels: { 'com.docker.compose.project': 'api' },
+            createdAt: new Date('2026-07-11T00:00:00.000Z'),
         };
 
         expect(toDaemonVolume(summary)).toEqual({
@@ -21,7 +22,7 @@ describe('toDaemonVolume', () => {
 
     it('drops the scope and the labels, which the tab never shows', () => {
         const summary: RuntimeVolumeSummary = {
-            name: 'api_pgdata', driver: 'local', mountpoint: '/data', scope: 'local', labels: {},
+            name: 'api_pgdata', driver: 'local', mountpoint: '/data', scope: 'local', labels: {}, createdAt: null,
         };
 
         const result = toDaemonVolume(summary);

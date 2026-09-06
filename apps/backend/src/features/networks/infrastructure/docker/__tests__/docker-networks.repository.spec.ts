@@ -21,6 +21,7 @@ const networkSummary = (overrides: Partial<RuntimeNetworkSummary> = {}): Runtime
     internal: false,
     attachable: true,
     createdAt: new Date('2025-07-11T00:00:00.000Z'),
+    labels: {},
     ...overrides,
 });
 

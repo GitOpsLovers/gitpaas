@@ -36,8 +36,8 @@ const networkInfo = (info: Partial<Docker.NetworkInspectInfo>): Docker.NetworkIn
 /** Widens a partial daemon image summary into the shape Dockerode declares. */
 const imageInfo = (info: Partial<Docker.ImageInfo>): Docker.ImageInfo => info as Docker.ImageInfo;
 
-/** Widens a partial daemon volume summary into the shape Dockerode declares. */
-const volumeInfo = (info: Partial<Docker.VolumeInspectInfo>): Docker.VolumeInspectInfo => info as Docker.VolumeInspectInfo;
+/** Widens a partial daemon volume summary, and the creation instant Dockerode omits, into the shape Dockerode declares. */
+const volumeInfo = (info: Partial<Docker.VolumeInspectInfo> & { CreatedAt?: string }): Docker.VolumeInspectInfo => info as Docker.VolumeInspectInfo;
 
 describe('toContainerRuntimeInfo', () => {
     it('maps every daemon info field onto its domain counterpart', () => {
@@ -130,9 +130,23 @@ describe('toLabelFilter', () => {
         expect(toLabelFilter({})).toEqual({ label: [] });
     });
 
+    it('emits no label key at all for a selector of the whole host, so the daemon narrows nothing', () => {
+        expect(toLabelFilter({ host: true })).toEqual({});
+    });
+
+    it('drops the labels, the project and the service of a selector of the whole host', () => {
+        expect(toLabelFilter({
+            labels: getGitpaasLabels(), project: 'my-service', service: 'svc-1', host: true,
+        })).toEqual({});
+    });
+
+    it('keeps the labels of a selector that turns the host scope off', () => {
+        expect(toLabelFilter({ labels: getGitpaasLabels(), host: false })).toEqual({ label: ['io.gitpaas.managed=true'] });
+    });
+
     it('hands out a fresh filter per call, so a caller mutating one cannot widen another', () => {
         const first = toLabelFilter({ labels: getGitpaasLabels() });
-        first.label.push('io.gitpaas.project=anything');
+        first.label?.push('io.gitpaas.project=anything');
 
         expect(toLabelFilter({ labels: getGitpaasLabels() })).toEqual({ label: ['io.gitpaas.managed=true'] });
     });
@@ -369,6 +383,7 @@ describe('toNetworkSummary', () => {
             Internal: false,
             Attachable: true,
             Created: '2025-07-11T00:00:00.000Z',
+            Labels: { 'io.gitpaas.managed': 'true' },
         });
 
         expect(toNetworkSummary(info)).toEqual({
@@ -379,7 +394,14 @@ describe('toNetworkSummary', () => {
             internal: false,
             attachable: true,
             createdAt: new Date('2025-07-11T00:00:00.000Z'),
+            labels: { 'io.gitpaas.managed': 'true' },
         });
+    });
+
+    it('defaults the labels of a network the daemon reports without any to an empty record', () => {
+        const info = networkInfo({ Id: 'n-2', Name: 'bridge', Created: '2025-07-11T00:00:00.000Z' });
+
+        expect(toNetworkSummary(info).labels).toEqual({});
     });
 });
 
@@ -391,6 +413,7 @@ describe('toVolumeSummary', () => {
             Mountpoint: '/var/lib/docker/volumes/blog_pgdata/_data',
             Scope: 'local',
             Labels: { 'io.gitpaas.managed': 'true' },
+            CreatedAt: '2025-07-11T00:00:00.000Z',
         });
 
         expect(toVolumeSummary(info)).toEqual({
@@ -399,7 +422,16 @@ describe('toVolumeSummary', () => {
             mountpoint: '/var/lib/docker/volumes/blog_pgdata/_data',
             scope: 'local',
             labels: { 'io.gitpaas.managed': 'true' },
+            createdAt: new Date('2025-07-11T00:00:00.000Z'),
         });
+    });
+
+    it('nulls the creation instant of a volume the daemon reports without one', () => {
+        const info = volumeInfo({
+            Name: 'orphan', Driver: 'local', Mountpoint: '/mnt', Scope: 'local',
+        });
+
+        expect(toVolumeSummary(info).createdAt).toBeNull();
     });
 
     it('defaults the labels of a volume the daemon reports without any to an empty record', () => {
@@ -412,8 +444,24 @@ describe('toVolumeSummary', () => {
 });
 
 describe('toImageSummary', () => {
-    it('exposes only the identifier of the image', () => {
-        expect(toImageSummary(imageInfo({ Id: 'img-a' }))).toEqual({ id: 'img-a' });
+    it('maps the identifier, the tags and the size of an image, converting its epoch into a date', () => {
+        const info = imageInfo({
+            Id: 'img-a',
+            RepoTags: ['gitpaas/blog:latest', 'gitpaas/blog:1.2.0'],
+            Size: 128_000_000,
+            Created: 1_752_192_000,
+        });
+
+        expect(toImageSummary(info)).toEqual({
+            id: 'img-a',
+            tags: ['gitpaas/blog:latest', 'gitpaas/blog:1.2.0'],
+            size: 128_000_000,
+            createdAt: new Date(1_752_192_000 * 1000),
+        });
+    });
+
+    it('defaults the tags of a dangling image the daemon reports without any to an empty list', () => {
+        expect(toImageSummary(imageInfo({ Id: 'img-b', Size: 0, Created: 0 })).tags).toEqual([]);
     });
 });
 
