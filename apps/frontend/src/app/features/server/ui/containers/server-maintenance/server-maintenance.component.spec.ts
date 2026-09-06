@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DOCUMENT, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { PlatformUpdateStatus, User } from '@gitpaas/contracts';
+import type { DatabaseDebugSession, DatabaseDebugStatus, PlatformUpdateStatus, User } from '@gitpaas/contracts';
 import { of, Subject, throwError } from 'rxjs';
 
 import { PlatformUpdateView } from '../../../domain/models/platform-update.model';
@@ -32,6 +32,15 @@ interface ServerMaintenanceInternals {
     updateConfirmMessage: () => string;
     requestPrune: (action: PruneAction) => void;
     confirmPrune: () => Promise<void>;
+    debugAction: { readonly title: string; readonly label: string; readonly confirmMessage: string };
+    debugActive: () => boolean;
+    debugUrl: () => string | null;
+    debugBusy: () => boolean;
+    debugPending: () => boolean;
+    debugSession: () => DatabaseDebugSession | null;
+    toggleDebug: () => Promise<void>;
+    cancelDebug: () => void;
+    confirmDebug: () => Promise<void>;
     requestUpdate: () => void;
     cancelUpdate: () => void;
     confirmUpdate: () => Promise<void>;
@@ -91,6 +100,37 @@ const failed: PlatformUpdateStatus = {
     update: { ...running.update!, state: 'failed', error: 'The migration 007 did not apply.' },
 };
 
+const debugStopped: DatabaseDebugStatus = { running: false, url: null };
+
+const debugRunningStatus: DatabaseDebugStatus = { running: true, url: 'http://203.0.113.10:5050' };
+
+const debugSession: DatabaseDebugSession = {
+    url: 'http://203.0.113.10:5050',
+    console: { email: 'debug@gitpaas.local', password: 'console-secret' },
+    connection: {
+        host: 'gitpaas-postgres',
+        port: 5432,
+        database: 'gitpaas',
+        role: 'gitpaas_debug',
+        password: 'role-secret',
+    },
+};
+
+const DEBUG_MESSAGE = 'The image of pgAdmin could not be pulled.';
+
+const debugRefusal = (): HttpErrorResponse => new HttpErrorResponse({
+    status: 500,
+    error: {
+        statusCode: 500,
+        code: 'INTERNAL_SERVER_ERROR',
+        message: DEBUG_MESSAGE,
+        error: 'Internal Server Error',
+        timestamp: '2026-08-31T10:00:00.000Z',
+        path: '/api/v1/server/database-debug',
+        requestId: 'rq-4',
+    },
+});
+
 const SESSION_MESSAGE = 'The session of the user could not be read.';
 
 const CHECK_MESSAGE = 'GitHub did not answer the read of the latest release.';
@@ -134,7 +174,12 @@ describe('ServerMaintenanceComponent', () => {
         pruneVolumes: ReturnType<typeof vi.fn>;
         pruneContainers: ReturnType<typeof vi.fn>;
         removeOrphanedContainers: ReturnType<typeof vi.fn>;
+        databaseDebug: ReturnType<typeof vi.fn>;
+        startDatabaseDebug: ReturnType<typeof vi.fn>;
+        stopDatabaseDebug: ReturnType<typeof vi.fn>;
     };
+    let debugValue: ReturnType<typeof signal<DatabaseDebugStatus | undefined>>;
+    let debugError: ReturnType<typeof signal<unknown>>;
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
     let auth: { currentUser: ReturnType<typeof signal<User | null>>; loadCurrentUser: ReturnType<typeof vi.fn> };
     let reloadPage: ReturnType<typeof vi.fn>;
@@ -159,6 +204,8 @@ describe('ServerMaintenanceComponent', () => {
 
     beforeEach(() => {
         value = signal<PlatformUpdateStatus | undefined>(undefined);
+        debugValue = signal<DatabaseDebugStatus | undefined>(debugStopped);
+        debugError = signal<unknown>(undefined);
         error = signal<unknown>(undefined);
         reload = vi.fn();
         // The screen writes the answer of the check into the resource, as a writable resource does.
@@ -176,6 +223,17 @@ describe('ServerMaintenanceComponent', () => {
             pruneVolumes: vi.fn(),
             pruneContainers: vi.fn(),
             removeOrphanedContainers: vi.fn(),
+            databaseDebug: vi.fn().mockReturnValue({
+                value: debugValue,
+                error: debugError,
+                // The screen writes the answer of the command into the resource, as a writable resource does.
+                set: vi.fn((status: DatabaseDebugStatus) => {
+                    debugValue.set(status);
+                    debugError.set(undefined);
+                }),
+            }),
+            startDatabaseDebug: vi.fn().mockReturnValue(of(debugSession)),
+            stopDatabaseDebug: vi.fn().mockReturnValue(of(debugStopped)),
         };
         toast = { success: vi.fn(), error: vi.fn() };
         auth = { currentUser: signal<User | null>(admin), loadCurrentUser: vi.fn().mockReturnValue(of(admin)) };
@@ -551,6 +609,145 @@ describe('ServerMaintenanceComponent', () => {
 
             expect(repository.pruneImages).not.toHaveBeenCalled();
             expect(toast.success).not.toHaveBeenCalled();
+        });
+    });
+    describe('the debug of the database', () => {
+        test('reads the state of the session for an administrator alone', () => {
+            create();
+
+            const [enabled] = repository.databaseDebug.mock.calls[0] as [() => boolean];
+
+            expect(enabled()).toBe(true);
+        });
+
+        test('reads no state of the session for a user who is not an administrator', () => {
+            auth.currentUser.set(member);
+
+            create();
+
+            const [enabled] = repository.databaseDebug.mock.calls[0] as [() => boolean];
+
+            expect(enabled()).toBe(false);
+        });
+
+        test('shows no session while none runs', () => {
+            create();
+
+            expect(component.debugActive()).toBe(false);
+            expect(component.debugUrl()).toBeNull();
+            expect(component.debugSession()).toBeNull();
+        });
+
+        test('shows the session and its address while one runs', () => {
+            debugValue.set(debugRunningStatus);
+
+            create();
+
+            expect(component.debugActive()).toBe(true);
+            expect(component.debugUrl()).toBe('http://203.0.113.10:5050');
+        });
+
+        test('shows no session when the read of the state fails', () => {
+            debugValue.set(debugRunningStatus);
+            debugError.set(new Error('boom'));
+
+            create();
+
+            expect(component.debugActive()).toBe(false);
+            expect(component.debugUrl()).toBeNull();
+        });
+
+        test('asks for a confirmation before it starts a session, and starts none yet', async () => {
+            create();
+
+            await component.toggleDebug();
+
+            expect(component.debugPending()).toBe(true);
+            expect(repository.startDatabaseDebug).not.toHaveBeenCalled();
+        });
+
+        test('starts no session when the confirmation is dismissed', () => {
+            create();
+
+            component.cancelDebug();
+
+            expect(component.debugPending()).toBe(false);
+            expect(repository.startDatabaseDebug).not.toHaveBeenCalled();
+        });
+
+        test('starts the session pending confirmation, and shows the passwords it gives one time', async () => {
+            create();
+
+            await component.confirmDebug();
+
+            expect(repository.startDatabaseDebug).toHaveBeenCalledTimes(1);
+            expect(component.debugSession()).toEqual(debugSession);
+            expect(component.debugActive()).toBe(true);
+            expect(component.debugUrl()).toBe('http://203.0.113.10:5050');
+            expect(component.debugBusy()).toBe(false);
+            expect(component.debugPending()).toBe(false);
+        });
+
+        test('reports the start of the session', async () => {
+            create();
+
+            await component.confirmDebug();
+
+            expect(toast.success).toHaveBeenCalledWith(
+                'Debug session started',
+                'The console of the database is open. The passwords below are shown this one time.',
+            );
+        });
+
+        test('shows a toast that carries the reason when the start of the session fails', async () => {
+            repository.startDatabaseDebug.mockReturnValue(throwError(() => debugRefusal()));
+            create();
+
+            await component.confirmDebug();
+
+            expect(toast.error).toHaveBeenCalledWith('Debug session failed to start', DEBUG_MESSAGE);
+            expect(component.debugSession()).toBeNull();
+            expect(component.debugActive()).toBe(false);
+            expect(component.debugBusy()).toBe(false);
+            expect(component.debugPending()).toBe(false);
+        });
+
+        test('stops the session that runs with no confirmation, and forgets its passwords', async () => {
+            debugValue.set(debugRunningStatus);
+            create();
+            await component.confirmDebug();
+
+            await component.toggleDebug();
+
+            expect(repository.stopDatabaseDebug).toHaveBeenCalledTimes(1);
+            expect(component.debugPending()).toBe(false);
+            expect(component.debugSession()).toBeNull();
+            expect(component.debugActive()).toBe(false);
+            expect(component.debugBusy()).toBe(false);
+        });
+
+        test('reports the stop of the session', async () => {
+            debugValue.set(debugRunningStatus);
+            create();
+
+            await component.toggleDebug();
+
+            expect(toast.success).toHaveBeenCalledWith(
+                'Debug session stopped',
+                'The console of the database is removed, and the role of the debug can no longer sign in.',
+            );
+        });
+
+        test('keeps the session shown when its stop fails', async () => {
+            debugValue.set(debugRunningStatus);
+            repository.stopDatabaseDebug.mockReturnValue(throwError(() => debugRefusal()));
+            create();
+
+            await component.toggleDebug();
+
+            expect(toast.error).toHaveBeenCalledWith('Debug session failed to stop', DEBUG_MESSAGE);
+            expect(component.debugActive()).toBe(true);
+            expect(component.debugBusy()).toBe(false);
         });
     });
 });
