@@ -451,8 +451,24 @@ describe('DockerExecutorAdapter', () => {
                 true,
             );
             expect(removeContainer).toHaveBeenCalledTimes(2);
-            expect(removeContainer).toHaveBeenCalledWith('previous-1', { force: true });
-            expect(removeContainer).toHaveBeenCalledWith('previous-2', { force: true });
+            expect(removeContainer).toHaveBeenCalledWith('previous-1', { force: true, removeVolumes: true });
+            expect(removeContainer).toHaveBeenCalledWith('previous-2', { force: true, removeVolumes: true });
+        });
+
+        it('removes the anonymous volumes of the previous container it takes down', async () => {
+            mockCompose.instance = {
+                recipe: { services: {} },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [] }),
+            };
+
+            const listContainers = jest.fn().mockResolvedValue([{ id: 'previous-1' }]);
+            const removeContainer = jest.fn().mockResolvedValue(undefined);
+            const sut = executorWithRuntime({ createComposeProject, listContainers, removeContainer });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+
+            expect(removeContainer).toHaveBeenCalledWith('previous-1', expect.objectContaining({ removeVolumes: true }));
         });
 
         it('reports the previous container it could not remove and still drives the stack up', async () => {

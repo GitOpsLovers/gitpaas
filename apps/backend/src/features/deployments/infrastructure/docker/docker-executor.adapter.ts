@@ -200,7 +200,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
         for (const container of containers) {
             try {
-                await this.docker.removeContainer(container.id, { force: true });
+                await this.docker.removeContainer(container.id, { force: true, removeVolumes: true });
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
 
