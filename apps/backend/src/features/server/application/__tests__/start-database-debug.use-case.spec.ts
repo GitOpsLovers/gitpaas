@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream';
+
 import {
     DEBUG_CONSOLE_EMAIL,
     DEBUG_CONSOLE_PORT,
@@ -50,7 +52,9 @@ const container = (overrides: Partial<RuntimeContainerSummary> = {}): RuntimeCon
 });
 
 describe('startDatabaseDebugUseCase', () => {
-    let mockContainerRuntime: jest.Mocked<Pick<ContainerRuntime, 'listContainers' | 'runDetachedContainer'>>;
+    let mockContainerRuntime: jest.Mocked<
+        Pick<ContainerRuntime, 'listContainers' | 'pullImage' | 'followProgress' | 'runDetachedContainer'>
+    >;
     let mockDebugRole: jest.Mocked<Pick<DebugRole, 'grantLogin' | 'revokeLogin'>>;
 
     /** Runs the use case with the mocked ports. */
@@ -65,6 +69,8 @@ describe('startDatabaseDebugUseCase', () => {
         jest.clearAllMocks();
         mockContainerRuntime = {
             listContainers: jest.fn().mockResolvedValue([container()]),
+            pullImage: jest.fn().mockResolvedValue(Readable.from([])),
+            followProgress: jest.fn((_stream, onFinished, _onProgress) => { onFinished(undefined); }),
             runDetachedContainer: jest.fn().mockResolvedValue('started-id'),
         };
         mockDebugRole = {
@@ -74,13 +80,19 @@ describe('startDatabaseDebugUseCase', () => {
         mockStopDatabaseDebugUseCase.mockResolvedValue({ running: false, url: null });
     });
 
-    it('ends any session that still runs before it grants a new login', async () => {
+    it('ends any session that still runs, and pulls the image, before it grants a new login', async () => {
         const order: string[] = [];
         // eslint-disable-next-line @typescript-eslint/require-await
         mockStopDatabaseDebugUseCase.mockImplementation(async () => {
             order.push('stop');
 
             return { running: false, url: null };
+        });
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockContainerRuntime.pullImage.mockImplementation(async () => {
+            order.push('pull');
+
+            return Readable.from([]);
         });
         // eslint-disable-next-line @typescript-eslint/require-await
         mockDebugRole.grantLogin.mockImplementation(async () => {
@@ -97,7 +109,7 @@ describe('startDatabaseDebugUseCase', () => {
 
         await run();
 
-        expect(order).toEqual(['stop', 'grant', 'run']);
+        expect(order).toEqual(['stop', 'pull', 'grant', 'run']);
         expect(mockStopDatabaseDebugUseCase).toHaveBeenCalledWith(mockContainerRuntime, mockDebugRole);
     });
 
@@ -181,6 +193,7 @@ describe('startDatabaseDebugUseCase', () => {
         await expect(run()).rejects.toBeInstanceOf(DatabaseDebugNetworkUnknownError);
         expect(mockStopDatabaseDebugUseCase).not.toHaveBeenCalled();
         expect(mockDebugRole.grantLogin).not.toHaveBeenCalled();
+        expect(mockContainerRuntime.pullImage).not.toHaveBeenCalled();
         expect(mockContainerRuntime.runDetachedContainer).not.toHaveBeenCalled();
     });
 
@@ -188,6 +201,24 @@ describe('startDatabaseDebugUseCase', () => {
         mockContainerRuntime.listContainers.mockResolvedValue([container({ networks: [] })]);
 
         await expect(run()).rejects.toBeInstanceOf(DatabaseDebugNetworkUnknownError);
+    });
+
+    it('pulls the pinned image of the console, and waits for the end of the pull', async () => {
+        await run();
+
+        expect(mockContainerRuntime.pullImage).toHaveBeenCalledTimes(1);
+        expect(mockContainerRuntime.pullImage).toHaveBeenCalledWith(settings.image);
+        expect(mockContainerRuntime.followProgress).toHaveBeenCalledTimes(1);
+    });
+
+    it('grants no login and starts no console when the pull of the image fails', async () => {
+        const failure = new Error('no such image');
+        mockContainerRuntime.followProgress.mockImplementation((_stream, onFinished, _onProgress) => { onFinished(failure); });
+
+        await expect(run()).rejects.toThrow(failure);
+        expect(mockDebugRole.grantLogin).not.toHaveBeenCalled();
+        expect(mockDebugRole.revokeLogin).not.toHaveBeenCalled();
+        expect(mockContainerRuntime.runDetachedContainer).not.toHaveBeenCalled();
     });
 
     it('revokes the login when the start of the console fails, and it propagates the failure', async () => {

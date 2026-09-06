@@ -15,6 +15,7 @@ import type { DebugRole } from '../domain/ports/debug-role.port';
 
 import { stopDatabaseDebugUseCase } from './stop-database-debug.use-case';
 
+import { pullImageUseCase } from '@core/application/pull-image.use-case';
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 
 /**
@@ -54,6 +55,7 @@ async function findDatabaseNetwork(runtime: ContainerRuntime): Promise<string> {
  * @returns The address of the console, and the passwords the caller gives one time
  *
  * @throws DatabaseDebugNetworkUnknownError When no network of PostgreSQL was found
+ * @throws Error When the pull of the image of the console failed
  */
 export async function startDatabaseDebugUseCase(
     runtime: ContainerRuntime,
@@ -63,6 +65,10 @@ export async function startDatabaseDebugUseCase(
     const network = await findDatabaseNetwork(runtime);
 
     await stopDatabaseDebugUseCase(runtime, role);
+
+    // The host may hold no copy of the image, and the pull outlasts every other step,
+    // so it runs before the grant: a failed pull then leaves the database closed.
+    await pullImageUseCase(runtime, settings.image);
 
     const credentials = await role.grantLogin();
     const consolePassword = randomBytes(CONSOLE_PASSWORD_BYTES).toString('hex');
