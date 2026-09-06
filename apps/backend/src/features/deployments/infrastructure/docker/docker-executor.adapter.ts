@@ -12,8 +12,17 @@ import { getBuiltImageTagUseCase } from '../../application/get-built-image-tag.u
 import { getDefaultNetworkNameUseCase } from '../../application/get-default-network-name.use-case';
 import { DeploymentTarget, DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
+import { interpolateRecipe } from './compose-interpolation';
 import {
-    declareDefaultNetwork, injectEnvironment, normalizeHealthchecks, recipeServices, resolveBindMounts, resolveBuild, stampLabels,
+    composeRecipe,
+    declareDefaultNetwork,
+    injectEnvironment,
+    normalizeHealthchecks,
+    recipeServices,
+    resolveBindMounts,
+    resolveBuild,
+    setComposeRecipe,
+    stampLabels,
     stampRouting,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
@@ -97,6 +106,8 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             const composeFile = join(directory, composePath);
             const compose = this.docker.createComposeProject(composeFile, projectName);
+
+            setComposeRecipe(compose, interpolateRecipe(composeRecipe(compose), environment));
 
             // Build local `build:` services first (streaming their output), which
             // rewrites them into plain image services in the recipe.
