@@ -1,3 +1,10 @@
+## [2.18.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.17.0...v2.18.0) (2026-09-06)
+
+### Features
+
+* **ephemeral:** add label and contract field ([#241](https://github.com/GitOpsLovers/gitpaas/issues/241)) ([27ccb92](https://github.com/GitOpsLovers/gitpaas/commit/27ccb92a3441367e455e8a2345c8b5ae273c6240))
+* **frontend:** add idle state and one-shot badge ([#242](https://github.com/GitOpsLovers/gitpaas/issues/242)) ([a1d7cc4](https://github.com/GitOpsLovers/gitpaas/commit/a1d7cc4f11c66032a96aad53f76e1588d4c8e0ad))
+
 ## [2.17.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.16.3...v2.17.0) (2026-09-06)
 
 ### Features
