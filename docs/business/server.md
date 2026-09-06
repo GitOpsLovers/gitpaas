@@ -173,7 +173,7 @@ The system SHALL refuse to start a second update while one runs. It SHALL also r
 
 ## The four actions of the maintenance
 
-The tab Maintenance SHALL show four actions, each one with a name, a short description and a button. An administrator whom the platform can update SHALL also see, above these four actions, the alert of a new version (see below).
+The tab Maintenance SHALL show four actions, each one with a name, a short description and a button, for every user. An administrator SHALL also see the section "Database maintenance" (see below), and, above these four actions, the alert of a new version (see below).
 
 | Action                     | Description                                                         |
 |----------------------------|---------------------------------------------------------------------|
@@ -189,7 +189,48 @@ The tab SHALL also show the action "Check for updates", with the button that sta
 - **WHEN** a signed-in user opens `/server/maintenance`
 - **THEN** the system shows the four actions with their descriptions, and the button "Check for updates"
 
+## Database maintenance
+
+The tab Maintenance SHALL show a section "Database maintenance", for an administrator alone, with the button "Debug". The database of GitPaaS publishes no port on its own, and this section is the one way an administrator opens a console on it.
+
+The button SHALL toggle a session of the debug of the database. The first click asks for a confirmation, and, once the administrator confirms, it starts a temporary console on the database, with a role and a password made for that session alone. The second click stops that session at once, with no confirmation: it removes the console, and it takes the login away from the role, so the role can no longer sign in.
+
+The system SHALL keep the two operations at the endpoints `POST /api/v1/server/database-debug` and `DELETE /api/v1/server/database-debug`, and it SHALL read the state of the session at `GET /api/v1/server/database-debug`. The three endpoints need an administrator.
+
+### Scenario: An administrator starts the session
+
+- **WHEN** an administrator confirms the start of the debug
+- **THEN** the system starts the console, and it shows that the console runs, with its address
+
+### Scenario: An administrator stops the session
+
+- **WHEN** an administrator chooses the button "Debug" while the console runs
+- **THEN** the system stops the console at once, with no question, and it takes the login away from the role
+
+### Scenario: A user who is not an administrator opens the tab
+
+- **WHEN** a user who is not an administrator opens the tab Maintenance
+- **THEN** the system shows no section "Database maintenance"
+
+## The URL and the passwords of the console, shown one time
+
+Once the console starts, the system SHALL show its address, the email and the password of the console, and the role and the password of the database, so the administrator can sign in. The system SHALL show these values one time, at the start alone, and it SHALL keep no copy of them: a page that reloads, or a session that the administrator reads again, shows the address and the running state alone, and no password.
+
+The system SHALL warn the administrator, next to these values, that the console answers over plain HTTP, with no certificate, and that anyone on the network of the server can read what travels to it. The warning SHALL ask the administrator to use the console from a trusted network alone, and to stop the session once the inspection ends.
+
+### Scenario: The console starts
+
+- **WHEN** the system starts the console
+- **THEN** it shows the address, the email and the password of the console, the role and the password of the database, and the warning of the plain HTTP, once
+
+### Scenario: The administrator reads the state again
+
+- **WHEN** the administrator reloads the page, or opens the tab again, while the console still runs
+- **THEN** the system shows that the console runs, and its address alone, with no password
+
 ## The question before an action
+
+
 
 The system SHALL ask the user to confirm before it runs any of the four actions.
 
