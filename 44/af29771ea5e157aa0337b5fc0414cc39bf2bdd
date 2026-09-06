@@ -1,0 +1,29 @@
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.spec.ts
+  s_d926f95c0f6402::t_a2e282896e3302 7-8,54-69,290-347
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.html
+  s_d926f95c0f6402::t_cf330a4337cf7b 60-147,244-255
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_d926f95c0f6402::t_3f0ec54501f2b4 6-7,154-182
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.ts
+  s_d926f95c0f6402::t_03d4878ad36217 2-11,79,100-101,145-153,158-163,200-213,345-387,447-468
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.spec.ts
+  s_d926f95c0f6402::t_b32f072ddf96f4 4,35-43,103-133,177-179,181-182,207-208,226-236,614-752
+docs/roadmap/database-maintenance/TODO.md
+  s_d926f95c0f6402::t_d1bb47201e3038 33-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "44af29771ea5e157aa0337b5fc0414cc39bf2bdd",
+  "prompts": {},
+  "sessions": {
+    "s_d926f95c0f6402": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7b5499c7-01a4-4006-92eb-4a8efd749d6c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
