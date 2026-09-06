@@ -22,7 +22,7 @@ const mockStopDatabaseDebugUseCase = stopDatabaseDebugUseCase as jest.MockedFunc
 >;
 
 const settings: DatabaseDebugSettings = {
-    image: 'elestio/pgadmin:REL-9_16',
+    image: 'elestio/pgadmin:REL-9_17',
     hostPort: 5050,
     consoleUrl: 'http://gitpaas.example.com:5050',
     databaseHost: 'postgres',

@@ -13,7 +13,7 @@ const consoleUrl = 'http://gitpaas.example.com:5050';
 const debugContainer = (overrides: Partial<RuntimeContainerSummary> = {}): RuntimeContainerSummary => ({
     id: 'c0ffee00',
     names: ['/gitpaas-db-debug'],
-    image: 'elestio/pgadmin:REL-9_16',
+    image: 'elestio/pgadmin:REL-9_17',
     state: 'running',
     status: 'Up 2 minutes',
     createdAt: new Date('2026-09-06T10:00:00.000Z'),

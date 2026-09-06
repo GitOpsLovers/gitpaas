@@ -27,7 +27,7 @@
 | Reverse proxy   | `LETSENCRYPT_EMAIL`, `PROXY_ACME_PATH`                                                                                                          |
 | Deployments     | `DEPLOY_SPOOL_DIR` (folder the repository of a deployment is extracted into; the temporary folder of the system when it is empty)               |
 | JWT             | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`, `JWT_2FA_SECRET`                                  |
-| Database debug  | `PGADMIN_PORT` (host port of the console of the debug of the database, default `5050`), `PGADMIN_IMAGE` (pinned tag of the image, default `elestio/pgadmin:REL-9_16`) |
+| Database debug  | `PGADMIN_PORT` (host port of the console of the debug of the database, default `5050`), `PGADMIN_IMAGE` (pinned tag of the image, default `elestio/pgadmin:REL-9_17`) |
 
 The file carries no build argument, because CI builds the images and not the server. The frontend needs no variable of its own.
 
