@@ -239,6 +239,23 @@ describe('compose-recipe.transformer', () => {
             ]);
         });
 
+        it('throws an error that names the service and the entry when the short form of a bind mount names the home folder', () => {
+            const service = { volumes: ['~/config/servers.json:/pgadmin4/servers.json:ro'] };
+
+            expect(() => { resolveBindMounts(asCompose({ recipe: { services: { pgadmin: service } } }), '/repo/stack'); }).toThrow(
+                'The service "pgadmin" declares the volume "~/config/servers.json:/pgadmin4/servers.json:ro", '
+                + 'and GitPaaS does not support a source of the home folder.',
+            );
+        });
+
+        it('throws an error that names the service and the source when the long form of a bind mount names the home folder', () => {
+            const service = { volumes: [{ type: 'bind', source: '~/config', target: '/etc/app' }] };
+
+            expect(() => { resolveBindMounts(asCompose({ recipe: { services: { app: service } } }), '/repo/stack'); }).toThrow(
+                'The service "app" declares the volume "~/config", and GitPaaS does not support a source of the home folder.',
+            );
+        });
+
         it('never fails on a service that declares no volume', () => {
             const service = { image: 'nginx' } as { image: string; volumes?: unknown };
 

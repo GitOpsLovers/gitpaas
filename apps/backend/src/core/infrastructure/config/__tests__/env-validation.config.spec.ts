@@ -219,6 +219,20 @@ describe('validate', () => {
         expect(validate({ ...validEnv(), PROXY_ACME_PATH: '   ' }).PROXY_ACME_PATH).toBeUndefined();
     });
 
+    it('accepts an absent folder of the extraction, since a backend of the host extracts into its own temporary folder', () => {
+        expect(validate(validEnv()).DEPLOY_SPOOL_DIR).toBeUndefined();
+    });
+
+    it('keeps the configured folder of the extraction, which the schema would otherwise strip', () => {
+        expect(validate({ ...validEnv(), DEPLOY_SPOOL_DIR: '/var/lib/gitpaas/deploys' }).DEPLOY_SPOOL_DIR).toBe(
+            '/var/lib/gitpaas/deploys',
+        );
+    });
+
+    it('treats an empty folder of the extraction as an absent one, as the file of the example ships it', () => {
+        expect(validate({ ...validEnv(), DEPLOY_SPOOL_DIR: '' }).DEPLOY_SPOOL_DIR).toBeUndefined();
+    });
+
     it('keeps the check of the latest release on when the environment names it not', () => {
         expect(validate(validEnv()).UPDATE_CHECK_ENABLED).toBe(true);
     });

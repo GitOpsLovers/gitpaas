@@ -153,6 +153,8 @@ The system SHALL do these steps for each run task:
 
 The stop of the step 4 reaches the containers of the one service alone, and never the whole compose project, so a sibling service of the same project keeps running while this service deploys.
 
+The extraction of the step 4 lands in the folder of the deployment, and a bind mount that the Compose file declares resolves against that folder. See the requirement *The bind mount of a Compose file* of the capability [volumes](./volumes.md), and the [environment contract](../architecture/infrastructure/conventions.md#environment-contract) for the variable `DEPLOY_SPOOL_DIR` that names the folder.
+
 The runner SHALL NOT keep the output itself. It SHALL send each line of the executor to the write port of the logs, and it SHALL call the completion of that port with the terminal status.
 
 ### Scenario: The executor emits a line

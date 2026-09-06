@@ -1,7 +1,10 @@
 /* eslint-disable no-secrets/no-secrets */
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Writable } from 'node:stream';
 
+import { ConfigService } from '@nestjs/config';
 import * as tar from 'tar';
 
 import type { DeploymentTarget } from '../../../domain/ports/docker-executor.port';
@@ -56,8 +59,9 @@ const serviceId = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
  * `createComposeProject`). `up()` always looks the leftover networks up, so
  * `listNetworks` answers with none unless a test overrides it. The injected
  * `ContainerRuntime` / `AppLogger` collaborators are stored under `mock*` names.
+ * `spoolDir` is the raw value of `DEPLOY_SPOOL_DIR` the environment holds, if any.
  */
-const executorWithRuntime = (fakeRuntime: unknown): DockerExecutorAdapter => {
+const executorWithRuntime = (fakeRuntime: unknown, spoolDir?: string): DockerExecutorAdapter => {
     const mockContainerRuntime = {
         listNetworks: jest.fn().mockResolvedValue([]),
         listContainers: jest.fn().mockResolvedValue([]),
@@ -67,8 +71,9 @@ const executorWithRuntime = (fakeRuntime: unknown): DockerExecutorAdapter => {
     const mockLogger: jest.Mocked<AppLogger> = {
         debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
     };
+    const mockConfig: jest.Mocked<Pick<ConfigService, 'get'>> = { get: jest.fn().mockReturnValue(spoolDir) };
 
-    return new DockerExecutorAdapter(mockContainerRuntime, mockLogger);
+    return new DockerExecutorAdapter(mockContainerRuntime, mockLogger, mockConfig as unknown as ConfigService);
 };
 
 describe('DockerExecutorAdapter', () => {
@@ -307,6 +312,7 @@ describe('DockerExecutorAdapter', () => {
     });
 
     describe('up', () => {
+        const mkdirMock = mkdir as jest.Mock;
         const mkdtempMock = mkdtemp as jest.Mock;
         const rmMock = rm as jest.Mock;
         const tarXMock = tar.x as unknown as jest.Mock;
@@ -335,10 +341,62 @@ describe('DockerExecutorAdapter', () => {
         });
 
         beforeEach(() => {
+            mkdirMock.mockResolvedValue(undefined);
             mkdtempMock.mockResolvedValue(tempDir);
             rmMock.mockResolvedValue(undefined);
             // A drain-only writable so `pipeline(source, tar.x())` completes.
             tarXMock.mockReturnValue(new Writable({ objectMode: true, write: (_c, _e, cb): void => { cb(); } }));
+        });
+
+        /** Drives an empty stack up, which is the shortest path through the extraction of the repository. */
+        const upWithEmptyRecipe = async (sut: DockerExecutorAdapter): Promise<void> => {
+            mockCompose.instance = {
+                recipe: { services: {} },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [] }),
+            };
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+        };
+
+        it('extracts the repository under the folder the environment names, which the daemon sees at the same path', async () => {
+            const sut = executorWithRuntime({ createComposeProject }, '/var/lib/gitpaas/deploys');
+
+            await upWithEmptyRecipe(sut);
+
+            expect(mkdirMock).toHaveBeenCalledWith('/var/lib/gitpaas/deploys', { recursive: true, mode: 0o770 });
+            expect(mkdtempMock).toHaveBeenCalledWith(join('/var/lib/gitpaas/deploys', 'gitpaas-deploy-'));
+        });
+
+        it('extracts the repository under the temporary folder of the process when the environment names none', async () => {
+            const sut = executorWithRuntime({ createComposeProject });
+
+            await upWithEmptyRecipe(sut);
+
+            expect(mkdirMock).toHaveBeenCalledWith(tmpdir(), { recursive: true, mode: 0o770 });
+            expect(mkdtempMock).toHaveBeenCalledWith(join(tmpdir(), 'gitpaas-deploy-'));
+        });
+
+        it('extracts the repository under the temporary folder of the process when the environment holds an empty folder', async () => {
+            const sut = executorWithRuntime({ createComposeProject }, '  ');
+
+            await upWithEmptyRecipe(sut);
+
+            expect(mkdtempMock).toHaveBeenCalledWith(join(tmpdir(), 'gitpaas-deploy-'));
+        });
+
+        it('cleans up the folder of the extraction when a bind mount of the recipe names the home folder', async () => {
+            mockCompose.instance = {
+                recipe: { services: { web: { volumes: ['~/data:/data'] } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [] }),
+            };
+
+            const sut = executorWithRuntime({ createComposeProject });
+
+            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn()))
+                .rejects.toThrow('The service "web" declares the volume "~/data:/data"');
+            expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
         });
 
         it('runs the lifecycle in order for an empty recipe and cleans up the temp dir', async () => {
@@ -850,6 +908,7 @@ describe('DockerExecutorAdapter', () => {
         const tempDir = '/tmp/gitpaas-recipe-test';
 
         beforeEach(() => {
+            (mkdir as jest.Mock).mockResolvedValue(undefined);
             mkdtempMock.mockResolvedValue(tempDir);
             rmMock.mockResolvedValue(undefined);
             tarXMock.mockReturnValue(new Writable({ objectMode: true, write: (_c, _e, cb): void => { cb(); } }));

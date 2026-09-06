@@ -25,6 +25,40 @@ After a deployment, the system SHALL read the volumes of the Compose project on 
 - **WHEN** a deployment finishes, and the daemon holds a volume of a key the database already holds for the service
 - **THEN** the system records no new volume, and the data of the existing volume stays
 
+## The bind mount of a Compose file
+
+The system SHALL mount a folder of the repository into a container when the Compose file of the service declares a bind mount, and it SHALL keep the record of the volumes untouched for that entry.
+
+An entry of the block `volumes` of a Compose service declares a bind mount when its source holds a slash, and a named volume otherwise. The system SHALL make a relative source absolute against the folder of the Compose file, inside the extracted repository, so `./config:/etc/app` reaches the container with the files of the repository at the commit of the deployment. The system SHALL keep every option of the entry, such as `:ro`, and it SHALL read the short form `source:target` and the long form with the key `type` alike. A source that already starts with the slash names a path of the host, and the system SHALL pass it unchanged.
+
+A bind mount carries no record of the capability, because it holds no data of its own: the folder of the repository is its content, and the next deployment brings that folder again. A named volume keeps the origin, the state and the tab of this page.
+
+### Scenario: The Compose file declares a relative source
+
+- **WHEN** a Compose service declares the volume `./config:/etc/app:ro`
+- **THEN** the deployment mounts the folder `config` beside the Compose file of the repository, read-only
+
+### Scenario: The Compose file declares the long form
+
+- **WHEN** a Compose service declares a volume with the key `type` set to `bind` and a relative source
+- **THEN** the deployment resolves that source in the same way as the short form
+
+### Scenario: The Compose file declares a named volume
+
+- **WHEN** a Compose service declares the volume `data:/var/lib/app`, and the source holds no slash
+- **THEN** the deployment leaves the entry unchanged, and the volume follows the requirement *The origin of a volume*
+
+## The source of the home folder is not supported
+
+The system SHALL fail the deployment when the source of a bind mount starts with `~`, and the message SHALL name the compose service and the entry.
+
+The daemon resolves `~` against the home folder of the host, and never against the extracted repository, so the container would receive a folder that the repository never declares — or an empty folder that the daemon creates. The system therefore refuses the entry instead of mounting something else than the author asked for. The message asks for a path relative to the Compose file, an absolute path of the host, or a named volume.
+
+### Scenario: A Compose service declares a source of the home folder
+
+- **WHEN** a Compose service declares the volume `~/data:/var/lib/app`
+- **THEN** the deployment fails with a message that names that service and that entry
+
 ## The five states of a volume
 
 The system SHALL give each volume of a service one of five states:

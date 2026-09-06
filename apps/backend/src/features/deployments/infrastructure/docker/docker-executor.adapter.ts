@@ -1,10 +1,11 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as tar from 'tar';
 
 import { getBuiltImageTagUseCase } from '../../application/get-built-image-tag.use-case';
@@ -42,6 +43,11 @@ const STARTUP_LOG_TAIL = 100;
 const RECIPE_PROJECT_NAME = 'gitpaas-recipe';
 
 /**
+ * Mode the base folder of the extraction is created with, which the user of the process owns and writes.
+ */
+const SPOOL_DIR_MODE = 0o770;
+
+/**
  * The subset of a started container the executor reads its startup output from.
  */
 interface StartedContainer {
@@ -55,12 +61,22 @@ interface StartedContainer {
  */
 @Injectable()
 export class DockerExecutorAdapter implements DockerExecutor {
+    /**
+     * Base folder the repository of a deployment is extracted into.
+     */
+    private readonly spoolDir: string;
+
     constructor(
         @Inject(DockerContainerRuntimeAdapter)
         private readonly docker: ContainerRuntime,
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
-    ) {}
+        config: ConfigService,
+    ) {
+        const configuredDir = config.get<string>('DEPLOY_SPOOL_DIR')?.trim();
+
+        this.spoolDir = configuredDir === undefined || configuredDir === '' ? tmpdir() : configuredDir;
+    }
 
     public async up(
         archive: Buffer,
@@ -73,7 +89,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
     ): Promise<void> {
         const { serviceId, projectName, networkAlias } = target;
         const emit = (line: string): void => onLog?.(line);
-        const directory = await mkdtemp(join(tmpdir(), 'gitpaas-deploy-'));
+        const directory = await this.createWorkspace('gitpaas-deploy-');
 
         try {
             emit('▶ Extracting repository…');
@@ -146,6 +162,20 @@ export class DockerExecutorAdapter implements DockerExecutor {
         } finally {
             await rm(directory, { recursive: true, force: true });
         }
+    }
+
+    /**
+     * Creates the folder one extraction of a repository owns, under the base folder of the installation.
+     *
+     * @param prefix Prefix the name of the folder carries
+     *
+     * @returns Absolute path of the created folder
+     */
+    private async createWorkspace(prefix: string): Promise<string> {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        await mkdir(this.spoolDir, { recursive: true, mode: SPOOL_DIR_MODE });
+
+        return mkdtemp(join(this.spoolDir, prefix));
     }
 
     /**

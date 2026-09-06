@@ -391,7 +391,22 @@ update_env() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 4 — Apply the SQL migrations of the new version
+# Step 4 — Create the spool directory of the deployments
+# ---------------------------------------------------------------------------
+create_spool_dir() {
+    spool_dir="$(env_value DEPLOY_SPOOL_DIR)"
+    [ -n "$spool_dir" ] || spool_dir="/var/lib/gitpaas/deploys"
+
+    report_step "Preparing the deployments directory $spool_dir ..." 50
+
+    $SUDO mkdir -p "$spool_dir" \
+        || die "Could not create the deployments directory $spool_dir. Create it by hand, give it to the user 1000:1000, and run the update again."
+    $SUDO chown 1000:1000 "$spool_dir" \
+        || die "Could not give $spool_dir to the user 1000:1000. The backend runs as that user, and it must write the build context of every deployment there."
+}
+
+# ---------------------------------------------------------------------------
+# Step 5 — Apply the SQL migrations of the new version
 # ---------------------------------------------------------------------------
 run_migrations() {
     report_step "Applying the database migrations ..." 60
@@ -442,7 +457,7 @@ SQL
 }
 
 # ---------------------------------------------------------------------------
-# Step 5 — Pull the images of the target version and bring the stack up
+# Step 6 — Pull the images of the target version and bring the stack up
 # ---------------------------------------------------------------------------
 bring_up() {
     report_step "Pulling the images of $RESOLVED_REF ..." 75
@@ -494,6 +509,7 @@ main() {
     open_update_state
     fetch_source
     update_env
+    create_spool_dir
     run_migrations
     bring_up
 

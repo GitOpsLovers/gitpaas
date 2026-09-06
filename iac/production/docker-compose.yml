@@ -71,11 +71,14 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      DEPLOY_SPOOL_DIR: ${DEPLOY_SPOOL_DIR:-/var/lib/gitpaas/deploys}
     ports:
       - "${BACKEND_PORT:-3000}:${PORT:-3000}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - proxy-acme:/acme:ro
+      - ${DEPLOY_SPOOL_DIR:-/var/lib/gitpaas/deploys}:${DEPLOY_SPOOL_DIR:-/var/lib/gitpaas/deploys}
     group_add:
       - "${DOCKER_GID:?set DOCKER_GID in .env to the host docker group id (getent group docker | cut -d: -f3)}"
     depends_on:

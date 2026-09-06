@@ -25,6 +25,7 @@
 | Secrets         | `SECRETS_ENCRYPTION_KEY` (32 random bytes, hex; encrypts every stored provider private key and every secret variable of a service at rest)      |
 | Docker          | `DOCKER_GID` (host docker group id; consumed only by compose's `group_add`)                                                                     |
 | Reverse proxy   | `LETSENCRYPT_EMAIL`, `PROXY_ACME_PATH`                                                                                                          |
+| Deployments     | `DEPLOY_SPOOL_DIR` (folder the repository of a deployment is extracted into; the temporary folder of the system when it is empty)               |
 | JWT             | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`, `JWT_2FA_SECRET`                                  |
 
 The file carries no build argument, because CI builds the images and not the server. The frontend needs no variable of its own.
@@ -32,6 +33,7 @@ The file carries no build argument, because CI builds the images and not the ser
 - `DOCKER_GID` is the only variable that compose alone uses, and the stack does not start without it. The backend validates every other variable, except the `POSTGRES_*` pair.
 - `IMAGE_TAG` selects a runtime image. The installer derives it from the release tag without the leading `v` (`v1.4.0` gives `1.4.0`), and it refreshes the value on each run.
 - `CORS_ORIGIN` no longer governs the SPA, whose calls are same-origin through the proxy. It applies to a caller that reaches the API directly from another origin.
+- `DEPLOY_SPOOL_DIR` is bound at the **same absolute path** on both sides, `${DEPLOY_SPOOL_DIR}:${DEPLOY_SPOOL_DIR}`, and compose passes it to the backend as well. The reason is the daemon: it runs on the host, so it reads the source of a bind mount against the root of the host, and a path that exists inside the container alone gives it a folder that is empty or absent. The backend extracts the repository under that folder, and it makes every relative bind source of a compose file absolute against it (see the capability [volumes](../../business/volumes.md#the-bind-mount-of-a-compose-file)). An empty value, and an absent one alike, take the temporary folder of the system, which is the case of a backend that runs on the host, in development.
 
 ## The API proxy
 

@@ -297,11 +297,22 @@ export function isBindMountSource(source: string): boolean {
  *
  * @param source Source of the bind mount
  * @param baseDir Directory containing the compose file
+ * @param service Name of the compose service the bind mount belongs to
+ * @param entry Entry of the `volumes` block the source comes from, as the recipe writes it
  *
- * @returns The absolute source, or the source unchanged when it already is absolute or starts with `~`
+ * @throws {Error} When the source names the home folder, which the daemon resolves on the host and never against the recipe
+ *
+ * @returns The absolute source, or the source unchanged when it already is absolute
  */
-export function resolveBindSource(source: string, baseDir: string): string {
-    return source.startsWith('/') || source.startsWith('~') ? source : resolve(baseDir, source);
+export function resolveBindSource(source: string, baseDir: string, service: string, entry: string): string {
+    if (source.startsWith('~')) {
+        throw new Error(
+            `The service "${service}" declares the volume "${entry}", and GitPaaS does not support a source of the home folder. `
+            + 'Use a path relative to the compose file, an absolute path of the host, or a named volume.',
+        );
+    }
+
+    return source.startsWith('/') ? source : resolve(baseDir, source);
 }
 
 /**
@@ -309,10 +320,13 @@ export function resolveBindSource(source: string, baseDir: string): string {
  *
  * @param volume Entry of the `volumes` block
  * @param baseDir Directory containing the compose file
+ * @param service Name of the compose service the entry belongs to
+ *
+ * @throws {Error} When the source of the bind mount names the home folder
  *
  * @returns The entry with an absolute bind source, or the entry unchanged when it declares a named volume
  */
-export function resolveServiceVolume(volume: ComposeServiceVolume, baseDir: string): ComposeServiceVolume {
+export function resolveServiceVolume(volume: ComposeServiceVolume, baseDir: string, service: string): ComposeServiceVolume {
     if (typeof volume === 'string') {
         const [source, ...rest] = volume.trim().split(':');
 
@@ -321,7 +335,7 @@ export function resolveServiceVolume(volume: ComposeServiceVolume, baseDir: stri
             return volume;
         }
 
-        return [resolveBindSource(source, baseDir), ...rest].join(':');
+        return [resolveBindSource(source, baseDir, service, volume), ...rest].join(':');
     }
 
     const { type, source } = volume as { type?: unknown; source?: unknown };
@@ -330,7 +344,7 @@ export function resolveServiceVolume(volume: ComposeServiceVolume, baseDir: stri
         return volume;
     }
 
-    return { ...volume, source: resolveBindSource(source, baseDir) };
+    return { ...volume, source: resolveBindSource(source, baseDir, service, source) };
 }
 
 /**
@@ -338,14 +352,16 @@ export function resolveServiceVolume(volume: ComposeServiceVolume, baseDir: stri
  *
  * @param compose Compose project driven by the container runtime
  * @param baseDir Directory containing the compose file
+ *
+ * @throws {Error} When the source of a bind mount names the home folder
  */
 export function resolveBindMounts(compose: RuntimeComposeProject, baseDir: string): void {
-    for (const service of Object.values(recipeServices(compose))) {
+    for (const [name, service] of Object.entries(recipeServices(compose))) {
         if (!service.volumes) {
             continue;
         }
 
-        service.volumes = service.volumes.map((volume) => resolveServiceVolume(volume, baseDir));
+        service.volumes = service.volumes.map((volume) => resolveServiceVolume(volume, baseDir, name));
     }
 }
 

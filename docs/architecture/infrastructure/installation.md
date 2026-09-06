@@ -85,6 +85,19 @@ A version before this change kept one GitHub App for the whole installation, in 
 
 The one way to avoid that manual step is to register the provider before the migration runs: open the Providers screen, register a provider with the three `GITHUB_APP_*` values of the existing `.env`, then open and save each existing service so it points at that provider.
 
+### The folder of the deployments on the host
+
+Both `install.sh` and `update.sh` create the folder that `DEPLOY_SPOOL_DIR` names, and give it to the backend user, on a fresh installation and on an upgrade alike. Each script reads the variable from `.env`, falls back to `/var/lib/gitpaas/deploys` when it is empty or absent, then runs `mkdir -p` and `chown 1000:1000` on that path. The compose file of the production binds the same folder at the same absolute path on the host and in the container of the backend (see [Conventions](./conventions.md#environment-contract)). Docker creates a missing source of a bind mount as `root`, and the backend runs as the non-root `node` user (uid 1000), so the folder must belong to that user **before** the stack comes up — which is why each script owns this step instead of leaving it to the compose file.
+
+An operator repairs the folder by hand only when it already exists with the wrong owner, for example because it was created outside these scripts:
+
+```sh
+sudo mkdir -p /var/lib/gitpaas/deploys
+sudo chown 1000:1000 /var/lib/gitpaas/deploys
+```
+
+Without a folder that belongs to uid 1000, every deployment fails when the executor writes the extraction of the repository.
+
 > **Known limitation.** The production frontend image contains `apiBaseUrl: http://localhost:3000/api/v1` from the build. Thus, if you open the UI from a machine that is **not** the server, the UI currently calls the incorrect API host. A future build argument for the frontend will make the API base configurable at the installation.
 
 ## Update

@@ -456,7 +456,22 @@ generate_env() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 4 — Start the data stores
+# Step 4 — Create the spool directory of the deployments
+# ---------------------------------------------------------------------------
+create_spool_dir() {
+    spool_dir="$(env_value DEPLOY_SPOOL_DIR)"
+    [ -n "$spool_dir" ] || spool_dir="/var/lib/gitpaas/deploys"
+
+    log "Creating the deployments directory $spool_dir for the backend user (1000:1000) ..."
+
+    $SUDO mkdir -p "$spool_dir" \
+        || die "Could not create the deployments directory $spool_dir. Create it by hand, give it to the user 1000:1000, and run the installer again."
+    $SUDO chown 1000:1000 "$spool_dir" \
+        || die "Could not give $spool_dir to the user 1000:1000. The backend runs as that user, and it must write the build context of every deployment there."
+}
+
+# ---------------------------------------------------------------------------
+# Step 5 — Start the data stores
 # ---------------------------------------------------------------------------
 # The compose plugin is a separate binary, so we wrap it in a function that
 compose() { docker_cmd compose -f "$GITPAAS_DIR/iac/production/docker-compose.yml" "$@"; }
@@ -486,7 +501,7 @@ start_data_stores() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 5 — Apply the SQL migrations
+# Step 6 — Apply the SQL migrations
 # ---------------------------------------------------------------------------
 
 # Read the Postgres credentials out of the generated .env.
@@ -551,7 +566,7 @@ SQL
 }
 
 # ---------------------------------------------------------------------------
-# Step 6 — Bootstrap the admin
+# Step 7 — Bootstrap the admin
 # ---------------------------------------------------------------------------
 
 # Hash the password with the argon2 CLI in a throwaway container.
@@ -596,7 +611,7 @@ SQL
 }
 
 # ---------------------------------------------------------------------------
-# Step 7 — Pull the published images and bring up the application stack
+# Step 8 — Pull the published images and bring up the application stack
 # ---------------------------------------------------------------------------
 bring_up() {
     log "Pulling images from ghcr.io/gitopslovers (this can take a while on first run) ..."
@@ -672,6 +687,7 @@ main() {
     fetch_source
     configure_control_plane
     generate_env
+    create_spool_dir
     start_data_stores
     run_migrations
     bootstrap_admin

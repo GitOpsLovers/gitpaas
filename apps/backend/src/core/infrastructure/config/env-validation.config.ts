@@ -69,6 +69,7 @@ const environmentSchema = z.object({
     TELEMETRY_SLOW_MS: requiredNumber.default(TELEMETRY_DEFAULT_SLOW_MS),
     TELEMETRY_SAMPLE_RATE: requiredNumber.min(0).max(1).default(TELEMETRY_DEFAULT_SAMPLE_RATE),
     PROXY_ACME_PATH: optionalText,
+    DEPLOY_SPOOL_DIR: optionalText,
     UPDATE_CHECK_ENABLED: enabledFlag,
     JWT_ACCESS_SECRET: requiredText,
     JWT_ACCESS_EXPIRES_IN: requiredText,
