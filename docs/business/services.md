@@ -53,18 +53,23 @@ This rule is applicable to every field of an answer whose column accepts no valu
 
 ## The bullet of the state of a service
 
-Each card of a service SHALL show a bullet that reports the live state of its containers, in the upper-right corner of the card. The bullet takes one of four colors:
+Each card of a service SHALL show a bullet that reports the live state of its containers, in the upper-right corner of the card. The bullet takes one of five states:
 
 | State     | Color  | Meaning              |
 |-----------|--------|-----------------------|
 | `ok`      | Green  | Running               |
 | `warning` | Yellow | Unstable              |
 | `error`   | Red    | Stopped               |
+| `idle`    | Gray   | Completed             |
 | `unknown` | Gray   | Never deployed        |
 
-The system SHALL read the containers of the service to compute the state. A container `running` gives `ok`; a container `paused` or `restarting` gives `warning`; a container `exited` or `dead` gives `error`. When the service holds several containers, the state of the card is the worst of them, in the order `ok`, `unknown`, `warning`, `error`.
+The system SHALL read the containers of the service to compute the state. A container `running` gives `ok`; a container `paused` or `restarting` gives `warning`; a container `exited` or `dead` gives `error`; a container of another state gives `unknown`. When the service holds several containers, the state of the card is the worst of them, in the order `ok`, `unknown`, `warning`, `error`.
 
-When the service holds no container, the system SHALL read the deployments of the service instead. A service with no deployment gives `unknown`, and a service with a deployment but no container gives `error`.
+**The system SHALL ignore a one-shot container that exited before it applies that order.** A one-shot container runs one time, for an initialization or a migration, and its exit is the end of its work and not a failure. See the requirement *The one-shot container* of the capability [containers](./containers.md). Without this rule, one initialization that completed turns the bullet red, and the main container that runs correctly gives no green.
+
+The system SHALL give the state `idle` when the removal of those containers empties the list, because every container of the stack completed its one run. A one-shot container that still runs stays in the list, and it gives `ok` like any other running container.
+
+When the service holds no container at all, the system SHALL read the deployments of the service instead. A service with no deployment gives `unknown`, and a service with a deployment but no container gives `error`.
 
 ### Scenario: The service runs
 
@@ -80,6 +85,21 @@ When the service holds no container, the system SHALL read the deployments of th
 
 - **WHEN** the worst container of the service holds the state `exited` or `dead`
 - **THEN** the bullet of the card shows red
+
+### Scenario: The one-shot container of the service exited
+
+- **WHEN** a one-shot container of the service holds the state `exited`, and the other containers of the service hold the state `running`
+- **THEN** the bullet of the card shows green
+
+### Scenario: Every container of the service is one-shot and exited
+
+- **WHEN** every container of the service is one-shot, and each one holds the state `exited`
+- **THEN** the bullet of the card shows gray, with the meaning "Completed"
+
+### Scenario: The one-shot container of the service runs
+
+- **WHEN** a one-shot container of the service holds the state `running`
+- **THEN** the system counts that container like any other, and the bullet of the card shows green
 
 ### Scenario: The service was never deployed
 
