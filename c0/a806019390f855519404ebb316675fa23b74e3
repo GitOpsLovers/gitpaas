@@ -1,0 +1,29 @@
+apps/backend/src/features/server/domain/constants/database-debug.constants.ts
+  s_b66ee2e6f78869::t_b6e96c4a67d263 39
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.spec.ts
+  s_4a3235251a300f::t_344e03c6114e7e 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c0a806019390f855519404ebb316675fa23b74e3",
+  "prompts": {},
+  "sessions": {
+    "s_4a3235251a300f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fd76518d-a963-4bbc-8a30-e997ce119167",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b66ee2e6f78869": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac751c1ebdc7ae9e7",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
