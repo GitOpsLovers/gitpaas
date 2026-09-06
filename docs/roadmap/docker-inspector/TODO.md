@@ -19,13 +19,13 @@ GitPaaS reads Docker only through the label of a service, so an operator cannot 
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/docker/`, `packages/contracts/`
 
-- [ ] 2.1 Add the response types of the four resources to `packages/contracts`.
-- [ ] 2.2 Create the feature `docker` with one use case for each resource, which calls the port with the selector of the host.
-- [ ] 2.3 Add `DockerController` with `GET /api/v1/docker/containers`, `/images`, `/volumes` and `/networks`.
-- [ ] 2.4 Register `DockerModule` in `app.module.ts`, under the global guard of the token.
-- [ ] 2.5 Return `503` when the daemon is unreachable, as `server/status` does today.
-- [ ] 2.6 Write the unit tests of the use cases and of the controller.
-- [ ] 2.7 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the tests of the backend.
+- [x] 2.1 Add the response types of the four resources to `packages/contracts`.
+- [x] 2.2 Create the feature `docker` with one use case for each resource, which calls the port with the selector of the host.
+- [x] 2.3 Add `DockerController` with `GET /api/v1/docker/containers`, `/images`, `/volumes` and `/networks`.
+- [x] 2.4 Register `DockerModule` in `app.module.ts`, under the global guard of the token.
+- [x] 2.5 Return `503` when the daemon is unreachable, as `server/status` does today.
+- [x] 2.6 Write the unit tests of the use cases and of the controller.
+- [x] 2.7 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the tests of the backend.
 
 ## Phase 3 — The section Docker of the frontend
 
