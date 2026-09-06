@@ -1,0 +1,41 @@
+docs/roadmap.md
+  s_3f4729b92779e4::t_7df74e9c39a3aa 18
+docs/roadmap/compose-interpolation/TODO.md
+  s_3f4729b92779e4::t_d44bb4ff14c0ed 1-31
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-interpolation.spec.ts
+  s_92e0a74dc4cb35::t_4a85b4f43245f9 1-118
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_92e0a74dc4cb35::t_6ef56076cb25ab 13,115-125
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_92e0a74dc4cb35::t_da5fa281e9d5ab 351-357,527-528,530-532,567,589-609,615,791,815
+apps/backend/src/features/deployments/infrastructure/docker/compose-interpolation.ts
+  s_92e0a74dc4cb35::t_a0159e7110667b 1-77
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_92e0a74dc4cb35::t_769160b33ea584 157-166
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_92e0a74dc4cb35::t_4286cbfae0a2ce 15,17-18,102-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0d6973a0c1482bf5cbcb32320a82b00f71d11fcf",
+  "prompts": {},
+  "sessions": {
+    "s_3f4729b92779e4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ea9cd68f-f907-475a-a7c1-6d8623e97f00",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_92e0a74dc4cb35": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa9e4c10ea9258124",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
