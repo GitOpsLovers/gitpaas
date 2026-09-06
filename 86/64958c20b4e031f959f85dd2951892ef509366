@@ -1,0 +1,51 @@
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_2a3106864a3194::t_5dd5cae56aa801 222-235
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_2a3106864a3194::t_3f696ce342db4b 72
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_2a3106864a3194::t_038bd16364c46d 2-4,7,62,64,74,76,315,344,351-401,911
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_2a3106864a3194::t_1d28df01c3a168 300-301,303-305,307-315,323-325,329,338,347,355-356,359,364
+docs/architecture/backend/key-flows.md
+  s_005dbb96ba2157::t_95f57ecd6b1737 109
+docs/architecture/infrastructure/conventions.md
+  s_2a3106864a3194::t_3f1abd3df7c75a 28,36
+docs/business/deployments.md
+  s_2a3106864a3194::t_40040406311ac4 156-157
+docs/business/volumes.md
+  s_2a3106864a3194::t_55f705647d85b3 28-61
+docs/architecture/infrastructure/installation.md
+  s_e428b3677b9a6a::t_1391bad6757cbd 88-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8664958c20b4e031f959f85dd2951892ef509366",
+  "prompts": {},
+  "sessions": {
+    "s_005dbb96ba2157": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b6cd702-7c34-4c21-ba8f-ffd375818f6f",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_2a3106864a3194": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "53ec831a-5bc8-443f-b663-c3a56711fd81",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_e428b3677b9a6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae166cc4f43037de0",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
