@@ -1,3 +1,9 @@
+## [2.19.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.19.0...v2.19.1) (2026-09-06)
+
+### Bug Fixes
+
+* pull PgAdmin for database debugging ([7803c0c](https://github.com/GitOpsLovers/gitpaas/commit/7803c0c81c8c083a54424a436064291e66541c63))
+
 ## [2.19.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.18.0...v2.19.0) (2026-09-06)
 
 ### Features
