@@ -16,6 +16,7 @@ const web: Container = {
     state: 'running',
     status: 'Up 2 minutes',
     createdAt: '2026-01-01T00:00:00.000Z',
+    ephemeral: false,
     ports: [],
 };
 
@@ -26,6 +27,7 @@ const worker: Container = {
     state: 'exited',
     status: 'Exited (0) 1 minute ago',
     createdAt: '2026-01-01T00:00:00.000Z',
+    ephemeral: false,
     ports: [],
 };
 

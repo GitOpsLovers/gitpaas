@@ -422,6 +422,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     createdAt: new Date(1_752_192_000 * 1000),
                     projects: ['web-frontend', 'web-frontend'],
                     serviceId: null,
+                    ephemeral: false,
                     ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
                     networks: ['web-frontend_default', 'gitpaas-proxy'],
                     mounts: [{
@@ -441,6 +442,7 @@ describe('DockerContainerRuntimeAdapter', () => {
                     createdAt: new Date(0),
                     projects: [],
                     serviceId: null,
+                    ephemeral: false,
                     ports: [],
                     networks: [],
                     mounts: [],

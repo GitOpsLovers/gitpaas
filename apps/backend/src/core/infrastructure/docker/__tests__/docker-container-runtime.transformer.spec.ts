@@ -230,6 +230,7 @@ describe('toContainerSummary', () => {
             createdAt: new Date(1_752_192_000 * 1000),
             projects: ['web-frontend', 'web-frontend'],
             serviceId: null,
+            ephemeral: false,
             ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
             networks: ['web-frontend_default', 'gitpaas-proxy'],
             mounts: [{
@@ -254,6 +255,18 @@ describe('toContainerSummary', () => {
         expect(toContainerSummary(info).serviceId).toBeNull();
     });
 
+    it('reports a container that carries the label of the one-shot service as ephemeral', () => {
+        const info = containerInfo({ Id: 'id', Labels: { 'io.gitpaas.ephemeral': 'true' } });
+
+        expect(toContainerSummary(info).ephemeral).toBe(true);
+    });
+
+    it('reports a container that carries no label of the one-shot service as not ephemeral', () => {
+        const info = containerInfo({ Id: 'id', Labels: { 'com.docker.compose.service': 'web' } });
+
+        expect(toContainerSummary(info).ephemeral).toBe(false);
+    });
+
     it('reads the GitPaaS project label before the compose one', () => {
         const info = containerInfo({
             Id: 'id',
@@ -276,6 +289,7 @@ describe('toContainerSummary', () => {
 
         expect(result.names).toEqual([]);
         expect(result.serviceId).toBeNull();
+        expect(result.ephemeral).toBe(false);
         expect(result.ports).toEqual([]);
         expect(result.projects).toEqual([]);
         expect(result.networks).toEqual([]);

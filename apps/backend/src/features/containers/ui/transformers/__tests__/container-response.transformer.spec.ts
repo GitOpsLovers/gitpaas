@@ -9,6 +9,7 @@ const container = (overrides: Partial<Container> = {}): Container => ({
     state: 'running',
     status: 'Up 2 hours',
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    ephemeral: false,
     ports: [{ privatePort: 80, publicPort: 8080, type: 'tcp' }],
     ...overrides,
 });
@@ -22,8 +23,13 @@ describe('toContainerResponse', () => {
             state: 'running',
             status: 'Up 2 hours',
             createdAt: '2026-01-01T00:00:00.000Z',
+            ephemeral: false,
             ports: [{ privatePort: 80, publicPort: 8080, type: 'tcp' }],
         });
+    });
+
+    it('carries the mark of a one-shot container into the answer', () => {
+        expect(toContainerResponse(container({ ephemeral: true })).ephemeral).toBe(true);
     });
 
     it('converts the timestamp into a text of the ISO form', () => {

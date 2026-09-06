@@ -19,6 +19,7 @@ export const containerSchema = z.object({
     state: z.string(),
     status: z.string(),
     createdAt: z.iso.datetime(),
+    ephemeral: z.boolean(),
     ports: z.array(containerPortSchema),
 });
 

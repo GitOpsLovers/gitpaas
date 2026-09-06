@@ -56,6 +56,7 @@ export interface RuntimeContainerSummary {
     createdAt: Date;
     projects: string[];
     serviceId: string | null;
+    ephemeral: boolean;
     ports: RuntimePortMapping[];
     networks: string[];
     mounts: RuntimeContainerMount[];

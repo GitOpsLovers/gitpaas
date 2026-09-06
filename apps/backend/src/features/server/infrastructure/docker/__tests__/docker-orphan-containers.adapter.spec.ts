@@ -31,6 +31,7 @@ const containerSummary = (
     createdAt: new Date('2025-07-11T00:00:00.000Z'),
     projects: overrides.projects ?? [name, name],
     serviceId: overrides.serviceId === undefined ? `svc-${name}` : overrides.serviceId,
+    ephemeral: false,
     ports: [],
     networks: [],
     mounts: [],

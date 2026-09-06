@@ -47,6 +47,7 @@ const container = (overrides: Partial<RuntimeContainerSummary> = {}): RuntimeCon
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     projects: ['gitpaas-web'],
     serviceId: null,
+    ephemeral: false,
     ports: [],
     networks: [],
     mounts: [],

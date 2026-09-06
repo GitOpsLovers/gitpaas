@@ -32,6 +32,7 @@ describe('getContainersByServiceUseCase', () => {
             state: 'running',
             status: 'Up 3 minutes',
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
+            ephemeral: false,
             ports: [{ privatePort: 3000, publicPort: 8080, type: 'tcp' }],
         },
     ];
