@@ -57,7 +57,7 @@ const debugRunning: DatabaseDebugStatus = { running: true, url: 'http://203.0.11
 
 const debugSession: DatabaseDebugSession = {
     url: 'http://203.0.113.10:5050',
-    console: { email: 'debug@gitpaas.local', password: 'console-secret' },
+    console: { email: 'debug@gitpaas.dev', password: 'console-secret' },
     connection: {
         host: 'gitpaas-postgres',
         port: 5432,

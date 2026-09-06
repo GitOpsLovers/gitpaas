@@ -36,7 +36,7 @@ export const POSTGRES_CONTAINER_NAME = 'gitpaas-postgres';
 /**
  * The address of the account the console of the debug is entered with.
  */
-export const DEBUG_CONSOLE_EMAIL = 'debug@gitpaas.local';
+export const DEBUG_CONSOLE_EMAIL = 'debug@gitpaas.dev';
 
 /**
  * The port the console of the debug listens on inside its container.
