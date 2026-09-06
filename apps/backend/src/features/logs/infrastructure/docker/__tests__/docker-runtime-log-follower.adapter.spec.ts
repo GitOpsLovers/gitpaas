@@ -1,6 +1,7 @@
 /* eslint-disable no-secrets/no-secrets */
 import type { RuntimeLogLine } from '@gitpaas/contracts';
 
+import { RUNTIME_LOG_STREAM_HISTORY_LINES } from '../../../domain/constants/runtime-log-stream.constants';
 import { RuntimeLogStore } from '../../../domain/ports/runtime-log-store.port';
 import { MemoryRuntimeLogStoreAdapter } from '../../memory/memory-runtime-log-store.adapter';
 import { DockerRuntimeLogFollowerAdapter } from '../docker-runtime-log-follower.adapter';
@@ -132,11 +133,14 @@ describe('DockerRuntimeLogFollowerAdapter', () => {
     });
 
     describe('follow', () => {
-        it('opens one stream that follows the container and asks for no history', () => {
+        it('opens one stream that follows the container and asks for the history of its output', () => {
             sut.follow(containerId);
 
             expect(mockContainerRuntime.readContainerLogs).toHaveBeenCalledTimes(1);
-            expect(mockContainerRuntime.readContainerLogs).toHaveBeenCalledWith(containerId, { follow: true, tail: 0 });
+            expect(mockContainerRuntime.readContainerLogs).toHaveBeenCalledWith(containerId, {
+                follow: true,
+                tail: RUNTIME_LOG_STREAM_HISTORY_LINES,
+            });
         });
 
         it('sends every line of that stream to the store, under the container it comes from', async () => {

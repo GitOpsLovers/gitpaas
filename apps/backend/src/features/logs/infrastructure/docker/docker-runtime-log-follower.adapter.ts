@@ -1,6 +1,7 @@
 import type { RuntimeLogLine } from '@gitpaas/contracts';
 import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
 
+import { RUNTIME_LOG_STREAM_HISTORY_LINES } from '../../domain/constants/runtime-log-stream.constants';
 import { RuntimeLogFollower } from '../../domain/ports/runtime-log-follower.port';
 import type { RuntimeLogStore } from '../../domain/ports/runtime-log-store.port';
 import { MemoryRuntimeLogStoreAdapter } from '../memory/memory-runtime-log-store.adapter';
@@ -38,7 +39,10 @@ export class DockerRuntimeLogFollowerAdapter implements RuntimeLogFollower, OnMo
             return;
         }
 
-        const stream = this.client.readContainerLogs(containerId, { follow: true, tail: 0 });
+        const stream = this.client.readContainerLogs(containerId, {
+            follow: true,
+            tail: RUNTIME_LOG_STREAM_HISTORY_LINES,
+        });
         const iterator = stream[Symbol.asyncIterator]();
 
         this.streams.set(containerId, iterator);
