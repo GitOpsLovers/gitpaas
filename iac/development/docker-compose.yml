@@ -97,7 +97,7 @@ services:
       start_period: 5s
 
   pgadmin:
-    image: elestio/pgadmin:REL-9_16
+    image: elestio/pgadmin:REL-9_17
     container_name: gitpaas-pgadmin
     restart: unless-stopped
     environment:
