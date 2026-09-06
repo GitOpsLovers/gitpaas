@@ -27,6 +27,7 @@
 | Reverse proxy   | `LETSENCRYPT_EMAIL`, `PROXY_ACME_PATH`                                                                                                          |
 | Deployments     | `DEPLOY_SPOOL_DIR` (folder the repository of a deployment is extracted into; the temporary folder of the system when it is empty)               |
 | JWT             | `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`, `JWT_2FA_SECRET`                                  |
+| Database debug  | `PGADMIN_PORT` (host port of the console of the debug of the database, default `5050`), `PGADMIN_IMAGE` (pinned tag of the image, default `elestio/pgadmin:REL-9_16`) |
 
 The file carries no build argument, because CI builds the images and not the server. The frontend needs no variable of its own.
 
@@ -34,6 +35,7 @@ The file carries no build argument, because CI builds the images and not the ser
 - `IMAGE_TAG` selects a runtime image. The installer derives it from the release tag without the leading `v` (`v1.4.0` gives `1.4.0`), and it refreshes the value on each run.
 - `CORS_ORIGIN` no longer governs the SPA, whose calls are same-origin through the proxy. It applies to a caller that reaches the API directly from another origin.
 - `DEPLOY_SPOOL_DIR` is bound at the **same absolute path** on both sides, `${DEPLOY_SPOOL_DIR}:${DEPLOY_SPOOL_DIR}`, and compose passes it to the backend as well. The reason is the daemon: it runs on the host, so it reads the source of a bind mount against the root of the host, and a path that exists inside the container alone gives it a folder that is empty or absent. The backend extracts the repository under that folder, and it makes every relative bind source of a compose file absolute against it (see the capability [volumes](../../business/volumes.md#the-bind-mount-of-a-compose-file)). An empty value, and an absent one alike, take the temporary folder of the system, which is the case of a backend that runs on the host, in development.
+- `PGADMIN_PORT` is the host port that the container of the console of the database publishes, while a session of the debug runs (see the capability [server](../../business/server.md#database-maintenance)). The operator must open this port on the firewall of the VPS, or an administrator outside the server cannot reach the console once a session starts.
 
 ## The API proxy
 
