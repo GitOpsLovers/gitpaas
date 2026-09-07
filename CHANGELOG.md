@@ -1,3 +1,14 @@
+## [2.20.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.19.2...v2.20.0) (2026-09-07)
+
+### Features
+
+* **deployments:** save final compose text of deployments ([#251](https://github.com/GitOpsLovers/gitpaas/issues/251)) ([39840b1](https://github.com/GitOpsLovers/gitpaas/commit/39840b1d5fcafc6e3e645a93ae80338c0a831f90))
+* **docker:** add four docker endpoints ([#248](https://github.com/GitOpsLovers/gitpaas/issues/248)) ([0499b73](https://github.com/GitOpsLovers/gitpaas/commit/0499b73baeb92e5645e63f4a2293f17cb0724835))
+* **docker:** add frontend section ([#249](https://github.com/GitOpsLovers/gitpaas/issues/249)) ([8dd7bc1](https://github.com/GitOpsLovers/gitpaas/commit/8dd7bc176cb8df32674d2882b0963ebbc4543f4d))
+* **docker:** add runtime models and transformers ([#247](https://github.com/GitOpsLovers/gitpaas/issues/247)) ([d60377a](https://github.com/GitOpsLovers/gitpaas/commit/d60377a8a215fb903be26707cf002aafa6c6b7dc))
+* **services:** add final compose file card ([#253](https://github.com/GitOpsLovers/gitpaas/issues/253)) ([47f6a07](https://github.com/GitOpsLovers/gitpaas/commit/47f6a07d599a8dbaee4c0696f6250e4b8588a798))
+* **services:** add final compose file endpoint ([#252](https://github.com/GitOpsLovers/gitpaas/issues/252)) ([d4e0fa1](https://github.com/GitOpsLovers/gitpaas/commit/d4e0fa18eb5a9fb4eb95d9e3ce968190e3808a24))
+
 ## [2.19.2](https://github.com/GitOpsLovers/gitpaas/compare/v2.19.1...v2.19.2) (2026-09-06)
 
 ### Bug Fixes
