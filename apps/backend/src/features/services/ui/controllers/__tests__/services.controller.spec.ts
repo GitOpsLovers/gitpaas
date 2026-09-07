@@ -3,6 +3,7 @@ import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 
+import { ServiceNotFoundError } from '../../../domain/errors/service.errors';
 import { Service } from '../../../domain/models/service.models';
 import { ServicesService } from '../../services/services.service';
 import { ServicesController } from '../services.controller';
@@ -74,7 +75,10 @@ const pipesFor = (handler: string, parameter?: string): unknown[] => {
 
 describe('ServicesController', () => {
     let mockServicesService: jest.Mocked<
-        Pick<ServicesService, 'getAllByProject' | 'findById' | 'create' | 'update' | 'delete'>
+        Pick<
+            ServicesService,
+            'getAllByProject' | 'findById' | 'create' | 'update' | 'delete' | 'getFinalCompose'
+        >
     >;
     let sut: ServicesController;
 
@@ -87,6 +91,7 @@ describe('ServicesController', () => {
             create: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
+            getFinalCompose: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -100,7 +105,7 @@ describe('ServicesController', () => {
     });
 
     describe('parameter validation', () => {
-        it.each(['findById', 'update', 'delete'])(
+        it.each(['findById', 'update', 'delete', 'getFinalCompose'])(
             'validates the id path parameter of %s as a UUID',
             (handler) => {
                 expect(pipesFor(handler, 'id')).toContain(ParseUUIDPipe);
@@ -115,8 +120,56 @@ describe('ServicesController', () => {
             expect(pipesFor(handler)).toEqual([expect.any(ZodValidationPipe)]);
         });
 
-        it.each(['getAllByProject', 'findById', 'delete'])('never binds a body on %s', (handler) => {
-            expect(pipesFor(handler)).toEqual([]);
+        it.each(['getAllByProject', 'findById', 'delete', 'getFinalCompose'])(
+            'never binds a body on %s',
+            (handler) => {
+                expect(pipesFor(handler)).toEqual([]);
+            },
+        );
+    });
+
+    describe('getFinalCompose', () => {
+        it('delegates to the service with the received id', async () => {
+            mockServicesService.getFinalCompose.mockResolvedValue({ text: 'services: {}', origin: 'deployment' });
+
+            await sut.getFinalCompose(serviceId);
+
+            expect(mockServicesService.getFinalCompose).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.getFinalCompose).toHaveBeenCalledWith(serviceId);
+        });
+
+        it('returns the Compose text and its origin', async () => {
+            mockServicesService.getFinalCompose.mockResolvedValue({ text: 'services: {}', origin: 'repository' });
+
+            const result = await sut.getFinalCompose(serviceId);
+
+            expect(result).toEqual({ text: 'services: {}', origin: 'repository' });
+        });
+
+        it('returns the empty result of a service that carries no Compose file', async () => {
+            mockServicesService.getFinalCompose.mockResolvedValue({ text: null, origin: 'none' });
+
+            const result = await sut.getFinalCompose(serviceId);
+
+            expect(result).toEqual({ text: null, origin: 'none' });
+        });
+
+        it('translates a domain error of the service into its HTTP error', async () => {
+            mockServicesService.getFinalCompose.mockRejectedValue(new ServiceNotFoundError(serviceId));
+
+            await expect(sut.getFinalCompose(serviceId)).rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('adds the id of the service to the telemetry event', async () => {
+            mockServicesService.getFinalCompose.mockResolvedValue({ text: null, origin: 'none' });
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.getFinalCompose(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({ 'service.id': serviceId });
         });
     });
 

@@ -1,5 +1,10 @@
 import { createServiceSchema, updateServiceSchema } from '@gitpaas/contracts';
-import type { CreateServiceDto, Service as ServiceResponse, UpdateServiceDto } from '@gitpaas/contracts';
+import type {
+    CreateServiceDto,
+    FinalCompose as FinalComposeResponse,
+    Service as ServiceResponse,
+    UpdateServiceDto,
+} from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -49,6 +54,24 @@ export class ServicesController {
         }
 
         return toServiceResponse(service);
+    }
+
+    /**
+     * Answer the final Compose file of a service, and the origin of its text.
+     *
+     * @param id Service identifier
+     *
+     * @returns The Compose text, masked of the value of every variable, and its origin
+     */
+    @Get(':id/final-compose')
+    public async getFinalCompose(@Param('id', ParseUUIDPipe) id: string): Promise<FinalComposeResponse> {
+        enrichTelemetry({ 'service.id': id });
+
+        try {
+            return await this.service.getFinalCompose(id);
+        } catch (error) {
+            throw translateError(error);
+        }
     }
 
     /**

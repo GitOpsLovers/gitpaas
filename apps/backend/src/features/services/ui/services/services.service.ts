@@ -4,11 +4,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { createServiceUseCase } from '../../application/create-service.use-case';
 import { deleteServiceUseCase } from '../../application/delete-service.use-case';
 import { findServiceByIdUseCase } from '../../application/find-service-by-id.use-case';
+import { getFinalComposeUseCase } from '../../application/get-final-compose.use-case';
 import { getServicesByProjectUseCase } from '../../application/get-services-by-project.use-case';
 import { updateServiceUseCase } from '../../application/update-service.use-case';
+import { FinalCompose } from '../../domain/models/final-compose.models';
 import { Service } from '../../domain/models/service.models';
+import type { RepositoryComposeFile } from '../../domain/ports/repository-compose-file.port';
 import type { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 import type { ServicesRepository } from '../../domain/repositories/services.repository';
+import { TarRepositoryComposeFileAdapter } from '../../infrastructure/archive/tar-repository-compose-file.adapter';
 import { DatabaseServicesRepository } from '../../infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from '../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { enrichWithService } from '../telemetry/enrich-with-service';
@@ -21,6 +25,10 @@ import type { NamespacesRepository } from '@features/namespaces/domain/repositor
 import { DatabaseNamespacesRepository } from '@features/namespaces/infrastructure/database/db-namespaces.repository';
 import type { ProjectsRepository } from '@features/projects/domain/repositories/projects.repository';
 import { DatabaseProjectsRepository } from '@features/projects/infrastructure/database/db-projects.repository';
+import type { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
+import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
+import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 
 /**
  * Services service
@@ -40,6 +48,12 @@ export class ServicesService {
         private readonly projectsRepository: ProjectsRepository,
         @Inject(DatabaseNamespacesRepository)
         private readonly namespacesRepository: NamespacesRepository,
+        @Inject(DatabaseProvidersRepository)
+        private readonly providersRepository: ProvidersRepository,
+        @Inject(GithubProviderClientAdapter)
+        private readonly providerClient: ProviderClient,
+        @Inject(TarRepositoryComposeFileAdapter)
+        private readonly repositoryComposeFile: RepositoryComposeFile,
     ) {}
 
     public getAllByProject(projectId: string): Promise<Service[]> {
@@ -77,6 +91,27 @@ export class ServicesService {
         }
 
         return service;
+    }
+
+    /**
+     * Answer the final Compose file of a service, and the origin of its text
+     *
+     * @param id Service identifier
+     *
+     * @returns The Compose text and its origin
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
+     * @throws {ProviderNotFoundError} When the provider of the service no longer exists
+     */
+    public getFinalCompose(id: string): Promise<FinalCompose> {
+        return getFinalComposeUseCase(
+            this.repository,
+            this.deploymentsRepository,
+            this.providersRepository,
+            this.providerClient,
+            this.repositoryComposeFile,
+            id,
+        );
     }
 
     public delete(id: string): Promise<boolean> {

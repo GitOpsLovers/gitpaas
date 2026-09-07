@@ -4,9 +4,11 @@ import { Test } from '@nestjs/testing';
 import { createServiceUseCase } from '../../../application/create-service.use-case';
 import { deleteServiceUseCase } from '../../../application/delete-service.use-case';
 import { findServiceByIdUseCase } from '../../../application/find-service-by-id.use-case';
+import { getFinalComposeUseCase } from '../../../application/get-final-compose.use-case';
 import { getServicesByProjectUseCase } from '../../../application/get-services-by-project.use-case';
 import { updateServiceUseCase } from '../../../application/update-service.use-case';
 import { Service } from '../../../domain/models/service.models';
+import { TarRepositoryComposeFileAdapter } from '../../../infrastructure/archive/tar-repository-compose-file.adapter';
 import { DatabaseServicesRepository } from '../../../infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from '../../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { ServicesService } from '../services.service';
@@ -16,10 +18,13 @@ import { DatabaseDeploymentsRepository } from '@features/deployments/infrastruct
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import { DatabaseNamespacesRepository } from '@features/namespaces/infrastructure/database/db-namespaces.repository';
 import { DatabaseProjectsRepository } from '@features/projects/infrastructure/database/db-projects.repository';
+import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
+import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 
 jest.mock('../../../application/create-service.use-case');
 jest.mock('../../../application/delete-service.use-case');
 jest.mock('../../../application/find-service-by-id.use-case');
+jest.mock('../../../application/get-final-compose.use-case');
 jest.mock('../../../application/get-services-by-project.use-case');
 jest.mock('../../../application/update-service.use-case');
 
@@ -31,6 +36,9 @@ const mockDeleteServiceUseCase = deleteServiceUseCase as jest.MockedFunction<
 >;
 const mockFindServiceByIdUseCase = findServiceByIdUseCase as jest.MockedFunction<
     typeof findServiceByIdUseCase
+>;
+const mockGetFinalComposeUseCase = getFinalComposeUseCase as jest.MockedFunction<
+    typeof getFinalComposeUseCase
 >;
 const mockGetServicesByProjectUseCase = getServicesByProjectUseCase as jest.MockedFunction<
     typeof getServicesByProjectUseCase
@@ -63,6 +71,9 @@ describe('ServicesService', () => {
     let mockLogStore: jest.Mocked<RedisLogStoreAdapter>;
     let mockProjectsRepository: jest.Mocked<DatabaseProjectsRepository>;
     let mockNamespacesRepository: jest.Mocked<DatabaseNamespacesRepository>;
+    let mockProvidersRepository: jest.Mocked<DatabaseProvidersRepository>;
+    let mockProviderClient: jest.Mocked<GithubProviderClientAdapter>;
+    let mockRepositoryComposeFile: jest.Mocked<TarRepositoryComposeFileAdapter>;
     let sut: ServicesService;
 
     beforeEach(async () => {
@@ -74,6 +85,9 @@ describe('ServicesService', () => {
         mockLogStore = {} as jest.Mocked<RedisLogStoreAdapter>;
         mockProjectsRepository = {} as jest.Mocked<DatabaseProjectsRepository>;
         mockNamespacesRepository = {} as jest.Mocked<DatabaseNamespacesRepository>;
+        mockProvidersRepository = {} as jest.Mocked<DatabaseProvidersRepository>;
+        mockProviderClient = {} as jest.Mocked<GithubProviderClientAdapter>;
+        mockRepositoryComposeFile = {} as jest.Mocked<TarRepositoryComposeFileAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -84,6 +98,9 @@ describe('ServicesService', () => {
                 { provide: RedisLogStoreAdapter, useValue: mockLogStore },
                 { provide: DatabaseProjectsRepository, useValue: mockProjectsRepository },
                 { provide: DatabaseNamespacesRepository, useValue: mockNamespacesRepository },
+                { provide: DatabaseProvidersRepository, useValue: mockProvidersRepository },
+                { provide: GithubProviderClientAdapter, useValue: mockProviderClient },
+                { provide: TarRepositoryComposeFileAdapter, useValue: mockRepositoryComposeFile },
             ],
         }).compile();
 
@@ -246,6 +263,39 @@ describe('ServicesService', () => {
             mockUpdateServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.update(serviceId, updateDto)).rejects.toThrow(error);
+        });
+    });
+
+    describe('getFinalCompose', () => {
+        it('delegates to the use case with all collaborators and the id', async () => {
+            mockGetFinalComposeUseCase.mockResolvedValue({ text: 'services: {}', origin: 'deployment' });
+
+            await sut.getFinalCompose(serviceId);
+
+            expect(mockGetFinalComposeUseCase).toHaveBeenCalledTimes(1);
+            expect(mockGetFinalComposeUseCase).toHaveBeenCalledWith(
+                mockServicesRepository,
+                mockDeploymentsRepository,
+                mockProvidersRepository,
+                mockProviderClient,
+                mockRepositoryComposeFile,
+                serviceId,
+            );
+        });
+
+        it('returns the Compose file produced by the use case', async () => {
+            mockGetFinalComposeUseCase.mockResolvedValue({ text: 'services: {}', origin: 'repository' });
+
+            const result = await sut.getFinalCompose(serviceId);
+
+            expect(result).toEqual({ text: 'services: {}', origin: 'repository' });
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('db unreachable');
+            mockGetFinalComposeUseCase.mockRejectedValue(error);
+
+            await expect(sut.getFinalCompose(serviceId)).rejects.toThrow(error);
         });
     });
 
