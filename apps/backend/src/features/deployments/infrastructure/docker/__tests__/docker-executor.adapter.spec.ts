@@ -393,7 +393,35 @@ describe('DockerExecutorAdapter', () => {
             expect(mkdtempMock).toHaveBeenCalledWith(join(tmpdir(), 'gitpaas-deploy-'));
         });
 
-        it('cleans up the folder of the extraction when a bind mount of the recipe names the home folder', async () => {
+        it('refuses a key the interpolation of a variable of the service carried into the recipe', async () => {
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx', '${DANGEROUS_KEY}': true } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [] }),
+            };
+
+            const sut = executorWithRuntime({ createComposeProject });
+
+            await expect(sut.up(
+                Buffer.from('archive'),
+                'docker-compose.yml',
+                target(),
+                { DANGEROUS_KEY: 'privileged' },
+                {},
+                [],
+                jest.fn(),
+            )).rejects.toThrow('The compose file declares "services.web.privileged"');
+        });
+
+        it('refuses a path of the compose file that escapes the folder of the repository', async () => {
+            const sut = executorWithRuntime({ createComposeProject });
+
+            await expect(sut.up(Buffer.from('archive'), '../../etc/compose.yml', target(), {}, {}, [], jest.fn()))
+                .rejects.toThrow('The compose file declares "composerPath"');
+            expect(createComposeProject).not.toHaveBeenCalled();
+        });
+
+        it('cleans up the folder of the extraction when the gate refuses a bind mount of the recipe', async () => {
             mockCompose.instance = {
                 recipe: { services: { web: { volumes: ['~/data:/data'] } } },
                 down: jest.fn().mockResolvedValue(undefined),
@@ -403,7 +431,7 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ createComposeProject });
 
             await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn()))
-                .rejects.toThrow('The service "web" declares the volume "~/data:/data"');
+                .rejects.toThrow('The compose file declares "services.web.volumes"');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
         });
 
@@ -1308,6 +1336,15 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ createComposeProject });
 
             await expect(sut.listComposeServices(Buffer.from('archive'), 'docker-compose.yml')).resolves.toEqual([]);
+        });
+
+        it('refuses a path of the compose file that escapes the folder of the repository', async () => {
+            const createComposeProject = jest.fn(() => ({ recipe: { services: {} } }));
+            const sut = executorWithRuntime({ createComposeProject });
+
+            await expect(sut.listComposeServices(Buffer.from('archive'), '../../etc/compose.yml'))
+                .rejects.toThrow('The compose file declares "composerPath"');
+            expect(createComposeProject).not.toHaveBeenCalled();
         });
 
         it('cleans up the temp dir when the recipe cannot be parsed', async () => {

@@ -1,8 +1,11 @@
 import {
+    COMPOSER_PATH_MAX_LENGTH,
     createServiceSchema,
+    isSafeComposerPath,
     SERVICE_NAME_MAX_LENGTH,
     SERVICE_NAME_MESSAGE,
     serviceSchema,
+    storedComposerPath,
     updateServiceSchema,
 } from '../service.contract';
 
@@ -112,5 +115,55 @@ describe('serviceSchema', () => {
         };
 
         expect(serviceSchema.safeParse(service).success).toBe(true);
+    });
+});
+
+describe('isSafeComposerPath', () => {
+    it.each(['docker-compose.yml', './compose.yaml', 'stacks/production/compose.yml', 'a..b/compose.yml'])(
+        'accepts the relative path %p',
+        (path) => {
+            expect(isSafeComposerPath(path)).toBe(true);
+        },
+    );
+
+    it.each(['', '/etc/passwd', '~/compose.yml', '../compose.yml', 'stacks/../../compose.yml', '..', 'a\\b.yml'])(
+        'refuses the path %p, because it escapes the repository',
+        (path) => {
+            expect(isSafeComposerPath(path)).toBe(false);
+        },
+    );
+});
+
+describe('the composerPath of updateServiceSchema', () => {
+    it('accepts a relative path', () => {
+        expect(updateServiceSchema.safeParse(updateBody({ composerPath: 'stacks/compose.yml' })).success).toBe(true);
+    });
+
+    it('accepts a body that carries no path at all', () => {
+        expect(updateServiceSchema.safeParse(updateBody()).success).toBe(true);
+    });
+
+    it.each(['', '/etc/passwd', '../compose.yml', '~/compose.yml'])('rejects the path %p', (composerPath) => {
+        expect(updateServiceSchema.safeParse(updateBody({ composerPath })).success).toBe(false);
+    });
+
+    it('rejects a path longer than its greatest count of characters', () => {
+        const composerPath = `${'a'.repeat(COMPOSER_PATH_MAX_LENGTH)}.yml`;
+
+        expect(updateServiceSchema.safeParse(updateBody({ composerPath })).success).toBe(false);
+    });
+});
+
+describe('storedComposerPath', () => {
+    it('accepts the empty path of a service that carries no compose file yet', () => {
+        expect(storedComposerPath.safeParse('').success).toBe(true);
+    });
+
+    it('accepts a relative path', () => {
+        expect(storedComposerPath.safeParse('compose.yml').success).toBe(true);
+    });
+
+    it.each(['/etc/passwd', '../compose.yml', '~/compose.yml'])('rejects the path %p', (path) => {
+        expect(storedComposerPath.safeParse(path).success).toBe(false);
     });
 });

@@ -6,6 +6,7 @@ import { RepositoryComposeFile } from '../../domain/ports/repository-compose-fil
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { getFinalComposeUseCase } from '../get-final-compose.use-case';
 
+import { UnsafeComposeRecipeError } from '@core/domain/errors/compose.errors';
 import type { Deployment } from '@features/deployments/domain/models/deployment.models';
 import { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
@@ -182,6 +183,27 @@ describe('getFinalComposeUseCase', () => {
             expect(mockProvidersRepository.getCredentials).not.toHaveBeenCalled();
             expect(mockProviderClient.getRepositoryArchive).not.toHaveBeenCalled();
             expect(mockRepositoryComposeFile.read).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('when the stored path of the compose file escapes the repository', () => {
+        beforeEach(() => {
+            mockDeploymentsRepository.getAllByService.mockResolvedValue([]);
+        });
+
+        it('throws, and never reads the archive', async () => {
+            mockServicesRepository.findById.mockResolvedValue({ ...service, composerPath: '../../etc/compose.yml' });
+
+            await expect(run()).rejects.toBeInstanceOf(UnsafeComposeRecipeError);
+            expect(mockRepositoryComposeFile.read).not.toHaveBeenCalled();
+        });
+
+        it('reads the archive when the path is empty, because the service carries no compose file yet', async () => {
+            mockServicesRepository.findById.mockResolvedValue({ ...service, composerPath: '' });
+            mockRepositoryComposeFile.read.mockResolvedValue(null);
+
+            await expect(run()).resolves.toEqual({ text: null, origin: 'none' });
+            expect(mockRepositoryComposeFile.read).toHaveBeenCalledWith(archive, '');
         });
     });
 

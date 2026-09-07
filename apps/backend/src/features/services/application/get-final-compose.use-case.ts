@@ -7,6 +7,7 @@ import { DeploymentsRepository } from '@features/deployments/domain/repositories
 import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
+import { assertComposerPath } from '@shared/application/assert-composer-path.use-case';
 
 /**
  * The answer of a service that carries no Compose text at all.
@@ -27,6 +28,7 @@ const EMPTY_COMPOSE: FinalCompose = { text: null, origin: 'none' };
  *
  * @throws ServiceNotFoundError When the service does not exist
  * @throws ProviderNotFoundError When the provider of the service no longer exists
+ * @throws UnsafeComposeRecipeError When the stored path of the compose file escapes the repository
  */
 export async function getFinalComposeUseCase(
     servicesRepository: ServicesRepository,
@@ -62,6 +64,12 @@ export async function getFinalComposeUseCase(
         Number(service.repositoryId),
         service.deploymentBranch,
     );
+
+    // The stored path reaches the archive here, so it is checked again. An empty path is the service
+    // that carries no compose file yet, and the reader answers no text for it.
+    if (service.composerPath !== '') {
+        assertComposerPath(service.composerPath);
+    }
 
     const text = await repositoryComposeFile.read(archive, service.composerPath);
 
