@@ -41,6 +41,16 @@ export const routes: Routes = [
                 title: 'Server | GitPaaS',
             },
             {
+                path: 'docker',
+                redirectTo: 'docker/containers',
+                pathMatch: 'full',
+            },
+            {
+                path: 'docker/:tab',
+                loadComponent: () => import('@pages/docker/docker.component').then((m) => m.DockerPage),
+                title: 'Docker | GitPaaS',
+            },
+            {
                 path: 'providers',
                 children: [
                     {

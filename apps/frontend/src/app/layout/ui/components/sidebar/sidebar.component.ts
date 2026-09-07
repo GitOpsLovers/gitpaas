@@ -13,6 +13,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import {
     LucideBox,
     LucideChevronDown,
+    LucideContainer,
     LucideEllipsis,
     LucideGitBranch,
     LucideLayoutGrid,
@@ -23,7 +24,7 @@ import { combineLatest, Subscription } from 'rxjs';
 import { SidebarService } from '../../services/sidebar.service';
 import { SidebarVersionComponent } from '../sidebar-version/sidebar-version.component';
 
-type NavIcon = 'grid' | 'box' | 'git-branch' | 'server';
+type NavIcon = 'grid' | 'box' | 'git-branch' | 'server' | 'container';
 
 interface NavItem {
     name: string;
@@ -44,6 +45,7 @@ interface NavItem {
         LucideBox,
         LucideGitBranch,
         LucideServer,
+        LucideContainer,
         LucideEllipsis,
         LucideChevronDown,
     ],
@@ -80,6 +82,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
             icon: 'server',
             name: 'Server',
             path: '/server',
+        },
+        {
+            icon: 'container',
+            name: 'Docker',
+            path: '/docker',
         },
     ];
 

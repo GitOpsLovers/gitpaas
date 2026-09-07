@@ -1,0 +1,59 @@
+<app-component-card title="Images" desc="Every image the Docker host holds on its disk.">
+    <app-button card-action variant="outline" size="sm" [disabled]="loading()" (btnClick)="refresh.emit()">
+        <svg lucideRotateCw class="h-4 w-4"></svg>
+        Refresh
+    </app-button>
+
+    @if (error()) {
+        <p
+            class="flex min-h-40 items-center rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
+        >
+            {{ error() }}
+        </p>
+    } @else if (loading() || images().length > 0) {
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead>
+                    <tr
+                        class="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800"
+                    >
+                        <th scope="col" class="px-4 py-3 font-medium">Tags</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Id</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Size</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Created</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @if (loading()) {
+                        @for (row of skeletonRows; track row) {
+                            <tr>
+                                <td class="px-4" colspan="4">
+                                    <app-skeleton variant="row" />
+                                </td>
+                            </tr>
+                        }
+                    } @else {
+                        @for (image of images(); track image.id) {
+                            <tr class="text-gray-600 dark:text-gray-300">
+                                <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                                    <span class="block max-w-[24rem] truncate" [title]="formatTags(image.tags)">
+                                        {{ formatTags(image.tags) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap font-mono">{{ shortId(image.id) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">{{ formatSize(image.size) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    {{ image.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    } @else {
+        <p class="flex min-h-55 items-center justify-center py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            The Docker host holds no image.
+        </p>
+    }
+</app-component-card>

@@ -1,0 +1,23 @@
+<app-breadcrumb [items]="breadcrumb" [icon]="icon" />
+
+<app-tabs [tabs]="tabs" [activeId]="activeTab()" (activeIdChange)="changeTab($any($event))" />
+
+<div class="mt-6">
+    @switch (activeTab()) {
+        @case ('containers') {
+            <app-docker-containers />
+        }
+
+        @case ('images') {
+            <app-docker-images />
+        }
+
+        @case ('volumes') {
+            <app-docker-volumes />
+        }
+
+        @case ('networks') {
+            <app-docker-networks />
+        }
+    }
+</div>
