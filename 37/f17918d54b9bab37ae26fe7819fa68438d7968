@@ -1,0 +1,19 @@
+docs/roadmap/security-hardening/TODO.md
+  s_1b75583faa0888::t_405559c810dd1a 3,8-9,12-17,24,26-30,37-42,50-53,63-65,70,72,74,77,80-91,96-99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "37f17918d54b9bab37ae26fe7819fa68438d7968",
+  "prompts": {},
+  "sessions": {
+    "s_1b75583faa0888": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e7bd67d-d3c5-40e0-8300-810027052e59",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
