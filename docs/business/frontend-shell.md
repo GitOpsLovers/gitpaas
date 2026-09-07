@@ -43,7 +43,7 @@ The sign-in screen stays outside the shell. It fills the window, and it shows no
 
 ## The sidebar of the navigation
 
-The system SHALL give the navigation in the sidebar.
+The system SHALL give the navigation in the sidebar, with one entry for each top-level section: Dashboard, Namespaces, Providers, Server and Docker.
 
 On a wide window, the control of the header makes the sidebar wide or narrow. On a narrow window, the same control opens the sidebar above the screen, and a dark ground behind it closes the sidebar.
 
