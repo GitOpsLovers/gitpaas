@@ -8,11 +8,16 @@ export { createNamespaceSchema, namespaceSchema, updateNamespaceSchema } from '.
 export type { CreateNamespaceDto, Namespace, UpdateNamespaceDto } from './namespaces/namespace.contract';
 
 export {
+    COMPOSER_PATH_MAX_LENGTH,
+    COMPOSER_PATH_MESSAGE,
+    composerPath,
     createServiceSchema,
+    isSafeComposerPath,
     SERVICE_NAME_MAX_LENGTH,
     SERVICE_NAME_MESSAGE,
     SERVICE_NAME_PATTERN,
     serviceSchema,
+    storedComposerPath,
     updateServiceSchema,
 } from './services/service.contract';
 export type { CreateServiceDto, Service, UpdateServiceDto } from './services/service.contract';

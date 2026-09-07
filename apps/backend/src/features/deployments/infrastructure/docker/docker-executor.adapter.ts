@@ -12,6 +12,7 @@ import { getBuiltImageTagUseCase } from '../../application/get-built-image-tag.u
 import { getDefaultNetworkKeyUseCase, getDefaultNetworkNameUseCase } from '../../application/get-default-network-name.use-case';
 import { DeploymentTarget, DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
+import { assertSafeRecipe } from './compose-guard';
 import { interpolateRecipe } from './compose-interpolation';
 import {
     composeRecipe,
@@ -41,6 +42,7 @@ import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adap
 import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-deps';
 import type { RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
 import { PROXY_NETWORK } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.constants';
+import { assertComposerPath } from '@shared/application/assert-composer-path.use-case';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
@@ -106,10 +108,16 @@ export class DockerExecutorAdapter implements DockerExecutor {
             emit('▶ Extracting repository…');
             await this.extractArchive(archive, directory);
 
+            // The stored path reaches the folder of the extraction here, so it is checked again.
+            assertComposerPath(composePath);
+
             const composeFile = join(directory, composePath);
             const compose = this.docker.createComposeProject(composeFile, projectName);
+            const interpolated = interpolateRecipe(composeRecipe(compose), environment);
 
-            setComposeRecipe(compose, interpolateRecipe(composeRecipe(compose), environment));
+            // The interpolation rewrites the keys as well as the values, so the gate runs on its result.
+            assertSafeRecipe(interpolated);
+            setComposeRecipe(compose, interpolated);
 
             // Build local `build:` services first (streaming their output), which
             // rewrites them into plain image services in the recipe.
@@ -185,6 +193,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
         try {
             await this.extractArchive(archive, directory);
+
+            // The stored path reaches the folder of the extraction here, so it is checked again.
+            assertComposerPath(composePath);
 
             // The compose project parses the recipe as it is built, and nothing drives the stack.
             const compose = this.docker.createComposeProject(join(directory, composePath), RECIPE_PROJECT_NAME);

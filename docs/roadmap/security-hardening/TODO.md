@@ -8,13 +8,13 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Paths:** `apps/backend/src/features/deployments/infrastructure/docker/`, `apps/backend/src/features/services/application/`, `packages/contracts/src/services/`
 **The gate runs after `interpolateRecipe`, because the interpolation rewrites the keys as well as the values.**
 
-- [ ] 1.1 Declare the list of the allowed keys of a service, and refuse an unknown key.
-- [ ] 1.2 Refuse `privileged`, `cap_add`, `devices`, `security_opt`, `userns_mode`, and `network_mode`, `pid` and `ipc` when the value names the host.
-- [ ] 1.3 Refuse a volume that binds a path of the host, and refuse the socket of Docker.
-- [ ] 1.4 Constrain `composerPath` of the contract to a relative path without `..`.
-- [ ] 1.5 Check `composerPath` again at the three sites that join it, in the adapter of the executor and in the use case of the final compose.
-- [ ] 1.6 Raise one error of the domain that names the key that failed.
-- [ ] 1.7 Write the unit tests of the gate, with a case of a key of the interpolation.
+- [x] 1.1 Declare the list of the allowed keys of a service, and refuse an unknown key.
+- [x] 1.2 Refuse `privileged`, `cap_add`, `devices`, `security_opt`, `userns_mode`, and `network_mode`, `pid` and `ipc` when the value names the host.
+- [x] 1.3 Refuse a volume that binds a path of the host, and refuse the socket of Docker.
+- [x] 1.4 Constrain `composerPath` of the contract to a relative path without `..`.
+- [x] 1.5 Check `composerPath` again at the three sites that join it, in the adapter of the executor and in the use case of the final compose.
+- [x] 1.6 Raise one error of the domain that names the key that failed.
+- [x] 1.7 Write the unit tests of the gate, with a case of a key of the interpolation.
 
 ## Phase 2 — The removal of the roles
 
