@@ -9,12 +9,12 @@ Two dependencies need an installation by the user, and no agent installs them: `
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/deployments/`, `apps/backend/src/core/infrastructure/docker/`
 
-- [ ] 1.1 Add the column `finalCompose` of type text, nullable, to `db-deployment.entity.ts`, and write its migration.
-- [ ] 1.2 In `DockerExecutorAdapter.up()`, after `injectEnvironment`, add to the recipe the proxy network and the project networks that `attachToProxy` and `attachToProjectNetworks` attach after the start.
-- [ ] 1.3 Rewrite every bind mount of the dumped copy back to its relative source, because `resolveBindMounts` makes it an absolute path of a temporary folder.
-- [ ] 1.4 Replace the value of every variable of the section `environment` with `****` in the dumped copy. The recipe that the daemon receives keeps its true values.
-- [ ] 1.5 Dump that copy to YAML with the package `yaml`, and save the text on the row of the deployment.
-- [ ] 1.6 Write the unit tests of the mask, of the rewrite of the bind mounts and of the entries of the networks.
+- [x] 1.1 Add the column `finalCompose` of type text, nullable, to `db-deployment.entity.ts`, and write its migration.
+- [x] 1.2 In `DockerExecutorAdapter.up()`, after `injectEnvironment`, add to the recipe the proxy network and the project networks that `attachToProxy` and `attachToProjectNetworks` attach after the start.
+- [x] 1.3 Rewrite every bind mount of the dumped copy back to its relative source, because `resolveBindMounts` makes it an absolute path of a temporary folder.
+- [x] 1.4 Replace the value of every variable of the section `environment` with `****` in the dumped copy. The recipe that the daemon receives keeps its true values.
+- [x] 1.5 Dump that copy to YAML with the package `yaml`, and save the text on the row of the deployment.
+- [x] 1.6 Write the unit tests of the mask, of the rewrite of the bind mounts and of the entries of the networks.
 
 ## Phase 2 — The endpoint that reads the final Compose file
 

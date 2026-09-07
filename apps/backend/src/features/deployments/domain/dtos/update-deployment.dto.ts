@@ -6,4 +6,5 @@ import type { DeploymentStatus } from '../models/deployment.models';
 export interface UpdateDeploymentDto {
     status: DeploymentStatus;
     error?: string | null;
+    finalCompose?: string;
 }

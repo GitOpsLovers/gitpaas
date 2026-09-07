@@ -118,13 +118,13 @@ export async function runDeploymentUseCase(
             networkAlias: getServiceSlug(service),
         };
 
-        await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, emit);
+        const finalCompose = await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, emit);
 
         // The record of a volume Compose created never fails a deployment the daemon already brought up.
         await adoptComposeVolumesUseCase(volumesRepository, daemonVolumesRepository, service)
             .catch(() => { emit('▹ The volumes of the Compose file could not be recorded.'); });
 
-        await deploymentsRepository.update(payload.deploymentId, { status: 'success' });
+        await deploymentsRepository.update(payload.deploymentId, { status: 'success', finalCompose });
         await logStore.complete(payload.deploymentId, 'success');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

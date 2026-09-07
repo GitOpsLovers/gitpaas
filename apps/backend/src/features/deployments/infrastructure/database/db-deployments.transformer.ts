@@ -20,6 +20,7 @@ export function toDeployment(entity: DbDeploymentEntity): Deployment {
         composerPath: entity.composerPath,
         triggeredBy: entity.triggeredBy,
         error: entity.error,
+        finalCompose: entity.finalCompose,
         createdAt: entity.createdAt,
         finishedAt: entity.finishedAt,
     };

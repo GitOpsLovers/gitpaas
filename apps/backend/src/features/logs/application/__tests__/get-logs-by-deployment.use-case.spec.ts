@@ -28,6 +28,7 @@ describe('getLogsByDeploymentUseCase', () => {
         composerPath: 'docker-compose.yml',
         triggeredBy: 'operator@gitpaas.dev',
         error: null,
+        finalCompose: null,
         createdAt,
         finishedAt,
     });

@@ -23,6 +23,7 @@ const deployment: Deployment = {
     composerPath: 'docker-compose.yml',
     triggeredBy: 'marc',
     error: null,
+    finalCompose: null,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     finishedAt: new Date('2026-07-11T00:01:00.000Z'),
 };

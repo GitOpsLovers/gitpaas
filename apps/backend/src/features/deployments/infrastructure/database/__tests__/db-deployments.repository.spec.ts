@@ -18,6 +18,7 @@ const deploymentEntity = (overrides: Partial<DbDeploymentEntity> = {}): DbDeploy
     composerPath: 'docker-compose.yml',
     triggeredBy: 'system',
     error: null,
+    finalCompose: null,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     finishedAt: null,
     ...overrides,
@@ -174,6 +175,26 @@ describe('DatabaseDeploymentsRepository', () => {
             expect(existing.status).toBe('failed');
             expect(existing.error).toBe('deploy crashed');
             expect(existing.finishedAt).toBeInstanceOf(Date);
+        });
+
+        it('writes the final Compose text the update carries', async () => {
+            const existing = deploymentEntity();
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
+
+            await sut.update(existing.id, { status: 'success', finalCompose: 'services:\n  web:\n    image: nginx\n' });
+
+            expect(existing.finalCompose).toBe('services:\n  web:\n    image: nginx\n');
+        });
+
+        it('keeps the stored final Compose text when the update carries none', async () => {
+            const existing = deploymentEntity({ finalCompose: 'services:\n  web:\n    image: nginx\n' });
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
+
+            await sut.update(existing.id, { status: 'failed', error: 'deploy crashed' });
+
+            expect(existing.finalCompose).toBe('services:\n  web:\n    image: nginx\n');
         });
     });
 
