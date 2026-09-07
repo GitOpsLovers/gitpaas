@@ -818,6 +818,146 @@ describe('DockerExecutorAdapter', () => {
             expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
         });
 
+        it('joins the container of a service to each external network of the recipe, under the name of that service', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: {
+                    services: { web: { image: 'nginx', networks: ['shared', 'edge'] } },
+                    networks: { shared: { external: true, name: 'gitpaas-shared' }, edge: { external: true } },
+                },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+
+            expect(connectNetwork).toHaveBeenCalledTimes(2);
+            expect(connectNetwork).toHaveBeenNthCalledWith(1, 'gitpaas-shared', 'container-1', ['web']);
+            expect(connectNetwork).toHaveBeenNthCalledWith(2, 'edge', 'container-1', ['web']);
+            expect(onLog).toHaveBeenCalledWith('▶ Attached web to the network gitpaas-shared as web.');
+        });
+
+        it('hands the recipe to the daemon with no external network of it, so dockerode-compose never reads one', async () => {
+            const container = startedContainer('web');
+            let networksAtUp: unknown;
+            let serviceNetworksAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                const recipe = liveRecipe<{ services: { web: { networks?: unknown } }; networks?: unknown }>();
+
+                networksAtUp = JSON.parse(JSON.stringify(recipe.networks ?? null)) as unknown;
+                serviceNetworksAtUp = JSON.parse(JSON.stringify(recipe.services.web.networks ?? null)) as unknown;
+
+                return Promise.resolve({ services: [container] });
+            });
+            mockCompose.instance = {
+                recipe: {
+                    services: { web: { image: 'nginx', networks: ['shared'] } },
+                    networks: { shared: { external: true, name: 'gitpaas-shared' } },
+                },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: composeUp,
+            };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject,
+                pullImage: jest.fn().mockResolvedValue({}),
+                followProgress,
+                connectNetwork: jest.fn().mockResolvedValue(undefined),
+            });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+
+            expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['network_default']);
+            expect(serviceNetworksAtUp).toEqual(['network_default']);
+        });
+
+        it('declares the external networks of the recipe again on the final Compose text', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: {
+                    services: { web: { image: 'nginx', networks: ['shared'] } },
+                    networks: { shared: { external: true, name: 'gitpaas-shared' } },
+                },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject,
+                pullImage: jest.fn().mockResolvedValue({}),
+                followProgress,
+                connectNetwork: jest.fn().mockResolvedValue(undefined),
+            });
+
+            const text = await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            const dumped = parse(text) as { services: { web: Record<string, unknown> }; networks: Record<string, unknown> };
+
+            expect(dumped.networks['gitpaas-shared']).toEqual({ external: true });
+            expect(dumped.services.web.networks).toEqual({
+                network_default: null,
+                'gitpaas-shared': { aliases: ['web'] },
+            });
+        });
+
+        it('fails the deployment and names the network the daemon does not hold', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: {
+                    services: { web: { image: 'nginx', networks: ['shared'] } },
+                    networks: { shared: { external: true, name: 'gitpaas-shared' } },
+                },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockRejectedValue(new Error('network gitpaas-shared not found'));
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await expect(
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
+            ).rejects.toThrow('The service "web" joins the external network "gitpaas-shared", which the Docker daemon does not hold');
+
+            expect(onLog).toHaveBeenCalledWith(
+                '✖ Could not attach web to the external network gitpaas-shared: network gitpaas-shared not found',
+            );
+            expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
+        });
+
+        it('never joins a container to the external network another service of the recipe declared', async () => {
+            const container = startedContainer('cache');
+            mockCompose.instance = {
+                recipe: {
+                    services: { web: { image: 'nginx', networks: ['shared'] }, cache: { image: 'redis:7' } },
+                    networks: { shared: { external: true } },
+                },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+
+            expect(connectNetwork).not.toHaveBeenCalled();
+        });
+
         it('never touches a network of the project when the service joined none', async () => {
             const container = startedContainer('web');
             mockCompose.instance = {

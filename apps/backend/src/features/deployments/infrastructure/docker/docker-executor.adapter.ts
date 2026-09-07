@@ -24,6 +24,7 @@ import {
     setComposeRecipe,
     stampLabels,
     stampRouting,
+    stripExternalNetworks,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
 import { toFinalComposeText } from './final-compose.transformer';
@@ -118,6 +119,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             await this.pullWithProgress(compose, emit, builtImages);
 
+            // `dockerode-compose` crashes on the second `external` network of a service, so those
+            // networks leave the recipe here and the containers join them once the stack is up.
+            const recipeNetworks = stripExternalNetworks(compose);
+
             declareDefaultNetwork(compose);
 
             emit('▶ Removing previous containers…');
@@ -140,7 +145,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             // The recipe the daemon receives keeps the true value of every variable, and the dumped
             // copy alone carries the masked one, which the user of the service reads afterwards.
-            const finalCompose = toFinalComposeText(compose, dirname(composeFile), routed, networks, networkAlias);
+            const finalCompose = toFinalComposeText(compose, dirname(composeFile), routed, networks, networkAlias, recipeNetworks);
 
             emit('▶ Creating and starting containers…');
 
@@ -154,6 +159,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
             // The networks of the project are external to the recipe too, so the containers of the
             // stack join them once it is up, under the slug of the service.
             await this.attachToProjectNetworks(containers, networks, networkAlias, emit);
+
+            // The external networks the recipe declared left it before the start, so every container
+            // of a service that named one joins it now, under the name of that service.
+            await this.attachToRecipeNetworks(containers, recipeNetworks, emit);
 
             for (const container of containers) {
                 await this.captureStartupLogs(container, emit);
@@ -349,6 +358,57 @@ export class DockerExecutorAdapter implements DockerExecutor {
                         `Could not attach container ${container.id} to the network ${network}: ${message}`,
                         DockerExecutorAdapter.name,
                     );
+                }
+            }
+        }
+    }
+
+    /**
+     * Attaches every container of a started stack to the external networks the recipe of the repository declared.
+     *
+     * @param containers Started containers of the stack
+     * @param networks Names on the daemon of those networks, grouped by the compose service that declared them
+     * @param emit Line emitter
+     *
+     * @throws Error When the daemon refuses the attachment, so the deployment fails instead of running a stack that reaches nothing
+     */
+    private async attachToRecipeNetworks(
+        containers: StartedContainer[],
+        networks: Record<string, string[]>,
+        emit: DockerLogListener,
+    ): Promise<void> {
+        if (Object.keys(networks).length === 0) {
+            return;
+        }
+
+        for (const container of containers) {
+            const info = await this.run(() => container.inspect());
+            // eslint-disable-next-line security/detect-object-injection
+            const name = info.Config.Labels?.[COMPOSE_SERVICE_LABEL];
+            // eslint-disable-next-line security/detect-object-injection
+            const attached = name === undefined ? undefined : networks[name];
+
+            if (name === undefined || attached === undefined) {
+                continue;
+            }
+
+            for (const network of attached) {
+                try {
+                    await this.docker.connectNetwork(network, container.id, [name]);
+
+                    emit(`▶ Attached ${name} to the network ${network} as ${name}.`);
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+
+                    emit(`✖ Could not attach ${name} to the external network ${network}: ${message}`);
+                    this.logger.warn(
+                        `Could not attach container ${container.id} to the network ${network}: ${message}`,
+                        DockerExecutorAdapter.name,
+                    );
+
+                    const missing = `The service "${name}" joins the external network "${network}", which the Docker daemon does not hold`;
+
+                    throw new Error(`${missing}: ${message}`);
                 }
             }
         }
