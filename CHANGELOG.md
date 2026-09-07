@@ -1,3 +1,11 @@
+## [2.21.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.20.0...v2.21.0) (2026-09-07)
+
+### Features
+
+* **docker-executor:** reuse surviving recipe networks ([#257](https://github.com/GitOpsLovers/gitpaas/issues/257)) ([efa88f3](https://github.com/GitOpsLovers/gitpaas/commit/efa88f3d33500a4b032cd9400e08d403632d8e71))
+* **recipe:** add stripExternalNetworks ([#255](https://github.com/GitOpsLovers/gitpaas/issues/255)) ([d14bd35](https://github.com/GitOpsLovers/gitpaas/commit/d14bd352762b652fdeac525c611f7e402ef0b14a))
+* **recipe:** attach external networks after stack start ([#256](https://github.com/GitOpsLovers/gitpaas/issues/256)) ([9ffefdf](https://github.com/GitOpsLovers/gitpaas/commit/9ffefdf04d1ff417f3f651880a1a02ede223d5d3))
+
 ## [2.20.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.19.2...v2.20.0) (2026-09-07)
 
 ### Features
