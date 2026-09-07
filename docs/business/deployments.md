@@ -15,6 +15,22 @@ The status is `pending`, `running`, `success` or `failed`.
 - **WHEN** a client reads a deployment
 - **THEN** the system gives all these fields, and the fields of the commit, of the error and of the end date hold `null` while no value applies
 
+## The final Compose text of a deployment
+
+The system SHALL save, when a deployment succeeds, the Compose text the deployment sent to the Docker daemon, with the value of every variable of it masked, so no secret leaves the server. A deployment that fails, or that never ran, saves no such text.
+
+This text is not a field of the answer of a deployment. A client reads it through the service that owns the deployment. See the requirement *Read of the final Compose file of a service* of the capability [services](./services.md).
+
+### Scenario: The deployment succeeds
+
+- **WHEN** a run reaches the status `success`
+- **THEN** the system saves the Compose text of that deployment, with the value of every variable masked
+
+### Scenario: The deployment fails
+
+- **WHEN** a run reaches the status `failed`
+- **THEN** the system saves no Compose text for that deployment
+
 ## The lifecycle of a deployment
 
 The system SHALL move a deployment through the states `pending`, `running` and then `success` or `failed`.

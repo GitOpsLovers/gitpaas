@@ -45,6 +45,8 @@ The system SHALL NOT put the value of a secret into the body of any answer. The 
 - **WHEN** a client reads a variable marked `secret`
 - **THEN** the answer carries `null` for the value, and `valueSet` states whether the service holds one
 
+The final Compose file of a service, when its origin is `deployment`, masks the value of every variable in the same way, plain or secret, so the file that a client reads never carries the value that a container receives. See the requirement *The final Compose text of a deployment* of the capability [deployments](./deployments.md). When the origin of the file is `repository`, the file arrives from the provider with no such mask, because no deployment has yet sent that text to a container.
+
 ## A change with an empty value keeps a stored secret
 
 The system SHALL keep the stored value of a secret when the body of the change gives no value, or gives an empty value. A plain variable takes the given value, empty or not, because its value never hides from the client.

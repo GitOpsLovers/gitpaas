@@ -41,6 +41,11 @@ export class ServiceFinalComposeComponent {
     protected readonly fromRepository = computed(() => this.compose()?.origin === 'repository');
 
     /**
+     * Whether the text comes from a deployment, and so carries the mask of the variables.
+     */
+    protected readonly fromDeployment = computed(() => this.compose()?.origin === 'deployment');
+
+    /**
      * Message of the empty state.
      */
     protected readonly emptyMessage = NO_FINAL_COMPOSE_MESSAGE;
