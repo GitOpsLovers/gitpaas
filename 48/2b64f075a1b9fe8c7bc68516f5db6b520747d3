@@ -1,0 +1,150 @@
+apps/backend/src/features/authentication/infrastructure/passport/__tests__/local.strategy.spec.ts
+  s_0e4b0b3fe76a62::t_de28b08f325afb 7
+apps/backend/src/features/profile/application/__tests__/enable-totp.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_2e3c340174d55d 7
+apps/frontend/src/app/features/server/application/describe-request-failure.use-case.ts
+  s_0e4b0b3fe76a62::t_9aae9139e47a23 6,11
+apps/frontend/src/app/features/providers/application/describe-provider-failure.use-case.ts
+  s_0e4b0b3fe76a62::t_126198ebafbbb8 1-3,6-8,11-14
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.ts
+  s_0e4b0b3fe76a62::t_22b5676b3b7171 5,27,52
+apps/backend/src/features/authentication/ui/controllers/__tests__/authentication.controller.spec.ts
+  s_0e4b0b3fe76a62::t_22ea13f7590c1f 16,176,202
+apps/backend/src/__tests__/bootstrap.spec.ts
+  s_0e4b0b3fe76a62::t_dc6b5184c66209 51,205,209,226
+apps/frontend/src/app/features/profile/ui/components/profile-account-card/profile-account-card.component.ts
+  s_0e4b0b3fe76a62::t_2b3c098ba4cde8 20
+apps/backend/src/features/authentication/ui/telemetry/__tests__/enrich-with-actor.spec.ts
+  s_0e4b0b3fe76a62::t_040833e2426fc7 7,35-36
+apps/backend/src/features/authentication/ui/guards/__tests__/jwt-auth.guard.spec.ts
+  s_0e4b0b3fe76a62::t_8888146825ea96 9
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.html
+  s_0e4b0b3fe76a62::t_3ff2fbbfa4129b 36-69,71-77,79
+  s_0e4b0b3fe76a62::t_2f5414a148fe5c 117
+apps/frontend/src/app/features/providers/ui/containers/provider-add/provider-add.component.spec.ts
+  s_0e4b0b3fe76a62::t_4abc17aa92262c 112,120
+apps/backend/src/features/authentication/ui/services/__tests__/authentication.service.spec.ts
+  s_0e4b0b3fe76a62::t_3c5e5c2f049c0c 24
+apps/backend/src/features/profile/application/__tests__/change-password.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_71227d19494733 8
+apps/backend/src/features/authentication/application/__tests__/verify-two-factor.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_f84f62e6b93000 14
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.spec.ts
+  s_0e4b0b3fe76a62::t_a92849d088e4cc 247-248,277-278
+apps/backend/src/features/authentication/application/issue-tokens.use-case.ts
+  s_0e4b0b3fe76a62::t_a70ba9df70e07c 23
+iac/production/migrations/029_drop_user_role.sql
+  s_0e4b0b3fe76a62::t_5243f3e84b0619 1-13
+apps/backend/src/features/users/ui/controllers/__tests__/users.controller.spec.ts
+  s_0e4b0b3fe76a62::t_d8407929bc333c 5
+packages/contracts/src/profile/__tests__/profile.contract.spec.ts
+  s_0e4b0b3fe76a62::t_44204c9fd0a8b6 31-32,60
+apps/backend/src/features/profile/ui/services/__tests__/profile.service.spec.ts
+  s_0e4b0b3fe76a62::t_b7cc6fc9d9714e 21
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_0e4b0b3fe76a62::t_6089fee764be64 131-132,158-159
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.ts
+  s_0e4b0b3fe76a62::t_7f641e4386302b 95,97,189
+packages/contracts/src/index.ts
+  s_0e4b0b3fe76a62::t_72c3b85c336fd5 60-61
+apps/frontend/src/app/features/providers/ui/containers/provider-registration-start/provider-registration-start.component.spec.ts
+  s_0e4b0b3fe76a62::t_299400f37979b1 147,155
+apps/backend/src/features/users/application/__tests__/seed-first-user.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_01a83ee5756dbe 1,3,8,31,36,58,66,78,94,112-113,122-123
+apps/backend/src/features/users/ui/services/users.service.ts
+  s_0e4b0b3fe76a62::t_bbde545c12b215 4,15,17-18,35,37,39,41,44,46,50
+apps/backend/src/features/authentication/application/__tests__/validate-user.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_f3d3e30c622a56 4
+apps/backend/src/features/profile/application/__tests__/start-totp-setup.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_7f5324dc2f9693 8
+apps/backend/src/features/profile/ui/controllers/__tests__/profile.controller.spec.ts
+  s_0e4b0b3fe76a62::t_6c4245a7e60ee7 18
+apps/backend/src/features/authentication/ui/decorators/__tests__/current-user.decorator.spec.ts
+  s_0e4b0b3fe76a62::t_48459593c4ee57 5
+apps/backend/src/features/profile/application/__tests__/change-email.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_c7aeb0d7c342d4 8
+apps/backend/src/features/users/domain/dtos/seed-first-user.dto.ts
+  s_0e4b0b3fe76a62::t_093362daeeafae 2,4
+apps/backend/src/features/authentication/application/__tests__/validate-jwt-user.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_b0c07e5d1e175c 4
+apps/frontend/src/app/features/providers/ui/containers/provider-edit/provider-edit.component.spec.ts
+  s_0e4b0b3fe76a62::t_9c792326a404ef 194,202
+apps/backend/src/features/users/application/seed-first-user.use-case.ts
+  s_0e4b0b3fe76a62::t_08404a75369db4 1,7,13,17,20,25,28,31
+apps/backend/src/features/users/ui/controllers/users.controller.ts
+  s_0e4b0b3fe76a62::t_b3f13c3d1952f0 1
+apps/backend/src/features/users/ui/transformers/__tests__/user-response.transformer.spec.ts
+  s_0e4b0b3fe76a62::t_beefb7a04517e3 1,69-70,72
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.spec.ts
+  s_0e4b0b3fe76a62::t_2b4057337e3aab 120,696,702,704
+apps/backend/src/features/authentication/application/__tests__/issue-tokens.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_089e2f57a9d42e 6,49
+apps/backend/src/features/authentication/application/__tests__/refresh.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_3b9518302cb5eb 10
+apps/frontend/src/app/layout/ui/components/sidebar-version/sidebar-version.component.spec.ts
+  s_894492eec398f6::t_9f54d3fd24ba8f 4,50,57-58,60,63-65,67-69,71-73,75-78,80-82,84-85,87-89,91-93,95-97,99-100,102-104,106-107,109
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.spec.ts
+  s_0e4b0b3fe76a62::t_e967e393a5750f 4,229,247,250,519,522
+apps/backend/src/features/authentication/infrastructure/passport/__tests__/jwt.strategy.spec.ts
+  s_0e4b0b3fe76a62::t_cc6dd3ce2996fe 13
+apps/backend/src/features/profile/application/__tests__/update-display-name.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_6a5255adb2b9a1 4
+apps/backend/src/features/authentication/ui/telemetry/enrich-with-actor.ts
+  s_0e4b0b3fe76a62::t_11d1ac0a4b728d 11-12
+docs/roadmap/security-hardening/TODO.md
+  s_0e4b0b3fe76a62::t_b11c1fd34c56f3 24-30
+apps/backend/src/features/users/infrastructure/database/__tests__/db-users.repository.spec.ts
+  s_0e4b0b3fe76a62::t_0991c6c8c868e5 4,93
+apps/frontend/src/app/features/profile/ui/components/profile-account-card/profile-account-card.component.spec.ts
+  s_0e4b0b3fe76a62::t_a0ee1d2f068662 31
+apps/frontend/src/app/features/server/ui/containers/server-settings/server-settings.component.ts
+  s_0e4b0b3fe76a62::t_66146af817031b 170,295,300
+apps/frontend/src/app/features/providers/ui/containers/providers-list/providers-list.component.spec.ts
+  s_0e4b0b3fe76a62::t_94b7d883a4a7c9 248,257
+apps/backend/src/features/server/ui/controllers/__tests__/server.controller.spec.ts
+  s_0e4b0b3fe76a62::t_df71f8cc6840d7 20
+apps/backend/src/bootstrap.ts
+  s_0e4b0b3fe76a62::t_5f771ca7469cb7 40,42
+apps/backend/src/features/profile/application/__tests__/get-profile.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_bb1c3c6cc6b884 4
+apps/backend/src/features/users/application/__tests__/disable-user-totp.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_75a7ae7cc3125e 2
+apps/backend/src/features/profile/application/__tests__/disable-totp.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_84477052336aad 4
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.html
+  s_0e4b0b3fe76a62::t_b2733a9530a570 12-27,29-33,35,37,39,41-58,60-75,77-86,88,90-96,98-145
+apps/backend/src/features/users/ui/services/__tests__/users.service.spec.ts
+  s_0e4b0b3fe76a62::t_ca1630e2c4e85f 4,6,14,17,34-35,68,70,72,74-77,82,84,90-92,94,97,100-101,103,107,113,117,119,123,131,133,136
+apps/backend/src/features/users/infrastructure/database/__tests__/db-users.transformer.spec.ts
+  s_0e4b0b3fe76a62::t_4fa31b6dbd3cf8 31
+apps/backend/src/features/authentication/application/__tests__/login.use-case.spec.ts
+  s_0e4b0b3fe76a62::t_706050637778c1 6
+apps/backend/src/features/authentication/ui/guards/__tests__/local-auth.guard.spec.ts
+  s_0e4b0b3fe76a62::t_3fd41a7cb205e6 6
+apps/backend/src/features/authentication/infrastructure/security/__tests__/jwt-token-service.adapter.spec.ts
+  s_0e4b0b3fe76a62::t_ca722fc8ce702e 177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "482b64f075a1b9fe8c7bc68516f5db6b520747d3",
+  "prompts": {},
+  "sessions": {
+    "s_0e4b0b3fe76a62": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc048f2e-c4bc-4256-b3cb-a6a4ab04d71c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_894492eec398f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac8c2f0a0cf29fc81",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
