@@ -6,6 +6,7 @@ import { Writable } from 'node:stream';
 
 import { ConfigService } from '@nestjs/config';
 import * as tar from 'tar';
+import { parse } from 'yaml';
 
 import type { DeploymentTarget } from '../../../domain/ports/docker-executor.port';
 import { DockerExecutorAdapter } from '../docker-executor.adapter';
@@ -482,7 +483,7 @@ describe('DockerExecutorAdapter', () => {
 
             await expect(
                 sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
-            ).resolves.toBeUndefined();
+            ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith('✖ Could not remove the previous container previous-123: container is restarting');
             expect(composeUp).toHaveBeenCalledTimes(1);
@@ -523,7 +524,7 @@ describe('DockerExecutorAdapter', () => {
 
             await expect(
                 sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
-            ).resolves.toBeUndefined();
+            ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith(
                 '✖ Could not remove the previous network test-project_edge: network has active endpoints',
@@ -689,6 +690,43 @@ describe('DockerExecutorAdapter', () => {
             expect(connectNetwork).not.toHaveBeenCalled();
         });
 
+        it('answers the final Compose text, with the attached networks, the relative bind mounts and the masked variables', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx', volumes: ['./public:/usr/share/nginx/html'] } } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+
+            const text = await sut.up(
+                Buffer.from('archive'),
+                'docker-compose.yml',
+                target(),
+                { DB_PASSWORD: 's3cret' },
+                routing,
+                ['gitpaas-p-a'],
+                jest.fn(),
+            );
+
+            const dumped = parse(text) as { services: { web: Record<string, unknown> }; networks: Record<string, unknown> };
+
+            expect(dumped.services.web.environment).toEqual(['DB_PASSWORD=****']);
+            expect(dumped.services.web.volumes).toEqual(['./public:/usr/share/nginx/html']);
+            expect(dumped.services.web.networks).toEqual({
+                network_default: null,
+                'gitpaas-proxy': null,
+                'gitpaas-p-a': { aliases: ['my-service'] },
+            });
+            expect(dumped.networks['gitpaas-proxy']).toEqual({ external: true });
+            expect(dumped.networks['gitpaas-p-a']).toEqual({ external: true });
+        });
+
         it('reports a failed attachment on the log and still brings the stack up', async () => {
             const container = startedContainer('web');
             mockCompose.instance = {
@@ -706,7 +744,7 @@ describe('DockerExecutorAdapter', () => {
 
             await expect(
                 sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, [], onLog),
-            ).resolves.toBeUndefined();
+            ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith('✖ Could not attach container container-1 to the network gitpaas-proxy: no such network');
             expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
@@ -774,7 +812,7 @@ describe('DockerExecutorAdapter', () => {
 
             await expect(
                 sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, ['gitpaas-p-a'], onLog),
-            ).resolves.toBeUndefined();
+            ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith('✖ Could not attach container container-1 to the network gitpaas-p-a: no such network');
             expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
@@ -921,7 +959,7 @@ describe('DockerExecutorAdapter', () => {
 
             await expect(
                 sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
-            ).resolves.toBeUndefined();
+            ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith(
                 '✖ Could not remove the leftover network test-project_network_default: network has active endpoints',

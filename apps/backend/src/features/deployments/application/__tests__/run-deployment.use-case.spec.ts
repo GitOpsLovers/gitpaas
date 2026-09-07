@@ -61,6 +61,9 @@ describe('runDeploymentUseCase', () => {
         networkAlias: 'my-service',
     };
 
+    /** Final Compose text the executor answers with, which the successful run stores on the deployment. */
+    const finalCompose = 'services:\n  web:\n    image: nginx\n';
+
     const credentials: ProviderCredentials = {
         providerId: service.providerId,
         appId: '1234',
@@ -174,7 +177,7 @@ describe('runDeploymentUseCase', () => {
 
     it('marks the deployment as running before doing any work', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -183,7 +186,7 @@ describe('runDeploymentUseCase', () => {
 
     it('downloads the repository archive for the payload repository and commit', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -192,7 +195,7 @@ describe('runDeploymentUseCase', () => {
 
     it('loads the credentials of the provider of the deployed service', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -228,7 +231,7 @@ describe('runDeploymentUseCase', () => {
 
     it('brings the stack up with the archive, compose path, stack of the service and a log listener', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -250,7 +253,7 @@ describe('runDeploymentUseCase', () => {
         mockDomainsRepository.getByService.mockResolvedValue(domains);
         mockReverseProxy.buildRouting.mockReturnValue(routing);
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -269,7 +272,7 @@ describe('runDeploymentUseCase', () => {
 
     it('names the stack of the service with its stored compose project, and never with a computed one', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -281,7 +284,7 @@ describe('runDeploymentUseCase', () => {
 
     it('gives the containers the short slug of the service as their alias, because the compose project holds an underscore', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -300,7 +303,7 @@ describe('runDeploymentUseCase', () => {
 
         mockServiceNetworksRepository.listByService.mockResolvedValue(networks);
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -333,7 +336,7 @@ describe('runDeploymentUseCase', () => {
     it('brings the stack up with an empty routing when the service holds no domain', async () => {
         mockDomainsRepository.getByService.mockResolvedValue([]);
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -367,7 +370,7 @@ describe('runDeploymentUseCase', () => {
         mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
             onLog?.('building service');
 
-            return Promise.resolve();
+            return Promise.resolve(finalCompose);
         });
 
         await run();
@@ -381,13 +384,13 @@ describe('runDeploymentUseCase', () => {
         mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
             onLog?.('building service');
 
-            return Promise.resolve();
+            return Promise.resolve(finalCompose);
         });
 
         await expect(run()).resolves.toBeUndefined();
 
         // The run still succeeds: a dropped line must not fail the deployment.
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success', finalCompose });
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'success');
     });
 
@@ -397,12 +400,12 @@ describe('runDeploymentUseCase', () => {
             onLog?.('building service');
             onLog?.('stack up');
 
-            return Promise.resolve();
+            return Promise.resolve(finalCompose);
         });
 
         await run();
 
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success', finalCompose });
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'success');
     });
 
@@ -426,7 +429,7 @@ describe('runDeploymentUseCase', () => {
         mockServiceVariablesRepository.getStoredByService.mockResolvedValue(variables);
         mockSecretCipher.decryptSecret.mockReturnValue('the-token');
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -446,7 +449,7 @@ describe('runDeploymentUseCase', () => {
     it('brings the stack up with an empty environment when the service holds no variable', async () => {
         mockServiceVariablesRepository.getStoredByService.mockResolvedValue([]);
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -488,7 +491,7 @@ describe('runDeploymentUseCase', () => {
         ]);
         mockSecretCipher.decryptSecret.mockReturnValue('the-token');
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -517,7 +520,7 @@ describe('runDeploymentUseCase', () => {
 
     it('records the volumes Compose created once the stack is up', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
 
         await run();
 
@@ -542,12 +545,12 @@ describe('runDeploymentUseCase', () => {
 
     it('keeps the deployment successful when the record of the volumes of Compose fails', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(undefined);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
         mockAdoptComposeVolumesUseCase.mockRejectedValue(new Error('daemon down'));
 
         await run();
 
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'success', finalCompose });
         expect(mockLogStore.append).toHaveBeenCalledWith(
             payload.deploymentId,
             '▹ The volumes of the Compose file could not be recorded.',

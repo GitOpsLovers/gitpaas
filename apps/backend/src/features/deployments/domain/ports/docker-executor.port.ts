@@ -41,6 +41,8 @@ export interface DockerExecutor {
      * @param routing Labels of the routing, grouped by the compose service each domain names
      * @param networks Names on the daemon of the networks of the project the containers of the stack join
      * @param onLog Optional listener receiving real-time output as the stack comes up
+     *
+     * @returns The final Compose text the stack came up from, with the value of every variable masked
      */
     up: (
         archive: Buffer,
@@ -50,7 +52,7 @@ export interface DockerExecutor {
         routing: RoutingLabels,
         networks: string[],
         onLog?: DockerLogListener,
-    ) => Promise<void>;
+    ) => Promise<string>;
 
     /**
      * Lists the compose services a repository archive declares.

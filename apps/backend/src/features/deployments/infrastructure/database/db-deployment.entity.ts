@@ -36,6 +36,9 @@ export class DbDeploymentEntity {
     @Column({ type: 'text', nullable: true })
     public error!: string | null;
 
+    @Column({ type: 'text', nullable: true })
+    public finalCompose!: string | null;
+
     @CreateDateColumn({ type: 'timestamptz' })
     public createdAt!: Date;
 

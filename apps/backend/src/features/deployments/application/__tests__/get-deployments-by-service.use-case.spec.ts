@@ -16,6 +16,7 @@ describe('getDeploymentsByServiceUseCase', () => {
             composerPath: 'docker-compose.yml',
             triggeredBy: 'marc.fernandez@icmb.es',
             error: null,
+            finalCompose: null,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             finishedAt: new Date('2026-07-11T00:05:00.000Z'),
         },

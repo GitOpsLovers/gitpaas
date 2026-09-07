@@ -15,6 +15,7 @@ describe('toDeployment', () => {
             composerPath: 'docker-compose.yml',
             triggeredBy: 'system',
             error: null,
+            finalCompose: 'services:\n  web:\n    image: nginx\n',
             createdAt,
             finishedAt,
         };
@@ -29,12 +30,13 @@ describe('toDeployment', () => {
             composerPath: 'docker-compose.yml',
             triggeredBy: 'system',
             error: null,
+            finalCompose: 'services:\n  web:\n    image: nginx\n',
             createdAt,
             finishedAt,
         });
     });
 
-    it('preserves nullable commit, commitMessage, error and finishedAt fields', () => {
+    it('preserves nullable commit, commitMessage, error, finalCompose and finishedAt fields', () => {
         const createdAt = new Date('2026-07-11T00:00:00.000Z');
         const entity: DbDeploymentEntity = {
             id: 'd-2',
@@ -46,6 +48,7 @@ describe('toDeployment', () => {
             composerPath: 'docker-compose.yml',
             triggeredBy: 'webhook',
             error: 'deploy crashed',
+            finalCompose: null,
             createdAt,
             finishedAt: null,
         };
@@ -60,6 +63,7 @@ describe('toDeployment', () => {
             composerPath: 'docker-compose.yml',
             triggeredBy: 'webhook',
             error: 'deploy crashed',
+            finalCompose: null,
             createdAt,
             finishedAt: null,
         });

@@ -75,15 +75,6 @@ interface ComposeResource {
 }
 
 /**
- * The parsed compose recipe exposed by `dockerode-compose`.
- */
-interface ComposeRecipe {
-    services?: Record<string, ComposeService>;
-    volumes?: Record<string, ComposeResource | null>;
-    networks?: Record<string, ComposeResource | null>;
-}
-
-/**
  * Normalises a block of entries (list or map form) into a `{ key: value }` map.
  *
  * @param entries Compose labels or environment block, if any
@@ -139,6 +130,15 @@ function rebindDefaultNetwork(networks: ComposeServiceNetworks | undefined, key:
     const { [COMPOSE_DEFAULT_NETWORK_KEY]: declared, ...rest } = networks;
 
     return COMPOSE_DEFAULT_NETWORK_KEY in networks ? { ...rest, [key]: declared } : networks;
+}
+
+/**
+ * The parsed compose recipe exposed by `dockerode-compose`.
+ */
+export interface ComposeRecipe {
+    services?: Record<string, ComposeService>;
+    volumes?: Record<string, ComposeResource | null>;
+    networks?: Record<string, ComposeResource | null>;
 }
 
 /**

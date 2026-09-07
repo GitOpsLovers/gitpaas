@@ -73,6 +73,7 @@ describe('createDeploymentUseCase', () => {
         composerPath: 'docker-compose.yml',
         triggeredBy: 'system',
         error: null,
+        finalCompose: null,
         createdAt: new Date('2026-07-11T00:00:00.000Z'),
         finishedAt: null,
     };

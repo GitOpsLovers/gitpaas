@@ -26,6 +26,7 @@ import {
     stampRouting,
 } from './compose-recipe.transformer';
 import type { ResolvedBuild } from './compose-recipe.transformer';
+import { toFinalComposeText } from './final-compose.transformer';
 
 import { GITPAAS_SERVICE_LABEL } from '@core/domain/constants/gitpaas-labels.constants';
 import type { RuntimeComposeProject, RuntimeProgressListener } from '@core/domain/models/container-runtime.models';
@@ -95,7 +96,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
         routing: RoutingLabels,
         networks: string[],
         onLog?: DockerLogListener,
-    ): Promise<void> {
+    ): Promise<string> {
         const { serviceId, projectName, networkAlias } = target;
         const emit = (line: string): void => onLog?.(line);
         const directory = await this.createWorkspace('gitpaas-deploy-');
@@ -137,6 +138,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             injectEnvironment(compose, environment);
 
+            // The recipe the daemon receives keeps the true value of every variable, and the dumped
+            // copy alone carries the masked one, which the user of the service reads afterwards.
+            const finalCompose = toFinalComposeText(compose, dirname(composeFile), routed, networks, networkAlias);
+
             emit('▶ Creating and starting containers…');
 
             const result = (await this.run(() => compose.up())) as { services?: StartedContainer[] };
@@ -155,6 +160,8 @@ export class DockerExecutorAdapter implements DockerExecutor {
             }
 
             emit(`✔ Stack "${projectName}" is up (${containers.length} container(s))`);
+
+            return finalCompose;
         } finally {
             await rm(directory, { recursive: true, force: true });
         }

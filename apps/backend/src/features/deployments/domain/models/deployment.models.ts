@@ -16,6 +16,7 @@ export interface Deployment {
     composerPath: string;
     triggeredBy: string;
     error: string | null;
+    finalCompose: string | null;
     createdAt: Date;
     finishedAt: Date | null;
 }
