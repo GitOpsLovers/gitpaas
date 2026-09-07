@@ -1,0 +1,23 @@
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_17ea4a3a7897dc::t_deeeaed87c2c97 16,281-391
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_17ea4a3a7897dc::t_433d79b243898a 75,136-170,440-492
+docs/roadmap/recipe-external-networks/TODO.md
+  s_17ea4a3a7897dc::t_17bf5769e1deff 14-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1315a460b78c19d6fd9628ed12b8de6c7e6a2627",
+  "prompts": {},
+  "sessions": {
+    "s_17ea4a3a7897dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2a1d2d44-4355-4a28-88e5-a8260864a22a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
