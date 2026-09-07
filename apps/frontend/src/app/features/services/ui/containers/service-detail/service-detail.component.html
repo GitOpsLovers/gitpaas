@@ -6,6 +6,8 @@
     @switch (activeTab()) {
         @case ('general') {
             <app-service-deploy-actions class="mb-6 block" [deploying]="deploying()" (deploy)="deploy()" />
+
+            <app-service-final-compose [compose]="finalCompose.value() ?? null" [loading]="finalCompose.isLoading()" />
         }
 
         @case ('provider') {

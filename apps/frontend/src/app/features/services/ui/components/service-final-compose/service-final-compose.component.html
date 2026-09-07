@@ -1,0 +1,31 @@
+<app-component-card
+    title="Final Compose File"
+    desc="The Compose file GitPaaS sends to the Docker daemon for this service."
+>
+    @if (!loading() && fromRepository()) {
+        <div
+            class="rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-600 dark:border-warning-500/30 dark:bg-warning-500/15 dark:text-warning-400"
+        >
+            <p>
+                This service has no deployment yet, so this is the Compose file of its repository. The next deployment
+                can still change it.
+            </p>
+        </div>
+    }
+
+    @if (!loading() && text()) {
+        <div
+            class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
+        >
+            <p>GitPaaS masks the value of every variable of this file, so no secret leaves the server.</p>
+        </div>
+    }
+
+    <app-yaml-viewer
+        [text]="text()"
+        [loading]="loading()"
+        [emptyMessage]="emptyMessage"
+        ariaLabel="Final Compose file"
+        fileName="docker-compose.yml"
+    />
+</app-component-card>

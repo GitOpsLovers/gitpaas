@@ -396,3 +396,50 @@ layer(base);
   background-color: rgb(255 255 255 / 0.05);
   color: var(--color-brand-400);
 }
+
+/* highlight.js — the palette of the YAML viewer */
+.hljs-attr,
+.hljs-attribute {
+  color: var(--color-brand-600);
+}
+.hljs-string,
+.hljs-meta .hljs-string {
+  color: var(--color-success-600);
+}
+.hljs-number,
+.hljs-literal,
+.hljs-type {
+  color: var(--color-warning-600);
+}
+.hljs-bullet,
+.hljs-punctuation {
+  color: var(--color-gray-400);
+}
+.hljs-comment,
+.hljs-meta {
+  color: var(--color-gray-400);
+  font-style: italic;
+}
+
+/* highlight.js — dark mode */
+.dark .hljs-attr,
+.dark .hljs-attribute {
+  color: var(--color-brand-400);
+}
+.dark .hljs-string,
+.dark .hljs-meta .hljs-string {
+  color: var(--color-success-500);
+}
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-type {
+  color: var(--color-warning-500);
+}
+.dark .hljs-bullet,
+.dark .hljs-punctuation {
+  color: var(--color-gray-500);
+}
+.dark .hljs-comment,
+.dark .hljs-meta {
+  color: var(--color-gray-500);
+}

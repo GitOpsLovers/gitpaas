@@ -1,0 +1,48 @@
+@if (!loading() && text()) {
+    <div class="mb-3 flex justify-end gap-2">
+        <button
+            type="button"
+            name="yaml-viewer-copy"
+            class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-white"
+            [attr.aria-label]="copied() ? 'Copied' : 'Copy the document'"
+            (click)="copy()"
+        >
+            @if (copied()) {
+                <svg lucideCheck class="h-5 w-5 text-success-500"></svg>
+            } @else {
+                <svg lucideCopy class="h-5 w-5"></svg>
+            }
+        </button>
+
+        <button
+            type="button"
+            name="yaml-viewer-download"
+            class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-white"
+            aria-label="Download the document"
+            (click)="download()"
+        >
+            <svg lucideDownload class="h-5 w-5"></svg>
+        </button>
+    </div>
+}
+
+<div
+    class="max-h-[60vh] overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-relaxed text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300"
+    role="region"
+    tabindex="0"
+    [attr.aria-label]="ariaLabel()"
+>
+    @if (loading()) {
+        <div class="space-y-2">
+            @for (row of skeletonRows; track row) {
+                <app-skeleton />
+            }
+        </div>
+    } @else if (text()) {
+        <pre class="hljs whitespace-pre"><code [innerHTML]="highlighted()"></code></pre>
+    } @else {
+        <div class="text-gray-400 dark:text-gray-500">
+            {{ emptyMessage() }}
+        </div>
+    }
+</div>
