@@ -34,10 +34,10 @@ The count of the networks of a service of the recipe stays out of the model of t
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
 
-- [ ] 3.1 After `removeServiceNetworks`, list the networks of the daemon, and find each network of the recipe that the daemon still holds.
-- [ ] 3.2 Take each one out of the recipe, and add it to the map of the attach of the phase 2, so the engine creates it again and the daemon answers no code 409.
-- [ ] 3.3 Emit a line of log that names the network and states that the deployment reuses it.
-- [ ] 3.4 Write the unit tests of that path, with a network that the removal keeps and a network that the removal takes away.
+- [x] 3.1 After `removeServiceNetworks`, list the networks of the daemon, and find each network of the recipe that the daemon still holds.
+- [x] 3.2 Take each one out of the recipe, and add it to the map of the attach of the phase 2, so the engine creates it again and the daemon answers no code 409.
+- [x] 3.3 Emit a line of log that names the network and states that the deployment reuses it.
+- [x] 3.4 Write the unit tests of that path, with a network that the removal keeps and a network that the removal takes away.
 
 ## Phase 4 — The documentation
 
