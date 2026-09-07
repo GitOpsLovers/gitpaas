@@ -1,7 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { UserRole } from '../../domain/models/user.models';
-
 /**
  * Users database entity
  */
@@ -24,9 +22,6 @@ export class DbUserEntity {
 
     @Column({ type: 'timestamptz', nullable: true })
     public totpEnabledAt!: Date | null;
-
-    @Column({ type: 'text', default: UserRole.User })
-    public role!: UserRole;
 
     @Column({ type: 'boolean', default: true })
     public isActive!: boolean;

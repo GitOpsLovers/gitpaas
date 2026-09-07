@@ -70,7 +70,6 @@ interface TelemetryEventFields {
 
     /* Actor context */
     'user.id'?: string;
-    'user.role'?: string;
     'auth.public_route'?: boolean;
     'auth.outcome'?: TelemetryEventAuthOutcome;
 

@@ -13,7 +13,7 @@ import { AuthenticationService } from '../../services/authentication.service';
 import { AuthenticationController } from '../authentication.controller';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 
 const tokens: AuthTokens = { accessToken: 'access.jwt.token', refreshToken: 'refresh.jwt.token' };
 
@@ -24,7 +24,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -174,7 +173,7 @@ describe('AuthenticationController', () => {
                 return getTelemetry();
             });
 
-            expect(event).toEqual({ 'user.id': user.id, 'user.role': UserRole.Admin });
+            expect(event).toEqual({ 'user.id': user.id });
         });
 
         it('never publishes the e-mail or the password hash of the actor', async () => {
@@ -200,7 +199,7 @@ describe('AuthenticationController', () => {
                 return getTelemetry();
             });
 
-            expect(event).toEqual({ 'user.id': user.id, 'user.role': UserRole.Admin });
+            expect(event).toEqual({ 'user.id': user.id });
         });
 
         it('adds nothing of its own on a refresh, which the service names', async () => {
@@ -235,7 +234,6 @@ describe('AuthenticationController', () => {
             displayName: user.displayName,
             totpSecret: user.totpSecret,
             totpEnabledAt: user.totpEnabledAt,
-            role: user.role,
             isActive: user.isActive,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
@@ -250,7 +248,6 @@ describe('AuthenticationController', () => {
             id: user.id,
             email: user.email,
             displayName: user.displayName,
-            role: user.role,
             totpEnabled: false,
             isActive: user.isActive,
             createdAt: user.createdAt.toISOString(),

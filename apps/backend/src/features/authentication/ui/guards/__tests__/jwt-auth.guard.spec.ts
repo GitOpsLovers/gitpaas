@@ -6,7 +6,7 @@ import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 
 const handler = (): void => undefined;
 
@@ -86,7 +86,6 @@ describe('JwtAuthGuard', () => {
             displayName: null,
             totpSecret: null,
             totpEnabledAt: null,
-            role: UserRole.Admin,
             isActive: true,
             createdAt: new Date('2026-01-01T00:00:00.000Z'),
             updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -136,7 +135,6 @@ describe('JwtAuthGuard', () => {
             expect(event).toEqual({
                 'auth.outcome': 'authenticated',
                 'user.id': user.id,
-                'user.role': UserRole.Admin,
             });
             expect(JSON.stringify(event)).not.toContain(user.email);
         });

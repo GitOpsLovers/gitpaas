@@ -14,7 +14,6 @@ const profile: Profile = {
     id: 'us-1',
     email: 'ada@gitpaas.dev',
     displayName: 'Ada Lovelace',
-    role: 'admin',
     totpEnabled: false,
     isActive: true,
     createdAt: '2026-01-01T00:00:00.000Z',

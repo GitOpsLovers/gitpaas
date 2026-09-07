@@ -21,13 +21,13 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Agent:** implementer
 **Paths:** `apps/backend/src/`, `apps/frontend/src/`, `packages/contracts/src/`, `iac/production/migrations/`
 
-- [ ] 2.1 Delete the guard and the decorator of the roles, and their use on the sixteen routes of the three controllers.
-- [ ] 2.2 Remove the role from the payload of the token and from the use case that issues it.
-- [ ] 2.3 Remove the role from the contract, the models, the DTO, the transformers, the entity of the user and the enrichment of the telemetry.
-- [ ] 2.4 Rename the seed of the administrator to the seed of the first user, without the role.
-- [ ] 2.5 Write the migration `029_drop_user_role.sql`.
-- [ ] 2.6 Remove the role from the frontend.
-- [ ] 2.7 Repair the unit tests of the two applications.
+- [x] 2.1 Delete the guard and the decorator of the roles, and their use on the sixteen routes of the three controllers.
+- [x] 2.2 Remove the role from the payload of the token and from the use case that issues it.
+- [x] 2.3 Remove the role from the contract, the models, the DTO, the transformers, the entity of the user and the enrichment of the telemetry.
+- [x] 2.4 Rename the seed of the administrator to the seed of the first user, without the role.
+- [x] 2.5 Write the migration `029_drop_user_role.sql`.
+- [x] 2.6 Remove the role from the frontend.
+- [x] 2.7 Repair the unit tests of the two applications.
 
 ## Phase 3 — The configuration and the identity
 

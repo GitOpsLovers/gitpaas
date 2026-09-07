@@ -2,7 +2,7 @@ import { ExecutionContext } from '@nestjs/common';
 
 import { currentUserFactory } from '../current-user.decorator';
 
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 
 // The `CurrentUser` decorator produced by `createParamDecorator` wraps this
 // factory in a way NestJS keeps internal (unreachable in a unit test), which is
@@ -15,7 +15,6 @@ const mockUser: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.User,
     isActive: true,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-02T00:00:00.000Z'),

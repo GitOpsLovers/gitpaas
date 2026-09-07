@@ -1,18 +1,20 @@
-/** Status the API answers when the user carries no role of administrator. */
+/**
+ * Status the API answers when it refuses the action.
+ */
 const FORBIDDEN = 403;
 
-/** Status the API answers when the record refuses the operation. */
+/**
+ * Status the API answers when the record refuses the operation.
+ */
 const CONFLICT = 409;
 
-/** Message shown whenever the API refuses the action for the role of the user. */
-const FORBIDDEN_MESSAGE = 'This action needs an administrator.';
+/**
+ * Message shown whenever the API refuses the action.
+ */
+const FORBIDDEN_MESSAGE = 'You hold no permission for this action.';
 
 /**
  * Chooses the message a failed operation over a provider shows.
- *
- * A `403` always means that the user carries no role of administrator. A `409`
- * means that the record refuses the operation, and the caller gives the sentence
- * that names the reason.
  *
  * @param error Error the API reported
  * @param conflictMessage Message shown when the API answers `409`

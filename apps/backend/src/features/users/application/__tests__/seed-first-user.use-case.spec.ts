@@ -1,11 +1,11 @@
-import { UserRole, User } from '../../domain/models/user.models';
+import { User } from '../../domain/models/user.models';
 import { UsersRepository } from '../../domain/repositories/users.repository';
-import { seedAdminUseCase } from '../seed-admin.use-case';
+import { seedFirstUserUseCase } from '../seed-first-user.use-case';
 
 import { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 
 /**
- * Direct unit tests for the application-layer {@link seedAdminUseCase} — the
+ * Direct unit tests for the application-layer {@link seedFirstUserUseCase} — the
  * port-driven code path behind the development bootstrap hook (`UsersService`).
  *
  * Collaborators are mocked at their domain-port boundaries, so no real Postgres
@@ -23,18 +23,17 @@ const existingUser: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
 };
 
-describe('seedAdminUseCase', () => {
+describe('seedFirstUserUseCase', () => {
     let mockUsersRepository: jest.Mocked<Pick<UsersRepository, 'findByEmail' | 'create'>>;
     let mockPasswordHasher: jest.Mocked<Pick<PasswordHasher, 'hash'>>;
 
     const seed = (input: { email: string; password: string }): Promise<'seeded' | 'already-exists'> =>
-        seedAdminUseCase(
+        seedFirstUserUseCase(
             mockUsersRepository as unknown as UsersRepository,
             mockPasswordHasher as unknown as PasswordHasher,
             input,
@@ -56,7 +55,7 @@ describe('seedAdminUseCase', () => {
         mockPasswordHasher.hash.mockResolvedValue(HASHED_PASSWORD);
     });
 
-    describe("happy path — seeds a fresh admin ('seeded')", () => {
+    describe("happy path — seeds a fresh user ('seeded')", () => {
         it('hashes the password before creating', async () => {
             await seed({ email: 'admin@gitpaas.io', password: 'super-secret-pw' });
 
@@ -64,7 +63,7 @@ describe('seedAdminUseCase', () => {
             expect(mockPasswordHasher.hash).toHaveBeenCalledWith('super-secret-pw');
         });
 
-        it('creates an active admin with the hashed password and returns "seeded"', async () => {
+        it('creates an active user with the hashed password and returns "seeded"', async () => {
             const result = await seed({ email: 'admin@gitpaas.io', password: 'super-secret-pw' });
 
             expect(result).toBe('seeded');
@@ -72,12 +71,11 @@ describe('seedAdminUseCase', () => {
             expect(mockUsersRepository.create).toHaveBeenCalledWith({
                 email: 'admin@gitpaas.io',
                 passwordHash: HASHED_PASSWORD,
-                role: UserRole.Admin,
                 isActive: true,
             });
         });
 
-        it('looks the admin up by its email before deciding to create', async () => {
+        it('looks the user up by its email before deciding to create', async () => {
             await seed({ email: 'admin@gitpaas.io', password: 'super-secret-pw' });
 
             expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith('admin@gitpaas.io');
@@ -93,7 +91,7 @@ describe('seedAdminUseCase', () => {
         });
     });
 
-    describe("idempotent path — admin already exists ('already-exists')", () => {
+    describe("idempotent path — the user already exists ('already-exists')", () => {
         beforeEach(() => {
             mockUsersRepository.findByEmail.mockResolvedValue(existingUser);
         });
@@ -111,8 +109,8 @@ describe('seedAdminUseCase', () => {
         it.each([
             ['an empty email', { email: '', password: 'super-secret-pw' }],
             ['a whitespace-only email', { email: '   ', password: 'super-secret-pw' }],
-        ])('throws "An admin email is required to seed" when given %s', async (_label, input) => {
-            await expect(seed(input)).rejects.toThrow('An admin email is required to seed');
+        ])('throws "An email is required to seed the first user" when given %s', async (_label, input) => {
+            await expect(seed(input)).rejects.toThrow('An email is required to seed the first user');
         });
 
         it.each([
@@ -121,8 +119,8 @@ describe('seedAdminUseCase', () => {
                 'a missing password',
                 { email: 'admin@gitpaas.io', password: undefined as unknown as string },
             ],
-        ])('throws "An admin password is required to seed" when given %s', async (_label, input) => {
-            await expect(seed(input)).rejects.toThrow('An admin password is required to seed');
+        ])('throws "A password is required to seed the first user" when given %s', async (_label, input) => {
+            await expect(seed(input)).rejects.toThrow('A password is required to seed the first user');
         });
 
         it('does not touch the repository or hasher when the email is invalid', async () => {

@@ -23,7 +23,6 @@ import {
     Post,
     Put,
     ServiceUnavailableException,
-    UseGuards,
 } from '@nestjs/common';
 
 import { ServerService } from '../services/server.service';
@@ -32,15 +31,11 @@ import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.er
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
 import { Public } from '@features/authentication/ui/decorators/public.decorator';
-import { Roles } from '@features/authentication/ui/decorators/roles.decorator';
-import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
-import { UserRole } from '@features/users/domain/models/user.models';
 
 /**
  * Server controller
  */
 @Controller('server')
-@UseGuards(RolesGuard)
 export class ServerController {
     constructor(private readonly service: ServerService) {}
 
@@ -149,7 +144,6 @@ export class ServerController {
      * @returns Parameters the system keeps, and the advice of the check of the domain
      */
     @Put('settings')
-    @Roles(UserRole.Admin)
     public async updateSettings(
         @Body(new ZodValidationPipe(updatePlatformSettingsSchema)) updateDto: UpdatePlatformSettingsDto,
     ): Promise<UpdatePlatformSettingsResult> {
@@ -169,7 +163,6 @@ export class ServerController {
      */
     @Post('settings/domain-check')
     @HttpCode(200)
-    @Roles(UserRole.Admin)
     public async checkDomain(
         @Body(new ZodValidationPipe(checkControlPlaneDomainSchema)) checkDto: CheckControlPlaneDomainDto,
     ): Promise<ControlPlaneDomainCheckResult> {
@@ -186,7 +179,6 @@ export class ServerController {
      * @returns The versions of the installation and the state of its last update
      */
     @Get('update')
-    @Roles(UserRole.Admin)
     public async getUpdate(): Promise<PlatformUpdateStatus> {
         try {
             return await this.service.getUpdate();
@@ -202,7 +194,6 @@ export class ServerController {
      */
     @Post('update/check')
     @HttpCode(200)
-    @Roles(UserRole.Admin)
     public async checkUpdate(): Promise<PlatformUpdateStatus> {
         try {
             return await this.service.checkUpdate();
@@ -218,7 +209,6 @@ export class ServerController {
      */
     @Post('update')
     @HttpCode(202)
-    @Roles(UserRole.Admin)
     public async startUpdate(): Promise<PlatformUpdateStatus> {
         try {
             return await this.service.startUpdate();
@@ -240,7 +230,6 @@ export class ServerController {
      * @returns Whether a console of the debug runs, and the address it answers on
      */
     @Get('database-debug')
-    @Roles(UserRole.Admin)
     public async getDatabaseDebug(): Promise<DatabaseDebugStatus> {
         try {
             return await this.service.getDatabaseDebug();
@@ -256,7 +245,6 @@ export class ServerController {
      */
     @Post('database-debug')
     @HttpCode(200)
-    @Roles(UserRole.Admin)
     public async startDatabaseDebug(): Promise<DatabaseDebugSession> {
         try {
             return await this.service.startDatabaseDebug();
@@ -271,7 +259,6 @@ export class ServerController {
      * @returns The state the session leaves, which is always stopped
      */
     @Delete('database-debug')
-    @Roles(UserRole.Admin)
     public async stopDatabaseDebug(): Promise<DatabaseDebugStatus> {
         try {
             return await this.service.stopDatabaseDebug();

@@ -4,7 +4,7 @@ import { enrichWithActor, enrichWithAuthOutcome, enrichWithTokenSubject } from '
 
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -13,7 +13,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -33,11 +32,8 @@ const eventOf = (work: () => void): Partial<TelemetryEvent> | undefined =>
     });
 
 describe('enrichWithActor', () => {
-    it('adds the id and the role of the actor', () => {
-        expect(eventOf(() => { enrichWithActor(user); })).toEqual({
-            'user.id': user.id,
-            'user.role': UserRole.Admin,
-        });
+    it('adds the id of the actor', () => {
+        expect(eventOf(() => { enrichWithActor(user); })).toEqual({ 'user.id': user.id });
     });
 
     it('never publishes the e-mail or the password hash of the actor', () => {

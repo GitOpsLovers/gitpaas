@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 
 import { CreateUserDto } from '../../../domain/dtos/create-user.dto';
-import { User, UserRole } from '../../../domain/models/user.models';
+import { User } from '../../../domain/models/user.models';
 import { DbUserEntity } from '../db-user.entity';
 import { DatabaseUsersRepository } from '../db-users.repository';
 
@@ -15,7 +15,6 @@ const userEntity = (overrides: Partial<DbUserEntity> = {}): DbUserEntity => ({
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -53,7 +52,6 @@ describe('DatabaseUsersRepository', () => {
                 displayName: entity.displayName,
                 totpSecret: entity.totpSecret,
                 totpEnabledAt: entity.totpEnabledAt,
-                role: entity.role,
                 isActive: entity.isActive,
                 createdAt: entity.createdAt,
                 updatedAt: entity.updatedAt,
@@ -90,10 +88,9 @@ describe('DatabaseUsersRepository', () => {
             const input: CreateUserDto = {
                 email: 'new@example.com',
                 passwordHash: 'hash',
-                role: UserRole.User,
                 isActive: true,
             };
-            const entity = userEntity({ email: input.email, role: UserRole.User });
+            const entity = userEntity({ email: input.email });
             mockRepository.create.mockReturnValue(entity);
             mockRepository.save.mockResolvedValue(entity);
 
@@ -102,7 +99,6 @@ describe('DatabaseUsersRepository', () => {
             expect(mockRepository.create).toHaveBeenCalledWith(input);
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
             expect(result.email).toBe(input.email);
-            expect(result.role).toBe(UserRole.User);
         });
     });
 

@@ -57,8 +57,8 @@ export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deplo
 
 export { authTokensSchema, loginSchema, refreshSchema } from './authentication/authentication.contract';
 export type { AuthTokens, LoginDto, RefreshDto } from './authentication/authentication.contract';
-export { userRoleSchema, userSchema } from './authentication/user.contract';
-export type { User, UserRole } from './authentication/user.contract';
+export { userSchema } from './authentication/user.contract';
+export type { User } from './authentication/user.contract';
 export {
     enableTotpSchema,
     loginResultSchema,

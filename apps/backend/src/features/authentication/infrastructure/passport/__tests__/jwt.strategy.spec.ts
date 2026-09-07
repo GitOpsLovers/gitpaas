@@ -10,7 +10,7 @@ import {
 import { AccessTokenPayload } from '../../../domain/models/token-payloads.models';
 import { JwtStrategy } from '../jwt.strategy';
 
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 jest.mock('../../../application/validate-jwt-user.use-case');
@@ -20,7 +20,6 @@ const validateJwtUserUseCaseMock = validateJwtUserUseCase as jest.MockedFunction
 const payload: AccessTokenPayload = {
     sub: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     email: 'admin@example.com',
-    role: UserRole.Admin,
 };
 
 const user: User = {
@@ -30,7 +29,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

@@ -18,7 +18,7 @@ import { QrCodeRendererAdapter } from '@core/infrastructure/qrcode/qrcode-render
 import { AuthTokens } from '@features/authentication/domain/models/auth-tokens.models';
 import { DatabaseRefreshTokensRepository } from '@features/authentication/infrastructure/database/db-refresh-tokens.repository';
 import { JwtTokenServiceAdapter } from '@features/authentication/infrastructure/security/jwt-token-service.adapter';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
@@ -49,7 +49,6 @@ const user: User = {
     displayName: 'Ada Lovelace',
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

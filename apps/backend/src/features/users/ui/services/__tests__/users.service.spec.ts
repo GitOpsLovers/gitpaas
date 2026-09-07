@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 
 import { disableUserTotpUseCase } from '../../../application/disable-user-totp.use-case';
-import { seedAdminUseCase } from '../../../application/seed-admin.use-case';
+import { seedFirstUserUseCase } from '../../../application/seed-first-user.use-case';
 import { UserNotFoundError } from '../../../domain/errors/users.errors';
-import { User, UserRole } from '../../../domain/models/user.models';
+import { User } from '../../../domain/models/user.models';
 import { DatabaseUsersRepository } from '../../../infrastructure/database/db-users.repository';
 import { UsersService } from '../users.service';
 
@@ -11,10 +11,10 @@ import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
-jest.mock('../../../application/seed-admin.use-case');
+jest.mock('../../../application/seed-first-user.use-case');
 jest.mock('../../../application/disable-user-totp.use-case');
 
-const mockSeedAdminUseCase = seedAdminUseCase as jest.MockedFunction<typeof seedAdminUseCase>;
+const mockSeedFirstUserUseCase = seedFirstUserUseCase as jest.MockedFunction<typeof seedFirstUserUseCase>;
 const mockDisableUserTotpUseCase = disableUserTotpUseCase as jest.MockedFunction<typeof disableUserTotpUseCase>;
 
 const USER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -26,14 +26,13 @@ const clearedUser: User = {
     displayName: 'Ada Lovelace',
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.User,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
 };
 
-const DEV_ADMIN_EMAIL = 'admin@gitpaas.dev';
-const DEV_ADMIN_PASSWORD = 'gitpaas';
+const DEV_USER_EMAIL = 'admin@gitpaas.dev';
+const DEV_USER_PASSWORD = 'gitpaas';
 
 describe('UsersService', () => {
     let mockUsersRepository: jest.Mocked<Pick<DatabaseUsersRepository, 'findByEmail' | 'create'>>;
@@ -66,62 +65,62 @@ describe('UsersService', () => {
         jest.restoreAllMocks();
     });
 
-    describe('seedDevelopmentAdmin — delegation', () => {
+    describe('seedDevelopmentUser — delegation', () => {
         it('delegates to the use case once with the repository, the hasher and the fixed dev credentials', async () => {
-            mockSeedAdminUseCase.mockResolvedValue('seeded');
+            mockSeedFirstUserUseCase.mockResolvedValue('seeded');
 
-            await sut.seedDevelopmentAdmin();
+            await sut.seedDevelopmentUser();
 
-            expect(mockSeedAdminUseCase).toHaveBeenCalledTimes(1);
-            expect(mockSeedAdminUseCase).toHaveBeenCalledWith(mockUsersRepository, mockPasswordHasher, {
-                email: DEV_ADMIN_EMAIL,
-                password: DEV_ADMIN_PASSWORD,
+            expect(mockSeedFirstUserUseCase).toHaveBeenCalledTimes(1);
+            expect(mockSeedFirstUserUseCase).toHaveBeenCalledWith(mockUsersRepository, mockPasswordHasher, {
+                email: DEV_USER_EMAIL,
+                password: DEV_USER_PASSWORD,
             });
         });
 
         it('resolves without a value and never logs an error on the happy path', async () => {
-            mockSeedAdminUseCase.mockResolvedValue('seeded');
+            mockSeedFirstUserUseCase.mockResolvedValue('seeded');
 
-            await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
+            await expect(sut.seedDevelopmentUser()).resolves.toBeUndefined();
 
             expect(mockLogger.error).not.toHaveBeenCalled();
         });
     });
 
-    describe('seedDevelopmentAdmin — logs the use-case outcome', () => {
-        it('logs the exact "seeded" line when a fresh admin is created', async () => {
-            mockSeedAdminUseCase.mockResolvedValue('seeded');
+    describe('seedDevelopmentUser — logs the use-case outcome', () => {
+        it('logs the exact "seeded" line when a fresh user is created', async () => {
+            mockSeedFirstUserUseCase.mockResolvedValue('seeded');
 
-            await sut.seedDevelopmentAdmin();
+            await sut.seedDevelopmentUser();
 
             expect(mockLogger.log).toHaveBeenCalledTimes(1);
-            expect(mockLogger.log).toHaveBeenCalledWith(`Seeded admin user "${DEV_ADMIN_EMAIL}".`, 'UsersService');
+            expect(mockLogger.log).toHaveBeenCalledWith(`Seeded the first user "${DEV_USER_EMAIL}".`, 'UsersService');
         });
 
-        it('logs the exact "already exists" line when an admin already exists', async () => {
-            mockSeedAdminUseCase.mockResolvedValue('already-exists');
+        it('logs the exact "already exists" line when a user already exists', async () => {
+            mockSeedFirstUserUseCase.mockResolvedValue('already-exists');
 
-            await sut.seedDevelopmentAdmin();
+            await sut.seedDevelopmentUser();
 
             expect(mockLogger.log).toHaveBeenCalledTimes(1);
             expect(mockLogger.log).toHaveBeenCalledWith(
-                `Admin user "${DEV_ADMIN_EMAIL}" already exists — left unchanged.`,
+                `User "${DEV_USER_EMAIL}" already exists — left unchanged.`,
                 'UsersService',
             );
         });
     });
 
-    describe('seedDevelopmentAdmin — failure is swallowed', () => {
+    describe('seedDevelopmentUser — failure is swallowed', () => {
         it('logs the thrown Error itself, so its stack survives, and resolves without rethrowing', async () => {
             const error = new Error('users table missing');
 
-            mockSeedAdminUseCase.mockRejectedValue(error);
+            mockSeedFirstUserUseCase.mockRejectedValue(error);
 
-            await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
+            await expect(sut.seedDevelopmentUser()).resolves.toBeUndefined();
 
             expect(mockLogger.error).toHaveBeenCalledTimes(1);
             expect(mockLogger.error).toHaveBeenCalledWith(
-                'Development admin seed failed:',
+                'Development user seed failed:',
                 error,
                 'UsersService',
             );
@@ -129,12 +128,12 @@ describe('UsersService', () => {
         });
 
         it('logs the raw thrown value for a non-Error rejection and still resolves', async () => {
-            mockSeedAdminUseCase.mockRejectedValue('boom');
+            mockSeedFirstUserUseCase.mockRejectedValue('boom');
 
-            await expect(sut.seedDevelopmentAdmin()).resolves.toBeUndefined();
+            await expect(sut.seedDevelopmentUser()).resolves.toBeUndefined();
 
             expect(mockLogger.error).toHaveBeenCalledTimes(1);
-            expect(mockLogger.error).toHaveBeenCalledWith('Development admin seed failed:', 'boom', 'UsersService');
+            expect(mockLogger.error).toHaveBeenCalledWith('Development user seed failed:', 'boom', 'UsersService');
         });
     });
 

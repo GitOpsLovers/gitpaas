@@ -17,7 +17,6 @@ import { ServerApiRepository } from '../../../infrastructure/api/server-api.repo
 import { reloadPage } from '../../../infrastructure/browser/reload-page';
 import { ServerUpdatePanelComponent } from '../../components/server-update-panel/server-update-panel.component';
 
-import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
@@ -91,13 +90,11 @@ export class ServerMaintenanceComponent {
 
     private readonly toast = inject(ToastService);
 
-    private readonly auth = inject(AuthService);
-
     private readonly document = inject(DOCUMENT);
 
-    private readonly updateResource = this.repository.updateStatus(() => this.isAdmin());
+    private readonly updateResource = this.repository.updateStatus();
 
-    private readonly debugResource = this.repository.databaseDebug(() => this.isAdmin());
+    private readonly debugResource = this.repository.databaseDebug();
 
     private pollHandle: ReturnType<typeof setInterval> | null = null;
 
@@ -179,11 +176,6 @@ export class ServerMaintenanceComponent {
     protected readonly checking = computed(() => this.checkState() === 'checking');
 
     /**
-     * Whether the user may read the state of the update and start one.
-     */
-    protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'admin');
-
-    /**
      * State of the update of the platform, as the panel shows it.
      */
     protected readonly update = computed(() => mapPlatformUpdateUseCase(
@@ -194,7 +186,7 @@ export class ServerMaintenanceComponent {
      * Whether the panel of the update has anything to say.
      */
     protected readonly showUpdate = computed(
-        () => this.isAdmin() && (this.update().available || this.update().failed || this.updating() || this.timedOut()),
+        () => this.update().available || this.update().failed || this.updating() || this.timedOut(),
     );
 
     /**
@@ -239,8 +231,6 @@ export class ServerMaintenanceComponent {
     });
 
     constructor() {
-        this.loadCurrentUser();
-
         effect(() => { this.followUpdate(); });
 
         effect(() => {
@@ -531,22 +521,6 @@ export class ServerMaintenanceComponent {
 
         clearInterval(this.pollHandle);
         this.pollHandle = null;
-    }
-
-    /**
-     * Loads the user of the session, so that the screen knows its role.
-     */
-    private async loadCurrentUser(): Promise<void> {
-        if (this.auth.currentUser()) {
-            return;
-        }
-
-        try {
-            await lastValueFrom(this.auth.loadCurrentUser());
-        } catch (error) {
-            // The role stays unknown, and the panel of the update stays hidden.
-            this.toast.error('Could not read your session', describeRequestFailureUseCase(error));
-        }
     }
 
     /**

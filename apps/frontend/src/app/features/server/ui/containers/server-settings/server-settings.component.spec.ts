@@ -6,7 +6,6 @@ import type {
     ControlPlaneDomainWarning,
     PlatformSettings,
     UpdatePlatformSettingsResult,
-    User,
 } from '@gitpaas/contracts';
 import { NEVER, of, throwError } from 'rxjs';
 
@@ -14,7 +13,6 @@ import { ServerApiRepository } from '../../../infrastructure/api/server-api.repo
 
 import { ServerSettingsComponent } from './server-settings.component';
 
-import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ToastService } from '@shared/services/toast.service';
 
 interface ServerSettingsInternals {
@@ -32,7 +30,6 @@ interface ServerSettingsInternals {
     saveError: () => string | null;
     appliedDomain: () => string | null;
     githubAppUrls: () => ReadonlyArray<{ label: string; url: string }>;
-    isAdmin: () => boolean;
     saving: () => boolean;
     onLogRetentionDaysChange: (value: string | number) => void;
     onGitpaasDomainChange: (value: string | number) => void;
@@ -41,21 +38,6 @@ interface ServerSettingsInternals {
     confirmSave: () => Promise<void>;
     cancelSave: () => void;
 }
-
-const admin: User = {
-    id: 'us-1',
-    email: 'admin@gitpaas.dev',
-    displayName: null,
-    role: 'admin',
-    totpEnabled: false,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-};
-
-const member: User = {
-    ...admin, id: 'us-2', email: 'dev@gitpaas.dev', role: 'user',
-};
 
 const settings: PlatformSettings = { logRetentionDays: 30 };
 
@@ -97,21 +79,6 @@ const dnsRefusal = (): HttpErrorResponse => new HttpErrorResponse({
     },
 });
 
-const SESSION_MESSAGE = 'The session of the user could not be read.';
-
-const sessionRefusal = (): HttpErrorResponse => new HttpErrorResponse({
-    status: 500,
-    error: {
-        statusCode: 500,
-        code: 'INTERNAL_SERVER_ERROR',
-        message: SESSION_MESSAGE,
-        error: 'Internal Server Error',
-        timestamp: '2026-08-31T10:00:00.000Z',
-        path: '/api/v1/auth/me',
-        requestId: 'rq-2',
-    },
-});
-
 const submitEvent = (): Event => new Event('submit', { cancelable: true });
 
 describe('ServerSettingsComponent', () => {
@@ -126,7 +93,6 @@ describe('ServerSettingsComponent', () => {
         domainCheck: ReturnType<typeof vi.fn>;
     };
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
-    let auth: { currentUser: ReturnType<typeof signal<User | null>>; loadCurrentUser: ReturnType<typeof vi.fn> };
     let fixture: ComponentFixture<ServerSettingsComponent>;
     let component: ServerSettingsInternals;
 
@@ -148,14 +114,10 @@ describe('ServerSettingsComponent', () => {
             domainCheck: vi.fn().mockReturnValue({ value: checkValue, isLoading: checkLoading }),
         };
         toast = { success: vi.fn(), error: vi.fn() };
-        auth = { currentUser: signal<User | null>(admin), loadCurrentUser: vi.fn().mockReturnValue(of(admin)) };
 
         TestBed.configureTestingModule({
             imports: [ServerSettingsComponent],
-            providers: [
-                { provide: ToastService, useValue: toast },
-                { provide: AuthService, useValue: auth },
-            ],
+            providers: [{ provide: ToastService, useValue: toast }],
         });
     });
 
@@ -462,14 +424,6 @@ describe('ServerSettingsComponent', () => {
             expect(checkedHost()).toBeUndefined();
         });
 
-        test('checks no host for a user who is not an administrator', () => {
-            auth.currentUser.set(member);
-            create();
-            value.set(withDomain);
-
-            expect(checkedHost()).toBeUndefined();
-        });
-
         test('shows the advice that the check gives', () => {
             create();
             value.set(settings);
@@ -626,65 +580,6 @@ describe('ServerSettingsComponent', () => {
         });
     });
 
-    describe('the role of the user', () => {
-        beforeEach(() => {
-            TestBed.overrideComponent(ServerSettingsComponent, {
-                set: {
-                    template: '',
-                    providers: [{ provide: ServerApiRepository, useValue: repository }],
-                },
-            });
-        });
-
-        test('reads the user of the session when it holds none', () => {
-            auth.currentUser.set(null);
-
-            create();
-
-            expect(auth.loadCurrentUser).toHaveBeenCalledTimes(1);
-        });
-
-        test('does not read the user again when the session already holds one', () => {
-            create();
-
-            expect(auth.loadCurrentUser).not.toHaveBeenCalled();
-            expect(component.isAdmin()).toBe(true);
-        });
-
-        test('keeps the role unknown when the read of the user fails', async () => {
-            auth.currentUser.set(null);
-            auth.loadCurrentUser.mockReturnValue(throwError(() => new Error('boom')));
-
-            create();
-            await Promise.resolve();
-
-            expect(component.isAdmin()).toBe(false);
-        });
-
-        test('shows a toast that carries the reason when the read of the user fails', async () => {
-            auth.currentUser.set(null);
-            auth.loadCurrentUser.mockReturnValue(throwError(() => sessionRefusal()));
-
-            create();
-            await Promise.resolve();
-
-            expect(toast.error).toHaveBeenCalledWith('Could not read your session', SESSION_MESSAGE);
-        });
-
-        test('writes nothing for a user who is not an administrator', async () => {
-            auth.currentUser.set(member);
-            create();
-            value.set(settings);
-
-            component.onGitpaasDomainChange('new.gitpaas.dev');
-            await component.save(submitEvent());
-
-            expect(component.isAdmin()).toBe(false);
-            expect(component.confirmPending()).toBe(false);
-            expect(repository.updateSettings).not.toHaveBeenCalled();
-        });
-    });
-
     describe('template', () => {
         beforeEach(() => {
             TestBed.overrideComponent(ServerSettingsComponent, {
@@ -798,17 +693,15 @@ describe('ServerSettingsComponent', () => {
             });
         });
 
-        test('hides the field of the domain from a user who is not an administrator', () => {
-            auth.currentUser.set(member);
+        test('offers the field of the domain and the write to the user of the session', () => {
             create();
 
             value.set(settings);
             fixture.detectChanges();
 
-            expect(domainField()).toBeNull();
-            expect(fixture.nativeElement.textContent).toContain('An administrator alone changes these parameters.');
+            expect(domainField()).not.toBeNull();
             expect((fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement).disabled)
-                .toBe(true);
+                .toBe(false);
         });
 
         test('shows the command of the restart and the addresses of the GitHub App after the write', async () => {

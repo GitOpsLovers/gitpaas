@@ -1,7 +1,7 @@
 import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
 import { validateJwtUserUseCase } from '../validate-jwt-user.use-case';
 
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 const user: User = {
@@ -11,7 +11,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

@@ -14,11 +14,10 @@ import {
     ArgumentsHost,
     BadRequestException,
     ConflictException,
-    ExecutionContext,
     ForbiddenException,
     ServiceUnavailableException,
 } from '@nestjs/common';
-import { HttpAdapterHost, Reflector } from '@nestjs/core';
+import { HttpAdapterHost } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 
 import {
@@ -37,9 +36,6 @@ import { DaemonUnreachableError } from '@core/domain/errors/container-runtime.er
 import { ContainerRuntimeInfo } from '@core/domain/models/container-runtime.models';
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
-import { ROLES_KEY } from '@features/authentication/ui/decorators/roles.decorator';
-import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
-import { User, UserRole } from '@features/users/domain/models/user.models';
 
 const runtimeInfo: ContainerRuntimeInfo = {
     serverVersion: '27.1.1',
@@ -893,80 +889,6 @@ describe('ServerController', () => {
             mockServerService.startUpdate.mockRejectedValue(daemonFailure(new Error('connect ENOENT /var/run/docker.sock')));
 
             await expect(sut.startUpdate()).rejects.toBeInstanceOf(ServiceUnavailableException);
-        });
-    });
-
-    describe('the routes of the update', () => {
-        /** Reads the roles the decorator of a handler of the controller declares. */
-        const rolesOf = (handler: string): UserRole[] | undefined => new Reflector().get(
-            ROLES_KEY,
-            Object.getOwnPropertyDescriptor(ServerController.prototype, handler)?.value as () => void,
-        );
-
-        it('reserves the read of the state of the update to an administrator', () => {
-            expect(rolesOf('getUpdate')).toEqual([UserRole.Admin]);
-        });
-
-        it('reserves the check of the latest release to an administrator', () => {
-            expect(rolesOf('checkUpdate')).toEqual([UserRole.Admin]);
-        });
-
-        it('reserves the start of the update to an administrator', () => {
-            expect(rolesOf('startUpdate')).toEqual([UserRole.Admin]);
-        });
-
-        it('reserves the write of the parameters of the deployment system to an administrator', () => {
-            expect(rolesOf('updateSettings')).toEqual([UserRole.Admin]);
-        });
-
-        it('reserves the check of the domain of the control plane to an administrator', () => {
-            expect(rolesOf('checkDomain')).toEqual([UserRole.Admin]);
-        });
-
-        it('leaves the other routes of the server to every authenticated user', () => {
-            expect(rolesOf('getStatus')).toBeUndefined();
-            expect(rolesOf('getSettings')).toBeUndefined();
-        });
-    });
-
-    describe('the guard of the routes of the settings', () => {
-        /** Builds the guard the controller declares, with the reflector that reads its metadata. */
-        const guard = (): RolesGuard => new RolesGuard(new Reflector());
-
-        /** Builds an execution context for a handler of the controller, with the given role. */
-        const contextFor = (handler: string, role?: UserRole): ExecutionContext =>
-            ({
-                getHandler: () => Object.getOwnPropertyDescriptor(ServerController.prototype, handler)?.value,
-                getClass: () => ServerController,
-                switchToHttp: () => ({
-                    getRequest: () => ({ user: role ? ({ role } as User) : undefined }),
-                }),
-            }) as unknown as ExecutionContext;
-
-        it('lets an administrator write the parameters of the deployment system', () => {
-            expect(guard().canActivate(contextFor('updateSettings', UserRole.Admin))).toBe(true);
-        });
-
-        it('refuses the write of the parameters to a user who is no administrator', () => {
-            expect(() => guard().canActivate(contextFor('updateSettings', UserRole.User)))
-                .toThrow(ForbiddenException);
-        });
-
-        it('lets an administrator check the domain of the control plane', () => {
-            expect(guard().canActivate(contextFor('checkDomain', UserRole.Admin))).toBe(true);
-        });
-
-        it('refuses the check of the domain to a user who is no administrator', () => {
-            expect(() => guard().canActivate(contextFor('checkDomain', UserRole.User)))
-                .toThrow(ForbiddenException);
-        });
-
-        it('refuses the write of the parameters to a request that carries no user', () => {
-            expect(() => guard().canActivate(contextFor('updateSettings'))).toThrow(ForbiddenException);
-        });
-
-        it('lets a user who is no administrator read the parameters of the deployment system', () => {
-            expect(guard().canActivate(contextFor('getSettings', UserRole.User))).toBe(true);
         });
     });
 });

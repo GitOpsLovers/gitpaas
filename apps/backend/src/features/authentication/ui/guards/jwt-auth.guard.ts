@@ -65,7 +65,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             enrichTelemetry({
                 'auth.outcome': 'authenticated',
                 'user.id': authenticated.id,
-                'user.role': authenticated.role,
             });
 
             return super.handleRequest(error, user, info, context, status);

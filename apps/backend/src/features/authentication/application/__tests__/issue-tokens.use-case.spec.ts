@@ -3,7 +3,7 @@ import { TokenService } from '../../domain/ports/token-service.port';
 import { RefreshTokensRepository } from '../../domain/repositories/refresh-tokens.repository';
 import { issueTokensUseCase } from '../issue-tokens.use-case';
 
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 
 const user: User = {
     id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
@@ -12,7 +12,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -47,7 +46,7 @@ describe('issueTokensUseCase', () => {
             user,
         );
 
-        const expectedPayload = { sub: user.id, email: user.email, role: user.role };
+        const expectedPayload = { sub: user.id, email: user.email };
         expect(mockTokenService.signAccessToken).toHaveBeenCalledWith(expectedPayload);
         expect(mockTokenService.issueRefreshToken).toHaveBeenCalledWith(expectedPayload);
     });

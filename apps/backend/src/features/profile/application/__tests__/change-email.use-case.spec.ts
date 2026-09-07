@@ -5,7 +5,7 @@ import { issueTokensUseCase } from '@features/authentication/application/issue-t
 import { AuthTokens } from '@features/authentication/domain/models/auth-tokens.models';
 import { TokenService } from '@features/authentication/domain/ports/token-service.port';
 import { RefreshTokensRepository } from '@features/authentication/domain/repositories/refresh-tokens.repository';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 jest.mock('@features/authentication/application/issue-tokens.use-case');
@@ -25,7 +25,6 @@ const domainUser = (overrides: Partial<User> = {}): User => ({
     displayName: 'Ada Lovelace',
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

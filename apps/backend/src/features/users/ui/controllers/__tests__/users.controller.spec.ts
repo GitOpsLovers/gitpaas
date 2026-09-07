@@ -2,13 +2,12 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { UserNotFoundError } from '../../../domain/errors/users.errors';
-import { User, UserRole } from '../../../domain/models/user.models';
+import { User } from '../../../domain/models/user.models';
 import { UsersService } from '../../services/users.service';
 import { UsersController } from '../users.controller';
 
 import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { ROLES_KEY } from '@features/authentication/ui/decorators/roles.decorator';
 
 const USER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
@@ -19,7 +18,6 @@ const clearedUser: User = {
     displayName: 'Ada Lovelace',
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.User,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -75,13 +73,6 @@ describe('UsersController', () => {
             });
 
             expect(event).toEqual({ 'user.id': USER_ID });
-        });
-
-        it('is reserved to the role admin', () => {
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            const roles: unknown = Reflect.getMetadata(ROLES_KEY, sut.disableTotp);
-
-            expect(roles).toEqual([UserRole.Admin]);
         });
     });
 });

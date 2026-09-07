@@ -12,7 +12,6 @@ const validProfile = (overrides: Record<string, unknown> = {}): Record<string, u
     id: '9c858901-8a57-4791-81fe-4c455b099bc9',
     email: 'admin@example.com',
     displayName: 'Ada Lovelace',
-    role: 'admin',
     totpEnabled: false,
     isActive: true,
     createdAt: '2026-07-11T00:00:00.000Z',
@@ -29,8 +28,8 @@ describe('profileSchema', () => {
         expect(profileSchema.safeParse(validProfile({ displayName: null })).success).toBe(true);
     });
 
-    it('refuses an account whose role is unknown', () => {
-        expect(profileSchema.safeParse(validProfile({ role: 'owner' })).success).toBe(false);
+    it('refuses an account whose identifier is not a UUID', () => {
+        expect(profileSchema.safeParse(validProfile({ id: 'not-a-uuid' })).success).toBe(false);
     });
 });
 
@@ -58,7 +57,7 @@ describe('updateProfileNameSchema', () => {
     });
 
     it('refuses a property the schema does not declare', () => {
-        expect(updateProfileNameSchema.safeParse({ displayName: 'Ada', role: 'admin' }).success).toBe(false);
+        expect(updateProfileNameSchema.safeParse({ displayName: 'Ada', nickname: 'Ada' }).success).toBe(false);
     });
 });
 

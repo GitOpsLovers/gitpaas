@@ -144,7 +144,7 @@ describe('ProviderRegistrationStartComponent', () => {
         expect(component.submitting()).toBe(false);
     });
 
-    test('asks for an administrator when the API answers 403', async () => {
+    test('names the missing permission when the API answers 403', async () => {
         repository.startRegistration.mockReturnValue(throwError(() => ({ status: 403 })));
         create();
 
@@ -152,7 +152,7 @@ describe('ProviderRegistrationStartComponent', () => {
 
         expect(toast.error).toHaveBeenCalledWith(
             'Could not start the registration',
-            'This action needs an administrator.',
+            'You hold no permission for this action.',
         );
         expect(submit).not.toHaveBeenCalled();
     });

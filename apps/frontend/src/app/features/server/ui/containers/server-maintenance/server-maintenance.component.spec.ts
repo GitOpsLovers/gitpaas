@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DOCUMENT, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { DatabaseDebugSession, DatabaseDebugStatus, PlatformUpdateStatus, User } from '@gitpaas/contracts';
+import type { DatabaseDebugSession, DatabaseDebugStatus, PlatformUpdateStatus } from '@gitpaas/contracts';
 import { of, Subject, throwError } from 'rxjs';
 
 import { PlatformUpdateView } from '../../../domain/models/platform-update.model';
@@ -9,7 +9,6 @@ import { ServerApiRepository } from '../../../infrastructure/api/server-api.repo
 
 import { ServerMaintenanceComponent } from './server-maintenance.component';
 
-import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ToastService } from '@shared/services/toast.service';
 
 interface PruneAction {
@@ -19,7 +18,6 @@ interface PruneAction {
 interface ServerMaintenanceInternals {
     actions: readonly PruneAction[];
     running: () => boolean;
-    isAdmin: () => boolean;
     update: () => PlatformUpdateView;
     updating: () => boolean;
     timedOut: () => boolean;
@@ -47,21 +45,6 @@ interface ServerMaintenanceInternals {
 }
 
 const POLL_INTERVAL_MS = 2000;
-
-const admin: User = {
-    id: 'us-1',
-    email: 'admin@gitpaas.dev',
-    displayName: null,
-    role: 'admin',
-    totpEnabled: false,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-};
-
-const member: User = {
-    ...admin, id: 'us-2', email: 'dev@gitpaas.dev', role: 'user',
-};
 
 const upToDate: PlatformUpdateStatus = {
     installedVersion: '1.4.0',
@@ -131,8 +114,6 @@ const debugRefusal = (): HttpErrorResponse => new HttpErrorResponse({
     },
 });
 
-const SESSION_MESSAGE = 'The session of the user could not be read.';
-
 const CHECK_MESSAGE = 'GitHub did not answer the read of the latest release.';
 
 const checkRefusal = (): HttpErrorResponse => new HttpErrorResponse({
@@ -145,19 +126,6 @@ const checkRefusal = (): HttpErrorResponse => new HttpErrorResponse({
         timestamp: '2026-08-31T10:00:00.000Z',
         path: '/api/v1/server/update/check',
         requestId: 'rq-3',
-    },
-});
-
-const sessionRefusal = (): HttpErrorResponse => new HttpErrorResponse({
-    status: 500,
-    error: {
-        statusCode: 500,
-        code: 'INTERNAL_SERVER_ERROR',
-        message: SESSION_MESSAGE,
-        error: 'Internal Server Error',
-        timestamp: '2026-08-31T10:00:00.000Z',
-        path: '/api/v1/auth/me',
-        requestId: 'rq-2',
     },
 });
 
@@ -181,7 +149,6 @@ describe('ServerMaintenanceComponent', () => {
     let debugValue: ReturnType<typeof signal<DatabaseDebugStatus | undefined>>;
     let debugError: ReturnType<typeof signal<unknown>>;
     let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
-    let auth: { currentUser: ReturnType<typeof signal<User | null>>; loadCurrentUser: ReturnType<typeof vi.fn> };
     let reloadPage: ReturnType<typeof vi.fn>;
     let poll: (() => void) | null;
     let pollDelay: number | null;
@@ -236,7 +203,6 @@ describe('ServerMaintenanceComponent', () => {
             stopDatabaseDebug: vi.fn().mockReturnValue(of(debugStopped)),
         };
         toast = { success: vi.fn(), error: vi.fn() };
-        auth = { currentUser: signal<User | null>(admin), loadCurrentUser: vi.fn().mockReturnValue(of(admin)) };
         reloadPage = vi.fn();
 
         poll = null;
@@ -260,10 +226,7 @@ describe('ServerMaintenanceComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [ServerMaintenanceComponent],
-            providers: [
-                { provide: ToastService, useValue: toast },
-                { provide: AuthService, useValue: auth },
-            ],
+            providers: [{ provide: ToastService, useValue: toast }],
         });
         TestBed.overrideComponent(ServerMaintenanceComponent, {
             set: {
@@ -280,60 +243,11 @@ describe('ServerMaintenanceComponent', () => {
         vi.restoreAllMocks();
     });
 
-    describe('the user of the session', () => {
-        test('loads the user when the session holds none yet', () => {
-            auth.currentUser.set(null);
-
-            create();
-
-            expect(auth.loadCurrentUser).toHaveBeenCalledTimes(1);
-        });
-
-        test('does not load the user again when the session already holds one', () => {
-            create();
-
-            expect(auth.loadCurrentUser).not.toHaveBeenCalled();
-            expect(component.isAdmin()).toBe(true);
-        });
-
-        test('keeps the role unknown when the load of the user fails', async () => {
-            auth.currentUser.set(null);
-            auth.loadCurrentUser.mockReturnValue(throwError(() => new Error('boom')));
-
-            create();
-            await Promise.resolve();
-
-            expect(component.isAdmin()).toBe(false);
-        });
-
-        test('shows a toast that carries the reason when the load of the user fails', async () => {
-            auth.currentUser.set(null);
-            auth.loadCurrentUser.mockReturnValue(throwError(() => sessionRefusal()));
-
-            create();
-            await Promise.resolve();
-
-            expect(toast.error).toHaveBeenCalledWith('Could not read your session', SESSION_MESSAGE);
-        });
-    });
-
     describe('the read of the state of the update', () => {
-        test('reads the state of the update for an administrator alone', () => {
-            auth.currentUser.set(null);
-
+        test('reads the state of the update one time when the screen starts', () => {
             create();
 
-            const [enabled] = repository.updateStatus.mock.calls[0] as [() => boolean];
-
-            expect(enabled()).toBe(false);
-
-            auth.currentUser.set(member);
-
-            expect(enabled()).toBe(false);
-
-            auth.currentUser.set(admin);
-
-            expect(enabled()).toBe(true);
+            expect(repository.updateStatus).toHaveBeenCalledTimes(1);
         });
 
         test('announces the update when the versions differ', () => {
@@ -350,16 +264,6 @@ describe('ServerMaintenanceComponent', () => {
             answer(upToDate);
 
             expect(component.update().available).toBe(false);
-            expect(component.showUpdate()).toBe(false);
-        });
-
-        test('hides the update from a user who is not an administrator', () => {
-            auth.currentUser.set(member);
-
-            create();
-            answer(available);
-
-            expect(component.isAdmin()).toBe(false);
             expect(component.showUpdate()).toBe(false);
         });
 
@@ -612,22 +516,10 @@ describe('ServerMaintenanceComponent', () => {
         });
     });
     describe('the debug of the database', () => {
-        test('reads the state of the session for an administrator alone', () => {
+        test('reads the state of the session one time when the screen starts', () => {
             create();
 
-            const [enabled] = repository.databaseDebug.mock.calls[0] as [() => boolean];
-
-            expect(enabled()).toBe(true);
-        });
-
-        test('reads no state of the session for a user who is not an administrator', () => {
-            auth.currentUser.set(member);
-
-            create();
-
-            const [enabled] = repository.databaseDebug.mock.calls[0] as [() => boolean];
-
-            expect(enabled()).toBe(false);
+            expect(repository.databaseDebug).toHaveBeenCalledTimes(1);
         });
 
         test('shows no session while none runs', () => {

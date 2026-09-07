@@ -14,7 +14,6 @@ export function toUserResponse(user: Omit<User, 'passwordHash'>): UserResponse {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        role: user.role,
         totpEnabled: user.totpEnabledAt !== null,
         isActive: user.isActive,
         createdAt: user.createdAt.toISOString(),
