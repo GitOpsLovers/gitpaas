@@ -1,0 +1,23 @@
+docs/business.md
+  s_f5e4c315f98e9e::t_753ff425600470 14
+docs/business/docker.md
+  s_f5e4c315f98e9e::t_1f7bc7b113e50c 1-91
+docs/business/frontend-shell.md
+  s_f5e4c315f98e9e::t_07e67f8e506a4f 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b64233fa3d6599f9d7fa1a4fc4f4030f3070913d",
+  "prompts": {},
+  "sessions": {
+    "s_f5e4c315f98e9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac3b9d8d784b97495",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
