@@ -173,6 +173,18 @@ The stop of the step 4 reaches the containers of the one service alone, and neve
 
 The extraction of the step 4 lands in the folder of the deployment, and a bind mount that the Compose file declares resolves against that folder. See the requirement *The bind mount of a Compose file* of the capability [volumes](./volumes.md), and the [environment contract](../architecture/infrastructure/conventions.md#environment-contract) for the variable `DEPLOY_SPOOL_DIR` that names the folder.
 
+A service of a recipe SHALL join any number of external networks that the recipe declares. The system takes those networks out of the recipe before it starts the stack, and it joins each container of the compose service that named one once the stack is up, under the name of that service. A network of the recipe that a previous run still holds, because a container of another stack keeps it alive, takes the same path instead of failing the deployment: the system reuses it in place of creating it again.
+
+### Scenario: A service joins the external networks of the recipe
+
+- **WHEN** the recipe of a service declares external networks for one of its compose services
+- **THEN** the system starts the stack, then joins each container of that compose service to those networks
+
+### Scenario: A network of the recipe survives its removal
+
+- **WHEN** a network the recipe declares still exists on the daemon after the removal of the old stack, because a container of another stack holds it
+- **THEN** the system reuses that network instead of creating it again, and the deployment does not fail
+
 The runner SHALL NOT keep the output itself. It SHALL send each line of the executor to the write port of the logs, and it SHALL call the completion of that port with the terminal status.
 
 ### Scenario: The executor emits a line
