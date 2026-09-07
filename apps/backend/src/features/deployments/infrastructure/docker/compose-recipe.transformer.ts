@@ -72,6 +72,7 @@ interface ComposeService {
 interface ComposeResource {
     labels?: ComposeLabels;
     external?: boolean;
+    name?: string;
 }
 
 /**
@@ -130,6 +131,41 @@ function rebindDefaultNetwork(networks: ComposeServiceNetworks | undefined, key:
     const { [COMPOSE_DEFAULT_NETWORK_KEY]: declared, ...rest } = networks;
 
     return COMPOSE_DEFAULT_NETWORK_KEY in networks ? { ...rest, [key]: declared } : networks;
+}
+
+/**
+ * Returns the keys the `networks` block of one compose service declares, in either the list or the map form.
+ *
+ * @param networks `networks` block of the compose service, if any
+ *
+ * @returns Keys of the networks the service joins
+ */
+function serviceNetworkKeys(networks?: ComposeServiceNetworks): string[] {
+    if (!networks) {
+        return [];
+    }
+
+    return Array.isArray(networks) ? networks : Object.keys(networks);
+}
+
+/**
+ * Drops a set of keys from the `networks` block of one compose service, in either the list or the map form.
+ *
+ * @param networks `networks` block of the compose service
+ * @param dropped Keys the block no longer declares
+ *
+ * @returns The block with the remaining keys, or undefined when it keeps none
+ */
+function withoutNetworkKeys(networks: ComposeServiceNetworks, dropped: ReadonlySet<string>): ComposeServiceNetworks | undefined {
+    if (Array.isArray(networks)) {
+        const kept = networks.filter((key) => !dropped.has(key));
+
+        return kept.length === 0 ? undefined : kept;
+    }
+
+    const kept = Object.entries(networks).filter(([key]) => !dropped.has(key));
+
+    return kept.length === 0 ? undefined : Object.fromEntries(kept);
 }
 
 /**
@@ -399,6 +435,57 @@ export function normalizeHealthchecks(compose: RuntimeComposeProject): void {
         healthcheck.timeout = toNanoseconds(healthcheck.timeout);
         healthcheck.start_period = toNanoseconds(healthcheck.start_period);
     }
+}
+
+/**
+ * Takes every external network out of the recipe, which `dockerode-compose` never attaches, so the executor connects each container itself after the start of the stack.
+ *
+ * @param compose Compose project driven by the container runtime
+ *
+ * @returns Names on the daemon of the external networks each compose service joined, keyed by the name of that service
+ */
+export function stripExternalNetworks(compose: RuntimeComposeProject): Record<string, string[]> {
+    const recipe = composeRecipe(compose);
+    const external = new Map<string, string>();
+
+    for (const [key, network] of Object.entries(recipe.networks ?? {})) {
+        if (network?.external === true) {
+            external.set(key, network.name ?? key);
+        }
+    }
+
+    if (external.size === 0) {
+        return {};
+    }
+
+    recipe.networks = Object.fromEntries(
+        Object.entries(recipe.networks ?? {}).filter(([key]) => !external.has(key)),
+    );
+
+    const keys = new Set(external.keys());
+    const attached: Record<string, string[]> = {};
+
+    for (const [name, service] of Object.entries(recipeServices(compose))) {
+        const declared = service.networks;
+        const stripped = serviceNetworkKeys(declared).filter((key) => external.has(key));
+
+        if (!declared || stripped.length === 0) {
+            continue;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-non-null-assertion
+        attached[name] = stripped.map((key) => external.get(key)!);
+
+        const kept = withoutNetworkKeys(declared, keys);
+
+        if (kept === undefined) {
+            delete service.networks;
+        } else {
+            service.networks = kept;
+        }
+    }
+
+    return attached;
 }
 
 /**

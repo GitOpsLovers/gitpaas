@@ -13,6 +13,7 @@ import {
     setComposeRecipe,
     stampLabels,
     stampRouting,
+    stripExternalNetworks,
     toNanoseconds,
 } from '../compose-recipe.transformer';
 
@@ -274,6 +275,117 @@ describe('compose-recipe.transformer', () => {
             resolveBindMounts(asCompose({ recipe: { services: { web: service } } }), '/repo/stack');
 
             expect(service.volumes).toBeUndefined();
+        });
+    });
+
+    describe('stripExternalNetworks', () => {
+        it('returns no attachment and keeps the recipe when it declares no external network', () => {
+            const web = { networks: ['edge'] } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { edge: null } } };
+
+            expect(stripExternalNetworks(asCompose(compose))).toEqual({});
+            expect(compose.recipe.networks).toEqual({ edge: null });
+            expect(web.networks).toEqual(['edge']);
+        });
+
+        it('takes every external network out of the top-level networks, and keeps the others', () => {
+            const compose = {
+                recipe: {
+                    services: {},
+                    networks: { edge: null, proxy: { external: true }, shared: { external: true, name: 'infra_shared' } },
+                },
+            };
+
+            stripExternalNetworks(asCompose(compose));
+
+            expect(compose.recipe.networks).toEqual({ edge: null });
+        });
+
+        it('maps a service of two external networks onto both names on the daemon, and drops its networks block', () => {
+            const web = { networks: ['proxy', 'shared'] } as { networks?: unknown };
+            const compose = {
+                recipe: {
+                    services: { web },
+                    networks: { proxy: { external: true, name: 'infra_proxy' }, shared: { external: true, name: 'infra_shared' } },
+                },
+            };
+
+            const attached = stripExternalNetworks(asCompose(compose));
+
+            expect(attached).toEqual({ web: ['infra_proxy', 'infra_shared'] });
+            expect(web).not.toHaveProperty('networks');
+        });
+
+        it('gives a service that keeps no network the key of the default network once the declaration runs', () => {
+            const web = { networks: ['proxy'] } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { proxy: { external: true } } } };
+
+            stripExternalNetworks(asCompose(compose));
+            declareDefaultNetwork(asCompose(compose));
+
+            expect(web.networks).toEqual(['network_default']);
+        });
+
+        it('keeps the internal network of a service of a mixed pair, in the list form', () => {
+            const web = { networks: ['edge', 'proxy'] } as { networks?: unknown };
+            const compose = {
+                recipe: { services: { web }, networks: { edge: null, proxy: { external: true, name: 'infra_proxy' } } },
+            };
+
+            const attached = stripExternalNetworks(asCompose(compose));
+
+            expect(attached).toEqual({ web: ['infra_proxy'] });
+            expect(web.networks).toEqual(['edge']);
+        });
+
+        it('keeps the internal network of a service of a mixed pair, in the map form', () => {
+            const web = { networks: { edge: { aliases: ['api'] }, proxy: null } } as { networks?: unknown };
+            const compose = {
+                recipe: { services: { web }, networks: { edge: null, proxy: { external: true, name: 'infra_proxy' } } },
+            };
+
+            const attached = stripExternalNetworks(asCompose(compose));
+
+            expect(attached).toEqual({ web: ['infra_proxy'] });
+            expect(web.networks).toEqual({ edge: { aliases: ['api'] } });
+        });
+
+        it('drops the networks block of a service that maps only external networks', () => {
+            const web = { networks: { proxy: { aliases: ['api'] } } } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { proxy: { external: true } } } };
+
+            stripExternalNetworks(asCompose(compose));
+
+            expect(web).not.toHaveProperty('networks');
+        });
+
+        it('reads the name on the daemon from the key of a block that holds no field name', () => {
+            const web = { networks: ['proxy'] } as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { proxy: { external: true } } } };
+
+            expect(stripExternalNetworks(asCompose(compose))).toEqual({ web: ['proxy'] });
+        });
+
+        it('never lists a service that joins no external network', () => {
+            const web = { networks: ['proxy'] } as { networks?: unknown };
+            const worker = { networks: ['edge'] } as { networks?: unknown };
+            const compose = {
+                recipe: { services: { web, worker }, networks: { edge: null, proxy: { external: true } } },
+            };
+
+            expect(stripExternalNetworks(asCompose(compose))).toEqual({ web: ['proxy'] });
+        });
+
+        it('never lists a service that declares no networks block', () => {
+            const web = {} as { networks?: unknown };
+            const compose = { recipe: { services: { web }, networks: { proxy: { external: true } } } };
+
+            expect(stripExternalNetworks(asCompose(compose))).toEqual({});
+            expect(compose.recipe.networks).toEqual({});
+        });
+
+        it('throws when the compose project carries no recipe, instead of stripping nothing in silence', () => {
+            expect(() => stripExternalNetworks(asCompose({}))).toThrow('The compose project carries no parsed recipe.');
         });
     });
 

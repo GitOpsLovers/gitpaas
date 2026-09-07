@@ -11,11 +11,11 @@ The count of the networks of a service of the recipe stays out of the model of t
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
 
-- [ ] 1.1 Add `stripExternalNetworks(compose)`, which removes every top-level network that holds `external: true`, and returns the map of the name of the compose service to the names of those networks on the daemon.
-- [ ] 1.2 Read the name on the daemon from the field `name` of the block, and from the key of the block when that field is absent.
-- [ ] 1.3 Remove those keys from the block `networks` of each service, in the list form and in the map form.
-- [ ] 1.4 Delete the block `networks` of a service that keeps no key, so `declareDefaultNetwork` gives that service the key of the default network.
-- [ ] 1.5 Write the unit tests of the new function, with a service of two external networks, a service of a mixed pair, and a block that holds no field `name`.
+- [x] 1.1 Add `stripExternalNetworks(compose)`, which removes every top-level network that holds `external: true`, and returns the map of the name of the compose service to the names of those networks on the daemon.
+- [x] 1.2 Read the name on the daemon from the field `name` of the block, and from the key of the block when that field is absent.
+- [x] 1.3 Remove those keys from the block `networks` of each service, in the list form and in the map form.
+- [x] 1.4 Delete the block `networks` of a service that keeps no key, so `declareDefaultNetwork` gives that service the key of the default network.
+- [x] 1.5 Write the unit tests of the new function, with a service of two external networks, a service of a mixed pair, and a block that holds no field `name`.
 
 ## Phase 2 — The attach of those networks after the start
 
