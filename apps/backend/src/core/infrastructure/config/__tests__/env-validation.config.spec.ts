@@ -1,6 +1,18 @@
 /* eslint-disable no-secrets/no-secrets */
 import { validate } from '../env-validation.config';
 
+/** A key of the encryption of 32 bytes, written as 64 hexadecimal characters. */
+const ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+/** A secret of the token of the access that holds the 32 characters the schema demands. */
+const ACCESS_SECRET = 'access-secret-of-thirty-two-chars';
+
+/** A secret of the token of the refresh that holds the 32 characters the schema demands. */
+const REFRESH_SECRET = 'refresh-secret-of-thirty-two-char';
+
+/** A secret of the challenge of the second factor that holds the 32 characters the schema demands. */
+const TWO_FACTOR_SECRET = 'two-factor-secret-of-thirty-twoch';
+
 /** A complete, valid environment covering every mandatory variable. */
 const validEnv = (): Record<string, unknown> => ({
     NODE_ENV: 'development',
@@ -12,7 +24,7 @@ const validEnv = (): Record<string, unknown> => ({
     DB_NAME: 'gitpaas_db',
     REDIS_HOST: 'localhost',
     REDIS_PORT: '6379',
-    SECRETS_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef',
+    SECRETS_ENCRYPTION_KEY: ENCRYPTION_KEY,
     CORS_ORIGIN: 'http://localhost:4200',
     APP_BASE_URL: 'http://localhost:4200',
     THROTTLE_TTL: '60000',
@@ -20,11 +32,11 @@ const validEnv = (): Record<string, unknown> => ({
     THROTTLE_STREAM_TTL: '60000',
     THROTTLE_STREAM_LIMIT: '1000',
     LOGS_MAX_LINES: '5000',
-    JWT_ACCESS_SECRET: 'access-secret',
+    JWT_ACCESS_SECRET: ACCESS_SECRET,
     JWT_ACCESS_EXPIRES_IN: '15m',
-    JWT_REFRESH_SECRET: 'refresh-secret',
+    JWT_REFRESH_SECRET: REFRESH_SECRET,
     JWT_REFRESH_EXPIRES_IN: '7d',
-    JWT_2FA_SECRET: 'two-factor-secret',
+    JWT_2FA_SECRET: TWO_FACTOR_SECRET,
 });
 
 describe('validate', () => {
@@ -315,8 +327,63 @@ describe('validate', () => {
     });
 
     it('keeps the configured providers encryption key', () => {
-        expect(validate(validEnv()).SECRETS_ENCRYPTION_KEY)
-            .toBe('0123456789abcdef0123456789abcdef');
+        expect(validate(validEnv()).SECRETS_ENCRYPTION_KEY).toBe(ENCRYPTION_KEY);
+    });
+
+    it('rejects an encryption key that holds fewer than 64 hexadecimal characters', () => {
+        expect(() => validate({ ...validEnv(), SECRETS_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef' }))
+            .toThrow(/SECRETS_ENCRYPTION_KEY/);
+    });
+
+    it('rejects an encryption key that holds a character outside the hexadecimal alphabet', () => {
+        expect(() => validate({ ...validEnv(), SECRETS_ENCRYPTION_KEY: `${'0'.repeat(63)}z` }))
+            .toThrow(/SECRETS_ENCRYPTION_KEY/);
+    });
+
+    it('accepts an encryption key written in upper case', () => {
+        const key = 'ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789';
+
+        expect(validate({ ...validEnv(), SECRETS_ENCRYPTION_KEY: key }).SECRETS_ENCRYPTION_KEY).toBe(key);
+    });
+
+    it.each([['JWT_ACCESS_SECRET'], ['JWT_REFRESH_SECRET'], ['JWT_2FA_SECRET']])(
+        'rejects %s when it holds fewer than 32 characters',
+        (variable) => {
+            // eslint-disable-next-line security/detect-non-literal-regexp
+            expect(() => validate({ ...validEnv(), [variable]: 'a'.repeat(31) })).toThrow(new RegExp(variable));
+        },
+    );
+
+    it.each([['JWT_ACCESS_SECRET'], ['JWT_REFRESH_SECRET'], ['JWT_2FA_SECRET']])(
+        'accepts %s when it holds exactly 32 characters',
+        (variable) => {
+            expect(() => validate({ ...validEnv(), [variable]: 'a'.repeat(32) })).not.toThrow();
+        },
+    );
+
+    describe('the production environment', () => {
+        /** A production environment, complete but for the host of the database. */
+        const productionEnv = (host: string): Record<string, unknown> => ({
+            ...validEnv(),
+            NODE_ENV: 'production',
+            DB_HOST: host,
+        });
+
+        it.each([['localhost'], ['127.0.0.1'], ['::1'], ['0.0.0.0'], ['host.docker.internal'], ['LocalHost'], ['  localhost  ']])(
+            'refuses the local database host %s',
+            (host) => {
+                expect(() => validate(productionEnv(host))).toThrow(/DB_HOST/);
+            },
+        );
+
+        it('accepts a host that names another machine', () => {
+            expect(() => validate(productionEnv('postgres'))).not.toThrow();
+        });
+
+        it('keeps the local host outside production, where a developer needs it', () => {
+            expect(() => validate({ ...validEnv(), NODE_ENV: 'development', DB_HOST: 'localhost' })).not.toThrow();
+            expect(() => validate({ ...validEnv(), NODE_ENV: 'test', DB_HOST: 'localhost' })).not.toThrow();
+        });
     });
 
     it('rejects a non-numeric throttle limit', () => {
@@ -361,7 +428,8 @@ describe('validate', () => {
     });
 
     it('accepts the production environment', () => {
-        expect(validate({ ...validEnv(), NODE_ENV: 'production' }).NODE_ENV).toBe('production');
+        expect(validate({ ...validEnv(), NODE_ENV: 'production', DB_HOST: 'postgres' }).NODE_ENV)
+            .toBe('production');
     });
 
     it('ignores unrelated environment variables', () => {

@@ -14,6 +14,7 @@ export function toRefreshToken(entity: DbRefreshTokenEntity): RefreshToken {
         id: entity.id,
         userId: entity.userId,
         jti: entity.jti,
+        familyId: entity.familyId,
         tokenHash: entity.tokenHash,
         expiresAt: entity.expiresAt,
         revoked: entity.revoked,

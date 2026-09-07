@@ -38,6 +38,7 @@ const storedToken = (overrides: Partial<RefreshToken> = {}): RefreshToken => {
         id: 'record-1',
         userId: user.id,
         jti: payload.jti,
+        familyId: 'family-1',
         tokenHash: STORED_HASH,
         expiresAt: new Date(Date.now() + 60_000),
         revoked: false,
@@ -49,7 +50,9 @@ const storedToken = (overrides: Partial<RefreshToken> = {}): RefreshToken => {
 
 describe('refreshUseCase', () => {
     let mockUsersRepository: jest.Mocked<Pick<UsersRepository, 'findById'>>;
-    let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'findByJti' | 'revoke'>>;
+    let mockRefreshTokensRepository: jest.Mocked<
+        Pick<RefreshTokensRepository, 'findByJti' | 'revoke' | 'revokeFamily'>
+    >;
     let mockTokenService: jest.Mocked<Pick<TokenService, 'verifyRefreshToken' | 'hashRefreshToken'>>;
 
     beforeEach(() => {
@@ -60,6 +63,7 @@ describe('refreshUseCase', () => {
         mockRefreshTokensRepository = {
             findByJti: jest.fn(),
             revoke: jest.fn().mockResolvedValue(true),
+            revokeFamily: jest.fn().mockResolvedValue(0),
         };
         mockTokenService = {
             verifyRefreshToken: jest.fn().mockReturnValue(payload),
@@ -85,7 +89,12 @@ describe('refreshUseCase', () => {
 
         expect(mockRefreshTokensRepository.findByJti).toHaveBeenCalledWith(payload.jti);
         expect(mockRefreshTokensRepository.revoke).toHaveBeenCalledWith('record-1');
-        expect(mockIssueTokensUseCase).toHaveBeenCalledWith(mockRefreshTokensRepository, mockTokenService, user);
+        expect(mockIssueTokensUseCase).toHaveBeenCalledWith(
+            mockRefreshTokensRepository,
+            mockTokenService,
+            user,
+            'family-1',
+        );
         expect(result).toBe(tokenPair);
     });
 
@@ -146,6 +155,28 @@ describe('refreshUseCase', () => {
 
         await expect(run()).rejects.toBeInstanceOf(InvalidRefreshTokenError);
         expect(mockIssueTokensUseCase).not.toHaveBeenCalled();
+    });
+
+    it('revokes the whole family when a revoked token comes back', async () => {
+        mockRefreshTokensRepository.findByJti.mockResolvedValue(storedToken({ revoked: true }));
+
+        await expect(run()).rejects.toBeInstanceOf(InvalidRefreshTokenError);
+        expect(mockRefreshTokensRepository.revokeFamily).toHaveBeenCalledTimes(1);
+        expect(mockRefreshTokensRepository.revokeFamily).toHaveBeenCalledWith('family-1');
+    });
+
+    it('never revokes a family when the jti matches no record', async () => {
+        mockRefreshTokensRepository.findByJti.mockResolvedValue(null);
+
+        await expect(run()).rejects.toBeInstanceOf(InvalidRefreshTokenError);
+        expect(mockRefreshTokensRepository.revokeFamily).not.toHaveBeenCalled();
+    });
+
+    it('never revokes the family of a token that only expired', async () => {
+        mockRefreshTokensRepository.findByJti.mockResolvedValue(storedToken({ expiresAt: new Date(Date.now() - 1_000) }));
+
+        await expect(run()).rejects.toBeInstanceOf(InvalidRefreshTokenError);
+        expect(mockRefreshTokensRepository.revokeFamily).not.toHaveBeenCalled();
     });
 
     it('throws InvalidRefreshTokenError when the stored record has expired', async () => {

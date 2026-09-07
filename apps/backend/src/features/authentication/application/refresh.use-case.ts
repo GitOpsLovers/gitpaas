@@ -34,7 +34,17 @@ export async function refreshUseCase(
 
     const stored = await refreshTokensRepository.findByJti(payload.jti);
 
-    if (!stored || stored.revoked || stored.expiresAt.getTime() <= Date.now()) {
+    if (!stored) {
+        throw new InvalidRefreshTokenError();
+    }
+
+    if (stored.revoked) {
+        await refreshTokensRepository.revokeFamily(stored.familyId);
+
+        throw new InvalidRefreshTokenError();
+    }
+
+    if (stored.expiresAt.getTime() <= Date.now()) {
         throw new InvalidRefreshTokenError();
     }
 
@@ -54,5 +64,5 @@ export async function refreshUseCase(
 
     await refreshTokensRepository.revoke(stored.id);
 
-    return issueTokensUseCase(refreshTokensRepository, tokenService, user);
+    return issueTokensUseCase(refreshTokensRepository, tokenService, user, stored.familyId);
 }

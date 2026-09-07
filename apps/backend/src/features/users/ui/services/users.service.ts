@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { disableUserTotpUseCase } from '../../application/disable-user-totp.use-case';
 import { seedFirstUserUseCase } from '../../application/seed-first-user.use-case';
@@ -18,6 +19,11 @@ const DEV_USER_EMAIL = 'admin@gitpaas.dev';
 const DEV_USER_PASSWORD = 'gitpaas';
 
 /**
+ * The one environment the seed of the first user runs in.
+ */
+const SEED_ENVIRONMENT = 'development';
+
+/**
  * Users feature service.
  */
 @Injectable()
@@ -29,12 +35,24 @@ export class UsersService {
         private readonly passwordHasher: PasswordHasher,
         @Inject(NestLoggerAdapter)
         private readonly logger: AppLogger,
+        private readonly config: ConfigService,
     ) {}
 
     /**
      * Add the first user to the database for local development.
      */
     public async seedDevelopmentUser(): Promise<void> {
+        const environment = this.config.get<string>('NODE_ENV');
+
+        if (environment !== SEED_ENVIRONMENT) {
+            this.logger.warn(
+                `Refused the seed of the first user in the "${environment ?? 'unknown'}" environment.`,
+                UsersService.name,
+            );
+
+            return;
+        }
+
         try {
             const email = DEV_USER_EMAIL.trim();
 

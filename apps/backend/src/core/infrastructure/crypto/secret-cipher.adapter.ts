@@ -20,9 +20,24 @@ const KEY_BYTES = 32;
 const IV_BYTES = 12;
 
 /**
- * Separator between the three hexadecimal parts of a sealed payload.
+ * Separator between the parts of a sealed payload.
  */
 const PART_SEPARATOR = ':';
+
+/**
+ * Number of parts of a payload sealed before the binding to a row existed.
+ */
+const LEGACY_PART_COUNT = 3;
+
+/**
+ * First part of a payload that is bound to the row that holds it.
+ */
+const BOUND_MARKER = 'v2';
+
+/**
+ * Number of parts of a payload that carries the marker of the binding.
+ */
+const BOUND_PART_COUNT = 4;
 
 /**
  * Name of the environment variable that carries the key of the encryption.
@@ -31,9 +46,6 @@ const KEY_VARIABLE = 'SECRETS_ENCRYPTION_KEY';
 
 /**
  * Reads the key of the encryption from the environment.
- *
- * The key is read on every call, and never cached, so a spec can swap it and so
- * a rotation of the variable needs no restart of the process.
  *
  * @returns The 32 raw bytes of the key
  *
@@ -61,47 +73,41 @@ function readKey(): Buffer {
  */
 @Injectable()
 export class SecretCipherAdapter implements SecretCipher {
-    /**
-     * Seals a secret with AES-256-GCM, under the key of the environment.
-     *
-     * The result carries the initialisation vector, the authentication tag and the
-     * cipher text, each in the hexadecimal form and separated by a colon. A fresh
-     * vector is drawn for every call, so the same secret never seals to the same
-     * payload twice.
-     *
-     * @param plainText Secret to seal
-     *
-     * @returns The sealed payload
-     */
-    public encryptSecret(plainText: string): string {
+    public encryptSecret(plainText: string, aad?: string): string {
         const iv = randomBytes(IV_BYTES);
         const cipher = createCipheriv(ALGORITHM, readKey(), iv);
+
+        if (aad !== undefined) {
+            cipher.setAAD(Buffer.from(aad, 'utf8'));
+        }
 
         const cipherText = Buffer.concat([cipher.update(plainText, 'utf8'), cipher.final()]);
         const authTag = cipher.getAuthTag();
 
-        return [iv.toString('hex'), authTag.toString('hex'), cipherText.toString('hex')].join(PART_SEPARATOR);
+        const parts = [iv.toString('hex'), authTag.toString('hex'), cipherText.toString('hex')];
+
+        return (aad === undefined ? parts : [BOUND_MARKER, ...parts]).join(PART_SEPARATOR);
     }
 
-    /**
-     * Opens a payload that {@link SecretCipherAdapter.encryptSecret} sealed.
-     *
-     * @param payload Sealed payload
-     *
-     * @returns The secret in clear text
-     *
-     * @throws Error When the payload is malformed, or when the key does not open it
-     */
-    public decryptSecret(payload: string): string {
+    public decryptSecret(payload: string, aad?: string): string {
         const parts = payload.split(PART_SEPARATOR);
+        const isBound = parts.length === BOUND_PART_COUNT && parts[0] === BOUND_MARKER;
 
-        if (parts.length !== 3) {
+        if (!isBound && parts.length !== LEGACY_PART_COUNT) {
             throw new Error('The sealed payload is malformed');
         }
 
-        const [iv, authTag, cipherText] = parts;
+        if (isBound && aad === undefined) {
+            throw new Error('The sealed payload is bound to a row, and no identifier was given');
+        }
+
+        const [iv, authTag, cipherText] = isBound ? parts.slice(1) : parts;
 
         const decipher = createDecipheriv(ALGORITHM, readKey(), Buffer.from(iv, 'hex'));
+
+        if (isBound && aad !== undefined) {
+            decipher.setAAD(Buffer.from(aad, 'utf8'));
+        }
 
         decipher.setAuthTag(Buffer.from(authTag, 'hex'));
 

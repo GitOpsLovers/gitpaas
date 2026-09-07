@@ -1,4 +1,5 @@
-import { InvalidCredentialsError, UserInactiveError } from '../domain/errors/authentication.errors';
+import { DECOY_PASSWORD_HASH } from '../domain/constants/credentials.constants';
+import { InvalidCredentialsError } from '../domain/errors/authentication.errors';
 
 import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
@@ -13,6 +14,8 @@ import { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
  * @param password Candidate password
  *
  * @returns The validated user
+ *
+ * @throws {InvalidCredentialsError} When the email is unknown, the password does not match, or the account is deactivated
  */
 export async function validateUserUseCase(
     usersRepository: UsersRepository,
@@ -22,18 +25,10 @@ export async function validateUserUseCase(
 ): Promise<User> {
     const user = await usersRepository.findByEmail(email);
 
-    if (!user) {
+    const passwordMatches = await passwordHasher.verify(user?.passwordHash ?? DECOY_PASSWORD_HASH, password);
+
+    if (!user || !passwordMatches || !user.isActive) {
         throw new InvalidCredentialsError();
-    }
-
-    const passwordMatches = await passwordHasher.verify(user.passwordHash, password);
-
-    if (!passwordMatches) {
-        throw new InvalidCredentialsError();
-    }
-
-    if (!user.isActive) {
-        throw new UserInactiveError();
     }
 
     return user;

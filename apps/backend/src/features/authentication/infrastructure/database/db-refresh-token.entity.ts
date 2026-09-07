@@ -1,15 +1,22 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
 
 import { DbUserEntity } from '@features/users/infrastructure/database/db-user.entity';
 
 /**
  * Refresh tokens database entity.
- *
- * Stores only the hash of each issued refresh token so a database leak never
- * exposes a usable token. Rows are revoked (never deleted) on rotation and
- * logout, and cascade-deleted with their owning user.
  */
 @Entity('refresh_tokens')
+// eslint-disable-next-line no-secrets/no-secrets
+@Index('IDX_refresh_tokens_family_id', ['familyId'])
 export class DbRefreshTokenEntity {
     @PrimaryGeneratedColumn('uuid')
     public id!: string;
@@ -19,6 +26,9 @@ export class DbRefreshTokenEntity {
 
     @Column({ type: 'uuid', unique: true })
     public jti!: string;
+
+    @Column({ type: 'uuid' })
+    public familyId!: string;
 
     @Column({ type: 'text' })
     public tokenHash!: string;

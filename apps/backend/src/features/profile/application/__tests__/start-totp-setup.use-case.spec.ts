@@ -85,7 +85,7 @@ describe('startTotpSetupUseCase', () => {
         await run();
 
         expect(mockSecretCipher.encryptSecret).toHaveBeenCalledTimes(1);
-        expect(mockSecretCipher.encryptSecret).toHaveBeenCalledWith(SECRET);
+        expect(mockSecretCipher.encryptSecret).toHaveBeenCalledWith(SECRET, USER_ID);
         expect(mockUsersRepository.updateTotp).toHaveBeenCalledTimes(1);
         expect(mockUsersRepository.updateTotp).toHaveBeenCalledWith(USER_ID, 'sealed-secret', null);
     });

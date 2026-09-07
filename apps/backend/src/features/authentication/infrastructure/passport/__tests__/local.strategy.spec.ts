@@ -1,7 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 
 import { validateUserUseCase } from '../../../application/validate-user.use-case';
-import { InvalidCredentialsError, UserInactiveError } from '../../../domain/errors/authentication.errors';
+import { InvalidCredentialsError } from '../../../domain/errors/authentication.errors';
 import { LocalStrategy } from '../local.strategy';
 
 import { User } from '@features/users/domain/models/user.models';
@@ -56,16 +56,13 @@ describe('LocalStrategy', () => {
         expect(result).toBe(user);
     });
 
-    it('maps InvalidCredentialsError to a 401 UnauthorizedException', async () => {
+    it('maps InvalidCredentialsError to a 401 UnauthorizedException that carries the one message', async () => {
         validateUserUseCaseMock.mockRejectedValue(new InvalidCredentialsError());
 
         await expect(strategy.validate('admin@example.com', 'wrong')).rejects.toBeInstanceOf(UnauthorizedException);
-    });
-
-    it('maps UserInactiveError to a 401 UnauthorizedException', async () => {
-        validateUserUseCaseMock.mockRejectedValue(new UserInactiveError());
-
-        await expect(strategy.validate('admin@example.com', 'plain')).rejects.toBeInstanceOf(UnauthorizedException);
+        await expect(strategy.validate('admin@example.com', 'wrong')).rejects.toMatchObject({
+            message: 'Invalid credentials',
+        });
     });
 
     it('rethrows unexpected errors unchanged', async () => {

@@ -31,6 +31,28 @@ const optionalText = z
     .transform((value) => (value === undefined || value.trim() === '' ? undefined : value));
 
 /**
+ * Number of characters a secret of a token JWT must hold, so a brute force stays out of reach
+ */
+const JWT_SECRET_MIN_LENGTH = 32;
+
+/**
+ * A secret of a token JWT, long enough to resist a brute force
+ */
+const jwtSecret = z.string().min(JWT_SECRET_MIN_LENGTH);
+
+/**
+ * The key of the encryption of the secrets: 32 bytes written as 64 hexadecimal characters
+ */
+const encryptionKey = z
+    .string()
+    .regex(/^[\da-f]{64}$/i, 'must hold 32 bytes in the hexadecimal form, that is 64 characters');
+
+/**
+ * The hosts of a database that live on the machine of the backend itself
+ */
+const LOCAL_DB_HOSTS = ['localhost', '127.0.0.1', '::1', '0.0.0.0', 'host.docker.internal'];
+
+/**
  * A switch of the environment, where the absent value keeps the feature on
  */
 const enabledFlag = z
@@ -67,7 +89,7 @@ const environmentSchema = z.object({
     REDIS_HOST: requiredText,
     REDIS_PORT: requiredNumber,
     REDIS_PASSWORD: z.string().optional(),
-    SECRETS_ENCRYPTION_KEY: requiredText,
+    SECRETS_ENCRYPTION_KEY: encryptionKey,
     CORS_ORIGIN: requiredText,
     APP_BASE_URL: z.url({ protocol: /^https?$/ }),
     THROTTLE_TTL: requiredNumber,
@@ -83,11 +105,23 @@ const environmentSchema = z.object({
     PROXY_ACME_PATH: optionalText,
     DEPLOY_SPOOL_DIR: optionalText,
     UPDATE_CHECK_ENABLED: enabledFlag,
-    JWT_ACCESS_SECRET: requiredText,
+    JWT_ACCESS_SECRET: jwtSecret,
     JWT_ACCESS_EXPIRES_IN: requiredText,
-    JWT_REFRESH_SECRET: requiredText,
+    JWT_REFRESH_SECRET: jwtSecret,
     JWT_REFRESH_EXPIRES_IN: requiredText,
-    JWT_2FA_SECRET: requiredText,
+    JWT_2FA_SECRET: jwtSecret,
+}).superRefine((config, context) => {
+    if (config.NODE_ENV !== Environment.Production) {
+        return;
+    }
+
+    if (LOCAL_DB_HOSTS.includes(config.DB_HOST.trim().toLowerCase())) {
+        context.addIssue({
+            code: 'custom',
+            path: ['DB_HOST'],
+            message: 'must name a remote database in production, and never the machine of the backend',
+        });
+    }
 });
 
 /**

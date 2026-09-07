@@ -61,7 +61,7 @@ export async function verifyTwoFactorUseCase(
         throw new InvalidTwoFactorChallengeError();
     }
 
-    if (!(await totp.verifyCode(secretCipher.decryptSecret(user.totpSecret), code))) {
+    if (!(await totp.verifyCode(secretCipher.decryptSecret(user.totpSecret, user.id), code))) {
         throw new InvalidTotpCodeError();
     }
 

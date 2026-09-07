@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, MoreThan, Repository } from 'typeorm';
 
 import { CreateRefreshTokenDto } from '../../domain/dtos/create-refresh-token.dto';
 import { RefreshToken } from '../../domain/models/refresh-token.models';
@@ -19,13 +19,6 @@ export class DatabaseRefreshTokensRepository implements RefreshTokensRepository 
         private readonly repository: Repository<DbRefreshTokenEntity>,
     ) {}
 
-    /**
-     * Persists a freshly issued refresh token
-     *
-     * @param input Refresh token data (with an already-hashed token)
-     *
-     * @returns Created refresh token record
-     */
     public async create(input: CreateRefreshTokenDto): Promise<RefreshToken> {
         const token = this.repository.create(input);
         const saved = await this.repository.save(token);
@@ -33,13 +26,6 @@ export class DatabaseRefreshTokensRepository implements RefreshTokensRepository 
         return toRefreshToken(saved);
     }
 
-    /**
-     * Finds a single refresh token record by its `jti` claim
-     *
-     * @param jti Token identifier
-     *
-     * @returns Refresh token record, or `null` when it does not exist
-     */
     public async findByJti(jti: string): Promise<RefreshToken | null> {
         const token = await this.repository.findOneBy({ jti });
 
@@ -50,29 +36,40 @@ export class DatabaseRefreshTokensRepository implements RefreshTokensRepository 
         return toRefreshToken(token);
     }
 
-    /**
-     * Revokes a single refresh token record
-     *
-     * @param id Refresh token record id
-     *
-     * @returns `true` when a row was revoked, `false` otherwise
-     */
     public async revoke(id: string): Promise<boolean> {
         const result = await this.repository.update({ id }, { revoked: true });
 
         return (result.affected ?? 0) > 0;
     }
 
-    /**
-     * Revokes every refresh token belonging to a user
-     *
-     * @param userId User id
-     *
-     * @returns Number of tokens revoked
-     */
+    public async revokeMany(ids: string[]): Promise<number> {
+        if (ids.length === 0) {
+            return 0;
+        }
+
+        const result = await this.repository.update({ id: In(ids) }, { revoked: true });
+
+        return result.affected ?? 0;
+    }
+
+    public async revokeFamily(familyId: string): Promise<number> {
+        const result = await this.repository.update({ familyId, revoked: false }, { revoked: true });
+
+        return result.affected ?? 0;
+    }
+
     public async revokeAllForUser(userId: string): Promise<number> {
         const result = await this.repository.update({ userId, revoked: false }, { revoked: true });
 
         return result.affected ?? 0;
+    }
+
+    public async findActiveForUser(userId: string): Promise<RefreshToken[]> {
+        const tokens = await this.repository.find({
+            where: { userId, revoked: false, expiresAt: MoreThan(new Date()) },
+            order: { createdAt: 'ASC' },
+        });
+
+        return tokens.map(toRefreshToken);
     }
 }

@@ -61,23 +61,19 @@ describe('buildDataSourceOptions', () => {
         expect(typeof port).toBe('number');
     });
 
-    it('enables synchronize in development', () => {
-        process.env.NODE_ENV = 'development';
+    // The migrations of iac/production/migrations/ own the schema, so no boot alters a table.
+    it.each([['development'], ['test'], ['production'], [undefined]])(
+        'disables synchronize when NODE_ENV is %s',
+        (environment) => {
+            if (environment === undefined) {
+                Reflect.deleteProperty(process.env, 'NODE_ENV');
+            } else {
+                process.env.NODE_ENV = environment;
+            }
 
-        expect(buildDataSourceOptions().synchronize).toBe(true);
-    });
-
-    it('enables synchronize in test', () => {
-        process.env.NODE_ENV = 'test';
-
-        expect(buildDataSourceOptions().synchronize).toBe(true);
-    });
-
-    it('disables synchronize in production', () => {
-        process.env.NODE_ENV = 'production';
-
-        expect(buildDataSourceOptions().synchronize).toBe(false);
-    });
+            expect(buildDataSourceOptions().synchronize).toBe(false);
+        },
+    );
 
     it('registers a non-empty entity glob', () => {
         const { entities } = buildPostgresOptions();

@@ -92,7 +92,7 @@ describe('setServiceVariableUseCase', () => {
         await run(setDto);
 
         expect(mockSecretCipher.encryptSecret).toHaveBeenCalledTimes(1);
-        expect(mockSecretCipher.encryptSecret).toHaveBeenCalledWith('s3cr3t');
+        expect(mockSecretCipher.encryptSecret).toHaveBeenCalledWith('s3cr3t', serviceId);
         expect(mockServiceVariablesRepository.create).toHaveBeenCalledWith(serviceId, setDto, sealed);
     });
 

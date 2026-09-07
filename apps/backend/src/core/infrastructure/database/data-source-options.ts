@@ -8,8 +8,6 @@ import type { DataSourceOptions } from 'typeorm';
  * @returns The fully resolved TypeORM `postgres` data source options
  */
 export function buildDataSourceOptions(): DataSourceOptions {
-    const isProduction = process.env.NODE_ENV === 'production';
-
     const isCompiled = __filename.endsWith('.js');
     const extension = isCompiled ? 'js' : 'ts';
     const rootDir = join(__dirname, '..', '..', '..');
@@ -22,6 +20,6 @@ export function buildDataSourceOptions(): DataSourceOptions {
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
         entities: [join(rootDir, '**', `*.entity.${extension}`)],
-        synchronize: !isProduction,
+        synchronize: false,
     };
 }
