@@ -44,10 +44,16 @@ describe('ServiceFinalComposeComponent', () => {
         expect(document()?.textContent).toBe(COMPOSE_TEXT);
     });
 
-    test('says that GitPaaS masks the value of every variable of the file', () => {
+    test('says that GitPaaS masks the value of every variable when the text comes from a deployment', () => {
         create();
 
         expect(text()).toContain(MASK_NOTE);
+    });
+
+    test('says nothing of the mask when the text comes from the repository', () => {
+        create(fromRepository);
+
+        expect(text()).not.toContain(MASK_NOTE);
     });
 
     test('says nothing of the repository when the text comes from a deployment', () => {

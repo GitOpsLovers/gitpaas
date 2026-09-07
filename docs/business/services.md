@@ -393,9 +393,9 @@ When the user chooses a tab, the system SHALL open the path of that tab. Thus th
 - **WHEN** the user chooses a tab
 - **THEN** the system opens the path of that tab, and the screen shows it
 
-## The tab "General" starts a deployment
+## The tab "General" starts a deployment, and shows the final Compose file
 
-The tab `general` SHALL give one action: start a deployment of the service.
+The tab `general` SHALL give one action: start a deployment of the service. Below that action, it SHALL show a card with the final Compose file of the service. See the requirement *The card of the final Compose file* below; that card gives no action that starts a deployment.
 
 When the user starts a deployment, the system SHALL open the tab `deployments` immediately, before the answer of the API arrives. Thus the user sees the history while the new deployment starts.
 
@@ -410,3 +410,52 @@ The system SHALL block the action while the call runs.
 
 - **WHEN** the API refuses the deployment, for example because the service is not deployable
 - **THEN** the system shows the message "Could not start deployment", and the screen stays on the tab `deployments`
+
+## Read of the final Compose file of a service
+
+The system SHALL answer with the final Compose file of a service at `GET /api/v1/services/:id/final-compose`. The answer holds the text of the file, and the origin of that text: `deployment`, `repository` or `none`.
+
+The origin is `deployment` when a deployment of the service ran and saved its final Compose text. See the requirement *The final Compose text of a deployment* of the capability [deployments](./deployments.md). The origin is `repository` when the service holds no such deployment, but it holds a provider: the system then reads the Compose file at the path and the branch of the service, from that provider. The origin is `none` when the service holds neither, and the text is then `null`.
+
+### Scenario: The service holds a deployment with a final Compose text
+
+- **WHEN** a client calls the endpoint with the identifier of a service that has a deployment which saved a final Compose text
+- **THEN** the system answers `200` with that text, and the origin `deployment`
+
+### Scenario: The service holds a provider, and no such deployment
+
+- **WHEN** a client calls the endpoint with the identifier of a service that holds a provider, and no deployment that saved a final Compose text
+- **THEN** the system reads the Compose file of the repository, and it answers `200` with that text, and the origin `repository`
+
+### Scenario: The service holds no provider, and no such deployment
+
+- **WHEN** a client calls the endpoint with the identifier of a service that holds no provider, and no deployment that saved a final Compose text
+- **THEN** the system answers `200` with the text `null`, and the origin `none`
+
+### Scenario: The service does not exist
+
+- **WHEN** a client calls the endpoint with a UUID that matches no service
+- **THEN** the system answers `404 Not Found`
+
+## The card of the final Compose file
+
+The system SHALL show, in the tab `general`, a card that gives the text and the origin the endpoint above answers.
+
+When the card holds a text of the origin `deployment`, it SHALL show a note that says GitPaaS masks the value of every variable of the file; see the requirement *The final Compose text of a deployment* of the capability [deployments](./deployments.md). A text of the origin `repository` arrives from the provider as the repository holds it, with no mask of its own, so the card shows no note about a mask. When the origin of the text is `repository`, the card SHALL instead show a note that says the file is the file of the repository, and that the next deployment can still change it. When the service holds no text, the card SHALL show an empty state that explains why, and that invites the user to connect a provider, or to deploy the service.
+
+The card gives two actions on the text: copy it, and download it. It gives no action that edits the file, and it starts no deployment.
+
+### Scenario: The text comes from a deployment
+
+- **WHEN** the card reads a text with the origin `deployment`
+- **THEN** the card shows that text, with the note about the mask, and no note about the repository
+
+### Scenario: The text comes from the repository
+
+- **WHEN** the card reads a text with the origin `repository`
+- **THEN** the card shows that text, with the note that it is the file of the repository, and no note about the mask
+
+### Scenario: The service holds no text
+
+- **WHEN** the card reads the text `null`
+- **THEN** the card shows an empty state, and no viewer of a document
