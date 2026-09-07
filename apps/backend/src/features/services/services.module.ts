@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { TarRepositoryComposeFileAdapter } from './infrastructure/archive/tar-repository-compose-file.adapter';
 import { DbServiceEntity } from './infrastructure/database/db-service.entity';
 import { DatabaseServicesRepository } from './infrastructure/database/db-services.repository';
 import { DockerServiceRuntimeResourcesAdapter } from './infrastructure/docker/docker-service-runtime-resources.adapter';
@@ -11,6 +12,7 @@ import { DeploymentsModule } from '@features/deployments/deployments.module';
 import { LogsModule } from '@features/logs/logs.module';
 import { NamespacesModule } from '@features/namespaces/namespaces.module';
 import { ProjectsModule } from '@features/projects/projects.module';
+import { ProvidersModule } from '@features/providers/providers.module';
 
 /**
  * Services feature module.
@@ -21,6 +23,7 @@ import { ProjectsModule } from '@features/projects/projects.module';
         LogsModule,
         NamespacesModule,
         ProjectsModule,
+        ProvidersModule,
         forwardRef(() => DeploymentsModule),
     ],
     controllers: [ServicesController],
@@ -28,6 +31,7 @@ import { ProjectsModule } from '@features/projects/projects.module';
         ServicesService,
         DatabaseServicesRepository,
         DockerServiceRuntimeResourcesAdapter,
+        TarRepositoryComposeFileAdapter,
     ],
     exports: [DatabaseServicesRepository],
 })

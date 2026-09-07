@@ -21,11 +21,11 @@ Two dependencies need an installation by the user, and no agent installs them: `
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/services/`
 
-- [ ] 2.1 Add the use case that answers the final Compose file of a service: the text of the last deployment that ran, if one exists.
-- [ ] 2.2 If the service holds no deployment and it holds a provider, answer the Compose file of the repository, and mark the answer as the file of the repository.
-- [ ] 2.3 If the service holds no deployment and no provider, answer an empty result.
-- [ ] 2.4 Add the route `GET /api/v1/services/:id/final-compose` to `services.controller.ts`, with its DTO of the answer: the text, and the origin of the text.
-- [ ] 2.5 Write the unit tests of the three cases of the use case.
+- [x] 2.1 Add the use case that answers the final Compose file of a service: the text of the last deployment that ran, if one exists.
+- [x] 2.2 If the service holds no deployment and it holds a provider, answer the Compose file of the repository, and mark the answer as the file of the repository.
+- [x] 2.3 If the service holds no deployment and no provider, answer an empty result.
+- [x] 2.4 Add the route `GET /api/v1/services/:id/final-compose` to `services.controller.ts`, with its DTO of the answer: the text, and the origin of the text.
+- [x] 2.5 Write the unit tests of the three cases of the use case.
 
 ## Phase 3 — The card of the tab General
 

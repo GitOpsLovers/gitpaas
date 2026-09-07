@@ -17,6 +17,9 @@ export {
 } from './services/service.contract';
 export type { CreateServiceDto, Service, UpdateServiceDto } from './services/service.contract';
 
+export { finalComposeOriginSchema, finalComposeSchema } from './services/final-compose.contract';
+export type { FinalCompose, FinalComposeOrigin } from './services/final-compose.contract';
+
 export {
     SERVICE_VARIABLE_NAME_MAX_LENGTH,
     SERVICE_VARIABLE_NAME_MESSAGE,
