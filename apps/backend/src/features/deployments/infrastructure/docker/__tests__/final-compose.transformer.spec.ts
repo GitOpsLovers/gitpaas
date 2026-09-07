@@ -162,6 +162,38 @@ describe('final-compose.transformer', () => {
             });
         });
 
+        it('declares every external network of the recipe again, and joins its service to it under the name of that service', () => {
+            const recipe: ComposeRecipe = {
+                services: { web: {}, cache: {} },
+                networks: {},
+            };
+
+            declareAttachedNetworks(recipe, new Set(), [], networkAlias, { web: ['shared', 'edge'] });
+
+            expect(recipe.networks).toEqual({ shared: { external: true }, edge: { external: true } });
+            expect(recipe.services?.web.networks).toEqual({ shared: { aliases: ['web'] }, edge: { aliases: ['web'] } });
+            expect(recipe.services?.cache.networks).toBeUndefined();
+        });
+
+        it('joins a service to the network of the proxy, the network of the project and the external network of the recipe at once', () => {
+            const recipe: ComposeRecipe = { services: { web: { networks: ['deploy'] } }, networks: { deploy: {} } };
+
+            declareAttachedNetworks(recipe, new Set(['web']), ['project-net'], networkAlias, { web: ['shared'] });
+
+            expect(recipe.networks).toEqual({
+                deploy: {},
+                'gitpaas-proxy': { external: true },
+                'project-net': { external: true },
+                shared: { external: true },
+            });
+            expect(recipe.services?.web.networks).toEqual({
+                deploy: null,
+                'gitpaas-proxy': null,
+                'project-net': { aliases: [networkAlias] },
+                shared: { aliases: ['web'] },
+            });
+        });
+
         it('leaves the recipe untouched when the stack joins no network after its start', () => {
             const recipe: ComposeRecipe = { services: { web: { networks: ['deploy'] } }, networks: { deploy: {} } };
 
@@ -200,6 +232,19 @@ describe('final-compose.transformer', () => {
                     },
                 },
                 networks: { deploy: {}, 'gitpaas-proxy': { external: true }, 'project-net': { external: true } },
+            });
+        });
+
+        it('dumps the external networks of the recipe the executor stripped, so the text states what the stack joins', () => {
+            const compose = asCompose({
+                recipe: { services: { web: { image: 'nginx:1.27' } }, networks: {} },
+            });
+
+            const text = toFinalComposeText(compose, baseDir, new Set(), [], networkAlias, { web: ['shared'] });
+
+            expect(parse(text)).toEqual({
+                services: { web: { image: 'nginx:1.27', networks: { shared: { aliases: ['web'] } } } },
+                networks: { shared: { external: true } },
             });
         });
 

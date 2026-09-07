@@ -22,12 +22,12 @@ The count of the networks of a service of the recipe stays out of the model of t
 **Agent:** implementer
 **Paths:** apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts, apps/backend/src/features/deployments/infrastructure/docker/final-compose.transformer.ts
 
-- [ ] 2.1 Call `stripExternalNetworks` in `up()`, before `declareDefaultNetwork`, and hold its map.
-- [ ] 2.2 Add `attachToRecipeNetworks(containers, map, emit)`, which reads the label `COMPOSE_SERVICE_LABEL` of each container, and connects it to each network of that compose service with the alias of the name of that service.
-- [ ] 2.3 Call that method after the start of the stack, beside `attachToProjectNetworks`.
-- [ ] 2.4 Report a network that the daemon does not hold with a line of log, and fail the deployment with a message that names that network.
-- [ ] 2.5 Declare those networks again in the text of the final Compose file, through `declareAttachedNetworks`, so the card of the user shows the truth.
-- [ ] 2.6 Write the unit tests of the adapter and of the transformer of the final Compose file.
+- [x] 2.1 Call `stripExternalNetworks` in `up()`, before `declareDefaultNetwork`, and hold its map.
+- [x] 2.2 Add `attachToRecipeNetworks(containers, map, emit)`, which reads the label `COMPOSE_SERVICE_LABEL` of each container, and connects it to each network of that compose service with the alias of the name of that service.
+- [x] 2.3 Call that method after the start of the stack, beside `attachToProjectNetworks`.
+- [x] 2.4 Report a network that the daemon does not hold with a line of log, and fail the deployment with a message that names that network.
+- [x] 2.5 Declare those networks again in the text of the final Compose file, through `declareAttachedNetworks`, so the card of the user shows the truth.
+- [x] 2.6 Write the unit tests of the adapter and of the transformer of the final Compose file.
 
 ## Phase 3 — The network of the recipe that survives its removal
 

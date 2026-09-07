@@ -150,20 +150,24 @@ export function maskEnvironment(recipe: ComposeRecipe): void {
 }
 
 /**
- * Declares on a recipe the networks the executor attaches after the start of the stack: the network of the proxy, and the networks of the project.
+ * Declares on a recipe the networks the executor attaches after the start of the stack.
  *
  * @param recipe Parsed compose recipe the final Compose text is dumped from
  * @param routed Names of the compose services that carry the routing, which join the network of the proxy
  * @param networks Names on the daemon of the networks of the project the containers of the stack join
  * @param networkAlias Alias the containers answer to on the networks of the project
+ * @param recipeNetworks Names on the daemon of the external networks of the recipe, grouped by the compose service that declared them
  */
 export function declareAttachedNetworks(
     recipe: ComposeRecipe,
     routed: Set<string>,
     networks: string[],
     networkAlias: string,
+    recipeNetworks: Record<string, string[]> = {},
 ): void {
-    if (routed.size === 0 && networks.length === 0) {
+    const stripped = Object.values(recipeNetworks).flat();
+
+    if (routed.size === 0 && networks.length === 0 && stripped.length === 0) {
         return;
     }
 
@@ -174,7 +178,7 @@ export function declareAttachedNetworks(
         declared[PROXY_NETWORK] = { external: true };
     }
 
-    for (const network of networks) {
+    for (const network of [...networks, ...stripped]) {
         // eslint-disable-next-line security/detect-object-injection
         declared[network] = { external: true };
     }
@@ -194,6 +198,12 @@ export function declareAttachedNetworks(
             attached[network] = { aliases: [networkAlias] };
         }
 
+        // eslint-disable-next-line security/detect-object-injection
+        for (const network of recipeNetworks[name] ?? []) {
+            // eslint-disable-next-line security/detect-object-injection
+            attached[network] = { aliases: [name] };
+        }
+
         if (Object.keys(attached).length === 0) {
             continue;
         }
@@ -210,6 +220,7 @@ export function declareAttachedNetworks(
  * @param routed Names of the compose services that carry the routing
  * @param networks Names on the daemon of the networks of the project the containers of the stack join
  * @param networkAlias Alias the containers answer to on the networks of the project
+ * @param recipeNetworks Names on the daemon of the external networks stripped from the recipe, grouped by the compose service that declared them
  *
  * @returns The final Compose text, as YAML
  */
@@ -219,11 +230,12 @@ export function toFinalComposeText(
     routed: Set<string>,
     networks: string[],
     networkAlias: string,
+    recipeNetworks: Record<string, string[]> = {},
 ): string {
     // The recipe the daemon receives keeps its true values, so every rewrite lands on a copy of it.
     const recipe = structuredClone(composeRecipe(compose));
 
-    declareAttachedNetworks(recipe, routed, networks, networkAlias);
+    declareAttachedNetworks(recipe, routed, networks, networkAlias, recipeNetworks);
     relativizeBindMounts(recipe, baseDir);
     maskEnvironment(recipe);
 
