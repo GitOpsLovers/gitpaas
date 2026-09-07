@@ -1,0 +1,27 @@
+apps/backend/src/features/deployments/infrastructure/docker/final-compose.transformer.ts
+  s_5319f2148c3468::t_b48e0e38b4ffbd 153,159,166,168-170,181,201-206,223,233,238
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_5319f2148c3468::t_2f7ce94536ae25 27,122-125,148,163-166,366-416
+docs/roadmap/recipe-external-networks/TODO.md
+  s_5319f2148c3468::t_d9902e495dfcb0 25-30
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/final-compose.transformer.spec.ts
+  s_5319f2148c3468::t_42b4272f1877b0 165-196,236-248
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_5319f2148c3468::t_439dbd491dc983 821-960
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b54a573ca30476d57e9d9cf704fc6f60e0f490d8",
+  "prompts": {},
+  "sessions": {
+    "s_5319f2148c3468": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5512e946-e5c0-4b4c-9333-e0062fd8109d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
