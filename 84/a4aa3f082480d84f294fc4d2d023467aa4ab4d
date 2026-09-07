@@ -1,0 +1,53 @@
+apps/backend/src/features/services/application/get-final-compose.use-case.ts
+  s_2ce48d165a6b77::t_39ec57cf7c246d 1-72
+apps/backend/src/features/services/domain/models/final-compose.models.ts
+  s_2ce48d165a6b77::t_a7cabb06d72b43 1-12
+apps/backend/src/features/services/domain/ports/repository-compose-file.port.ts
+  s_2ce48d165a6b77::t_63874440b27942 1-14
+apps/backend/src/features/services/infrastructure/archive/tar-repository-compose-file.adapter.ts
+  s_2ce48d165a6b77::t_e85d22fac43ae7 1-48
+apps/backend/src/features/services/services.module.ts
+  s_2ce48d165a6b77::t_4d4e74c9ab3ca1 4,15,26,34
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_2ce48d165a6b77::t_fd11a9cce69eb4 6,78-81,94,108,123-172
+apps/backend/src/features/services/ui/controllers/services.controller.ts
+  s_2ce48d165a6b77::t_cac214a741c28a 2-7,59-76
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_2ce48d165a6b77::t_8eeb646b15a690 7,11,21-22,27,40-42,74-76,88-90,101-103,269-301
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_2ce48d165a6b77::t_a07592ab954da3 7,10,12,15,28-31,51-56,96-116
+docs/roadmap/final-compose-file-card/TODO.md
+  s_2ce48d165a6b77::t_5957697cd478e0 24-28
+packages/contracts/src/services/final-compose.contract.ts
+  s_2ce48d165a6b77::t_7ba5838bacecca 1-25
+apps/backend/src/features/services/application/__tests__/get-final-compose.use-case.spec.ts
+  s_841262affa124a::t_c3b32a9790ea36 1-194
+apps/backend/src/features/services/infrastructure/archive/__tests__/tar-repository-compose-file.adapter.spec.ts
+  s_841262affa124a::t_8edd036377b546 1-79
+packages/contracts/src/index.ts
+  s_841262affa124a::t_897f86a79205bf 20-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "84a4aa3f082480d84f294fc4d2d023467aa4ab4d",
+  "prompts": {},
+  "sessions": {
+    "s_2ce48d165a6b77": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f964ceb7-997d-4f84-a6c3-1ada09434062",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_841262affa124a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af28f31808e27e0ad",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
