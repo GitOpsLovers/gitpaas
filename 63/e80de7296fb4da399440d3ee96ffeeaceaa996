@@ -1,0 +1,86 @@
+apps/backend/src/features/deployments/ui/controllers/__tests__/deployments.controller.spec.ts
+  s_2522eb189470ba::t_420e586f9a442f 26
+apps/frontend/package.json
+  s_2522eb189470ba::t_cd2645b951b31c 21
+apps/backend/package.json
+  s_2522eb189470ba::t_c0c6db6a228908 43
+apps/backend/src/features/deployments/domain/ports/docker-executor.port.ts
+  s_6390a8a7314d48::t_02fec296abeb5d 44-45,55
+apps/backend/src/features/deployments/application/__tests__/create-deployment.use-case.spec.ts
+  s_2522eb189470ba::t_7566817a43b328 76
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_2522eb189470ba::t_643e7e0e381fdf 138
+  s_2522eb189470ba::t_33b81bee0c3223 135-137
+  s_2522eb189470ba::t_1242e99acea543 139-141
+  s_2522eb189470ba::t_7b826f011e4a9b 142-143
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_2522eb189470ba::t_2b9a6e1e4a6f5d 9,486,527,693-729,747,815,962
+apps/backend/src/features/deployments/domain/models/deployment.models.ts
+  s_2522eb189470ba::t_af67e2c76debf5 19
+apps/backend/src/features/deployments/ui/services/__tests__/deployments.service.spec.ts
+  s_2522eb189470ba::t_371a58dc63254c 60
+apps/backend/src/features/deployments/application/__tests__/persist-deployment.use-case.spec.ts
+  s_2522eb189470ba::t_80a191753e757a 26
+docs/roadmap/final-compose-file-card/TODO.md
+  s_2522eb189470ba::t_fd41806b29b95d 12-17
+apps/backend/src/features/deployments/application/__tests__/get-deployments-by-service.use-case.spec.ts
+  s_2522eb189470ba::t_ab8212552489e8 19
+apps/backend/src/features/deployments/domain/dtos/update-deployment.dto.ts
+  s_2522eb189470ba::t_6331969cdfef03 9
+apps/backend/src/features/deployments/infrastructure/database/db-deployments.repository.ts
+  s_2522eb189470ba::t_5487d2e39a3e96 94-98
+apps/backend/src/features/deployments/infrastructure/database/db-deployment.entity.ts
+  s_2522eb189470ba::t_cfc554245b19d8 39-41
+apps/backend/src/features/deployments/application/__tests__/get-compose-services.use-case.spec.ts
+  s_2522eb189470ba::t_f64c0cc1046d22 53
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_6390a8a7314d48::t_15ec4af75a6297 29,99,141-144,163-164
+apps/backend/src/features/deployments/infrastructure/database/db-deployments.transformer.ts
+  s_2522eb189470ba::t_7393cddb03c5ab 23
+apps/backend/src/features/logs/application/__tests__/get-logs-by-deployment.use-case.spec.ts
+  s_2522eb189470ba::t_4645c04d3c2b64 31
+iac/production/migrations/028_deployments_final_compose.sql
+  s_6390a8a7314d48::t_4e50b64e0cd9f5 1-14
+apps/backend/src/features/deployments/ui/transformers/__tests__/deployment-response.transformer.spec.ts
+  s_2522eb189470ba::t_1d5644473600b6 15
+apps/backend/src/features/deployments/infrastructure/database/__tests__/db-deployments.transformer.spec.ts
+  s_2522eb189470ba::t_ebf3f94e90be29 18,33,39,51,66
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_2522eb189470ba::t_094e87e40cefb0 121,127
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_2522eb189470ba::t_e54348ec01de62 64-66,180,189,198,234,256,275,287,306,339,373,387,393,403,408,432,452,494,523,548,553
+apps/backend/src/features/deployments/application/__tests__/find-deployment-by-id.use-case.spec.ts
+  s_2522eb189470ba::t_52e4e2e8193dce 19
+apps/backend/src/features/deployments/infrastructure/docker/final-compose.transformer.ts
+  s_2522eb189470ba::t_50e3b0f9f7f712 1-231
+pnpm-lock.yaml
+  s_2522eb189470ba::t_5bb311873cce90 134-136,143,237-239,249,258,279,289,301,4824-4827,7616-7620,7996,8006,8026,8035,8932,8939,8971,8978,9010,9017,11200,11202,11204,11212,11216,11224,11228,11236,11258,11264,11266,11272,13448-13449,16182,16196,16198,16201,16218,16226,16229,16246,16452-16453
+apps/backend/src/features/deployments/infrastructure/database/__tests__/db-deployments.repository.spec.ts
+  s_2522eb189470ba::t_e22efcb9e75166 21,179-198
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/final-compose.transformer.spec.ts
+  s_6390a8a7314d48::t_778bff4b43ea6e 1-232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "63e80de7296fb4da399440d3ee96ffeeaceaa996",
+  "prompts": {},
+  "sessions": {
+    "s_2522eb189470ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42ab83d9-516a-450a-a37b-90cf1a249fd1",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_6390a8a7314d48": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af4f9e42ee1656071",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
