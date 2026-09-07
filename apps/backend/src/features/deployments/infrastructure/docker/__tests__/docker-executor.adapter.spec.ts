@@ -1107,6 +1107,160 @@ describe('DockerExecutorAdapter', () => {
             expect(composeUp).toHaveBeenCalledTimes(1);
         });
 
+        it('takes the network of the recipe the daemon still holds out of it, and joins the container to it after the start', async () => {
+            const container = startedContainer('web');
+            let networksAtUp: unknown;
+            let serviceNetworksAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                const recipe = liveRecipe<{ services: { web: { networks?: unknown } }; networks?: unknown }>();
+
+                networksAtUp = JSON.parse(JSON.stringify(recipe.networks ?? null)) as unknown;
+                serviceNetworksAtUp = JSON.parse(JSON.stringify(recipe.services.web.networks ?? null)) as unknown;
+
+                return Promise.resolve({ services: [container] });
+            });
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx', networks: ['data'] } }, networks: { data: {} } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: composeUp,
+            };
+
+            // A container of another stack holds the network of the previous deployment, so its
+            // removal left it on the daemon and its creation would answer the code 409.
+            const listNetworks = jest.fn((selector: { service?: string | null }) => Promise.resolve(
+                selector.service === undefined ? [{ id: 'network-9', name: 'test-project_data' }] : [],
+            ));
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject,
+                listNetworks,
+                removeNetwork: jest.fn().mockResolvedValue(undefined),
+                pullImage: jest.fn().mockResolvedValue({}),
+                followProgress,
+                connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+
+            expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['network_default']);
+            expect(serviceNetworksAtUp).toEqual(['network_default']);
+            expect(connectNetwork).toHaveBeenCalledTimes(1);
+            expect(connectNetwork).toHaveBeenCalledWith('test-project_data', 'container-1', ['web']);
+            expect(onLog).toHaveBeenCalledWith('▹ The network test-project_data survived its removal; the deployment reuses it.');
+        });
+
+        it('declares the surviving network of the recipe again on the final Compose text', async () => {
+            const container = startedContainer('web');
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx', networks: ['data'] } }, networks: { data: {} } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: jest.fn().mockResolvedValue({ services: [container] }),
+            };
+
+            const listNetworks = jest.fn((selector: { service?: string | null }) => Promise.resolve(
+                selector.service === undefined ? [{ id: 'network-9', name: 'test-project_data' }] : [],
+            ));
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject,
+                listNetworks,
+                removeNetwork: jest.fn().mockResolvedValue(undefined),
+                pullImage: jest.fn().mockResolvedValue({}),
+                followProgress,
+                connectNetwork: jest.fn().mockResolvedValue(undefined),
+            });
+
+            const text = await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            const dumped = parse(text) as { services: { web: Record<string, unknown> }; networks: Record<string, unknown> };
+
+            expect(dumped.networks['test-project_data']).toEqual({ external: true });
+            expect(dumped.services.web.networks).toEqual({
+                network_default: null,
+                'test-project_data': { aliases: ['web'] },
+            });
+        });
+
+        it('keeps the network of the recipe the removal took away in it, so the engine creates it again', async () => {
+            const container = startedContainer('web');
+            let networksAtUp: unknown;
+            let serviceNetworksAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                const recipe = liveRecipe<{ services: { web: { networks?: unknown } }; networks?: unknown }>();
+
+                networksAtUp = JSON.parse(JSON.stringify(recipe.networks ?? null)) as unknown;
+                serviceNetworksAtUp = JSON.parse(JSON.stringify(recipe.services.web.networks ?? null)) as unknown;
+
+                return Promise.resolve({ services: [container] });
+            });
+            mockCompose.instance = {
+                recipe: { services: { web: { image: 'nginx', networks: ['data'] } }, networks: { data: {} } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: composeUp,
+            };
+
+            const listNetworks = jest.fn().mockResolvedValue([]);
+            const connectNetwork = jest.fn();
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject, listNetworks, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+
+            expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['data', 'network_default']);
+            expect(serviceNetworksAtUp).toEqual(['data']);
+            expect(connectNetwork).not.toHaveBeenCalled();
+            expect(onLog).not.toHaveBeenCalledWith(expect.stringContaining('survived its removal'));
+        });
+
+        it('reads the name on the daemon of a surviving network from its own field, and spares the network of a sibling key', async () => {
+            const container = startedContainer('web');
+            let networksAtUp: unknown;
+            let serviceNetworksAtUp: unknown;
+            const composeUp = jest.fn(() => {
+                const recipe = liveRecipe<{ services: { web: { networks?: unknown } }; networks?: unknown }>();
+
+                networksAtUp = JSON.parse(JSON.stringify(recipe.networks ?? null)) as unknown;
+                serviceNetworksAtUp = JSON.parse(JSON.stringify(recipe.services.web.networks ?? null)) as unknown;
+
+                return Promise.resolve({ services: [container] });
+            });
+            mockCompose.instance = {
+                recipe: {
+                    services: { web: { image: 'nginx', networks: { data: null, cache: null } } },
+                    networks: { data: { name: 'shared-data' }, cache: {} },
+                },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: composeUp,
+            };
+
+            const listNetworks = jest.fn((selector: { service?: string | null }) => Promise.resolve(
+                selector.service === undefined ? [{ id: 'network-9', name: 'shared-data' }] : [],
+            ));
+            const connectNetwork = jest.fn().mockResolvedValue(undefined);
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({
+                createComposeProject,
+                listNetworks,
+                removeNetwork: jest.fn().mockResolvedValue(undefined),
+                pullImage: jest.fn().mockResolvedValue({}),
+                followProgress,
+                connectNetwork,
+            });
+            const onLog = jest.fn();
+
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+
+            expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['cache', 'network_default']);
+            expect(serviceNetworksAtUp).toEqual({ cache: null });
+            expect(connectNetwork).toHaveBeenCalledTimes(1);
+            expect(connectNetwork).toHaveBeenCalledWith('shared-data', 'container-1', ['web']);
+            expect(onLog).toHaveBeenCalledWith('▹ The network shared-data survived its removal; the deployment reuses it.');
+        });
+
         it('still cleans up the temp dir when an early step throws', async () => {
             mockCompose.instance = {
                 recipe: { services: {} },

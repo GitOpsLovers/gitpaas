@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import * as tar from 'tar';
 
 import { getBuiltImageTagUseCase } from '../../application/get-built-image-tag.use-case';
-import { getDefaultNetworkNameUseCase } from '../../application/get-default-network-name.use-case';
+import { getDefaultNetworkKeyUseCase, getDefaultNetworkNameUseCase } from '../../application/get-default-network-name.use-case';
 import { DeploymentTarget, DockerExecutor, DockerLogListener } from '../../domain/ports/docker-executor.port';
 
 import { interpolateRecipe } from './compose-interpolation';
@@ -132,6 +132,10 @@ export class DockerExecutorAdapter implements DockerExecutor {
             await this.removeServiceContainers(serviceId, emit);
             await this.removeServiceNetworks(serviceId, emit);
             await this.removeDefaultNetwork(projectName, emit);
+
+            // A network of the recipe a container of another stack holds survives its removal, and
+            // the engine answers the code 409 on its creation, so it takes the path of an external one.
+            await this.reuseSurvivingNetworks(compose, projectName, recipeNetworks, emit);
 
             normalizeHealthchecks(compose);
 
@@ -268,6 +272,78 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
                 emit(`✖ Could not remove the leftover network ${name}: ${message}`);
                 this.logger.warn(`Could not remove the leftover network ${name}: ${message}`, DockerExecutorAdapter.name);
+            }
+        }
+    }
+
+    /**
+     * Takes every network of the recipe the daemon still holds out of it.
+     *
+     * @param compose Compose project driven by the container runtime
+     * @param projectName Compose project name the stack is grouped under
+     * @param recipeNetworks Names on the daemon of the networks each compose service joins after the start, which the surviving ones join in place
+     * @param emit Line emitter
+     */
+    private async reuseSurvivingNetworks(
+        compose: RuntimeComposeProject,
+        projectName: string,
+        recipeNetworks: Record<string, string[]>,
+        emit: DockerLogListener,
+    ): Promise<void> {
+        const recipe = composeRecipe(compose);
+        const declared = recipe.networks ?? {};
+        const defaultKey = getDefaultNetworkKeyUseCase();
+        const held = new Set((await this.docker.listNetworks({})).map((network) => network.name));
+        const surviving = new Map<string, string>();
+
+        for (const [key, network] of Object.entries(declared)) {
+            const name = network?.name ?? `${projectName}_${key}`;
+
+            // The default network of the deployment took its own removal, and an external one never was created here.
+            if (key === defaultKey || network?.external === true || !held.has(name)) {
+                continue;
+            }
+
+            surviving.set(key, name);
+
+            emit(`▹ The network ${name} survived its removal; the deployment reuses it.`);
+        }
+
+        if (surviving.size === 0) {
+            return;
+        }
+
+        recipe.networks = Object.fromEntries(Object.entries(declared).filter(([key]) => !surviving.has(key)));
+
+        for (const [service, definition] of Object.entries(recipeServices(compose))) {
+            const block = definition.networks;
+
+            if (block === undefined) {
+                continue;
+            }
+
+            const keys = (Array.isArray(block) ? block : Object.keys(block)).filter((key) => surviving.has(key));
+
+            if (keys.length === 0) {
+                continue;
+            }
+
+            // eslint-disable-next-line security/detect-object-injection
+            const joined = recipeNetworks[service] ?? [];
+
+            // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-non-null-assertion, no-param-reassign
+            recipeNetworks[service] = [...joined, ...keys.map((key) => surviving.get(key)!)];
+
+            const kept = Array.isArray(block)
+                ? block.filter((key) => !surviving.has(key))
+                : Object.fromEntries(Object.entries(block).filter(([key]) => !surviving.has(key)));
+
+            // A service that keeps no key joins the default network of the deployment, which
+            // `declareDefaultNetwork` already declared, and never a bare `<project>_default`.
+            if (Array.isArray(kept)) {
+                definition.networks = kept.length === 0 ? [defaultKey] : kept;
+            } else {
+                definition.networks = Object.keys(kept).length === 0 ? { [defaultKey]: null } : kept;
             }
         }
     }
