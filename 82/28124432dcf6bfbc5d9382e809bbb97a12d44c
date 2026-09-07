@@ -1,0 +1,23 @@
+docs/roadmap/recipe-external-networks/TODO.md
+  s_d75e5e5ae929d4::t_4e04b050f58b0e 37-40
+apps/backend/src/features/deployments/infrastructure/docker/docker-executor.adapter.ts
+  s_d75e5e5ae929d4::t_b980733f5ace0e 12,136-139,279-350
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_d75e5e5ae929d4::t_ed763543d073e6 1110-1263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8228124432dcf6bfbc5d9382e809bbb97a12d44c",
+  "prompts": {},
+  "sessions": {
+    "s_d75e5e5ae929d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bc378324-8d89-44a6-8ead-db3c28d9143d",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
