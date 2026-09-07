@@ -5,7 +5,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import type {
-    Container, Domain, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable, Volume,
+    Container, Domain, FinalCompose, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
+    Volume,
 } from '@gitpaas/contracts';
 import { NEVER, of, Subject, throwError } from 'rxjs';
 
@@ -176,8 +177,10 @@ describe('ServiceDetailComponent', () => {
     let namespaceValue: ReturnType<typeof signal<Namespace | undefined>>;
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
     let serviceValue: ReturnType<typeof signal<Service | undefined>>;
+    let finalComposeValue: ReturnType<typeof signal<FinalCompose | undefined>>;
     let repository: {
         serviceById: ReturnType<typeof vi.fn>;
+        finalComposeByService: ReturnType<typeof vi.fn>;
         update: ReturnType<typeof vi.fn>;
     };
     let namespacesRepository: {
@@ -251,8 +254,10 @@ describe('ServiceDetailComponent', () => {
         projectValue = signal<Project | undefined>(undefined);
         serviceValue = signal<Service | undefined>(undefined);
         deploymentsResource = { value: signal(undefined), reload: vi.fn() };
+        finalComposeValue = signal<FinalCompose | undefined>(undefined);
         repository = {
             serviceById: vi.fn().mockReturnValue({ value: serviceValue }),
+            finalComposeByService: vi.fn().mockReturnValue({ value: finalComposeValue, isLoading: () => false }),
             update: vi.fn(),
         };
         namespacesRepository = {
@@ -357,6 +362,19 @@ describe('ServiceDetailComponent', () => {
         expect(namespaceAccessor()).toBe('ns-1');
         expect(projectAccessor()).toBe('pr-1');
         expect(serviceAccessor()).toBe('sv-1');
+    });
+
+    test('loads the final Compose file of the service of the route', () => {
+        create();
+
+        const [composeAccessor] = repository.finalComposeByService.mock.calls[0] as [() => string | undefined];
+
+        expect(composeAccessor()).toBe('sv-1');
+
+        fixture.componentRef.setInput('serviceId', 'sv-2');
+        fixture.detectChanges();
+
+        expect(composeAccessor()).toBe('sv-2');
     });
 
     test('builds a breadcrumb with namespaced project links', () => {
@@ -988,7 +1006,7 @@ describe('ServiceDetailComponent', () => {
 // `ServiceDetailComponent` through the actual bindings of `service-detail.component.html`, and not
 // by calling a handler directly.
 describe('ServiceDetailComponent bindings of the child outputs', () => {
-    let repository: { serviceById: ReturnType<typeof vi.fn> };
+    let repository: { serviceById: ReturnType<typeof vi.fn>; finalComposeByService: ReturnType<typeof vi.fn> };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
         projectById: ReturnType<typeof vi.fn>;
@@ -1006,7 +1024,12 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
     let logsModal: DeploymentLogsModalComponent;
 
     beforeEach(() => {
-        repository = { serviceById: vi.fn().mockReturnValue({ value: signal(service) }) };
+        repository = {
+            serviceById: vi.fn().mockReturnValue({ value: signal(service) }),
+            finalComposeByService: vi.fn().mockReturnValue({
+                value: signal(undefined), isLoading: signal(false),
+            }),
+        };
         deploymentsResource = { value: signal(undefined), reload: vi.fn() };
         projectsRepository = {
             namespaceId: signal<string | undefined>(undefined),

@@ -2,8 +2,8 @@ import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type {
-    Container, Deployment, Domain, Namespace, Network, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
-    Volume,
+    Container, Deployment, Domain, FinalCompose, Namespace, Network, Project, ProjectNetwork, RuntimeLogLine, Service,
+    ServiceVariable, Volume,
 } from '@gitpaas/contracts';
 import { LucideLayers } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
@@ -17,6 +17,7 @@ import { ServicesApiRepository } from '../../../infrastructure/api/services-api.
 import { DeploymentLogsModalComponent } from '../../components/deployment-logs-modal/deployment-logs-modal.component';
 import { ServiceDeployActionsComponent } from '../../components/service-deploy-actions/service-deploy-actions.component';
 import { ServiceDeploymentsComponent } from '../../components/service-deployments/service-deployments.component';
+import { ServiceFinalComposeComponent } from '../../components/service-final-compose/service-final-compose.component';
 import { ServiceLogsComponent } from '../../components/service-logs/service-logs.component';
 import { ServiceProviderComponent, ServiceProviderSettings } from '../../components/service-provider/service-provider.component';
 import { ServiceVariableChange, ServiceVariablesComponent } from '../../components/service-variables/service-variables.component';
@@ -66,6 +67,7 @@ type ServiceTab = 'general' | 'provider' | 'environment' | 'domains' | 'deployme
         ServiceDeployActionsComponent,
         ServiceDeploymentsComponent,
         ServiceDomainsComponent,
+        ServiceFinalComposeComponent,
         ServiceLogsComponent,
         ServiceNetworksComponent,
         ServiceProviderComponent,
@@ -134,6 +136,8 @@ export class ServiceDetailComponent {
 
     // eslint-disable-next-line max-len
     protected readonly composeServices: HttpResourceRef<string[] | undefined> = this.deploymentsRepository.composeServicesByService(() => this.serviceId());
+
+    protected readonly finalCompose: HttpResourceRef<FinalCompose | undefined> = this.repository.finalComposeByService(() => this.serviceId());
 
     // eslint-disable-next-line max-len
     protected readonly variables: HttpResourceRef<ServiceVariable[] | undefined> = this.variablesRepository.variablesByService(() => this.serviceId());

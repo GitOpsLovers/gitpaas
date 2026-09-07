@@ -32,12 +32,12 @@ Two dependencies need an installation by the user, and no agent installs them: `
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/shared/components/`, `apps/frontend/src/app/features/services/`
 
-- [ ] 3.1 Create the shared component `yaml-viewer`: a scrollable block of a monospace font, the syntax highlighting of `highlight.js`, a button that copies the text, and a button that downloads it.
-- [ ] 3.2 Add the method of the API and the resource that call `GET /api/v1/services/:id/final-compose`.
-- [ ] 3.3 Add the card `final-compose` below `<app-service-deploy-actions>` in `service-detail.component.html`, expanded, with the viewer inside it.
-- [ ] 3.4 Show the state of the load, the empty state with its explanation, and the note that says when the text comes from the repository and not from a deployment.
-- [ ] 3.5 Show a note that says that GitPaaS masks the value of every variable.
-- [ ] 3.6 Write the unit tests of the viewer and of the card.
+- [x] 3.1 Create the shared component `yaml-viewer`: a scrollable block of a monospace font, the syntax highlighting of `highlight.js`, a button that copies the text, and a button that downloads it.
+- [x] 3.2 Add the method of the API and the resource that call `GET /api/v1/services/:id/final-compose`.
+- [x] 3.3 Add the card `final-compose` below `<app-service-deploy-actions>` in `service-detail.component.html`, expanded, with the viewer inside it.
+- [x] 3.4 Show the state of the load, the empty state with its explanation, and the note that says when the text comes from the repository and not from a deployment.
+- [x] 3.5 Show a note that says that GitPaaS masks the value of every variable.
+- [x] 3.6 Write the unit tests of the viewer and of the card.
 
 ## Phase 4 — The documentation
 

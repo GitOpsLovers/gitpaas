@@ -1,6 +1,6 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import type { CreateServiceDto, Service, UpdateServiceDto } from '@gitpaas/contracts';
+import type { CreateServiceDto, FinalCompose, Service, UpdateServiceDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -38,6 +38,21 @@ export class ServicesApiRepository {
             const serviceId = id();
 
             return serviceId ? `${this.url}/${serviceId}` : undefined;
+        });
+    }
+
+    /**
+     * Resource with the final Compose file of a service, with the value of every variable masked
+     *
+     * @param id Accessor returning the service identifier
+     *
+     * @returns Resource that resolves to the text of the file and to its origin
+     */
+    public finalComposeByService(id: () => string | undefined) {
+        return httpResource<FinalCompose>(() => {
+            const serviceId = id();
+
+            return serviceId ? `${this.url}/${serviceId}/final-compose` : undefined;
         });
     }
 
