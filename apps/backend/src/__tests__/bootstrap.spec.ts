@@ -48,7 +48,7 @@ function buildApp(env: Record<string, string | undefined>) {
     };
 
     const usersService = {
-        seedDevelopmentAdmin: jest.fn().mockResolvedValue(undefined),
+        seedDevelopmentUser: jest.fn().mockResolvedValue(undefined),
     };
 
     const app = {
@@ -202,11 +202,11 @@ describe('bootstrap (bootstrap.ts)', () => {
 
             await bootstrap();
 
-            expect(usersService.seedDevelopmentAdmin).toHaveBeenCalledTimes(1);
+            expect(usersService.seedDevelopmentUser).toHaveBeenCalledTimes(1);
 
             // The seed must run only after the server is listening.
             const listenOrder = app.listen.mock.invocationCallOrder[0];
-            const seedOrder = usersService.seedDevelopmentAdmin.mock.invocationCallOrder[0];
+            const seedOrder = usersService.seedDevelopmentUser.mock.invocationCallOrder[0];
 
             expect(seedOrder).toBeGreaterThan(listenOrder);
         });
@@ -223,7 +223,7 @@ describe('bootstrap (bootstrap.ts)', () => {
 
                 await bootstrap();
 
-                expect(usersService.seedDevelopmentAdmin).not.toHaveBeenCalled();
+                expect(usersService.seedDevelopmentUser).not.toHaveBeenCalled();
                 expect(app.setGlobalPrefix).toHaveBeenCalledWith('api/v1');
                 expect(app.listen).toHaveBeenCalledWith('3000');
             },

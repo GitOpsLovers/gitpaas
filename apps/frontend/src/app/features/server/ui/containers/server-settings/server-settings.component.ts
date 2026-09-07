@@ -15,7 +15,6 @@ import { lastValueFrom } from 'rxjs';
 import { describeRequestFailureUseCase } from '../../../application/describe-request-failure.use-case';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 
-import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
@@ -64,8 +63,6 @@ export class ServerSettingsComponent {
 
     private readonly toast = inject(ToastService);
 
-    private readonly auth = inject(AuthService);
-
     protected readonly minDays = LOG_RETENTION_MIN_DAYS;
 
     protected readonly maxDays = LOG_RETENTION_MAX_DAYS;
@@ -105,11 +102,6 @@ export class ServerSettingsComponent {
      * Host that the last write kept, so the screen shows the manual steps that the change asks for.
      */
     protected readonly appliedDomain = signal<string | null>(null);
-
-    /**
-     * Whether the user may write the parameters of the deployment system.
-     */
-    protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'admin');
 
     /**
      * States that the read of the parameters failed, so the form shows no value.
@@ -175,7 +167,7 @@ export class ServerSettingsComponent {
     private readonly checkedDomain = computed<string | undefined>(() => {
         const host = this.domain();
 
-        return this.isAdmin() && host.length > 0 && this.domainError() === null ? host : undefined;
+        return host.length > 0 && this.domainError() === null ? host : undefined;
     });
 
     /**
@@ -232,10 +224,6 @@ export class ServerSettingsComponent {
             { label: 'Setup URL', url: `https://${host}/providers/registrations/installed` },
         ];
     });
-
-    constructor() {
-        this.loadCurrentUser();
-    }
 
     /**
      * Reads the field of the form, which the input gives as a string or a number.
@@ -304,13 +292,12 @@ export class ServerSettingsComponent {
     }
 
     /**
-     * States that the form holds a set of values that the API accepts, and that the user may write it.
+     * States that the form holds a set of values that the API accepts.
      *
      * @returns Whether the write may run
      */
     private canSave(): boolean {
-        return this.isAdmin()
-            && !this.saving()
+        return !this.saving()
             && this.logRetentionDays() !== undefined
             && this.boundsError() === null
             && this.domainError() === null
@@ -362,22 +349,6 @@ export class ServerSettingsComponent {
             this.toast.error('Could not save settings', message);
         } finally {
             this.saving.set(false);
-        }
-    }
-
-    /**
-     * Reads the user of the session, so the screen knows whether it may offer the write.
-     */
-    private async loadCurrentUser(): Promise<void> {
-        if (this.auth.currentUser()) {
-            return;
-        }
-
-        try {
-            await lastValueFrom(this.auth.loadCurrentUser());
-        } catch (error) {
-            // The role stays unknown, and the form stays read-only.
-            this.toast.error('Could not read your session', describeRequestFailureUseCase(error));
         }
     }
 }

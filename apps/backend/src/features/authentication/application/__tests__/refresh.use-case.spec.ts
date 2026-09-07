@@ -7,7 +7,7 @@ import { RefreshTokensRepository } from '../../domain/repositories/refresh-token
 import { issueTokensUseCase } from '../issue-tokens.use-case';
 import { refreshUseCase } from '../refresh.use-case';
 
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 jest.mock('../issue-tokens.use-case');
@@ -24,7 +24,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

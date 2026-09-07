@@ -37,8 +37,8 @@ export async function bootstrap() {
 
     await app.listen(config.getOrThrow<number>('PORT'));
 
-    // Provide an administrative user for the application in development mode
+    // Provide the first user of the application in development mode
     if (config.get<string>('NODE_ENV') === 'development') {
-        await app.get(UsersService).seedDevelopmentAdmin();
+        await app.get(UsersService).seedDevelopmentUser();
     }
 }

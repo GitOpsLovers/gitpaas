@@ -11,7 +11,7 @@ import { verifyTwoFactorUseCase } from '../verify-two-factor.use-case';
 
 import { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { Totp } from '@core/domain/ports/totp.port';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { UsersRepository } from '@features/users/domain/repositories/users.repository';
 
 const USER_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
@@ -35,7 +35,6 @@ const guardedUser = (overrides: Partial<User> = {}): User => ({
     displayName: 'Ada Lovelace',
     totpSecret: 'sealed-secret',
     totpEnabledAt: new Date('2026-07-12T00:00:00.000Z'),
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

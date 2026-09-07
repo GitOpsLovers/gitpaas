@@ -20,7 +20,7 @@ export async function issueTokensUseCase(
     tokenService: TokenService,
     user: User,
 ): Promise<AuthTokens> {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email };
 
     const accessToken = tokenService.signAccessToken(payload);
     const refreshToken = tokenService.issueRefreshToken(payload);

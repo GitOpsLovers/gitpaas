@@ -1,4 +1,4 @@
-import { User, UserRole } from '../../../domain/models/user.models';
+import { User } from '../../../domain/models/user.models';
 import { toUserResponse } from '../user-response.transformer';
 
 /** Builds a domain user fixture, overriding only the fields under test. */
@@ -9,7 +9,6 @@ const user = (overrides: Partial<User> = {}): User => ({
     displayName: 'Ada Lovelace',
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-12T00:00:00.000Z'),
@@ -22,7 +21,6 @@ describe('toUserResponse', () => {
             id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
             email: 'operator@gitpaas.dev',
             displayName: 'Ada Lovelace',
-            role: UserRole.Admin,
             totpEnabled: false,
             isActive: true,
             createdAt: '2026-07-11T00:00:00.000Z',
@@ -55,7 +53,6 @@ describe('toUserResponse', () => {
             id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
             email: 'operator@gitpaas.dev',
             displayName: 'Ada Lovelace',
-            role: UserRole.Admin,
             totpEnabled: false,
             isActive: true,
             createdAt: '2026-07-11T00:00:00.000Z',
@@ -69,10 +66,10 @@ describe('toUserResponse', () => {
         expect(Object.values<unknown>(response).some((value) => value instanceof Date)).toBe(false);
     });
 
-    it('preserves the role and the deactivation of an account', () => {
-        const response = toUserResponse(user({ role: UserRole.User, isActive: false }));
+    it('preserves the deactivation of an account', () => {
+        const response = toUserResponse(user({ isActive: false }));
 
-        expect(response).toMatchObject({ role: UserRole.User, isActive: false });
+        expect(response).toMatchObject({ isActive: false });
     });
 
     it('carries a display name that nobody wrote as null', () => {

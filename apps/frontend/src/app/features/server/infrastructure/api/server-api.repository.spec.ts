@@ -244,22 +244,8 @@ describe('ServerApiRepository', () => {
     });
 
     describe('the state of the update', () => {
-        // eslint-disable-next-line vitest/expect-expect
-        test('reads no state while the caller allows none', () => {
-            const enabled = signal(false);
-
-            TestBed.runInInjectionContext(() => repository.updateStatus(() => enabled()));
-            TestBed.tick();
-
-            httpMock.expectNone(() => true);
-        });
-
-        test('reads the state of the update once the caller allows it', async () => {
-            const enabled = signal(false);
-            const resource = TestBed.runInInjectionContext(() => repository.updateStatus(() => enabled()));
-            TestBed.tick();
-
-            enabled.set(true);
+        test('reads the state of the update when the caller creates the resource', async () => {
+            const resource = TestBed.runInInjectionContext(() => repository.updateStatus());
             TestBed.tick();
 
             const req = httpMock.expectOne(`${BASE_URL}/update`);
@@ -288,22 +274,8 @@ describe('ServerApiRepository', () => {
     });
 
     describe('the state of the debug of the database', () => {
-        // eslint-disable-next-line vitest/expect-expect
-        test('reads no state while the caller allows none', () => {
-            const enabled = signal(false);
-
-            TestBed.runInInjectionContext(() => repository.databaseDebug(() => enabled()));
-            TestBed.tick();
-
-            httpMock.expectNone(() => true);
-        });
-
-        test('reads the state of the session once the caller allows it', async () => {
-            const enabled = signal(false);
-            const resource = TestBed.runInInjectionContext(() => repository.databaseDebug(() => enabled()));
-            TestBed.tick();
-
-            enabled.set(true);
+        test('reads the state of the session when the caller creates the resource', async () => {
+            const resource = TestBed.runInInjectionContext(() => repository.databaseDebug());
             TestBed.tick();
 
             const req = httpMock.expectOne(`${BASE_URL}/database-debug`);

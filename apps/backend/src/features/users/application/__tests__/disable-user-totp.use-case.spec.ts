@@ -1,5 +1,5 @@
 import { UserNotFoundError } from '../../domain/errors/users.errors';
-import { User, UserRole } from '../../domain/models/user.models';
+import { User } from '../../domain/models/user.models';
 import { UsersRepository } from '../../domain/repositories/users.repository';
 import { disableUserTotpUseCase } from '../disable-user-totp.use-case';
 
@@ -12,7 +12,6 @@ const clearedUser: User = {
     displayName: 'Ada Lovelace',
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.User,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),

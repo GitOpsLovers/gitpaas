@@ -1,32 +1,13 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import type { PlatformUpdateStatus, User } from '@gitpaas/contracts';
-import { of, throwError } from 'rxjs';
+import type { PlatformUpdateStatus } from '@gitpaas/contracts';
 
 import { SidebarService } from '../../services/sidebar.service';
 
 import { SidebarVersionComponent } from './sidebar-version.component';
 
-import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { ServerApiRepository } from '@features/server/infrastructure/api/server-api.repository';
-import { ToastService } from '@shared/services/toast.service';
-
-const admin: User = {
-    id: 'us-1',
-    email: 'admin@gitpaas.dev',
-    displayName: null,
-    role: 'admin',
-    totpEnabled: false,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-};
-
-const member: User = {
-    ...admin, id: 'us-2', email: 'dev@gitpaas.dev', role: 'user',
-};
 
 const upToDate: PlatformUpdateStatus = {
     installedVersion: '1.4.0',
@@ -36,27 +17,10 @@ const upToDate: PlatformUpdateStatus = {
 
 const available: PlatformUpdateStatus = { ...upToDate, latestVersion: '1.5.0' };
 
-const SESSION_MESSAGE = 'The session of the user could not be read.';
-
-const sessionRefusal = (): HttpErrorResponse => new HttpErrorResponse({
-    status: 500,
-    error: {
-        statusCode: 500,
-        code: 'INTERNAL_SERVER_ERROR',
-        message: SESSION_MESSAGE,
-        error: 'Internal Server Error',
-        timestamp: '2026-08-31T10:00:00.000Z',
-        path: '/api/v1/auth/me',
-        requestId: 'rq-2',
-    },
-});
-
 describe('SidebarVersionComponent', () => {
     let value: ReturnType<typeof signal<PlatformUpdateStatus | undefined>>;
     let error: ReturnType<typeof signal<unknown>>;
     let repository: { updateStatus: ReturnType<typeof vi.fn> };
-    let auth: { currentUser: ReturnType<typeof signal<User | null>>; loadCurrentUser: ReturnType<typeof vi.fn> };
-    let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
     let sidebar: SidebarService;
     let fixture: ComponentFixture<SidebarVersionComponent>;
 
@@ -80,131 +44,68 @@ describe('SidebarVersionComponent', () => {
         value = signal<PlatformUpdateStatus | undefined>(undefined);
         error = signal<unknown>(undefined);
         repository = { updateStatus: vi.fn().mockReturnValue({ value, error, reload: vi.fn() }) };
-        auth = { currentUser: signal<User | null>(admin), loadCurrentUser: vi.fn().mockReturnValue(of(admin)) };
-        toast = { success: vi.fn(), error: vi.fn() };
 
         TestBed.configureTestingModule({
             imports: [SidebarVersionComponent],
-            providers: [
-                provideRouter([]),
-                { provide: AuthService, useValue: auth },
-                { provide: ToastService, useValue: toast },
-            ],
+            providers: [provideRouter([])],
         });
         TestBed.overrideComponent(SidebarVersionComponent, {
             set: { providers: [{ provide: ServerApiRepository, useValue: repository }] },
         });
     });
 
-    describe('a user that is not an administrator', () => {
-        test('reads no state of the update', () => {
-            auth.currentUser.set(member);
+    test('reads the state of the update one time when the block starts', () => {
+        create();
 
-            create();
-
-            const [enabled] = repository.updateStatus.mock.calls[0] as [() => boolean];
-
-            expect(enabled()).toBe(false);
-        });
-
-        test('shows no version', () => {
-            auth.currentUser.set(member);
-
-            create();
-            answer(available);
-
-            expect(text()).not.toContain('1.4.0');
-            expect(link()).toBeNull();
-        });
+        expect(repository.updateStatus).toHaveBeenCalledTimes(1);
     });
 
-    describe('an administrator', () => {
-        test('reads the state of the update one time when the block starts', () => {
-            create();
+    test('shows the installed version and no button when no release is newer', () => {
+        create();
+        answer(upToDate);
 
-            const [enabled] = repository.updateStatus.mock.calls[0] as [() => boolean];
+        expect(text()).toContain('GitPaaS 1.4.0');
+        expect(link()).toBeNull();
+    });
 
-            expect(repository.updateStatus).toHaveBeenCalledTimes(1);
-            expect(enabled()).toBe(true);
-        });
+    test('shows the button towards the maintenance when a newer release exists', () => {
+        create();
+        answer(available);
 
-        test('loads the user when the session holds none yet', () => {
-            auth.currentUser.set(null);
+        expect(text()).toContain('GitPaaS 1.4.0');
+        expect(link()?.textContent).toContain('Update to 1.5.0');
+        expect(link()?.getAttribute('href')).toBe('/server/maintenance');
+    });
 
-            create();
+    test('shows nothing while the sidebar is collapsed', () => {
+        create();
+        answer(available);
 
-            expect(auth.loadCurrentUser).toHaveBeenCalledTimes(1);
-        });
+        sidebar.setExpanded(false);
+        fixture.detectChanges();
 
-        test('shows a toast that carries the reason when the load of the user fails', async () => {
-            auth.currentUser.set(null);
-            auth.loadCurrentUser.mockReturnValue(throwError(() => sessionRefusal()));
+        expect(text()).not.toContain('1.4.0');
+        expect(link()).toBeNull();
+    });
 
-            create();
-            await Promise.resolve();
+    test('shows the version again when the collapsed sidebar is hovered', () => {
+        create();
+        answer(available);
 
-            expect(toast.error).toHaveBeenCalledWith('Could not read your session', SESSION_MESSAGE);
-        });
+        sidebar.setExpanded(false);
+        sidebar.setHovered(true);
+        fixture.detectChanges();
 
-        test('keeps the block of the version hidden when the load of the user fails', async () => {
-            auth.currentUser.set(null);
-            auth.loadCurrentUser.mockReturnValue(throwError(() => sessionRefusal()));
+        expect(text()).toContain('GitPaaS 1.4.0');
+    });
 
-            create();
-            await Promise.resolve();
-            answer(available);
+    test('shows no version when the read of the state fails', () => {
+        create();
+        answer(available);
 
-            expect(text()).not.toContain('1.4.0');
-            expect(link()).toBeNull();
-        });
+        error.set(new Error('boom'));
+        fixture.detectChanges();
 
-        test('shows the installed version and no button when no release is newer', () => {
-            create();
-            answer(upToDate);
-
-            expect(text()).toContain('GitPaaS 1.4.0');
-            expect(link()).toBeNull();
-        });
-
-        test('shows the button towards the maintenance when a newer release exists', () => {
-            create();
-            answer(available);
-
-            expect(text()).toContain('GitPaaS 1.4.0');
-            expect(link()?.textContent).toContain('Update to 1.5.0');
-            expect(link()?.getAttribute('href')).toBe('/server/maintenance');
-        });
-
-        test('shows nothing while the sidebar is collapsed', () => {
-            create();
-            answer(available);
-
-            sidebar.setExpanded(false);
-            fixture.detectChanges();
-
-            expect(text()).not.toContain('1.4.0');
-            expect(link()).toBeNull();
-        });
-
-        test('shows the version again when the collapsed sidebar is hovered', () => {
-            create();
-            answer(available);
-
-            sidebar.setExpanded(false);
-            sidebar.setHovered(true);
-            fixture.detectChanges();
-
-            expect(text()).toContain('GitPaaS 1.4.0');
-        });
-
-        test('shows no version when the read of the state fails', () => {
-            create();
-            answer(available);
-
-            error.set(new Error('boom'));
-            fixture.detectChanges();
-
-            expect(text()).not.toContain('1.4.0');
-        });
+        expect(text()).not.toContain('1.4.0');
     });
 });

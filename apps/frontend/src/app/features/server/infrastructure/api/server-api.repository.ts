@@ -126,12 +126,10 @@ export class ServerApiRepository {
     /**
      * Resource with the versions of the installation and the state of its last update.
      *
-     * @param enabled Accessor telling whether the read may run
-     *
      * @returns Resource that resolves to the state of the update of the platform
      */
-    public updateStatus(enabled: () => boolean) {
-        return httpResource<PlatformUpdateStatus>(() => (enabled() ? `${this.url}/update` : undefined));
+    public updateStatus() {
+        return httpResource<PlatformUpdateStatus>(() => `${this.url}/update`);
     }
 
     /**
@@ -155,12 +153,10 @@ export class ServerApiRepository {
     /**
      * Resource with the state of the session of the debug of the database.
      *
-     * @param enabled Accessor telling whether the read may run
-     *
      * @returns Resource that resolves to the state of the session of the debug
      */
-    public databaseDebug(enabled: () => boolean) {
-        return httpResource<DatabaseDebugStatus>(() => (enabled() ? `${this.url}/database-debug` : undefined));
+    public databaseDebug() {
+        return httpResource<DatabaseDebugStatus>(() => `${this.url}/database-debug`);
     }
 
     /**

@@ -1,12 +1,9 @@
-import { UserRole } from '@features/users/domain/models/user.models';
-
 /**
  * Claims carried by a signed access token.
  */
 export interface AccessTokenPayload {
     sub: string;
     email: string;
-    role: UserRole;
 }
 
 /**

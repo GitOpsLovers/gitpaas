@@ -30,7 +30,6 @@ import {
     ParseUUIDPipe,
     Post,
     Put,
-    UseGuards,
 } from '@nestjs/common';
 
 import { ProviderNotFoundError } from '../../domain/errors/provider.errors';
@@ -41,15 +40,11 @@ import { toProviderResponse } from '../transformers/provider-response.transforme
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
 import { translateError } from '@core/ui/translators/http-error.translator';
-import { Roles } from '@features/authentication/ui/decorators/roles.decorator';
-import { RolesGuard } from '@features/authentication/ui/guards/roles.guard';
-import { UserRole } from '@features/users/domain/models/user.models';
 
 /**
  * REST controller for the provider resource (`/api/v1/providers`).
  */
 @Controller('providers')
-@UseGuards(RolesGuard)
 export class ProvidersController {
     constructor(private readonly service: ProvidersService) {}
 
@@ -81,7 +76,6 @@ export class ProvidersController {
      * @returns Created provider
      */
     @Post()
-    @Roles(UserRole.Admin)
     public async create(@Body(new ZodValidationPipe(createProviderSchema)) createDto: CreateProviderDto): Promise<ProviderResponse> {
         try {
             const provider = await this.service.create(createDto);
@@ -100,7 +94,6 @@ export class ProvidersController {
      * @returns The state of the registration, the manifest and the address of GitHub
      */
     @Post('registrations')
-    @Roles(UserRole.Admin)
     public async startRegistration(
         @Body(new ZodValidationPipe(startProviderRegistrationSchema)) startDto: StartProviderRegistrationDto,
     ): Promise<StartedProviderRegistration> {
@@ -126,7 +119,6 @@ export class ProvidersController {
      * @returns The state of the registration and the short name of the application
      */
     @Post('registrations/:state/conversion')
-    @Roles(UserRole.Admin)
     @HttpCode(200)
     public async convertRegistration(@Param('state') state: string, @Body(new ZodValidationPipe(convertProviderRegistrationSchema)) convertDto: ConvertProviderRegistrationDto): Promise<ConvertedProviderRegistration> {
         enrichTelemetry({ 'provider.registration.state': state });
@@ -147,7 +139,6 @@ export class ProvidersController {
      * @returns Created provider
      */
     @Post('registrations/:state/completion')
-    @Roles(UserRole.Admin)
     public async completeRegistration(@Param('state') state: string, @Body(new ZodValidationPipe(completeProviderRegistrationSchema)) completeDto: CompleteProviderRegistrationDto): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.registration.state': state });
 
@@ -169,7 +160,6 @@ export class ProvidersController {
      * @returns Updated provider
      */
     @Put(':id')
-    @Roles(UserRole.Admin)
     public async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body(new ZodValidationPipe(updateProviderSchema)) updateDto: UpdateProviderDto,
@@ -197,7 +187,6 @@ export class ProvidersController {
      * @param id Provider id
      */
     @Delete(':id')
-    @Roles(UserRole.Admin)
     @HttpCode(204)
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         enrichTelemetry({ 'provider.id': id });
@@ -223,7 +212,6 @@ export class ProvidersController {
      * @returns Outcome of the test
      */
     @Post(':id/test')
-    @Roles(UserRole.Admin)
     @HttpCode(200)
     public async testConnection(@Param('id', ParseUUIDPipe) id: string): Promise<ProviderConnectionTest> {
         enrichTelemetry({ 'provider.id': id });

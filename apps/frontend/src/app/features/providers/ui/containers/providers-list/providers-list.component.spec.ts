@@ -245,7 +245,7 @@ describe('ProvidersListComponent', () => {
             expect(component.pendingDelete()).toBeNull();
         });
 
-        test('asks for an administrator when the API refuses the removal for the role', async () => {
+        test('names the missing permission when the API refuses the removal', async () => {
             repository.delete.mockReturnValue(throwError(() => ({ status: 403 })));
             create();
 
@@ -254,7 +254,7 @@ describe('ProvidersListComponent', () => {
 
             expect(toast.error).toHaveBeenCalledWith(
                 'Could not delete provider',
-                'This action needs an administrator.',
+                'You hold no permission for this action.',
             );
         });
 

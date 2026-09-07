@@ -1,35 +1,34 @@
-import { SeedAdminDto } from '../domain/dtos/seed-admin.dto';
-import { UserRole } from '../domain/models/user.models';
+import { SeedFirstUserDto } from '../domain/dtos/seed-first-user.dto';
 import { UsersRepository } from '../domain/repositories/users.repository';
 
 import { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 
 /**
- * Use case to seed a single administrative user into the system.
+ * Use case to seed the first user of the platform.
  *
  * @param usersRepository Users repository
  * @param passwordHasher Password hasher
  * @param seedDto Seed data
  *
- * @returns Whether a fresh admin was seeded or one already existed
+ * @returns Whether a fresh user was seeded or one already existed
  *
  * @throws {Error} When the email or password is missing
  */
-export async function seedAdminUseCase(
+export async function seedFirstUserUseCase(
     usersRepository: UsersRepository,
     passwordHasher: PasswordHasher,
-    seedDto: SeedAdminDto,
+    seedDto: SeedFirstUserDto,
 ): Promise<'seeded' | 'already-exists'> {
     const normalizedEmail = seedDto.email.trim();
 
     if (!normalizedEmail) {
-        throw new Error('An admin email is required to seed');
+        throw new Error('An email is required to seed the first user');
     }
     if (!seedDto.password) {
-        throw new Error('An admin password is required to seed');
+        throw new Error('A password is required to seed the first user');
     }
 
-    // An existing admin is left untouched and its password is NOT rotated.
+    // An existing user is left untouched and its password is NOT rotated.
     const existing = await usersRepository.findByEmail(normalizedEmail);
 
     if (existing) {
@@ -42,7 +41,6 @@ export async function seedAdminUseCase(
     await usersRepository.create({
         email: normalizedEmail,
         passwordHash,
-        role: UserRole.Admin,
         isActive: true,
     });
 

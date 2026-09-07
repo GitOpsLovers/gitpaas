@@ -8,8 +8,6 @@ import { Test } from '@nestjs/testing';
 import { AccessTokenPayload } from '../../../domain/models/token-payloads.models';
 import { JwtTokenServiceAdapter } from '../jwt-token-service.adapter';
 
-import { UserRole } from '@features/users/domain/models/user.models';
-
 const REFRESH_SECRET = 'refresh-secret';
 const REFRESH_EXPIRES_IN = '7d';
 const TWO_FACTOR_SECRET = 'two-factor-secret';
@@ -17,7 +15,6 @@ const TWO_FACTOR_SECRET = 'two-factor-secret';
 const payload: AccessTokenPayload = {
     sub: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
     email: 'admin@example.com',
-    role: UserRole.Admin,
 };
 
 describe('JwtTokenServiceAdapter', () => {
@@ -177,13 +174,12 @@ describe('JwtTokenServiceAdapter', () => {
             });
         });
 
-        it('never carries the email or the role of the account', () => {
+        it('never carries the email of the account', () => {
             mockJwtService.sign.mockReturnValue('challenge.jwt.token');
 
             sut.signTwoFactorChallenge(payload.sub);
 
             expect(JSON.stringify(mockJwtService.sign.mock.calls[0][0])).not.toContain(payload.email);
-            expect(JSON.stringify(mockJwtService.sign.mock.calls[0][0])).not.toContain(payload.role);
         });
     });
 

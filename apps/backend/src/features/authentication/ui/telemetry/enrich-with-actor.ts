@@ -8,8 +8,8 @@ import type { User } from '@features/users/domain/models/user.models';
  *
  * @param user User the route resolved
  */
-export function enrichWithActor(user: Pick<User, 'id' | 'role'>): void {
-    enrichTelemetry({ 'user.id': user.id, 'user.role': user.role });
+export function enrichWithActor(user: Pick<User, 'id'>): void {
+    enrichTelemetry({ 'user.id': user.id });
 }
 
 /**

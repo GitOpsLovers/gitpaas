@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { disableUserTotpUseCase } from '../../application/disable-user-totp.use-case';
-import { seedAdminUseCase } from '../../application/seed-admin.use-case';
+import { seedFirstUserUseCase } from '../../application/seed-first-user.use-case';
 import { User } from '../../domain/models/user.models';
 import { DatabaseUsersRepository } from '../../infrastructure/database/db-users.repository';
 
@@ -12,10 +12,10 @@ import type { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 /**
- * Fixed local-development admin credentials.
+ * Fixed local-development credentials of the first user.
  */
-const DEV_ADMIN_EMAIL = 'admin@gitpaas.dev';
-const DEV_ADMIN_PASSWORD = 'gitpaas';
+const DEV_USER_EMAIL = 'admin@gitpaas.dev';
+const DEV_USER_PASSWORD = 'gitpaas';
 
 /**
  * Users feature service.
@@ -32,22 +32,22 @@ export class UsersService {
     ) {}
 
     /**
-     * Add administrative user to the database for local development.
+     * Add the first user to the database for local development.
      */
-    public async seedDevelopmentAdmin(): Promise<void> {
+    public async seedDevelopmentUser(): Promise<void> {
         try {
-            const email = DEV_ADMIN_EMAIL.trim();
+            const email = DEV_USER_EMAIL.trim();
 
-            const result = await seedAdminUseCase(this.usersRepository, this.passwordHasher, { email, password: DEV_ADMIN_PASSWORD });
+            const result = await seedFirstUserUseCase(this.usersRepository, this.passwordHasher, { email, password: DEV_USER_PASSWORD });
 
             if (result === 'seeded') {
-                this.logger.log(`Seeded admin user "${email}".`, UsersService.name);
+                this.logger.log(`Seeded the first user "${email}".`, UsersService.name);
             } else {
-                this.logger.log(`Admin user "${email}" already exists — left unchanged.`, UsersService.name);
+                this.logger.log(`User "${email}" already exists — left unchanged.`, UsersService.name);
             }
         } catch (error: unknown) {
             this.logger.error(
-                'Development admin seed failed:',
+                'Development user seed failed:',
                 error,
                 UsersService.name,
             );

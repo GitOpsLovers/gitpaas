@@ -17,7 +17,6 @@ export function toUser(entity: DbUserEntity): User {
         displayName: entity.displayName,
         totpSecret: entity.totpSecret,
         totpEnabledAt: entity.totpEnabledAt,
-        role: entity.role,
         isActive: entity.isActive,
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,

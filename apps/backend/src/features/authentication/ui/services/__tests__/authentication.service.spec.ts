@@ -21,7 +21,7 @@ import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import { OtplibTotpAdapter } from '@core/infrastructure/crypto/otplib-totp.adapter';
 import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
-import { User, UserRole } from '@features/users/domain/models/user.models';
+import { User } from '@features/users/domain/models/user.models';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
 
 jest.mock('../../../application/login.use-case');
@@ -48,7 +48,6 @@ const user: User = {
     displayName: null,
     totpSecret: null,
     totpEnabledAt: null,
-    role: UserRole.Admin,
     isActive: true,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
     updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -335,7 +334,6 @@ describe('AuthenticationService', () => {
                 displayName: user.displayName,
                 totpSecret: user.totpSecret,
                 totpEnabledAt: user.totpEnabledAt,
-                role: user.role,
                 isActive: user.isActive,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,

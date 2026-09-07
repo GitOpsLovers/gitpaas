@@ -9,143 +9,140 @@
     </div>
 }
 
-@if (isAdmin()) {
-    <app-component-card
-        title="Updates"
-        desc="Check whether the server runs the latest version of GitPaaS published."
-        className="mb-6"
-    >
-        <ul class="divide-y divide-gray-100 dark:divide-gray-800">
-            <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex items-start gap-3">
-                    <span
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.03] dark:text-gray-400"
-                    >
-                        <svg lucideRefreshCw class="h-5 w-5"></svg>
-                    </span>
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">{{ checkAction.label }}</h4>
-                        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ checkAction.description }}</p>
+<app-component-card
+    title="Updates"
+    desc="Check whether the server runs the latest version of GitPaaS published."
+    className="mb-6"
+>
+    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-start gap-3">
+                <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.03] dark:text-gray-400"
+                >
+                    <svg lucideRefreshCw class="h-5 w-5"></svg>
+                </span>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">{{ checkAction.label }}</h4>
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ checkAction.description }}</p>
 
-                        @if (checkMessage(); as message) {
-                            @if (checkState() === 'failed') {
-                                <p class="mt-1.5 text-sm text-error-600 dark:text-error-500" role="alert">
-                                    {{ message }}
-                                </p>
-                            } @else {
-                                <p class="mt-1.5 text-sm text-success-600 dark:text-success-500">{{ message }}</p>
-                            }
-                        }
-                    </div>
-                </div>
-
-                <div class="sm:shrink-0">
-                    <app-button
-                        variant="outline"
-                        size="sm"
-                        [disabled]="checking() || running()"
-                        (btnClick)="checkForUpdates()"
-                    >
-                        @if (checking()) {
-                            <svg lucideLoaderCircle class="h-4 w-4 animate-spin"></svg>
-                            Checking for updates…
-                        } @else {
-                            {{ checkAction.label }}
-                        }
-                    </app-button>
-                </div>
-            </li>
-        </ul>
-    </app-component-card>
-
-    <app-component-card
-        [title]="debugAction.title"
-        desc="Open a temporary console on the database of GitPaaS, to inspect it in read-only."
-        className="mb-6"
-    >
-        <ul class="divide-y divide-gray-100 dark:divide-gray-800">
-            <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex items-start gap-3">
-                    <span
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.03] dark:text-gray-400"
-                    >
-                        <svg lucideBug class="h-5 w-5"></svg>
-                    </span>
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">{{ debugAction.label }}</h4>
-                        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ debugAction.description }}</p>
-
-                        @if (debugActive()) {
-                            <p class="mt-1.5 text-sm text-success-600 dark:text-success-500">
-                                The console runs
-                                @if (debugUrl(); as url) {
-                                    at
-                                    <span class="font-mono">{{ url }}</span>
-                                }
-                                .
+                    @if (checkMessage(); as message) {
+                        @if (checkState() === 'failed') {
+                            <p class="mt-1.5 text-sm text-error-600 dark:text-error-500" role="alert">
+                                {{ message }}
                             </p>
+                        } @else {
+                            <p class="mt-1.5 text-sm text-success-600 dark:text-success-500">{{ message }}</p>
                         }
-                    </div>
+                    }
                 </div>
-
-                <div class="sm:shrink-0">
-                    <app-button variant="outline" size="sm" [disabled]="debugBusy()" (btnClick)="toggleDebug()">
-                        @if (debugBusy()) {
-                            <svg lucideLoaderCircle class="h-4 w-4 animate-spin"></svg>
-                        }
-                        {{ debugActive() ? 'Stop the debug' : debugAction.label }}
-                    </app-button>
-                </div>
-            </li>
-        </ul>
-
-        @if (debugSession(); as session) {
-            <div class="mt-4 rounded-lg border border-warning-500/30 bg-warning-50 p-4 dark:bg-warning-500/10">
-                <p class="text-sm font-medium text-warning-600 dark:text-warning-500">
-                    The console answers over plain HTTP, with no certificate. Anyone on the network of the server can
-                    read what you send to it. Use it from a trusted network alone, and stop the session once you are
-                    done.
-                </p>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    These passwords are shown this one time. GitPaaS keeps no copy of them.
-                </p>
-
-                <dl class="mt-4 grid gap-2 text-sm">
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Console</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.url }}</dd>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Console email</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.console.email }}</dd>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Console password</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.console.password }}</dd>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Database host</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">
-                            {{ session.connection.host }}:{{ session.connection.port }}
-                        </dd>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Database</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.connection.database }}</dd>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Database role</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.connection.role }}</dd>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <dt class="w-40 text-gray-500 dark:text-gray-400">Database password</dt>
-                        <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.connection.password }}</dd>
-                    </div>
-                </dl>
             </div>
-        }
-    </app-component-card>
-}
+
+            <div class="sm:shrink-0">
+                <app-button
+                    variant="outline"
+                    size="sm"
+                    [disabled]="checking() || running()"
+                    (btnClick)="checkForUpdates()"
+                >
+                    @if (checking()) {
+                        <svg lucideLoaderCircle class="h-4 w-4 animate-spin"></svg>
+                        Checking for updates…
+                    } @else {
+                        {{ checkAction.label }}
+                    }
+                </app-button>
+            </div>
+        </li>
+    </ul>
+</app-component-card>
+
+<app-component-card
+    [title]="debugAction.title"
+    desc="Open a temporary console on the database of GitPaaS, to inspect it in read-only."
+    className="mb-6"
+>
+    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        <li class="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-start gap-3">
+                <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.03] dark:text-gray-400"
+                >
+                    <svg lucideBug class="h-5 w-5"></svg>
+                </span>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">{{ debugAction.label }}</h4>
+                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ debugAction.description }}</p>
+
+                    @if (debugActive()) {
+                        <p class="mt-1.5 text-sm text-success-600 dark:text-success-500">
+                            The console runs
+                            @if (debugUrl(); as url) {
+                                at
+                                <span class="font-mono">{{ url }}</span>
+                            }
+                            .
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <div class="sm:shrink-0">
+                <app-button variant="outline" size="sm" [disabled]="debugBusy()" (btnClick)="toggleDebug()">
+                    @if (debugBusy()) {
+                        <svg lucideLoaderCircle class="h-4 w-4 animate-spin"></svg>
+                    }
+                    {{ debugActive() ? 'Stop the debug' : debugAction.label }}
+                </app-button>
+            </div>
+        </li>
+    </ul>
+
+    @if (debugSession(); as session) {
+        <div class="mt-4 rounded-lg border border-warning-500/30 bg-warning-50 p-4 dark:bg-warning-500/10">
+            <p class="text-sm font-medium text-warning-600 dark:text-warning-500">
+                The console answers over plain HTTP, with no certificate. Anyone on the network of the server can read
+                what you send to it. Use it from a trusted network alone, and stop the session once you are done.
+            </p>
+            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                These passwords are shown this one time. GitPaaS keeps no copy of them.
+            </p>
+
+            <dl class="mt-4 grid gap-2 text-sm">
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Console</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.url }}</dd>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Console email</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.console.email }}</dd>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Console password</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.console.password }}</dd>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Database host</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">
+                        {{ session.connection.host }}:{{ session.connection.port }}
+                    </dd>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Database</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.connection.database }}</dd>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Database role</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.connection.role }}</dd>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <dt class="w-40 text-gray-500 dark:text-gray-400">Database password</dt>
+                    <dd class="font-mono text-gray-800 dark:text-white/90">{{ session.connection.password }}</dd>
+                </div>
+            </dl>
+        </div>
+    }
+</app-component-card>
 
 <app-component-card
     title="Cleanup"

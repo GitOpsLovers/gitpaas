@@ -17,7 +17,7 @@ const UNNAMED = 'No display name';
 })
 
 /**
- * Card of the account, which shows the avatar, the display name, the address, the role and the date of creation.
+ * Card of the account, which shows the avatar, the display name, the address and the date of creation.
  */
 export class ProfileAccountCardComponent {
     /**

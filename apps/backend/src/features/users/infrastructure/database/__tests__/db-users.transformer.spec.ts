@@ -1,4 +1,3 @@
-import { UserRole } from '../../../domain/models/user.models';
 import { DbUserEntity } from '../db-user.entity';
 import { toUser } from '../db-users.transformer';
 
@@ -11,7 +10,6 @@ describe('toUser', () => {
             displayName: 'Ada Lovelace',
             totpSecret: 'sealed-secret',
             totpEnabledAt: new Date('2026-07-11T00:02:00.000Z'),
-            role: UserRole.Admin,
             isActive: true,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:01:00.000Z'),
@@ -24,14 +22,13 @@ describe('toUser', () => {
             displayName: 'Ada Lovelace',
             totpSecret: 'sealed-secret',
             totpEnabledAt: new Date('2026-07-11T00:02:00.000Z'),
-            role: UserRole.Admin,
             isActive: true,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:01:00.000Z'),
         });
     });
 
-    it('preserves the deactivated flag and the user role', () => {
+    it('preserves the deactivated flag', () => {
         const entity: DbUserEntity = {
             id: 'a1b2c3d4-0000-0000-0000-000000000000',
             email: 'user@example.com',
@@ -39,7 +36,6 @@ describe('toUser', () => {
             displayName: null,
             totpSecret: null,
             totpEnabledAt: null,
-            role: UserRole.User,
             isActive: false,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -47,7 +43,6 @@ describe('toUser', () => {
 
         const result = toUser(entity);
 
-        expect(result.role).toBe(UserRole.User);
         expect(result.isActive).toBe(false);
     });
 
@@ -59,7 +54,6 @@ describe('toUser', () => {
             displayName: null,
             totpSecret: null,
             totpEnabledAt: null,
-            role: UserRole.User,
             isActive: true,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:00:00.000Z'),
@@ -80,7 +74,6 @@ describe('toUser', () => {
             displayName: 'Ada',
             totpSecret: 'sealed-secret',
             totpEnabledAt: null,
-            role: UserRole.User,
             isActive: true,
             createdAt: new Date('2026-07-11T00:00:00.000Z'),
             updatedAt: new Date('2026-07-11T00:00:00.000Z'),

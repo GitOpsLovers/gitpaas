@@ -7,7 +7,6 @@ const profile: Profile = {
     id: 'us-1',
     email: 'ada.lovelace@gitpaas.dev',
     displayName: 'Ada Lovelace',
-    role: 'admin',
     totpEnabled: false,
     isActive: true,
     createdAt: '2026-01-01T12:00:00.000Z',
@@ -29,13 +28,12 @@ describe('ProfileAccountCardComponent', () => {
         TestBed.configureTestingModule({ imports: [ProfileAccountCardComponent] });
     });
 
-    test('shows the initials, the display name, the address and the role', () => {
+    test('shows the initials, the display name and the address', () => {
         create();
 
         expect(text()).toContain('AL');
         expect(text()).toContain('Ada Lovelace');
         expect(text()).toContain('ada.lovelace@gitpaas.dev');
-        expect(text()).toContain('admin');
     });
 
     test('shows the date of creation of the account', () => {

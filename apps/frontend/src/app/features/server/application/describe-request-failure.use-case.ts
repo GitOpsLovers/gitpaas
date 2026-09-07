@@ -3,12 +3,12 @@ import { errorEnvelopeSchema } from '@gitpaas/contracts';
 import { readErrorPayloadUseCase } from './read-error-payload.use-case';
 
 /**
- * Status the API answers when the role of the user covers no request of this kind.
+ * Status the API answers when it refuses the request.
  */
 const FORBIDDEN = 403;
 
 /**
- * Message shown whenever the API refuses the request for the role of the user.
+ * Message shown whenever the API refuses the request.
  */
 const FORBIDDEN_MESSAGE = 'You hold no permission for this request.';
 

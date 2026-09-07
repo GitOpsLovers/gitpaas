@@ -19,12 +19,6 @@
             <p class="mt-1 truncate text-sm text-gray-500 dark:text-gray-400">{{ profile().email }}</p>
 
             <div class="mt-2.5 flex flex-wrap items-center gap-2">
-                <span
-                    class="inline-flex w-fit items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"
-                >
-                    {{ profile().role }}
-                </span>
-
                 @if (profile().totpEnabled) {
                     <span
                         class="inline-flex w-fit items-center rounded-full bg-success-50 px-2.5 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500"
