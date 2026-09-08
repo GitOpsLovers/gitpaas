@@ -1,7 +1,13 @@
 import { isBindMountSource } from './compose-recipe.transformer';
 import type { ComposeRecipe } from './compose-recipe.transformer';
 
+import { GITPAAS_OWNED_NETWORKS } from '@core/domain/constants/gitpaas-networks.constants';
 import { UnsafeComposeRecipeError } from '@core/domain/errors/compose.errors';
+
+/**
+ * A top-level network of a recipe, as the recipe writes it.
+ */
+type ComposeRecipeNetwork = NonNullable<ComposeRecipe['networks']>[string];
 
 /**
  * Every key GitPaaS lets a compose service declare.
@@ -180,14 +186,37 @@ function assertSafeService(name: string, service: unknown): void {
 }
 
 /**
+ * Refuses one top-level network of a recipe that names a network GitPaaS owns.
+ *
+ * @param key Key the recipe gives the network
+ * @param network Definition of the network, as the recipe writes it
+ *
+ * @throws {UnsafeComposeRecipeError} When the network reaches a network of GitPaaS itself
+ */
+function assertSafeNetwork(key: string, network: ComposeRecipeNetwork): void {
+    const daemonName = network?.name ?? (network?.external === true ? key : undefined);
+
+    if (daemonName !== undefined && GITPAAS_OWNED_NETWORKS.includes(daemonName.trim())) {
+        throw new UnsafeComposeRecipeError(
+            `networks.${key}`,
+            `the network "${daemonName.trim()}" belongs to GitPaaS, and the stack of a user never joins it`,
+        );
+    }
+}
+
+/**
  * Refuses a compose recipe of a user that reaches the host of GitPaaS.
  *
  * @param recipe Parsed compose recipe, already interpolated
  *
- * @throws {UnsafeComposeRecipeError} When a service declares a key, a namespace or a mount that reaches the host
+ * @throws {UnsafeComposeRecipeError} When a service declares a key, a namespace or a mount that reaches the host, or when a network of the recipe names a network of GitPaaS
  */
 export function assertSafeRecipe(recipe: ComposeRecipe): void {
     for (const [name, service] of Object.entries(recipe.services ?? {})) {
         assertSafeService(name, service);
+    }
+
+    for (const [key, network] of Object.entries(recipe.networks ?? {})) {
+        assertSafeNetwork(key, network);
     }
 }

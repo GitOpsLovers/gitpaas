@@ -82,11 +82,11 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/deployments/`, `apps/backend/src/features/services/`, `apps/backend/src/features/volumes/`
 
-- [ ] 7.1 Declare the names of the networks that GitPaaS owns, in one place.
-- [ ] 7.2 Refuse an external network of a recipe when its name is one of those, and raise the error of the domain of the phase 1.
-- [ ] 7.3 Check that the mask of the environment of the final compose covers every variable of a secret.
-- [ ] 7.4 Validate the path of a mount of the feature of the volumes against a traversal.
-- [ ] 7.5 Write the unit tests of the three checks.
+- [x] 7.1 Declare the names of the networks that GitPaaS owns, in one place.
+- [x] 7.2 Refuse an external network of a recipe when its name is one of those, and raise the error of the domain of the phase 1.
+- [x] 7.3 Check that the mask of the environment of the final compose covers every variable of a secret.
+- [x] 7.4 Validate the path of a mount of the feature of the volumes against a traversal.
+- [x] 7.5 Write the unit tests of the three checks.
 
 ## Phase 8 — The documents
 

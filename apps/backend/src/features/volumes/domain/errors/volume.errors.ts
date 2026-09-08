@@ -28,6 +28,19 @@ export class VolumeMountPathTakenError extends DomainError {
 }
 
 /**
+ * Raised whenever a mount path leaves the root of the container through a traversal.
+ */
+export class VolumeMountPathUnsafeError extends DomainError {
+    constructor(containerPath: string, options?: ErrorOptions) {
+        super(
+            'VOLUME_MOUNT_PATH_UNSAFE',
+            `The mount path ${containerPath} is not an absolute path of the container, or it leaves its root with a segment "." or ".."`,
+            options,
+        );
+    }
+}
+
+/**
  * Raised whenever a detach targets a volume that the service does not mount.
  */
 export class VolumeNotAttachedError extends DomainError {

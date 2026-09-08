@@ -1,7 +1,9 @@
+import { GITPAAS_PROXY_NETWORK } from '@core/domain/constants/gitpaas-networks.constants';
+
 /**
  * The external network the proxy watches, which every routed stack joins.
  */
-export const PROXY_NETWORK = 'gitpaas-proxy';
+export const PROXY_NETWORK = GITPAAS_PROXY_NETWORK;
 
 /**
  * The resolver of Let's Encrypt the proxy declares, and the key of its entry in the store of ACME.

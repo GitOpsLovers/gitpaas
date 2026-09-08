@@ -567,6 +567,37 @@ describe('runDeploymentUseCase', () => {
         expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, `env: API_TOKEN=${SECRET_MASK}`);
     });
 
+    it('masks the value of a secret the final Compose text carries outside the block of the environment', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
+            { name: 'API_TOKEN', secret: true, storedValue: 'sealed-payload' },
+        ]);
+        mockSecretCipher.decryptSecret.mockReturnValue('the-token');
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue('services:\n  web:\n    command: publish --token the-token\n');
+
+        await run();
+
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'success',
+            finalCompose: `services:\n  web:\n    command: publish --token ${SECRET_MASK}\n`,
+        });
+    });
+
+    it('keeps the value of a variable that is no secret in the final Compose text', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
+            { name: 'DATABASE_URL', secret: false, storedValue: 'postgres://db' },
+        ]);
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue('services:\n  web:\n    command: connect postgres://db\n');
+
+        await run();
+
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'success',
+            finalCompose: 'services:\n  web:\n    command: connect postgres://db\n',
+        });
+    });
+
     it('keeps the value of a variable that is no secret in a line of the log', async () => {
         mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
             { name: 'DATABASE_URL', secret: false, storedValue: 'postgres://db' },

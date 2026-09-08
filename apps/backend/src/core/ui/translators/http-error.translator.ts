@@ -76,6 +76,7 @@ const DOMAIN_ERROR_TRANSLATIONS = new Map<string, DomainErrorTranslation>([
     ['VOLUME_NOT_FOUND', (error) => new NotFoundException(error.message, { cause: error })],
     ['VOLUME_NAME_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
     ['VOLUME_MOUNT_PATH_TAKEN', (error) => new ConflictException(error.message, { cause: error })],
+    ['VOLUME_MOUNT_PATH_UNSAFE', (error) => new BadRequestException(error.message, { cause: error })],
     ['VOLUME_NOT_ATTACHED', (error) => new NotFoundException(error.message, { cause: error })],
 ]);
 
