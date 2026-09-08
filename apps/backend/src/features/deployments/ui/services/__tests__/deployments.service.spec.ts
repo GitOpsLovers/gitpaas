@@ -366,5 +366,42 @@ describe('DeploymentsService', () => {
                 'service.id': serviceId,
             });
         });
+
+        it('names the deployment as the sensitive action of the trigger', async () => {
+            mockCreateDeploymentUseCase.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.create({ serviceId });
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'security.action': 'deployment' });
+        });
+
+        it('names the deployment even when the trigger fails', async () => {
+            const error = new ServiceNotDeployableError();
+            mockCreateDeploymentUseCase.mockRejectedValue(error);
+
+            const event = await runWithTelemetry({}, async () => {
+                await expect(sut.create({ serviceId })).rejects.toBe(error);
+
+                return getTelemetry();
+            });
+
+            expect(event).toEqual({ 'security.action': 'deployment' });
+        });
+
+        it('never names a sensitive action when a deployment is read', async () => {
+            mockFindDeploymentByIdUseCase.mockResolvedValue(deployment);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.findById(deploymentId);
+
+                return getTelemetry();
+            });
+
+            expect(Object.keys(event ?? {})).not.toContain('security.action');
+        });
     });
 });

@@ -206,6 +206,7 @@ describe('AuthenticationService', () => {
 
             expect(event).toEqual({
                 'auth.outcome': 'authenticated',
+                'security.action': 'login',
             });
         });
 
@@ -227,7 +228,7 @@ describe('AuthenticationService', () => {
                 await sut.verifyTwoFactor('challenge.jwt.token', '123456');
             });
 
-            expect(event).toEqual({ 'auth.outcome': 'authenticated' });
+            expect(event).toEqual({ 'auth.outcome': 'authenticated', 'security.action': 'login' });
         });
 
         it('marks a refused second step as rejected', async () => {
@@ -239,7 +240,7 @@ describe('AuthenticationService', () => {
                 );
             });
 
-            expect(event).toEqual({ 'auth.outcome': 'rejected' });
+            expect(event).toEqual({ 'auth.outcome': 'rejected', 'security.action': 'login_failed' });
         });
 
         it('names the subject of the token a successful refresh rotated', async () => {

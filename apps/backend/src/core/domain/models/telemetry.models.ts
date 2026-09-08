@@ -1,6 +1,11 @@
 import {
     DEPLOYMENT_RUN_EVENT_NAME,
     HTTP_REQUEST_EVENT_NAME,
+    SECURITY_ACTION_DEPLOYMENT,
+    SECURITY_ACTION_LOGIN,
+    SECURITY_ACTION_LOGIN_FAILED,
+    SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE,
+    SECURITY_ACTION_SECRET_CHANGE,
     TELEMETRY_KEPT_REASON_AUTH,
     TELEMETRY_KEPT_REASON_DEPLOYMENT,
     TELEMETRY_KEPT_REASON_ERROR,
@@ -73,6 +78,9 @@ interface TelemetryEventFields {
     'auth.public_route'?: boolean;
     'auth.outcome'?: TelemetryEventAuthOutcome;
 
+    /* Audit of the sensitive actions, never the value the action carried */
+    'security.action'?: TelemetrySecurityAction;
+
     /* Business context */
     'namespace.id'?: string;
     'provider.id'?: string;
@@ -111,6 +119,16 @@ interface TelemetryEventFields {
     'sampling.kept_reason'?: TelemetryEventKeptReason;
     'sampling.rate'?: number;
 }
+
+/**
+ * Sensitive action a unit of work performed, kept for the audit of the platform.
+ */
+export type TelemetrySecurityAction =
+    | typeof SECURITY_ACTION_LOGIN
+    | typeof SECURITY_ACTION_LOGIN_FAILED
+    | typeof SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE
+    | typeof SECURITY_ACTION_SECRET_CHANGE
+    | typeof SECURITY_ACTION_DEPLOYMENT;
 
 /**
  * Reason the tail sampler kept a telemetry event.

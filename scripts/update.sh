@@ -166,9 +166,18 @@ WHERE "id" = :'id'::uuid;
 SQL
 }
 
+# Rewriting a key with sed leaves a copy .bak beside .env, and that copy carries
+# every secret of the platform. Delete it on every path of the exit, and not on
+# the success of sed alone.
+remove_env_backup() {
+    $SUDO rm -f "$ENV_FILE.bak" 2>/dev/null || true
+    return 0
+}
+
 # A command that fails under `set -e` skips die(), so the trap closes the row.
 on_exit() {
     exit_code=$?
+    remove_env_backup
     [ "$exit_code" -eq 0 ] && return 0
     report_failure "The update stopped on the step '$CURRENT_STEP' with the code $exit_code."
     return 0

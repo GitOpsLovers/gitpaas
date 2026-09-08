@@ -3,6 +3,8 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { enrichWithAuthOutcome } from '../telemetry/enrich-with-actor';
 
+import { SECURITY_ACTION_LOGIN_FAILED } from '@core/domain/constants/telemetry.constants';
+import { recordSecurityAction } from '@core/infrastructure/telemetry/record-security-action';
 import { User } from '@features/users/domain/models/user.models';
 
 /**
@@ -21,6 +23,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
 
         if (error || !validated) {
             enrichWithAuthOutcome('rejected');
+            recordSecurityAction(SECURITY_ACTION_LOGIN_FAILED);
         }
 
         return super.handleRequest(error, user, info, context, status);

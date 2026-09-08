@@ -49,6 +49,31 @@ export const TELEMETRY_READ_METHOD = 'GET';
 export const TELEMETRY_AUTH_ROUTE_PREFIX = '/api/v1/auth';
 
 /**
+ * Action recorded when a client presented credentials the platform accepted.
+ */
+export const SECURITY_ACTION_LOGIN = 'login';
+
+/**
+ * Action recorded when a client presented credentials the platform refused.
+ */
+export const SECURITY_ACTION_LOGIN_FAILED = 'login_failed';
+
+/**
+ * Action recorded when the stored credential of a provider is written, replaced or removed.
+ */
+export const SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE = 'provider_credential_change';
+
+/**
+ * Action recorded when a variable of the environment of a service is written, replaced or removed.
+ */
+export const SECURITY_ACTION_SECRET_CHANGE = 'secret_change';
+
+/**
+ * Action recorded when a deployment of a service is triggered.
+ */
+export const SECURITY_ACTION_DEPLOYMENT = 'deployment';
+
+/**
  * Reason recorded when the request failed on the server side.
  */
 export const TELEMETRY_KEPT_REASON_SERVER_ERROR = 'server_error';

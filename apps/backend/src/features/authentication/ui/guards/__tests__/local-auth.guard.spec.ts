@@ -98,7 +98,7 @@ describe('LocalAuthGuard', () => {
                 return getTelemetry();
             });
 
-            expect(event).toEqual({ 'auth.outcome': 'rejected' });
+            expect(event).toEqual({ 'auth.outcome': 'rejected', 'security.action': 'login_failed' });
         });
 
         it('records a rejected login when the strategy failed', () => {
@@ -110,7 +110,17 @@ describe('LocalAuthGuard', () => {
                 return getTelemetry();
             });
 
-            expect(event).toEqual({ 'auth.outcome': 'rejected' });
+            expect(event).toEqual({ 'auth.outcome': 'rejected', 'security.action': 'login_failed' });
+        });
+
+        it('never names a sensitive action once the credentials were accepted', () => {
+            const event = runWithTelemetry({ 'auth.outcome': 'anonymous' }, () => {
+                sut.handleRequest(null, user, undefined, contextFor());
+
+                return getTelemetry();
+            });
+
+            expect(Object.keys(event ?? {})).not.toContain('security.action');
         });
 
         it('leaves the outcome to the route once the credentials were accepted', () => {
