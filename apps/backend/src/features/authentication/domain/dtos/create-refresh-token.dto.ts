@@ -4,6 +4,7 @@
 export interface CreateRefreshTokenDto {
     userId: string;
     jti: string;
+    familyId: string;
     tokenHash: string;
     expiresAt: Date;
 }

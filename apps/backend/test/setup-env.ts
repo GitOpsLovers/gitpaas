@@ -38,11 +38,11 @@ const PLACEHOLDER_ENV: Record<string, string> = {
     LOGS_MAX_LINES: '1000',
     RUNTIME_LOGS_RETENTION_DAYS: '7',
 
-    JWT_ACCESS_SECRET: 'test-access-secret',
+    JWT_ACCESS_SECRET: 'test-access-secret-of-32-chars-min',
     JWT_ACCESS_EXPIRES_IN: '15m',
-    JWT_REFRESH_SECRET: 'test-refresh-secret',
+    JWT_REFRESH_SECRET: 'test-refresh-secret-of-32-chars-min',
     JWT_REFRESH_EXPIRES_IN: '7d',
-    JWT_2FA_SECRET: 'test-2fa-secret',
+    JWT_2FA_SECRET: 'test-2fa-secret-of-32-characters-min',
 };
 
 for (const [key, value] of Object.entries(PLACEHOLDER_ENV)) {

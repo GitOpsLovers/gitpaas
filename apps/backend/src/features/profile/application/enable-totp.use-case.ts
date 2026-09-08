@@ -43,7 +43,7 @@ export async function enableTotpUseCase(
         throw new TotpNotStartedError();
     }
 
-    if (!(await totp.verifyCode(secretCipher.decryptSecret(user.totpSecret), code))) {
+    if (!(await totp.verifyCode(secretCipher.decryptSecret(user.totpSecret, userId), code))) {
         throw new InvalidTotpCodeError();
     }
 

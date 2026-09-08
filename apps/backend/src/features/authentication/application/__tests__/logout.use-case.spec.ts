@@ -12,6 +12,7 @@ const storedToken = (overrides: Partial<RefreshToken> = {}): RefreshToken => {
         id: 'record-1',
         userId: 'user-1',
         jti: payload.jti,
+        familyId: payload.jti,
         tokenHash: 'hash',
         expiresAt: new Date(Date.now() + 60_000),
         revoked: false,

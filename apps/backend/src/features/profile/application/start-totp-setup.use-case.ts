@@ -36,7 +36,7 @@ export async function startTotpSetupUseCase(
     const otpauthUri = totp.buildKeyUri(secret, user.email);
     const qrCode = await qrCodeRenderer.toDataUrl(otpauthUri);
 
-    await usersRepository.updateTotp(userId, secretCipher.encryptSecret(secret), null);
+    await usersRepository.updateTotp(userId, secretCipher.encryptSecret(secret, userId), null);
 
     return { secret, otpauthUri, qrCode };
 }

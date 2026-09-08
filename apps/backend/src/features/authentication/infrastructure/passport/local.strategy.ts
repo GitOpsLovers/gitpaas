@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 
 import { validateUserUseCase } from '../../application/validate-user.use-case';
-import { InvalidCredentialsError, UserInactiveError } from '../../domain/errors/authentication.errors';
+import { InvalidCredentialsError } from '../../domain/errors/authentication.errors';
 
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
@@ -13,9 +13,7 @@ import type { PasswordHasher } from '@shared/domain/ports/password-hasher.port';
 import { Argon2PasswordHasherAdapter } from '@shared/infrastructure/security/argon2-password-hasher.adapter';
 
 /**
- * Passport local strategy backing `POST /auth/login`. Validates the submitted
- * email/password and attaches the resolved user to the request; invalid
- * credentials or a deactivated account become a `401`.
+ * Passport local strategy backing `POST /auth/login`.
  */
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -40,7 +38,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         try {
             return await validateUserUseCase(this.usersRepository, this.passwordHasher, email, password);
         } catch (error) {
-            if (error instanceof InvalidCredentialsError || error instanceof UserInactiveError) {
+            if (error instanceof InvalidCredentialsError) {
                 throw new UnauthorizedException(error.message);
             }
 

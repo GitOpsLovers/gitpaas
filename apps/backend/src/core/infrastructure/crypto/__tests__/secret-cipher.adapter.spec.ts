@@ -23,6 +23,16 @@ const PEM = ['-----BEGIN RSA PRIVATE KEY-----', 'MIIEowIBAAKCAQEAx0Vb+7uP', '---
     '\n',
 );
 
+/**
+ * Identifier of the row that holds the secret, which the seal binds the payload to.
+ */
+const ROW_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+
+/**
+ * Identifier of another row, used to prove that a payload does not travel.
+ */
+const OTHER_ROW_ID = '9c858901-8a57-4791-81fe-4c455b099bc9';
+
 describe('SecretCipherAdapter', () => {
     // eslint-disable-next-line security/detect-object-injection
     const originalKey = process.env[KEY_VARIABLE];
@@ -112,6 +122,48 @@ describe('SecretCipherAdapter', () => {
             // eslint-disable-next-line security/detect-object-injection
             process.env[KEY_VARIABLE] = KEY;
             expect(sut.decryptSecret(first)).toBe(PEM);
+        });
+    });
+
+    describe('the binding to the row', () => {
+        it('returns the clear text when the same identifier opens the payload', () => {
+            expect(sut.decryptSecret(sut.encryptSecret(PEM, ROW_ID), ROW_ID)).toBe(PEM);
+        });
+
+        it('marks the bound payload with the prefix v2 and four parts', () => {
+            const parts = sut.encryptSecret(PEM, ROW_ID).split(':');
+
+            expect(parts).toHaveLength(4);
+            expect(parts[0]).toBe('v2');
+        });
+
+        it('throws when the payload is opened with the identifier of another row', () => {
+            const payload = sut.encryptSecret(PEM, ROW_ID);
+
+            expect(() => sut.decryptSecret(payload, OTHER_ROW_ID)).toThrow();
+        });
+
+        it('throws when a bound payload is opened with no identifier at all', () => {
+            const payload = sut.encryptSecret(PEM, ROW_ID);
+
+            expect(() => sut.decryptSecret(payload)).toThrow(
+                'The sealed payload is bound to a row, and no identifier was given',
+            );
+        });
+
+        it('never seals the same clear text of two rows into the same payload', () => {
+            expect(sut.encryptSecret(PEM, ROW_ID)).not.toBe(sut.encryptSecret(PEM, OTHER_ROW_ID));
+        });
+
+        it('opens a payload sealed before the binding existed, and ignores the identifier', () => {
+            const legacy = sut.encryptSecret(PEM);
+
+            expect(legacy.split(':')).toHaveLength(3);
+            expect(sut.decryptSecret(legacy, ROW_ID)).toBe(PEM);
+        });
+
+        it('throws when the payload holds four parts without the marker of the binding', () => {
+            expect(() => sut.decryptSecret('v9:aa:bb:cc', ROW_ID)).toThrow('The sealed payload is malformed');
         });
     });
 

@@ -34,12 +34,12 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Agent:** implementer
 **Paths:** `apps/backend/src/core/infrastructure/`, `apps/backend/src/features/authentication/`, `apps/backend/src/bootstrap.ts`
 
-- [ ] 3.1 Require 32 characters for the three secrets of the JWT, and validate `SECRETS_ENCRYPTION_KEY` at the boot as 32 bytes in hexadecimal.
-- [ ] 3.2 Refuse the seed of the user, and refuse a local `DB_HOST`, when the environment is production.
-- [ ] 3.3 Set `synchronize` to `false` in every environment.
-- [ ] 3.4 Revoke the whole family of the refresh tokens when a revoked token returns, cap the live tokens of one user, and prune the oldest one.
-- [ ] 3.5 Give one error and a constant time for an unknown email, a wrong password and an inactive user.
-- [ ] 3.6 Bind the sealed secret to its row with additional authenticated data.
+- [x] 3.1 Require 32 characters for the three secrets of the JWT, and validate `SECRETS_ENCRYPTION_KEY` at the boot as 32 bytes in hexadecimal.
+- [x] 3.2 Refuse the seed of the user, and refuse a local `DB_HOST`, when the environment is production.
+- [x] 3.3 Set `synchronize` to `false` in every environment.
+- [x] 3.4 Revoke the whole family of the refresh tokens when a revoked token returns, cap the live tokens of one user, and prune the oldest one.
+- [x] 3.5 Give one error and a constant time for an unknown email, a wrong password and an inactive user.
+- [x] 3.6 Bind the sealed secret to its row with additional authenticated data.
 
 ## Phase 4 — The edge
 

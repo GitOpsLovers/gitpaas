@@ -43,7 +43,9 @@ const guardedUser = (overrides: Partial<User> = {}): User => ({
 
 describe('verifyTwoFactorUseCase', () => {
     let mockUsersRepository: jest.Mocked<Pick<UsersRepository, 'findById'>>;
-    let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'create'>>;
+    let mockRefreshTokensRepository: jest.Mocked<
+        Pick<RefreshTokensRepository, 'create' | 'findActiveForUser' | 'revokeMany'>
+    >;
     let mockTokenService: jest.Mocked<
         Pick<TokenService, 'verifyTwoFactorChallenge' | 'signAccessToken' | 'issueRefreshToken'>
     >;
@@ -66,7 +68,11 @@ describe('verifyTwoFactorUseCase', () => {
         jest.clearAllMocks();
 
         mockUsersRepository = { findById: jest.fn().mockResolvedValue(guardedUser()) };
-        mockRefreshTokensRepository = { create: jest.fn().mockResolvedValue({}) };
+        mockRefreshTokensRepository = {
+            create: jest.fn().mockResolvedValue({}),
+            findActiveForUser: jest.fn().mockResolvedValue([]),
+            revokeMany: jest.fn().mockResolvedValue(0),
+        };
         mockTokenService = {
             verifyTwoFactorChallenge: jest.fn().mockReturnValue(payload),
             signAccessToken: jest.fn().mockReturnValue('access.jwt.token'),
@@ -87,7 +93,7 @@ describe('verifyTwoFactorUseCase', () => {
     it('checks the code against the opened secret of the account', async () => {
         await run(CHALLENGE, '654321');
 
-        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-secret');
+        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-secret', USER_ID);
         expect(mockTotp.verifyCode).toHaveBeenCalledWith('JBSWY3DPEHPK3PXP', '654321');
     });
 
@@ -97,6 +103,7 @@ describe('verifyTwoFactorUseCase', () => {
         expect(mockRefreshTokensRepository.create).toHaveBeenCalledWith({
             userId: USER_ID,
             jti: issued.jti,
+            familyId: issued.jti,
             tokenHash: issued.tokenHash,
             expiresAt: issued.expiresAt,
         });

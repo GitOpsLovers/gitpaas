@@ -13,18 +13,24 @@ import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
  * Builds the value the row must store for a change.
  *
  * @param cipher Secret cipher
+ * @param serviceId Service the variable belongs to, which binds the sealed value to it
  * @param secret `true` when the variable is a secret
  * @param value Value the body carries
  *
  * @returns The value the row stores, or `undefined` to keep the stored one
  */
-function resolveStoredValue(cipher: SecretCipher, secret: boolean, value?: string): string | undefined {
+function resolveStoredValue(
+    cipher: SecretCipher,
+    serviceId: string,
+    secret: boolean,
+    value?: string,
+): string | undefined {
     if (value === undefined) {
         return undefined;
     }
 
     if (secret) {
-        return value ? cipher.encryptSecret(value) : undefined;
+        return value ? cipher.encryptSecret(value, serviceId) : undefined;
     }
 
     return value;
@@ -68,7 +74,7 @@ export async function updateServiceVariableUseCase(
     const updated = await repository.update(
         id,
         updateDto,
-        resolveStoredValue(cipher, variable.secret, updateDto.value),
+        resolveStoredValue(cipher, serviceId, variable.secret, updateDto.value),
     );
 
     if (!updated) {

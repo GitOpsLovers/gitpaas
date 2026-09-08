@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 
 import { disableUserTotpUseCase } from '../../../application/disable-user-totp.use-case';
@@ -38,6 +39,7 @@ describe('UsersService', () => {
     let mockUsersRepository: jest.Mocked<Pick<DatabaseUsersRepository, 'findByEmail' | 'create'>>;
     let mockPasswordHasher: jest.Mocked<Pick<Argon2PasswordHasherAdapter, 'hash'>>;
     let mockLogger: jest.Mocked<AppLogger>;
+    let mockConfigService: jest.Mocked<Pick<ConfigService, 'get'>>;
     let sut: UsersService;
 
     beforeEach(async () => {
@@ -48,6 +50,7 @@ describe('UsersService', () => {
         mockLogger = {
             debug: jest.fn(), log: jest.fn(), warn: jest.fn(), error: jest.fn(),
         };
+        mockConfigService = { get: jest.fn().mockReturnValue('development') };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -55,6 +58,7 @@ describe('UsersService', () => {
                 { provide: DatabaseUsersRepository, useValue: mockUsersRepository },
                 { provide: Argon2PasswordHasherAdapter, useValue: mockPasswordHasher },
                 { provide: NestLoggerAdapter, useValue: mockLogger },
+                { provide: ConfigService, useValue: mockConfigService },
             ],
         }).compile();
 
@@ -107,6 +111,38 @@ describe('UsersService', () => {
                 `User "${DEV_USER_EMAIL}" already exists — left unchanged.`,
                 'UsersService',
             );
+        });
+    });
+
+    describe('seedDevelopmentUser — the environment gates the seed', () => {
+        it.each([['production'], ['test'], [undefined]])(
+            'never calls the use case when NODE_ENV is %s, and warns instead',
+            async (environment) => {
+                mockConfigService.get.mockReturnValue(environment);
+
+                await expect(sut.seedDevelopmentUser()).resolves.toBeUndefined();
+
+                expect(mockSeedFirstUserUseCase).not.toHaveBeenCalled();
+                expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+                expect(mockLogger.log).not.toHaveBeenCalled();
+            },
+        );
+
+        it('names the refused environment in the warning', async () => {
+            mockConfigService.get.mockReturnValue('production');
+
+            await sut.seedDevelopmentUser();
+
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Refused the seed of the first user in the "production" environment.',
+                'UsersService',
+            );
+        });
+
+        it('reads the environment from NODE_ENV', async () => {
+            await sut.seedDevelopmentUser();
+
+            expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV');
         });
     });
 

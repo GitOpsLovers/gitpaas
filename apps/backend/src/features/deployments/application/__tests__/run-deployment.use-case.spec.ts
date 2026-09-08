@@ -434,7 +434,7 @@ describe('runDeploymentUseCase', () => {
         await run();
 
         expect(mockServiceVariablesRepository.getStoredByService).toHaveBeenCalledWith(service.id);
-        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-payload');
+        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-payload', service.id);
         expect(mockDockerExecutor.up).toHaveBeenCalledWith(
             archive,
             payload.composerPath,

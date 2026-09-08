@@ -56,7 +56,7 @@ describe('getServiceEnvironmentUseCase', () => {
         mockSecretCipher.decryptSecret.mockReturnValue('the-token');
 
         await expect(run()).resolves.toEqual({ API_TOKEN: 'the-token' });
-        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-payload');
+        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-payload', serviceId);
     });
 
     it('raises an error that names the variable, and not its value, when the cipher cannot open a secret', async () => {

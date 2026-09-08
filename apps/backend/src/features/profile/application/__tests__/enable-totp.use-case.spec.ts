@@ -59,7 +59,7 @@ describe('enableTotpUseCase', () => {
     it('checks the code against the opened secret of the account', async () => {
         await run('654321');
 
-        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-secret');
+        expect(mockSecretCipher.decryptSecret).toHaveBeenCalledWith('sealed-secret', USER_ID);
         expect(mockTotp.verifyCode).toHaveBeenCalledTimes(1);
         expect(mockTotp.verifyCode).toHaveBeenCalledWith('JBSWY3DPEHPK3PXP', '654321');
     });

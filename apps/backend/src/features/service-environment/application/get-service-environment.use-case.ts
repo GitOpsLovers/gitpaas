@@ -27,7 +27,7 @@ export async function getServiceEnvironmentUseCase(
         }
 
         try {
-            return [variable.name, cipher.decryptSecret(variable.storedValue)];
+            return [variable.name, cipher.decryptSecret(variable.storedValue, serviceId)];
         } catch (error) {
             throw new ServiceVariableNotDecryptableError(variable.name, { cause: error });
         }

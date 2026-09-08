@@ -25,7 +25,9 @@ const issued: IssuedRefreshToken = {
 };
 
 describe('loginUseCase', () => {
-    let mockRefreshTokensRepository: jest.Mocked<Pick<RefreshTokensRepository, 'create'>>;
+    let mockRefreshTokensRepository: jest.Mocked<
+        Pick<RefreshTokensRepository, 'create' | 'findActiveForUser' | 'revokeMany'>
+    >;
     let mockTokenService: jest.Mocked<
         Pick<TokenService, 'signAccessToken' | 'issueRefreshToken' | 'signTwoFactorChallenge'>
     >;
@@ -34,6 +36,8 @@ describe('loginUseCase', () => {
         jest.clearAllMocks();
         mockRefreshTokensRepository = {
             create: jest.fn().mockResolvedValue({}),
+            findActiveForUser: jest.fn().mockResolvedValue([]),
+            revokeMany: jest.fn().mockResolvedValue(0),
         };
         mockTokenService = {
             signAccessToken: jest.fn().mockReturnValue('access.jwt.token'),
@@ -52,6 +56,7 @@ describe('loginUseCase', () => {
         expect(mockRefreshTokensRepository.create).toHaveBeenCalledWith({
             userId: user.id,
             jti: issued.jti,
+            familyId: issued.jti,
             tokenHash: issued.tokenHash,
             expiresAt: issued.expiresAt,
         });

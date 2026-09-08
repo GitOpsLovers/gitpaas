@@ -31,7 +31,7 @@ export async function setServiceVariableUseCase(
     }
 
     const secret = setDto.secret ?? false;
-    const storedValue = secret && setDto.value ? cipher.encryptSecret(setDto.value) : setDto.value;
+    const storedValue = secret && setDto.value ? cipher.encryptSecret(setDto.value, serviceId) : setDto.value;
 
     return repository.create(serviceId, setDto, storedValue);
 }

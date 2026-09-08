@@ -126,7 +126,7 @@ describe('updateServiceVariableUseCase', () => {
         await run({ value: 'rotated' });
 
         expect(mockSecretCipher.encryptSecret).toHaveBeenCalledTimes(1);
-        expect(mockSecretCipher.encryptSecret).toHaveBeenCalledWith('rotated');
+        expect(mockSecretCipher.encryptSecret).toHaveBeenCalledWith('rotated', serviceId);
         expect(mockServiceVariablesRepository.update).toHaveBeenCalledWith(
             variableId,
             { value: 'rotated' },
