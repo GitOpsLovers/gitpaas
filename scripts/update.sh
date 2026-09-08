@@ -120,19 +120,23 @@ SQL
         || log "No row of platform_updates could be opened — the update runs, and it reports on this terminal alone."
 }
 
+# Report the current step to the platform_updates row.
+report_current_step() {
+    [ -n "$GITPAAS_UPDATE_ID" ] || return 0
+
+    psql_report -v "id=$GITPAAS_UPDATE_ID" -v "step=$CURRENT_STEP" -v "percent=$CURRENT_PERCENT" <<'SQL'
+UPDATE "platform_updates"
+SET "step" = :'step', "percent" = :'percent'::integer, "state" = 'running', "error" = NULL
+WHERE "id" = :'id'::uuid;
+SQL
+}
+
 # Record the step the update reached, and how far along it is.
 report_step() {
     CURRENT_STEP="$1"
     CURRENT_PERCENT="$2"
     log "$1"
-
-    [ -n "$GITPAAS_UPDATE_ID" ] || return 0
-
-    psql_report -v "id=$GITPAAS_UPDATE_ID" -v "step=$1" -v "percent=$2" <<'SQL'
-UPDATE "platform_updates"
-SET "step" = :'step', "percent" = :'percent'::integer, "state" = 'running', "error" = NULL
-WHERE "id" = :'id'::uuid;
-SQL
+    report_current_step
 }
 
 # Record the failure on the last step reported. Called by die(), and by the trap
@@ -398,15 +402,17 @@ add_missing_env_keys() {
 }
 
 update_env() {
-    report_step "Updating the environment file ..." 45
+    CURRENT_STEP="Updating the environment file ..."
+    CURRENT_PERCENT=45
+    log "$CURRENT_STEP"
 
     [ -f "$ENV_FILE" ] || die "$ENV_FILE disappeared during the update. The production stack of the previous version is at $PROD_DIR.old."
 
     add_missing_env_keys
 
-    # The server of redis now demands a password, and the .env of an older release
-    # carries the empty value of the example.
     fill_env "REDIS_PASSWORD" "$(rand_password)"
+
+    report_current_step
 
     IMAGE_TAG="$(image_tag_for_ref "$RESOLVED_REF")"
     assert_image_tag "$IMAGE_TAG"
