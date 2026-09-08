@@ -15,6 +15,8 @@ import { DatabaseDeploymentsRepository } from '../../infrastructure/database/db-
 import { DockerExecutorAdapter } from '../../infrastructure/docker/docker-executor.adapter';
 import { enrichWithDeployment } from '../telemetry/enrich-with-deployment';
 
+import { SECURITY_ACTION_DEPLOYMENT } from '@core/domain/constants/telemetry.constants';
+import { recordSecurityAction } from '@core/infrastructure/telemetry/record-security-action';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
 import type { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
@@ -120,6 +122,8 @@ export class DeploymentsService {
      * @throws {ProviderRepositoryUnreachableError} When the provider cannot reach the stored repository
      */
     public async create(triggerDto: TriggerDeploymentDto): Promise<Deployment> {
+        recordSecurityAction(SECURITY_ACTION_DEPLOYMENT);
+
         const deployment = await createDeploymentUseCase(
             this.repository,
             this.servicesRepository,

@@ -69,13 +69,13 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Agent:** implementer
 **Paths:** `.github/workflows/`, `scripts/install.sh`, `scripts/update.sh`, `SECURITY.md`
 
-- [ ] 6.1 Pin every `uses:` of the three workflows to a commit.
-- [ ] 6.2 Add a workflow that scans the dependencies and the images.
-- [ ] 6.3 Sign the published images, and document the command that verifies one.
-- [ ] 6.4 Write `SECURITY.md` with the private channel of a report.
-- [ ] 6.5 Create the file `.env` with the mode 600 in the installer.
-- [ ] 6.6 Delete the copy `.bak` of the two scripts on every path, and not on the success alone.
-- [ ] 6.7 Record the sensitive actions in the telemetry that already exists.
+- [x] 6.1 Pin every `uses:` of the three workflows to a commit.
+- [x] 6.2 Add a workflow that scans the dependencies and the images.
+- [x] 6.3 Sign the published images, and document the command that verifies one.
+- [x] 6.4 Write `SECURITY.md` with the private channel of a report.
+- [x] 6.5 Create the file `.env` with the mode 600 in the installer.
+- [x] 6.6 Delete the copy `.bak` of the two scripts on every path, and not on the success alone.
+- [x] 6.7 Record the sensitive actions in the telemetry that already exists.
 
 ## Phase 7 — The networks and the volumes of a recipe
 

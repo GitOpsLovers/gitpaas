@@ -12,10 +12,12 @@ import { DatabaseRefreshTokensRepository } from '../../infrastructure/database/d
 import { JwtTokenServiceAdapter } from '../../infrastructure/security/jwt-token-service.adapter';
 import { enrichWithAuthOutcome, enrichWithTokenSubject } from '../telemetry/enrich-with-actor';
 
+import { SECURITY_ACTION_LOGIN, SECURITY_ACTION_LOGIN_FAILED } from '@core/domain/constants/telemetry.constants';
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import type { Totp } from '@core/domain/ports/totp.port';
 import { OtplibTotpAdapter } from '@core/infrastructure/crypto/otplib-totp.adapter';
 import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
+import { recordSecurityAction } from '@core/infrastructure/telemetry/record-security-action';
 import { User } from '@features/users/domain/models/user.models';
 import type { UsersRepository } from '@features/users/domain/repositories/users.repository';
 import { DatabaseUsersRepository } from '@features/users/infrastructure/database/db-users.repository';
@@ -49,6 +51,7 @@ export class AuthenticationService {
         const result = await loginUseCase(this.refreshTokensRepository, this.tokenService, user);
 
         enrichWithAuthOutcome('authenticated');
+        recordSecurityAction(SECURITY_ACTION_LOGIN);
 
         return result;
     }
@@ -78,10 +81,12 @@ export class AuthenticationService {
             );
 
             enrichWithAuthOutcome('authenticated');
+            recordSecurityAction(SECURITY_ACTION_LOGIN);
 
             return tokens;
         } catch (error) {
             enrichWithAuthOutcome('rejected');
+            recordSecurityAction(SECURITY_ACTION_LOGIN_FAILED);
 
             throw error;
         }

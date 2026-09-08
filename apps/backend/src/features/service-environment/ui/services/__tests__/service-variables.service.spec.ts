@@ -9,7 +9,9 @@ import { ServiceVariable } from '../../../domain/models/service-variable.models'
 import { DatabaseServiceVariablesRepository } from '../../../infrastructure/database/db-service-variables.repository';
 import { ServiceVariablesService } from '../service-variables.service';
 
+import type { TelemetryEvent } from '@core/domain/models/telemetry.models';
 import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
+import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 jest.mock('../../../application/get-service-variables-by-service.use-case');
 jest.mock('../../../application/remove-service-variable.use-case');
@@ -198,6 +200,78 @@ describe('ServiceVariablesService', () => {
             mockRemoveServiceVariableUseCase.mockRejectedValue(error);
 
             await expect(sut.remove(serviceId, variableId)).rejects.toThrow(error);
+        });
+    });
+
+    describe('telemetry event enrichment', () => {
+        const setDto: SetServiceVariableDto = { name: 'API_KEY', value: 's3cr3t', secret: true };
+
+        /** Runs a unit of work in a fresh telemetry scope and returns the accumulated event. */
+        const eventOf = async (work: () => Promise<void>): Promise<Partial<TelemetryEvent> | undefined> =>
+            runWithTelemetry({}, async () => {
+                await work();
+
+                return getTelemetry();
+            });
+
+        it('names the change of a secret when a variable is written', async () => {
+            mockSetServiceVariableUseCase.mockResolvedValue(variable);
+
+            const event = await eventOf(async () => {
+                await sut.set(serviceId, setDto);
+            });
+
+            expect(event).toEqual({ 'security.action': 'secret_change' });
+        });
+
+        it('never publishes the value of the written variable', async () => {
+            mockSetServiceVariableUseCase.mockResolvedValue(variable);
+
+            const event = await eventOf(async () => {
+                await sut.set(serviceId, setDto);
+            });
+
+            expect(JSON.stringify(event)).not.toContain(setDto.value);
+        });
+
+        it('names the change of a secret when a variable is replaced', async () => {
+            mockUpdateServiceVariableUseCase.mockResolvedValue(variable);
+
+            const event = await eventOf(async () => {
+                await sut.update(serviceId, variableId, { name: 'RENAMED' });
+            });
+
+            expect(event).toEqual({ 'security.action': 'secret_change' });
+        });
+
+        it('names the change of a secret when a variable is removed', async () => {
+            mockRemoveServiceVariableUseCase.mockResolvedValue(undefined);
+
+            const event = await eventOf(async () => {
+                await sut.remove(serviceId, variableId);
+            });
+
+            expect(event).toEqual({ 'security.action': 'secret_change' });
+        });
+
+        it('names the change of a secret even when the use case fails', async () => {
+            mockSetServiceVariableUseCase.mockRejectedValue(new Error('name taken'));
+
+            const event = await eventOf(async () => {
+                await expect(sut.set(serviceId, setDto)).rejects.toThrow('name taken');
+            });
+
+            expect(event).toEqual({ 'security.action': 'secret_change' });
+        });
+
+        it('never names a sensitive action when the variables are read', async () => {
+            mockGetServiceVariablesByServiceUseCase.mockResolvedValue([variable]);
+
+            const event = await eventOf(async () => {
+                await sut.getByService(serviceId);
+            });
+
+            expect(event).toEqual({});
         });
     });
 });

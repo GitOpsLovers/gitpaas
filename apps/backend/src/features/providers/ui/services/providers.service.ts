@@ -38,8 +38,10 @@ import { DatabaseProviderRegistrationsRepository } from '../../infrastructure/da
 import { DatabaseProvidersRepository } from '../../infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '../../infrastructure/github/github-provider-client.adapter';
 
+import { SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE } from '@core/domain/constants/telemetry.constants';
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { SecretCipherAdapter } from '@core/infrastructure/crypto/secret-cipher.adapter';
+import { recordSecurityAction } from '@core/infrastructure/telemetry/record-security-action';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 /**
@@ -97,6 +99,8 @@ export class ProvidersService {
      * @returns Created provider
      */
     public async create(createDto: CreateProviderDto): Promise<Provider> {
+        recordSecurityAction(SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE);
+
         const provider = await createProviderUseCase(this.repository, this.cipher, createDto);
 
         enrichTelemetry({ 'provider.id': provider.id });
@@ -113,6 +117,8 @@ export class ProvidersService {
      * @returns Updated provider, or `null` when it does not exist
      */
     public update(id: string, updateDto: UpdateProviderDto): Promise<Provider | null> {
+        recordSecurityAction(SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE);
+
         return updateProviderUseCase(this.repository, this.cipher, id, updateDto);
     }
 
@@ -124,6 +130,8 @@ export class ProvidersService {
      * @returns `true` when a row was deleted, `false` otherwise
      */
     public delete(id: string): Promise<boolean> {
+        recordSecurityAction(SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE);
+
         return deleteProviderUseCase(this.repository, id);
     }
 
@@ -219,6 +227,8 @@ export class ProvidersService {
      * @returns Created provider
      */
     public async completeRegistration(state: string, completeDto: CompleteProviderRegistrationDto): Promise<Provider> {
+        recordSecurityAction(SECURITY_ACTION_PROVIDER_CREDENTIAL_CHANGE);
+
         const provider = await completeProviderRegistrationUseCase(
             this.repository,
             this.registrationsRepository,

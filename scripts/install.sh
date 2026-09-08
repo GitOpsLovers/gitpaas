@@ -40,6 +40,10 @@ GITPAAS_VERSION="${GITPAAS_VERSION:-latest}"
 # Installation directory.
 GITPAAS_DIR="/opt/gitpaas"
 
+# The environment file of the stack. generate_env() fills it, and the trap of the
+# exit deletes the copy that sed leaves beside it.
+ENV_FILE=""
+
 # Every value below is asked on the terminal, by configure_control_plane() and by bootstrap_admin().
 GITPAAS_ADMIN_EMAIL=""
 GITPAAS_DOMAIN=""
@@ -68,6 +72,19 @@ fi
 log()  { printf '%s==>%s %s\n' "$C_GREEN$C_BOLD" "$C_RESET" "$*"; }
 err()  { printf '%s[error]%s %s\n' "$C_RED" "$C_RESET" "$*" >&2; }
 die()  { err "$*"; exit 1; }
+
+# ---------------------------------------------------------------------------
+# The copy .bak of the environment file
+# ---------------------------------------------------------------------------
+# Rewriting a key with sed leaves a copy .bak beside .env, and that copy carries
+# every secret of the platform. Delete it on every path of the exit, and not on
+# the success of sed alone.
+remove_env_backup() {
+    [ -n "$ENV_FILE" ] || return 0
+    $SUDO rm -f "$ENV_FILE.bak" 2>/dev/null || true
+    return 0
+}
+trap remove_env_backup EXIT
 
 # ---------------------------------------------------------------------------
 # Asking the operator
@@ -432,6 +449,8 @@ generate_env() {
 
     if [ -f "$ENV_FILE" ]; then
         log "$ENV_FILE already exists — keeping it (edit it by hand to change secrets)."
+        # A file written by an older installer may carry a wider mode.
+        $SUDO chmod 600 "$ENV_FILE"
         upsert_env "DOCKER_GID" "$DOCKER_GID"
         upsert_env "IMAGE_TAG"  "$IMAGE_TAG"
         default_env "REDIS_HOST" "redis"
@@ -445,7 +464,9 @@ generate_env() {
     fi
 
     log "Writing $ENV_FILE from .env.example..."
-    $SUDO cp "$PROD_DIR/.env.example" "$ENV_FILE"
+    # install(1) creates the file with the mode already set, so the secrets are never
+    # readable by another account of this server, not even for an instant.
+    $SUDO install -m 600 "$PROD_DIR/.env.example" "$ENV_FILE"
 
     db_password="$(rand_password)"
     set_env "POSTGRES_PASSWORD" "$db_password"

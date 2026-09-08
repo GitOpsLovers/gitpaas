@@ -1,0 +1,98 @@
+name: Security Scan
+
+# Scans the supply chain of GitPaaS on two fronts:
+#   1. `dependencies` — Trivy reads pnpm-lock.yaml and reports every known
+#                       vulnerability of the packages that the monorepo installs.
+#   2. `images`       — Trivy pulls the published images of ghcr.io and reports
+#                       the vulnerabilities of their operating system and of the
+#                       packages that they carry.
+# Both jobs upload their findings as SARIF, so the tab `Security` of the
+# repository holds the history and the state of each one.
+#
+# The triggers stay off a pull request of a fork on purpose: such a run holds a
+# read-only token, so the upload of the SARIF would fail.
+on:
+  schedule:
+    # Every Monday at 05:00 UTC.
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'apps/*/package.json'
+      - 'packages/*/package.json'
+      - 'iac/production/*.Dockerfile'
+      - '.github/workflows/security-scan.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    name: Scan dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Scan the lockfile of the workspace
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-dependencies.sarif
+
+      - name: Upload the findings of the dependencies
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: trivy-dependencies.sarif
+          category: trivy-dependencies
+
+  images:
+    name: Scan the image of ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: backend
+            image: ghcr.io/gitopslovers/gitpaas-backend:latest
+          - name: frontend
+            image: ghcr.io/gitopslovers/gitpaas-frontend:latest
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Scan the published image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ matrix.image }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-image-${{ matrix.name }}.sarif
+
+      - name: Upload the findings of the image
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: trivy-image-${{ matrix.name }}.sarif
+          category: trivy-image-${{ matrix.name }}
