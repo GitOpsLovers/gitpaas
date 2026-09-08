@@ -1,3 +1,10 @@
+## [2.23.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.22.0...v2.23.0) (2026-09-08)
+
+### Features
+
+* improve Frontend design ([#269](https://github.com/GitOpsLovers/gitpaas/issues/269)) ([2bc8237](https://github.com/GitOpsLovers/gitpaas/commit/2bc8237904e311ccda7718e09213465b5ef82feb))
+* standarize Frontend architecture skill ([#268](https://github.com/GitOpsLovers/gitpaas/issues/268)) ([cc1b3ac](https://github.com/GitOpsLovers/gitpaas/commit/cc1b3ac204c5fcd71f364d05813ebe3661bea9ab))
+
 ## [2.22.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.21.0...v2.22.0) (2026-09-08)
 
 ### Features
