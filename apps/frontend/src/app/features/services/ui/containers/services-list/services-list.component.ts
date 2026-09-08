@@ -10,6 +10,7 @@ import { ServiceCardComponent } from '../../components/service-card/service-card
 
 import { ContainersApiRepository } from '@features/containers/infrastructure/api/containers-api.repository';
 import { DeploymentsApiRepository } from '@features/deployments/infrastructure/api/deployments-api.repository';
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -18,7 +19,7 @@ import { ToastService } from '@shared/services/toast.service';
     selector: 'app-services-list',
     templateUrl: './services-list.component.html',
     providers: [ServicesApiRepository, ContainersApiRepository, DeploymentsApiRepository],
-    imports: [RouterLink, ServiceCardComponent, ConfirmModalComponent, SkeletonComponent],
+    imports: [AlertComponent, RouterLink, ServiceCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**

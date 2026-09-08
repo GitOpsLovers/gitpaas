@@ -13,6 +13,8 @@ this file holds the rules of the engine alone.
 - `@theme` takes a token that must produce a class or a variant. A plain variable of CSS goes to
   `:root`.
 - A variable of `@theme` stays at the top level. It never goes inside a selector or a media query.
-- Tailwind reads a source file as plain text. Thus a class that the code builds by concatenation
-  never reaches the output.
-- The browsers of the target are Safari 16.4+, Chrome 111+ and Firefox 128+.
+- Tailwind reads a source file as plain text, so **each class must appear as one whole literal in a
+  file of the source**. A component that concatenates whole strings works —
+  `shared/components/button/button.component.ts` joins `sizeClasses`, `variantClasses` and
+  `className()`, and each part holds its classes complete. A class assembled from fragments, such as
+  `'bg-' + colour + '-500'`, never reaches the output.

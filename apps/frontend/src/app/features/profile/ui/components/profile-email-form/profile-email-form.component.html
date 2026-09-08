@@ -21,11 +21,9 @@
         </div>
 
         @if (error(); as message) {
-            <p
-                class="rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
-            >
+            <app-alert variant="error">
                 {{ message }}
-            </p>
+            </app-alert>
         }
 
         <app-button type="submit" [disabled]="saving() || !changed() || emailError() !== null">

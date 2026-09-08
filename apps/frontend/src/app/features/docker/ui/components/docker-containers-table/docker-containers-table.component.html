@@ -5,11 +5,9 @@
     </app-button>
 
     @if (error()) {
-        <p
-            class="flex min-h-40 items-center rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
-        >
+        <app-alert variant="error" className="flex min-h-40 items-center">
             {{ error() }}
-        </p>
+        </app-alert>
     } @else if (loading() || containers().length > 0) {
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">

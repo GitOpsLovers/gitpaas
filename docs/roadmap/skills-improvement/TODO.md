@@ -2,8 +2,6 @@
 
 This plan involves reviewing each and every skill in the GitPaaS project and adapting them so that they accurately reflect the patterns and working conventions that AI assistants must follow.
 
-## Phase 5 — Frontend design
-
 ## Phase 6 — Frontend unit testing
 
 ## Phase 7 — Git and GitHub workflow

@@ -15,6 +15,7 @@ import { lastValueFrom } from 'rxjs';
 import { describeRequestFailureUseCase } from '../../../application/describe-request-failure.use-case';
 import { ServerApiRepository } from '../../../infrastructure/api/server-api.repository';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
@@ -45,7 +46,7 @@ interface GithubAppUrl {
     selector: 'app-server-settings',
     templateUrl: './server-settings.component.html',
     providers: [ServerApiRepository],
-    imports: [
+    imports: [AlertComponent,
         ComponentCardComponent,
         LabelComponent,
         InputFieldComponent,

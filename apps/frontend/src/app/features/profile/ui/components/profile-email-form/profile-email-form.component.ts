@@ -1,5 +1,6 @@
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
 import { LabelComponent } from '@shared/components/label/label.component';
@@ -12,7 +13,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 @Component({
     selector: 'app-profile-email-form',
     templateUrl: './profile-email-form.component.html',
-    imports: [LabelComponent, InputFieldComponent, ButtonComponent],
+    imports: [AlertComponent, LabelComponent, InputFieldComponent, ButtonComponent],
     host: { class: 'contents' },
 })
 

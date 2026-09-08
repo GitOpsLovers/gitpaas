@@ -6,6 +6,7 @@ import { lastValueFrom } from 'rxjs';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 import { ProjectCardComponent } from '../../components/project-card/project-card.component';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -14,7 +15,7 @@ import { ToastService } from '@shared/services/toast.service';
     selector: 'app-projects-list',
     templateUrl: './projects-list.component.html',
     providers: [ProjectsApiRepository],
-    imports: [RouterLink, ProjectCardComponent, ConfirmModalComponent, SkeletonComponent],
+    imports: [AlertComponent, RouterLink, ProjectCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**

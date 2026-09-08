@@ -4,11 +4,9 @@
         Add Domain
     </app-button>
 
-    <div
-        class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
-    >
+    <app-alert variant="info">
         <p>The changes will take effect with the next service deployment.</p>
-    </div>
+    </app-alert>
 
     @if (loading() || domains().length > 0) {
         <div class="overflow-x-auto">
