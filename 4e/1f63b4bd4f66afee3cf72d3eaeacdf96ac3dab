@@ -1,0 +1,49 @@
+apps/backend/src/core/domain/constants/__tests__/gitpaas-networks.constants.spec.ts
+  s_8bf17b633ab4bf::t_aa6e8e500e5c88 1-24
+apps/backend/src/core/domain/constants/gitpaas-networks.constants.ts
+  s_8bf17b633ab4bf::t_009691ba0a516c 1-22
+apps/backend/src/core/ui/translators/http-error.translator.ts
+  s_8bf17b633ab4bf::t_048dac0c4bdc1a 79
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_8bf17b633ab4bf::t_f3e121e2636763 570-600
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_8bf17b633ab4bf::t_5d42a5267bccd1 163-168
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-guard.spec.ts
+  s_8bf17b633ab4bf::t_f56651a41360b8 125-159
+apps/backend/src/features/deployments/infrastructure/docker/compose-guard.ts
+  s_8bf17b633ab4bf::t_9a039df13e56ff 4,7-11,188-209,215,221-224
+apps/backend/src/features/domains/infrastructure/traefik/traefik-reverse-proxy.constants.ts
+  s_8bf17b633ab4bf::t_167c29529655bb 1-2,5-6,8
+apps/backend/src/features/volumes/application/__tests__/assert-mount-path-safe.use-case.spec.ts
+  s_8bf17b633ab4bf::t_e397ba457ac7a0 1-45
+apps/backend/src/features/volumes/application/__tests__/attach-volume.use-case.spec.ts
+  s_8bf17b633ab4bf::t_72a154cb1c55e9 3,47-58
+apps/backend/src/features/volumes/application/__tests__/create-volume.use-case.spec.ts
+  s_8bf17b633ab4bf::t_2f6dac51006c28 3,80-92
+apps/backend/src/features/volumes/application/assert-mount-path-safe.use-case.ts
+  s_8bf17b633ab4bf::t_4cc55016e4c57c 1-26
+apps/backend/src/features/volumes/application/attach-volume.use-case.ts
+  s_8bf17b633ab4bf::t_d7a43a290a6f2a 8,20,30-31
+apps/backend/src/features/volumes/application/create-volume.use-case.ts
+  s_8bf17b633ab4bf::t_6e6854fbc4a370 11,28,40-41
+apps/backend/src/features/volumes/domain/errors/volume.errors.ts
+  s_8bf17b633ab4bf::t_010918f08935f5 30-42
+docs/roadmap/security-hardening/TODO.md
+  s_8bf17b633ab4bf::t_ab9a11c58f45a7 85-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4e1f63b4bd4f66afee3cf72d3eaeacdf96ac3dab",
+  "prompts": {},
+  "sessions": {
+    "s_8bf17b633ab4bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f14b7b4a-a212-415c-94e1-c09765f11af4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
