@@ -122,6 +122,41 @@ describe('assertSafeRecipe', () => {
         expect(() => { assertSafeRecipe(interpolated); }).toThrow(/services\.web\.privileged/);
     });
 
+    it('accepts a network of the recipe that names a network of its own project', () => {
+        expect(() => { assertSafeRecipe({ networks: { front: null, back: { name: 'shared-back' } } }); }).not.toThrow();
+    });
+
+    it('accepts an external network of the recipe that GitPaaS does not own', () => {
+        expect(() => { assertSafeRecipe({ networks: { shared: { external: true } } }); }).not.toThrow();
+    });
+
+    it.each(['gitpaas-proxy', 'gitpaas-data', 'gitpaas_default', 'gitpaas-dev_default'])(
+        'refuses the external network %p, because GitPaaS owns it',
+        (name) => {
+            expect(() => { assertSafeRecipe({ networks: { [name]: { external: true } } }); })
+                .toThrow(UnsafeComposeRecipeError);
+        },
+    );
+
+    it('names the key of the network that failed, and not the name it carries on the daemon', () => {
+        expect(() => { assertSafeRecipe({ networks: { data: { external: true, name: 'gitpaas-data' } } }); })
+            .toThrow(/networks\.data/);
+    });
+
+    it('refuses a network of the recipe that carries the name of a network of GitPaaS without the key external', () => {
+        expect(() => { assertSafeRecipe({ networks: { data: { name: 'gitpaas-data' } } }); })
+            .toThrow(UnsafeComposeRecipeError);
+    });
+
+    it('refuses a network a variable of the service carried into the recipe through the interpolation', () => {
+        const interpolated = interpolateRecipe(
+            { networks: { edge: { external: true, name: '${NETWORK}' } } },
+            { NETWORK: 'gitpaas-proxy' },
+        ) as unknown as ComposeRecipe;
+
+        expect(() => { assertSafeRecipe(interpolated); }).toThrow(UnsafeComposeRecipeError);
+    });
+
     it('refuses a volume a variable of the service carried into the recipe through the interpolation', () => {
         const interpolated = interpolateRecipe(
             { services: { web: { image: 'nginx:1.27', volumes: ['${SOURCE}:/host'] } } },

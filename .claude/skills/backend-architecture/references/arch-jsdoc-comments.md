@@ -8,6 +8,10 @@ All the classes, the functions and the interfaces must have a JSDoc comment bloc
 
 - One line that gives the purpose of the model in a short form.
 
+### Constants
+
+- One line that gives the purpose of the model in a short form.
+
 ### Ports
 
 - One line that gives the purpose of the port in a short form. 

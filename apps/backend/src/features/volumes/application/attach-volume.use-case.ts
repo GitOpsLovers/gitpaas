@@ -5,6 +5,7 @@ import { ServiceVolumesRepository } from '../domain/repositories/service-volumes
 import { VolumesRepository } from '../domain/repositories/volumes.repository';
 
 import { assertMountPathFreeUseCase } from './assert-mount-path-free.use-case';
+import { assertMountPathSafeUseCase } from './assert-mount-path-safe.use-case';
 
 /**
  * Use case for attaching a volume of a service to one service of its Compose file.
@@ -16,6 +17,7 @@ import { assertMountPathFreeUseCase } from './assert-mount-path-free.use-case';
  * @param attachDto Mount the volume takes inside the container
  *
  * @throws VolumeNotFoundError When the service holds no volume of that id
+ * @throws VolumeMountPathUnsafeError When the mount path leaves the root of the container
  * @throws VolumeMountPathTakenError When another volume of the service already mounts at that path
  */
 export async function attachVolumeUseCase(
@@ -25,6 +27,8 @@ export async function attachVolumeUseCase(
     volumeId: string,
     attachDto: AttachVolumeDto,
 ): Promise<void> {
+    assertMountPathSafeUseCase(attachDto.containerPath);
+
     const volume = await volumesRepository.findById(volumeId);
 
     if (volume?.serviceId !== serviceId) {

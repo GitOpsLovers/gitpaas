@@ -160,7 +160,12 @@ export async function runDeploymentUseCase(
             networkAlias: getServiceSlug(service),
         };
 
-        const finalCompose = await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, emit);
+        const deployed = await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, emit);
+
+        // The executor masks the block `environment` of the final Compose text, and the interpolation
+        // writes a variable anywhere else too - a command, a label, an argument of the build - so the
+        // value of a secret that survived that mask never reaches the text the store keeps.
+        const finalCompose = maskSecretValuesUseCase(deployed, secrets);
 
         // The record of a volume Compose created never fails a deployment the daemon already brought up.
         await adoptComposeVolumesUseCase(volumesRepository, daemonVolumesRepository, service)

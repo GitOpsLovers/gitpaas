@@ -1,6 +1,6 @@
 import type { AttachVolumeDto } from '@gitpaas/contracts';
 
-import { VolumeMountPathTakenError, VolumeNotFoundError } from '../../domain/errors/volume.errors';
+import { VolumeMountPathTakenError, VolumeMountPathUnsafeError, VolumeNotFoundError } from '../../domain/errors/volume.errors';
 import { ServiceVolumeMount, Volume } from '../../domain/models/volume.models';
 import { ServiceVolumesRepository } from '../../domain/repositories/service-volumes.repository';
 import { VolumesRepository } from '../../domain/repositories/volumes.repository';
@@ -43,6 +43,18 @@ describe('attachVolumeUseCase', () => {
         volumeId,
         dto,
     );
+
+    it('throws when the mount path leaves the root of the container through a traversal', async () => {
+        await expect(run({ ...attachDto, containerPath: '/var/lib/../../etc' }))
+            .rejects.toBeInstanceOf(VolumeMountPathUnsafeError);
+    });
+
+    it('never reads the volume when the mount path holds a traversal', async () => {
+        await expect(run({ ...attachDto, containerPath: '/data/..' })).rejects.toThrow();
+
+        expect(mockVolumesRepository.findById).not.toHaveBeenCalled();
+        expect(mockServiceVolumesRepository.attach).not.toHaveBeenCalled();
+    });
 
     it('throws when the service holds no volume of that id', async () => {
         mockVolumesRepository.findById.mockResolvedValue(null);

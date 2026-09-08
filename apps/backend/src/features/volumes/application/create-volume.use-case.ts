@@ -8,6 +8,7 @@ import { ServiceVolumesRepository } from '../domain/repositories/service-volumes
 import { VolumesRepository } from '../domain/repositories/volumes.repository';
 
 import { assertMountPathFreeUseCase } from './assert-mount-path-free.use-case';
+import { assertMountPathSafeUseCase } from './assert-mount-path-safe.use-case';
 import { getVolumeDaemonNameUseCase } from './get-volume-daemon-name.use-case';
 
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
@@ -24,6 +25,7 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
  *
  * @returns Recorded volume, which the next deployment mounts
  *
+ * @throws VolumeMountPathUnsafeError When the mount path leaves the root of the container
  * @throws ServiceNotFoundError When no service carries that id
  * @throws VolumeNameTakenError When the service already holds another volume of that name
  * @throws VolumeMountPathTakenError When another volume of the service already mounts at that path
@@ -35,6 +37,8 @@ export async function createVolumeUseCase(
     serviceId: string,
     createDto: CreateVolumeDto,
 ): Promise<VolumeStatus> {
+    assertMountPathSafeUseCase(createDto.containerPath);
+
     const service = await servicesRepository.findById(serviceId);
 
     if (!service) {
