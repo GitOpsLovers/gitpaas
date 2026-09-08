@@ -1,0 +1,61 @@
+iac/production/docker-compose.yml
+  s_91f84a09d9227d::t_4ac27504a8f49b 46-47,59-70,73-74,92-94,99-101,147-152
+apps/backend/src/core/ui/guards/client-address-throttler.guard.ts
+  s_91f84a09d9227d::t_c7242ef3201453 1-21
+iac/production/.env.example
+  s_91f84a09d9227d::t_13e28a3100cc50 34-36,51-52
+apps/backend/src/features/authentication/ui/controllers/authentication.controller.ts
+  s_91f84a09d9227d::t_4bde60e624576b 82,99
+apps/backend/src/core/ui/guards/__tests__/client-address-throttler.guard.spec.ts
+  s_91f84a09d9227d::t_e8910923ddbc74 1-53
+apps/backend/src/core/__tests__/core.module.spec.ts
+  s_91f84a09d9227d::t_09ba744b1ec3ab 7,32-39
+scripts/update.sh
+  s_91f84a09d9227d::t_22b7d26befeadc 231,357-367,398-401
+apps/backend/src/core/application/__tests__/resolve-client-address.use-case.spec.ts
+  s_91f84a09d9227d::t_7dc8ea12c84b9b 1-54
+apps/backend/src/core/application/resolve-client-address.use-case.ts
+  s_91f84a09d9227d::t_4a2ac900db84cb 1-44
+apps/backend/src/core/infrastructure/config/env-validation.config.ts
+  s_91f84a09d9227d::t_10d49e88f76fa5 68-72,96,99,131-138
+apps/backend/src/core/infrastructure/config/__tests__/env-validation.config.spec.ts
+  s_91f84a09d9227d::t_021e7d974f08d1 308,317-320,374,392-404,412-436,474-478
+apps/backend/src/app.module.ts
+  s_91f84a09d9227d::t_97d2c309bf20ae 5,11,13,39-41,82
+apps/backend/src/__tests__/bootstrap.spec.ts
+  s_91f84a09d9227d::t_8c4c106f14b845 56,78,90-111,206,225,247
+apps/backend/src/features/authentication/ui/controllers/__tests__/authentication.controller.spec.ts
+  s_91f84a09d9227d::t_4afdf4e6317a88 277-308
+scripts/install.sh
+  s_91f84a09d9227d::t_47e9fa343a00aa 308-315,439,453
+apps/backend/src/bootstrap.ts
+  s_91f84a09d9227d::t_9d9ad379dc6a93 3,27,31-33
+iac/production/nginx.conf
+  s_91f84a09d9227d::t_f98a7e560062de 6-9,17-30,35-41,65-71,77-83,90-96
+apps/backend/src/__tests__/app.module.spec.ts
+  s_91f84a09d9227d::t_966560967b23ff 1-83
+docs/roadmap/security-hardening/TODO.md
+  s_91f84a09d9227d::t_a70049d575fdd4 49-53
+apps/backend/src/core/infrastructure/redis/redis-throttler-storage.adapter.ts
+  s_91f84a09d9227d::t_7eba57e5ce47b8 1-104
+apps/backend/src/core/infrastructure/redis/__tests__/redis-throttler-storage.adapter.spec.ts
+  s_91f84a09d9227d::t_2d986c93207425 1-105
+apps/backend/src/core/core.module.ts
+  s_91f84a09d9227d::t_87420b1c8007ca 13,41,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b62ff43991530bc0dc9e04fa5b3ad224b2d5cb62",
+  "prompts": {},
+  "sessions": {
+    "s_91f84a09d9227d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "159c02f8-d270-4b89-a9d3-998698d07944",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
