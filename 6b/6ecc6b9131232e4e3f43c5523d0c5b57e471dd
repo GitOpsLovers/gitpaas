@@ -1,0 +1,14 @@
+scripts/update.sh
+  h_e4f33aa49027b9 123-124,127,134-141,405-407,415-416
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6b6ecc6b9131232e4e3f43c5523d0c5b57e471dd",
+  "prompts": {},
+  "humans": {
+    "h_e4f33aa49027b9": {
+      "author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
