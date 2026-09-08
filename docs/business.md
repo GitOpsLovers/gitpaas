@@ -8,7 +8,7 @@ The future behavior lives in `docs/roadmap.md`. A page of this area moves from t
 
 ## Sections
 
-- [auth](./business/auth.md): the session, the token, the guard and the role.
+- [auth](./business/auth.md): the session, the token and the guard.
 - [containers](./business/containers.md): the container of a service, and its state.
 - [deployments](./business/deployments.md): the run of a deployment, its queue and its steps.
 - [docker](./business/docker.md): the section Docker, and the four tables of the resources of the host.
