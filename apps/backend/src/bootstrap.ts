@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
@@ -23,10 +24,13 @@ function resolveCorsOrigins(raw: string): string[] {
 }
 
 export async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
     const config = app.get(ConfigService);
 
+    // Trust the hops of the reverse proxy alone, so `request.ip` holds the address of the client
+    // and a forged `X-Forwarded-For` never buys a fresh counter of the rate limit.
+    app.set('trust proxy', config.getOrThrow<number>('TRUST_PROXY_HOPS'));
     app.setGlobalPrefix('api/v1');
     app.enableCors({
         origin: resolveCorsOrigins(config.getOrThrow<string>('CORS_ORIGIN')),

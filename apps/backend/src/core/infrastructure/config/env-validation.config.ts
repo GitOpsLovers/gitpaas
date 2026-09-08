@@ -66,6 +66,11 @@ const enabledFlag = z
 const RUNTIME_LOGS_DEFAULT_RETENTION_DAYS = 7;
 
 /**
+ * The number of reverse proxies that stand before the backend, when the environment names none
+ */
+const TRUST_PROXY_DEFAULT_HOPS = 1;
+
+/**
  * The port the container of pgAdmin publishes on the host, when the environment names none
  */
 const PGADMIN_DEFAULT_PORT = 5050;
@@ -88,9 +93,10 @@ const environmentSchema = z.object({
     DB_NAME: requiredText,
     REDIS_HOST: requiredText,
     REDIS_PORT: requiredNumber,
-    REDIS_PASSWORD: z.string().optional(),
+    REDIS_PASSWORD: optionalText,
     SECRETS_ENCRYPTION_KEY: encryptionKey,
     CORS_ORIGIN: requiredText,
+    TRUST_PROXY_HOPS: requiredNumber.int().min(0).default(TRUST_PROXY_DEFAULT_HOPS),
     APP_BASE_URL: z.url({ protocol: /^https?$/ }),
     THROTTLE_TTL: requiredNumber,
     THROTTLE_LIMIT: requiredNumber,
@@ -120,6 +126,14 @@ const environmentSchema = z.object({
             code: 'custom',
             path: ['DB_HOST'],
             message: 'must name a remote database in production, and never the machine of the backend',
+        });
+    }
+
+    if (config.REDIS_PASSWORD === undefined) {
+        context.addIssue({
+            code: 'custom',
+            path: ['REDIS_PASSWORD'],
+            message: 'must hold the password of the server of redis in production',
         });
     }
 });

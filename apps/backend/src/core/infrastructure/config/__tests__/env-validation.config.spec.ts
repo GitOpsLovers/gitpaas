@@ -305,13 +305,17 @@ describe('validate', () => {
         expect(() => validate(env)).toThrow(/REDIS_HOST/);
     });
 
-    it('accepts an absent Redis password, since the server may need none', () => {
+    it('accepts an absent Redis password outside production, where the server needs none', () => {
         expect(() => validate(validEnv())).not.toThrow();
         expect(validate(validEnv()).REDIS_PASSWORD).toBeUndefined();
     });
 
     it('keeps a configured Redis password', () => {
         expect(validate({ ...validEnv(), REDIS_PASSWORD: 'secret' }).REDIS_PASSWORD).toBe('secret');
+    });
+
+    it('reads an empty Redis password as an absent one', () => {
+        expect(validate({ ...validEnv(), REDIS_PASSWORD: '   ' }).REDIS_PASSWORD).toBeUndefined();
     });
 
     it('fails fast when the providers encryption key is missing', () => {
@@ -367,6 +371,7 @@ describe('validate', () => {
             ...validEnv(),
             NODE_ENV: 'production',
             DB_HOST: host,
+            REDIS_PASSWORD: 'the-password-of-redis',
         });
 
         it.each([['localhost'], ['127.0.0.1'], ['::1'], ['0.0.0.0'], ['host.docker.internal'], ['LocalHost'], ['  localhost  ']])(
@@ -384,11 +389,49 @@ describe('validate', () => {
             expect(() => validate({ ...validEnv(), NODE_ENV: 'development', DB_HOST: 'localhost' })).not.toThrow();
             expect(() => validate({ ...validEnv(), NODE_ENV: 'test', DB_HOST: 'localhost' })).not.toThrow();
         });
+
+        it.each([[undefined], ['']])(
+            'refuses the Redis password %p, because the server of production demands one',
+            (password) => {
+                const env = { ...productionEnv('postgres'), REDIS_PASSWORD: password };
+
+                expect(() => validate(env)).toThrow(/REDIS_PASSWORD/);
+            },
+        );
+
+        it('accepts a Redis password that the environment carries', () => {
+            expect(() => validate(productionEnv('postgres'))).not.toThrow();
+        });
     });
 
     it('rejects a non-numeric throttle limit', () => {
         expect(() => validate({ ...validEnv(), THROTTLE_LIMIT: 'not-a-number' }))
             .toThrow(/Invalid environment configuration/);
+    });
+
+    describe('TRUST_PROXY_HOPS', () => {
+        it('trusts one hop of the proxy when the environment names none', () => {
+            const env = validEnv();
+            delete env.TRUST_PROXY_HOPS;
+
+            expect(validate(env).TRUST_PROXY_HOPS).toBe(1);
+        });
+
+        it('reads the number of hops the environment names', () => {
+            expect(validate({ ...validEnv(), TRUST_PROXY_HOPS: '2' }).TRUST_PROXY_HOPS).toBe(2);
+        });
+
+        it('accepts no hop at all, for a backend that faces the client itself', () => {
+            expect(validate({ ...validEnv(), TRUST_PROXY_HOPS: '0' }).TRUST_PROXY_HOPS).toBe(0);
+        });
+
+        it('rejects a negative number of hops', () => {
+            expect(() => validate({ ...validEnv(), TRUST_PROXY_HOPS: '-1' })).toThrow(/TRUST_PROXY_HOPS/);
+        });
+
+        it('rejects a fractional number of hops', () => {
+            expect(() => validate({ ...validEnv(), TRUST_PROXY_HOPS: '1.5' })).toThrow(/TRUST_PROXY_HOPS/);
+        });
     });
 
     it('accepts a comma-separated CORS origin allowlist', () => {
@@ -428,8 +471,11 @@ describe('validate', () => {
     });
 
     it('accepts the production environment', () => {
-        expect(validate({ ...validEnv(), NODE_ENV: 'production', DB_HOST: 'postgres' }).NODE_ENV)
-            .toBe('production');
+        const env = {
+            ...validEnv(), NODE_ENV: 'production', DB_HOST: 'postgres', REDIS_PASSWORD: 'the-password-of-redis',
+        };
+
+        expect(validate(env).NODE_ENV).toBe('production');
     });
 
     it('ignores unrelated environment variables', () => {
