@@ -13,7 +13,7 @@ The three layers of a feature obey one strict rule: **an outer layer can depend 
 
 Each feature has one `@Injectable()` repository (`<feature>-api.repository.ts`). This repository owns all the HTTP access and makes its endpoints from `environment.apiBaseUrl`. Obey the [Angular `httpResource` guide](https://angular.dev/guide/http/http-resource): **a read uses `httpResource`, and a mutation uses `HttpClient`.**
 
-- **A read** is a resource with `isLoading()`, `error()`, `hasValue()`, `value()`, `status()` and `reload()`. A read with an id parameter is a factory that returns a resource with an accessor as its key (`projectById(() => id)`). The resource stays idle until the accessor gives a value.
+- **A read** is a resource with `isLoading()`, `error()`, `hasValue()`, `value()`, `status()` and `reload()`. A read with an id parameter is a factory that returns a resource with an accessor as its key (`projectById(() => id)`). The resource stays idle until the accessor gives a value. A read that composes an RxJS stream (`forkJoin`, `of`, …) instead of a plain HTTP call uses `rxResource`, from `@angular/core/rxjs-interop`, with the same signal API.
 - **A mutation** (`create`/`update`/`delete`) is a thin method that returns an `Observable` with one emission. A container uses it with `lastValueFrom` and `async`/`await`, and never with a manual `subscribe`. Then the container calls `.reload()` on the applicable read resource. A long-lived stream with many emissions (for example, an SSE log stream) is the exception: the method returns an `Observable`, and the container subscribes to it and cancels the subscription itself.
 
 A feature repository is **not** `providedIn: 'root'`. The smart container gives it (`providers: [ProjectsApiRepository]`). Thus each screen gets a new instance and a new fetch. Only the app-wide session concerns, such as the authentication, have a root-provided repository.
@@ -41,6 +41,12 @@ A presentational component only shows data and emits events. It never injects a 
 - **Name an `output()` with a bare verb, and never with the name of a native DOM event** (`change`, `input`, `select`, `submit`, `close`, …). A template that binds `(close)` to such an output reads the native event of the host instead. Example: `start` and `cancel` broke this rule, so they became `begin` and `discard`.
 
 The Tailwind design tokens (`brand-*`, `error-*`, `success-*`, …) are defined in the `@theme` block of the global stylesheet (`apps/frontend/src/styles.css`). They are the own theme of GitPaaS: a cool slate ramp for `gray`, a saturated violet for `brand`, the font Inter for the text and JetBrains Mono for the code, and a `--radius-*` scale that overrides the default scale of Tailwind with smaller values.
+
+## Forms
+
+The application writes a form by hand; it uses no signal form, no reactive form and no template-driven form. A `*-form.component` holds one `linkedSignal(() => this.initialX())` per field, seeded from an `input()` that carries the value to edit. The template binds the value with `[value]` and reads a change with `(input)` on a native element, or with `(valueChange)` on a shared field component that wraps `(input)` internally. The component emits one `output()` on the submit, with the trimmed values of the fields. A parent container reads the `save` output and calls the mutation.
+
+Reference: [`project-form.component.ts`](../../../apps/frontend/src/app/features/projects/ui/components/project-form/project-form.component.ts) and [`provider-form.component.ts`](../../../apps/frontend/src/app/features/providers/ui/components/provider-form/provider-form.component.ts).
 
 ## State
 

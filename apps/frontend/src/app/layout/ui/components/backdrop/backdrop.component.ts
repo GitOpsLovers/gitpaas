@@ -8,7 +8,7 @@ import { SidebarService } from '@layout/ui/services/sidebar.service';
  */
 @Component({
     selector: 'app-backdrop',
-    templateUrl: './backdrop.html',
+    templateUrl: './backdrop.component.html',
     imports: [CommonModule],
 })
 export class BackdropComponent {

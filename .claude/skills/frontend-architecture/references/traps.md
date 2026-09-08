@@ -9,7 +9,7 @@ page disagree, the page wins, and you report the disagreement.
 on an outer layer. `domain/` must not import `infrastructure/` or `ui/`. The business logic stays in
 the feature, and never in a page.
 
-## The four traps
+## The five traps
 
 These rules break the most often. The pages above hold the reason of each one.
 
@@ -20,3 +20,5 @@ These rules break the most often. The pages above hold the reason of each one.
    is wrong, correct the import. Never rename the file.
 4. **Use the per-icon components of `@lucide/angular`** (`<svg lucideX>`), and not the dynamic
    module.
+5. **The route parameter enters through the page as a signal input.** With
+   `withComponentInputBinding()`, write no `ResolveFn`.

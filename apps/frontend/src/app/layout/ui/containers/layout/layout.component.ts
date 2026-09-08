@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { BackdropComponent } from '../../components/backdrop/backdrop';
-import { HeaderComponent } from '../../components/header/header';
+import { BackdropComponent } from '../../components/backdrop/backdrop.component';
+import { HeaderComponent } from '../../components/header/header.component';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { SidebarService } from '../../services/sidebar.service';
 

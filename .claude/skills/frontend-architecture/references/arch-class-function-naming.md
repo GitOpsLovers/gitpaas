@@ -4,11 +4,15 @@
 
 - The class name is in `PascalCase` and ends with `Page`. Example: `ProjectsListPage`.
 - The selector is `app-<feature>-<action>-page`. Example: `app-projects-list-page`.
+- **Exception:** a feature of one screen, with no separate list or detail action, takes the
+  selector `app-<feature>`. Example: `DashboardPage` selects `app-dashboard`.
 
 ## Presentational components
 
 - The class name is in `PascalCase` and ends with `Component`. Example: `StatCardComponent`.
 - The selector is `app-<name>`. Example: `app-stat-card`.
+- The selector must match the class: `app-stat-card` selects `StatCardComponent`, never a
+  different name.
 
 ## Outputs
 

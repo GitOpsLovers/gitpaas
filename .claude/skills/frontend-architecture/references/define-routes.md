@@ -40,7 +40,7 @@ Use `redirectTo` to point one path to another.
 
 ## Page Titles
 
-Associate titles with routes for accessibility. Titles can be static or dynamic (via `ResolveFn` or a custom `TitleStrategy`).
+Associate titles with routes for accessibility. Titles can be static, or dynamic via a custom `TitleStrategy`.
 
 ```ts
 { path: 'home', component: Home, title: 'Home Page' }

@@ -4,7 +4,12 @@ All the frontend files must obey a naming convention. The conventions are as fol
 
 ## Domain
 
-- **Models**: `<entity>.model.ts`, where `entity` is the singular kebab-case name of the domain concept. Example: `project.model.ts`.
+- **Models**: `<entity>.model.ts` for one shape. Example: `platform-update.model.ts`.
+- **Models**: `<entity>.models.ts` for a family of related shapes. Example: `service-variable.models.ts`.
+
+## Application
+
+- **Use cases**: `<name>.use-case.ts`, where `name` is the kebab-case verb phrase of the function. Example: `compute-service-state.use-case.ts`.
 
 ## Infrastructure
 

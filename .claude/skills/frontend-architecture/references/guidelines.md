@@ -8,7 +8,7 @@ the project covers.
 
 1. `apps/frontend` runs Angular 22. Never apply a practice of an older major version.
 2. Follow the style guide of Angular for the maintainability and for the performance.
-3. Write a new form with the signal forms. See [signal-forms.md](signal-forms.md).
-4. Change a form that exists with the API that the form already uses.
+3. Write a form by hand, with a `linkedSignal` per field. See `## Forms` of [conventions.md](../../../../docs/architecture/frontend/conventions.md).
+4. Change a form that exists with the pattern it already uses.
 5. Verify a change with `rtk pnpm run check-types --filter @gitpaas/frontend`. Never run `ng build`
    directly, and never create a project with `ng new`.

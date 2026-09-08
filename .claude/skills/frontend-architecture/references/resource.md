@@ -1,74 +1,50 @@
-# Async Reactivity with `resource`
+# Async reactivity with a resource
 
-A `Resource` incorporates asynchronous data fetching into Angular's signal-based reactivity. It executes an async loader function whenever its dependencies change, exposing the status and result as synchronous signals.
+A `Resource` incorporates asynchronous data into the signal-based reactivity of Angular. It reruns
+its loader whenever the signal of its key changes, and it exposes the status and the result as
+synchronous signals. The application uses `httpResource` and `rxResource` alone, and never the
+bare `resource()` with `fetch`.
 
-## Basic Usage
+## `httpResource`
 
-The `resource` function accepts an options object with two main properties:
-
-1. `params`: A reactive computation (like `computed`). When signals read here change, the resource re-fetches.
-2. `loader`: An async function that fetches data based on the parameters.
+Prefer `httpResource`, from `@angular/common/http`, for a plain HTTP read. It leverages the HTTP
+stack of Angular, interceptors included, with the same signal-based API.
 
 ```ts
-import { Component, resource, signal, computed } from '@angular/core';
+import { httpResource } from '@angular/common/http';
 
-@Component({...})
-export class UserProfile {
-  protected readonly userId = signal('123');
+protected readonly project = httpResource<Project>(() => `${environment.apiBaseUrl}/projects/${this.id()}`);
+```
 
-  protected readonly userResource = resource({
-    // Reactively tracking userId
-    params: () => ({ id: this.userId() }),
+## `rxResource`
 
-    // Executes whenever params change
-    loader: async ({ params, abortSignal }) => {
-      const response = await fetch(`/api/users/${params.id}`, { signal: abortSignal });
-      if (!response.ok) throw new Error('Network error');
-      return response.json();
-    }
-  });
+Use `rxResource`, from `@angular/core/rxjs-interop`, for a read that composes an RxJS stream
+(`forkJoin`, `of`, a repository method that already returns an `Observable`).
 
-  // Use the resource value in computed signals
-  protected readonly userName = computed(() => {
-    if (this.userResource.hasValue()) {
-      return this.userResource.value()?.name;
-    } else {
-      return 'Loading...';
-    }
+```ts
+import { rxResource } from '@angular/core/rxjs-interop';
+
+public containersByServices(serviceIds: () => string[]) {
+  return rxResource<Record<string, Container[]>, string[]>({
+    params: serviceIds,
+    defaultValue: {},
+    stream: ({ params }) => this.readContainersOf(params),
   });
 }
 ```
 
-## Aborting Requests
+## Resource status signals
 
-If the `params` signal changes while a previous loader is still running, the `Resource` will attempt to abort the outstanding request using the provided `abortSignal`. **Always pass `abortSignal` to your `fetch` calls.**
+Both give the same signals:
 
-## Reloading Data
+- `value()`: the resolved data, or `undefined`.
+- `hasValue()`: a type guard, `true` when a value exists.
+- `isLoading()`: `true` while the loader runs.
+- `error()`: the error the loader threw, or `undefined`.
+- `status()`: `'idle' | 'loading' | 'resolved' | 'error' | 'reloading' | 'local'`.
 
-You can imperatively force the resource to re-run the loader without the params changing by calling `.reload()`.
+## Reloading and local mutation
 
-```ts
-this.userResource.reload();
-```
-
-## Resource Status Signals
-
-The `Resource` object provides several signals to read its current state:
-
-- `value()`: The resolved data, or `undefined`.
-- `hasValue()`: Type-guard boolean. `true` if a value exists.
-- `isLoading()`: Boolean indicating if the loader is currently running.
-- `error()`: The error thrown by the loader, or `undefined`.
-- `status()`: A string constant representing the exact state (`'idle'`, `'loading'`, `'resolved'`, `'error'`, `'reloading'`, `'local'`).
-
-## Local Mutation
-
-You can optimistically update the resource's value directly. This changes the status to `'local'`.
-
-```ts
-this.userResource.value.set({name: 'Optimistic Update'});
-```
-
-## Reactive Data Fetching with `httpResource`
-
-If you are using Angular's `HttpClient`, prefer using `httpResource`. It is a specialized wrapper that leverages the Angular HTTP stack (including interceptors) while providing the same signal-based resource API.
+Call `.reload()` to force a rerun without a change of the key. Call `.value.set(...)` to write the
+resolved value directly; this moves the status to `'local'`. A container uses this to put a saved
+record into a detail view after a mutation, without a reread.

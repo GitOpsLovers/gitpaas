@@ -5,6 +5,7 @@
 | `dev`   | `ng serve`                                     |
 | `build` | `ng build`                                     |
 | `watch` | `ng build --watch --configuration development` |
+| `check-types` | `ng build --configuration development --output-path dist/check-types` |
 | `lint`  | `eslint .`                                     |
 | `test`  | `ng test --watch=false`                        |
 

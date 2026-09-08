@@ -7,11 +7,11 @@ import { ThemeService } from '@layout/ui/services/theme.service';
  * Round button that toggles between light and dark theme.
  */
 @Component({
-    selector: 'app-theme-toggle-button',
-    templateUrl: './theme-toggle.html',
+    selector: 'app-theme-toggle',
+    templateUrl: './theme-toggle.component.html',
     imports: [CommonModule],
 })
-export class ThemeToggleButtonComponent {
+export class ThemeToggleComponent {
     readonly #themeService = inject(ThemeService);
 
     public readonly theme$ = this.#themeService.theme$;
