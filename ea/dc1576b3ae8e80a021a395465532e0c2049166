@@ -1,0 +1,93 @@
+apps/backend/src/features/deployments/application/__tests__/run-deployment.use-case.spec.ts
+  s_473afb99b16b13::t_5b91879ea290d8 6-7,9,111,128,180-182,339,371,419,421,425-429,433-471,553-585,592-595,598,603-611
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_473afb99b16b13::t_15cc616cc39e49 6-9,29-60,113,130,143-148,150,172-181,183-184
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/docker-executor.adapter.spec.ts
+  s_473afb99b16b13::t_dbdf3955d98ecc 608-609,634-664,755-759
+apps/backend/src/features/deployments/infrastructure/docker/compose-recipe.transformer.ts
+  s_381e7c335afe52::t_017cebb17a61fc 600-603,609-611,616-626
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_473afb99b16b13::t_c16a7213663ad1 211,535,558,598,616,665
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_473afb99b16b13::t_3f4fbb9db827fc 167
+apps/backend/src/features/providers/infrastructure/github/__tests__/github-provider-client.adapter.spec.ts
+  s_473afb99b16b13::t_58dece1a89238b 337-378
+apps/backend/src/features/providers/infrastructure/github/github-provider-client.adapter.ts
+  s_473afb99b16b13::t_a0fe3abca5ad80 29-50,56,195-197,203-209,211
+apps/backend/src/features/providers/ui/controllers/__tests__/providers.controller.spec.ts
+  s_473afb99b16b13::t_dd4d0643ed3be4 2-7,195-213
+apps/backend/src/features/providers/ui/controllers/providers.controller.ts
+  s_473afb99b16b13::t_b547e30c273a98 5,124-127,146-149
+apps/frontend/src/app/app.config.ts
+  s_473afb99b16b13::t_e6733f8ec61af2 2,8,19
+apps/frontend/src/app/features/authentication/infrastructure/storage/token-storage.service.spec.ts
+  s_473afb99b16b13::t_e6be81b2b2d05b 40-45,47,53-54,59,65-76,80,86-87,100,111-112,121-122,144,152,160,169-177
+apps/frontend/src/app/features/authentication/ui/services/auth.service.spec.ts
+  s_473afb99b16b13::t_04e4a86edcb07f 25,31,44,50,195-237
+apps/frontend/src/app/features/authentication/ui/services/auth.service.ts
+  s_473afb99b16b13::t_161bbcf3f956fc 4,127-153
+apps/frontend/src/app/shared/components/yaml-viewer/yaml-viewer.component.html
+  s_473afb99b16b13::t_85ce8fe51473d1 42
+apps/frontend/src/app/shared/components/yaml-viewer/yaml-viewer.component.spec.ts
+  s_473afb99b16b13::t_5dfd31acdc6b6b 55-62
+apps/frontend/src/app/shared/components/yaml-viewer/yaml-viewer.component.ts
+  s_473afb99b16b13::t_ca385381370b17 10-49,101,103,106
+docs/roadmap/security-hardening/TODO.md
+  s_473afb99b16b13::t_f85b0fa6133cba 60-65
+packages/contracts/src/index.ts
+  s_473afb99b16b13::t_73a33ceeaa17fe 118
+packages/contracts/src/providers/provider-registration.contract.ts
+  s_473afb99b16b13::t_b1cae6aabd991e 8-14
+apps/backend/src/features/deployments/application/__tests__/mask-secret-values.use-case.spec.ts
+  s_473afb99b16b13::t_c72af2505a87ed 1-43
+apps/backend/src/features/deployments/application/mask-secret-values.use-case.ts
+  s_b21c7d73f70707::t_5692ca4038eda1 1-4,7-16,18-20,22
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-recipe.transformer.spec.ts
+  s_b21c7d73f70707::t_e4499375966696 672,674,679-687,690-699,703-711
+apps/frontend/src/app/features/authentication/infrastructure/storage/token-storage.service.ts
+  s_eda32beafbfaa5::t_71f1a40ba85643 14-18,26,40,42,57,71,82,95,100,104
+apps/frontend/src/app/shared/components/button/button.component.spec.ts
+  s_eda32beafbfaa5::t_bb31aa1b58c57e 1-74
+packages/contracts/src/providers/__tests__/provider-registration.contract.spec.ts
+  s_b21c7d73f70707::t_a461b0f9eb76a0 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "eadc1576b3ae8e80a021a395465532e0c2049166",
+  "prompts": {},
+  "sessions": {
+    "s_381e7c335afe52": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f807a7630ffekRT21TBnEcYSCS",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_473afb99b16b13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "925f3258-a904-4091-b9e9-d820db504bf2",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_b21c7d73f70707": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-afe51332134bb105b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_eda32beafbfaa5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad64eef15d4e4208e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
