@@ -1,3 +1,15 @@
+## [2.22.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.21.0...v2.22.0) (2026-09-08)
+
+### Features
+
+* **authentication:** enforce token family security ([#261](https://github.com/GitOpsLovers/gitpaas/issues/261)) ([ec08e08](https://github.com/GitOpsLovers/gitpaas/commit/ec08e08d07f063c3a2ad6e641f8fe5b1f7dadb2e))
+* **recipe:** enforce safe compose and path checks ([#259](https://github.com/GitOpsLovers/gitpaas/issues/259)) ([2f31905](https://github.com/GitOpsLovers/gitpaas/commit/2f31905cc054bb7ce22fa84a80470edf6eabce5b))
+* **security-hardening:** harden the edge ([#262](https://github.com/GitOpsLovers/gitpaas/issues/262)) ([2f1c5d0](https://github.com/GitOpsLovers/gitpaas/commit/2f1c5d0a0586d1620a4f479f04c3248bb1e8a9f2))
+* **security-hardening:** networks and volumes of a recipe ([#265](https://github.com/GitOpsLovers/gitpaas/issues/265)) ([c13b7b8](https://github.com/GitOpsLovers/gitpaas/commit/c13b7b893f09983f42f52a8b01764e91af6cd857))
+* **security-hardening:** prevent data leaks ([#263](https://github.com/GitOpsLovers/gitpaas/issues/263)) ([830a5db](https://github.com/GitOpsLovers/gitpaas/commit/830a5db0728b54d3ba53e597c3fcb6a63971c051))
+* **security-hardening:** supply chain hardening ([#264](https://github.com/GitOpsLovers/gitpaas/issues/264)) ([3ca760d](https://github.com/GitOpsLovers/gitpaas/commit/3ca760d39cbd9ddeb8b36da1568c4c773c972720))
+* **security:** remove user roles layer ([#260](https://github.com/GitOpsLovers/gitpaas/issues/260)) ([22c5c17](https://github.com/GitOpsLovers/gitpaas/commit/22c5c17c5999ea0cafaeca3e00ed7f967848cc78))
+
 ## [2.21.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.20.0...v2.21.0) (2026-09-07)
 
 ### Features
