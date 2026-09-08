@@ -1,14 +1,18 @@
 # Container testing
 
-A container in `features/*/ui/containers/` is the smart screen. It receives the parameters of the route as signal inputs, it gives its own repository in `providers`, it holds the state signals, and it sends the commands. The canonical reference is `features/projects/ui/containers/projects-list/projects-list.component.spec.ts`.
+A container of `features/*/ui/containers/` is the smart screen. It holds the state signals, and it sends the commands.
+The canonical reference is `features/projects/ui/containers/projects-list/projects-list.component.spec.ts`.
 
-**Replace the repository with `overrideComponent`, and not with a provider of the module.** The container declares `providers: [ProjectsApiRepository]`. Thus its own injector wins over the injector of the testing module. Set an empty template at the same time, so that the test drives the class alone:
+**Replace the repository at the right level.**
+
+- A container that declares its own `providers` needs `TestBed.overrideComponent`, because its injector wins over the injector of the testing module.
+- A container that declares no `providers` takes an ordinary provider of the testing module.
 
 ```ts
 TestBed.configureTestingModule({
     imports: [ProjectsListComponent],
     providers: [
-        { provide: Router, useValue: router },
+        provideRouter([]),
         { provide: ToastService, useValue: toast },
     ],
 });
@@ -20,9 +24,23 @@ TestBed.overrideComponent(ProjectsListComponent, {
 });
 ```
 
-Keep the real template when a test asserts what the screen shows. Then give the module `provideRouter([])`, `provideHttpClient()` and `provideHttpClientTesting()`, because the real template pulls the shared components in.
+Empty the template when the test drives the class alone. Keep the real template when the test asserts what the screen shows. The real template pulls the shared components in. Thus it also needs `provideRouter([])`, `provideHttpClient()` and `provideHttpClientTesting()`.
 
-**Build the fixture with a `create` helper, and set each input.** The container reads the parameters of the route as `input.required<string>()`, and never through `ActivatedRoute`. Thus a test sets them directly:
+**Give the router the double with `TestBed.overrideProvider`.** The module already holds `provideRouter([])` for the template. Thus the double replaces it after the configuration:
+
+```ts
+TestBed.overrideProvider(Router, { useValue: router });
+```
+
+**Read the parameters of the route in the shape that the container uses.** Most containers take them as `input.required<string>()`. Some containers (`namespace-edit`, `provider-edit`, `service-add`, `service-edit`, `signin`, and the two of the registration of a provider) read `ActivatedRoute` instead. Give the second kind a snapshot with the fields that it reads alone:
+
+```ts
+TestBed.overrideProvider(ActivatedRoute, {
+    useValue: { snapshot: { paramMap: { get: () => routeId } } },
+});
+```
+
+**Build the fixture with a `create` helper, and call it inside the test.** Thus a test sets a different input, or arranges a double, before the construction:
 
 ```ts
 const create = (namespaceId = 'ns-1'): void => {
@@ -33,9 +51,9 @@ const create = (namespaceId = 'ns-1'): void => {
 };
 ```
 
-Call `create()` inside the test, and not in `beforeEach`. Thus a test can set a different input, or can arrange a double before the construction. To change an input later, call `setInput` again and then `fixture.detectChanges()`.
+To change an input later, call `setInput` again, and then `fixture.detectChanges()`.
 
-**Double a resource with an object of signals.** A read of the repository is a resource. Give the double the members that the container touches, and no other member:
+**Double a resource with an object of signals.** Give the double the members that the container touches, and no other member:
 
 ```ts
 value = signal<Project | undefined>(undefined);
@@ -46,13 +64,13 @@ repository = {
 };
 ```
 
-**Assert an accessor that the container gave to the repository.** A factory of a resource receives an accessor. Read that accessor out of the recorded call, and assert that it follows the input:
+**Assert the accessor that the container gave to a factory of a resource.** Read it out of the recorded call:
 
 ```ts
 const [idAccessor] = repository.projectById.mock.calls[0] as [() => string | undefined];
 expect(idAccessor()).toBe('pr-1');
 ```
 
-**A mutation is awaited.** The container calls `lastValueFrom`. Thus give the double `mockReturnValue(of(undefined))` or `mockReturnValue(throwError(() => new Error('boom')))`, and `await` the method of the container.
+**A mutation is awaited**, because the container calls `lastValueFrom`. Give the double `mockReturnValue(of(undefined))` or `mockReturnValue(throwError(() => new Error('boom')))`, and `await` the method of the container.
 
-**For each container, assert these items:** the scope (the container writes the parameter of the route into the signal of the repository, on the first render and after a change of the input); the exposure of the resource (`expect(component.projects).toBe(repository.projects)`); the initial state of the signals; each navigation (`expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1'])`); the successful command (the call of the repository, the toast of success, the `reload()`, and the flags that return to their rest value); the failed command (the toast of the error, no `reload()`, no toast of success, and the flags that return to their rest value); and the short circuit (a confirmation with nothing pending calls no method).
+**For each container, assert these items:** the scope (the container writes the parameter of the route into the signal of the repository, on the first render and after a change of the input); the exposure of the resource (`expect(component.projects).toBe(repository.projects)`); the first state of the signals; each navigation; the successful command (the call of the repository, the toast of the success, the `reload()`, and the flags that return to their rest value); the failed command (the toast of the error, no `reload()`, no toast of the success, and the flags that return to their rest value); and the short circuit (a confirmation with nothing pending calls no method).

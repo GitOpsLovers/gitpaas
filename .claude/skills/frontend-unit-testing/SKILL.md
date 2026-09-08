@@ -5,17 +5,9 @@ description: The testing system of `apps/frontend`, and the API of Vitest. Use t
 
 # The unit tests of the frontend
 
-The conventions of the specs of `apps/frontend`. The runner is Vitest 4, and the builder `@angular/build:unit-test` drives it in an environment `jsdom`. The configuration is
-`apps/frontend/angular.json`, target `test`, and `apps/frontend/tsconfig.spec.json`. The project holds no `vitest.config.ts`, and you must not add one.
+The conventions of the specs of `apps/frontend`. The runner is Vitest 4, and the builder `@angular/build:unit-test` drives it in an environment `jsdom`. Read `conventions.md` first, then read the one file for your subject.
 
-This skill holds two tiers:
-
-- **The conventions of this project.** Read `conventions.md` first, then the one file for your subject. These rules win over any other statement.
-- **The API of Vitest.** Read a file `vitest-*.md` when a question about the runner stays open.
-
-Read one file for your task, and never the folder.
-
-## The conventions of this project
+## The reference files
 
 | The file | Read it when |
 | --- | --- |
@@ -25,27 +17,15 @@ Read one file for your task, and never the folder.
 | [api-repository.md](references/api-repository.md) | You test a repository of `features/*/infrastructure/api/`. |
 | [ui-service.md](references/ui-service.md) | You test a service of `features/*/ui/services/` or of `shared/services/`. |
 | [container-component.md](references/container-component.md) | You test a container of `features/*/ui/containers/`. |
-| [presentational-component.md](references/presentational-component.md) | You test a component of `features/*/ui/components/` or of `shared/components/`. |
+| [presentational-component.md](references/presentational-component.md) | You test a component of `features/*/ui/components/`, of `shared/components/` or of `layout/`. |
 | [page.md](references/page.md) | You test a page of `pages/`. |
 | [guard-and-interceptor.md](references/guard-and-interceptor.md) | You test a guard or an interceptor HTTP of `features/*/ui/`. |
 | [storage-service.md](references/storage-service.md) | You test a service of `features/*/infrastructure/storage/`. |
 | [browser-adapter.md](references/browser-adapter.md) | You test a function that drives the browser, such as a redirection or a form of GitHub. |
 | [signals-and-streams.md](references/signals-and-streams.md) | The subject holds a signal, a resource, a stream of RxJS, or a stream SSE. |
+| [vitest-api.md](references/vitest-api.md) | A question about the runner stays open after you read the file of your subject. |
 | [known-inconsistencies.md](references/known-inconsistencies.md) | You change an older spec that does not obey the dominant pattern. |
 
-## The API of Vitest
+Read one reference file for your task. Do not read the whole folder.
 
-The specs use the globals, so they import nothing from `vitest`.
-
-| The file | Read it when |
-| --- | --- |
-| [vitest-test-api.md](references/vitest-test-api.md) | You write `test`, or you need `skip`, `only`, `todo`, `each` or a retry. |
-| [vitest-describe.md](references/vitest-describe.md) | You group the tests with `describe`, or you nest a suite. |
-| [vitest-expect.md](references/vitest-expect.md) | You write an assertion, a matcher or an asymmetric matcher. |
-| [vitest-hooks.md](references/vitest-hooks.md) | You write `beforeEach`, `afterEach`, `beforeAll` or `afterAll`. |
-| [vitest-vi.md](references/vitest-vi.md) | You need `vi.fn`, `vi.spyOn`, `vi.stubGlobal`, a fake timer or `vi.waitFor`. |
-
-## The neighbouring skills
-
-- `frontend-architecture` holds the structure, the layers and the naming of the code under test.
-- `frontend-design` holds the theme and the markup of a template.
+`frontend-architecture` holds the structure and the naming of the code under test. `frontend-design` holds the theme and the markup of a template.
