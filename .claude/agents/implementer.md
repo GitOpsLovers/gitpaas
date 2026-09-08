@@ -28,7 +28,9 @@ Before you write a spec, invoke the skill of the tests of that application too.
 
 Those references are files, so open them with `Read`: `references/conventions.md` first, then the one file for your type of subject. `frontend-unit-testing` holds the API of Vitest too, in its files `vitest-*.md`. This project runs Vitest 4.1.10, and the snapshot of those files follows a later version, so check a feature against `apps/frontend/package.json` first.
 
-Section 2 of `CLAUDE.md` gives the rule of the two tiers, and when you may equip a skill of the reference: `typescript-advanced-types`.
+Invoke the skill `typescript` before you write a file `.ts` of `apps/` or of `packages/`. It states the convention of the language that every package shares: the declaration, the import, the TSDoc, the format, and the construct that this project forbids.
+
+Section 2 of `CLAUDE.md` gives the rule of the two tiers, and when you may equip a skill of the reference: `turborepo`.
 
 ## How you work
 

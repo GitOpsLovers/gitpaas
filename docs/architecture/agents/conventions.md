@@ -21,7 +21,7 @@ The `description` of the frontmatter states the triggers of the agent and the ne
 
 ## The rule of the skill
 
-Every agent file names the skill of the job that it always loads, before it touches a file of the area that the skill covers. `implementer` names `backend-architecture` or `frontend-architecture` for a file of `apps/`, and the skill of the tests of that application for a spec; `documenter` names the same pair for a page that documents `apps/`, and `project-documentation` for every page it writes; `git-manager` names `git-github-workflow` alone; `implementer` adds `frontend-design` for a template of the frontend. A skill of the reference — `turborepo` and `typescript-advanced-types` — is optional, and the report of the agent names it and the reason in the field **Notes** when it equips one. `CLAUDE.md` gives the rule that the skill of the job wins when the two disagree.
+Every agent file names the skill of the job that it always loads, before it touches a file of the area that the skill covers. `implementer` names `backend-architecture` or `frontend-architecture` for a file of `apps/`, and the skill of the tests of that application for a spec; `documenter` names the same pair for a page that documents `apps/`, and `project-documentation` for every page it writes; `git-manager` names `git-github-workflow` alone; `implementer` adds `frontend-design` for a template of the frontend, and `typescript` for every file `.ts` that it writes. A skill of the reference — `turborepo` — is optional, and the report of the agent names it and the reason in the field **Notes** when it equips one. `CLAUDE.md` gives the rule that the skill of the job wins when the two disagree.
 
 ## The rule of the verification
 
