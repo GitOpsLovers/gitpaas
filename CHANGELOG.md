@@ -1,3 +1,9 @@
+## [2.23.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.23.0...v2.23.1) (2026-09-08)
+
+### Bug Fixes
+
+* control REDIS_PASSWORD on update script ([6b6ecc6](https://github.com/GitOpsLovers/gitpaas/commit/6b6ecc6b9131232e4e3f43c5523d0c5b57e471dd))
+
 ## [2.23.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.22.0...v2.23.0) (2026-09-08)
 
 ### Features
