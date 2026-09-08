@@ -1,3 +1,4 @@
+import { DeploymentNotFoundError } from '../domain/errors/deployment.errors';
 import { Deployment } from '../domain/models/deployment.models';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
@@ -7,8 +8,16 @@ import { DeploymentsRepository } from '../domain/repositories/deployments.reposi
  * @param repository Deployments repository
  * @param id Deployment identifier
  *
- * @returns The deployment, or `null` when it does not exist
+ * @returns The deployment
+ *
+ * @throws DeploymentNotFoundError When the deployment does not exist
  */
-export function findDeploymentByIdUseCase(repository: DeploymentsRepository, id: string): Promise<Deployment | null> {
-    return repository.findById(id);
+export async function findDeploymentByIdUseCase(repository: DeploymentsRepository, id: string): Promise<Deployment> {
+    const deployment = await repository.findById(id);
+
+    if (!deployment) {
+        throw new DeploymentNotFoundError(id);
+    }
+
+    return deployment;
 }

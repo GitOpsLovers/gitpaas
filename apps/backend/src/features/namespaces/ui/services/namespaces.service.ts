@@ -36,9 +36,11 @@ export class NamespacesService {
      *
      * @param id Namespace id
      *
-     * @returns Namespace, or `null` when it does not exist
+     * @returns Namespace
+     *
+     * @throws {NamespaceNotFoundError} When the namespace does not exist
      */
-    public findById(id: string): Promise<Namespace | null> {
+    public findById(id: string): Promise<Namespace> {
         return findNamespaceByIdUseCase(this.repository, id);
     }
 
@@ -63,9 +65,11 @@ export class NamespacesService {
      * @param id Namespace id
      * @param updateDto Namespace data
      *
-     * @returns Updated namespace, or `null` when it does not exist
+     * @returns Updated namespace
+     *
+     * @throws {NamespaceNotFoundError} When the namespace does not exist
      */
-    public update(id: string, updateDto: UpdateNamespaceDto): Promise<Namespace | null> {
+    public update(id: string, updateDto: UpdateNamespaceDto): Promise<Namespace> {
         return updateNamespaceUseCase(this.repository, id, updateDto);
     }
 
@@ -73,9 +77,11 @@ export class NamespacesService {
      * Deletes a namespace
      *
      * @param id Namespace id
-     * @returns `true` when a row was deleted, `false` otherwise
+     *
+     * @throws {NamespaceNotEmptyError} When the namespace still has projects attached
+     * @throws {NamespaceNotFoundError} When the namespace does not exist
      */
-    public delete(id: string): Promise<boolean> {
+    public delete(id: string): Promise<void> {
         return deleteNamespaceUseCase(this.repository, id);
     }
 }

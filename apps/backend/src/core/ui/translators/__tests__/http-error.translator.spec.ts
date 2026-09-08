@@ -70,6 +70,10 @@ describe('translateError', () => {
             expect(result.cause).toBe(error);
         });
 
+        it('maps DEPLOYMENT_NOT_FOUND to a NotFoundException', () => {
+            expect(translateError(new CodedDomainError('DEPLOYMENT_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
+        });
+
         it('maps PROJECT_NOT_FOUND to a NotFoundException', () => {
             expect(translateError(new CodedDomainError('PROJECT_NOT_FOUND'))).toBeInstanceOf(NotFoundException);
         });

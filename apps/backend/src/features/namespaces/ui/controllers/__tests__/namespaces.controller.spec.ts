@@ -6,7 +6,7 @@ import type {
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { NamespaceNotEmptyError } from '../../../domain/errors/namespace.errors';
+import { NamespaceNotEmptyError, NamespaceNotFoundError } from '../../../domain/errors/namespace.errors';
 import { Namespace } from '../../../domain/models/namespace.models';
 import { NamespacesService } from '../../services/namespaces.service';
 import { NamespacesController } from '../namespaces.controller';
@@ -124,14 +124,14 @@ describe('NamespacesController', () => {
             expect(result).not.toBe(namespace);
         });
 
-        it('throws a NotFoundException when the namespace does not exist', async () => {
-            mockNamespacesService.findById.mockResolvedValue(null);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockNamespacesService.findById.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             await expect(sut.findById(namespaceId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockNamespacesService.findById.mockResolvedValue(null);
+            mockNamespacesService.findById.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             await expect(sut.findById(namespaceId)).rejects.toThrow(`Namespace ${namespaceId} not found`);
         });
@@ -207,14 +207,14 @@ describe('NamespacesController', () => {
             });
         });
 
-        it('throws a NotFoundException when the namespace does not exist', async () => {
-            mockNamespacesService.update.mockResolvedValue(null);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockNamespacesService.update.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             await expect(sut.update(namespaceId, updateDto)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockNamespacesService.update.mockResolvedValue(null);
+            mockNamespacesService.update.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             await expect(sut.update(namespaceId, updateDto)).rejects.toThrow(
                 `Namespace ${namespaceId} not found`,
@@ -231,7 +231,7 @@ describe('NamespacesController', () => {
 
     describe('delete', () => {
         it('delegates to the service with the received id', async () => {
-            mockNamespacesService.delete.mockResolvedValue(true);
+            mockNamespacesService.delete.mockResolvedValue();
 
             await sut.delete(namespaceId);
 
@@ -240,19 +240,19 @@ describe('NamespacesController', () => {
         });
 
         it('resolves with no value when a row was deleted', async () => {
-            mockNamespacesService.delete.mockResolvedValue(true);
+            mockNamespacesService.delete.mockResolvedValue();
 
             await expect(sut.delete(namespaceId)).resolves.toBeUndefined();
         });
 
-        it('throws a NotFoundException when nothing was deleted', async () => {
-            mockNamespacesService.delete.mockResolvedValue(false);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockNamespacesService.delete.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             await expect(sut.delete(namespaceId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockNamespacesService.delete.mockResolvedValue(false);
+            mockNamespacesService.delete.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             await expect(sut.delete(namespaceId)).rejects.toThrow(`Namespace ${namespaceId} not found`);
         });
@@ -305,7 +305,7 @@ describe('NamespacesController', () => {
         });
 
         it('adds the namespace id of a delete', async () => {
-            mockNamespacesService.delete.mockResolvedValue(true);
+            mockNamespacesService.delete.mockResolvedValue();
 
             const event = await runWithTelemetry({}, async () => {
                 await sut.delete(namespaceId);
@@ -317,7 +317,7 @@ describe('NamespacesController', () => {
         });
 
         it('adds the namespace id even when the namespace does not exist', async () => {
-            mockNamespacesService.findById.mockResolvedValue(null);
+            mockNamespacesService.findById.mockRejectedValue(new NamespaceNotFoundError(namespaceId));
 
             const event = await runWithTelemetry({}, async () => {
                 await expect(sut.findById(namespaceId)).rejects.toBeInstanceOf(NotFoundException);

@@ -17,7 +17,6 @@ import {
     Put,
 } from '@nestjs/common';
 
-import { NamespaceNotFoundError } from '../../domain/errors/namespace.errors';
 import { NamespacesService } from '../services/namespaces.service';
 import { toNamespaceResponse } from '../transformers/namespace-response.transformer';
 
@@ -43,13 +42,11 @@ export class NamespacesController {
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<NamespaceResponse> {
         enrichTelemetry({ 'namespace.id': id });
 
-        const namespace = await this.service.findById(id);
-
-        if (!namespace) {
-            throw translateError(new NamespaceNotFoundError(id));
+        try {
+            return toNamespaceResponse(await this.service.findById(id));
+        } catch (error) {
+            throw translateError(error);
         }
-
-        return toNamespaceResponse(namespace);
     }
 
     @Post()
@@ -66,13 +63,11 @@ export class NamespacesController {
     ): Promise<NamespaceResponse> {
         enrichTelemetry({ 'namespace.id': id });
 
-        const namespace = await this.service.update(id, updateDto);
-
-        if (!namespace) {
-            throw translateError(new NamespaceNotFoundError(id));
+        try {
+            return toNamespaceResponse(await this.service.update(id, updateDto));
+        } catch (error) {
+            throw translateError(error);
         }
-
-        return toNamespaceResponse(namespace);
     }
 
     /**
@@ -85,16 +80,10 @@ export class NamespacesController {
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         enrichTelemetry({ 'namespace.id': id });
 
-        let deleted: boolean;
-
         try {
-            deleted = await this.service.delete(id);
+            await this.service.delete(id);
         } catch (error) {
             throw translateError(error);
-        }
-
-        if (!deleted) {
-            throw translateError(new NamespaceNotFoundError(id));
         }
     }
 }

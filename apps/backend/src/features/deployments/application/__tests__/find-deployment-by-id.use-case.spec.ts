@@ -1,4 +1,5 @@
 /* eslint-disable no-secrets/no-secrets */
+import { DeploymentNotFoundError } from '../../domain/errors/deployment.errors';
 import { Deployment } from '../../domain/models/deployment.models';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { findDeploymentByIdUseCase } from '../find-deployment-by-id.use-case';
@@ -47,12 +48,20 @@ describe('findDeploymentByIdUseCase', () => {
         expect(result).toBe(deployment);
     });
 
-    it('returns null when the deployment does not exist', async () => {
+    it('throws a DeploymentNotFoundError when the deployment does not exist', async () => {
         mockDeploymentsRepository.findById.mockResolvedValue(null);
 
-        const result = await findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id);
+        await expect(
+            findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id),
+        ).rejects.toBeInstanceOf(DeploymentNotFoundError);
+    });
 
-        expect(result).toBeNull();
+    it('names the deployment in the message of the not-found error', async () => {
+        mockDeploymentsRepository.findById.mockResolvedValue(null);
+
+        await expect(
+            findDeploymentByIdUseCase(mockDeploymentsRepository as unknown as DeploymentsRepository, id),
+        ).rejects.toThrow(`Deployment ${id} not found`);
     });
 
     it('propagates errors thrown by the repository', async () => {

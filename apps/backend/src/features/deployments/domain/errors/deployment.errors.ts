@@ -1,6 +1,15 @@
 import { DomainError } from '@core/domain/errors/domain.error';
 
 /**
+ * Raised whenever an operation targets a deployment that does not exist.
+ */
+export class DeploymentNotFoundError extends DomainError {
+    constructor(deploymentId: string, options?: ErrorOptions) {
+        super('DEPLOYMENT_NOT_FOUND', `Deployment ${deploymentId} not found`, options);
+    }
+}
+
+/**
  * Raised when a deployment is triggered for a service that lacks the configuration required to deploy it.
  */
 export class ServiceNotDeployableError extends DomainError {

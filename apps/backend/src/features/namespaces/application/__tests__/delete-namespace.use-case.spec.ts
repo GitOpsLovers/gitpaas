@@ -1,4 +1,4 @@
-import { NamespaceNotEmptyError } from '../../domain/errors/namespace.errors';
+import { NamespaceNotEmptyError, NamespaceNotFoundError } from '../../domain/errors/namespace.errors';
 import { NamespacesRepository } from '../../domain/repositories/namespaces.repository';
 import { deleteNamespaceUseCase } from '../delete-namespace.use-case';
 
@@ -36,28 +36,31 @@ describe('deleteNamespaceUseCase', () => {
             expect(mockNamespacesRepository.delete).toHaveBeenCalledWith(id);
         });
 
-        it('returns true when the repository deletes a row', async () => {
+        it('resolves when the repository deletes a row', async () => {
             mockNamespacesRepository.countProjects.mockResolvedValue(0);
             mockNamespacesRepository.delete.mockResolvedValue(true);
 
-            const result = await deleteNamespaceUseCase(
-                mockNamespacesRepository as unknown as NamespacesRepository,
-                id,
-            );
-
-            expect(result).toBe(true);
+            await expect(
+                deleteNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id),
+            ).resolves.toBeUndefined();
         });
 
-        it('returns false when the repository deletes nothing', async () => {
+        it('throws a NamespaceNotFoundError when the repository deletes nothing', async () => {
             mockNamespacesRepository.countProjects.mockResolvedValue(0);
             mockNamespacesRepository.delete.mockResolvedValue(false);
 
-            const result = await deleteNamespaceUseCase(
-                mockNamespacesRepository as unknown as NamespacesRepository,
-                id,
-            );
+            await expect(
+                deleteNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id),
+            ).rejects.toBeInstanceOf(NamespaceNotFoundError);
+        });
 
-            expect(result).toBe(false);
+        it('names the namespace in the message of the not-found error', async () => {
+            mockNamespacesRepository.countProjects.mockResolvedValue(0);
+            mockNamespacesRepository.delete.mockResolvedValue(false);
+
+            await expect(
+                deleteNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id),
+            ).rejects.toThrow(`Namespace ${id} not found`);
         });
 
         it('propagates errors thrown by the repository', async () => {

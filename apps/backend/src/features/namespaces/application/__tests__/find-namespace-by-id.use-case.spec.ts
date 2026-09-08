@@ -1,3 +1,4 @@
+import { NamespaceNotFoundError } from '../../domain/errors/namespace.errors';
 import { Namespace } from '../../domain/models/namespace.models';
 import { NamespacesRepository } from '../../domain/repositories/namespaces.repository';
 import { findNamespaceByIdUseCase } from '../find-namespace-by-id.use-case';
@@ -38,12 +39,20 @@ describe('findNamespaceByIdUseCase', () => {
         expect(result).toBe(namespace);
     });
 
-    it('returns null when the namespace does not exist', async () => {
+    it('throws a NamespaceNotFoundError when the namespace does not exist', async () => {
         mockNamespacesRepository.findById.mockResolvedValue(null);
 
-        const result = await findNamespaceByIdUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id);
+        await expect(
+            findNamespaceByIdUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id),
+        ).rejects.toBeInstanceOf(NamespaceNotFoundError);
+    });
 
-        expect(result).toBeNull();
+    it('names the namespace in the message of the not-found error', async () => {
+        mockNamespacesRepository.findById.mockResolvedValue(null);
+
+        await expect(
+            findNamespaceByIdUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id),
+        ).rejects.toThrow(`Namespace ${id} not found`);
     });
 
     it('propagates errors thrown by the repository', async () => {

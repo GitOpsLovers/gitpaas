@@ -37,6 +37,7 @@ The global route prefix is `api/v1`. The listen port comes from `getOrThrow('POR
 | `GET /:id`    | 404 when missing                                    |
 | `POST /`      | `@Body()` create DTO                                |
 | `PUT /:id`    | `@Body()` update DTO; 404 when missing              |
+| `PATCH /:field` | partial update of one field of the caller's own resource; a fixed path segment, not `:id` (`profile.controller.ts`) |
 | `DELETE /:id` | `@HttpCode(204)`; 404 when missing                  |
 
 The `:id` segment connects with `@Param('id', ParseUUIDPipe)`. The canonical not-found pattern is a domain error thrown inside the use case: it throws the feature's `<Entity>NotFoundError`, and the controller's `catch` block turns it into a `404` with `throw translateError(error)`. The domain never throws an HTTP exception; only the canonical pattern keeps that rule.

@@ -1,3 +1,4 @@
+import { NamespaceNotFoundError } from '../domain/errors/namespace.errors';
 import { Namespace } from '../domain/models/namespace.models';
 import { NamespacesRepository } from '../domain/repositories/namespaces.repository';
 
@@ -7,8 +8,16 @@ import { NamespacesRepository } from '../domain/repositories/namespaces.reposito
  * @param repository Namespaces repository
  * @param id Namespace id
  *
- * @returns Namespace, or `null` when it does not exist
+ * @returns Namespace
+ *
+ * @throws NamespaceNotFoundError When the namespace does not exist
  */
-export function findNamespaceByIdUseCase(repository: NamespacesRepository, id: string): Promise<Namespace | null> {
-    return repository.findById(id);
+export async function findNamespaceByIdUseCase(repository: NamespacesRepository, id: string): Promise<Namespace> {
+    const namespace = await repository.findById(id);
+
+    if (!namespace) {
+        throw new NamespaceNotFoundError(id);
+    }
+
+    return namespace;
 }

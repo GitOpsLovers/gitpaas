@@ -234,14 +234,14 @@ describe('ServicesController', () => {
             expect(result.createdAt).not.toBeInstanceOf(Date);
         });
 
-        it('throws a NotFoundException when the service does not exist', async () => {
-            mockServicesService.findById.mockResolvedValue(null);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockServicesService.findById.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.findById(serviceId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockServicesService.findById.mockResolvedValue(null);
+            mockServicesService.findById.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.findById(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
@@ -349,14 +349,14 @@ describe('ServicesController', () => {
             expect(result).toEqual({ ...serviceResponse, name: 'renamed' });
         });
 
-        it('throws a NotFoundException when the service does not exist', async () => {
-            mockServicesService.update.mockResolvedValue(null);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockServicesService.update.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.update(serviceId, updateDto)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockServicesService.update.mockResolvedValue(null);
+            mockServicesService.update.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.update(serviceId, updateDto)).rejects.toThrow(
                 `Service ${serviceId} not found`,
@@ -373,7 +373,7 @@ describe('ServicesController', () => {
 
     describe('delete', () => {
         it('delegates to the service with the received id', async () => {
-            mockServicesService.delete.mockResolvedValue(true);
+            mockServicesService.delete.mockResolvedValue();
 
             await sut.delete(serviceId);
 
@@ -382,19 +382,19 @@ describe('ServicesController', () => {
         });
 
         it('resolves with no value when a row was deleted', async () => {
-            mockServicesService.delete.mockResolvedValue(true);
+            mockServicesService.delete.mockResolvedValue();
 
             await expect(sut.delete(serviceId)).resolves.toBeUndefined();
         });
 
-        it('throws a NotFoundException when nothing was deleted', async () => {
-            mockServicesService.delete.mockResolvedValue(false);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockServicesService.delete.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.delete(serviceId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockServicesService.delete.mockResolvedValue(false);
+            mockServicesService.delete.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             await expect(sut.delete(serviceId)).rejects.toThrow(`Service ${serviceId} not found`);
         });
@@ -433,7 +433,7 @@ describe('ServicesController', () => {
         });
 
         it('adds the service id of a delete', async () => {
-            mockServicesService.delete.mockResolvedValue(true);
+            mockServicesService.delete.mockResolvedValue();
 
             const event = await runWithTelemetry({}, async () => {
                 await sut.delete(serviceId);

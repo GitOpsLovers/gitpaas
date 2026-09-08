@@ -1,4 +1,4 @@
-import { NamespaceNotEmptyError } from '../domain/errors/namespace.errors';
+import { NamespaceNotEmptyError, NamespaceNotFoundError } from '../domain/errors/namespace.errors';
 import { NamespacesRepository } from '../domain/repositories/namespaces.repository';
 
 /**
@@ -8,16 +8,19 @@ import { NamespacesRepository } from '../domain/repositories/namespaces.reposito
  * @param repository Namespaces repository
  * @param id Namespace id
  *
- * @returns `true` when a row was deleted, `false` otherwise
- *
  * @throws NamespaceNotEmptyError When the namespace still has projects attached
+ * @throws NamespaceNotFoundError When the namespace does not exist
  */
-export async function deleteNamespaceUseCase(repository: NamespacesRepository, id: string): Promise<boolean> {
+export async function deleteNamespaceUseCase(repository: NamespacesRepository, id: string): Promise<void> {
     const projectsCount = await repository.countProjects(id);
 
     if (projectsCount > 0) {
         throw new NamespaceNotEmptyError(id, projectsCount);
     }
 
-    return repository.delete(id);
+    const deleted = await repository.delete(id);
+
+    if (!deleted) {
+        throw new NamespaceNotFoundError(id);
+    }
 }

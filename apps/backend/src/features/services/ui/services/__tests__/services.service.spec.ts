@@ -7,6 +7,7 @@ import { findServiceByIdUseCase } from '../../../application/find-service-by-id.
 import { getFinalComposeUseCase } from '../../../application/get-final-compose.use-case';
 import { getServicesByProjectUseCase } from '../../../application/get-services-by-project.use-case';
 import { updateServiceUseCase } from '../../../application/update-service.use-case';
+import { ServiceNotFoundError } from '../../../domain/errors/service.errors';
 import { Service } from '../../../domain/models/service.models';
 import { TarRepositoryComposeFileAdapter } from '../../../infrastructure/archive/tar-repository-compose-file.adapter';
 import { DatabaseServicesRepository } from '../../../infrastructure/database/db-services.repository';
@@ -159,12 +160,11 @@ describe('ServicesService', () => {
             expect(result).toBe(service);
         });
 
-        it('returns null when the service does not exist', async () => {
-            mockFindServiceByIdUseCase.mockResolvedValue(null);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new ServiceNotFoundError(serviceId);
+            mockFindServiceByIdUseCase.mockRejectedValue(error);
 
-            const result = await sut.findById(serviceId);
-
-            expect(result).toBeNull();
+            await expect(sut.findById(serviceId)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -250,12 +250,11 @@ describe('ServicesService', () => {
             expect(result).toBe(updated);
         });
 
-        it('returns null when the service does not exist', async () => {
-            mockUpdateServiceUseCase.mockResolvedValue(null);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new ServiceNotFoundError(serviceId);
+            mockUpdateServiceUseCase.mockRejectedValue(error);
 
-            const result = await sut.update(serviceId, updateDto);
-
-            expect(result).toBeNull();
+            await expect(sut.update(serviceId, updateDto)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -301,7 +300,7 @@ describe('ServicesService', () => {
 
     describe('delete', () => {
         it('delegates to the use case with all collaborators and the id', async () => {
-            mockDeleteServiceUseCase.mockResolvedValue(true);
+            mockDeleteServiceUseCase.mockResolvedValue();
 
             await sut.delete(serviceId);
 
@@ -315,20 +314,17 @@ describe('ServicesService', () => {
             );
         });
 
-        it('returns true when a row was deleted', async () => {
-            mockDeleteServiceUseCase.mockResolvedValue(true);
+        it('resolves when a row was deleted', async () => {
+            mockDeleteServiceUseCase.mockResolvedValue();
 
-            const result = await sut.delete(serviceId);
-
-            expect(result).toBe(true);
+            await expect(sut.delete(serviceId)).resolves.toBeUndefined();
         });
 
-        it('returns false when nothing was deleted', async () => {
-            mockDeleteServiceUseCase.mockResolvedValue(false);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new ServiceNotFoundError(serviceId);
+            mockDeleteServiceUseCase.mockRejectedValue(error);
 
-            const result = await sut.delete(serviceId);
-
-            expect(result).toBe(false);
+            await expect(sut.delete(serviceId)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -373,10 +369,12 @@ describe('ServicesService', () => {
         });
 
         it('adds nothing when the service does not exist', async () => {
-            mockUpdateServiceUseCase.mockResolvedValue(null);
+            mockUpdateServiceUseCase.mockRejectedValue(new ServiceNotFoundError(serviceId));
 
             const event = await runWithTelemetry({}, async () => {
-                await sut.update(serviceId, { name: 'renamed' });
+                await expect(sut.update(serviceId, { name: 'renamed' })).rejects.toBeInstanceOf(
+                    ServiceNotFoundError,
+                );
 
                 return getTelemetry();
             });
