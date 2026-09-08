@@ -1,0 +1,27 @@
+docs/architecture/infrastructure/conventions.md
+  s_0f57688309ad10::t_32340844c92e04 21,23,25,39-40,48-53
+docs/business.md
+  s_0f57688309ad10::t_7beb762cb6b5d7 11
+docs/business/auth.md
+  s_0f57688309ad10::t_0c28926158c29a 34-35,44,54,65,67-71,74-78,114,116,142,146-149,153,158-163,212,219,221,223,225-226,322,324,329,334,339,343-349
+docs/business/deployments.md
+  s_0f57688309ad10::t_2f4985731399ab 176-215,219,227-231
+docs/business/users.md
+  s_0f57688309ad10::t_dc89b53d66630d 5,9,11,38,40,42,44,47,49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f524db3ae88069db83c51876a18c827a3b6c3f2c",
+  "prompts": {},
+  "sessions": {
+    "s_0f57688309ad10": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af60ffe4ef6521ba6",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
