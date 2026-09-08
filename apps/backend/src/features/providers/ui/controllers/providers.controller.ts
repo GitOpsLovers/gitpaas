@@ -2,6 +2,7 @@ import {
     completeProviderRegistrationSchema,
     convertProviderRegistrationSchema,
     createProviderSchema,
+    providerRegistrationStateSchema,
     startProviderRegistrationSchema,
     updateProviderSchema,
 } from '@gitpaas/contracts';
@@ -120,7 +121,10 @@ export class ProvidersController {
      */
     @Post('registrations/:state/conversion')
     @HttpCode(200)
-    public async convertRegistration(@Param('state') state: string, @Body(new ZodValidationPipe(convertProviderRegistrationSchema)) convertDto: ConvertProviderRegistrationDto): Promise<ConvertedProviderRegistration> {
+    public async convertRegistration(
+        @Param('state', new ZodValidationPipe(providerRegistrationStateSchema)) state: string,
+        @Body(new ZodValidationPipe(convertProviderRegistrationSchema)) convertDto: ConvertProviderRegistrationDto,
+    ): Promise<ConvertedProviderRegistration> {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {
@@ -139,7 +143,10 @@ export class ProvidersController {
      * @returns Created provider
      */
     @Post('registrations/:state/completion')
-    public async completeRegistration(@Param('state') state: string, @Body(new ZodValidationPipe(completeProviderRegistrationSchema)) completeDto: CompleteProviderRegistrationDto): Promise<ProviderResponse> {
+    public async completeRegistration(
+        @Param('state', new ZodValidationPipe(providerRegistrationStateSchema)) state: string,
+        @Body(new ZodValidationPipe(completeProviderRegistrationSchema)) completeDto: CompleteProviderRegistrationDto,
+    ): Promise<ProviderResponse> {
         enrichTelemetry({ 'provider.registration.state': state });
 
         try {

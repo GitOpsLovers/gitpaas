@@ -164,6 +164,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.reverseProxy,
                     this.logStore,
                     this.secretCipher,
+                    this.logger,
                     task,
                 );
 

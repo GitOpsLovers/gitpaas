@@ -2,11 +2,6 @@ import { Injectable, signal } from '@angular/core';
 import type { AuthTokens } from '@gitpaas/contracts';
 
 /**
- * Storage key under which the access token is persisted.
- */
-const ACCESS_TOKEN_KEY = 'gitpaas.accessToken';
-
-/**
  * Storage key under which the refresh token is persisted.
  */
 const REFRESH_TOKEN_KEY = 'gitpaas.refreshToken';
@@ -15,10 +10,6 @@ const REFRESH_TOKEN_KEY = 'gitpaas.refreshToken';
 
 /**
  * Reads, writes and clears the authentication token pair.
- *
- * Tokens are persisted to `localStorage` when the user opts to stay logged in,
- * or to `sessionStorage` otherwise (cleared when the tab closes). The active
- * storage is detected on startup so refreshes keep using the same persistence.
  */
 export class TokenStorageService {
     private readonly accessTokenSignal = signal<string | null>(null);
@@ -26,7 +17,7 @@ export class TokenStorageService {
     private readonly refreshTokenSignal = signal<string | null>(null);
 
     /**
-     * Reactive view of the current access token (null when signed out).
+     * Reactive view of the current access token (null when signed out, and until the session is restored).
      */
     public readonly accessToken = this.accessTokenSignal.asReadonly();
 
@@ -40,9 +31,9 @@ export class TokenStorageService {
     }
 
     /**
-     * Persists a token pair, choosing storage based on the "keep me logged in" flag
+     * Persists the refresh token, choosing storage based on the "keep me logged in" flag
      *
-     * @param tokens Token pair to persist
+     * @param tokens Token pair to hold
      * @param remember When true persist across sessions (localStorage)
      */
     public store(tokens: AuthTokens, remember: boolean): void {
@@ -50,7 +41,6 @@ export class TokenStorageService {
 
         const storage = remember ? localStorage : sessionStorage;
 
-        storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
         storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
 
         this.accessTokenSignal.set(tokens.accessToken);
@@ -58,14 +48,13 @@ export class TokenStorageService {
     }
 
     /**
-     * Updates the persisted tokens after a refresh, reusing the active storage
+     * Updates the held tokens after a refresh, reusing the active storage
      *
      * @param tokens Freshly rotated token pair
      */
     public update(tokens: AuthTokens): void {
         const storage = this.activeStorage() ?? sessionStorage;
 
-        storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
         storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
 
         this.accessTokenSignal.set(tokens.accessToken);
@@ -73,12 +62,10 @@ export class TokenStorageService {
     }
 
     /**
-     * Removes any persisted tokens from every storage and resets the state
+     * Removes any persisted refresh token from every storage and resets the state
      */
     public clear(): void {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
-        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
         sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 
         this.accessTokenSignal.set(null);
@@ -86,7 +73,7 @@ export class TokenStorageService {
     }
 
     /**
-     * Restores the token pair from whichever storage currently holds it
+     * Restores the refresh token from whichever storage currently holds it
      */
     private hydrate(): void {
         const storage = this.activeStorage();
@@ -95,21 +82,20 @@ export class TokenStorageService {
             return;
         }
 
-        this.accessTokenSignal.set(storage.getItem(ACCESS_TOKEN_KEY));
         this.refreshTokenSignal.set(storage.getItem(REFRESH_TOKEN_KEY));
     }
 
     /**
-     * Returns the storage that currently holds a token pair, if any
+     * Returns the storage that currently holds a refresh token, if any
      *
      * @returns The active `Storage`, or null when signed out
      */
     private activeStorage(): Storage | null {
-        if (localStorage.getItem(ACCESS_TOKEN_KEY)) {
+        if (localStorage.getItem(REFRESH_TOKEN_KEY)) {
             return localStorage;
         }
 
-        if (sessionStorage.getItem(ACCESS_TOKEN_KEY)) {
+        if (sessionStorage.getItem(REFRESH_TOKEN_KEY)) {
             return sessionStorage;
         }
 

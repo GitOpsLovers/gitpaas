@@ -13,11 +13,5 @@
     [disabled]="disabled()"
     (click)="onClick($event)"
 >
-    @if (startIcon(); as icon) {
-        <span class="flex items-center" [innerHTML]="icon | safeHtml"></span>
-    }
     <ng-content></ng-content>
-    @if (endIcon(); as icon) {
-        <span class="flex items-center" [innerHTML]="icon | safeHtml"></span>
-    }
 </button>

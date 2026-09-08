@@ -52,6 +52,14 @@ describe('YamlViewerComponent', () => {
         expect(document()?.innerHTML).toContain('<span');
     });
 
+    test('draws the markup of a value as text, and never as an element of the document', () => {
+        create('services:\n  web:\n    command: <img src="x" onerror="alert(1)">\n');
+
+        expect(document()?.querySelector('img')).toBeNull();
+        expect(document()?.querySelector('script')).toBeNull();
+        expect(document()?.textContent).toContain('<img src="x" onerror="alert(1)">');
+    });
+
     test('shows the message of an empty document when it holds no text', () => {
         create(null);
 

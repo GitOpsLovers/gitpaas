@@ -605,8 +605,8 @@ describe('DockerExecutorAdapter', () => {
             });
         });
 
-        it('has the variables of the service in every service environment by the time the stack is created', async () => {
-            const web = { image: 'nginx', environment: ['PORT=8080'] } as { image: string; environment?: unknown };
+        it('has the variables the service declares in its environment by the time the stack is created', async () => {
+            const web = { image: 'nginx', environment: ['PORT=8080', 'DATABASE_URL='] } as { image: string; environment?: unknown };
             let environmentAtUp: unknown;
             const composeUp = jest.fn(() => {
                 environmentAtUp = liveRecipe<{ services: { web: typeof web } }>().services.web.environment;
@@ -629,6 +629,37 @@ describe('DockerExecutorAdapter', () => {
             );
 
             expect(environmentAtUp).toEqual(['PORT=8080', 'DATABASE_URL=postgres://db']);
+        });
+
+        it('keeps a variable of the service out of a compose service that declares no environment', async () => {
+            const web = { image: 'nginx', environment: ['DATABASE_URL='] } as { image: string; environment?: unknown };
+            const sidecar = { image: 'busybox' } as { image: string; environment?: unknown };
+            let sidecarEnvironmentAtUp: unknown = 'unread';
+            const composeUp = jest.fn(() => {
+                sidecarEnvironmentAtUp = liveRecipe<{ services: { sidecar: typeof sidecar } }>().services.sidecar.environment;
+
+                return Promise.resolve({ services: [] });
+            });
+            mockCompose.instance = {
+                recipe: { services: { web, sidecar } },
+                down: jest.fn().mockResolvedValue(undefined),
+                up: composeUp,
+            };
+
+            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
+            const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
+
+            await sut.up(
+                Buffer.from('archive'),
+                'docker-compose.yml',
+                target(),
+                { DATABASE_URL: 'postgres://db' },
+                {},
+                [],
+                jest.fn(),
+            );
+
+            expect(sidecarEnvironmentAtUp).toBeUndefined();
         });
 
         it('has the references of the recipe substituted by the time the images are built, so a build arg reads a variable of the service', async () => {
@@ -721,7 +752,11 @@ describe('DockerExecutorAdapter', () => {
         it('answers the final Compose text, with the attached networks, the relative bind mounts and the masked variables', async () => {
             const container = startedContainer('web');
             mockCompose.instance = {
-                recipe: { services: { web: { image: 'nginx', volumes: ['./public:/usr/share/nginx/html'] } } },
+                recipe: {
+                    services: {
+                        web: { image: 'nginx', environment: ['DB_PASSWORD='], volumes: ['./public:/usr/share/nginx/html'] },
+                    },
+                },
                 down: jest.fn().mockResolvedValue(undefined),
                 up: jest.fn().mockResolvedValue({ services: [container] }),
             };

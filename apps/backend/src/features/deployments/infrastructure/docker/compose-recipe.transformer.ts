@@ -597,20 +597,29 @@ export function stampRouting(compose: RuntimeComposeProject, routing: RoutingLab
 }
 
 /**
- * Merges the variables of the service into the environment of every container of the stack.
+ * Gives every variable of the service its value, in the compose services that declare its name alone.
  *
  * @param compose Compose project driven by the container runtime
  * @param environment Variables of the service, keyed by name
  */
 export function injectEnvironment(compose: RuntimeComposeProject, environment: Record<string, string>): void {
-    if (Object.keys(environment).length === 0) {
+    const variables = new Map(Object.entries(environment));
+
+    if (variables.size === 0) {
         return;
     }
 
     for (const service of Object.values(recipeServices(compose))) {
-        service.environment = toEntryList({
-            ...toEntryMap(service.environment),
-            ...environment,
-        });
+        const declared = Object.entries(toEntryMap(service.environment));
+
+        if (!declared.some(([name]) => variables.has(name))) {
+            continue;
+        }
+
+        service.environment = toEntryList(Object.fromEntries(declared.map(([name, value]) => {
+            const variable = variables.get(name);
+
+            return [name, variable === undefined ? value : variable];
+        })));
     }
 }

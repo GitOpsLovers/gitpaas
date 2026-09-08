@@ -39,7 +39,9 @@
             }
         </div>
     } @else if (text()) {
-        <pre class="hljs whitespace-pre"><code [innerHTML]="highlighted()"></code></pre>
+        <pre
+            class="hljs whitespace-pre"
+        ><code>@for (token of tokens(); track $index) {<span [class]="token.className">{{ token.text }}</span>}</code></pre>
     } @else {
         <div class="text-gray-400 dark:text-gray-500">
             {{ emptyMessage() }}

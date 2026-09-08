@@ -115,6 +115,7 @@ export {
     providerAppManifestSchema,
     providerAppOwnerTypeSchema,
     providerRegistrationSchema,
+    providerRegistrationStateSchema,
     providerRegistrationStepSchema,
     startedProviderRegistrationSchema,
     startProviderRegistrationSchema,

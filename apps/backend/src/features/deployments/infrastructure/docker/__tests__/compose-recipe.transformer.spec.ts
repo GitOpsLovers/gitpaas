@@ -669,27 +669,46 @@ describe('compose-recipe.transformer', () => {
     });
 
     describe('injectEnvironment', () => {
-        it('merges the variables into every service, in the KEY=value list form', () => {
+        it('gives its value to the variable a service declares, in the KEY=value list form', () => {
             const web = { image: 'nginx' } as { image: string; environment?: unknown };
-            const worker = { image: 'node', environment: { KEEP: 'me' } } as { image: string; environment?: unknown };
+            const worker = { image: 'node', environment: { KEEP: 'me', API_TOKEN: '' } } as { image: string; environment?: unknown };
             const compose = { recipe: { services: { web, worker } } };
 
             injectEnvironment(asCompose(compose), { DATABASE_URL: 'postgres://db', API_TOKEN: 'the-token' });
 
-            expect(web.environment).toEqual(['DATABASE_URL=postgres://db', 'API_TOKEN=the-token']);
-            expect(worker.environment).toEqual([
-                'KEEP=me',
-                'DATABASE_URL=postgres://db',
-                'API_TOKEN=the-token',
-            ]);
+            expect(worker.environment).toEqual(['KEEP=me', 'API_TOKEN=the-token']);
         });
 
-        it('lets a variable of the service override the value the compose file declares', () => {
-            const compose = { recipe: { services: { web: { environment: ['PORT=8080'] } } } };
+        it('never reaches a service that declares none of the variables', () => {
+            const compose = { recipe: { services: { db: { image: 'postgres', environment: ['KEEP=me'] } } } };
+
+            injectEnvironment(asCompose(compose), { API_TOKEN: 'the-token' });
+
+            expect(compose.recipe.services.db.environment).toEqual(['KEEP=me']);
+        });
+
+        it('never adds an environment block to a service that declares none', () => {
+            const compose = { recipe: { services: { web: { image: 'nginx' } } } };
+
+            injectEnvironment(asCompose(compose), { API_TOKEN: 'the-token' });
+
+            expect(compose.recipe.services.web).toEqual({ image: 'nginx' });
+        });
+
+        it('keeps the value of an entry the service holds and the platform does not', () => {
+            const compose = { recipe: { services: { web: { environment: ['KEEP=me', 'PORT=8080'] } } } };
 
             injectEnvironment(asCompose(compose), { PORT: '9090' });
 
-            expect(compose.recipe.services.web.environment).toEqual(['PORT=9090']);
+            expect(compose.recipe.services.web.environment).toEqual(['KEEP=me', 'PORT=9090']);
+        });
+
+        it('gives an empty value to a bare key the service declares', () => {
+            const compose = { recipe: { services: { web: { environment: ['API_TOKEN'] } } } };
+
+            injectEnvironment(asCompose(compose), { API_TOKEN: '' });
+
+            expect(compose.recipe.services.web.environment).toEqual(['API_TOKEN=']);
         });
 
         it('leaves the recipe untouched when the service holds no variable', () => {

@@ -6,6 +6,14 @@ import { z } from 'zod';
 export const providerAppOwnerTypeSchema = z.enum(['personal', 'organization']);
 
 /**
+ * The state of a registration: the thirty-two random bytes the platform draws, in hexadecimal.
+ */
+export const providerRegistrationStateSchema = z
+    .string()
+    // eslint-disable-next-line optimize-regex/optimize-regex
+    .regex(/^[0-9a-f]{64}$/, { error: 'The state of a registration holds sixty-four hexadecimal characters.' });
+
+/**
  * The step that a registration which runs has reached.
  */
 export const providerRegistrationStepSchema = z.enum(['awaiting_creation', 'awaiting_installation']);
