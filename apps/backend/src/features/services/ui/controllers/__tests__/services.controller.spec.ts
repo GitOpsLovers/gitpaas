@@ -77,7 +77,7 @@ describe('ServicesController', () => {
     let mockServicesService: jest.Mocked<
         Pick<
             ServicesService,
-            'getAllByProject' | 'findById' | 'create' | 'update' | 'delete' | 'getFinalCompose'
+            'getAllByProject' | 'findById' | 'create' | 'update' | 'delete' | 'getFinalCompose' | 'refreshComposeEnvironment'
         >
     >;
     let sut: ServicesController;
@@ -92,6 +92,7 @@ describe('ServicesController', () => {
             update: jest.fn(),
             delete: jest.fn(),
             getFinalCompose: jest.fn(),
+            refreshComposeEnvironment: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -105,7 +106,7 @@ describe('ServicesController', () => {
     });
 
     describe('parameter validation', () => {
-        it.each(['findById', 'update', 'delete', 'getFinalCompose'])(
+        it.each(['findById', 'update', 'delete', 'getFinalCompose', 'refreshComposeEnvironment'])(
             'validates the id path parameter of %s as a UUID',
             (handler) => {
                 expect(pipesFor(handler, 'id')).toContain(ParseUUIDPipe);
@@ -120,7 +121,7 @@ describe('ServicesController', () => {
             expect(pipesFor(handler)).toEqual([expect.any(ZodValidationPipe)]);
         });
 
-        it.each(['getAllByProject', 'findById', 'delete', 'getFinalCompose'])(
+        it.each(['getAllByProject', 'findById', 'delete', 'getFinalCompose', 'refreshComposeEnvironment'])(
             'never binds a body on %s',
             (handler) => {
                 expect(pipesFor(handler)).toEqual([]);
@@ -407,6 +408,44 @@ describe('ServicesController', () => {
         });
     });
 
+    describe('refreshComposeEnvironment', () => {
+        const cache = { variables: { LOG_LEVEL: 'debug' }, refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
+
+        it('delegates to the service with the received id', async () => {
+            mockServicesService.refreshComposeEnvironment.mockResolvedValue(cache);
+
+            await sut.refreshComposeEnvironment(serviceId);
+
+            expect(mockServicesService.refreshComposeEnvironment).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.refreshComposeEnvironment).toHaveBeenCalledWith(serviceId);
+        });
+
+        it('answers no content when the refresh wrote the cache', async () => {
+            mockServicesService.refreshComposeEnvironment.mockResolvedValue(cache);
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).resolves.toBeUndefined();
+        });
+
+        it('answers no content when the refresh left the cache untouched', async () => {
+            mockServicesService.refreshComposeEnvironment.mockResolvedValue(null);
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).resolves.toBeUndefined();
+        });
+
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockServicesService.refreshComposeEnvironment.mockRejectedValue(new ServiceNotFoundError(serviceId));
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('propagates errors raised by the service', async () => {
+            const error = new Error('archive not found');
+            mockServicesService.refreshComposeEnvironment.mockRejectedValue(error);
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).rejects.toBe(error);
+        });
+    });
+
     describe('telemetry event enrichment', () => {
         it('adds the project id of a listing', async () => {
             mockServicesService.getAllByProject.mockResolvedValue([service]);
@@ -425,6 +464,18 @@ describe('ServicesController', () => {
 
             const event = await runWithTelemetry({}, async () => {
                 await sut.findById(serviceId);
+
+                return getTelemetry();
+            });
+
+            expect(event).toMatchObject({ 'service.id': serviceId });
+        });
+
+        it('adds the service id of a refresh of the compose environment', async () => {
+            mockServicesService.refreshComposeEnvironment.mockResolvedValue(null);
+
+            const event = await runWithTelemetry({}, async () => {
+                await sut.refreshComposeEnvironment(serviceId);
 
                 return getTelemetry();
             });

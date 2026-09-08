@@ -1,7 +1,8 @@
 import { ServiceNameTakenError } from '../../domain/errors/service.errors';
+import { ComposeEnvironmentCache } from '../../domain/models/compose-environment.models';
 import { Service } from '../../domain/models/service.models';
 
-import { DbServiceEntity } from './db-service.entity';
+import { DbComposeEnvironment, DbServiceEntity } from './db-service.entity';
 
 import { FOREIGN_KEY_VIOLATION, readSqlState, UNIQUE_VIOLATION } from '@core/infrastructure/database/sql-state';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
@@ -76,5 +77,19 @@ export function toService(entity: DbServiceEntity): Service {
         deploymentBranch: entity.deploymentBranch,
         composerPath: entity.composerPath,
         createdAt: entity.createdAt,
+    };
+}
+
+/**
+ * Maps the cache of the compose environment of a service into the shape its row carries.
+ *
+ * @param cache Cache of the key `environment` of the compose file of the service
+ *
+ * @returns The cache of the database
+ */
+export function toDbComposeEnvironment(cache: ComposeEnvironmentCache): DbComposeEnvironment {
+    return {
+        variables: cache.variables,
+        refreshedAt: cache.refreshedAt.toISOString(),
     };
 }

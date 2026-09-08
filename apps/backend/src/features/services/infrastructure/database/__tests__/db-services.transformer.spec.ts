@@ -1,6 +1,6 @@
 import { ServiceNameTakenError } from '../../../domain/errors/service.errors';
 import { DbServiceEntity } from '../db-service.entity';
-import { toService, toServicePersistenceError } from '../db-services.transformer';
+import { toDbComposeEnvironment, toService, toServicePersistenceError } from '../db-services.transformer';
 
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
 import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
@@ -19,6 +19,7 @@ describe('toService', () => {
             repositoryId: 'gitopslovers/api',
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
+            composeEnvironment: null,
             createdAt,
         };
 
@@ -47,6 +48,7 @@ describe('toService', () => {
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
+            composeEnvironment: null,
             createdAt,
         };
 
@@ -75,6 +77,7 @@ describe('toService', () => {
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
+            composeEnvironment: null,
             createdAt,
         };
 
@@ -92,6 +95,7 @@ describe('toService', () => {
             repositoryId: '',
             deploymentBranch: '',
             composerPath: '',
+            composeEnvironment: null,
             createdAt,
         };
 
@@ -190,5 +194,22 @@ describe('toServicePersistenceError', () => {
 
     it('returns a non-Error thrown value unchanged', () => {
         expect(toServicePersistenceError('boom', projectId, name)).toBe('boom');
+    });
+});
+
+describe('toDbComposeEnvironment', () => {
+    it('maps the cache into the shape of the row, with the moment as an ISO string', () => {
+        const cache = { variables: { LOG_LEVEL: 'debug' }, refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
+
+        expect(toDbComposeEnvironment(cache)).toEqual({
+            variables: { LOG_LEVEL: 'debug' },
+            refreshedAt: '2026-09-08T10:00:00.000Z',
+        });
+    });
+
+    it('keeps an empty set of names', () => {
+        const cache = { variables: {}, refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
+
+        expect(toDbComposeEnvironment(cache).variables).toEqual({});
     });
 });

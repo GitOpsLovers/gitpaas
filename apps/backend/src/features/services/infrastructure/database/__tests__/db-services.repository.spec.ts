@@ -35,9 +35,15 @@ const serviceEntity = (overrides: Partial<DbServiceEntity> = {}): DbServiceEntit
     repositoryId: 'repo-1',
     deploymentBranch: 'main',
     composerPath: 'services/checkout',
+    composeEnvironment: null,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
 });
+
+/**
+ * The domain shape of a service entity: every column of the row but the cache of the compose environment.
+ */
+const domainOf = ({ composeEnvironment: _cache, ...service }: DbServiceEntity): Omit<DbServiceEntity, 'composeEnvironment'> => service;
 
 describe('DatabaseServicesRepository', () => {
     const projectId = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
@@ -50,7 +56,7 @@ describe('DatabaseServicesRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<DbServiceEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
+        Pick<Repository<DbServiceEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete' | 'update'>
     >;
     let sut: DatabaseServicesRepository;
 
@@ -64,6 +70,7 @@ describe('DatabaseServicesRepository', () => {
             merge: jest.fn(),
             save: jest.fn(),
             delete: jest.fn(),
+            update: jest.fn(),
         };
         sut = new DatabaseServicesRepository(
             mockRepository as unknown as Repository<DbServiceEntity>,
@@ -82,7 +89,7 @@ describe('DatabaseServicesRepository', () => {
 
             expect(mockRepository.find).toHaveBeenCalledTimes(1);
             expect(mockRepository.find).toHaveBeenCalledWith();
-            expect(result).toEqual(services);
+            expect(result).toEqual(services.map(domainOf));
         });
 
         it('returns an empty list when there are no services', async () => {
@@ -110,7 +117,7 @@ describe('DatabaseServicesRepository', () => {
                 where: { projectId },
                 order: { id: 'DESC' },
             });
-            expect(result).toEqual(services);
+            expect(result).toEqual(services.map(domainOf));
         });
     });
 
@@ -122,7 +129,7 @@ describe('DatabaseServicesRepository', () => {
             const result = await sut.findById(entity.id);
 
             expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: entity.id });
-            expect(result).toEqual(entity);
+            expect(result).toEqual(domainOf(entity));
         });
 
         it('returns null when no service matches the id', async () => {
@@ -145,7 +152,7 @@ describe('DatabaseServicesRepository', () => {
 
             expect(mockRepository.create).toHaveBeenCalledWith(createDto);
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
-            expect(result).toEqual(saved);
+            expect(result).toEqual(domainOf(saved));
         });
 
         it('writes a service that names no provider and maps its provider to null', async () => {
@@ -232,7 +239,7 @@ describe('DatabaseServicesRepository', () => {
 
             expect(mockRepository.merge).toHaveBeenCalledWith(existing, updateDto);
             expect(mockRepository.save).toHaveBeenCalledWith(existing);
-            expect(result).toEqual(saved);
+            expect(result).toEqual(domainOf(saved));
         });
 
         it('raises ServiceNameTakenError when the rename violates the unique name of the project', async () => {
@@ -241,6 +248,32 @@ describe('DatabaseServicesRepository', () => {
             mockRepository.save.mockRejectedValue(uniqueViolation);
 
             await expect(sut.update(existing.id, { name: 'renamed' })).rejects.toBeInstanceOf(ServiceNameTakenError);
+        });
+    });
+
+    describe('saveComposeEnvironment', () => {
+        it('writes the names, the values and the moment of the read on the row of the service', async () => {
+            mockRepository.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+            await sut.saveComposeEnvironment('some-id', {
+                variables: { LOG_LEVEL: 'debug' },
+                refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+            });
+
+            expect(mockRepository.update).toHaveBeenCalledTimes(1);
+            expect(mockRepository.update).toHaveBeenCalledWith('some-id', {
+                composeEnvironment: { variables: { LOG_LEVEL: 'debug' }, refreshedAt: '2026-09-08T10:00:00.000Z' },
+            });
+        });
+
+        it('propagates a failure of the write', async () => {
+            const error = new Error('db unreachable');
+            mockRepository.update.mockRejectedValue(error);
+
+            await expect(sut.saveComposeEnvironment('some-id', {
+                variables: {},
+                refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+            })).rejects.toThrow(error);
         });
     });
 

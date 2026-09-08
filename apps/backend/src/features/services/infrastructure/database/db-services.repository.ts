@@ -4,11 +4,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateServiceWithComposeProjectDto } from '../../domain/dtos/create-service-with-compose-project.dto';
+import { ComposeEnvironmentCache } from '../../domain/models/compose-environment.models';
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
 import { DbServiceEntity } from './db-service.entity';
-import { toService, toServicePersistenceError } from './db-services.transformer';
+import { toDbComposeEnvironment, toService, toServicePersistenceError } from './db-services.transformer';
 
 /**
  * Services database repository
@@ -69,6 +70,10 @@ export class DatabaseServicesRepository implements ServicesRepository {
         } catch (error) {
             throw toServicePersistenceError(error, service.projectId, updateDto.name, updateDto.providerId);
         }
+    }
+
+    public async saveComposeEnvironment(id: string, cache: ComposeEnvironmentCache): Promise<void> {
+        await this.repository.update(id, { composeEnvironment: toDbComposeEnvironment(cache) });
     }
 
     public async delete(id: string): Promise<boolean> {
