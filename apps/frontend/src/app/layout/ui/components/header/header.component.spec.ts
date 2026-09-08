@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 import { SidebarService } from '../../services/sidebar.service';
 import { ThemeService } from '../../services/theme.service';
 
-import { HeaderComponent } from './header';
+import { HeaderComponent } from './header.component';
 
 import { AuthService } from '@features/authentication/ui/services/auth.service';
 

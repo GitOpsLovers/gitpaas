@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
 import { LucideLogOut, LucideUserRound } from '@lucide/angular';
 
 import { SidebarService } from '../../services/sidebar.service';
-import { ThemeToggleButtonComponent } from '../theme-toggle/theme-toggle';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 
 import { AuthService } from '@features/authentication/ui/services/auth.service';
 import { buildAccountInitialsUseCase } from '@features/profile/application/build-account-initials.use-case';
@@ -18,8 +18,8 @@ const UNNAMED = 'Account';
 
 @Component({
     selector: 'app-header',
-    templateUrl: './header.html',
-    imports: [CommonModule, RouterModule, ThemeToggleButtonComponent, LucideLogOut, LucideUserRound],
+    templateUrl: './header.component.html',
+    imports: [CommonModule, RouterModule, ThemeToggleComponent, LucideLogOut, LucideUserRound],
 })
 
 /**

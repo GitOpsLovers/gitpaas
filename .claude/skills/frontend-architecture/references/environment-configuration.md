@@ -1,132 +1,28 @@
 # Environment configuration
 
-## Configuration strategies
+`apps/frontend` configures itself at the build, with the two files of
+`apps/frontend/src/environments/`:
 
-Angular supports two main configuration strategies:
+- `environment.ts` gives the production value: `apiBaseUrl: '/api/v1'`.
+- `environment.development.ts` gives the local value:
+  `apiBaseUrl: 'http://localhost:3000/api/v1'`.
 
-- **Build-time configuration** using environment files
-- **Runtime configuration** by loading values at application startup
-
-Choose the approach based on your deployment requirements.
-
----
-
-## Build-time configuration
-
-Environment files define configuration values that are replaced at build time.
-
-> **Security note:** Environment files are bundled into the client-side application.
-> They are visible to anyone who can load the page.
-> Never store sensitive information like API keys, secrets, or credentials in environment files.
-> These values can be easily accessed by users.
-
-Generate environment files using the CLI:
-
-```bash
-ng generate environments
-```
-
-This creates environment-specific files such as:
+Import the environment where a feature needs it:
 
 ```ts
-// environment.ts
-export const environment = {
-  apiUrl: 'https://api.example.com',
-};
+import { environment } from '@environments/environment';
+
+const apiUrl = environment.apiBaseUrl;
 ```
 
-```ts
-// environment.development.ts
-export const environment = {
-  apiUrl: 'http://localhost:3000',
-};
-```
-
-Import the environment where needed:
-
-```ts
-import {environment} from '../environments/environment';
-
-const apiUrl = environment.apiUrl;
-```
-
-The Angular CLI replaces the appropriate file based on the build configuration.
-
-If you need a development-mode check, use `isDevMode()` from `@angular/core` instead of relying on a manually maintained `production` flag.
-
-> Changes to environment files require rebuilding the application.
-
----
-
-## Runtime configuration (advanced)
-
-In some scenarios, applications need to load configuration at runtime instead of build time.
-
-This allows the same build artifact to be deployed across multiple environments without rebuilding.
-
-A common approach is to load a JSON configuration file from the `assets` folder during application
-initialization.
-
-### Example
+`apps/frontend/angular.json` swaps the file with `fileReplacements` of the `development`
+configuration:
 
 ```json
-// src/assets/config.json
-{
-  "apiUrl": "https://api.example.com"
-}
+"fileReplacements": [
+  { "replace": "src/environments/environment.ts", "with": "src/environments/environment.development.ts" }
+]
 ```
 
-Load the configuration before the application starts:
-
-```ts
-import {Service, inject} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-
-@Service()
-export class AppConfigService {
-  private config!: {apiUrl: string};
-
-  private readonly http = inject(HttpClient);
-
-  loadConfig() {
-    return this.http.get<AppConfig>('/assets/config.json').pipe(
-      tap((data) => {
-        this.config = data;
-      }),
-    );
-  }
-
-  get apiUrl(): string {
-    return this.config.apiUrl;
-  }
-}
-```
-
-Register the loader during application bootstrap:
-
-```ts
-import {provideAppInitializer, inject} from '@angular/core';
-
-provideAppInitializer(() => {
-  const config = inject(AppConfigService);
-  return config.loadConfig();
-});
-```
-
-This ensures configuration is available before the application renders.
-
-> Runtime configuration is an advanced pattern and is not required for most applications.
-
----
-
-## Choosing a strategy
-
-| Criteria               | Build-time | Runtime      |
-| ---------------------- | ---------- | ------------ |
-| Change without rebuild | No         | Yes          |
-| Startup performance    | Faster     | Slight delay |
-| Complexity             | Low        | Moderate     |
-| Deployment flexibility | Limited    | High         |
-
-Use build-time configuration for most applications, and runtime configuration when you need to
-deploy the same build across multiple environments.
+> **Security note:** an environment file is bundled into the client-side application, and anyone
+> who loads the page can read it. Never store an API key, a secret, or a credential in one.

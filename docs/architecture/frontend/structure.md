@@ -8,6 +8,7 @@
 provideBrowserGlobalErrorListeners()
 provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling(…))
 provideHttpClient(withInterceptors([authInterceptor]))
+provideAppInitializer(() => inject(AuthService).restoreSession())
 ```
 
 The root `App` is only a thin host. Its template is `<router-outlet /><app-toast />`. Thus the global toast overlay shows above each route. It injects `ThemeService` (which applies the stored theme at startup) and `Title`.
@@ -39,7 +40,7 @@ The `projects` feature is the reference example of this shape: a `Project` model
 
 ## Layout and pages
 
-`layout/ui/{components,containers,services}/` holds the application shell. `LayoutComponent` is the wrapper of the root route. It shows the sidebar, the header and `<router-outlet>`. The header injects `AuthService` for the user menu and for the logout. `BreadcrumbComponent` (`app-breadcrumb`) is the standard page header. It takes a `pageTitle` signal input and shows a `Home › {{ pageTitle }}` trail. Each page puts it first.
+`layout/ui/{components,containers,services}/` holds the application shell. `LayoutComponent` is the wrapper of the root route. It shows the sidebar, the header and `<router-outlet>`. The header injects `AuthService` for the user menu and for the logout. `BreadcrumbComponent` (`app-breadcrumb`) is the standard page header. It takes a `pageTitle` signal input and shows a `Home › {{ pageTitle }}` trail. The page or its container puts it first.
 
 `pages/` holds the route-level components, in a folder for each feature (`pages/<feature>/{list,add,edit,detail}/`).
 
@@ -49,7 +50,6 @@ The `projects` feature is the reference example of this shape: a `Project` model
 shared/
   components/   — reusable presentational primitives (one flat folder per component)
   services/     — cross-cutting root-provided services (e.g. the toast stack)
-  pipes/        — reusable template pipes (e.g. safe-html for trusted markup)
 ```
 
 The toast system is the reference cross-cutting service. `ToastService` (`providedIn: 'root'`) owns a stack that signals control, with typed `success`/`error`/`warning`/`info` helpers and an automatic dismissal. The presentational `ToastComponent` shows the stack. It is mounted one time, globally, in `App`.
