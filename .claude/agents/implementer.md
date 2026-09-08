@@ -17,7 +17,7 @@ model: inherit
 
 ## The skill that you load
 
-Before you write a file of `apps/`, invoke the skill of the application that you touch: `backend-architecture` or `frontend-architecture`. Each one routes to the page of `docs/architecture/` that answers your question. Read the section that you need, not the whole page. `backend-feature` gives the procedure when the task adds a new backend resource, and `frontend-design` gives the theme and the markup when the task writes a template of the frontend.
+Before you write a file of `apps/`, invoke the skill of the application that you touch: `backend-architecture` or `frontend-architecture`. Each one routes to the page of `docs/architecture/` that answers your question. Read the section that you need, not the whole page. `backend-feature` gives the procedure when the task adds a backend resource, or changes one, and `frontend-design` gives the theme and the markup when the task writes a template of the frontend.
 
 Before you write a spec, invoke the skill of the tests of that application too.
 

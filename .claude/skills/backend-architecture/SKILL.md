@@ -60,5 +60,5 @@ This skill holds two tiers:
 
 ## The neighbouring skills
 
-- `backend-feature` holds the procedure that scaffolds a new resource. Invoke it, and keep this skill for the rules that it does not cover.
+- `backend-feature` holds the procedure that adds a resource, and that changes one. Invoke it, and keep this skill for the rules that it does not cover.
 - `backend-unit-testing` holds every convention of a spec. This skill holds none.

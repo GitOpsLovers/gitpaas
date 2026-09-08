@@ -1,19 +1,19 @@
 ---
 name: backend-feature
-description: The procedure that scaffolds a new feature or resource of `apps/backend`. Use it when you add a resource or an entity to the backend.
+description: The procedure that adds or changes a feature or a resource of `apps/backend`. Use it when you add a resource, an entity, an endpoint or a field of the wire to the backend.
 ---
 
-# A new feature of the backend
+# A feature of the backend
 
-The step-by-step procedure that adds a resource to `apps/backend`. It is a procedure, and not a reference of the architecture. `backend-architecture` routes to the page that holds each rule, and that page wins over this skill.
+The step-by-step procedure that adds a resource to `apps/backend`, or that changes one. It holds the order of the steps and the points of the wiring alone. It holds no rule of the architecture.
 
 ## The reference files
 
 | The file | Read it when |
 | --- | --- |
-| [procedure.md](references/procedure.md) | You scaffold the feature. It holds the nine steps and the constraints of the project. |
+| [procedure.md](references/procedure.md) | You start the work. It holds the nine steps, and the shorter path of a change. |
 
 ## The neighbouring skills
 
-- `backend-architecture` holds the layers, the naming, the ports and the path aliases. Invoke it first, and keep this skill for the order of the steps.
-- `backend-unit-testing` holds the conventions of the specs that step 8 asks for.
+- `backend-architecture` holds the layers, the naming, the ports and the path aliases, and it wins over this skill. Invoke it first.
+- `backend-unit-testing` holds the conventions of the specs of step 8.
