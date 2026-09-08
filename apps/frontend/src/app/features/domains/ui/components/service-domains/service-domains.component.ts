@@ -4,6 +4,7 @@ import { LucideGlobe, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@l
 
 import type { DomainDraft } from '../../../domain/models/domain.models';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -37,7 +38,7 @@ export interface DomainChange {
 @Component({
     selector: 'app-service-domains',
     templateUrl: './service-domains.component.html',
-    imports: [
+    imports: [AlertComponent,
         ButtonComponent,
         ComponentCardComponent,
         InputFieldComponent,

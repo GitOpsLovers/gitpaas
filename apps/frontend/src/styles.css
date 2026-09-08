@@ -148,7 +148,6 @@ layer(base);
     0px 4px 8px -2px rgba(15, 20, 28, 0.06), 0px 2px 4px -2px rgba(15, 20, 28, 0.04);
   --shadow-theme-xl:
     0px 8px 16px -4px rgba(15, 20, 28, 0.08), 0px 4px 8px -4px rgba(15, 20, 28, 0.04);
-  --shadow-focus-ring: 0px 0px 0px 3px rgba(127, 69, 240, 0.16);
   --shadow-tooltip:
     0px 2px 4px -2px rgba(15, 20, 28, 0.06), 0px 8px 16px -4px rgba(15, 20, 28, 0.08);
 
@@ -281,24 +280,6 @@ layer(base);
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
-@utility custom-scrollbar {
-  &::-webkit-scrollbar {
-    @apply size-1.5;
-  }
-
-  &::-webkit-scrollbar-track {
-    @apply rounded-full;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full dark:bg-gray-700;
-  }
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--color-gray-700);
-}
-
 @layer utilities {
   /* For Remove Date Icon */
   input[type="date"]::-webkit-inner-spin-button,
@@ -315,13 +296,6 @@ layer(base);
     display: none;
     -webkit-appearance: none;
   }
-}
-
-.tableCheckbox:checked ~ span span {
-  @apply opacity-100;
-}
-.tableCheckbox:checked ~ span {
-  @apply border-brand-500 bg-brand-500;
 }
 
 /* ng-select — align the default theme with the app's form controls (see app-select2) */

@@ -3,6 +3,7 @@ import { Component, input, output } from '@angular/core';
 import type { DockerNetwork } from '@gitpaas/contracts';
 import { LucideRotateCw } from '@lucide/angular';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
@@ -10,7 +11,7 @@ import { SkeletonComponent } from '@shared/components/skeleton/skeleton.componen
 @Component({
     selector: 'app-docker-networks-table',
     templateUrl: './docker-networks-table.component.html',
-    imports: [ButtonComponent, ComponentCardComponent, DatePipe, SkeletonComponent, LucideRotateCw],
+    imports: [AlertComponent, ButtonComponent, ComponentCardComponent, DatePipe, SkeletonComponent, LucideRotateCw],
 })
 
 /**

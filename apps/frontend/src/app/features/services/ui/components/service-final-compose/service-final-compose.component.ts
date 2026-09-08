@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import type { FinalCompose } from '@gitpaas/contracts';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { YamlViewerComponent } from '@shared/components/yaml-viewer/yaml-viewer.component';
 
@@ -13,7 +14,7 @@ export const NO_FINAL_COMPOSE_MESSAGE = 'This service has no deployment yet, and
 @Component({
     selector: 'app-service-final-compose',
     templateUrl: './service-final-compose.component.html',
-    imports: [ComponentCardComponent, YamlViewerComponent],
+    imports: [AlertComponent, ComponentCardComponent, YamlViewerComponent],
 })
 
 /**

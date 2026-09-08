@@ -7,6 +7,7 @@ import {
 } from '@gitpaas/contracts';
 import { LucideNetwork, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -33,7 +34,7 @@ export interface ProjectNetworkRename {
 @Component({
     selector: 'app-project-networks',
     templateUrl: './project-networks.component.html',
-    imports: [
+    imports: [AlertComponent,
         ButtonComponent,
         ComponentCardComponent,
         InputFieldComponent,

@@ -14,11 +14,9 @@
     }
 
     @if (!loading() && fromDeployment() && text()) {
-        <div
-            class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
-        >
+        <app-alert variant="info">
             <p>GitPaaS masks the value of every variable of this file, so no secret leaves the server.</p>
-        </div>
+        </app-alert>
     }
 
     <app-yaml-viewer

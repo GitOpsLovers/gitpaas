@@ -6,6 +6,7 @@ import { LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lu
 
 import type { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -23,7 +24,7 @@ export interface ServiceVariableChange {
 @Component({
     selector: 'app-service-variables',
     templateUrl: './service-variables.component.html',
-    imports: [
+    imports: [AlertComponent,
         ButtonComponent,
         ComponentCardComponent,
         InputFieldComponent,

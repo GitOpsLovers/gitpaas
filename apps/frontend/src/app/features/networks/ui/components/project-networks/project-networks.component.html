@@ -2,14 +2,12 @@
     title="Networks"
     desc="The private networks of this project. A service joins one from its tab “Network”."
 >
-    <div
-        class="rounded-xl border border-blue-light-200 bg-blue-light-50 p-4 text-sm text-blue-light-600 dark:border-blue-light-500/30 dark:bg-blue-light-500/15 dark:text-blue-light-400"
-    >
+    <app-alert variant="info">
         <p>
             A network of a project holds no route to the Internet. A service that joined one reaches the others by their
             name, and the connection arrives at the next deployment.
         </p>
-    </div>
+    </app-alert>
 
     @if (loading() || networks().length > 0) {
         <div class="overflow-x-auto">

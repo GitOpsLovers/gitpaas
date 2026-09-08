@@ -6,6 +6,7 @@ import { lastValueFrom } from 'rxjs';
 import { NamespacesApiRepository } from '../../../infrastructure/api/namespaces-api.repository';
 import { NamespaceCardComponent } from '../../components/namespace-card/namespace-card.component';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -13,7 +14,7 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
     selector: 'app-namespaces-list',
     templateUrl: './namespaces-list.component.html',
-    imports: [RouterLink, NamespaceCardComponent, ConfirmModalComponent, SkeletonComponent],
+    imports: [AlertComponent, RouterLink, NamespaceCardComponent, ConfirmModalComponent, SkeletonComponent],
 })
 
 /**

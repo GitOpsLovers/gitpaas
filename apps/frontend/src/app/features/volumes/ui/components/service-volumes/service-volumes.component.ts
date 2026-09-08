@@ -12,6 +12,7 @@ import { LucideHardDrive, LucideLink, LucidePencil, LucidePlus, LucideUnlink, Lu
 
 import type { VolumeDraft, VolumeMountDraft } from '../../../domain/models/volume.models';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { InputFieldComponent } from '@shared/components/input/input-field.component';
@@ -72,7 +73,7 @@ export interface VolumeAttach {
 @Component({
     selector: 'app-service-volumes',
     templateUrl: './service-volumes.component.html',
-    imports: [
+    imports: [AlertComponent,
         ButtonComponent,
         ComponentCardComponent,
         InputFieldComponent,

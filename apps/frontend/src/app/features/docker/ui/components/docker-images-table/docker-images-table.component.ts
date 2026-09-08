@@ -5,6 +5,7 @@ import { LucideRotateCw } from '@lucide/angular';
 
 import { formatByteSizeUseCase } from '../../../application/format-byte-size.use-case';
 
+import { AlertComponent } from '@shared/components/alert/alert.component';
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
@@ -22,7 +23,7 @@ const SHORT_ID_LENGTH = 12;
 @Component({
     selector: 'app-docker-images-table',
     templateUrl: './docker-images-table.component.html',
-    imports: [ButtonComponent, ComponentCardComponent, DatePipe, SkeletonComponent, LucideRotateCw],
+    imports: [AlertComponent, ButtonComponent, ComponentCardComponent, DatePipe, SkeletonComponent, LucideRotateCw],
 })
 
 /**
