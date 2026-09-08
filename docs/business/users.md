@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This capability holds the operators of the platform. It keeps the record of each user, it stores the password only as a hash, and it puts one administrative user into a development database.
+This capability holds the operators of the platform. It keeps the record of each user, it stores the password only as a hash, and it puts one first user into a development database.
 
 ## The user record
 
-The system SHALL keep one record per user. The record holds the identifier, the email, the hash of the password, the display name, the role, the state, the sealed secret of the second factor, the date on which the second factor turned on, the date of the creation and the date of the last change.
+The system SHALL keep one record per user. The record holds the identifier, the email, the hash of the password, the display name, the state, the sealed secret of the second factor, the date on which the second factor turned on, the date of the creation and the date of the last change.
 
-The role is `admin` or `user`. The state `isActive` says if the user can authenticate. A new user is active if no caller gives another value. The display name and the second factor start empty; see the capability `profile` for the way a user sets them.
+GitPaaS gives every user the same rights, so the record carries no role. The state `isActive` says if the user can authenticate. A new user is active if no caller gives another value. The display name and the second factor start empty; see the capability `profile` for the way a user sets them.
 
 ### Scenario: The system reads a user
 
@@ -35,18 +35,18 @@ An administrator makes a user with a different tool, directly in the database. A
 - **WHEN** a client calls a path under `/api/v1/users` that is not `DELETE /:id/2fa`
 - **THEN** the system answers `404 Not Found`, because the feature registers no other route
 
-## The administrative user of the development mode
+## The first user of the development mode
 
-The system SHALL create one administrative user at the start of the application, and only if the environment variable `NODE_ENV` holds the value `development`.
+The system SHALL create one user at the start of the application, and only if the environment variable `NODE_ENV` holds the value `development`.
 
-The user carries the email `admin@gitpaas.dev`, the password `gitpaas`, the role `admin` and the state active. The seed runs after the server listens.
+The user carries the email `admin@gitpaas.dev`, the password `gitpaas` and the state active. The seed runs after the server listens. `NODE_ENV` also gates the seed against the production environment: a value other than `development` runs no seed, so a production database never receives this user with its published password.
 
-### Scenario: The database holds no administrative user
+### Scenario: The database holds no first user
 
 - **WHEN** the application starts in the development mode, and no user carries the email `admin@gitpaas.dev`
-- **THEN** the system creates the user with the role `admin`, and it writes a message into the log
+- **THEN** the system creates the user, and it writes a message into the log
 
-### Scenario: The administrative user is available
+### Scenario: The first user is available
 
 - **WHEN** the application starts in the development mode, and a user already carries that email
 - **THEN** the system changes nothing, and it keeps the password of that user

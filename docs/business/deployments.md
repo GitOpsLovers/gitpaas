@@ -173,17 +173,61 @@ The stop of the step 4 reaches the containers of the one service alone, and neve
 
 The extraction of the step 4 lands in the folder of the deployment, and a bind mount that the Compose file declares resolves against that folder. See the requirement *The bind mount of a Compose file* of the capability [volumes](./volumes.md), and the [environment contract](../architecture/infrastructure/conventions.md#environment-contract) for the variable `DEPLOY_SPOOL_DIR` that names the folder.
 
-A service of a recipe SHALL join any number of external networks that the recipe declares. The system takes those networks out of the recipe before it starts the stack, and it joins each container of the compose service that named one once the stack is up, under the name of that service. A network of the recipe that a previous run still holds, because a container of another stack keeps it alive, takes the same path instead of failing the deployment: the system reuses it in place of creating it again.
+## The gate of the compose file
+
+The system SHALL refuse a compose recipe of a service that reaches the host of GitPaaS, once the recipe is interpolated. The interpolation rewrites a key as well as a value, so the gate runs on the interpolated recipe, and never on the recipe as the repository holds it.
+
+The system SHALL refuse a compose service that declares a key outside a fixed list of the keys GitPaaS allows. A key that reaches the host, such as `privileged`, `cap_add`, `devices`, `security_opt` or `userns_mode`, is not in that list. The system SHALL also refuse `network_mode`, `pid` and `ipc` when the value names a namespace of the host, such as `host`, `shareable` or a namespace of another container. A refusal names the exact key, so the operator can drop it from the recipe.
+
+The system SHALL refuse a bind mount of a compose service whose source reaches outside the folder of the repository: an absolute path, a path under the home folder, a path with a segment `..`, or the socket of Docker. An anonymous volume, and a mount of a named volume, carry no such source, and the gate leaves them alone.
+
+The path of the compose file itself, `composerPath`, SHALL stay relative to the repository, and it SHALL hold no segment `..`. The shared contract enforces that rule on the value a caller writes, and the system checks it again where the path joins a folder on the disk: in the executor that resolves the file before it reads it, and in the use case that reads the final compose text.
+
+### Scenario: The recipe declares a key GitPaaS does not allow
+
+- **WHEN** the interpolated recipe of a service declares a key of a compose service that is outside the allowed list, such as `privileged`
+- **THEN** the system raises `UNSAFE_COMPOSE_RECIPE` that names the key, and the deployment does not start the stack
+
+### Scenario: The interpolation itself introduces the unsafe key
+
+- **WHEN** a variable of the service interpolates into a key that the gate refuses
+- **THEN** the gate still refuses the recipe, because it runs on the interpolated result and not on the recipe of the repository
+
+### Scenario: A compose service shares the namespace of the host
+
+- **WHEN** a compose service sets `network_mode`, `pid` or `ipc` to `host`, to `shareable`, or to a value that starts with `container:`
+- **THEN** the system raises `UNSAFE_COMPOSE_RECIPE`, and the deployment does not start the stack
+
+### Scenario: A compose service binds a path of the host
+
+- **WHEN** a compose service declares a volume whose source is absolute, starts with `~`, holds a segment `..`, or names the socket of Docker
+- **THEN** the system raises `UNSAFE_COMPOSE_RECIPE` that names the mount, and the deployment does not start the stack
+
+### Scenario: The path of the compose file leaves the repository
+
+- **WHEN** a caller gives `composerPath` an absolute value, or a value with a segment `..`
+- **THEN** the contract refuses the value before it reaches the executor
+
+## The networks a recipe joins
+
+A service of a recipe SHALL join any number of external networks that the recipe declares, except for a network GitPaaS owns. The system takes those networks out of the recipe before it starts the stack, and it joins each container of the compose service that named one once the stack is up, under the name of that service. A network of the recipe that a previous run still holds, because a container of another stack keeps it alive, takes the same path instead of failing the deployment: the system reuses it in place of creating it again.
+
+The system SHALL refuse a recipe that names, as a top-level network, a network of GitPaaS itself: the network of the reverse proxy, the internal network of the two databases, or the default network of a project of the control plane. The recipe of a user never joins the network that gives it a route to the database of GitPaaS or to a container of another user.
 
 ### Scenario: A service joins the external networks of the recipe
 
-- **WHEN** the recipe of a service declares external networks for one of its compose services
+- **WHEN** the recipe of a service declares external networks for one of its compose services, and none of them is a network GitPaaS owns
 - **THEN** the system starts the stack, then joins each container of that compose service to those networks
 
 ### Scenario: A network of the recipe survives its removal
 
 - **WHEN** a network the recipe declares still exists on the daemon after the removal of the old stack, because a container of another stack holds it
 - **THEN** the system reuses that network instead of creating it again, and the deployment does not fail
+
+### Scenario: The recipe names a network GitPaaS owns
+
+- **WHEN** the recipe declares a top-level network whose name, or whose external name, matches a network GitPaaS owns
+- **THEN** the system raises `UNSAFE_COMPOSE_RECIPE`, and the deployment does not start the stack
 
 The runner SHALL NOT keep the output itself. It SHALL send each line of the executor to the write port of the logs, and it SHALL call the completion of that port with the terminal status.
 

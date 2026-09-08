@@ -31,6 +31,8 @@ The system SHALL accept an email and a password at `POST /api/v1/auth/login`, an
 
 The system SHALL compare the password against an argon2 hash. When the account carries no second factor, the answer holds the pair of tokens. When the account carries a second factor, see the requirement *Login with a second factor* below: the answer holds no pair, and the login takes one more step.
 
+**The system SHALL raise the same error, `INVALID_CREDENTIALS`, for an unknown email, for a wrong password and for an inactive user, and it SHALL take the same time to answer the three cases.** The system SHALL verify a candidate password against a decoy hash when the email is unknown, so an attacker gains no timing signal that tells an unknown email apart from a known one. An answer that named the case would let a caller enumerate the emails of the platform, or single out the inactive accounts.
+
 ### Scenario: The credentials are correct, and the account carries no second factor
 
 - **WHEN** an active user posts a known email and the matching password, and the account carries no second factor
@@ -39,7 +41,7 @@ The system SHALL compare the password against an argon2 hash. When the account c
 ### Scenario: The email is unknown
 
 - **WHEN** a client posts an email that no user has
-- **THEN** the system raises `INVALID_CREDENTIALS`, and it answers `401 Unauthorized`
+- **THEN** the system verifies the password against a decoy hash, it raises `INVALID_CREDENTIALS`, and it answers `401 Unauthorized`
 
 ### Scenario: The password does not match
 
@@ -49,7 +51,7 @@ The system SHALL compare the password against an argon2 hash. When the account c
 ### Scenario: The account is deactivated
 
 - **WHEN** a client posts the correct credentials of a user whose `isActive` is false
-- **THEN** the system raises `USER_INACTIVE`, and it answers `401 Unauthorized`
+- **THEN** the system raises `INVALID_CREDENTIALS`, and it answers `401 Unauthorized`, the same as a wrong password
 
 ### Scenario: The body is incomplete
 
@@ -60,10 +62,19 @@ The system SHALL compare the password against an argon2 hash. When the account c
 
 The system SHALL accept a maximum of 5 requests in 60 seconds from one client, at `POST /api/v1/auth/login` and at `POST /api/v1/auth/2fa/verify` alike. This limit makes a brute-force attack slower, against the password and against the code of the second factor.
 
-### Scenario: The client exceeds the limit
+The system SHALL accept a maximum of 10 requests in 60 seconds from one client, at `POST /api/v1/auth/refresh` and at `POST /api/v1/auth/logout` alike. Those two routes need a looser limit than the login, because a legitimate client calls them far more often, once for every renewal of the token pair.
 
-- **WHEN** a client sends a sixth request to one of these two routes inside the same window of 60 seconds
+The system SHALL count the requests of the limit by the real address of the client, and never by the address of the reverse proxy, because the server trusts the chain of `X-Forwarded-For` up to a fixed number of hops. A forged header beyond that number never buys a fresh counter.
+
+### Scenario: The client exceeds the limit of the login
+
+- **WHEN** a client sends a sixth request to the login or to the second step inside the same window of 60 seconds
 - **THEN** the system answers `429 Too Many Requests`, and it runs no check of the credentials or of the code
+
+### Scenario: The client exceeds the limit of the refresh or of the logout
+
+- **WHEN** a client sends an eleventh request to the refresh or to the logout inside the same window of 60 seconds
+- **THEN** the system answers `429 Too Many Requests`
 
 ## Login with a second factor
 
@@ -100,9 +111,9 @@ The second step is `POST /api/v1/auth/2fa/verify`, with that `challengeToken` an
 
 ## Issue of the token pair
 
-The system SHALL issue an access token with a short life and a refresh token with a longer life. Each token carries the identifier, the email and the role of the user.
+The system SHALL issue an access token with a short life and a refresh token with a longer life. Each token carries the identifier and the email of the user, and no other claim about the user. GitPaaS gives every authenticated user the same rights, so the token carries no role.
 
-The system SHALL store the refresh token as a hash, together with its identifier (`jti`) and its expiry.
+The system SHALL store the refresh token as a hash, together with its identifier (`jti`), the identifier of its family, and its expiry.
 The system SHALL never store the refresh token itself.
 
 ### Scenario: A login issues a pair
@@ -128,19 +139,28 @@ Thus an administrator who deactivates a user removes the access of that user imm
 
 ## Refresh with rotation
 
-The system SHALL exchange a valid refresh token for a new pair at `POST /api/v1/auth/refresh`, and it SHALL revoke the presented token in the same operation.
+The system SHALL exchange a valid refresh token for a new pair at `POST /api/v1/auth/refresh`, and it SHALL revoke the presented token in the same operation. The new refresh token joins the same family as the token it replaces, so the system can trace every token a chain of rotations produced.
 
 A token that a client sends again after a rotation, after a revocation or after the expiry gives no new pair. Thus a stolen token that is sent again does not operate.
+
+**The system SHALL revoke the whole family of a refresh token that a client presents after an earlier operation already revoked it.** A refresh token that returns after its own revocation is the sign that two parties hold a copy of the same family, the legitimate user and an attacker; revoking every token of that family, and not the one token alone, cuts the access of the attacker even if it rotated the token first.
+
+**The system SHALL keep no more than five live refresh tokens for one user.** Once a login or a refresh would carry the count past that number, the system revokes the oldest live tokens first, until the count of five stands again. Thus a user who signs in from many devices never carries an unbounded list of tokens that a compromise could revive.
 
 ### Scenario: The refresh token is valid
 
 - **WHEN** a client posts a refresh token that the system knows, that no operation revoked and that did not expire, and the owner is active
-- **THEN** the system revokes the presented token, and it answers `200` with a new pair
+- **THEN** the system revokes the presented token, and it answers `200` with a new pair of the same family
 
 ### Scenario: The refresh token was used before
 
 - **WHEN** a client posts a refresh token that an earlier refresh already revoked
-- **THEN** the system raises `INVALID_REFRESH_TOKEN`, and it answers `401 Unauthorized`
+- **THEN** the system revokes every token of the family of that token, it raises `INVALID_REFRESH_TOKEN`, and it answers `401 Unauthorized`
+
+### Scenario: A sixth token of one user becomes live
+
+- **WHEN** a login or a refresh of a user would leave more than five live refresh tokens for that user
+- **THEN** the system revokes the oldest live tokens of that user, until five remain
 
 ### Scenario: The refresh token expired
 
@@ -186,40 +206,24 @@ The profile SHALL never hold the hash of the password.
 
 The shared contract SHALL declare that profile one time, and it SHALL carry one name. The producer and the consumer both derive from it.
 
-The contract SHALL declare the role as one set of values, so the two applications cannot describe it in two ways.
-
 ### Scenario: An authenticated client asks for the profile
 
 - **WHEN** a client calls `GET /api/v1/auth/me` with a valid access token
-- **THEN** the system answers `200` with the identifier, the email, the role, the state and the dates of the user, and without the field of the hash of the password
+- **THEN** the system answers `200` with the identifier, the email, the state and the dates of the user, and without the field of the hash of the password
 
 ### Scenario: A shape of an answer names the hash of the password
 
 - **WHEN** a change puts the hash of the password into a shape of an answer of the contract
 - **THEN** the review refuses that change, because no shape of an answer may carry a secret
 
-## The role is not enforced
+## Every authenticated user carries the same rights
 
-Each user carries the role `admin` or the role `user`.
+GitPaaS gives every operator of the platform the same rights. The user record, the token and the contract carry no role. Every endpoint that a valid access token opens stays open to every active user, including the write routes of the provider records that the capability `providers` holds.
 
-The system SHALL restrict by the role only the write routes of the provider records, which the capability `providers` holds. Every other endpoint stays open to each authenticated user, whatever the role.
+### Scenario: An active user calls any protected endpoint
 
-The token carries the role. A guard reads it for those routes, and a later change can extend that guard to other routes.
-
-### Scenario: A user with the role `user` calls any endpoint
-
-- **WHEN** an active user with the role `user` calls a protected endpoint that is no write route of the providers
-- **THEN** the system runs the endpoint, and it applies no restriction of the role
-
-### Scenario: A user with the role `user` writes a provider
-
-- **WHEN** an active user with the role `user` creates, changes or removes a provider
-- **THEN** the system answers `403 Forbidden`
-
-### Scenario: A user with the role `admin` writes a provider
-
-- **WHEN** an active user with the role `admin` creates, changes or removes a provider
-- **THEN** the system runs the endpoint
+- **WHEN** an active user calls a protected endpoint with a valid access token
+- **THEN** the system runs the endpoint, and it applies no restriction beyond the check of the token and of the state of the user
 
 ## The fields of the screen
 
@@ -315,29 +319,34 @@ The message of the first step is the same for a wrong password and for an accoun
 
 ## The place of the token pair
 
-The system SHALL keep the token pair in the storage of the browser, under the keys `gitpaas.accessToken` and `gitpaas.refreshToken`.
+**The system SHALL hold the access token in the memory of the application alone, and it SHALL NOT write the access token to a storage of the browser.** A storage of the browser is a place a script can read, so a flaw of the page that lets a third script run would give that script the access token as well, were it to sit in `localStorage` or in `sessionStorage`. The memory alone gives no such door.
 
-The system SHALL choose the storage by the answer of the user to "Keep me logged in":
+The system SHALL keep the refresh token, and the refresh token only, in the storage of the browser, under the key `gitpaas.refreshToken`. The system SHALL choose the storage by the answer of the user to "Keep me logged in":
 
 - The user marks the box: the system uses `localStorage`, so the session stays after the browser closes.
 - The user leaves the box empty: the system uses `sessionStorage`, so the session goes away with the tab.
 
-At the start of the application, the system SHALL look in `localStorage` first, and then in `sessionStorage`. Thus a page that loads again keeps the same storage.
+At the start of the application, the system SHALL look in `localStorage` first, and then in `sessionStorage`, for the refresh token. It holds no access token yet at that point, so it SHALL exchange the refresh token it finds for a fresh pair before the application opens a route, and it SHALL clear the storage when that exchange fails. See the requirement *Refresh with rotation* above for the exchange itself.
 
 ### Scenario: The user marks the box
 
 - **WHEN** the user signs in with the box marked
-- **THEN** the system writes the two tokens into `localStorage`, and the session stays after the browser closes
+- **THEN** the system keeps the access token in memory, it writes the refresh token into `localStorage`, and the session stays after the browser closes
 
 ### Scenario: The user leaves the box empty
 
 - **WHEN** the user signs in with the box empty
-- **THEN** the system writes the two tokens into `sessionStorage`, and the session goes away when the tab closes
+- **THEN** the system keeps the access token in memory, it writes the refresh token into `sessionStorage`, and the session goes away when the tab closes
 
 ### Scenario: The user loads the page again
 
-- **WHEN** the user loads the application again, and a storage holds a token pair
-- **THEN** the system reads that pair, and the user stays signed in
+- **WHEN** the user loads the application again, and a storage holds a refresh token
+- **THEN** the system exchanges that refresh token for a fresh pair before it opens a route, and the user stays signed in
+
+### Scenario: The stored refresh token no longer works
+
+- **WHEN** the user loads the application again, and the exchange of the stored refresh token fails
+- **THEN** the system clears the storage, and the user reaches the application signed out
 
 ## The protection of the routes
 
