@@ -1,0 +1,19 @@
+.claude/skills/turborepo/SKILL.md
+  s_7bb64e88f99c1e::t_cb4db9c17d2cd5 10,12,14-94,96-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1cfffa8fbc8c2af348fa707124371bc3ff1b397a",
+  "prompts": {},
+  "sessions": {
+    "s_7bb64e88f99c1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e7d5d8e33885928",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
