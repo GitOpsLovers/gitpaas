@@ -10,6 +10,7 @@ import { createInstrumentedDataSource } from './infrastructure/database/instrume
 import { DockerContainerRuntimeAdapter } from './infrastructure/docker/docker-container-runtime.adapter';
 import { NestLoggerAdapter } from './infrastructure/logging/nest-logger.adapter';
 import { QrCodeRendererAdapter } from './infrastructure/qrcode/qrcode-renderer.adapter';
+import { RedisThrottlerStorageAdapter } from './infrastructure/redis/redis-throttler-storage.adapter';
 import { RedisConnection } from './infrastructure/redis/redis.connection';
 import { StdoutTelemetryWriterAdapter } from './infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { RequestIdMiddleware } from './ui/middlewares/request-id.middleware';
@@ -37,6 +38,7 @@ import { TelemetryMiddleware } from './ui/middlewares/telemetry.middleware';
         OtplibTotpAdapter,
         QrCodeRendererAdapter,
         RedisConnection,
+        RedisThrottlerStorageAdapter,
         RequestIdMiddleware,
         SecretCipherAdapter,
         StdoutTelemetryWriterAdapter,
@@ -48,6 +50,7 @@ import { TelemetryMiddleware } from './ui/middlewares/telemetry.middleware';
         OtplibTotpAdapter,
         QrCodeRendererAdapter,
         RedisConnection,
+        RedisThrottlerStorageAdapter,
         SecretCipherAdapter,
         StdoutTelemetryWriterAdapter,
     ],

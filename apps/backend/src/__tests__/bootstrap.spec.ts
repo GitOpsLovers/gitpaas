@@ -53,6 +53,7 @@ function buildApp(env: Record<string, string | undefined>) {
 
     const app = {
         get: jest.fn((token: unknown) => (token === UsersService ? usersService : config)),
+        set: jest.fn(),
         setGlobalPrefix: jest.fn(),
         enableCors: jest.fn(),
         use: jest.fn(),
@@ -74,6 +75,7 @@ describe('bootstrap (bootstrap.ts)', () => {
             CORS_ORIGIN: 'http://a.com',
             PORT: '3000',
             NODE_ENV: 'production',
+            TRUST_PROXY_HOPS: '1',
         };
 
         it('creates the Nest app from AppModule', async () => {
@@ -83,6 +85,28 @@ describe('bootstrap (bootstrap.ts)', () => {
             await bootstrap();
 
             expect(mockNestFactoryCreate).toHaveBeenCalledTimes(1);
+        });
+
+        it('trusts the configured number of hops of the proxy', async () => {
+            const { app } = buildApp(env);
+            mockNestFactoryCreate.mockResolvedValue(app);
+
+            await bootstrap();
+
+            expect(app.set).toHaveBeenCalledTimes(1);
+            expect(app.set).toHaveBeenCalledWith('trust proxy', '1');
+        });
+
+        it('trusts the proxy before the server listens, so every request carries the real address', async () => {
+            const { app } = buildApp(env);
+            mockNestFactoryCreate.mockResolvedValue(app);
+
+            await bootstrap();
+
+            const trustOrder = app.set.mock.invocationCallOrder[0];
+            const listenOrder = app.listen.mock.invocationCallOrder[0];
+
+            expect(trustOrder).toBeLessThan(listenOrder);
         });
 
         it('sets the global API prefix to api/v1', async () => {
@@ -179,6 +203,7 @@ describe('bootstrap (bootstrap.ts)', () => {
                 CORS_ORIGIN: 'http://a.com, http://b.com ,',
                 PORT: '3000',
                 NODE_ENV: 'production',
+                TRUST_PROXY_HOPS: '1',
             });
             mockNestFactoryCreate.mockResolvedValue(app);
 
@@ -197,6 +222,7 @@ describe('bootstrap (bootstrap.ts)', () => {
                 CORS_ORIGIN: 'http://a.com',
                 PORT: '3000',
                 NODE_ENV: 'development',
+                TRUST_PROXY_HOPS: '1',
             });
             mockNestFactoryCreate.mockResolvedValue(app);
 
@@ -218,6 +244,7 @@ describe('bootstrap (bootstrap.ts)', () => {
                     CORS_ORIGIN: 'http://a.com',
                     PORT: '3000',
                     NODE_ENV: nodeEnv,
+                    TRUST_PROXY_HOPS: '1',
                 });
                 mockNestFactoryCreate.mockResolvedValue(app);
 

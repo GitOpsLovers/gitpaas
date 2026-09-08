@@ -274,4 +274,36 @@ describe('AuthenticationController', () => {
         expect(result.updatedAt).toBe('2026-07-11T00:00:00.000Z');
         expect(Object.values<unknown>(result).some((value) => value instanceof Date)).toBe(false);
     });
+    describe('the rate limit of the routes of the token', () => {
+        /** Reads the limit of the default throttler that a route declares. */
+        const limitOf = (route: keyof AuthenticationController): unknown =>
+            Reflect.getMetadata(
+                // eslint-disable-next-line no-useless-concat
+                'THROTTLER:LIMIT' + 'default',
+                Object.getOwnPropertyDescriptor(AuthenticationController.prototype, route)?.value as () => void,
+            );
+
+        /** Reads the window of the default throttler that a route declares. */
+        const ttlOf = (route: keyof AuthenticationController): unknown =>
+            Reflect.getMetadata(
+                // eslint-disable-next-line no-useless-concat
+                'THROTTLER:TTL' + 'default',
+                Object.getOwnPropertyDescriptor(AuthenticationController.prototype, route)?.value as () => void,
+            );
+
+        it('limits the exchange of a refresh token on its own, below the limit of the application', () => {
+            expect(limitOf('refresh')).toBe(10);
+            expect(ttlOf('refresh')).toBe(60_000);
+        });
+
+        it('limits the revocation of a refresh token on its own, below the limit of the application', () => {
+            expect(limitOf('logout')).toBe(10);
+            expect(ttlOf('logout')).toBe(60_000);
+        });
+
+        it('keeps the stricter limit of the two steps of the login', () => {
+            expect(limitOf('login')).toBe(5);
+            expect(limitOf('verifyTwoFactor')).toBe(5);
+        });
+    });
 });

@@ -2,13 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { CoreModule } from '@core/core.module';
+import { RedisThrottlerStorageAdapter } from '@core/infrastructure/redis/redis-throttler-storage.adapter';
 import { AllExceptionsFilter } from '@core/ui/filters/all-exceptions.filter';
+import { ClientAddressThrottlerGuard } from '@core/ui/guards/client-address-throttler.guard';
 import { AuthenticationModule } from '@features/authentication/authentication.module';
 import { ContainersModule } from '@features/containers/containers.module';
 import { DeploymentsModule } from '@features/deployments/deployments.module';
@@ -34,8 +36,9 @@ import { VolumesModule } from '@features/volumes/volumes.module';
         CoreModule,
         ScheduleModule.forRoot(),
         ThrottlerModule.forRootAsync({
-            inject: [ConfigService],
-            useFactory: (config: ConfigService) => ({
+            inject: [ConfigService, RedisThrottlerStorageAdapter],
+            useFactory: (config: ConfigService, storage: RedisThrottlerStorageAdapter) => ({
+                storage,
                 throttlers: [
                     {
                         name: 'default',
@@ -76,7 +79,7 @@ import { VolumesModule } from '@features/volumes/volumes.module';
         },
         {
             provide: APP_GUARD,
-            useClass: ThrottlerGuard,
+            useClass: ClientAddressThrottlerGuard,
         },
     ],
 })

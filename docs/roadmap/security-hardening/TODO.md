@@ -46,11 +46,11 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Agent:** implementer
 **Paths:** `apps/backend/src/app.module.ts`, `apps/backend/src/features/authentication/`, `iac/production/`
 
-- [ ] 4.1 Trust the proxy, and count the requests per real address of the client.
-- [ ] 4.2 Add a dedicated limit to `/auth/refresh` and to `/auth/logout`.
-- [ ] 4.3 Publish the port of the backend on `127.0.0.1` alone, and add the headers of the security and a policy of the content to `nginx.conf`.
-- [ ] 4.4 Give a password to redis, make `REDIS_PASSWORD` required, and put postgres and redis on a network of their own.
-- [ ] 4.5 Move the counters of the limit into redis.
+- [x] 4.1 Trust the proxy, and count the requests per real address of the client.
+- [x] 4.2 Add a dedicated limit to `/auth/refresh` and to `/auth/logout`.
+- [x] 4.3 Publish the port of the backend on `127.0.0.1` alone, and add the headers of the security and a policy of the content to `nginx.conf`.
+- [x] 4.4 Give a password to redis, make `REDIS_PASSWORD` required, and put postgres and redis on a network of their own.
+- [x] 4.5 Move the counters of the limit into redis.
 
 ## Phase 5 — The leak of the data
 

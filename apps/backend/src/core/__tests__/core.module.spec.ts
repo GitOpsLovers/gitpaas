@@ -4,6 +4,7 @@ import 'reflect-metadata';
 import type { MiddlewareConsumer } from '@nestjs/common';
 
 import { CoreModule } from '../core.module';
+import { RedisThrottlerStorageAdapter } from '../infrastructure/redis/redis-throttler-storage.adapter';
 import { StdoutTelemetryWriterAdapter } from '../infrastructure/telemetry/stdout-telemetry-writer.adapter';
 import { RequestIdMiddleware } from '../ui/middlewares/request-id.middleware';
 import { TelemetryMiddleware } from '../ui/middlewares/telemetry.middleware';
@@ -26,6 +27,14 @@ describe('CoreModule', () => {
 
     it('exports the telemetry writer, so every feature resolves the container instance', () => {
         expect(metadataOf('exports')).toContain(StdoutTelemetryWriterAdapter);
+    });
+
+    it('provides the storage of the rate limit, so the container injects its connection of Redis', () => {
+        expect(metadataOf('providers')).toContain(RedisThrottlerStorageAdapter);
+    });
+
+    it('exports the storage of the rate limit, so the module of the throttler resolves it', () => {
+        expect(metadataOf('exports')).toContain(RedisThrottlerStorageAdapter);
     });
 
     it('provides the telemetry middleware, so the container injects its writer', () => {

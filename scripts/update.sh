@@ -228,6 +228,7 @@ need() { command -v "$1" >/dev/null 2>&1 || die "Required command '$1' is not av
 
 need curl
 need tar
+need openssl
 
 # Docker CLI wrapper (root or sudo as needed).
 docker_cmd() { $SUDO docker "$@"; }
@@ -353,6 +354,17 @@ default_env() {
     fi
 }
 
+# Generate a random password of 28 alphanumeric characters.
+rand_password() { openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | cut -c1-28; }
+
+# Writes the value when the key is absent, and when it carries an empty value. The
+# example ships an empty REDIS_PASSWORD, and the stack refuses to start without one.
+fill_env() {
+    if [ -z "$($SUDO grep -m1 "^$1=" "$ENV_FILE" 2>/dev/null | cut -d= -f2-)" ]; then
+        set_env "$1" "$2"
+    fi
+}
+
 # A release adds settings, and the .env of this server predates them. Append every
 # key of the new .env.example that the file misses, with the value of the example,
 # and touch no value the operator or the installer already wrote.
@@ -382,6 +394,10 @@ update_env() {
     [ -f "$ENV_FILE" ] || die "$ENV_FILE disappeared during the update. The production stack of the previous version is at $PROD_DIR.old."
 
     add_missing_env_keys
+
+    # The server of redis now demands a password, and the .env of an older release
+    # carries the empty value of the example.
+    fill_env "REDIS_PASSWORD" "$(rand_password)"
 
     IMAGE_TAG="$(image_tag_for_ref "$RESOLVED_REF")"
     assert_image_tag "$IMAGE_TAG"

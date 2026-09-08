@@ -79,6 +79,7 @@ export class AuthenticationController {
      * @returns A freshly issued access + refresh token pair
      */
     @Public()
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
     @Post('refresh')
     @HttpCode(200)
     public async refresh(@Body(new ZodValidationPipe(refreshSchema)) refreshDto: RefreshDto): Promise<AuthTokens> {
@@ -95,6 +96,7 @@ export class AuthenticationController {
      * @param refreshDto Body carrying the refresh token to revoke
      */
     @Public()
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
     @Post('logout')
     @HttpCode(204)
     public logout(@Body(new ZodValidationPipe(refreshSchema)) refreshDto: RefreshDto): Promise<void> {

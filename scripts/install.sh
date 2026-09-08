@@ -305,6 +305,14 @@ default_env() {
     fi
 }
 
+# Writes the value when the key is absent, and when it carries an empty value. The
+# example ships an empty REDIS_PASSWORD, and the stack refuses to start without one.
+fill_env() {
+    if [ -z "$($SUDO grep -m1 "^$1=" "$ENV_FILE" 2>/dev/null | cut -d= -f2-)" ]; then
+        set_env "$1" "$2"
+    fi
+}
+
 # Detect the group id of the group that owns /var/run/docker.sock, so the
 # non-root backend container can join it and use the host's Docker daemon.
 detect_docker_gid() {
@@ -428,6 +436,7 @@ generate_env() {
         upsert_env "IMAGE_TAG"  "$IMAGE_TAG"
         default_env "REDIS_HOST" "redis"
         default_env "REDIS_PORT" "6379"
+        fill_env "REDIS_PASSWORD" "$(rand_password)"
         default_env "SECRETS_ENCRYPTION_KEY" "$(rand_secret)"
         default_env "APP_BASE_URL" "http://${HOST_ADDR}:8080"
         default_env "PROXY_ACME_PATH" "/acme/acme.json"
@@ -441,6 +450,7 @@ generate_env() {
     db_password="$(rand_password)"
     set_env "POSTGRES_PASSWORD" "$db_password"
     set_env "DB_PASSWORD" "$db_password"
+    set_env "REDIS_PASSWORD" "$(rand_password)"
     set_env "JWT_ACCESS_SECRET"  "$(rand_secret)"
     set_env "JWT_REFRESH_SECRET" "$(rand_secret)"
     set_env "JWT_2FA_SECRET" "$(rand_secret)"
