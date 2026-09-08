@@ -16,7 +16,7 @@ src/
   main.ts
 ```
 
-- **`core/`** holds only the **structural elements that make the application operate**: the configuration and the environment validation, the database connection, the container runtime, the secret cipher, the global exception filter and the application logging. `core/` obeys the same four layers as a feature (see below).
+- **`core/`** holds only the **structural elements that make the application operate**: the configuration and the environment validation, the database connection, the container runtime, the secret cipher, the two-factor secret (TOTP) and its QR code, Redis, the telemetry, the storage of the throttler, the global exception filter and the application logging. `core/` obeys the same four layers as a feature, and its `ui/` also holds `pipes/`, `translators/`, `filters/` and `middlewares/` (see below).
 - **`features/`** is the default location. If an element is part of one business domain, it stays in the feature of that domain and in no other place.
 - **`shared/`** holds **the reusable functions that are not structural and that are not part of one domain**, for example the password hasher that several features use. `shared/` is layered too, but only as far as the code needs.
 
@@ -28,7 +28,7 @@ The same rule holds above a feature: **`core/` must never import a feature.** `c
 
 **Domain Layer**
 
-This layer holds the models, the repository and port interfaces, the DTOs, the errors and all the other elements that give the business model. These elements do not depend on the other layers and do not use a specified technology. The DTOs are the only exception, because they use `class-validator`.
+This layer holds the models, the repository and port interfaces, the DTOs, the errors and all the other elements that give the business model. These elements do not depend on the other layers and do not use a specified technology. The DTOs are plain interfaces; a schema of `@gitpaas/contracts` validates the shape of the wire, not a DTO of this layer.
 
 **Application Layer**
 
@@ -66,17 +66,22 @@ features/<feature>/
     controllers/                            — HTTP entry point
     services/                               — Orchestration and dependency declaration
     guards/                                 — Route-level checks, opt-in per controller or handler
+    transformers/                           — Domain model ◄► wire response shape
+    jobs/                                   — Scheduled tasks (`@nestjs/schedule`)
+    telemetry/                              — Fields a feature adds to the request scope
 ```
 
 For example, the `projects` feature fills this shape with a `Project` model, a `ProjectsRepository` port, a `createProjectUseCase`, and a `DbProjectEntity`. A controller usually declares only the path of its own resource; a nested resource is the exception, such as `@Controller('namespaces/:namespaceId/projects')` for a project that never exists outside its namespace.
 
-A feature can have fewer folders than the shape above when it does not need them: `containers` reads from Docker only and keeps no database table, so it has no `infrastructure/database` folder; `users` exposes no HTTP route of its own, so it has no `ui/controllers` folder. A feature can also hold more than one technology at the same layer: `networks` reads the networks of a service from Docker alone, but it keeps the private networks of a project in the database, so it holds an `infrastructure/database` folder besides its `infrastructure/docker` folder. The name of an infrastructure sub-folder is the name of the technology or the vendor that it holds (`database`, `docker`, `github`).
+A feature can have fewer folders than the shape above when it does not need them: `containers` reads from Docker only and keeps no database table, so it has no `infrastructure/database` folder. A feature can also hold more than one technology at the same layer: `networks` reads the networks of a service from Docker alone, but it keeps the private networks of a project in the database, so it holds an `infrastructure/database` folder besides its `infrastructure/docker` folder. The name of an infrastructure sub-folder is the name of the technology or the vendor that it holds (`database`, `docker`, `github`).
 
 ## Module wiring
 
 Each feature declares its dependencies in its own module: the `controllers`, the `services`, the `guards` and the related infrastructure implementations. Thus the logic stays in one location.
 
 If an element is necessary in the other features (for example, a repository that gives access to the database), the module declares the element in the `exports` key.
+
+`core/core.module.ts` is `@Global()`, so every feature module can inject a provider it exports — `NestLoggerAdapter` (the `AppLogger` port), `SecretCipherAdapter`, `DockerContainerRuntimeAdapter` — with no `imports` entry of its own. No other module of the backend carries `@Global()`.
 
 ## Testing
 
@@ -90,7 +95,7 @@ Some behaviours apply to all the application. Thus they are configured one time 
 - **Authorization**: role-based access control is opt-in, not global. A controller adds `@UseGuards(RolesGuard)` and marks the routes it wants to close with `@Roles(UserRole.Admin)`; a route with no `@Roles(...)` stays open to each authenticated user. See [Roles](./key-flows.md#roles).
 - **Rate limiting**: named throttlers are read from the environment and apply globally by default. An endpoint can change these values locally, for example to give the login endpoint a stricter limit or to give a long-lived stream its own throttler.
 - **Security headers**: `helmet()` sets the secure HTTP headers at bootstrap.
-- **Environment validation**: a `class-validator` schema validates each variable when the application starts. If a variable is missing or incorrect, the application stops immediately.
+- **Environment validation**: a Zod schema (`core/infrastructure/config/env-validation.config.ts`) validates each variable when the application starts. If a variable is missing or incorrect, the application stops immediately.
 - **Request correlation id**: a global middleware gives an id to each request. It uses the inbound `X-Request-Id` header or makes a new id, and it returns the id in the `X-Request-Id` response header.
 - **Error envelope**: a global exception filter returns the same shape for all the errors. See [Error handling](./key-flows.md#error-handling).
 - **Telemetry**: a global middleware opens a telemetry scope for each request, every layer adds fields to it, and one JSON event goes to stdout when the response finishes. See [Telemetry and logging](./key-flows.md#telemetry-and-logging).

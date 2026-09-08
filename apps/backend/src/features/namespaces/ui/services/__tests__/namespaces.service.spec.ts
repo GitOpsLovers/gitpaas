@@ -6,7 +6,7 @@ import { deleteNamespaceUseCase } from '../../../application/delete-namespace.us
 import { findNamespaceByIdUseCase } from '../../../application/find-namespace-by-id.use-case';
 import { getAllNamespacesUseCase } from '../../../application/get-all-namespaces.use-case';
 import { updateNamespaceUseCase } from '../../../application/update-namespace.use-case';
-import { NamespaceNotEmptyError } from '../../../domain/errors/namespace.errors';
+import { NamespaceNotEmptyError, NamespaceNotFoundError } from '../../../domain/errors/namespace.errors';
 import { Namespace } from '../../../domain/models/namespace.models';
 import { DatabaseNamespacesRepository } from '../../../infrastructure/database/db-namespaces.repository';
 import { NamespacesService } from '../namespaces.service';
@@ -115,12 +115,11 @@ describe('NamespacesService', () => {
             expect(result).toBe(namespace);
         });
 
-        it('returns null when the namespace does not exist', async () => {
-            mockFindNamespaceByIdUseCase.mockResolvedValue(null);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new NamespaceNotFoundError(namespaceId);
+            mockFindNamespaceByIdUseCase.mockRejectedValue(error);
 
-            const result = await sut.findById(namespaceId);
-
-            expect(result).toBeNull();
+            await expect(sut.findById(namespaceId)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -184,12 +183,11 @@ describe('NamespacesService', () => {
             expect(result).toBe(updated);
         });
 
-        it('returns null when the namespace does not exist', async () => {
-            mockUpdateNamespaceUseCase.mockResolvedValue(null);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new NamespaceNotFoundError(namespaceId);
+            mockUpdateNamespaceUseCase.mockRejectedValue(error);
 
-            const result = await sut.update(namespaceId, updateDto);
-
-            expect(result).toBeNull();
+            await expect(sut.update(namespaceId, updateDto)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -202,7 +200,7 @@ describe('NamespacesService', () => {
 
     describe('delete', () => {
         it('delegates to the use case with the repository and id', async () => {
-            mockDeleteNamespaceUseCase.mockResolvedValue(true);
+            mockDeleteNamespaceUseCase.mockResolvedValue();
 
             await sut.delete(namespaceId);
 
@@ -210,20 +208,17 @@ describe('NamespacesService', () => {
             expect(mockDeleteNamespaceUseCase).toHaveBeenCalledWith(mockNamespacesRepository, namespaceId);
         });
 
-        it('returns true when a row was deleted', async () => {
-            mockDeleteNamespaceUseCase.mockResolvedValue(true);
+        it('resolves when a row was deleted', async () => {
+            mockDeleteNamespaceUseCase.mockResolvedValue();
 
-            const result = await sut.delete(namespaceId);
-
-            expect(result).toBe(true);
+            await expect(sut.delete(namespaceId)).resolves.toBeUndefined();
         });
 
-        it('returns false when nothing was deleted', async () => {
-            mockDeleteNamespaceUseCase.mockResolvedValue(false);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new NamespaceNotFoundError(namespaceId);
+            mockDeleteNamespaceUseCase.mockRejectedValue(error);
 
-            const result = await sut.delete(namespaceId);
-
-            expect(result).toBe(false);
+            await expect(sut.delete(namespaceId)).rejects.toBe(error);
         });
 
         it('propagates the not-empty domain error thrown by the use case', async () => {

@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
-import { AppService } from './app.service';
-import type { HealthStatus } from './app.service';
+import { AppService } from '../app.service';
+import type { HealthStatus } from '../app.service';
 
 describe('AppService', () => {
     let sut: AppService;

@@ -7,6 +7,7 @@
 | `build`               | `nest build`                          |
 | `start` / `start:prod`| `nest start` / `node dist/main`       |
 | `lint` / `test`       | `eslint .` / `jest` (plus `test:e2e`) |
+| `check-types`         | `tsc -p tsconfig.json --noEmit`       |
 
 ## Schema management
 

@@ -1,3 +1,4 @@
+import { ServiceNotFoundError } from '../domain/errors/service.errors';
 import { Service } from '../domain/models/service.models';
 import { ServicesRepository } from '../domain/repositories/services.repository';
 
@@ -7,8 +8,16 @@ import { ServicesRepository } from '../domain/repositories/services.repository';
  * @param repository Services repository
  * @param id Service id
  *
- * @returns Service, or `null` when it does not exist
+ * @returns Service
+ *
+ * @throws ServiceNotFoundError When the service does not exist
  */
-export function findServiceByIdUseCase(repository: ServicesRepository, id: string): Promise<Service | null> {
-    return repository.findById(id);
+export async function findServiceByIdUseCase(repository: ServicesRepository, id: string): Promise<Service> {
+    const service = await repository.findById(id);
+
+    if (!service) {
+        throw new ServiceNotFoundError(id);
+    }
+
+    return service;
 }

@@ -1,5 +1,6 @@
 import type { UpdateNamespaceDto } from '@gitpaas/contracts';
 
+import { NamespaceNotFoundError } from '../../domain/errors/namespace.errors';
 import { Namespace } from '../../domain/models/namespace.models';
 import { NamespacesRepository } from '../../domain/repositories/namespaces.repository';
 import { updateNamespaceUseCase } from '../update-namespace.use-case';
@@ -72,16 +73,20 @@ describe('updateNamespaceUseCase', () => {
         });
     });
 
-    it('returns null when the namespace does not exist', async () => {
+    it('throws a NamespaceNotFoundError when the namespace does not exist', async () => {
         mockNamespacesRepository.update.mockResolvedValue(null);
 
-        const result = await updateNamespaceUseCase(
-            mockNamespacesRepository as unknown as NamespacesRepository,
-            id,
-            updateDto,
-        );
+        await expect(
+            updateNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id, updateDto),
+        ).rejects.toBeInstanceOf(NamespaceNotFoundError);
+    });
 
-        expect(result).toBeNull();
+    it('names the namespace in the message of the not-found error', async () => {
+        mockNamespacesRepository.update.mockResolvedValue(null);
+
+        await expect(
+            updateNamespaceUseCase(mockNamespacesRepository as unknown as NamespacesRepository, id, updateDto),
+        ).rejects.toThrow(`Namespace ${id} not found`);
     });
 
     it('propagates errors thrown by the repository', async () => {

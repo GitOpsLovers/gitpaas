@@ -60,12 +60,10 @@ export class ServicesService {
         return getServicesByProjectUseCase(this.repository, projectId);
     }
 
-    public async findById(id: string): Promise<Service | null> {
+    public async findById(id: string): Promise<Service> {
         const service = await findServiceByIdUseCase(this.repository, id);
 
-        if (service) {
-            enrichWithService(service);
-        }
+        enrichWithService(service);
 
         return service;
     }
@@ -83,12 +81,10 @@ export class ServicesService {
         return service;
     }
 
-    public async update(id: string, updateDto: UpdateServiceDto): Promise<Service | null> {
+    public async update(id: string, updateDto: UpdateServiceDto): Promise<Service> {
         const service = await updateServiceUseCase(this.repository, id, updateDto);
 
-        if (service) {
-            enrichWithService(service);
-        }
+        enrichWithService(service);
 
         return service;
     }
@@ -114,7 +110,7 @@ export class ServicesService {
         );
     }
 
-    public delete(id: string): Promise<boolean> {
+    public delete(id: string): Promise<void> {
         return deleteServiceUseCase(
             this.repository,
             this.deploymentsRepository,

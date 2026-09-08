@@ -1,7 +1,6 @@
 import { LogArchive, LogEntry } from '../domain/models/log-entry.models';
 import { LogsRepository } from '../domain/repositories/logs.repository';
 
-import { findDeploymentByIdUseCase } from '@features/deployments/application/find-deployment-by-id.use-case';
 import { Deployment } from '@features/deployments/domain/models/deployment.models';
 import { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 
@@ -40,7 +39,7 @@ export async function getLogsByDeploymentUseCase(
         return { state: 'available', entries };
     }
 
-    const deployment = await findDeploymentByIdUseCase(deploymentsRepository, deploymentId);
+    const deployment = await deploymentsRepository.findById(deploymentId);
 
     return { state: hasRunEnded(deployment) ? 'expired' : 'running', entries };
 }

@@ -87,13 +87,13 @@ export class DeploymentsService {
      * @param id Deployment identifier
      *
      * @returns Deployment record
+     *
+     * @throws {DeploymentNotFoundError} When the deployment does not exist
      */
-    public async findById(id: string): Promise<Deployment | null> {
+    public async findById(id: string): Promise<Deployment> {
         const deployment = await findDeploymentByIdUseCase(this.repository, id);
 
-        if (deployment) {
-            enrichWithDeployment(deployment);
-        }
+        enrichWithDeployment(deployment);
 
         return deployment;
     }
@@ -103,9 +103,9 @@ export class DeploymentsService {
      *
      * @param id Deployment identifier
      *
-     * @returns `true` when a row was deleted, `false` otherwise
+     * @throws {DeploymentNotFoundError} When the deployment does not exist
      */
-    public delete(id: string): Promise<boolean> {
+    public delete(id: string): Promise<void> {
         return deleteDeploymentUseCase(this.repository, this.logStore, id);
     }
 

@@ -1,3 +1,4 @@
+import { ServiceNotFoundError } from '../../domain/errors/service.errors';
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { findServiceByIdUseCase } from '../find-service-by-id.use-case';
@@ -44,12 +45,20 @@ describe('findServiceByIdUseCase', () => {
         expect(result).toBe(service);
     });
 
-    it('returns null when the service does not exist', async () => {
+    it('throws a ServiceNotFoundError when the service does not exist', async () => {
         mockServicesRepository.findById.mockResolvedValue(null);
 
-        const result = await findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id);
+        await expect(
+            findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id),
+        ).rejects.toBeInstanceOf(ServiceNotFoundError);
+    });
 
-        expect(result).toBeNull();
+    it('names the service in the message of the not-found error', async () => {
+        mockServicesRepository.findById.mockResolvedValue(null);
+
+        await expect(
+            findServiceByIdUseCase(mockServicesRepository as unknown as ServicesRepository, id),
+        ).rejects.toThrow(`Service ${id} not found`);
     });
 
     it('propagates errors thrown by the repository', async () => {

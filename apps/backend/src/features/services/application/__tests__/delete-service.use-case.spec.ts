@@ -1,3 +1,4 @@
+import { ServiceNotFoundError } from '../../domain/errors/service.errors';
 import { Service } from '../../domain/models/service.models';
 import { ServiceRuntimeResources } from '../../domain/ports/service-runtime-resources.port';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
@@ -33,7 +34,7 @@ describe('deleteServiceUseCase', () => {
     let mockServiceRuntimeResources: jest.Mocked<ServiceRuntimeResources>;
     let mockLogStore: jest.Mocked<Pick<LogStore, 'purge'>>;
 
-    const run = (): Promise<boolean> => {
+    const run = (): Promise<void> => {
         return deleteServiceUseCase(
             mockServicesRepository as unknown as ServicesRepository,
             mockDeploymentsRepository as unknown as DeploymentsRepository,
@@ -64,12 +65,10 @@ describe('deleteServiceUseCase', () => {
         };
     });
 
-    it('returns false and does nothing else when the service is not found', async () => {
+    it('throws a ServiceNotFoundError and does nothing else when the service is not found', async () => {
         mockServicesRepository.findById.mockResolvedValue(null);
 
-        const result = await run();
-
-        expect(result).toBe(false);
+        await expect(run()).rejects.toBeInstanceOf(ServiceNotFoundError);
         expect(mockDeploymentsRepository.getAllByService).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeRouting).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeContainers).not.toHaveBeenCalled();
@@ -131,16 +130,15 @@ describe('deleteServiceUseCase', () => {
         expect(mockLogStore.purge).toHaveBeenNthCalledWith(2, 'dep-2');
     });
 
-    it('deletes the service row and returns its result', async () => {
+    it('deletes the service row and resolves', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
         mockDeploymentsRepository.getAllByService.mockResolvedValue([]);
         mockServicesRepository.delete.mockResolvedValue(true);
 
-        const result = await run();
+        await expect(run()).resolves.toBeUndefined();
 
         expect(mockServicesRepository.delete).toHaveBeenCalledTimes(1);
         expect(mockServicesRepository.delete).toHaveBeenCalledWith(id);
-        expect(result).toBe(true);
     });
 
     it('deletes the row before performing the external cleanup', async () => {
@@ -158,14 +156,12 @@ describe('deleteServiceUseCase', () => {
         expect(deleteOrder).toBeLessThan(firstPurgeOrder);
     });
 
-    it('leaves external state untouched when the row deletion removes nothing', async () => {
+    it('throws a ServiceNotFoundError and leaves external state untouched when the row deletion removes nothing', async () => {
         mockServicesRepository.findById.mockResolvedValue(service);
         mockDeploymentsRepository.getAllByService.mockResolvedValue(deployments);
         mockServicesRepository.delete.mockResolvedValue(false);
 
-        const result = await run();
-
-        expect(result).toBe(false);
+        await expect(run()).rejects.toBeInstanceOf(ServiceNotFoundError);
         expect(mockServicesRepository.delete).toHaveBeenCalledTimes(1);
         expect(mockServiceRuntimeResources.removeRouting).not.toHaveBeenCalled();
         expect(mockServiceRuntimeResources.removeContainers).not.toHaveBeenCalled();

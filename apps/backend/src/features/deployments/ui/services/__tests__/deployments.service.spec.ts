@@ -6,7 +6,7 @@ import { deleteDeploymentUseCase } from '../../../application/delete-deployment.
 import { findDeploymentByIdUseCase } from '../../../application/find-deployment-by-id.use-case';
 import { getComposeServicesUseCase } from '../../../application/get-compose-services.use-case';
 import { getDeploymentsByServiceUseCase } from '../../../application/get-deployments-by-service.use-case';
-import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
+import { DeploymentNotFoundError, ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentQueue } from '../../../domain/ports/deployment-queue.port';
 import { DatabaseDeploymentQueueAdapter } from '../../../infrastructure/database/db-deployment-queue.adapter';
@@ -187,12 +187,11 @@ describe('DeploymentsService', () => {
             expect(result).toBe(deployment);
         });
 
-        it('returns null when the deployment does not exist', async () => {
-            mockFindDeploymentByIdUseCase.mockResolvedValue(null);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new DeploymentNotFoundError(deploymentId);
+            mockFindDeploymentByIdUseCase.mockRejectedValue(error);
 
-            const result = await sut.findById(deploymentId);
-
-            expect(result).toBeNull();
+            await expect(sut.findById(deploymentId)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -205,7 +204,7 @@ describe('DeploymentsService', () => {
 
     describe('delete', () => {
         it('delegates to the use case with the repository and id', async () => {
-            mockDeleteDeploymentUseCase.mockResolvedValue(true);
+            mockDeleteDeploymentUseCase.mockResolvedValue();
 
             await sut.delete(deploymentId);
 
@@ -213,20 +212,17 @@ describe('DeploymentsService', () => {
             expect(mockDeleteDeploymentUseCase).toHaveBeenCalledWith(mockDeploymentsRepository, mockLogStore, deploymentId);
         });
 
-        it('returns true when a row was deleted', async () => {
-            mockDeleteDeploymentUseCase.mockResolvedValue(true);
+        it('resolves when a row was deleted', async () => {
+            mockDeleteDeploymentUseCase.mockResolvedValue();
 
-            const result = await sut.delete(deploymentId);
-
-            expect(result).toBe(true);
+            await expect(sut.delete(deploymentId)).resolves.toBeUndefined();
         });
 
-        it('returns false when nothing was deleted', async () => {
-            mockDeleteDeploymentUseCase.mockResolvedValue(false);
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new DeploymentNotFoundError(deploymentId);
+            mockDeleteDeploymentUseCase.mockRejectedValue(error);
 
-            const result = await sut.delete(deploymentId);
-
-            expect(result).toBe(false);
+            await expect(sut.delete(deploymentId)).rejects.toBe(error);
         });
 
         it('propagates errors thrown by the use case', async () => {
@@ -340,10 +336,10 @@ describe('DeploymentsService', () => {
         });
 
         it('adds nothing when the deployment does not exist', async () => {
-            mockFindDeploymentByIdUseCase.mockResolvedValue(null);
+            mockFindDeploymentByIdUseCase.mockRejectedValue(new DeploymentNotFoundError(deploymentId));
 
             const event = await runWithTelemetry({}, async () => {
-                await sut.findById(deploymentId);
+                await expect(sut.findById(deploymentId)).rejects.toBeInstanceOf(DeploymentNotFoundError);
 
                 return getTelemetry();
             });

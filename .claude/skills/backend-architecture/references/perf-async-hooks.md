@@ -1,109 +1,22 @@
----
-title: Use Async Lifecycle Hooks Correctly
-impact: HIGH
-impactDescription: Improper async handling blocks application startup
-tags: performance, lifecycle, async, hooks
----
+# Return the promise of a lifecycle hook
 
-## Use Async Lifecycle Hooks Correctly
-
-NestJS lifecycle hooks (`onModuleInit`, `onApplicationBootstrap`, etc.) support async operations. However, misusing them can block application startup or cause race conditions. Understand the lifecycle order and use hooks appropriately.
-
-**Incorrect (fire-and-forget async without await):**
+`onModuleInit` and `onModuleDestroy` may return a `Promise`. Nest awaits it before it moves to the
+next module, so an `await` inside the hook blocks the startup or the shutdown for as long as it
+runs. Keep the hook to what genuinely needs that ordering — a subscription, a queue to drain, a
+connection to close — and never a heavy computation that no other module waits on.
 
 ```typescript
-// Fire-and-forget async without await
-@Injectable()
-export class DatabaseService implements OnModuleInit {
-  onModuleInit() {
-    // This runs but doesn't block - app starts before DB is ready!
-    this.connect();
-  }
+// features/deployments/ui/services/deployment-runner.service.ts
+public async onModuleInit(): Promise<void> {
+    this.subscription = this.deploymentQueue.dequeued$.pipe(...).subscribe();
 
-  private async connect() {
-    await this.pool.connect();
-    console.log('Database connected');
-  }
+    await this.deploymentQueue.recoverPending();
 }
 
-// Heavy blocking operations in constructor
-@Injectable()
-export class ConfigService {
-  private config: Config;
-
-  constructor() {
-    // BLOCKS entire module instantiation synchronously
-    this.config = fs.readFileSync('config.json');
-  }
+public onModuleDestroy(): void {
+    this.subscription?.unsubscribe();
 }
 ```
 
-**Correct (return promises from async hooks):**
-
-```typescript
-// Return promise from async hooks
-@Injectable()
-export class DatabaseService implements OnModuleInit {
-  private pool: Pool;
-
-  async onModuleInit(): Promise<void> {
-    // NestJS waits for this to complete before continuing
-    await this.pool.connect();
-    console.log('Database connected');
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    // Clean up resources on shutdown
-    await this.pool.end();
-    console.log('Database disconnected');
-  }
-}
-
-// Use onApplicationBootstrap for cross-module dependencies
-@Injectable()
-export class CacheWarmerService implements OnApplicationBootstrap {
-  constructor(
-    private cache: CacheService,
-    private products: ProductsService,
-  ) {}
-
-  async onApplicationBootstrap(): Promise<void> {
-    // All modules are initialized, safe to warm cache
-    const products = await this.products.findPopular();
-    await this.cache.warmup(products);
-  }
-}
-
-// Heavy init in async hooks, not constructor
-@Injectable()
-export class ConfigService implements OnModuleInit {
-  private config: Config;
-
-  constructor() {
-    // Keep constructor synchronous and fast
-  }
-
-  async onModuleInit(): Promise<void> {
-    // Async loading in lifecycle hook
-    this.config = await this.loadConfig();
-  }
-
-  private async loadConfig(): Promise<Config> {
-    const file = await fs.promises.readFile('config.json');
-    return JSON.parse(file.toString());
-  }
-
-  get<T>(key: string): T {
-    return this.config[key];
-  }
-}
-
-// Enable shutdown hooks in main.ts
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableShutdownHooks(); // Enable SIGTERM/SIGINT handling
-  await app.listen(3000);
-}
-```
-
-Reference: [NestJS Lifecycle Events](https://docs.nestjs.com/fundamentals/lifecycle-events)
+`onModuleDestroy` here returns nothing, because `unsubscribe` is synchronous; a hook that closes a
+socket or a pool returns its `Promise` instead, so Nest waits for the close before it exits.

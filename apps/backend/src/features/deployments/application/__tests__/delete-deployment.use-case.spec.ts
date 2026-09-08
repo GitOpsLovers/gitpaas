@@ -1,3 +1,4 @@
+import { DeploymentNotFoundError } from '../../domain/errors/deployment.errors';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
 import { deleteDeploymentUseCase } from '../delete-deployment.use-case';
 
@@ -48,37 +49,38 @@ describe('deleteDeploymentUseCase', () => {
     it('does not purge the buffered logs when nothing was deleted', async () => {
         mockDeploymentsRepository.delete.mockResolvedValue(false);
 
-        await deleteDeploymentUseCase(
-            mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStore as unknown as LogStore,
-            id,
-        );
-
+        await expect(
+            deleteDeploymentUseCase(
+                mockDeploymentsRepository as unknown as DeploymentsRepository,
+                mockLogStore as unknown as LogStore,
+                id,
+            ),
+        ).rejects.toBeInstanceOf(DeploymentNotFoundError);
         expect(mockLogStore.purge).not.toHaveBeenCalled();
     });
 
-    it('returns true when the repository deletes a row', async () => {
+    it('resolves when the repository deletes a row', async () => {
         mockDeploymentsRepository.delete.mockResolvedValue(true);
 
-        const result = await deleteDeploymentUseCase(
-            mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStore as unknown as LogStore,
-            id,
-        );
-
-        expect(result).toBe(true);
+        await expect(
+            deleteDeploymentUseCase(
+                mockDeploymentsRepository as unknown as DeploymentsRepository,
+                mockLogStore as unknown as LogStore,
+                id,
+            ),
+        ).resolves.toBeUndefined();
     });
 
-    it('returns false when the repository deletes nothing', async () => {
+    it('names the deployment in the message of the not-found error', async () => {
         mockDeploymentsRepository.delete.mockResolvedValue(false);
 
-        const result = await deleteDeploymentUseCase(
-            mockDeploymentsRepository as unknown as DeploymentsRepository,
-            mockLogStore as unknown as LogStore,
-            id,
-        );
-
-        expect(result).toBe(false);
+        await expect(
+            deleteDeploymentUseCase(
+                mockDeploymentsRepository as unknown as DeploymentsRepository,
+                mockLogStore as unknown as LogStore,
+                id,
+            ),
+        ).rejects.toThrow(`Deployment ${id} not found`);
     });
 
     it('propagates errors thrown by the repository', async () => {

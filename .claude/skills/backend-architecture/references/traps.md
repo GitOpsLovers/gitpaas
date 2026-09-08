@@ -13,8 +13,9 @@ import a feature. Every other rule of the backend serves this one.
 
 These rules break the most often. The pages above hold the reason of each one.
 
-1. **A use case is a pure function**, and it receives each collaborator as a parameter. Only the
-   adapter is an `@Injectable()` provider.
+1. **A use case is a pure function**, and it receives each collaborator as a parameter. A stateless
+   collaborator (a translator, a formatter, a util) is a plain exported function, and not a class.
+   A service, a controller, a guard, a job and a middleware stay `@Injectable()` providers.
 2. **A repository of the infrastructure never returns an ORM shape.** An adjacent `*.transformer.ts`
    file maps the shape into a domain model.
 3. **The consumer injects the concrete adapter class** and types it as the port interface. The

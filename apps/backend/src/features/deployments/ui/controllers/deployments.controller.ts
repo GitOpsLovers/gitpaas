@@ -2,7 +2,7 @@ import { triggerDeploymentSchema } from '@gitpaas/contracts';
 import type { Deployment as DeploymentResponse, TriggerDeploymentDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
-    Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query,
+    Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Query,
 } from '@nestjs/common';
 
 import { DeploymentsService } from '../services/deployments.service';
@@ -64,13 +64,11 @@ export class DeploymentsController {
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<DeploymentResponse> {
         enrichTelemetry({ 'deployment.id': id });
 
-        const deployment = await this.service.findById(id);
-
-        if (!deployment) {
-            throw new NotFoundException(`Deployment ${id} not found`);
+        try {
+            return toDeploymentResponse(await this.service.findById(id));
+        } catch (error) {
+            throw translateError(error);
         }
-
-        return toDeploymentResponse(deployment);
     }
 
     /**
@@ -103,10 +101,10 @@ export class DeploymentsController {
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         enrichTelemetry({ 'deployment.id': id });
 
-        const deleted = await this.service.delete(id);
-
-        if (!deleted) {
-            throw new NotFoundException(`Deployment ${id} not found`);
+        try {
+            await this.service.delete(id);
+        } catch (error) {
+            throw translateError(error);
         }
     }
 }

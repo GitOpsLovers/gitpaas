@@ -12,7 +12,6 @@ import {
     Delete,
     Get,
     HttpCode,
-    NotFoundException,
     Param,
     ParseUUIDPipe,
     Post,
@@ -47,13 +46,11 @@ export class ServicesController {
     public async findById(@Param('id', ParseUUIDPipe) id: string): Promise<ServiceResponse> {
         enrichTelemetry({ 'service.id': id });
 
-        const service = await this.service.findById(id);
-
-        if (!service) {
-            throw new NotFoundException(`Service ${id} not found`);
+        try {
+            return toServiceResponse(await this.service.findById(id));
+        } catch (error) {
+            throw translateError(error);
         }
-
-        return toServiceResponse(service);
     }
 
     /**
@@ -97,13 +94,11 @@ export class ServicesController {
     ): Promise<ServiceResponse> {
         enrichTelemetry({ 'service.id': id });
 
-        const service = await this.service.update(id, updateDto);
-
-        if (!service) {
-            throw new NotFoundException(`Service ${id} not found`);
+        try {
+            return toServiceResponse(await this.service.update(id, updateDto));
+        } catch (error) {
+            throw translateError(error);
         }
-
-        return toServiceResponse(service);
     }
 
     @Delete(':id')
@@ -111,10 +106,10 @@ export class ServicesController {
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         enrichTelemetry({ 'service.id': id });
 
-        const deleted = await this.service.delete(id);
-
-        if (!deleted) {
-            throw new NotFoundException(`Service ${id} not found`);
+        try {
+            await this.service.delete(id);
+        } catch (error) {
+            throw translateError(error);
         }
     }
 }

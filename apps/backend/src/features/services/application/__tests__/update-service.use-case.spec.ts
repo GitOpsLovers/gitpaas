@@ -1,5 +1,6 @@
 import type { UpdateServiceDto } from '@gitpaas/contracts';
 
+import { ServiceNotFoundError } from '../../domain/errors/service.errors';
 import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 import { updateServiceUseCase } from '../update-service.use-case';
@@ -53,12 +54,20 @@ describe('updateServiceUseCase', () => {
         expect(result).toBe(updatedService);
     });
 
-    it('returns null when the service does not exist', async () => {
+    it('throws a ServiceNotFoundError when the service does not exist', async () => {
         mockServicesRepository.update.mockResolvedValue(null);
 
-        const result = await updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto);
+        await expect(
+            updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto),
+        ).rejects.toBeInstanceOf(ServiceNotFoundError);
+    });
 
-        expect(result).toBeNull();
+    it('names the service in the message of the not-found error', async () => {
+        mockServicesRepository.update.mockResolvedValue(null);
+
+        await expect(
+            updateServiceUseCase(mockServicesRepository as unknown as ServicesRepository, id, updateDto),
+        ).rejects.toThrow(`Service ${id} not found`);
     });
 
     it('delegates a new name that holds an uppercase letter and a space, because the daemon receives a normalized name', async () => {

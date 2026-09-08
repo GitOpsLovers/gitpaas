@@ -98,6 +98,8 @@ A global guard protects all the routes by default. The `@Public()` decorator mar
 
 The API has **no public sign-up**; an administrator creates a user with another tool.
 
+**Two-factor authentication (TOTP).** `POST /api/v1/profile/2fa/setup` draws a secret with the `Totp` port (`OtplibTotpAdapter`, `core/infrastructure/crypto/otplib-totp.adapter.ts`), seals it at rest with `SecretCipher`, and answers the secret, its `otpauth://` address and a QR code of that address, rendered by the `QrCodeRenderer` port (`QrCodeRendererAdapter`, `core/infrastructure/qrcode/qrcode-renderer.adapter.ts`, backed by `qrcode`). `POST /api/v1/profile/2fa/enable` checks a code against the pending secret and turns the second factor on; `DELETE /api/v1/users/:id/2fa` turns it off. When a login finds the second factor on, it answers a `challengeToken` instead of a token pair; `POST /api/v1/auth/2fa/verify` (`verifyTwoFactorUseCase`) checks the code against the stored secret and only then issues the access and refresh tokens.
+
 ### Roles
 
 Each user has a role (`admin` or `user`) in the database. Role-based access control is an **opt-in, per-route guard**, not a global rule: `RolesGuard` (`features/authentication/ui/guards/roles.guard.ts`) reads the roles that the `@Roles(...)` decorator declares on a handler or a controller, and lets an authenticated request through when its role is among them, or when no role is declared at all.

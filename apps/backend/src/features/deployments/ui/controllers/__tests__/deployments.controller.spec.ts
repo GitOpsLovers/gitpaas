@@ -2,7 +2,7 @@ import type { Deployment as DeploymentResponse, TriggerDeploymentDto } from '@gi
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
+import { DeploymentNotFoundError, ServiceNotDeployableError } from '../../../domain/errors/deployment.errors';
 import { Deployment } from '../../../domain/models/deployment.models';
 import { DeploymentsService } from '../../services/deployments.service';
 import { DeploymentsController } from '../deployments.controller';
@@ -173,14 +173,14 @@ describe('DeploymentsController', () => {
             expect(result).toEqual(deploymentResponse);
         });
 
-        it('throws a NotFoundException when the deployment does not exist', async () => {
-            mockDeploymentsService.findById.mockResolvedValue(null);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockDeploymentsService.findById.mockRejectedValue(new DeploymentNotFoundError(deploymentId));
 
             await expect(sut.findById(deploymentId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockDeploymentsService.findById.mockResolvedValue(null);
+            mockDeploymentsService.findById.mockRejectedValue(new DeploymentNotFoundError(deploymentId));
 
             await expect(sut.findById(deploymentId)).rejects.toThrow(`Deployment ${deploymentId} not found`);
         });
@@ -239,7 +239,7 @@ describe('DeploymentsController', () => {
 
     describe('delete', () => {
         it('delegates to the service with the received id', async () => {
-            mockDeploymentsService.delete.mockResolvedValue(true);
+            mockDeploymentsService.delete.mockResolvedValue();
 
             await sut.delete(deploymentId);
 
@@ -248,19 +248,19 @@ describe('DeploymentsController', () => {
         });
 
         it('resolves with no value when a row was deleted', async () => {
-            mockDeploymentsService.delete.mockResolvedValue(true);
+            mockDeploymentsService.delete.mockResolvedValue();
 
             await expect(sut.delete(deploymentId)).resolves.toBeUndefined();
         });
 
-        it('throws a NotFoundException when nothing was deleted', async () => {
-            mockDeploymentsService.delete.mockResolvedValue(false);
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockDeploymentsService.delete.mockRejectedValue(new DeploymentNotFoundError(deploymentId));
 
             await expect(sut.delete(deploymentId)).rejects.toBeInstanceOf(NotFoundException);
         });
 
         it('includes the id in the not-found message', async () => {
-            mockDeploymentsService.delete.mockResolvedValue(false);
+            mockDeploymentsService.delete.mockRejectedValue(new DeploymentNotFoundError(deploymentId));
 
             await expect(sut.delete(deploymentId)).rejects.toThrow(`Deployment ${deploymentId} not found`);
         });
@@ -311,7 +311,7 @@ describe('DeploymentsController', () => {
         });
 
         it('adds the deployment id of a delete', async () => {
-            mockDeploymentsService.delete.mockResolvedValue(true);
+            mockDeploymentsService.delete.mockResolvedValue();
 
             const event = await runWithTelemetry({}, async () => {
                 await sut.delete(deploymentId);

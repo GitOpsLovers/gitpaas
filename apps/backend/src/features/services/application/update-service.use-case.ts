@@ -1,5 +1,6 @@
 import type { UpdateServiceDto } from '@gitpaas/contracts';
 
+import { ServiceNotFoundError } from '../domain/errors/service.errors';
 import { Service } from '../domain/models/service.models';
 import { ServicesRepository } from '../domain/repositories/services.repository';
 
@@ -10,8 +11,16 @@ import { ServicesRepository } from '../domain/repositories/services.repository';
  * @param id Service id
  * @param updateDto Service data
  *
- * @returns Updated service, or `null` when it does not exist
+ * @returns Updated service
+ *
+ * @throws ServiceNotFoundError When the service does not exist
  */
-export function updateServiceUseCase(repository: ServicesRepository, id: string, updateDto: UpdateServiceDto): Promise<Service | null> {
-    return repository.update(id, updateDto);
+export async function updateServiceUseCase(repository: ServicesRepository, id: string, updateDto: UpdateServiceDto): Promise<Service> {
+    const service = await repository.update(id, updateDto);
+
+    if (!service) {
+        throw new ServiceNotFoundError(id);
+    }
+
+    return service;
 }
