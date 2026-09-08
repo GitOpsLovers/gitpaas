@@ -208,6 +208,7 @@ describe('DeploymentRunnerService', () => {
             mockReverseProxy,
             mockLogStore,
             mockSecretCipher,
+            mockLogger,
             task,
         );
     });
@@ -531,6 +532,7 @@ describe('DeploymentRunnerService', () => {
             mockReverseProxy,
             mockLogStore,
             mockSecretCipher,
+            mockLogger,
             taskA,
         );
 
@@ -553,6 +555,7 @@ describe('DeploymentRunnerService', () => {
             mockReverseProxy,
             mockLogStore,
             mockSecretCipher,
+            mockLogger,
             taskB,
         );
 
@@ -592,6 +595,7 @@ describe('DeploymentRunnerService', () => {
             mockReverseProxy,
             mockLogStore,
             mockSecretCipher,
+            mockLogger,
             taskA,
         );
         expect(mockRunDeploymentUseCase).toHaveBeenNthCalledWith(
@@ -609,6 +613,7 @@ describe('DeploymentRunnerService', () => {
             mockReverseProxy,
             mockLogStore,
             mockSecretCipher,
+            mockLogger,
             taskB,
         );
 
@@ -657,6 +662,7 @@ describe('DeploymentRunnerService', () => {
             mockReverseProxy,
             mockLogStore,
             mockSecretCipher,
+            mockLogger,
             taskB,
         );
 

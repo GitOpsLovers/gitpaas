@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { AuthTokens, LoginDto, LoginResult, TwoFactorChallenge, User, VerifyTwoFactorDto } from '@gitpaas/contracts';
-import { finalize, Observable, tap } from 'rxjs';
+import { catchError, EMPTY, finalize, Observable, tap } from 'rxjs';
 
 import { AuthenticationApiRepository } from '../../infrastructure/api/authentication-api.repository';
 import { TokenStorageService } from '../../infrastructure/storage/token-storage.service';
@@ -122,6 +122,28 @@ export class AuthService {
         this.repository.logout(refreshToken)
             .pipe(finalize(finalise))
             .subscribe({ error: () => {} });
+    }
+
+    /**
+     * Restores the session of a reload, by exchanging the held refresh token for a fresh pair
+     *
+     * @returns Observable that completes once the session is restored, or given up
+     */
+    public restoreSession(): Observable<AuthTokens> {
+        const refreshToken = this.tokenStorage.refreshToken();
+
+        if (!refreshToken) {
+            return EMPTY;
+        }
+
+        return this.repository.refresh(refreshToken).pipe(
+            tap((tokens) => { this.tokenStorage.update(tokens); }),
+            catchError(() => {
+                this.tokenStorage.clear();
+
+                return EMPTY;
+            }),
+        );
     }
 
     /**

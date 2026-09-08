@@ -334,6 +334,48 @@ describe('GithubProviderClientAdapter', () => {
             expect(OctokitMock).toHaveBeenCalledTimes(1);
             expect(getClient.getClient(credentials)).toBe(OctokitMock.mock.results[0].value);
         });
+
+        it('builds a new client when the private key of the provider changed', async () => {
+            const sut = new GithubProviderClientAdapter();
+
+            await sut.listRepositories(credentials);
+            await sut.listRepositories(createCredentials({ privateKey: 'ROTATEDKEY' }));
+
+            expect(OctokitMock).toHaveBeenCalledTimes(2);
+            expect(OctokitMock.mock.calls[1][0].auth.privateKey).toBe('ROTATEDKEY');
+        });
+
+        it('builds a new client when the installation of the provider changed', async () => {
+            const sut = new GithubProviderClientAdapter();
+
+            await sut.listRepositories(credentials);
+            await sut.listRepositories(createCredentials({ installationId: '999' }));
+
+            expect(OctokitMock).toHaveBeenCalledTimes(2);
+            expect(OctokitMock.mock.calls[1][0].auth.installationId).toBe(999);
+        });
+
+        it('builds a new client when the application of the provider changed', async () => {
+            const sut = new GithubProviderClientAdapter();
+
+            await sut.listRepositories(credentials);
+            await sut.listRepositories(createCredentials({ appId: '789' }));
+
+            expect(OctokitMock).toHaveBeenCalledTimes(2);
+            expect(OctokitMock.mock.calls[1][0].auth.appId).toBe('789');
+        });
+
+        it('never keeps the client of a credential it replaced', async () => {
+            const sut = new GithubProviderClientAdapter();
+            const getClient = sut as unknown as { getClient: (given: ProviderCredentials) => unknown };
+            const rotated = createCredentials({ privateKey: 'ROTATEDKEY' });
+
+            await sut.listRepositories(credentials);
+            await sut.listRepositories(rotated);
+
+            expect(getClient.getClient(rotated)).toBe(OctokitMock.mock.results[1].value);
+            expect(OctokitMock).toHaveBeenCalledTimes(2);
+        });
     });
 
     // --- Layer C: the conversion of a manifest (anonymous client isolated via a spied getter) ---

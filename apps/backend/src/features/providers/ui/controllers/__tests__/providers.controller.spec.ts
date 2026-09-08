@@ -1,5 +1,10 @@
 /* eslint-disable no-secrets/no-secrets */
-import type { CreateProviderDto, Provider as ProviderResponse, UpdateProviderDto } from '@gitpaas/contracts';
+import type {
+    CreateProviderDto,
+    Provider as ProviderResponse,
+    UpdateProviderDto,
+    providerRegistrationStateSchema,
+} from '@gitpaas/contracts';
 import {
     BadRequestException,
     ConflictException,
@@ -186,6 +191,25 @@ describe('ProvidersController', () => {
         it('validates the repositoryId path parameter of listBranches as an integer', () => {
             expect(pipesFor('listBranches', 'repositoryId')).toContain(ParseIntPipe);
         });
+
+        it.each(['convertRegistration', 'completeRegistration'])(
+            'validates the state path parameter of %s with a Zod pipe',
+            (handler) => {
+                expect(pipesFor(handler, 'state')).toEqual([expect.any(ZodValidationPipe)]);
+            },
+        );
+
+        it.each(['convertRegistration', 'completeRegistration'])(
+            'refuses a state of %s that the platform never drew',
+            (handler) => {
+                const [pipe] = pipesFor(handler, 'state') as Array<ZodValidationPipe<typeof providerRegistrationStateSchema>>;
+
+                expect(() => pipe.transform(registrationState)).not.toThrow();
+                expect(() => pipe.transform('../../etc/passwd')).toThrow(BadRequestException);
+                expect(() => pipe.transform(registrationState.toUpperCase())).toThrow(BadRequestException);
+                expect(() => pipe.transform(registrationState.slice(0, 63))).toThrow(BadRequestException);
+            },
+        );
 
         it.each(['create', 'update', 'startRegistration', 'convertRegistration', 'completeRegistration'])(
             'validates the body of %s with a Zod pipe',

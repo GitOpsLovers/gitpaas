@@ -57,12 +57,12 @@ A repository that GitPaaS deploys reaches the host, because the transformer of t
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/deployments/`, `apps/backend/src/features/providers/`, `apps/frontend/src/app/`
 
-- [ ] 5.1 Mask every value of a secret in the lines of the log of a deployment.
-- [ ] 5.2 Inject the variables of the environment into the services that declare them alone.
-- [ ] 5.3 Store and return a generic message when the executor fails, and log the detail apart.
-- [ ] 5.4 Delete the pipe of the HTML and its one use, draw the icons with the library of the icons, and make the viewer of the YAML safe.
-- [ ] 5.5 Invalidate the cache of the client of the provider when its credential changes, and validate the parameter `state` of its two routes.
-- [ ] 5.6 Hold the token of the access in the memory alone, and not in the storage of the web.
+- [x] 5.1 Mask every value of a secret in the lines of the log of a deployment.
+- [x] 5.2 Inject the variables of the environment into the services that declare them alone.
+- [x] 5.3 Store and return a generic message when the executor fails, and log the detail apart.
+- [x] 5.4 Delete the pipe of the HTML and its one use, draw the icons with the library of the icons, and make the viewer of the YAML safe.
+- [x] 5.5 Invalidate the cache of the client of the provider when its credential changes, and validate the parameter `state` of its two routes.
+- [x] 5.6 Hold the token of the access in the memory alone, and not in the storage of the web.
 
 ## Phase 6 — The supply chain and the installer
 

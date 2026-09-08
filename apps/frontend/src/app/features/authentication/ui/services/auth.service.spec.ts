@@ -22,11 +22,13 @@ describe('AuthService', () => {
         verifyTwoFactor: ReturnType<typeof vi.fn>;
         logout: ReturnType<typeof vi.fn>;
         me: ReturnType<typeof vi.fn>;
+        refresh: ReturnType<typeof vi.fn>;
     };
     let tokenStorage: {
         accessToken: ReturnType<typeof signal<string | null>>;
         refreshToken: ReturnType<typeof vi.fn>;
         store: ReturnType<typeof vi.fn>;
+        update: ReturnType<typeof vi.fn>;
         clear: ReturnType<typeof vi.fn>;
     };
     let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
@@ -39,11 +41,13 @@ describe('AuthService', () => {
             verifyTwoFactor: vi.fn(),
             logout: vi.fn(),
             me: vi.fn(),
+            refresh: vi.fn(),
         };
         tokenStorage = {
             accessToken,
             refreshToken: vi.fn(() => refreshTokenValue),
             store: vi.fn(),
+            update: vi.fn(),
             clear: vi.fn(),
         };
         router = { navigate: vi.fn(), navigateByUrl: vi.fn() };
@@ -185,6 +189,49 @@ describe('AuthService', () => {
             expect(repository.logout).not.toHaveBeenCalled();
             expect(tokenStorage.clear).toHaveBeenCalledTimes(1);
             expect(router.navigate).toHaveBeenCalledWith(['/signin']);
+        });
+    });
+
+    describe('restoreSession', () => {
+        test('exchanges the held refresh token for a fresh pair, and holds it', () => {
+            refreshTokenValue = 'refresh-1';
+            const rotated: AuthTokens = { accessToken: 'access-2', refreshToken: 'refresh-2' };
+            repository.refresh.mockReturnValue(of(rotated));
+            let completed = false;
+
+            service.restoreSession().subscribe({ complete: () => { completed = true; } });
+
+            expect(repository.refresh).toHaveBeenCalledWith('refresh-1');
+            expect(tokenStorage.update).toHaveBeenCalledWith(rotated);
+            expect(completed).toBe(true);
+        });
+
+        test('asks for no refresh when the browser holds no refresh token', () => {
+            refreshTokenValue = null;
+            let completed = false;
+
+            service.restoreSession().subscribe({ complete: () => { completed = true; } });
+
+            expect(repository.refresh).not.toHaveBeenCalled();
+            expect(tokenStorage.clear).not.toHaveBeenCalled();
+            expect(completed).toBe(true);
+        });
+
+        test('clears the session and completes when the refresh is refused', () => {
+            refreshTokenValue = 'refresh-1';
+            repository.refresh.mockReturnValue(throwError(() => new Error('revoked')));
+            let completed = false;
+            let errored = false;
+
+            service.restoreSession().subscribe({
+                complete: () => { completed = true; },
+                error: () => { errored = true; },
+            });
+
+            expect(tokenStorage.clear).toHaveBeenCalledTimes(1);
+            expect(tokenStorage.update).not.toHaveBeenCalled();
+            expect(completed).toBe(true);
+            expect(errored).toBe(false);
         });
     });
 

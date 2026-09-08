@@ -3,8 +3,10 @@ import { DeploymentRunTask } from '../../domain/models/deployment-run-task.model
 import type { Deployment } from '../../domain/models/deployment.models';
 import { DockerExecutor } from '../../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../../domain/repositories/deployments.repository';
-import { runDeploymentUseCase } from '../run-deployment.use-case';
+import { SECRET_MASK } from '../mask-secret-values.use-case';
+import { DEPLOYMENT_FAILURE_REASON, RUN_DEPLOYMENT_LOG_CONTEXT, runDeploymentUseCase } from '../run-deployment.use-case';
 
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import type { Domain } from '@features/domains/domain/models/domain.models';
 import { ReverseProxy, RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
@@ -106,6 +108,7 @@ describe('runDeploymentUseCase', () => {
     let mockReverseProxy: jest.Mocked<Pick<ReverseProxy, 'buildRouting'>>;
     let mockSecretCipher: jest.Mocked<SecretCipher>;
     let mockLogStore: jest.Mocked<Pick<LogStore, 'append' | 'complete'>>;
+    let mockLogger: jest.Mocked<Pick<AppLogger, 'error'>>;
 
     const run = (): Promise<void> => {
         return runDeploymentUseCase(
@@ -122,6 +125,7 @@ describe('runDeploymentUseCase', () => {
             mockReverseProxy as unknown as ReverseProxy,
             mockLogStore as unknown as LogStore,
             mockSecretCipher,
+            mockLogger as unknown as AppLogger,
             payload,
         );
     };
@@ -172,6 +176,9 @@ describe('runDeploymentUseCase', () => {
         mockLogStore = {
             append: jest.fn().mockResolvedValue(undefined),
             complete: jest.fn().mockResolvedValue(undefined),
+        };
+        mockLogger = {
+            error: jest.fn(),
         };
     });
 
@@ -329,7 +336,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).not.toHaveBeenCalled();
         expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
             status: 'failed',
-            error: 'networks unavailable',
+            error: DEPLOYMENT_FAILURE_REASON,
         });
     });
 
@@ -361,7 +368,7 @@ describe('runDeploymentUseCase', () => {
         expect(mockDockerExecutor.up).not.toHaveBeenCalled();
         expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
             status: 'failed',
-            error: 'domains unavailable',
+            error: DEPLOYMENT_FAILURE_REASON,
         });
     });
 
@@ -409,15 +416,57 @@ describe('runDeploymentUseCase', () => {
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'success');
     });
 
-    it('marks the deployment failed, streams the failure line and completes when the executor throws', async () => {
+    it('marks the deployment failed with the generic reason, streams it and completes when the executor throws', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockRejectedValue(new Error('build failed'));
+        mockDockerExecutor.up.mockRejectedValue(new Error('build failed: /srv/gitpaas/spool/deploy-42'));
 
         await run();
 
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'build failed' });
-        expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, '✖ Deployment failed: build failed');
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: DEPLOYMENT_FAILURE_REASON,
+        });
+        expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, `✖ Deployment failed: ${DEPLOYMENT_FAILURE_REASON}`);
         expect(mockLogStore.complete).toHaveBeenCalledWith(payload.deploymentId, 'failed');
+    });
+
+    it('never lets the detail of a failure of the executor reach the deployment or its log', async () => {
+        const failure = new Error('build failed: /srv/gitpaas/spool/deploy-42');
+
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockRejectedValue(failure);
+
+        await run();
+
+        const stored = mockDeploymentsRepository.update.mock.calls.map(([, changes]) => JSON.stringify(changes)).join('\n');
+        const written = mockLogStore.append.mock.calls.map(([, line]) => line).join('\n');
+
+        expect(stored).not.toContain('/srv/gitpaas/spool/deploy-42');
+        expect(written).not.toContain('/srv/gitpaas/spool/deploy-42');
+    });
+
+    it('writes the detail of the failure to the log of the server alone', async () => {
+        const failure = new Error('build failed: /srv/gitpaas/spool/deploy-42');
+
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockRejectedValue(failure);
+
+        await run();
+
+        expect(mockLogger.error).toHaveBeenCalledWith(
+            `Deployment ${payload.deploymentId} failed: build failed: /srv/gitpaas/spool/deploy-42`,
+            failure,
+            RUN_DEPLOYMENT_LOG_CONTEXT,
+        );
+    });
+
+    it('never logs the detail of a run that succeeds', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
+
+        await run();
+
+        expect(mockLogger.error).not.toHaveBeenCalled();
     });
 
     it('gives the variables of the service to the executor, with the secrets among them opened', async () => {
@@ -501,21 +550,65 @@ describe('runDeploymentUseCase', () => {
         expect(written).not.toContain('sealed-payload');
     });
 
+    it('masks the value of a secret the executor echoes in a line of the log', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
+            { name: 'API_TOKEN', secret: true, storedValue: 'sealed-payload' },
+        ]);
+        mockSecretCipher.decryptSecret.mockReturnValue('the-token');
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+            onLog?.('env: API_TOKEN=the-token');
+
+            return Promise.resolve(finalCompose);
+        });
+
+        await run();
+
+        expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, `env: API_TOKEN=${SECRET_MASK}`);
+    });
+
+    it('keeps the value of a variable that is no secret in a line of the log', async () => {
+        mockServiceVariablesRepository.getStoredByService.mockResolvedValue([
+            { name: 'DATABASE_URL', secret: false, storedValue: 'postgres://db' },
+        ]);
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+            onLog?.('connected to postgres://db');
+
+            return Promise.resolve(finalCompose);
+        });
+
+        await run();
+
+        expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, 'connected to postgres://db');
+    });
+
     it('marks the deployment as failed when downloading the archive throws', async () => {
         mockProviderClient.getRepositoryArchive.mockRejectedValue(new Error('archive not found'));
 
         await run();
 
         expect(mockDockerExecutor.up).not.toHaveBeenCalled();
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'archive not found' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: DEPLOYMENT_FAILURE_REASON,
+        });
     });
 
-    it('stringifies non-Error failures', async () => {
+    it('stores the generic reason for a non-Error failure, and stringifies its detail for the server', async () => {
         mockProviderClient.getRepositoryArchive.mockRejectedValue('boom');
 
         await run();
 
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, { status: 'failed', error: 'boom' });
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: DEPLOYMENT_FAILURE_REASON,
+        });
+        expect(mockLogger.error).toHaveBeenCalledWith(
+            `Deployment ${payload.deploymentId} failed: boom`,
+            'boom',
+            RUN_DEPLOYMENT_LOG_CONTEXT,
+        );
     });
 
     it('records the volumes Compose created once the stack is up', async () => {

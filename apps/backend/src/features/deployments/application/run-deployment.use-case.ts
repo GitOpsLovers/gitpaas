@@ -3,6 +3,10 @@ import { DeploymentRunTask } from '../domain/models/deployment-run-task.models';
 import { DeploymentTarget, DockerExecutor } from '../domain/ports/docker-executor.port';
 import { DeploymentsRepository } from '../domain/repositories/deployments.repository';
 
+import { maskSecretValuesUseCase } from './mask-secret-values.use-case';
+
+import { DomainError } from '@core/domain/errors/domain.error';
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { ReverseProxy } from '@features/domains/domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
@@ -21,6 +25,28 @@ import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-
 import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
 import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
 import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
+
+/**
+ * Reads the clear value of every variable of a secret of a service, which no line of the log may carry.
+ *
+ * @param serviceVariablesRepository Service variables repository
+ * @param serviceId Service the variables belong to
+ * @param environment Variables of the service, by name, with their clear value
+ *
+ * @returns The clear value of every variable the service marks as a secret
+ */
+async function loadSecretValues(
+    serviceVariablesRepository: ServiceVariablesRepository,
+    serviceId: string,
+    environment: Record<string, string>,
+): Promise<string[]> {
+    const stored = await serviceVariablesRepository.getStoredByService(serviceId);
+    const secrets = new Set(stored.filter((variable) => variable.secret).map((variable) => variable.name));
+
+    return Object.entries(environment)
+        .filter(([name]) => secrets.has(name))
+        .map(([, value]) => value);
+}
 
 /**
  * Loads the service of a deployment, and the credentials its provider gives to the provider client.
@@ -59,6 +85,16 @@ async function loadServiceContext(
 }
 
 /**
+ * Reason a failed deployment stores and answers with, when the failure is none of the domain.
+ */
+export const DEPLOYMENT_FAILURE_REASON = 'The deployment failed. The server holds the detail of the failure.';
+
+/**
+ * Context the detail of a failed deployment carries in the log of the server.
+ */
+export const RUN_DEPLOYMENT_LOG_CONTEXT = 'runDeploymentUseCase';
+
+/**
  * Use case that runs a deployment.
  *
  * @param deploymentsRepository Deployments repository
@@ -74,6 +110,7 @@ async function loadServiceContext(
  * @param reverseProxy Reverse proxy, which builds the labels of the routing of the service
  * @param logStore Logs store
  * @param secretCipher Secret cipher, which opens the secrets of the service
+ * @param logger Application logger, which alone receives the detail of a failure
  * @param payload Run payload
  */
 export async function runDeploymentUseCase(
@@ -90,6 +127,7 @@ export async function runDeploymentUseCase(
     reverseProxy: ReverseProxy,
     logStore: LogStore,
     secretCipher: SecretCipher,
+    logger: AppLogger,
     payload: DeploymentRunTask,
 ): Promise<void> {
     await deploymentsRepository.update(payload.deploymentId, { status: 'running' });
@@ -102,12 +140,16 @@ export async function runDeploymentUseCase(
             payload.deploymentId,
         );
 
-        const emit = (line: string): void => {
-            logStore.append(payload.deploymentId, line).catch(() => undefined);
-        };
-
         const archive = await providerClient.getRepositoryArchive(credentials, payload.repositoryId, payload.commit);
         const environment = await getServiceEnvironmentUseCase(serviceVariablesRepository, secretCipher, service.id);
+        const secrets = await loadSecretValues(serviceVariablesRepository, service.id, environment);
+
+        // The output of the build, of the pull and of a container reaches the log of the deployment,
+        // so no value of a secret of the service survives in the line the store keeps.
+        const emit = (line: string): void => {
+            logStore.append(payload.deploymentId, maskSecretValuesUseCase(line, secrets)).catch(() => undefined);
+        };
+
         const domains = await domainsRepository.getByService(service.id);
         const routing = reverseProxy.buildRouting(domains);
         const projectNetworks = await serviceNetworksRepository.listByService(service.id);
@@ -127,11 +169,19 @@ export async function runDeploymentUseCase(
         await deploymentsRepository.update(payload.deploymentId, { status: 'success', finalCompose });
         await logStore.complete(payload.deploymentId, 'success');
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        const failureLine = `✖ Deployment failed: ${message}`;
+        // A failure of the executor carries the path of the host, the output of the daemon and the
+        // value of a variable, so the server alone reads the detail, and the user reads the reason.
+        const reason = error instanceof DomainError ? error.message : DEPLOYMENT_FAILURE_REASON;
+        const detail = error instanceof Error ? error.message : String(error);
 
-        await deploymentsRepository.update(payload.deploymentId, { status: 'failed', error: message });
-        await logStore.append(payload.deploymentId, failureLine);
+        logger.error(
+            `Deployment ${payload.deploymentId} failed: ${detail}`,
+            error,
+            RUN_DEPLOYMENT_LOG_CONTEXT,
+        );
+
+        await deploymentsRepository.update(payload.deploymentId, { status: 'failed', error: reason });
+        await logStore.append(payload.deploymentId, `✖ Deployment failed: ${reason}`);
         await logStore.complete(payload.deploymentId, 'failed');
     }
 }

@@ -27,11 +27,33 @@ import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-d
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 /**
+ * An Octokit client of a provider, kept with the credentials that authenticated it.
+ */
+interface CachedProviderClient {
+    credentials: ProviderCredentials;
+    client: Octokit;
+}
+
+/**
+ * Tells whether two sets of credentials of a provider authenticate the same installation with the same key.
+ *
+ * @param one Credentials the cache holds
+ * @param other Credentials of the call
+ *
+ * @returns `true` when every field of the authentication matches
+ */
+function holdsSameCredentials(one: ProviderCredentials, other: ProviderCredentials): boolean {
+    return one.appId === other.appId
+        && one.installationId === other.installationId
+        && one.privateKey === other.privateKey;
+}
+
+/**
  * GitHub provider client adapter.
  */
 @Injectable()
 export class GithubProviderClientAdapter implements ProviderClient {
-    private readonly clients = new Map<string, Octokit>();
+    private readonly clients = new Map<string, CachedProviderClient>();
 
     private anonymousClient?: Octokit;
 
@@ -175,16 +197,21 @@ export class GithubProviderClientAdapter implements ProviderClient {
      * @returns Octokit client authenticated as the GitHub App installation of the provider
      */
     private getClient(credentials: ProviderCredentials): Octokit {
-        const client = this.clients.get(credentials.providerId) ?? this.createClient(credentials);
+        const cached = this.clients.get(credentials.providerId);
 
-        this.clients.set(credentials.providerId, client);
+        if (cached && holdsSameCredentials(cached.credentials, credentials)) {
+            return cached.client;
+        }
+
+        const client = this.createClient(credentials);
+
+        this.clients.set(credentials.providerId, { credentials, client });
 
         return client;
     }
 
     /**
-     * Lazily-created, reused Octokit client that carries no authentication. The conversion of a
-     * manifest runs before any application exists, so it holds no credentials to authenticate with.
+     * Lazily-created, reused Octokit client that carries no authentication.
      *
      * @returns Octokit client with no authentication
      */

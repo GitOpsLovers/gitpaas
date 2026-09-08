@@ -1,11 +1,8 @@
 import { Component, EventEmitter, Output, input } from '@angular/core';
 
-import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
-
 @Component({
     selector: 'app-button',
     templateUrl: './button.component.html',
-    imports: [SafeHtmlPipe],
 })
 
 /**
@@ -21,10 +18,6 @@ export class ButtonComponent {
     public readonly disabled = input(false);
 
     public readonly className = input('');
-
-    public readonly startIcon = input<string>();
-
-    public readonly endIcon = input<string>();
 
     @Output() public readonly btnClick = new EventEmitter<Event>();
 

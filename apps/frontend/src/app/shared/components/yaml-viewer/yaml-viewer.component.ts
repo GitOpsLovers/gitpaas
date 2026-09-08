@@ -8,6 +8,39 @@ import { SkeletonComponent } from '@shared/components/skeleton/skeleton.componen
 hljs.registerLanguage('yaml', yaml);
 
 /**
+ * One run of the document that carries a single class of the syntax highlighting.
+ */
+interface HighlightToken {
+    text: string;
+    className: string;
+}
+
+/**
+ * Turns the markup of the highlighting into the runs of text that the template draws.
+ *
+ * @param markup Markup the library of the highlighting produced
+ *
+ * @returns The runs of the document, in the order they are read
+ */
+function toHighlightTokens(markup: string): readonly HighlightToken[] {
+    const tokens: HighlightToken[] = [];
+
+    const walk = (node: Node, className: string): void => {
+        for (const child of Array.from(node.childNodes)) {
+            if (child.nodeType === Node.ELEMENT_NODE) {
+                walk(child, (child as Element).getAttribute('class') ?? className);
+            } else {
+                tokens.push({ text: child.textContent ?? '', className });
+            }
+        }
+    };
+
+    walk(new DOMParser().parseFromString(markup, 'text/html').body, '');
+
+    return tokens;
+}
+
+/**
  * How long the copy button keeps its confirmation, in milliseconds.
  */
 const COPIED_FEEDBACK_MS = 1500;
@@ -58,12 +91,12 @@ export class YamlViewerComponent implements OnDestroy {
     protected readonly skeletonRows = [0, 1, 2, 3, 4];
 
     /**
-     * The document with the markup of the syntax highlighting, or an empty string when it holds no text.
+     * The runs of the document with their class of the syntax highlighting, and none when it holds no text.
      */
-    protected readonly highlighted = computed(() => {
+    protected readonly tokens = computed<readonly HighlightToken[]>(() => {
         const text = this.text();
 
-        return text ? hljs.highlight(text, { language: 'yaml' }).value : '';
+        return text ? toHighlightTokens(hljs.highlight(text, { language: 'yaml' }).value) : [];
     });
 
     private copiedTimeout: ReturnType<typeof setTimeout> | null = null;
