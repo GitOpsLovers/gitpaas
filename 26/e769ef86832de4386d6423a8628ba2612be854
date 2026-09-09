@@ -1,0 +1,23 @@
+docs/architecture/backend/structure.md
+  s_2aca851ba2868a::t_a6aa98f3643937 76
+docs/business/networks.md
+  s_2aca851ba2868a::t_4788caf895b6b7 5,9-10,17,58,62,87,89
+docs/business/projects.md
+  s_2aca851ba2868a::t_e92c0341a60267 126,131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "26e769ef86832de4386d6423a8628ba2612be854",
+  "prompts": {},
+  "sessions": {
+    "s_2aca851ba2868a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a39a6fabe3f10dad5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
