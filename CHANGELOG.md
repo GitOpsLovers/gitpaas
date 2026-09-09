@@ -1,3 +1,11 @@
+## [2.24.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.23.1...v2.24.0) (2026-09-09)
+
+### Features
+
+* **service-environment:** add compose environment parser ([#271](https://github.com/GitOpsLovers/gitpaas/issues/271)) ([71ddd87](https://github.com/GitOpsLovers/gitpaas/commit/71ddd87c26bf90f931d52f5a9cd7bba655b7a0ea))
+* **service-environment:** add environment tab ([#273](https://github.com/GitOpsLovers/gitpaas/issues/273)) ([263e842](https://github.com/GitOpsLovers/gitpaas/commit/263e84296c6999b8e57ce5f425124ede018a81c3))
+* **service-environment:** add origin and refresh to variable contract ([#272](https://github.com/GitOpsLovers/gitpaas/issues/272)) ([a5e538f](https://github.com/GitOpsLovers/gitpaas/commit/a5e538fd0cb5c4866e7c901d05946598f1204176))
+
 ## [2.23.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.23.0...v2.23.1) (2026-09-08)
 
 ### Bug Fixes
