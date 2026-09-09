@@ -1,3 +1,10 @@
+## [2.25.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.24.0...v2.25.0) (2026-09-09)
+
+### Features
+
+* **networks:** drop project networks from backend ([#277](https://github.com/GitOpsLovers/gitpaas/issues/277)) ([0a7ad3a](https://github.com/GitOpsLovers/gitpaas/commit/0a7ad3a44cc48a37bfd080681717a18118744674))
+* **networks:** drop project networks from the frontend ([#276](https://github.com/GitOpsLovers/gitpaas/issues/276)) ([22627e7](https://github.com/GitOpsLovers/gitpaas/commit/22627e7308dae208ec19fa11270b6f908a07ee2a))
+
 ## [2.24.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.23.1...v2.24.0) (2026-09-09)
 
 ### Features
