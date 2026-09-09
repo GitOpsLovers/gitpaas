@@ -1,0 +1,85 @@
+apps/frontend/src/app/features/domains/ui/components/service-domains/service-domains.component.spec.ts
+  s_0e98acf43d5387::t_5f28b4bb7fb1ef 4,14,22,32,41,44,53,56,65-89,97,100,207-267
+apps/frontend/src/app/features/domains/ui/components/service-domains/service-domains.component.html
+  s_0e98acf43d5387::t_b8e95f097a93b6 36,44-51,53-58,82-86
+packages/contracts/src/domains/__tests__/domain.contract.spec.ts
+  s_0e98acf43d5387::t_050b3628262eb8 1-8,29,165-198
+apps/backend/src/features/domains/infrastructure/database/db-domains.repository.ts
+  s_0e98acf43d5387::t_ebd07037080974 78,92
+packages/contracts/src/domains/domain.contract.ts
+  s_0e98acf43d5387::t_7c0d07b5af0809 54-58,71-78,106-110,116-120
+apps/backend/src/features/domains/domain/ports/compose-domains-cache-store.port.ts
+  s_0e98acf43d5387::t_a269903a5a9929 1-15
+apps/backend/src/features/domains/ui/controllers/domains.controller.ts
+  s_0e98acf43d5387::t_0e97a3c0c136ff 16,33
+apps/backend/src/features/domains/domain/models/domain.models.ts
+  s_0e98acf43d5387::t_e8e49e2c8addd1 25-39
+docs/roadmap/compose-domains/TODO.md
+  s_0e98acf43d5387::t_dfa27b337439f8 40-44
+apps/backend/src/features/domains/infrastructure/database/db-compose-domains-cache.adapter.ts
+  s_0e98acf43d5387::t_7095735c488ebf 1-29
+apps/backend/src/features/domains/infrastructure/database/__tests__/db-domains.repository.spec.ts
+  s_0e98acf43d5387::t_f4534961349bc8 247-266
+apps/backend/src/features/domains/application/reconcile-compose-domains.use-case.ts
+  s_0e98acf43d5387::t_64590bb1ac8546 65-75
+apps/backend/src/features/domains/application/__tests__/reconcile-compose-domains.use-case.spec.ts
+  s_0e98acf43d5387::t_29d1a96c368405 132
+apps/backend/src/features/domains/domains.module.ts
+  s_0e98acf43d5387::t_3fc03b4bbb92d8 4,11-12,17,22
+apps/frontend/src/app/features/domains/infrastructure/api/domains-api.repository.spec.ts
+  s_0e98acf43d5387::t_1ba84513235acb 24
+apps/backend/src/features/domains/application/__tests__/get-domains-by-service.use-case.spec.ts
+  s_6f06b20b602f79::t_940059bd3a366d 1-2,8-12,35-49,53,56,59,66,68,79-86,89,99,102-103,105-110,114-163,170-176
+apps/backend/src/features/domains/ui/controllers/__tests__/domains.controller.spec.ts
+  s_0e98acf43d5387::t_1951a366b104e3 7,29-38,133-144
+apps/backend/src/features/domains/application/get-domains-by-service.use-case.ts
+  s_0e98acf43d5387::t_701fa2916b247a 1-2,8-9,11-33,37,40,45,47-58,60
+apps/backend/src/features/domains/application/update-domain.use-case.ts
+  s_0e98acf43d5387::t_7bc2f7905c2c1d 4,36,48,64
+apps/backend/src/features/domains/ui/services/domains.service.ts
+  s_0e98acf43d5387::t_fbbbc002de26ba 8-9,12,26-27,30-31,39
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_0e98acf43d5387::t_2a2f59b192e9fa 8,64,69,141,150-162,860-870,918-928
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_0e98acf43d5387::t_cfee56d9767a3e 5,129,176,559,561,564-571,576,590,592,606-613,617
+apps/backend/src/features/domains/ui/services/__tests__/domains.service.spec.ts
+  s_0e98acf43d5387::t_4310ac77454f94 9,44,52,59,67,76,140,151
+apps/backend/src/features/domains/infrastructure/database/__tests__/db-compose-domains-cache.adapter.spec.ts
+  s_0e98acf43d5387::t_e5c1a65779ca99 1-86
+apps/backend/src/features/domains/application/__tests__/update-domain.use-case.spec.ts
+  s_0e98acf43d5387::t_563f639e1a9338 4,36-37,43,53,139-140,155-156,168,179,197-198,203-222
+packages/contracts/src/index.ts
+  s_0e98acf43d5387::t_cfb84ec027e1a8 56-57,61
+apps/backend/src/features/domains/domain/repositories/domains.repository.ts
+  s_0e98acf43d5387::t_22257dedca637c 60,69
+apps/frontend/src/app/features/domains/infrastructure/api/domains-api.repository.ts
+  s_0e98acf43d5387::t_2b4db3e53fec16 3,19,23,26
+apps/frontend/src/app/features/domains/ui/components/service-domains/service-domains.component.ts
+  s_0e98acf43d5387::t_c20c738484d565 2,31,34,61,63,91,96,98,114,195,197,199
+.claude/skills/backend-architecture/references/arch-jsdoc-comments.md
+  s_0e98acf43d5387::t_b96dd772876acd 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a35888aa7503c527542772d3994f8d5c40bce3d9",
+  "prompts": {},
+  "sessions": {
+    "s_0e98acf43d5387": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23b766c1-6dbb-4aab-adec-a3b492d81925",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_6f06b20b602f79": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a54ca0fd799acb66c",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
