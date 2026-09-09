@@ -101,6 +101,23 @@ export class ServicesController {
         }
     }
 
+    /**
+     * Read the compose file of the repository of a service again, and cache the names and the values of its key `environment`.
+     *
+     * @param id Service identifier
+     */
+    @Post(':id/compose-environment/refresh')
+    @HttpCode(204)
+    public async refreshComposeEnvironment(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        enrichTelemetry({ 'service.id': id });
+
+        try {
+            await this.service.refreshComposeEnvironment(id);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
     @Delete(':id')
     @HttpCode(204)
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {

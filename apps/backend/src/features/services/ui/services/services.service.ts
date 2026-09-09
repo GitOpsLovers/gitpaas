@@ -6,7 +6,9 @@ import { deleteServiceUseCase } from '../../application/delete-service.use-case'
 import { findServiceByIdUseCase } from '../../application/find-service-by-id.use-case';
 import { getFinalComposeUseCase } from '../../application/get-final-compose.use-case';
 import { getServicesByProjectUseCase } from '../../application/get-services-by-project.use-case';
+import { refreshComposeEnvironmentUseCase } from '../../application/refresh-compose-environment.use-case';
 import { updateServiceUseCase } from '../../application/update-service.use-case';
+import { ComposeEnvironmentCache } from '../../domain/models/compose-environment.models';
 import { FinalCompose } from '../../domain/models/final-compose.models';
 import { Service } from '../../domain/models/service.models';
 import type { RepositoryComposeFile } from '../../domain/ports/repository-compose-file.port';
@@ -17,6 +19,8 @@ import { DatabaseServicesRepository } from '../../infrastructure/database/db-ser
 import { DockerServiceRuntimeResourcesAdapter } from '../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { enrichWithService } from '../telemetry/enrich-with-service';
 
+import type { AppLogger } from '@core/domain/ports/app-logger.port';
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import type { DeploymentsRepository } from '@features/deployments/domain/repositories/deployments.repository';
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
@@ -54,6 +58,8 @@ export class ServicesService {
         private readonly providerClient: ProviderClient,
         @Inject(TarRepositoryComposeFileAdapter)
         private readonly repositoryComposeFile: RepositoryComposeFile,
+        @Inject(NestLoggerAdapter)
+        private readonly logger: AppLogger,
     ) {}
 
     public getAllByProject(projectId: string): Promise<Service[]> {
@@ -81,12 +87,55 @@ export class ServicesService {
         return service;
     }
 
+    /**
+     * Change a service, and refresh the cache of its compose environment when the write names the path of the compose file
+     *
+     * @param id Service identifier
+     * @param updateDto Data for updating the service
+     *
+     * @returns Updated service
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
+     */
     public async update(id: string, updateDto: UpdateServiceDto): Promise<Service> {
         const service = await updateServiceUseCase(this.repository, id, updateDto);
 
         enrichWithService(service);
 
+        if (updateDto.composerPath !== undefined) {
+            // The cache is a convenience of the tab Environment, so a repository that answers no compose file never
+            // fails the write of the service. The former cache stays until the next refresh.
+            try {
+                await this.refreshComposeEnvironment(id);
+            } catch (error: unknown) {
+                this.logger.warn(
+                    `The refresh of the compose environment of the service ${id} failed: ${String(error)}`,
+                    ServicesService.name,
+                );
+            }
+        }
+
         return service;
+    }
+
+    /**
+     * Read the compose file of the repository of a service, and cache the names and the values of its key `environment`
+     *
+     * @param id Service identifier
+     *
+     * @returns The cache that the refresh wrote, or `null` when it left the cache untouched
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
+     * @throws {ProviderNotFoundError} When the provider of the service no longer exists
+     */
+    public refreshComposeEnvironment(id: string): Promise<ComposeEnvironmentCache | null> {
+        return refreshComposeEnvironmentUseCase(
+            this.repository,
+            this.providersRepository,
+            this.providerClient,
+            this.repositoryComposeFile,
+            id,
+        );
     }
 
     /**

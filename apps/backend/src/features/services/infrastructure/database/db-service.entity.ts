@@ -4,6 +4,14 @@ import { DbProjectEntity } from '@features/projects/infrastructure/database/db-p
 import { DbProviderEntity } from '@features/providers/infrastructure/database/db-provider.entity';
 
 /**
+ * The cache of the key `environment` of the compose file of a service, as one row of the database carries it.
+ */
+export interface DbComposeEnvironment {
+    variables: Record<string, string>;
+    refreshedAt: string;
+}
+
+/**
  * Services database entity
  */
 @Entity('services')
@@ -35,6 +43,9 @@ export class DbServiceEntity {
 
     @Column({ type: 'text', default: '' })
     public composerPath!: string;
+
+    @Column({ type: 'jsonb', nullable: true })
+    public composeEnvironment!: DbComposeEnvironment | null;
 
     @CreateDateColumn({ type: 'timestamptz' })
     public createdAt!: Date;

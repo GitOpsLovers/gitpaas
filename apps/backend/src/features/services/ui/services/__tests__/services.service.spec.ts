@@ -6,6 +6,7 @@ import { deleteServiceUseCase } from '../../../application/delete-service.use-ca
 import { findServiceByIdUseCase } from '../../../application/find-service-by-id.use-case';
 import { getFinalComposeUseCase } from '../../../application/get-final-compose.use-case';
 import { getServicesByProjectUseCase } from '../../../application/get-services-by-project.use-case';
+import { refreshComposeEnvironmentUseCase } from '../../../application/refresh-compose-environment.use-case';
 import { updateServiceUseCase } from '../../../application/update-service.use-case';
 import { ServiceNotFoundError } from '../../../domain/errors/service.errors';
 import { Service } from '../../../domain/models/service.models';
@@ -14,6 +15,7 @@ import { DatabaseServicesRepository } from '../../../infrastructure/database/db-
 import { DockerServiceRuntimeResourcesAdapter } from '../../../infrastructure/docker/docker-service-runtime-resources.adapter';
 import { ServicesService } from '../services.service';
 
+import { NestLoggerAdapter } from '@core/infrastructure/logging/nest-logger.adapter';
 import { getTelemetry, runWithTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { DatabaseDeploymentsRepository } from '@features/deployments/infrastructure/database/db-deployments.repository';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
@@ -27,6 +29,7 @@ jest.mock('../../../application/delete-service.use-case');
 jest.mock('../../../application/find-service-by-id.use-case');
 jest.mock('../../../application/get-final-compose.use-case');
 jest.mock('../../../application/get-services-by-project.use-case');
+jest.mock('../../../application/refresh-compose-environment.use-case');
 jest.mock('../../../application/update-service.use-case');
 
 const mockCreateServiceUseCase = createServiceUseCase as jest.MockedFunction<
@@ -43,6 +46,9 @@ const mockGetFinalComposeUseCase = getFinalComposeUseCase as jest.MockedFunction
 >;
 const mockGetServicesByProjectUseCase = getServicesByProjectUseCase as jest.MockedFunction<
     typeof getServicesByProjectUseCase
+>;
+const mockRefreshComposeEnvironmentUseCase = refreshComposeEnvironmentUseCase as jest.MockedFunction<
+    typeof refreshComposeEnvironmentUseCase
 >;
 const mockUpdateServiceUseCase = updateServiceUseCase as jest.MockedFunction<
     typeof updateServiceUseCase
@@ -75,6 +81,7 @@ describe('ServicesService', () => {
     let mockProvidersRepository: jest.Mocked<DatabaseProvidersRepository>;
     let mockProviderClient: jest.Mocked<GithubProviderClientAdapter>;
     let mockRepositoryComposeFile: jest.Mocked<TarRepositoryComposeFileAdapter>;
+    let mockLogger: jest.Mocked<Pick<NestLoggerAdapter, 'warn'>>;
     let sut: ServicesService;
 
     beforeEach(async () => {
@@ -89,6 +96,7 @@ describe('ServicesService', () => {
         mockProvidersRepository = {} as jest.Mocked<DatabaseProvidersRepository>;
         mockProviderClient = {} as jest.Mocked<GithubProviderClientAdapter>;
         mockRepositoryComposeFile = {} as jest.Mocked<TarRepositoryComposeFileAdapter>;
+        mockLogger = { warn: jest.fn() };
 
         const moduleRef = await Test.createTestingModule({
             providers: [
@@ -102,6 +110,7 @@ describe('ServicesService', () => {
                 { provide: DatabaseProvidersRepository, useValue: mockProvidersRepository },
                 { provide: GithubProviderClientAdapter, useValue: mockProviderClient },
                 { provide: TarRepositoryComposeFileAdapter, useValue: mockRepositoryComposeFile },
+                { provide: NestLoggerAdapter, useValue: mockLogger },
             ],
         }).compile();
 
@@ -262,6 +271,89 @@ describe('ServicesService', () => {
             mockUpdateServiceUseCase.mockRejectedValue(error);
 
             await expect(sut.update(serviceId, updateDto)).rejects.toThrow(error);
+        });
+
+        it('refreshes the cache of the compose environment when the write names the path of the compose file', async () => {
+            mockUpdateServiceUseCase.mockResolvedValue(service);
+            mockRefreshComposeEnvironmentUseCase.mockResolvedValue(null);
+
+            await sut.update(serviceId, updateDto);
+
+            expect(mockRefreshComposeEnvironmentUseCase).toHaveBeenCalledTimes(1);
+            expect(mockRefreshComposeEnvironmentUseCase).toHaveBeenCalledWith(
+                mockServicesRepository,
+                mockProvidersRepository,
+                mockProviderClient,
+                mockRepositoryComposeFile,
+                serviceId,
+            );
+        });
+
+        it('never refreshes the cache when the write leaves the path of the compose file alone', async () => {
+            mockUpdateServiceUseCase.mockResolvedValue(service);
+
+            await sut.update(serviceId, { name: 'renamed' });
+
+            expect(mockRefreshComposeEnvironmentUseCase).not.toHaveBeenCalled();
+        });
+
+        it('returns the updated service when the refresh of the cache fails', async () => {
+            const error = new Error('archive not found');
+            mockUpdateServiceUseCase.mockResolvedValue(service);
+            mockRefreshComposeEnvironmentUseCase.mockRejectedValue(error);
+
+            await expect(sut.update(serviceId, updateDto)).resolves.toBe(service);
+        });
+
+        it('warns when the refresh of the cache fails', async () => {
+            mockUpdateServiceUseCase.mockResolvedValue(service);
+            mockRefreshComposeEnvironmentUseCase.mockRejectedValue(new Error('archive not found'));
+
+            await sut.update(serviceId, updateDto);
+
+            expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringContaining(serviceId),
+                ServicesService.name,
+            );
+        });
+    });
+
+    describe('refreshComposeEnvironment', () => {
+        const cache = { variables: { LOG_LEVEL: 'debug' }, refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
+
+        it('delegates to the use case with all collaborators and the id', async () => {
+            mockRefreshComposeEnvironmentUseCase.mockResolvedValue(cache);
+
+            await sut.refreshComposeEnvironment(serviceId);
+
+            expect(mockRefreshComposeEnvironmentUseCase).toHaveBeenCalledTimes(1);
+            expect(mockRefreshComposeEnvironmentUseCase).toHaveBeenCalledWith(
+                mockServicesRepository,
+                mockProvidersRepository,
+                mockProviderClient,
+                mockRepositoryComposeFile,
+                serviceId,
+            );
+        });
+
+        it('returns the cache the use case wrote', async () => {
+            mockRefreshComposeEnvironmentUseCase.mockResolvedValue(cache);
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).resolves.toBe(cache);
+        });
+
+        it('returns null when the use case left the cache untouched', async () => {
+            mockRefreshComposeEnvironmentUseCase.mockResolvedValue(null);
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).resolves.toBeNull();
+        });
+
+        it('propagates the not-found domain error thrown by the use case', async () => {
+            const error = new ServiceNotFoundError(serviceId);
+            mockRefreshComposeEnvironmentUseCase.mockRejectedValue(error);
+
+            await expect(sut.refreshComposeEnvironment(serviceId)).rejects.toBe(error);
         });
     });
 

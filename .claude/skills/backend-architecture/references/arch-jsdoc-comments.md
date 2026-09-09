@@ -43,6 +43,20 @@ All the classes, the functions and the interfaces must have a JSDoc comment bloc
 - One line that gives the purpose of the use case in a short form. 
 - If the function accepts parameters, write them with `@param parameterName Purpose`. 
 - If the function returns data, write the data with `@returns Returned data`.
+- If the function throws errors, write them with `@throws {Error} Error explanation`. 
+
+```typescript
+/**
+ * A single, brief line explaining the purpose of the use case
+ *
+ * @param parameterName Purpose
+ *
+ * @returns Returned data
+ *
+ * @throws {Error} Error explanation
+ */
+export function someUseCase
+```
 
 ## Infrastructure
 

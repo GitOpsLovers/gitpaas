@@ -1,6 +1,7 @@
 import type { UpdateServiceDto } from '@gitpaas/contracts';
 
 import { CreateServiceWithComposeProjectDto } from '../dtos/create-service-with-compose-project.dto';
+import { ComposeEnvironmentCache } from '../models/compose-environment.models';
 import { Service } from '../models/service.models';
 
 /**
@@ -50,6 +51,14 @@ export interface ServicesRepository {
      * @returns Updated service, or `null` when it does not exist
      */
     update: (id: string, updateDto: UpdateServiceDto) => Promise<Service | null>;
+
+    /**
+     * Write the cache of the key `environment` of the compose file of a service
+     *
+     * @param id Service identifier
+     * @param cache Names, values and moment of the read of the compose file
+     */
+    saveComposeEnvironment: (id: string, cache: ComposeEnvironmentCache) => Promise<void>;
 
     /**
      * Delete a service
