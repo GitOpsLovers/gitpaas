@@ -1,0 +1,39 @@
+apps/frontend/src/app/features/services/application/build-service-variable-update.use-case.spec.ts
+  s_81026702b2c540::t_13a09689b64ba7 1,7-15,18-26
+apps/frontend/src/app/features/services/application/build-service-variable-update.use-case.ts
+  s_81026702b2c540::t_72847605d4bbf0 1,8,13
+apps/frontend/src/app/features/services/infrastructure/api/service-variables-api.repository.ts
+  s_81026702b2c540::t_19d79e6ecefd05 3,23,26
+apps/frontend/src/app/features/services/infrastructure/api/services-api.repository.ts
+  s_81026702b2c540::t_91048b8df47faa 82-91
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.html
+  s_81026702b2c540::t_63a7439094bf6a 2-18,46,56-63,85-90,98-102,150
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.spec.ts
+  s_81026702b2c540::t_70743c7852c712 2,4-6,9,11,15-36,39-58,64-67,75-82,94,100-107,275-365
+apps/frontend/src/app/features/services/ui/components/service-variables/service-variables.component.ts
+  s_81026702b2c540::t_6266892c17a2d6 4-5,20,36,47,49,61-65,82-87,89,101,127-135,165,167
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.html
+  s_81026702b2c540::t_f958883e776ce8 26,31,115-127
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.spec.ts
+  s_81026702b2c540::t_c2e9a3058e7299 8-9,51,53-56,59-61,111-141,220,298,673-790,1164-1168,1191,1325-1330
+apps/frontend/src/app/features/services/ui/containers/service-detail/service-detail.component.ts
+  s_81026702b2c540::t_370197c6b87498 6,143,162,166-175,230-247,419,421,424-460,467,480-500,504,506,520-527,531
+docs/roadmap/compose-environment-variables/TODO.md
+  s_81026702b2c540::t_aca287535732fd 36-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bff3cf2ac1835ef7275dd09ade04c34161bbddf9",
+  "prompts": {},
+  "sessions": {
+    "s_81026702b2c540": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a530604c-06be-4630-ac3d-86a85e9cbc8a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
