@@ -12,4 +12,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
-- [remove-project-networks](./roadmap/remove-project-networks/TODO.md): the removal of the layer of the networks of a project.
