@@ -2,7 +2,7 @@ import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type {
-    Container, Deployment, Domain, FinalCompose, Namespace, Network, Project, ProjectNetwork, RuntimeLogLine, Service,
+    Container, Deployment, Domain, FinalCompose, Namespace, Network, Project, RuntimeLogLine, Service,
     ServiceVariableRow, Volume,
 } from '@gitpaas/contracts';
 import { LucideLayers } from '@lucide/angular';
@@ -30,7 +30,6 @@ import type { DomainDraft } from '@features/domains/domain/models/domain.models'
 import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
 import { DomainChange, ServiceDomainsComponent } from '@features/domains/ui/components/service-domains/service-domains.component';
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
-import { readProjectNetworkErrorUseCase } from '@features/networks/application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
@@ -127,9 +126,6 @@ export class ServiceDetailComponent {
 
     protected readonly networks: HttpResourceRef<Network[] | undefined> = this.networksRepository.networksByService(() => this.serviceId());
 
-    // eslint-disable-next-line max-len
-    protected readonly projectNetworks: HttpResourceRef<ProjectNetwork[] | undefined> = this.networksRepository.networksByProject(() => this.projectId());
-
     protected readonly domains: HttpResourceRef<Domain[] | undefined> = this.domainsRepository.domainsByService(() => this.serviceId());
 
     protected readonly volumes: HttpResourceRef<Volume[] | undefined> = this.volumesRepository.volumesByService(() => this.serviceId());
@@ -180,8 +176,6 @@ export class ServiceDetailComponent {
     protected readonly pendingDomainRemoval = signal<Domain | null>(null);
 
     protected readonly removingDomain = signal(false);
-
-    protected readonly joiningNetwork = signal(false);
 
     protected readonly savingVolume = signal(false);
 
@@ -613,31 +607,6 @@ export class ServiceDetailComponent {
         } finally {
             this.removingDomain.set(false);
             this.pendingDomainRemoval.set(null);
-        }
-    }
-
-    /**
-     * Joins the service to a network of its project.
-     *
-     * @param network Network of the project the service joins
-     */
-    protected async joinNetwork(network: ProjectNetwork): Promise<void> {
-        this.joiningNetwork.set(true);
-
-        try {
-            await lastValueFrom(this.networksRepository.joinProjectNetwork(this.projectId(), network.id, {
-                serviceId: this.serviceId(),
-            }));
-
-            this.networks.reload();
-            this.toast.success('Network joined', `“${network.name}” reaches this service after the next deployment.`);
-        } catch (error) {
-            this.toast.error(
-                'Could not join the network',
-                readProjectNetworkErrorUseCase(error, 'Something went wrong. Please try again.'),
-            );
-        } finally {
-            this.joiningNetwork.set(false);
         }
     }
 

@@ -1,7 +1,4 @@
-<app-component-card
-    title="Networks"
-    desc="The networks this service declares, the networks its containers hold, and the networks of its project it joins or leaves at the next deployment."
->
+<app-component-card title="Networks" desc="The networks this service declares, and the networks its containers hold.">
     @if (loading() || networks().length > 0) {
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
@@ -68,27 +65,4 @@
             No networks for this service.
         </p>
     }
-
-    <div class="space-y-4 border-t border-gray-100 pt-6 dark:border-gray-800">
-        <div>
-            <app-label for="service-network-join">Join a network of the project</app-label>
-            @if (projectNetworks().length > 0) {
-                <app-select2
-                    [options]="projectNetworkOptions()"
-                    [value]="selectedNetworkId()"
-                    (valueChange)="selectedNetworkId.set($event)"
-                    placeholder="Select a network…"
-                />
-            } @else {
-                <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                    This project holds no network yet. Create one on the page of the networks of the project.
-                </p>
-            }
-        </div>
-
-        <app-button size="sm" [disabled]="joining() || selectedNetworkId() === ''" (btnClick)="onJoin()">
-            <svg lucidePlus class="h-4 w-4"></svg>
-            {{ joining() ? 'Joining…' : 'Join network' }}
-        </app-button>
-    </div>
 </app-component-card>

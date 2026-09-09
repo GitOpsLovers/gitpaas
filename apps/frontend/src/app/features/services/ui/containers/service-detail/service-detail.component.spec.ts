@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import type {
-    Container, Domain, FinalCompose, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service,
+    Container, Domain, FinalCompose, Namespace, Project, RuntimeLogLine, Service,
     ServiceVariableRow, Volume,
 } from '@gitpaas/contracts';
 import { NEVER, of, Subject, throwError } from 'rxjs';
@@ -27,7 +27,6 @@ import type { DomainDraft } from '@features/domains/domain/models/domain.models'
 import { DomainsApiRepository } from '@features/domains/infrastructure/api/domains-api.repository';
 import { DomainChange } from '@features/domains/ui/components/service-domains/service-domains.component';
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
-import { PROJECT_NETWORK_NAME_TAKEN_MESSAGE } from '@features/networks/application/read-project-network-error.use-case';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
 import type { VolumeDraft } from '@features/volumes/domain/models/volume.models';
@@ -69,8 +68,6 @@ interface ServiceDetailInternals {
     changeDomain: (change: DomainChange) => Promise<void>;
     requestDomainRemoval: (domain: Domain) => void;
     confirmDomainRemoval: () => Promise<void>;
-    joiningNetwork: () => boolean;
-    joinNetwork: (network: ProjectNetwork) => Promise<void>;
     savingVolume: () => boolean;
     volumeError: () => string | null;
     createVolume: (draft: VolumeDraft) => Promise<void>;
@@ -200,14 +197,6 @@ const volumeDraft: VolumeDraft = {
     name: 'uploads', composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false,
 };
 
-const projectNetwork: ProjectNetwork = {
-    id: 'nw-1',
-    projectId: 'pr-1',
-    name: 'backend',
-    daemonName: 'gitpaas-pr-1-nw-1',
-    state: 'ready',
-};
-
 describe('ServiceDetailComponent', () => {
     let namespaceValue: ReturnType<typeof signal<Namespace | undefined>>;
     let projectValue: ReturnType<typeof signal<Project | undefined>>;
@@ -249,8 +238,6 @@ describe('ServiceDetailComponent', () => {
     let domainsResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let networksRepository: {
         networksByService: ReturnType<typeof vi.fn>;
-        networksByProject: ReturnType<typeof vi.fn>;
-        joinProjectNetwork: ReturnType<typeof vi.fn>;
     };
     let networksResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let volumesRepository: {
@@ -320,8 +307,6 @@ describe('ServiceDetailComponent', () => {
         networksResource = { value: signal(undefined), reload: vi.fn() };
         networksRepository = {
             networksByService: vi.fn().mockReturnValue(networksResource),
-            networksByProject: vi.fn().mockReturnValue({ value: signal(undefined) }),
-            joinProjectNetwork: vi.fn(),
         };
         volumesResource = { value: signal(undefined), reload: vi.fn() };
         volumesRepository = {
@@ -915,46 +900,12 @@ describe('ServiceDetailComponent', () => {
         expect(domainsResource.reload).not.toHaveBeenCalled();
     });
 
-    test('loads the networks of the project of the route', () => {
+    test('loads the networks of the service of the route', () => {
         create();
 
-        const [accessor] = networksRepository.networksByProject.mock.calls[0] as [() => string | undefined];
+        const [accessor] = networksRepository.networksByService.mock.calls[0] as [() => string | undefined];
 
-        expect(accessor()).toBe('pr-1');
-    });
-
-    test('joins the service to a network of its project, reloads the list and announces it', async () => {
-        networksRepository.joinProjectNetwork.mockReturnValue(of(undefined));
-        create();
-
-        await component.joinNetwork(projectNetwork);
-
-        expect(networksRepository.joinProjectNetwork).toHaveBeenCalledWith('pr-1', 'nw-1', { serviceId: 'sv-1' });
-        expect(networksResource.reload).toHaveBeenCalled();
-        expect(toast.success).toHaveBeenCalled();
-        expect(component.joiningNetwork()).toBe(false);
-    });
-
-    test('names the rule the API refused when the join fails', async () => {
-        networksRepository.joinProjectNetwork.mockReturnValue(throwError(() => new HttpErrorResponse({
-            status: 409,
-            error: {
-                statusCode: 409,
-                code: 'PROJECT_NETWORK_NAME_TAKEN',
-                message: 'Refused',
-                error: 'Conflict',
-                timestamp: '2026-08-29T00:00:00.000Z',
-                path: '/projects/pr-1/networks/nw-1/services',
-                requestId: 'req-1',
-            },
-        })));
-        create();
-
-        await component.joinNetwork(projectNetwork);
-
-        expect(toast.error).toHaveBeenCalledWith('Could not join the network', PROJECT_NETWORK_NAME_TAKEN_MESSAGE);
-        expect(networksResource.reload).not.toHaveBeenCalled();
-        expect(component.joiningNetwork()).toBe(false);
+        expect(accessor()).toBe('sv-1');
     });
 
     describe('the tab Volumes', () => {
@@ -1247,8 +1198,6 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                         provide: NetworksApiRepository,
                         useValue: {
                             networksByService: vi.fn().mockReturnValue({ value: signal(undefined) }),
-                            networksByProject: vi.fn().mockReturnValue({ value: signal(undefined) }),
-                            joinProjectNetwork: vi.fn(),
                         },
                     },
                     { provide: ServiceVariablesApiRepository, useValue: variablesRepository },

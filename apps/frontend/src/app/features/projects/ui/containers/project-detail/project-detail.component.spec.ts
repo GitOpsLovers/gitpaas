@@ -17,7 +17,7 @@ import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.comp
 interface ProjectDetailInternals {
     breadcrumb: () => BreadcrumbItem[];
     activeTab: () => string;
-    changeTab: (tab: 'services' | 'networks') => void;
+    changeTab: (tab: 'services') => void;
 }
 
 const namespace: Namespace = {
@@ -166,9 +166,9 @@ describe('ProjectDetailComponent', () => {
         });
 
         test('activates the tab coming from the route', () => {
-            create('ns-1', 'pr-1', 'networks');
+            create('ns-1', 'pr-1', 'services');
 
-            expect(component.activeTab()).toBe('networks');
+            expect(component.activeTab()).toBe('services');
         });
 
         test('falls back to the tab of the services for an unknown tab segment', () => {
@@ -180,9 +180,9 @@ describe('ProjectDetailComponent', () => {
         test('navigates to the namespaced tab route when changing tab', () => {
             create();
 
-            component.changeTab('networks');
+            component.changeTab('services');
 
-            expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1', 'networks']);
+            expect(router.navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1', 'services']);
         });
 
         test('reads the project one time alone', () => {
@@ -233,14 +233,14 @@ describe('ProjectDetailComponent', () => {
             expect(servicesList.componentInstance.projectId()).toBe('pr-1');
         });
 
-        test('shows the two tabs of the page', () => {
+        test('shows the tab of the services alone', () => {
             create();
 
             const labels = Array.from(
                 fixture.nativeElement.querySelectorAll('app-tabs button') as NodeListOf<HTMLButtonElement>,
             ).map((button) => button.textContent?.trim());
 
-            expect(labels).toEqual(['Services', 'Networks']);
+            expect(labels).toEqual(['Services']);
         });
 
         test('serves the list of the services for the tab of the services of the route', () => {
@@ -248,58 +248,22 @@ describe('ProjectDetailComponent', () => {
 
             expect(component.activeTab()).toBe('services');
             expect(fixture.nativeElement.querySelector('app-services-list')).not.toBeNull();
-            expect(fixture.nativeElement.querySelector('app-project-networks-list')).toBeNull();
         });
 
-        test('serves the list of the networks for the tab of the networks of the route', () => {
-            create('ns-1', 'pr-1', 'networks');
-
-            expect(fixture.nativeElement.querySelector('app-project-networks-list')).not.toBeNull();
-            expect(fixture.nativeElement.querySelector('app-services-list')).toBeNull();
-        });
-
-        test('navigates to the route of the tab when the user chooses the tab of the networks', () => {
+        test('shows one breadcrumb alone', () => {
             create();
-
-            const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-
-            const networksTab = Array.from(
-                fixture.nativeElement.querySelectorAll('app-tabs button') as NodeListOf<HTMLButtonElement>,
-            ).find((button) => button.textContent?.trim() === 'Networks');
-
-            networksTab?.click();
-
-            expect(navigate).toHaveBeenCalledWith(['/namespaces', 'ns-1', 'projects', 'pr-1', 'networks']);
-        });
-
-        test('passes the namespace and the project down to the list of the networks', () => {
-            create('ns-1', 'pr-1', 'networks');
-
-            const networksList = fixture.debugElement.query(By.css('app-project-networks-list'));
-
-            expect(networksList.componentInstance.namespaceId()).toBe('ns-1');
-            expect(networksList.componentInstance.projectId()).toBe('pr-1');
-        });
-
-        test('hides the button "Add service" outside the tab of the services', () => {
-            create('ns-1', 'pr-1', 'networks');
-
-            expect(fixture.nativeElement.querySelector('a[href$="/services/add"]')).toBeNull();
-        });
-
-        test('shows one breadcrumb alone on the tab of the networks', () => {
-            create('ns-1', 'pr-1', 'networks');
 
             expect(fixture.nativeElement.querySelectorAll('app-breadcrumb')).toHaveLength(1);
         });
 
-        test('offers no link to a separate page of the networks', () => {
+        test('offers no tab and no link that reaches the networks of the project', () => {
             create();
 
             const hrefs = Array.from(fixture.nativeElement.querySelectorAll('a'))
                 .map((anchor) => (anchor as HTMLAnchorElement).getAttribute('href'));
 
             expect(hrefs).not.toContain('/namespaces/ns-1/projects/pr-1/networks');
+            expect(fixture.nativeElement.querySelector('app-project-networks-list')).toBeNull();
         });
     });
 });
