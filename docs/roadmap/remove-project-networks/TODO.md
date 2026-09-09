@@ -24,15 +24,15 @@ The support of a shared network through `external: true` stays as it is, and it 
 **Agent:** implementer
 **Paths:** apps/backend/src/features/, packages/contracts/src/networks/, iac/production/migrations/
 
-- [ ] 2.1 Delete the slice of the network of a project: the entities, the repositories, the ports, the models, the errors, the six use cases, the controller, the service, the transformer and their tests.
-- [ ] 2.2 Keep `networks.controller.ts`, `networks.service.ts`, `get-networks-by-service.use-case.ts` and `infrastructure/docker/`, and update `networks.module.ts`.
-- [ ] 2.3 Reduce the states of a network to three values in `get-networks-by-service.use-case.ts` and in `packages/contracts`.
-- [ ] 2.4 Remove the repository of the networks of a service from `deployment-runner.service.ts` and from `run-deployment.use-case.ts`.
-- [ ] 2.5 Remove `attachToProjectNetworks` of `docker-executor.adapter.ts` and `declareAttachedNetworks` of `final-compose.transformer.ts`.
-- [ ] 2.6 Remove the sweep of the networks of the daemon of `delete-project.use-case.ts`.
-- [ ] 2.7 Delete the symbols of the network of a project of `packages/contracts/src/networks/` and of `src/index.ts`.
-- [ ] 2.8 Add `iac/production/migrations/032_drop_project_networks.sql`, which drops `service_networks` and `project_networks`.
-- [ ] 2.9 Update the unit tests of the files above, and run `rtk pnpm run check-types --filter @gitpaas/backend`.
+- [x] 2.1 Delete the slice of the network of a project: the entities, the repositories, the ports, the models, the errors, the six use cases, the controller, the service, the transformer and their tests.
+- [x] 2.2 Keep `networks.controller.ts`, `networks.service.ts`, `get-networks-by-service.use-case.ts` and `infrastructure/docker/`, and update `networks.module.ts`.
+- [x] 2.3 Reduce the states of a network to three values in `get-networks-by-service.use-case.ts` and in `packages/contracts`.
+- [x] 2.4 Remove the repository of the networks of a service from `deployment-runner.service.ts` and from `run-deployment.use-case.ts`.
+- [x] 2.5 Remove `attachToProjectNetworks` of `docker-executor.adapter.ts` and `declareAttachedNetworks` of `final-compose.transformer.ts`.
+- [x] 2.6 Remove the sweep of the networks of the daemon of `delete-project.use-case.ts`.
+- [x] 2.7 Delete the symbols of the network of a project of `packages/contracts/src/networks/` and of `src/index.ts`.
+- [x] 2.8 Add `iac/production/migrations/032_drop_project_networks.sql`, which drops `service_networks` and `project_networks`.
+- [x] 2.9 Update the unit tests of the files above, and run `rtk pnpm run check-types --filter @gitpaas/backend`.
 
 ## Phase 3 — The documentation
 

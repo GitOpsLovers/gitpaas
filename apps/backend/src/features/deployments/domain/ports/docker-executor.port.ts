@@ -20,11 +20,6 @@ export interface DeploymentTarget {
      * Compose project name the stack is grouped under.
      */
     projectName: string;
-
-    /**
-     * Alias the containers of the stack answer to on the networks of the project.
-     */
-    networkAlias: string;
 }
 
 /**
@@ -39,7 +34,6 @@ export interface DockerExecutor {
      * @param target Stack of the service the deployment drives
      * @param environment Variables of the service, which the containers of the stack read
      * @param routing Labels of the routing, grouped by the compose service each domain names
-     * @param networks Names on the daemon of the networks of the project the containers of the stack join
      * @param onLog Optional listener receiving real-time output as the stack comes up
      *
      * @returns The final Compose text the stack came up from, with the value of every variable masked
@@ -50,7 +44,6 @@ export interface DockerExecutor {
         target: DeploymentTarget,
         environment: Record<string, string>,
         routing: RoutingLabels,
-        networks: string[],
         onLog?: DockerLogListener,
     ) => Promise<string>;
 

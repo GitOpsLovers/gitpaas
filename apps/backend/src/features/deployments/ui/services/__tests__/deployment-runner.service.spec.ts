@@ -23,7 +23,6 @@ import { recordDependencyCall } from '@core/infrastructure/telemetry/telemetry-d
 import { DatabaseDomainsRepository } from '@features/domains/infrastructure/database/db-domains.repository';
 import { TraefikReverseProxyAdapter } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.adapter';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import { DatabaseServiceNetworksRepository } from '@features/networks/infrastructure/database/db-service-networks.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
@@ -95,7 +94,6 @@ describe('DeploymentRunnerService', () => {
     let mockSecretCipher: jest.Mocked<SecretCipherAdapter>;
     let mockDockerExecutor: jest.Mocked<DockerExecutorAdapter>;
     let mockDomainsRepository: jest.Mocked<DatabaseDomainsRepository>;
-    let mockServiceNetworksRepository: jest.Mocked<DatabaseServiceNetworksRepository>;
     let mockVolumesRepository: jest.Mocked<DatabaseVolumesRepository>;
     let mockDaemonVolumesRepository: jest.Mocked<DockerVolumesRepository>;
     let mockReverseProxy: jest.Mocked<TraefikReverseProxyAdapter>;
@@ -130,7 +128,6 @@ describe('DeploymentRunnerService', () => {
         mockSecretCipher = {} as jest.Mocked<SecretCipherAdapter>;
         mockDockerExecutor = {} as jest.Mocked<DockerExecutorAdapter>;
         mockDomainsRepository = {} as jest.Mocked<DatabaseDomainsRepository>;
-        mockServiceNetworksRepository = {} as jest.Mocked<DatabaseServiceNetworksRepository>;
         mockVolumesRepository = {} as jest.Mocked<DatabaseVolumesRepository>;
         mockDaemonVolumesRepository = {} as jest.Mocked<DockerVolumesRepository>;
         mockReverseProxy = {} as jest.Mocked<TraefikReverseProxyAdapter>;
@@ -158,7 +155,6 @@ describe('DeploymentRunnerService', () => {
                 { provide: SecretCipherAdapter, useValue: mockSecretCipher },
                 { provide: DockerExecutorAdapter, useValue: mockDockerExecutor },
                 { provide: DatabaseDomainsRepository, useValue: mockDomainsRepository },
-                { provide: DatabaseServiceNetworksRepository, useValue: mockServiceNetworksRepository },
                 { provide: DatabaseVolumesRepository, useValue: mockVolumesRepository },
                 { provide: DockerVolumesRepository, useValue: mockDaemonVolumesRepository },
                 { provide: TraefikReverseProxyAdapter, useValue: mockReverseProxy },
@@ -200,7 +196,6 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
-            mockServiceNetworksRepository,
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             mockProviderClient,
@@ -524,7 +519,6 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
-            mockServiceNetworksRepository,
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             mockProviderClient,
@@ -547,7 +541,6 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
-            mockServiceNetworksRepository,
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             mockProviderClient,
@@ -587,7 +580,6 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
-            mockServiceNetworksRepository,
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             mockProviderClient,
@@ -605,7 +597,6 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
-            mockServiceNetworksRepository,
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             mockProviderClient,
@@ -654,7 +645,6 @@ describe('DeploymentRunnerService', () => {
             mockProvidersRepository,
             mockServiceVariablesRepository,
             mockDomainsRepository,
-            mockServiceNetworksRepository,
             mockVolumesRepository,
             mockDaemonVolumesRepository,
             mockProviderClient,

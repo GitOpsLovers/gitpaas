@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * Where a network of a service stands.
  */
-export const networkStateSchema = z.enum(['attached', 'declared', 'connected', 'joining', 'leaving']);
+export const networkStateSchema = z.enum(['attached', 'declared', 'connected']);
 
 /**
  * A network of the stack of one service, on the wire.

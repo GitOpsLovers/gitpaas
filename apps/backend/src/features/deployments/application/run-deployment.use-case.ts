@@ -11,7 +11,6 @@ import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
 import { ReverseProxy } from '@features/domains/domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import { ServiceNetworksRepository } from '@features/networks/domain/repositories/service-networks.repository';
 import { getProviderCredentialsUseCase } from '@features/providers/application/get-provider-credentials.use-case';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
@@ -24,7 +23,6 @@ import { ServicesRepository } from '@features/services/domain/repositories/servi
 import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-compose-volumes.use-case';
 import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
 import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
-import { getServiceSlug } from '@shared/application/get-service-slug.use-case';
 
 /**
  * Reads the clear value of every variable of a secret of a service, which no line of the log may carry.
@@ -102,7 +100,6 @@ export const RUN_DEPLOYMENT_LOG_CONTEXT = 'runDeploymentUseCase';
  * @param providersRepository Providers repository
  * @param serviceVariablesRepository Service variables repository
  * @param domainsRepository Domains repository
- * @param serviceNetworksRepository Service networks repository, which holds the networks of the project the service joined
  * @param volumesRepository Volumes repository, which holds the volumes the service declares
  * @param daemonVolumesRepository Daemon volumes repository, which reads the volumes the Compose project holds
  * @param providerClient Provider client port
@@ -119,7 +116,6 @@ export async function runDeploymentUseCase(
     providersRepository: ProvidersRepository,
     serviceVariablesRepository: ServiceVariablesRepository,
     domainsRepository: DomainsRepository,
-    serviceNetworksRepository: ServiceNetworksRepository,
     volumesRepository: VolumesRepository,
     daemonVolumesRepository: DaemonVolumesRepository,
     providerClient: ProviderClient,
@@ -152,15 +148,9 @@ export async function runDeploymentUseCase(
 
         const domains = await domainsRepository.getByService(service.id);
         const routing = reverseProxy.buildRouting(domains);
-        const projectNetworks = await serviceNetworksRepository.listByService(service.id);
-        const networks = projectNetworks.map((network) => network.daemonName);
-        const target: DeploymentTarget = {
-            serviceId: service.id,
-            projectName: service.composeProject,
-            networkAlias: getServiceSlug(service),
-        };
+        const target: DeploymentTarget = { serviceId: service.id, projectName: service.composeProject };
 
-        const deployed = await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, networks, emit);
+        const deployed = await dockerExecutor.up(archive, payload.composerPath, target, environment, routing, emit);
 
         // The executor masks the block `environment` of the final Compose text, and the interpolation
         // writes a variable anywhere else too - a command, a label, an argument of the build - so the

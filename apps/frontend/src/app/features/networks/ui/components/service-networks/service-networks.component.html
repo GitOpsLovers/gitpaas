@@ -39,9 +39,6 @@
                                     >
                                         {{ stateLabel(network.state) }}
                                     </span>
-                                    @if (stateHint(network.state); as hint) {
-                                        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{{ hint }}</p>
-                                    }
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ network.driver ?? '—' }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ network.scope ?? '—' }}</td>

@@ -10,8 +10,6 @@ import { Project } from '../../domain/models/project.models';
 import type { ProjectsRepository } from '../../domain/repositories/projects.repository';
 import { DatabaseProjectsRepository } from '../../infrastructure/database/db-projects.repository';
 
-import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
-import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 
 /**
@@ -22,8 +20,6 @@ export class ProjectsService {
     constructor(
         @Inject(DatabaseProjectsRepository)
         private readonly repository: ProjectsRepository,
-        @Inject(DockerContainerRuntimeAdapter)
-        private readonly runtime: ContainerRuntime,
     ) {}
 
     /**
@@ -81,7 +77,7 @@ export class ProjectsService {
     }
 
     /**
-     * Deletes a project of a namespace, and the networks it holds on the daemon
+     * Deletes a project of a namespace
      *
      * @param namespaceId Namespace id
      * @param id Project id
@@ -89,6 +85,6 @@ export class ProjectsService {
      * @returns `true` when a row was deleted, `false` otherwise
      */
     public delete(namespaceId: string, id: string): Promise<boolean> {
-        return deleteProjectUseCase(this.repository, this.runtime, namespaceId, id);
+        return deleteProjectUseCase(this.repository, namespaceId, id);
     }
 }

@@ -97,10 +97,9 @@ export class DockerExecutorAdapter implements DockerExecutor {
         target: DeploymentTarget,
         environment: Record<string, string>,
         routing: RoutingLabels,
-        networks: string[],
         onLog?: DockerLogListener,
     ): Promise<string> {
-        const { serviceId, projectName, networkAlias } = target;
+        const { serviceId, projectName } = target;
         const emit = (line: string): void => onLog?.(line);
         const directory = await this.createWorkspace('gitpaas-deploy-');
 
@@ -157,7 +156,7 @@ export class DockerExecutorAdapter implements DockerExecutor {
 
             // The recipe the daemon receives keeps the true value of every variable, and the dumped
             // copy alone carries the masked one, which the user of the service reads afterwards.
-            const finalCompose = toFinalComposeText(compose, dirname(composeFile), routed, networks, networkAlias, recipeNetworks);
+            const finalCompose = toFinalComposeText(compose, dirname(composeFile), routed, recipeNetworks);
 
             emit('▶ Creating and starting containers…');
 
@@ -167,10 +166,6 @@ export class DockerExecutorAdapter implements DockerExecutor {
             // `dockerode-compose` crashes on an `external` network of the recipe, so the routed
             // containers join the network of the proxy once the stack is already up.
             await this.attachToProxy(containers, routed, emit);
-
-            // The networks of the project are external to the recipe too, so the containers of the
-            // stack join them once it is up, under the slug of the service.
-            await this.attachToProjectNetworks(containers, networks, networkAlias, emit);
 
             // The external networks the recipe declared left it before the start, so every container
             // of a service that named one joins it now, under the name of that service.
@@ -413,39 +408,6 @@ export class DockerExecutorAdapter implements DockerExecutor {
                     `Could not attach container ${container.id} to the network ${PROXY_NETWORK}: ${message}`,
                     DockerExecutorAdapter.name,
                 );
-            }
-        }
-    }
-
-    /**
-     * Attaches every container of a started stack to the networks of the project the service joined.
-     *
-     * @param containers Started containers of the stack
-     * @param networks Names on the daemon of the networks of the project
-     * @param networkAlias Alias the containers answer to on those networks
-     * @param emit Line emitter
-     */
-    private async attachToProjectNetworks(
-        containers: StartedContainer[],
-        networks: string[],
-        networkAlias: string,
-        emit: DockerLogListener,
-    ): Promise<void> {
-        for (const network of networks) {
-            for (const container of containers) {
-                try {
-                    await this.docker.connectNetwork(network, container.id, [networkAlias]);
-
-                    emit(`▶ Attached ${container.id.slice(0, 12)} to the network ${network} as ${networkAlias}.`);
-                } catch (error) {
-                    const message = error instanceof Error ? error.message : String(error);
-
-                    emit(`✖ Could not attach container ${container.id.slice(0, 12)} to the network ${network}: ${message}`);
-                    this.logger.warn(
-                        `Could not attach container ${container.id} to the network ${network}: ${message}`,
-                        DockerExecutorAdapter.name,
-                    );
-                }
             }
         }
     }

@@ -220,25 +220,6 @@ export { networkSchema, networkStateSchema } from './networks/network.contract';
 export type { Network, NetworkState } from './networks/network.contract';
 
 export {
-    createProjectNetworkSchema,
-    joinProjectNetworkSchema,
-    PROJECT_NETWORK_NAME_MAX_LENGTH,
-    PROJECT_NETWORK_NAME_MESSAGE,
-    PROJECT_NETWORK_NAME_PATTERN,
-    projectNetworkName,
-    projectNetworkSchema,
-    projectNetworkStateSchema,
-    updateProjectNetworkSchema,
-} from './networks/project-network.contract';
-export type {
-    CreateProjectNetworkDto,
-    JoinProjectNetworkDto,
-    ProjectNetwork,
-    ProjectNetworkState,
-    UpdateProjectNetworkDto,
-} from './networks/project-network.contract';
-
-export {
     attachVolumeSchema,
     COMPOSE_SERVICE_NAME_MESSAGE,
     COMPOSE_SERVICE_NAME_PATTERN,

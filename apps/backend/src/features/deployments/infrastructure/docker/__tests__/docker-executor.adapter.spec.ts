@@ -327,7 +327,6 @@ describe('DockerExecutorAdapter', () => {
         const target = (overrides: Partial<DeploymentTarget> = {}): DeploymentTarget => ({
             serviceId,
             projectName: 'test-project',
-            networkAlias: 'my-service',
             ...overrides,
         });
 
@@ -364,7 +363,7 @@ describe('DockerExecutorAdapter', () => {
                 up: jest.fn().mockResolvedValue({ services: [] }),
             };
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
         };
 
         it('extracts the repository under the folder the environment names, which the daemon sees at the same path', async () => {
@@ -408,7 +407,6 @@ describe('DockerExecutorAdapter', () => {
                 target(),
                 { DANGEROUS_KEY: 'privileged' },
                 {},
-                [],
                 jest.fn(),
             )).rejects.toThrow('The compose file declares "services.web.privileged"');
         });
@@ -416,7 +414,7 @@ describe('DockerExecutorAdapter', () => {
         it('refuses a path of the compose file that escapes the folder of the repository', async () => {
             const sut = executorWithRuntime({ createComposeProject });
 
-            await expect(sut.up(Buffer.from('archive'), '../../etc/compose.yml', target(), {}, {}, [], jest.fn()))
+            await expect(sut.up(Buffer.from('archive'), '../../etc/compose.yml', target(), {}, {}, jest.fn()))
                 .rejects.toThrow('The compose file declares "composerPath"');
             expect(createComposeProject).not.toHaveBeenCalled();
         });
@@ -430,7 +428,7 @@ describe('DockerExecutorAdapter', () => {
 
             const sut = executorWithRuntime({ createComposeProject });
 
-            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn()))
+            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn()))
                 .rejects.toThrow('The compose file declares "services.web.volumes"');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
         });
@@ -444,7 +442,7 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ createComposeProject, listContainers });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(onLog.mock.calls.map((call) => call[0])).toEqual([
                 '▶ Extracting repository…',
@@ -473,7 +471,7 @@ describe('DockerExecutorAdapter', () => {
             const removeContainer = jest.fn().mockResolvedValue(undefined);
             const sut = executorWithRuntime({ createComposeProject, listContainers, removeContainer });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(listContainers).toHaveBeenCalledWith(
                 { labels: { 'io.gitpaas.managed': 'true' }, service: '3f2504e0-4f89-41d3-9a0c-0305e82c3301' },
@@ -495,7 +493,7 @@ describe('DockerExecutorAdapter', () => {
             const removeContainer = jest.fn().mockResolvedValue(undefined);
             const sut = executorWithRuntime({ createComposeProject, listContainers, removeContainer });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(removeContainer).toHaveBeenCalledWith('previous-1', expect.objectContaining({ removeVolumes: true }));
         });
@@ -510,7 +508,7 @@ describe('DockerExecutorAdapter', () => {
             const onLog = jest.fn();
 
             await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog),
             ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith('✖ Could not remove the previous container previous-123: container is restarting');
@@ -530,7 +528,7 @@ describe('DockerExecutorAdapter', () => {
             const removeNetwork = jest.fn().mockResolvedValue(undefined);
             const sut = executorWithRuntime({ createComposeProject, listNetworks, removeNetwork });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(listNetworks).toHaveBeenCalledWith({
                 labels: { 'io.gitpaas.managed': 'true' },
@@ -551,7 +549,7 @@ describe('DockerExecutorAdapter', () => {
             const onLog = jest.fn();
 
             await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog),
             ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith(
@@ -584,7 +582,7 @@ describe('DockerExecutorAdapter', () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
             const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             const gitpaas = {
                 'io.gitpaas.managed': 'true',
@@ -624,7 +622,6 @@ describe('DockerExecutorAdapter', () => {
                 target(),
                 { DATABASE_URL: 'postgres://db' },
                 {},
-                [],
                 jest.fn(),
             );
 
@@ -655,7 +652,6 @@ describe('DockerExecutorAdapter', () => {
                 target(),
                 { DATABASE_URL: 'postgres://db' },
                 {},
-                [],
                 jest.fn(),
             );
 
@@ -674,7 +670,7 @@ describe('DockerExecutorAdapter', () => {
             const buildImage = jest.fn().mockResolvedValue({});
             const sut = executorWithRuntime({ createComposeProject, buildImage, followProgress });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), { TAG: '1.4.0' }, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), { TAG: '1.4.0' }, {}, jest.fn());
 
             const [, options] = buildImage.mock.calls[0] as [unknown, { buildArgs?: unknown }];
             const [contextOptions] = (tar.c as unknown as jest.Mock).mock.calls[0] as [{ cwd: string }];
@@ -701,7 +697,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, onLog);
 
             expect(labelsAtUp).toContain('traefik.enable=true');
             expect(connectNetwork).toHaveBeenCalledTimes(1);
@@ -724,7 +720,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, onLog);
 
             expect(onLog).toHaveBeenCalledWith('▹ The recipe declares no service "web"; the domains that name it stay unrouted.');
             expect(connectNetwork).not.toHaveBeenCalled();
@@ -744,7 +740,7 @@ describe('DockerExecutorAdapter', () => {
                 createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
             });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(connectNetwork).not.toHaveBeenCalled();
         });
@@ -773,7 +769,6 @@ describe('DockerExecutorAdapter', () => {
                 target(),
                 { DB_PASSWORD: 's3cret' },
                 routing,
-                ['gitpaas-p-a'],
                 jest.fn(),
             );
 
@@ -784,10 +779,8 @@ describe('DockerExecutorAdapter', () => {
             expect(dumped.services.web.networks).toEqual({
                 network_default: null,
                 'gitpaas-proxy': null,
-                'gitpaas-p-a': { aliases: ['my-service'] },
             });
             expect(dumped.networks['gitpaas-proxy']).toEqual({ external: true });
-            expect(dumped.networks['gitpaas-p-a']).toEqual({ external: true });
         });
 
         it('reports a failed attachment on the log and still brings the stack up', async () => {
@@ -806,78 +799,10 @@ describe('DockerExecutorAdapter', () => {
             const onLog = jest.fn();
 
             await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, [], onLog),
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, onLog),
             ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith('✖ Could not attach container container-1 to the network gitpaas-proxy: no such network');
-            expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
-        });
-
-        it('joins every container of the stack to each network of the project, under the slug of the service', async () => {
-            const container = startedContainer('web');
-            mockCompose.instance = {
-                recipe: { services: { web: { image: 'nginx' } } },
-                down: jest.fn().mockResolvedValue(undefined),
-                up: jest.fn().mockResolvedValue({ services: [container] }),
-            };
-
-            const connectNetwork = jest.fn().mockResolvedValue(undefined);
-            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const sut = executorWithRuntime({
-                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
-            });
-            const onLog = jest.fn();
-
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, ['gitpaas-p-a', 'gitpaas-p-b'], onLog);
-
-            expect(connectNetwork).toHaveBeenCalledTimes(2);
-            expect(connectNetwork).toHaveBeenNthCalledWith(1, 'gitpaas-p-a', 'container-1', ['my-service']);
-            expect(connectNetwork).toHaveBeenNthCalledWith(2, 'gitpaas-p-b', 'container-1', ['my-service']);
-            expect(onLog).toHaveBeenCalledWith('▶ Attached container-1 to the network gitpaas-p-a as my-service.');
-        });
-
-        it('keeps the container on the network of the proxy when it also joins a network of the project', async () => {
-            const container = startedContainer('web');
-            mockCompose.instance = {
-                recipe: { services: { web: { image: 'nginx' } } },
-                down: jest.fn().mockResolvedValue(undefined),
-                up: jest.fn().mockResolvedValue({ services: [container] }),
-            };
-
-            const connectNetwork = jest.fn().mockResolvedValue(undefined);
-            const disconnectNetwork = jest.fn();
-            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const sut = executorWithRuntime({
-                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork, disconnectNetwork,
-            });
-
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, routing, ['gitpaas-p-a'], jest.fn());
-
-            expect(disconnectNetwork).not.toHaveBeenCalled();
-            expect(connectNetwork).toHaveBeenNthCalledWith(1, 'gitpaas-proxy', 'container-1');
-            expect(connectNetwork).toHaveBeenNthCalledWith(2, 'gitpaas-p-a', 'container-1', ['my-service']);
-        });
-
-        it('reports a network of the project that went away and still brings the stack up', async () => {
-            const container = startedContainer('web');
-            mockCompose.instance = {
-                recipe: { services: { web: { image: 'nginx' } } },
-                down: jest.fn().mockResolvedValue(undefined),
-                up: jest.fn().mockResolvedValue({ services: [container] }),
-            };
-
-            const connectNetwork = jest.fn().mockRejectedValue(new Error('no such network'));
-            const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
-            const sut = executorWithRuntime({
-                createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
-            });
-            const onLog = jest.fn();
-
-            await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, ['gitpaas-p-a'], onLog),
-            ).resolves.toContain('services:');
-
-            expect(onLog).toHaveBeenCalledWith('✖ Could not attach container container-1 to the network gitpaas-p-a: no such network');
             expect(onLog).toHaveBeenCalledWith('✔ Stack "test-project" is up (1 container(s))');
         });
 
@@ -899,7 +824,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(connectNetwork).toHaveBeenCalledTimes(2);
             expect(connectNetwork).toHaveBeenNthCalledWith(1, 'gitpaas-shared', 'container-1', ['web']);
@@ -936,7 +861,7 @@ describe('DockerExecutorAdapter', () => {
                 connectNetwork: jest.fn().mockResolvedValue(undefined),
             });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['network_default']);
             expect(serviceNetworksAtUp).toEqual(['network_default']);
@@ -961,7 +886,7 @@ describe('DockerExecutorAdapter', () => {
                 connectNetwork: jest.fn().mockResolvedValue(undefined),
             });
 
-            const text = await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            const text = await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
             const dumped = parse(text) as { services: { web: Record<string, unknown> }; networks: Record<string, unknown> };
 
             expect(dumped.networks['gitpaas-shared']).toEqual({ external: true });
@@ -990,7 +915,7 @@ describe('DockerExecutorAdapter', () => {
             const onLog = jest.fn();
 
             await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog),
             ).rejects.toThrow('The service "web" joins the external network "gitpaas-shared", which the Docker daemon does not hold');
 
             expect(onLog).toHaveBeenCalledWith(
@@ -1016,7 +941,7 @@ describe('DockerExecutorAdapter', () => {
                 createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
             });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(connectNetwork).not.toHaveBeenCalled();
         });
@@ -1035,7 +960,7 @@ describe('DockerExecutorAdapter', () => {
                 createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress, connectNetwork,
             });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(connectNetwork).not.toHaveBeenCalled();
         });
@@ -1060,7 +985,7 @@ describe('DockerExecutorAdapter', () => {
                 createComposeProject, listContainers, pullImage: jest.fn().mockResolvedValue({}), followProgress,
             });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(networksAtTeardown).toEqual({ network_default: {} });
         });
@@ -1078,7 +1003,7 @@ describe('DockerExecutorAdapter', () => {
             const followProgress = jest.fn((_stream, onFinished: (error?: unknown) => void) => { onFinished(); });
             const sut = executorWithRuntime({ createComposeProject, pullImage: jest.fn().mockResolvedValue({}), followProgress });
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
 
             expect(networksAtUp).toEqual({
                 network_default: {
@@ -1114,7 +1039,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(removeNetwork).toHaveBeenCalledTimes(1);
             expect(removeNetwork).toHaveBeenCalledWith('network-1');
@@ -1136,7 +1061,7 @@ describe('DockerExecutorAdapter', () => {
             const sut = executorWithRuntime({ createComposeProject, listNetworks, removeNetwork });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(removeNetwork).not.toHaveBeenCalled();
             expect(onLog.mock.calls.map((call) => call[0])).toEqual([
@@ -1161,7 +1086,7 @@ describe('DockerExecutorAdapter', () => {
             const onLog = jest.fn();
 
             await expect(
-                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog),
+                sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog),
             ).resolves.toContain('services:');
 
             expect(onLog).toHaveBeenCalledWith(
@@ -1205,7 +1130,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['network_default']);
             expect(serviceNetworksAtUp).toEqual(['network_default']);
@@ -1235,7 +1160,7 @@ describe('DockerExecutorAdapter', () => {
                 connectNetwork: jest.fn().mockResolvedValue(undefined),
             });
 
-            const text = await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], jest.fn());
+            const text = await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, jest.fn());
             const dumped = parse(text) as { services: { web: Record<string, unknown> }; networks: Record<string, unknown> };
 
             expect(dumped.networks['test-project_data']).toEqual({ external: true });
@@ -1271,7 +1196,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['data', 'network_default']);
             expect(serviceNetworksAtUp).toEqual(['data']);
@@ -1315,7 +1240,7 @@ describe('DockerExecutorAdapter', () => {
             });
             const onLog = jest.fn();
 
-            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [], onLog);
+            await sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, onLog);
 
             expect(Object.keys(networksAtUp as Record<string, unknown>)).toEqual(['cache', 'network_default']);
             expect(serviceNetworksAtUp).toEqual({ cache: null });
@@ -1337,7 +1262,7 @@ describe('DockerExecutorAdapter', () => {
 
             const sut = executorWithRuntime({ createComposeProject });
 
-            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {}, [])).rejects.toThrow('extract failed');
+            await expect(sut.up(Buffer.from('archive'), 'docker-compose.yml', target(), {}, {})).rejects.toThrow('extract failed');
             expect(rmMock).toHaveBeenCalledWith(tempDir, { recursive: true, force: true });
         });
     });
