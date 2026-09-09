@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_21be4aaee63d33::t_e10d810a085d6d 15
+docs/roadmap/remove-project-networks/TODO.md
+  s_21be4aaee63d33::t_86fdefa893dce0 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d7dd9494b33860e06f41759ad3910e5f000586d4",
+  "prompts": {},
+  "sessions": {
+    "s_21be4aaee63d33": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7baeddbc-181f-4be1-b296-eb741d5ac37c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
