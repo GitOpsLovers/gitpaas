@@ -12,4 +12,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
-- [compose-domains](./roadmap/compose-domains/TODO.md): the domain of a service, declared inside its `docker-compose.yaml`.
