@@ -93,3 +93,21 @@ export function toDbComposeEnvironment(cache: ComposeEnvironmentCache): DbCompos
         refreshedAt: cache.refreshedAt.toISOString(),
     };
 }
+
+/**
+ * Maps the cache of the compose environment of a row into its domain model.
+ *
+ * @param cache Cache the row of the service carries
+ *
+ * @returns The cache of the domain, or `null` when the row carries none
+ */
+export function toComposeEnvironmentCache(cache: DbComposeEnvironment | null): ComposeEnvironmentCache | null {
+    if (!cache) {
+        return null;
+    }
+
+    return {
+        variables: cache.variables,
+        refreshedAt: new Date(cache.refreshedAt),
+    };
+}

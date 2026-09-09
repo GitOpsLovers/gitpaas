@@ -5,7 +5,8 @@ import { getServiceVariablesByServiceUseCase } from '../../../application/get-se
 import { removeServiceVariableUseCase } from '../../../application/remove-service-variable.use-case';
 import { setServiceVariableUseCase } from '../../../application/set-service-variable.use-case';
 import { updateServiceVariableUseCase } from '../../../application/update-service-variable.use-case';
-import { ServiceVariable } from '../../../domain/models/service-variable.models';
+import { ServiceVariable, ServiceVariableRow } from '../../../domain/models/service-variable.models';
+import { DatabaseComposeEnvironmentCacheAdapter } from '../../../infrastructure/database/db-compose-environment-cache.adapter';
 import { DatabaseServiceVariablesRepository } from '../../../infrastructure/database/db-service-variables.repository';
 import { ServiceVariablesService } from '../service-variables.service';
 
@@ -43,9 +44,12 @@ const variable: ServiceVariable = {
     valueSet: true,
 };
 
+const row: ServiceVariableRow = { ...variable, origin: 'user', composeRefreshedAt: null };
+
 describe('ServiceVariablesService', () => {
     let mockServiceVariablesRepository: jest.Mocked<DatabaseServiceVariablesRepository>;
     let mockSecretCipher: jest.Mocked<SecretCipherAdapter>;
+    let mockComposeEnvironmentCache: jest.Mocked<DatabaseComposeEnvironmentCacheAdapter>;
     let sut: ServiceVariablesService;
 
     beforeEach(async () => {
@@ -53,12 +57,14 @@ describe('ServiceVariablesService', () => {
 
         mockServiceVariablesRepository = {} as jest.Mocked<DatabaseServiceVariablesRepository>;
         mockSecretCipher = {} as jest.Mocked<SecretCipherAdapter>;
+        mockComposeEnvironmentCache = {} as jest.Mocked<DatabaseComposeEnvironmentCacheAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 ServiceVariablesService,
                 { provide: DatabaseServiceVariablesRepository, useValue: mockServiceVariablesRepository },
                 { provide: SecretCipherAdapter, useValue: mockSecretCipher },
+                { provide: DatabaseComposeEnvironmentCacheAdapter, useValue: mockComposeEnvironmentCache },
             ],
         }).compile();
 
@@ -66,20 +72,21 @@ describe('ServiceVariablesService', () => {
     });
 
     describe('getByService', () => {
-        it('sends the repository and the service id to the use case', async () => {
-            mockGetServiceVariablesByServiceUseCase.mockResolvedValue([variable]);
+        it('sends the repository, the store of the cache and the service id to the use case', async () => {
+            mockGetServiceVariablesByServiceUseCase.mockResolvedValue([row]);
 
             await sut.getByService(serviceId);
 
             expect(mockGetServiceVariablesByServiceUseCase).toHaveBeenCalledTimes(1);
             expect(mockGetServiceVariablesByServiceUseCase).toHaveBeenCalledWith(
                 mockServiceVariablesRepository,
+                mockComposeEnvironmentCache,
                 serviceId,
             );
         });
 
-        it('returns the variables of the use case', async () => {
-            const variables = [variable];
+        it('returns the rows of the use case', async () => {
+            const variables = [row];
             mockGetServiceVariablesByServiceUseCase.mockResolvedValue(variables);
 
             expect(await sut.getByService(serviceId)).toBe(variables);
@@ -133,7 +140,7 @@ describe('ServiceVariablesService', () => {
     describe('update', () => {
         const updateDto: UpdateServiceVariableDto = { name: 'RENAMED' };
 
-        it('sends the repository, the cipher, the two identifiers and the body to the use case', async () => {
+        it('sends the repository, the cipher, the store of the cache, the two identifiers and the body to the use case', async () => {
             mockUpdateServiceVariableUseCase.mockResolvedValue(variable);
 
             await sut.update(serviceId, variableId, updateDto);
@@ -142,6 +149,7 @@ describe('ServiceVariablesService', () => {
             expect(mockUpdateServiceVariableUseCase).toHaveBeenCalledWith(
                 mockServiceVariablesRepository,
                 mockSecretCipher,
+                mockComposeEnvironmentCache,
                 serviceId,
                 variableId,
                 updateDto,
@@ -163,7 +171,7 @@ describe('ServiceVariablesService', () => {
     });
 
     describe('remove', () => {
-        it('sends the repository and the two identifiers to the use case', async () => {
+        it('sends the repository, the store of the cache and the two identifiers to the use case', async () => {
             mockRemoveServiceVariableUseCase.mockResolvedValue(undefined);
 
             await sut.remove(serviceId, variableId);
@@ -171,6 +179,7 @@ describe('ServiceVariablesService', () => {
             expect(mockRemoveServiceVariableUseCase).toHaveBeenCalledTimes(1);
             expect(mockRemoveServiceVariableUseCase).toHaveBeenCalledWith(
                 mockServiceVariablesRepository,
+                mockComposeEnvironmentCache,
                 serviceId,
                 variableId,
             );
@@ -181,12 +190,7 @@ describe('ServiceVariablesService', () => {
 
             await sut.remove(serviceId, variableId);
 
-            expect(mockRemoveServiceVariableUseCase).not.toHaveBeenCalledWith(
-                mockServiceVariablesRepository,
-                mockSecretCipher,
-                serviceId,
-                variableId,
-            );
+            expect(mockRemoveServiceVariableUseCase.mock.calls[0]).not.toContain(mockSecretCipher);
         });
 
         it('resolves with no value', async () => {
@@ -265,7 +269,7 @@ describe('ServiceVariablesService', () => {
         });
 
         it('never names a sensitive action when the variables are read', async () => {
-            mockGetServiceVariablesByServiceUseCase.mockResolvedValue([variable]);
+            mockGetServiceVariablesByServiceUseCase.mockResolvedValue([row]);
 
             const event = await eventOf(async () => {
                 await sut.getByService(serviceId);

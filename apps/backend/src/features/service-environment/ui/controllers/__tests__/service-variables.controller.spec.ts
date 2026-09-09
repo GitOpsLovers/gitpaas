@@ -7,7 +7,7 @@ import {
     ServiceVariableNameTakenError,
     ServiceVariableNotFoundError,
 } from '../../../domain/errors/service-variable.errors';
-import { ServiceVariable } from '../../../domain/models/service-variable.models';
+import { ServiceVariable, ServiceVariableRow } from '../../../domain/models/service-variable.models';
 import { ServiceVariablesService } from '../../services/service-variables.service';
 import { ServiceVariablesController } from '../service-variables.controller';
 
@@ -34,6 +34,10 @@ const secretVariable: ServiceVariable = {
     value: null,
     valueSet: true,
 };
+
+const plainRow: ServiceVariableRow = { ...plainVariable, origin: 'user', composeRefreshedAt: null };
+
+const secretRow: ServiceVariableRow = { ...secretVariable, origin: 'user', composeRefreshedAt: null };
 
 /**
  * Shape of a single entry of the route-argument metadata NestJS stores per handler.
@@ -111,7 +115,7 @@ describe('ServiceVariablesController', () => {
 
     describe('no answer carries the value of a secret', () => {
         it('gives a secret with no value, and with the mark that a value is set', async () => {
-            mockServiceVariablesService.getByService.mockResolvedValue([plainVariable, secretVariable]);
+            mockServiceVariablesService.getByService.mockResolvedValue([plainRow, secretRow]);
 
             const result = await sut.getByService(serviceId);
 
@@ -122,11 +126,13 @@ describe('ServiceVariablesController', () => {
                 secret: true,
                 value: null,
                 valueSet: true,
+                origin: 'user',
+                composeRefreshedAt: null,
             });
         });
 
         it('carries no clear text of a secret in the body of the list', async () => {
-            mockServiceVariablesService.getByService.mockResolvedValue([plainVariable, secretVariable]);
+            mockServiceVariablesService.getByService.mockResolvedValue([plainRow, secretRow]);
 
             const body = JSON.stringify(await sut.getByService(serviceId));
 
@@ -155,7 +161,7 @@ describe('ServiceVariablesController', () => {
 
     describe('getByService', () => {
         it('delegates to the service with the received service id', async () => {
-            mockServiceVariablesService.getByService.mockResolvedValue([plainVariable]);
+            mockServiceVariablesService.getByService.mockResolvedValue([plainRow]);
 
             await sut.getByService(serviceId);
 
@@ -163,10 +169,22 @@ describe('ServiceVariablesController', () => {
             expect(mockServiceVariablesService.getByService).toHaveBeenCalledWith(serviceId);
         });
 
-        it('returns the variables produced by the service', async () => {
-            mockServiceVariablesService.getByService.mockResolvedValue([plainVariable]);
+        it('returns the rows produced by the service', async () => {
+            mockServiceVariablesService.getByService.mockResolvedValue([plainRow]);
 
-            expect(await sut.getByService(serviceId)).toEqual([plainVariable]);
+            expect(await sut.getByService(serviceId)).toEqual([plainRow]);
+        });
+
+        it('gives the moment of the refresh of a row of the compose file as an ISO text', async () => {
+            const refreshedAt = new Date('2026-01-02T03:04:05.000Z');
+            mockServiceVariablesService.getByService.mockResolvedValue([
+                { ...plainRow, origin: 'compose', composeRefreshedAt: refreshedAt },
+            ]);
+
+            const result = await sut.getByService(serviceId);
+
+            expect(result[0].origin).toBe('compose');
+            expect(result[0].composeRefreshedAt).toBe('2026-01-02T03:04:05.000Z');
         });
 
         it('returns an empty list when the service holds no variable', async () => {

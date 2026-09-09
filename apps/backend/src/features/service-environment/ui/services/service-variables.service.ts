@@ -5,8 +5,10 @@ import { getServiceVariablesByServiceUseCase } from '../../application/get-servi
 import { removeServiceVariableUseCase } from '../../application/remove-service-variable.use-case';
 import { setServiceVariableUseCase } from '../../application/set-service-variable.use-case';
 import { updateServiceVariableUseCase } from '../../application/update-service-variable.use-case';
-import { ServiceVariable } from '../../domain/models/service-variable.models';
+import { ServiceVariable, ServiceVariableRow } from '../../domain/models/service-variable.models';
+import type { ComposeEnvironmentCacheStore } from '../../domain/ports/compose-environment-cache-store.port';
 import type { ServiceVariablesRepository } from '../../domain/repositories/service-variables.repository';
+import { DatabaseComposeEnvironmentCacheAdapter } from '../../infrastructure/database/db-compose-environment-cache.adapter';
 import { DatabaseServiceVariablesRepository } from '../../infrastructure/database/db-service-variables.repository';
 
 import { SECURITY_ACTION_SECRET_CHANGE } from '@core/domain/constants/telemetry.constants';
@@ -24,10 +26,12 @@ export class ServiceVariablesService {
         private readonly repository: ServiceVariablesRepository,
         @Inject(SecretCipherAdapter)
         private readonly cipher: SecretCipher,
+        @Inject(DatabaseComposeEnvironmentCacheAdapter)
+        private readonly cacheStore: ComposeEnvironmentCacheStore,
     ) {}
 
-    public getByService(serviceId: string): Promise<ServiceVariable[]> {
-        return getServiceVariablesByServiceUseCase(this.repository, serviceId);
+    public getByService(serviceId: string): Promise<ServiceVariableRow[]> {
+        return getServiceVariablesByServiceUseCase(this.repository, this.cacheStore, serviceId);
     }
 
     public set(serviceId: string, setDto: SetServiceVariableDto): Promise<ServiceVariable> {
@@ -43,12 +47,12 @@ export class ServiceVariablesService {
     ): Promise<ServiceVariable> {
         recordSecurityAction(SECURITY_ACTION_SECRET_CHANGE);
 
-        return updateServiceVariableUseCase(this.repository, this.cipher, serviceId, id, updateDto);
+        return updateServiceVariableUseCase(this.repository, this.cipher, this.cacheStore, serviceId, id, updateDto);
     }
 
     public remove(serviceId: string, id: string): Promise<void> {
         recordSecurityAction(SECURITY_ACTION_SECRET_CHANGE);
 
-        return removeServiceVariableUseCase(this.repository, serviceId, id);
+        return removeServiceVariableUseCase(this.repository, this.cacheStore, serviceId, id);
     }
 }

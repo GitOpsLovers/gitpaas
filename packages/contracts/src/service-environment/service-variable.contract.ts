@@ -36,6 +36,20 @@ export const serviceVariableSchema = z.object({
 });
 
 /**
+ * Where a row of the list of the variables of a service comes from.
+ */
+export const serviceVariableOriginSchema = z.enum(['user', 'compose']);
+
+/**
+ * A row of the list of the variables of a service on the wire. Its `id` is `null` while the user never saved the row.
+ */
+export const serviceVariableRowSchema = serviceVariableSchema.extend({
+    id: z.uuid().nullable(),
+    origin: serviceVariableOriginSchema,
+    composeRefreshedAt: z.iso.datetime().nullable(),
+});
+
+/**
  * The body that sets a variable of a service.
  */
 export const setServiceVariableSchema = z.strictObject({
@@ -56,6 +70,16 @@ export const updateServiceVariableSchema = z.strictObject({
  * The shape of a variable that an answer of the API carries.
  */
 export type ServiceVariable = z.infer<typeof serviceVariableSchema>;
+
+/**
+ * The shape of the origin of a row of the list of the variables of a service.
+ */
+export type ServiceVariableOrigin = z.infer<typeof serviceVariableOriginSchema>;
+
+/**
+ * The shape of a row of the list of the variables of a service that an answer of the API carries.
+ */
+export type ServiceVariableRow = z.infer<typeof serviceVariableRowSchema>;
 
 /**
  * The shape of the body that sets a variable.

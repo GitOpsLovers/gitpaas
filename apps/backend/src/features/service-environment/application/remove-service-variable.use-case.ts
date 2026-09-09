@@ -1,10 +1,12 @@
 import { ServiceVariableNotFoundError } from '../domain/errors/service-variable.errors';
+import { ComposeEnvironmentCacheStore } from '../domain/ports/compose-environment-cache-store.port';
 import { ServiceVariablesRepository } from '../domain/repositories/service-variables.repository';
 
 /**
  * Use case for removing a variable of a service.
  *
  * @param repository Service variables repository
+ * @param cacheStore Store of the cache of the compose environment of a service
  * @param serviceId Service the variable belongs to
  * @param id Variable id
  *
@@ -12,6 +14,7 @@ import { ServiceVariablesRepository } from '../domain/repositories/service-varia
  */
 export async function removeServiceVariableUseCase(
     repository: ServiceVariablesRepository,
+    cacheStore: ComposeEnvironmentCacheStore,
     serviceId: string,
     id: string,
 ): Promise<void> {
@@ -26,4 +29,6 @@ export async function removeServiceVariableUseCase(
     if (!deleted) {
         throw new ServiceVariableNotFoundError(id);
     }
+
+    await cacheStore.forgetName(serviceId, variable.name);
 }
