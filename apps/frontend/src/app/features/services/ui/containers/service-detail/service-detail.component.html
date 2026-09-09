@@ -23,10 +23,12 @@
                 [variables]="variables.value() ?? []"
                 [loading]="variables.isLoading()"
                 [saving]="savingVariable()"
+                [refreshing]="refreshingComposeEnvironment()"
                 [error]="variableError()"
                 (set)="setVariable($event)"
                 (update)="changeVariable($event)"
                 (remove)="requestVariableRemoval($event)"
+                (refresh)="refreshComposeEnvironment()"
             />
         }
 
@@ -108,6 +110,19 @@
     icon="trash"
     (confirmed)="confirmVariableRemoval()"
     (cancelled)="pendingVariableRemoval.set(null)"
+/>
+
+<app-confirm-modal
+    [open]="pendingVariableRename() !== null"
+    [message]="renameVariableMessage()"
+    [loading]="savingVariable()"
+    title="Rename a variable of the compose file?"
+    confirmText="Rename"
+    cancelText="Cancel"
+    variant="warning"
+    icon="warning"
+    (confirmed)="confirmVariableRename()"
+    (cancelled)="pendingVariableRename.set(null)"
 />
 
 <app-confirm-modal

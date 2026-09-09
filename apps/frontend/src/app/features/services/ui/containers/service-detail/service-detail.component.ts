@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, linkedSignal, signal } from
 import { Router } from '@angular/router';
 import type {
     Container, Deployment, Domain, FinalCompose, Namespace, Network, Project, ProjectNetwork, RuntimeLogLine, Service,
-    ServiceVariable, Volume,
+    ServiceVariableRow, Volume,
 } from '@gitpaas/contracts';
 import { LucideLayers } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
@@ -140,7 +140,7 @@ export class ServiceDetailComponent {
     protected readonly finalCompose: HttpResourceRef<FinalCompose | undefined> = this.repository.finalComposeByService(() => this.serviceId());
 
     // eslint-disable-next-line max-len
-    protected readonly variables: HttpResourceRef<ServiceVariable[] | undefined> = this.variablesRepository.variablesByService(() => this.serviceId());
+    protected readonly variables: HttpResourceRef<ServiceVariableRow[] | undefined> = this.variablesRepository.variablesByService(() => this.serviceId());
 
     protected readonly activeTab = computed<ServiceTab>(() => {
         const tab = this.tab();
@@ -159,9 +159,19 @@ export class ServiceDetailComponent {
 
     protected readonly variableError = signal<string | null>(null);
 
-    protected readonly pendingVariableRemoval = signal<ServiceVariable | null>(null);
+    protected readonly pendingVariableRemoval = signal<ServiceVariableRow | null>(null);
 
     protected readonly removingVariable = signal(false);
+
+    /**
+     * Change of a row of the compose file that renames it, which waits for the confirmation of the user.
+     */
+    protected readonly pendingVariableRename = signal<ServiceVariableChange | null>(null);
+
+    /**
+     * Whether the read of the compose file of the service is in flight.
+     */
+    protected readonly refreshingComposeEnvironment = signal(false);
 
     protected readonly savingDomain = signal(false);
 
@@ -217,9 +227,24 @@ export class ServiceDetailComponent {
     /**
      * Confirmation message naming the variable pending removal.
      */
-    protected readonly removeVariableMessage = computed(
-        () => `“${this.pendingVariableRemoval()?.name ?? ''}” will no longer reach the containers at the next deployment.`,
-    );
+    protected readonly removeVariableMessage = computed(() => {
+        const variable = this.pendingVariableRemoval();
+        const message = `“${variable?.name ?? ''}” will no longer reach the containers at the next deployment.`;
+
+        return variable?.origin === 'compose'
+            ? `${message} The compose file of this service declares this name, so the row returns to the list, with no value, at the next refresh.`
+            : message;
+    });
+
+    /**
+     * Confirmation message naming the row of the compose file the user renames.
+     */
+    protected readonly renameVariableMessage = computed(() => {
+        const change = this.pendingVariableRename();
+
+        return `The compose file of this service declares “${change?.variable.name ?? ''}”. Under the name `
+            + `“${change?.draft.name ?? ''}” the value no longer reaches the containers.`;
+    });
 
     /**
      * Defines the tabs available in the service detail view.
@@ -391,18 +416,55 @@ export class ServiceDetailComponent {
     }
 
     /**
-     * Changes the name or the value of a stored variable.
+     * Changes a row of the list, and asks for a confirmation before it renames a row of the compose file.
      *
-     * @param change Stored variable and the values the form holds
+     * @param change Row of the list and the values the form holds
      */
     protected async changeVariable(change: ServiceVariableChange): Promise<void> {
+        if (change.variable.origin === 'compose' && change.draft.name !== change.variable.name) {
+            this.pendingVariableRename.set(change);
+
+            return;
+        }
+
+        await this.applyVariableChange(change);
+    }
+
+    /**
+     * Applies the change of the row of the compose file the user confirmed renaming.
+     */
+    protected async confirmVariableRename(): Promise<void> {
+        const change = this.pendingVariableRename();
+
+        if (!change) {
+            return;
+        }
+
+        await this.applyVariableChange(change);
+        this.pendingVariableRename.set(null);
+    }
+
+    /**
+     * Writes the values the form holds. A row the user never saved takes the call that sets a new variable.
+     *
+     * @param change Row of the list and the values the form holds
+     */
+    private async applyVariableChange(change: ServiceVariableChange): Promise<void> {
+        const { id } = change.variable;
+
+        if (id === null) {
+            await this.setVariable(change.draft);
+
+            return;
+        }
+
         this.savingVariable.set(true);
         this.variableError.set(null);
 
         try {
             await lastValueFrom(this.variablesRepository.update(
                 this.serviceId(),
-                change.variable.id,
+                id,
                 buildServiceVariableUpdateUseCase(change.variable, change.draft),
             ));
 
@@ -416,11 +478,32 @@ export class ServiceDetailComponent {
     }
 
     /**
+     * Reads the compose file of the service again, and reloads the list with the names its key `environment` declares.
+     */
+    protected async refreshComposeEnvironment(): Promise<void> {
+        this.refreshingComposeEnvironment.set(true);
+
+        try {
+            await lastValueFrom(this.repository.refreshComposeEnvironment(this.serviceId()));
+
+            this.variables.reload();
+            this.toast.success('Environment refreshed', 'The list holds the names the compose file of this service declares.');
+        } catch {
+            this.toast.error(
+                'Could not read the compose file',
+                'Check the provider, the branch and the path of the compose file of this service.',
+            );
+        } finally {
+            this.refreshingComposeEnvironment.set(false);
+        }
+    }
+
+    /**
      * Opens the removal confirmation for a variable.
      *
-     * @param variable Variable to remove
+     * @param variable Row to remove
      */
-    protected requestVariableRemoval(variable: ServiceVariable): void {
+    protected requestVariableRemoval(variable: ServiceVariableRow): void {
         this.pendingVariableRemoval.set(variable);
     }
 
@@ -434,10 +517,18 @@ export class ServiceDetailComponent {
             return;
         }
 
+        const { id } = variable;
+
+        if (id === null) {
+            this.pendingVariableRemoval.set(null);
+
+            return;
+        }
+
         this.removingVariable.set(true);
 
         try {
-            await lastValueFrom(this.variablesRepository.remove(this.serviceId(), variable.id));
+            await lastValueFrom(this.variablesRepository.remove(this.serviceId(), id));
 
             this.variables.reload();
             this.toast.success('Variable removed', `“${variable.name}” stops at the next deployment.`);

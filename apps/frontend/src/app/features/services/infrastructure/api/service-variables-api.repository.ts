@@ -1,6 +1,6 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { ServiceVariable, SetServiceVariableDto, UpdateServiceVariableDto } from '@gitpaas/contracts';
+import type { ServiceVariable, ServiceVariableRow, SetServiceVariableDto, UpdateServiceVariableDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -20,10 +20,10 @@ export class ServiceVariablesApiRepository {
      *
      * @param serviceId Accessor returning the service identifier
      *
-     * @returns Resource that resolves to the variables of the service
+     * @returns Resource that resolves to the rows of the variables of the service, of the table and of the compose file
      */
     public variablesByService(serviceId: () => string | undefined) {
-        return httpResource<ServiceVariable[]>(() => {
+        return httpResource<ServiceVariableRow[]>(() => {
             const id = serviceId();
 
             return id ? `${this.url}/${id}/variables` : undefined;

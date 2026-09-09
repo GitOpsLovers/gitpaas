@@ -5,8 +5,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import type {
-    Container, Domain, FinalCompose, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service, ServiceVariable,
-    Volume,
+    Container, Domain, FinalCompose, Namespace, Project, ProjectNetwork, RuntimeLogLine, Service,
+    ServiceVariableRow, Volume,
 } from '@gitpaas/contracts';
 import { NEVER, of, Subject, throwError } from 'rxjs';
 
@@ -48,11 +48,17 @@ interface ServiceDetailInternals {
     tabs: Array<{ id: string; label: string }>;
     savingVariable: () => boolean;
     variableError: () => string | null;
-    pendingVariableRemoval: () => ServiceVariable | null;
+    pendingVariableRemoval: WritableSignal<ServiceVariableRow | null>;
     removingVariable: () => boolean;
+    removeVariableMessage: () => string;
+    pendingVariableRename: WritableSignal<ServiceVariableChange | null>;
+    renameVariableMessage: () => string;
+    refreshingComposeEnvironment: () => boolean;
     setVariable: (draft: ServiceVariableDraft) => Promise<void>;
     changeVariable: (change: ServiceVariableChange) => Promise<void>;
-    requestVariableRemoval: (variable: ServiceVariable) => void;
+    confirmVariableRename: () => Promise<void>;
+    refreshComposeEnvironment: () => Promise<void>;
+    requestVariableRemoval: (variable: ServiceVariableRow) => void;
     confirmVariableRemoval: () => Promise<void>;
     savingDomain: () => boolean;
     domainError: () => string | null;
@@ -102,8 +108,37 @@ const service: Service = {
     createdAt: '2026-01-01T00:00:00.000Z',
 };
 
-const variable: ServiceVariable = {
-    id: 'var-1', serviceId: 'sv-1', name: 'DATABASE_URL', secret: false, value: 'postgres://db', valueSet: true,
+const variable: ServiceVariableRow = {
+    id: 'var-1',
+    serviceId: 'sv-1',
+    name: 'DATABASE_URL',
+    secret: false,
+    value: 'postgres://db',
+    valueSet: true,
+    origin: 'user',
+    composeRefreshedAt: null,
+};
+
+const composeVariable: ServiceVariableRow = {
+    id: 'var-2',
+    serviceId: 'sv-1',
+    name: 'PORT',
+    secret: false,
+    value: '8080',
+    valueSet: true,
+    origin: 'compose',
+    composeRefreshedAt: '2026-03-14T10:00:00.000Z',
+};
+
+const unsavedComposeVariable: ServiceVariableRow = {
+    id: null,
+    serviceId: 'sv-1',
+    name: 'REDIS_URL',
+    secret: false,
+    value: 'redis://cache:6379',
+    valueSet: true,
+    origin: 'compose',
+    composeRefreshedAt: '2026-03-14T10:00:00.000Z',
 };
 
 const domain: Domain = {
@@ -182,6 +217,7 @@ describe('ServiceDetailComponent', () => {
         serviceById: ReturnType<typeof vi.fn>;
         finalComposeByService: ReturnType<typeof vi.fn>;
         update: ReturnType<typeof vi.fn>;
+        refreshComposeEnvironment: ReturnType<typeof vi.fn>;
     };
     let namespacesRepository: {
         namespaceById: ReturnType<typeof vi.fn>;
@@ -259,6 +295,7 @@ describe('ServiceDetailComponent', () => {
             serviceById: vi.fn().mockReturnValue({ value: serviceValue }),
             finalComposeByService: vi.fn().mockReturnValue({ value: finalComposeValue, isLoading: () => false }),
             update: vi.fn(),
+            refreshComposeEnvironment: vi.fn(),
         };
         namespacesRepository = {
             namespaceById: vi.fn().mockReturnValue({ value: namespaceValue }),
@@ -631,6 +668,124 @@ describe('ServiceDetailComponent', () => {
 
         expect(variablesRepository.remove).not.toHaveBeenCalled();
         expect(variablesResource.reload).not.toHaveBeenCalled();
+    });
+
+    test('names the compose file in the confirmation of the removal of a row it declares', () => {
+        create();
+
+        component.requestVariableRemoval(composeVariable);
+
+        expect(component.removeVariableMessage()).toContain('PORT');
+        expect(component.removeVariableMessage()).toContain('compose file');
+    });
+
+    test('says nothing of the compose file in the confirmation of the removal of a row of the user', () => {
+        create();
+
+        component.requestVariableRemoval(variable);
+
+        expect(component.removeVariableMessage()).not.toContain('compose file');
+    });
+
+    test('removes nothing when the row pending confirmation was never saved', async () => {
+        create();
+
+        component.requestVariableRemoval(unsavedComposeVariable);
+        await component.confirmVariableRemoval();
+
+        expect(variablesRepository.remove).not.toHaveBeenCalled();
+        expect(component.pendingVariableRemoval()).toBeNull();
+    });
+
+    test('changes a row of the compose file that keeps its name with no confirmation', async () => {
+        variablesRepository.update.mockReturnValue(of(composeVariable));
+        create();
+
+        await component.changeVariable({
+            variable: composeVariable, draft: { name: 'PORT', value: '9090', secret: false },
+        });
+
+        expect(component.pendingVariableRename()).toBeNull();
+        expect(variablesRepository.update).toHaveBeenCalledWith('sv-1', 'var-2', { name: 'PORT', value: '9090' });
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+    });
+
+    test('asks for a confirmation before it renames a row of the compose file, and writes nothing yet', async () => {
+        create();
+
+        const change: ServiceVariableChange = {
+            variable: composeVariable, draft: { name: 'HTTP_PORT', value: '8080', secret: false },
+        };
+
+        await component.changeVariable(change);
+
+        expect(component.pendingVariableRename()).toEqual(change);
+        expect(component.renameVariableMessage()).toContain('PORT');
+        expect(component.renameVariableMessage()).toContain('HTTP_PORT');
+        expect(variablesRepository.update).not.toHaveBeenCalled();
+    });
+
+    test('renames the row of the compose file the user confirmed, and closes the confirmation', async () => {
+        variablesRepository.update.mockReturnValue(of(composeVariable));
+        create();
+
+        await component.changeVariable({
+            variable: composeVariable, draft: { name: 'HTTP_PORT', value: '8080', secret: false },
+        });
+        await component.confirmVariableRename();
+
+        expect(variablesRepository.update).toHaveBeenCalledWith('sv-1', 'var-2', { name: 'HTTP_PORT', value: '8080' });
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+        expect(component.pendingVariableRename()).toBeNull();
+    });
+
+    test('renames nothing when the confirmation of the rename holds no change', async () => {
+        create();
+
+        await component.confirmVariableRename();
+
+        expect(variablesRepository.update).not.toHaveBeenCalled();
+        expect(variablesResource.reload).not.toHaveBeenCalled();
+    });
+
+    test('saves a row of the compose file the user never saved with the call that sets a new variable', async () => {
+        variablesRepository.set.mockReturnValue(of(variable));
+        create();
+
+        await component.changeVariable({
+            variable: unsavedComposeVariable,
+            draft: { name: 'REDIS_URL', value: 'redis://cache:6379', secret: false },
+        });
+
+        expect(variablesRepository.set).toHaveBeenCalledWith('sv-1', {
+            name: 'REDIS_URL', value: 'redis://cache:6379', secret: false,
+        });
+        expect(variablesRepository.update).not.toHaveBeenCalled();
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+    });
+
+    test('reads the compose file again and reloads the list', async () => {
+        repository.refreshComposeEnvironment.mockReturnValue(of(undefined));
+        create();
+
+        await component.refreshComposeEnvironment();
+
+        expect(repository.refreshComposeEnvironment).toHaveBeenCalledWith('sv-1');
+        expect(variablesResource.reload).toHaveBeenCalledTimes(1);
+        expect(toast.success).toHaveBeenCalledWith('Environment refreshed', expect.any(String));
+        expect(component.refreshingComposeEnvironment()).toBe(false);
+    });
+
+    test('warns and reloads nothing when the compose file of the service cannot be read', async () => {
+        repository.refreshComposeEnvironment.mockReturnValue(throwError(() => new Error('boom')));
+        create();
+
+        await component.refreshComposeEnvironment();
+
+        expect(variablesResource.reload).not.toHaveBeenCalled();
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalledWith('Could not read the compose file', expect.any(String));
+        expect(component.refreshingComposeEnvironment()).toBe(false);
     });
 
     test('offers the domains tab after the environment tab', () => {
@@ -1006,7 +1161,11 @@ describe('ServiceDetailComponent', () => {
 // `ServiceDetailComponent` through the actual bindings of `service-detail.component.html`, and not
 // by calling a handler directly.
 describe('ServiceDetailComponent bindings of the child outputs', () => {
-    let repository: { serviceById: ReturnType<typeof vi.fn>; finalComposeByService: ReturnType<typeof vi.fn> };
+    let repository: {
+        serviceById: ReturnType<typeof vi.fn>;
+        finalComposeByService: ReturnType<typeof vi.fn>;
+        refreshComposeEnvironment: ReturnType<typeof vi.fn>;
+    };
     let projectsRepository: {
         namespaceId: ReturnType<typeof signal<string | undefined>>;
         projectById: ReturnType<typeof vi.fn>;
@@ -1029,6 +1188,7 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
             finalComposeByService: vi.fn().mockReturnValue({
                 value: signal(undefined), isLoading: signal(false),
             }),
+            refreshComposeEnvironment: vi.fn().mockReturnValue(NEVER),
         };
         deploymentsResource = { value: signal(undefined), reload: vi.fn() };
         projectsRepository = {
@@ -1160,6 +1320,12 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
         child.remove.emit(variable);
 
         expect(spy).toHaveBeenCalledWith(variable);
+    });
+
+    test('passes the refresh output to refreshComposeEnvironment through the real template', () => {
+        child.refresh.emit();
+
+        expect(repository.refreshComposeEnvironment).toHaveBeenCalledWith('sv-1');
     });
 
     test('reloads the deployments once when the log stream of a deployment reaches its end', () => {
