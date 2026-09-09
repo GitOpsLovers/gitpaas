@@ -1,0 +1,25 @@
+apps/backend/src/features/deployments/application/run-deployment.use-case.ts
+  s_ac399fc7489c0d::t_eb22341b5b17d4 21,24,88-117,139,156,184-189
+apps/backend/src/features/deployments/ui/services/__tests__/deployment-runner.service.spec.ts
+  s_ac399fc7489c0d::t_b0c74edab29409 29,96,131,159,206,530,553,593,611,660
+apps/backend/src/features/deployments/ui/services/deployment-runner.service.ts
+  s_ac399fc7489c0d::t_d665b2bd7a724a 39,41,81-82,162
+apps/backend/src/features/services/services.module.ts
+  s_ac399fc7489c0d::t_2910286a2b7504 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fd5db5f97a0fc51ac2227ff5f102230a6339f265",
+  "prompts": {},
+  "sessions": {
+    "s_ac399fc7489c0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8baca738-1516-403d-b045-a16e716df20e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
