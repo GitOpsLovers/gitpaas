@@ -1,3 +1,11 @@
+## [2.26.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.25.0...v2.26.0) (2026-09-09)
+
+### Features
+
+* **domains:** cache the domain declared in the compose file ([#279](https://github.com/GitOpsLovers/gitpaas/issues/279)) ([93ed719](https://github.com/GitOpsLovers/gitpaas/commit/93ed7194dbb46588cac945733705a6d3aa7efe85))
+* **domains:** reconcile declared domains at deployment ([#280](https://github.com/GitOpsLovers/gitpaas/issues/280)) ([00a4eae](https://github.com/GitOpsLovers/gitpaas/commit/00a4eaebe5b5eebe25ba8f0ae105effe48efb665))
+* **domains:** show the compose domain in the tab ([#281](https://github.com/GitOpsLovers/gitpaas/issues/281)) ([7362959](https://github.com/GitOpsLovers/gitpaas/commit/7362959ce0af87188f3f5853121591547f236d68))
+
 ## [2.25.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.24.0...v2.25.0) (2026-09-09)
 
 ### Features
