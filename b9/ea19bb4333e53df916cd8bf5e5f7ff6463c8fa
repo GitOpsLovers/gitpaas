@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_ac399fc7489c0d::t_4efc05ed3e9ef2 15
+docs/roadmap/remove-volume-creation/TODO.md
+  s_ac399fc7489c0d::t_829d60b67b6f46 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b9ea19bb4333e53df916cd8bf5e5f7ff6463c8fa",
+  "prompts": {},
+  "sessions": {
+    "s_ac399fc7489c0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8baca738-1516-403d-b045-a16e716df20e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
