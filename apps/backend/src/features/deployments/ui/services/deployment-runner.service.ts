@@ -36,7 +36,9 @@ import { DatabaseProvidersRepository } from '@features/providers/infrastructure/
 import { GithubProviderClientAdapter } from '@features/providers/infrastructure/github/github-provider-client.adapter';
 import type { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
 import { DatabaseServiceVariablesRepository } from '@features/service-environment/infrastructure/database/db-service-variables.repository';
+import type { RepositoryComposeFile } from '@features/services/domain/ports/repository-compose-file.port';
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
+import { TarRepositoryComposeFileAdapter } from '@features/services/infrastructure/archive/tar-repository-compose-file.adapter';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
 import type { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
 import type { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
@@ -76,6 +78,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly daemonVolumesRepository: DaemonVolumesRepository,
         @Inject(GithubProviderClientAdapter)
         private readonly providerClient: ProviderClient,
+        @Inject(TarRepositoryComposeFileAdapter)
+        private readonly repositoryComposeFile: RepositoryComposeFile,
         @Inject(DockerExecutorAdapter)
         private readonly dockerExecutor: DockerExecutor,
         @Inject(TraefikReverseProxyAdapter)
@@ -155,6 +159,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.volumesRepository,
                     this.daemonVolumesRepository,
                     this.providerClient,
+                    this.repositoryComposeFile,
                     this.dockerExecutor,
                     this.reverseProxy,
                     this.logStore,

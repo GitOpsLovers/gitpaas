@@ -18,8 +18,10 @@ import { ProviderClient } from '@features/providers/domain/ports/provider-client
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { getServiceEnvironmentUseCase } from '@features/service-environment/application/get-service-environment.use-case';
 import { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
+import { parseComposeDomainsUseCase } from '@features/services/application/parse-compose-domains.use-case';
 import { ServiceNotFoundError } from '@features/services/domain/errors/service.errors';
 import { Service } from '@features/services/domain/models/service.models';
+import { RepositoryComposeFile } from '@features/services/domain/ports/repository-compose-file.port';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-compose-volumes.use-case';
 import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
@@ -84,6 +86,36 @@ async function loadServiceContext(
 }
 
 /**
+ * Writes the cache of the domains the compose file of the deployment declares, out of the archive the run already holds.
+ *
+ * @param servicesRepository Services repository, which holds the cache of the compose file
+ * @param repositoryComposeFile Reader of the Compose file of a repository
+ * @param archive Gzipped tarball of the repository of the deployment
+ * @param composerPath Path of the Compose file inside the repository
+ * @param serviceId Service the compose file belongs to
+ *
+ * @throws {Error} When the text of the compose file is no valid YAML
+ */
+async function cacheComposeDomains(
+    servicesRepository: ServicesRepository,
+    repositoryComposeFile: RepositoryComposeFile,
+    archive: Buffer,
+    composerPath: string,
+    serviceId: string,
+): Promise<void> {
+    const text = await repositoryComposeFile.read(archive, composerPath);
+
+    if (text === null) {
+        return;
+    }
+
+    await servicesRepository.saveComposeDomains(serviceId, {
+        domains: parseComposeDomainsUseCase(text),
+        refreshedAt: new Date(),
+    });
+}
+
+/**
  * Reason a failed deployment stores and answers with, when the failure is none of the domain.
  */
 export const DEPLOYMENT_FAILURE_REASON = 'The deployment failed. The server holds the detail of the failure.';
@@ -104,6 +136,7 @@ export const RUN_DEPLOYMENT_LOG_CONTEXT = 'runDeploymentUseCase';
  * @param volumesRepository Volumes repository, which holds the volumes the service declares
  * @param daemonVolumesRepository Daemon volumes repository, which reads the volumes the Compose project holds
  * @param providerClient Provider client port
+ * @param repositoryComposeFile Reader of the Compose file of a repository, which the cache of the declared domains reads
  * @param dockerExecutor Docker executor
  * @param reverseProxy Reverse proxy, which builds the labels of the routing of the service
  * @param logStore Logs store
@@ -120,6 +153,7 @@ export async function runDeploymentUseCase(
     volumesRepository: VolumesRepository,
     daemonVolumesRepository: DaemonVolumesRepository,
     providerClient: ProviderClient,
+    repositoryComposeFile: RepositoryComposeFile,
     dockerExecutor: DockerExecutor,
     reverseProxy: ReverseProxy,
     logStore: LogStore,
@@ -146,6 +180,12 @@ export async function runDeploymentUseCase(
         const emit = (line: string): void => {
             logStore.append(payload.deploymentId, maskSecretValuesUseCase(line, secrets)).catch(() => undefined);
         };
+
+        // The cache of the declared domains carries the compose file of this commit, and the
+        // reconciliation reads it alone, so a recipe of no valid YAML keeps the last cache and
+        // never fails a deployment the executor would otherwise bring up.
+        await cacheComposeDomains(servicesRepository, repositoryComposeFile, archive, payload.composerPath, service.id)
+            .catch(() => { emit('▹ The domains of the Compose file could not be read.'); });
 
         // The compose file of the service declares a domain too, and its record reaches the
         // routing of this deployment alone when the reconciliation runs before the build.

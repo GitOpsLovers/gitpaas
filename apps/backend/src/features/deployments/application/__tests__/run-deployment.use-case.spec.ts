@@ -20,6 +20,7 @@ import { ProvidersRepository } from '@features/providers/domain/repositories/pro
 import type { StoredServiceVariable } from '@features/service-environment/domain/models/service-variable.models';
 import { ServiceVariablesRepository } from '@features/service-environment/domain/repositories/service-variables.repository';
 import { Service } from '@features/services/domain/models/service.models';
+import { RepositoryComposeFile } from '@features/services/domain/ports/repository-compose-file.port';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-compose-volumes.use-case';
 import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
@@ -66,6 +67,18 @@ describe('runDeploymentUseCase', () => {
         projectName: service.composeProject,
     };
 
+    /** Compose file of the repository of the deployment, which declares one domain on its service `web`. */
+    const composeText = [
+        'services:',
+        '  web:',
+        '    image: nginx',
+        '    x-gitpaas-domain:',
+        '      host: app.example.com',
+        '      port: 8080',
+        '      https: true',
+        '',
+    ].join('\n');
+
     /** Final Compose text the executor answers with, which the successful run stores on the deployment. */
     const finalCompose = 'services:\n  web:\n    image: nginx\n';
 
@@ -91,9 +104,10 @@ describe('runDeploymentUseCase', () => {
     });
 
     let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'update' | 'findById'>>;
-    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
+    let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById' | 'saveComposeDomains'>>;
     let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCredentials'>>;
     let mockProviderClient: jest.Mocked<Pick<ProviderClient, 'getRepositoryArchive'>>;
+    let mockRepositoryComposeFile: jest.Mocked<Pick<RepositoryComposeFile, 'read'>>;
     let mockServiceVariablesRepository: jest.Mocked<Pick<ServiceVariablesRepository, 'getStoredByService'>>;
     let mockDomainsRepository: jest.Mocked<Pick<DomainsRepository, 'getByService'>>;
     let mockVolumesRepository: jest.Mocked<Pick<VolumesRepository, 'listByService'>>;
@@ -114,6 +128,7 @@ describe('runDeploymentUseCase', () => {
             mockVolumesRepository as unknown as VolumesRepository,
             mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
             mockProviderClient as unknown as ProviderClient,
+            mockRepositoryComposeFile,
             mockDockerExecutor as unknown as DockerExecutor,
             mockReverseProxy as unknown as ReverseProxy,
             mockLogStore as unknown as LogStore,
@@ -131,12 +146,16 @@ describe('runDeploymentUseCase', () => {
         };
         mockServicesRepository = {
             findById: jest.fn().mockResolvedValue(service),
+            saveComposeDomains: jest.fn().mockResolvedValue(undefined),
         };
         mockProvidersRepository = {
             getCredentials: jest.fn().mockResolvedValue(credentials),
         };
         mockProviderClient = {
             getRepositoryArchive: jest.fn(),
+        };
+        mockRepositoryComposeFile = {
+            read: jest.fn().mockResolvedValue(composeText),
         };
         mockServiceVariablesRepository = {
             getStoredByService: jest.fn().mockResolvedValue([]),
@@ -284,6 +303,64 @@ describe('runDeploymentUseCase', () => {
             service.id,
         );
         expect(order).toEqual(['reconcile', 'read']);
+    });
+
+    it('caches the domains the compose file of the run declares before it reconciles them', async () => {
+        const order: string[] = [];
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockServicesRepository.saveComposeDomains.mockImplementation(async () => { order.push('cache'); });
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockReconcileComposeDomainsUseCase.mockImplementation(async () => { order.push('reconcile'); });
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
+
+        await run();
+
+        expect(mockServicesRepository.saveComposeDomains).toHaveBeenCalledTimes(1);
+        expect(mockServicesRepository.saveComposeDomains).toHaveBeenCalledWith(service.id, {
+            domains: [{
+                targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+            }],
+            refreshedAt: expect.any(Date),
+        });
+        expect(order).toEqual(['cache', 'reconcile']);
+    });
+
+    it('reads the compose file out of the archive the run already holds, and never downloads it again', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
+
+        await run();
+
+        expect(mockRepositoryComposeFile.read).toHaveBeenCalledTimes(1);
+        expect(mockRepositoryComposeFile.read).toHaveBeenCalledWith(archive, payload.composerPath);
+        expect(mockProviderClient.getRepositoryArchive).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves the cache untouched, and still reconciles, when the archive carries no compose file', async () => {
+        mockRepositoryComposeFile.read.mockResolvedValue(null);
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
+
+        await run();
+
+        expect(mockServicesRepository.saveComposeDomains).not.toHaveBeenCalled();
+        expect(mockReconcileComposeDomainsUseCase).toHaveBeenCalledTimes(1);
+    });
+
+    it('never fails a deployment, and leaves the cache untouched, when the compose file is no valid YAML', async () => {
+        mockRepositoryComposeFile.read.mockResolvedValue('services: [web');
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
+
+        await run();
+
+        expect(mockServicesRepository.saveComposeDomains).not.toHaveBeenCalled();
+        expect(mockLogStore.append).toHaveBeenCalledWith(payload.deploymentId, '▹ The domains of the Compose file could not be read.');
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'success',
+            finalCompose,
+        });
     });
 
     it('fails the run with the reason of the reconciliation, and starts no stack, when a declared host is taken', async () => {

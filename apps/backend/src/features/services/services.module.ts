@@ -33,6 +33,6 @@ import { ProvidersModule } from '@features/providers/providers.module';
         DockerServiceRuntimeResourcesAdapter,
         TarRepositoryComposeFileAdapter,
     ],
-    exports: [DatabaseServicesRepository],
+    exports: [DatabaseServicesRepository, TarRepositoryComposeFileAdapter],
 })
 export class ServicesModule {}
