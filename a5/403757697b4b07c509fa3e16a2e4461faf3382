@@ -1,0 +1,65 @@
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-guard.spec.ts
+  s_5ab844cf4b470b::t_3a45c81586904f 29-52
+apps/backend/src/features/deployments/infrastructure/docker/compose-guard.ts
+  s_5ab844cf4b470b::t_5109b96ad30edf 1-2,61,145-171,178,209-210
+apps/backend/src/features/service-environment/infrastructure/database/__tests__/db-compose-environment-cache.adapter.spec.ts
+  s_5ab844cf4b470b::t_e204b681a485af 22
+apps/backend/src/features/services/application/__tests__/parse-compose-domains.use-case.spec.ts
+  s_5ab844cf4b470b::t_bab61153935fb0 1-123
+apps/backend/src/features/services/application/__tests__/refresh-compose-domains.use-case.spec.ts
+  s_5ab844cf4b470b::t_35c712e524d6fb 1-181
+apps/backend/src/features/services/application/parse-compose-domains.use-case.ts
+  s_5ab844cf4b470b::t_51ffb7a7d14805 1-72
+apps/backend/src/features/services/application/refresh-compose-domains.use-case.ts
+  s_5ab844cf4b470b::t_7ccb475b3df901 1-69
+apps/backend/src/features/services/domain/models/compose-domains.models.ts
+  s_5ab844cf4b470b::t_416bc87f4d7781 1-39
+apps/backend/src/features/services/domain/repositories/services.repository.ts
+  s_5ab844cf4b470b::t_c7595ba1c9f554 4,64-71
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.repository.spec.ts
+  s_5ab844cf4b470b::t_fb7836a272fac8 39,45,47-49,279-307
+apps/backend/src/features/services/infrastructure/database/__tests__/db-services.transformer.spec.ts
+  s_5ab844cf4b470b::t_2730c41ca1c53b 5,29,59,89,108,247-266
+apps/backend/src/features/services/infrastructure/database/db-service.entity.ts
+  s_5ab844cf4b470b::t_b0e97d022e2012 14-31,68-70
+apps/backend/src/features/services/infrastructure/database/db-services.repository.ts
+  s_5ab844cf4b470b::t_b5c38be229b5c7 7,13,80-83
+apps/backend/src/features/services/infrastructure/database/db-services.transformer.ts
+  s_5ab844cf4b470b::t_026712a0fa4ff5 2,6,115-133
+apps/backend/src/features/services/ui/controllers/__tests__/services.controller.spec.ts
+  s_5ab844cf4b470b::t_f14dfd57b98e55 80-87,103,117,132-139,426-466
+apps/backend/src/features/services/ui/controllers/services.controller.ts
+  s_5ab844cf4b470b::t_6b10ada534d4d5 121-137
+apps/backend/src/features/services/ui/services/__tests__/services.service.spec.ts
+  s_5ab844cf4b470b::t_6939ac6c2bad04 9,33,52-54,297-323,329,354-394
+apps/backend/src/features/services/ui/services/services.service.ts
+  s_5ab844cf4b470b::t_e0662461f4df3f 9,12,93,108-109,118-126,147-166
+docs/roadmap.md
+  s_5ab844cf4b470b::t_647ec108263268 15
+docs/roadmap/compose-domains/TODO.md
+  s_5ab844cf4b470b::t_a48a71fad35421 1-53
+iac/production/migrations/033_services_compose_domains.sql
+  s_5ab844cf4b470b::t_f903609c2c4648 1-13
+packages/contracts/src/domains/__tests__/domain.contract.spec.ts
+  s_5ab844cf4b470b::t_18a295e0e9439e 1,158-200
+packages/contracts/src/domains/domain.contract.ts
+  s_5ab844cf4b470b::t_2c6cff31823b9d 107-125
+packages/contracts/src/index.ts
+  s_5ab844cf4b470b::t_c114987561851f 49-50,59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "a5403757697b4b07c509fa3e16a2e4461faf3382",
+  "prompts": {},
+  "sessions": {
+    "s_5ab844cf4b470b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "575f0b22-d749-452c-b2d8-11e540a806e8",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
