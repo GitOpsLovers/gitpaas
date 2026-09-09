@@ -1,0 +1,23 @@
+docs/business/providers.md
+  s_53d18f7a9f0718::t_d31d3ecc738d03 523-524
+docs/business/service-environment.md
+  s_53d18f7a9f0718::t_c917d6580fd4cb 121-159,226-268
+docs/business/services.md
+  s_53d18f7a9f0718::t_2ae62e16e2be38 197-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "4d2b4f23daccf7244a8c499a8d06ca7302265a67",
+  "prompts": {},
+  "sessions": {
+    "s_53d18f7a9f0718": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa27596aac195cc6b",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
