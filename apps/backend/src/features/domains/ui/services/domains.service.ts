@@ -5,9 +5,11 @@ import { claimDomainUseCase } from '../../application/claim-domain.use-case';
 import { getDomainsByServiceUseCase } from '../../application/get-domains-by-service.use-case';
 import { removeDomainUseCase } from '../../application/remove-domain.use-case';
 import { updateDomainUseCase } from '../../application/update-domain.use-case';
-import { Domain } from '../../domain/models/domain.models';
+import { Domain, DomainRow } from '../../domain/models/domain.models';
+import type { ComposeDomainsCacheStore } from '../../domain/ports/compose-domains-cache-store.port';
 import type { ReverseProxy } from '../../domain/ports/reverse-proxy.port';
 import type { DomainsRepository } from '../../domain/repositories/domains.repository';
+import { DatabaseComposeDomainsCacheAdapter } from '../../infrastructure/database/db-compose-domains-cache.adapter';
 import { DatabaseDomainsRepository } from '../../infrastructure/database/db-domains.repository';
 import { TraefikReverseProxyAdapter } from '../../infrastructure/traefik/traefik-reverse-proxy.adapter';
 
@@ -21,10 +23,12 @@ export class DomainsService {
         private readonly repository: DomainsRepository,
         @Inject(TraefikReverseProxyAdapter)
         private readonly proxy: ReverseProxy,
+        @Inject(DatabaseComposeDomainsCacheAdapter)
+        private readonly cacheStore: ComposeDomainsCacheStore,
     ) {}
 
-    public getByService(serviceId: string): Promise<Domain[]> {
-        return getDomainsByServiceUseCase(this.repository, this.proxy, serviceId);
+    public getByService(serviceId: string): Promise<DomainRow[]> {
+        return getDomainsByServiceUseCase(this.repository, this.proxy, this.cacheStore, serviceId);
     }
 
     public claim(serviceId: string, claimDto: ClaimDomainDto): Promise<Domain> {
@@ -32,7 +36,7 @@ export class DomainsService {
     }
 
     public update(serviceId: string, id: string, updateDto: UpdateDomainDto): Promise<Domain> {
-        return updateDomainUseCase(this.repository, serviceId, id, updateDto);
+        return updateDomainUseCase(this.repository, serviceId, id, updateDto, 'user');
     }
 
     public remove(serviceId: string, id: string): Promise<void> {

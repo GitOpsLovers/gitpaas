@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 import type {
-    Container, Domain, FinalCompose, Namespace, Project, RuntimeLogLine, Service,
+    Container, DomainRow, FinalCompose, Namespace, Project, RuntimeLogLine, Service,
     ServiceVariableRow, Volume,
 } from '@gitpaas/contracts';
 import { NEVER, of, Subject, throwError } from 'rxjs';
@@ -61,12 +61,12 @@ interface ServiceDetailInternals {
     confirmVariableRemoval: () => Promise<void>;
     savingDomain: () => boolean;
     domainError: () => string | null;
-    pendingDomainRemoval: () => Domain | null;
+    pendingDomainRemoval: () => DomainRow | null;
     removeDomainMessage: () => string;
     removingDomain: () => boolean;
     claimDomain: (draft: DomainDraft) => Promise<void>;
     changeDomain: (change: DomainChange) => Promise<void>;
-    requestDomainRemoval: (domain: Domain) => void;
+    requestDomainRemoval: (domain: DomainRow) => void;
     confirmDomainRemoval: () => Promise<void>;
     savingVolume: () => boolean;
     volumeError: () => string | null;
@@ -138,7 +138,7 @@ const unsavedComposeVariable: ServiceVariableRow = {
     composeRefreshedAt: '2026-03-14T10:00:00.000Z',
 };
 
-const domain: Domain = {
+const domain: DomainRow = {
     id: 'dm-1',
     serviceId: 'sv-1',
     host: 'api.example.com',
@@ -147,6 +147,19 @@ const domain: Domain = {
     https: true,
     certificateState: 'pending',
     certificateError: null,
+    origin: 'user',
+};
+
+const declaredDomain: DomainRow = {
+    id: null,
+    serviceId: 'sv-1',
+    host: 'shop.example.com',
+    targetService: 'web',
+    port: 3000,
+    https: true,
+    certificateState: 'none',
+    certificateError: null,
+    origin: 'compose',
 };
 
 const draft: DomainDraft = {
@@ -844,6 +857,17 @@ describe('ServiceDetailComponent', () => {
         expect(toast.success).toHaveBeenCalledWith('Domain saved', expect.stringContaining('after the next deployment'));
     });
 
+    test('claims the domain the compose file declares, which no record holds yet', async () => {
+        domainsRepository.claim.mockReturnValue(of(domain));
+        create('ns-1', 'pr-1', 'sv-1', 'domains');
+
+        await component.changeDomain({ domain: declaredDomain, draft });
+
+        expect(domainsRepository.claim).toHaveBeenCalledWith('sv-1', draft);
+        expect(domainsRepository.update).not.toHaveBeenCalled();
+        expect(domainsResource.reload).toHaveBeenCalledTimes(1);
+    });
+
     test('fills the error and reloads nothing when the API refuses the changed domain', async () => {
         domainsRepository.update.mockReturnValue(throwError(() => new Error('boom')));
         create();
@@ -888,6 +912,17 @@ describe('ServiceDetailComponent', () => {
 
         expect(domainsResource.reload).not.toHaveBeenCalled();
         expect(toast.error).toHaveBeenCalledWith('Could not remove the domain', expect.any(String));
+        expect(component.pendingDomainRemoval()).toBeNull();
+    });
+
+    test('removes no record for the domain the compose file declares, which no record holds yet', async () => {
+        create('ns-1', 'pr-1', 'sv-1', 'domains');
+
+        component.requestDomainRemoval(declaredDomain);
+        await component.confirmDomainRemoval();
+
+        expect(domainsRepository.remove).not.toHaveBeenCalled();
+        expect(domainsResource.reload).not.toHaveBeenCalled();
         expect(component.pendingDomainRemoval()).toBeNull();
     });
 

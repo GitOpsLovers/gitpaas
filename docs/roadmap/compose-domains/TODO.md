@@ -37,11 +37,11 @@ Out of scope: the middlewares, the rules of the path, and every change of the ge
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/domains/`, `apps/frontend/src/app/features/domains/`
 
-- [ ] 3.1 Carry the field `origin` of a domain in the response of the list of the domains of a service.
-- [ ] 3.2 Show the declared domain that holds no record yet as a row of the list, with the identifier null.
-- [ ] 3.3 Show the badge `Compose` on a row of the origin `compose`, as the tab of the variables does.
-- [ ] 3.4 Permit the edit and the delete of such a row from the tab, and turn its origin into `user` when the user saves it.
-- [ ] 3.5 Write the unit tests of the component and of the endpoint.
+- [x] 3.1 Carry the field `origin` of a domain in the response of the list of the domains of a service.
+- [x] 3.2 Show the declared domain that holds no record yet as a row of the list, with the identifier null.
+- [x] 3.3 Show the badge `Compose` on a row of the origin `compose`, as the tab of the variables does.
+- [x] 3.4 Permit the edit and the delete of such a row from the tab, and turn its origin into `user` when the user saves it.
+- [x] 3.5 Write the unit tests of the component and of the endpoint.
 
 ## Phase 4 — The documentation
 

@@ -53,10 +53,12 @@ export {
     DOMAIN_HOST_PATTERN,
     DOMAIN_PORT_MAX,
     DOMAIN_PORT_MIN,
+    domainOriginSchema,
+    domainRowSchema,
     domainSchema,
     updateDomainSchema,
 } from './domains/domain.contract';
-export type { CertificateState, ClaimDomainDto, DeclaredDomain, Domain, UpdateDomainDto } from './domains/domain.contract';
+export type { CertificateState, ClaimDomainDto, DeclaredDomain, Domain, DomainOrigin, DomainRow, UpdateDomainDto } from './domains/domain.contract';
 
 export { deploymentSchema, deploymentStatusSchema, triggerDeploymentSchema } from './deployments/deployment.contract';
 export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deployments/deployment.contract';

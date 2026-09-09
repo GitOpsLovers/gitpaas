@@ -1,7 +1,7 @@
 import type { UpdateDomainDto } from '@gitpaas/contracts';
 
 import { DomainNotFoundError, DomainTakenError } from '../../domain/errors/domain.errors';
-import { Domain } from '../../domain/models/domain.models';
+import { Domain, DomainOrigin } from '../../domain/models/domain.models';
 import { DomainsRepository } from '../../domain/repositories/domains.repository';
 import { updateDomainUseCase } from '../update-domain.use-case';
 
@@ -33,13 +33,14 @@ describe('updateDomainUseCase', () => {
         mockDomainsRepository = { findById: jest.fn(), findByHost: jest.fn(), update: jest.fn() };
     });
 
-    /** Runs the use case with the mocked repository. */
-    const run = (updateDto: UpdateDomainDto): Promise<Domain> =>
+    /** Runs the use case with the mocked repository, on behalf of the user unless the test says otherwise. */
+    const run = (updateDto: UpdateDomainDto, origin: DomainOrigin = 'user'): Promise<Domain> =>
         updateDomainUseCase(
             mockDomainsRepository as unknown as DomainsRepository,
             serviceId,
             domainId,
             updateDto,
+            origin,
         );
 
     it('delegates the change to the repository with the id and the body', async () => {
@@ -49,7 +50,7 @@ describe('updateDomainUseCase', () => {
         await run({ port: 9090 });
 
         expect(mockDomainsRepository.update).toHaveBeenCalledTimes(1);
-        expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { port: 9090 }, undefined);
+        expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { port: 9090 }, undefined, null, 'user');
     });
 
     it('returns the domain that the repository changed', async () => {
@@ -135,6 +136,8 @@ describe('updateDomainUseCase', () => {
                 domainId,
                 { targetService: 'api', https: true },
                 undefined,
+                null,
+                'user',
             );
         });
 
@@ -149,6 +152,8 @@ describe('updateDomainUseCase', () => {
                 domainId,
                 { host: 'api.example.com' },
                 'pending',
+                null,
+                'user',
             );
         });
 
@@ -160,7 +165,7 @@ describe('updateDomainUseCase', () => {
 
             await run({ https: true });
 
-            expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { https: true }, 'pending');
+            expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { https: true }, 'pending', null, 'user');
         });
 
         it('drops the certificate when the domain turns HTTPS off', async () => {
@@ -171,7 +176,7 @@ describe('updateDomainUseCase', () => {
 
             await run({ https: false });
 
-            expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { https: false }, 'none');
+            expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { https: false }, 'none', null, 'user');
         });
 
         it('keeps the domain on HTTP when the host of an HTTP domain changes', async () => {
@@ -189,7 +194,29 @@ describe('updateDomainUseCase', () => {
                 domainId,
                 { host: 'api.example.com' },
                 'none',
+                null,
+                'user',
             );
+        });
+    });
+
+    describe('the origin', () => {
+        it('turns the origin of a domain of the compose file into the user when the user saves it', async () => {
+            mockDomainsRepository.findById.mockResolvedValue(domain({ origin: 'compose' }));
+            mockDomainsRepository.update.mockResolvedValue(domain({ port: 9090, origin: 'user' }));
+
+            await run({ port: 9090 });
+
+            expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { port: 9090 }, undefined, null, 'user');
+        });
+
+        it('keeps the origin of the compose file when the reconciliation saves the change', async () => {
+            mockDomainsRepository.findById.mockResolvedValue(domain({ origin: 'compose' }));
+            mockDomainsRepository.update.mockResolvedValue(domain({ port: 9090, origin: 'compose' }));
+
+            await run({ port: 9090 }, 'compose');
+
+            expect(mockDomainsRepository.update).toHaveBeenCalledWith(domainId, { port: 9090 }, undefined, null, 'compose');
         });
     });
 

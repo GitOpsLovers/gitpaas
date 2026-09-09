@@ -1,7 +1,7 @@
 import type { UpdateDomainDto } from '@gitpaas/contracts';
 
 import { DomainNotFoundError, DomainTakenError } from '../domain/errors/domain.errors';
-import { CertificateState, Domain } from '../domain/models/domain.models';
+import { CertificateState, Domain, DomainOrigin } from '../domain/models/domain.models';
 import { DomainsRepository } from '../domain/repositories/domains.repository';
 
 /**
@@ -33,6 +33,7 @@ function resolveCertificateState(domain: Domain, updateDto: UpdateDomainDto): Ce
  * @param serviceId Service the domain belongs to
  * @param id Domain id
  * @param updateDto Domain data
+ * @param origin Where the domain comes from once the change is saved
  *
  * @returns Updated domain
  *
@@ -44,6 +45,7 @@ export async function updateDomainUseCase(
     serviceId: string,
     id: string,
     updateDto: UpdateDomainDto,
+    origin: DomainOrigin,
 ): Promise<Domain> {
     const domain = await repository.findById(id);
 
@@ -59,7 +61,7 @@ export async function updateDomainUseCase(
         }
     }
 
-    const updated = await repository.update(id, updateDto, resolveCertificateState(domain, updateDto));
+    const updated = await repository.update(id, updateDto, resolveCertificateState(domain, updateDto), null, origin);
 
     if (!updated) {
         throw new DomainNotFoundError(id);

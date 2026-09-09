@@ -2,7 +2,7 @@ import { HttpResourceRef } from '@angular/common/http';
 import { Component, computed, effect, inject, input, linkedSignal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type {
-    Container, Deployment, Domain, FinalCompose, Namespace, Network, Project, RuntimeLogLine, Service,
+    Container, Deployment, DomainRow, FinalCompose, Namespace, Network, Project, RuntimeLogLine, Service,
     ServiceVariableRow, Volume,
 } from '@gitpaas/contracts';
 import { LucideLayers } from '@lucide/angular';
@@ -126,7 +126,7 @@ export class ServiceDetailComponent {
 
     protected readonly networks: HttpResourceRef<Network[] | undefined> = this.networksRepository.networksByService(() => this.serviceId());
 
-    protected readonly domains: HttpResourceRef<Domain[] | undefined> = this.domainsRepository.domainsByService(() => this.serviceId());
+    protected readonly domains: HttpResourceRef<DomainRow[] | undefined> = this.domainsRepository.domainsByService(() => this.serviceId());
 
     protected readonly volumes: HttpResourceRef<Volume[] | undefined> = this.volumesRepository.volumesByService(() => this.serviceId());
 
@@ -173,7 +173,7 @@ export class ServiceDetailComponent {
 
     protected readonly domainError = signal<string | null>(null);
 
-    protected readonly pendingDomainRemoval = signal<Domain | null>(null);
+    protected readonly pendingDomainRemoval = signal<DomainRow | null>(null);
 
     protected readonly removingDomain = signal(false);
 
@@ -556,16 +556,24 @@ export class ServiceDetailComponent {
     }
 
     /**
-     * Changes a domain the service already holds.
+     * Writes the values the form holds.
      *
-     * @param change Claimed domain and the values the form holds
+     * @param change Row of the list and the values the form holds
      */
     protected async changeDomain(change: DomainChange): Promise<void> {
+        const { id } = change.domain;
+
+        if (id === null) {
+            await this.claimDomain(change.draft);
+
+            return;
+        }
+
         this.savingDomain.set(true);
         this.domainError.set(null);
 
         try {
-            await lastValueFrom(this.domainsRepository.update(this.serviceId(), change.domain.id, change.draft));
+            await lastValueFrom(this.domainsRepository.update(this.serviceId(), id, change.draft));
 
             this.domains.reload();
             this.toast.success('Domain saved', `“${change.draft.host}” answers after the next deployment.`);
@@ -579,9 +587,9 @@ export class ServiceDetailComponent {
     /**
      * Opens the removal confirmation for a domain.
      *
-     * @param domain Domain to remove
+     * @param domain Row to remove
      */
-    protected requestDomainRemoval(domain: Domain): void {
+    protected requestDomainRemoval(domain: DomainRow): void {
         this.pendingDomainRemoval.set(domain);
     }
 
@@ -595,10 +603,18 @@ export class ServiceDetailComponent {
             return;
         }
 
+        const { id } = domain;
+
+        if (id === null) {
+            this.pendingDomainRemoval.set(null);
+
+            return;
+        }
+
         this.removingDomain.set(true);
 
         try {
-            await lastValueFrom(this.domainsRepository.remove(this.serviceId(), domain.id));
+            await lastValueFrom(this.domainsRepository.remove(this.serviceId(), id));
 
             this.domains.reload();
             this.toast.success('Domain removed', `“${domain.host}” stops answering after the next deployment.`);

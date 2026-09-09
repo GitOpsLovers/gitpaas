@@ -21,6 +21,7 @@ const domain: Domain = {
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
 };
 
 /**

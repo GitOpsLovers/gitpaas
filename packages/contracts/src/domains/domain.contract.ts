@@ -52,6 +52,11 @@ export const domainPort = z.int().min(DOMAIN_PORT_MIN).max(DOMAIN_PORT_MAX);
 export const certificateStateSchema = z.enum(['none', 'pending', 'ready', 'failed']);
 
 /**
+ * Where a domain comes from: `user` when a person claimed it from the tab, `compose` when the compose file of the service declares it.
+ */
+export const domainOriginSchema = z.enum(['user', 'compose']);
+
+/**
  * A domain on the wire. It is one public host that reaches one compose service of one service.
  */
 export const domainSchema = z.object({
@@ -63,6 +68,14 @@ export const domainSchema = z.object({
     https: z.boolean(),
     certificateState: certificateStateSchema,
     certificateError: z.string().nullable(),
+    origin: domainOriginSchema,
+});
+
+/**
+ * A row of the list of the domains of a service on the wire. Its `id` is `null` while the compose file declares the host and no record holds it yet.
+ */
+export const domainRowSchema = domainSchema.extend({
+    id: z.uuid().nullable(),
 });
 
 /**
@@ -91,9 +104,19 @@ export const updateDomainSchema = z.strictObject({
 export type CertificateState = z.infer<typeof certificateStateSchema>;
 
 /**
+ * The shape of the origin of a domain.
+ */
+export type DomainOrigin = z.infer<typeof domainOriginSchema>;
+
+/**
  * The shape of a domain that an answer of the API carries.
  */
 export type Domain = z.infer<typeof domainSchema>;
+
+/**
+ * The shape of a row of the list of the domains of a service that an answer of the API carries.
+ */
+export type DomainRow = z.infer<typeof domainRowSchema>;
 
 /**
  * The shape of the body that claims a domain.
