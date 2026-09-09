@@ -29,12 +29,16 @@ export {
     SERVICE_VARIABLE_NAME_MAX_LENGTH,
     SERVICE_VARIABLE_NAME_MESSAGE,
     SERVICE_VARIABLE_NAME_PATTERN,
+    serviceVariableOriginSchema,
+    serviceVariableRowSchema,
     serviceVariableSchema,
     setServiceVariableSchema,
     updateServiceVariableSchema,
 } from './service-environment/service-variable.contract';
 export type {
     ServiceVariable,
+    ServiceVariableOrigin,
+    ServiceVariableRow,
     SetServiceVariableDto,
     UpdateServiceVariableDto,
 } from './service-environment/service-variable.contract';

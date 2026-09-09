@@ -1,5 +1,6 @@
 import { ServiceVariableNotFoundError } from '../../domain/errors/service-variable.errors';
 import { ServiceVariable } from '../../domain/models/service-variable.models';
+import { ComposeEnvironmentCacheStore } from '../../domain/ports/compose-environment-cache-store.port';
 import { ServiceVariablesRepository } from '../../domain/repositories/service-variables.repository';
 import { removeServiceVariableUseCase } from '../remove-service-variable.use-case';
 
@@ -19,11 +20,13 @@ const variable = (overrides: Partial<ServiceVariable> = {}): ServiceVariable => 
 
 describe('removeServiceVariableUseCase', () => {
     let mockServiceVariablesRepository: jest.Mocked<Pick<ServiceVariablesRepository, 'findById' | 'delete'>>;
+    let mockComposeEnvironmentCacheStore: jest.Mocked<Pick<ComposeEnvironmentCacheStore, 'forgetName'>>;
 
-    /** Runs the SUT with the mocked port, applying the cast one time. */
+    /** Runs the SUT with the mocked ports, applying the casts one time. */
     const run = (): Promise<void> =>
         removeServiceVariableUseCase(
             mockServiceVariablesRepository as unknown as ServiceVariablesRepository,
+            mockComposeEnvironmentCacheStore as unknown as ComposeEnvironmentCacheStore,
             serviceId,
             variableId,
         );
@@ -31,6 +34,7 @@ describe('removeServiceVariableUseCase', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockServiceVariablesRepository = { findById: jest.fn(), delete: jest.fn() };
+        mockComposeEnvironmentCacheStore = { forgetName: jest.fn() };
     });
 
     it('reads the variable before it removes the row', async () => {
@@ -58,6 +62,25 @@ describe('removeServiceVariableUseCase', () => {
         mockServiceVariablesRepository.delete.mockResolvedValue(true);
 
         await expect(run()).resolves.toBeUndefined();
+    });
+
+    it('drops the name from the cache of the compose file, so the list carries it only after the next refresh', async () => {
+        mockServiceVariablesRepository.findById.mockResolvedValue(variable());
+        mockServiceVariablesRepository.delete.mockResolvedValue(true);
+
+        await run();
+
+        expect(mockComposeEnvironmentCacheStore.forgetName).toHaveBeenCalledTimes(1);
+        expect(mockComposeEnvironmentCacheStore.forgetName).toHaveBeenCalledWith(serviceId, 'DATABASE_URL');
+    });
+
+    it('never drops a name from the cache when the row disappeared between the read and the removal', async () => {
+        mockServiceVariablesRepository.findById.mockResolvedValue(variable());
+        mockServiceVariablesRepository.delete.mockResolvedValue(false);
+
+        await expect(run()).rejects.toThrow();
+
+        expect(mockComposeEnvironmentCacheStore.forgetName).not.toHaveBeenCalled();
     });
 
     it('throws when the variable does not exist', async () => {

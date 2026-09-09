@@ -1,6 +1,11 @@
 import { ServiceNameTakenError } from '../../../domain/errors/service.errors';
 import { DbServiceEntity } from '../db-service.entity';
-import { toDbComposeEnvironment, toService, toServicePersistenceError } from '../db-services.transformer';
+import {
+    toComposeEnvironmentCache,
+    toDbComposeEnvironment,
+    toService,
+    toServicePersistenceError,
+} from '../db-services.transformer';
 
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
 import { ProviderNotFoundError } from '@features/providers/domain/errors/provider.errors';
@@ -211,5 +216,26 @@ describe('toDbComposeEnvironment', () => {
         const cache = { variables: {}, refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
 
         expect(toDbComposeEnvironment(cache).variables).toEqual({});
+    });
+});
+
+describe('toComposeEnvironmentCache', () => {
+    it('maps the cache of the row into the domain model, with the moment as a date', () => {
+        const cache = { variables: { LOG_LEVEL: 'debug' }, refreshedAt: '2026-09-08T10:00:00.000Z' };
+
+        expect(toComposeEnvironmentCache(cache)).toEqual({
+            variables: { LOG_LEVEL: 'debug' },
+            refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+        });
+    });
+
+    it('keeps an empty set of names', () => {
+        const cache = { variables: {}, refreshedAt: '2026-09-08T10:00:00.000Z' };
+
+        expect(toComposeEnvironmentCache(cache)?.variables).toEqual({});
+    });
+
+    it('returns null when the row carries no cache', () => {
+        expect(toComposeEnvironmentCache(null)).toBeNull();
     });
 });

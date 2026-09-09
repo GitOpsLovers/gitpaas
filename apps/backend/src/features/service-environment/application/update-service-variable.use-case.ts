@@ -5,6 +5,7 @@ import {
     ServiceVariableNotFoundError,
 } from '../domain/errors/service-variable.errors';
 import { ServiceVariable } from '../domain/models/service-variable.models';
+import { ComposeEnvironmentCacheStore } from '../domain/ports/compose-environment-cache-store.port';
 import { ServiceVariablesRepository } from '../domain/repositories/service-variables.repository';
 
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
@@ -41,6 +42,7 @@ function resolveStoredValue(
  *
  * @param repository Service variables repository
  * @param cipher Secret cipher
+ * @param cacheStore Store of the cache of the compose environment of a service
  * @param serviceId Service the variable belongs to
  * @param id Variable id
  * @param updateDto Variable data
@@ -53,6 +55,7 @@ function resolveStoredValue(
 export async function updateServiceVariableUseCase(
     repository: ServiceVariablesRepository,
     cipher: SecretCipher,
+    cacheStore: ComposeEnvironmentCacheStore,
     serviceId: string,
     id: string,
     updateDto: UpdateServiceVariableDto,
@@ -79,6 +82,10 @@ export async function updateServiceVariableUseCase(
 
     if (!updated) {
         throw new ServiceVariableNotFoundError(id);
+    }
+
+    if (updated.name !== variable.name) {
+        await cacheStore.forgetName(serviceId, variable.name);
     }
 
     return updated;

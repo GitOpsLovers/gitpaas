@@ -8,6 +8,16 @@ All the classes, the functions and the interfaces must have a JSDoc comment bloc
 
 - One line that gives the purpose of the model in a short form.
 
+```typescript
+/**
+ * Model description
+ */
+export interface ModelName {
+    propertyOne: type;
+    propertyTwo: type;
+}
+```
+
 ### Constants
 
 - One line that gives the purpose of the model in a short form.

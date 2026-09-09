@@ -1,5 +1,5 @@
 import { setServiceVariableSchema, updateServiceVariableSchema } from '@gitpaas/contracts';
-import type { SetServiceVariableDto, UpdateServiceVariableDto } from '@gitpaas/contracts';
+import type { ServiceVariableRow, SetServiceVariableDto, UpdateServiceVariableDto } from '@gitpaas/contracts';
 import {
     // eslint-disable-next-line @typescript-eslint/no-redeclare
     Body,
@@ -15,6 +15,7 @@ import {
 
 import { ServiceVariable } from '../../domain/models/service-variable.models';
 import { ServiceVariablesService } from '../services/service-variables.service';
+import { toServiceVariableRowResponse } from '../transformers/service-variable-response.transformer';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
 import { ZodValidationPipe } from '@core/ui/pipes/zod-validation.pipe';
@@ -30,11 +31,13 @@ export class ServiceVariablesController {
     @Get()
     public async getByService(
         @Param('serviceId', ParseUUIDPipe) serviceId: string,
-    ): Promise<ServiceVariable[]> {
+    ): Promise<ServiceVariableRow[]> {
         enrichTelemetry({ 'service.id': serviceId });
 
         try {
-            return await this.service.getByService(serviceId);
+            const rows = await this.service.getByService(serviceId);
+
+            return rows.map(toServiceVariableRowResponse);
         } catch (error) {
             throw translateError(error);
         }

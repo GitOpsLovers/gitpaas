@@ -22,11 +22,11 @@ Out of scope: the key `env_file`, the references `${VAR}` of the rest of the rec
 **Agent:** implementer
 **Paths:** packages/contracts/src/service-environment/, apps/backend/src/features/service-environment/
 
-- [ ] 2.1 Add the field of the origin and the moment of the refresh to the contract of the variable and to the response of the list.
-- [ ] 2.2 Union the rows of the table with the names of the cache at the read of the list. A name of both sides gives one row alone, which keeps the value of the table.
-- [ ] 2.3 Give the value of the cache to a name that the table does not hold, and mark that row as unsaved.
-- [ ] 2.4 Keep the delete and the rename of a row of the compose file working, and keep the row out of the list of that name until the next refresh.
-- [ ] 2.5 Write the unit tests of the union, of the collision and of the delete.
+- [x] 2.1 Add the field of the origin and the moment of the refresh to the contract of the variable and to the response of the list.
+- [x] 2.2 Union the rows of the table with the names of the cache at the read of the list. A name of both sides gives one row alone, which keeps the value of the table.
+- [x] 2.3 Give the value of the cache to a name that the table does not hold, and mark that row as unsaved.
+- [x] 2.4 Keep the delete and the rename of a row of the compose file working, and keep the row out of the list of that name until the next refresh.
+- [x] 2.5 Write the unit tests of the union, of the collision and of the delete.
 
 ## Phase 3 — The tab Environment
 

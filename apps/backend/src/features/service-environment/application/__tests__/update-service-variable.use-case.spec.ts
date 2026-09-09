@@ -5,6 +5,7 @@ import {
     ServiceVariableNotFoundError,
 } from '../../domain/errors/service-variable.errors';
 import { ServiceVariable } from '../../domain/models/service-variable.models';
+import { ComposeEnvironmentCacheStore } from '../../domain/ports/compose-environment-cache-store.port';
 import { ServiceVariablesRepository } from '../../domain/repositories/service-variables.repository';
 import { updateServiceVariableUseCase } from '../update-service-variable.use-case';
 
@@ -36,12 +37,14 @@ describe('updateServiceVariableUseCase', () => {
         Pick<ServiceVariablesRepository, 'findById' | 'findByName' | 'update'>
     >;
     let mockSecretCipher: jest.Mocked<Pick<SecretCipher, 'encryptSecret'>>;
+    let mockComposeEnvironmentCacheStore: jest.Mocked<Pick<ComposeEnvironmentCacheStore, 'forgetName'>>;
 
     /** Runs the SUT with the mocked ports, applying the casts one time. */
     const run = (updateDto: UpdateServiceVariableDto): Promise<ServiceVariable> =>
         updateServiceVariableUseCase(
             mockServiceVariablesRepository as unknown as ServiceVariablesRepository,
             mockSecretCipher as unknown as SecretCipher,
+            mockComposeEnvironmentCacheStore as unknown as ComposeEnvironmentCacheStore,
             serviceId,
             variableId,
             updateDto,
@@ -52,6 +55,7 @@ describe('updateServiceVariableUseCase', () => {
 
         mockServiceVariablesRepository = { findById: jest.fn(), findByName: jest.fn(), update: jest.fn() };
         mockSecretCipher = { encryptSecret: jest.fn().mockReturnValue(sealed) };
+        mockComposeEnvironmentCacheStore = { forgetName: jest.fn() };
     });
 
     it('throws when the variable does not exist', async () => {
@@ -180,5 +184,59 @@ describe('updateServiceVariableUseCase', () => {
         mockServiceVariablesRepository.findById.mockRejectedValue(error);
 
         await expect(run({ value: 'x' })).rejects.toThrow(error);
+    });
+});
+
+describe('updateServiceVariableUseCase and the cache of the compose file', () => {
+    let mockServiceVariablesRepository: jest.Mocked<
+        Pick<ServiceVariablesRepository, 'findById' | 'findByName' | 'update'>
+    >;
+    let mockSecretCipher: jest.Mocked<Pick<SecretCipher, 'encryptSecret'>>;
+    let mockComposeEnvironmentCacheStore: jest.Mocked<Pick<ComposeEnvironmentCacheStore, 'forgetName'>>;
+
+    /** Runs the SUT with the mocked ports, applying the casts one time. */
+    const run = (updateDto: UpdateServiceVariableDto): Promise<ServiceVariable> =>
+        updateServiceVariableUseCase(
+            mockServiceVariablesRepository as unknown as ServiceVariablesRepository,
+            mockSecretCipher as unknown as SecretCipher,
+            mockComposeEnvironmentCacheStore as unknown as ComposeEnvironmentCacheStore,
+            serviceId,
+            variableId,
+            updateDto,
+        );
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        mockServiceVariablesRepository = { findById: jest.fn(), findByName: jest.fn(), update: jest.fn() };
+        mockSecretCipher = { encryptSecret: jest.fn().mockReturnValue(sealed) };
+        mockComposeEnvironmentCacheStore = { forgetName: jest.fn() };
+        mockServiceVariablesRepository.findById.mockResolvedValue(variable());
+        mockServiceVariablesRepository.findByName.mockResolvedValue(null);
+    });
+
+    it('drops the former name from the cache when the change renames the variable', async () => {
+        mockServiceVariablesRepository.update.mockResolvedValue(variable({ name: 'NEW_NAME' }));
+
+        await run({ name: 'NEW_NAME' });
+
+        expect(mockComposeEnvironmentCacheStore.forgetName).toHaveBeenCalledTimes(1);
+        expect(mockComposeEnvironmentCacheStore.forgetName).toHaveBeenCalledWith(serviceId, 'DATABASE_URL');
+    });
+
+    it('never touches the cache when the change keeps the name', async () => {
+        mockServiceVariablesRepository.update.mockResolvedValue(variable());
+
+        await run({ value: 'postgres://localhost:5432/other' });
+
+        expect(mockComposeEnvironmentCacheStore.forgetName).not.toHaveBeenCalled();
+    });
+
+    it('never touches the cache when the change finds no row', async () => {
+        mockServiceVariablesRepository.update.mockResolvedValue(null);
+
+        await expect(run({ name: 'NEW_NAME' })).rejects.toBeInstanceOf(ServiceVariableNotFoundError);
+
+        expect(mockComposeEnvironmentCacheStore.forgetName).not.toHaveBeenCalled();
     });
 });
