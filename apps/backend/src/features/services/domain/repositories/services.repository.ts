@@ -62,6 +62,15 @@ export interface ServicesRepository {
     saveComposeEnvironment: (id: string, cache: ComposeEnvironmentCache) => Promise<void>;
 
     /**
+     * Read the cache of the key `x-gitpaas-domain` of the compose file of a service
+     *
+     * @param id Service identifier
+     *
+     * @returns The cache of the service, or `null` when the service holds none
+     */
+    findComposeDomains: (id: string) => Promise<ComposeDomainsCache | null>;
+
+    /**
      * Write the cache of the key `x-gitpaas-domain` of the compose file of a service
      *
      * @param id Service identifier

@@ -34,6 +34,7 @@ const domain: Domain = {
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
 };
 
 describe('DomainsService', () => {
@@ -100,7 +101,7 @@ describe('DomainsService', () => {
             https: true,
         };
 
-        it('delegates to the use case with the repository, the service id and the body', async () => {
+        it('delegates to the use case with the repository, the service id, the body and the origin of the user', async () => {
             mockClaimDomainUseCase.mockResolvedValue(domain);
 
             await sut.claim(serviceId, claimDto);
@@ -110,6 +111,7 @@ describe('DomainsService', () => {
                 mockDomainsRepository,
                 serviceId,
                 claimDto,
+                'user',
             );
         });
 

@@ -17,6 +17,7 @@ const domainEntity = (overrides: Partial<DbDomainEntity> = {}): DbDomainEntity =
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
     ...overrides,
 });
 
@@ -67,6 +68,7 @@ describe('DatabaseDomainsRepository', () => {
                     https: true,
                     certificateState: 'ready',
                     certificateError: null,
+                    origin: 'user',
                 },
             ]);
         });
@@ -136,7 +138,7 @@ describe('DatabaseDomainsRepository', () => {
             mockRepository.create.mockReturnValue(domainEntity());
             mockRepository.save.mockResolvedValue(domainEntity());
 
-            await sut.create(serviceId, claimDto, 'pending');
+            await sut.create(serviceId, claimDto, 'pending', 'user');
 
             expect(mockRepository.create).toHaveBeenCalledTimes(1);
             expect(mockRepository.create).toHaveBeenCalledWith({
@@ -147,7 +149,17 @@ describe('DatabaseDomainsRepository', () => {
                 https: true,
                 certificateState: 'pending',
                 certificateError: null,
+                origin: 'user',
             });
+        });
+
+        it('builds the row with the origin the caller gives', async () => {
+            mockRepository.create.mockReturnValue(domainEntity({ origin: 'compose' }));
+            mockRepository.save.mockResolvedValue(domainEntity({ origin: 'compose' }));
+
+            await sut.create(serviceId, claimDto, 'pending', 'compose');
+
+            expect(mockRepository.create).toHaveBeenCalledWith(expect.objectContaining({ origin: 'compose' }));
         });
 
         it('saves the built row', async () => {
@@ -155,7 +167,7 @@ describe('DatabaseDomainsRepository', () => {
             mockRepository.create.mockReturnValue(entity);
             mockRepository.save.mockResolvedValue(entity);
 
-            await sut.create(serviceId, claimDto, 'pending');
+            await sut.create(serviceId, claimDto, 'pending', 'user');
 
             expect(mockRepository.save).toHaveBeenCalledTimes(1);
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
@@ -165,7 +177,7 @@ describe('DatabaseDomainsRepository', () => {
             mockRepository.create.mockReturnValue(domainEntity());
             mockRepository.save.mockResolvedValue(domainEntity({ certificateState: 'pending' }));
 
-            expect(await sut.create(serviceId, claimDto, 'pending')).toMatchObject({
+            expect(await sut.create(serviceId, claimDto, 'pending', 'user')).toMatchObject({
                 id: domainId,
                 certificateState: 'pending',
             });

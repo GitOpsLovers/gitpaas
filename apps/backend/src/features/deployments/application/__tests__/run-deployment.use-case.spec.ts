@@ -8,6 +8,8 @@ import { DEPLOYMENT_FAILURE_REASON, RUN_DEPLOYMENT_LOG_CONTEXT, runDeploymentUse
 
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
+import { reconcileComposeDomainsUseCase } from '@features/domains/application/reconcile-compose-domains.use-case';
+import { DomainTakenError } from '@features/domains/domain/errors/domain.errors';
 import type { Domain } from '@features/domains/domain/models/domain.models';
 import { ReverseProxy, RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
@@ -24,8 +26,12 @@ import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/d
 import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
 
 jest.mock('@features/volumes/application/adopt-compose-volumes.use-case');
+jest.mock('@features/domains/application/reconcile-compose-domains.use-case');
 
 const mockAdoptComposeVolumesUseCase = adoptComposeVolumesUseCase as jest.MockedFunction<typeof adoptComposeVolumesUseCase>;
+const mockReconcileComposeDomainsUseCase = reconcileComposeDomainsUseCase as jest.MockedFunction<
+    typeof reconcileComposeDomainsUseCase
+>;
 
 describe('runDeploymentUseCase', () => {
     const payload: DeploymentRunTask = {
@@ -80,6 +86,7 @@ describe('runDeploymentUseCase', () => {
         https: true,
         certificateState: 'pending',
         certificateError: null,
+        origin: 'user',
         ...overrides,
     });
 
@@ -146,6 +153,7 @@ describe('runDeploymentUseCase', () => {
             copyData: jest.fn().mockResolvedValue(undefined),
         };
         mockAdoptComposeVolumesUseCase.mockResolvedValue(undefined);
+        mockReconcileComposeDomainsUseCase.mockResolvedValue(undefined);
         mockDockerExecutor = {
             up: jest.fn(),
         };
@@ -256,6 +264,40 @@ describe('runDeploymentUseCase', () => {
             routing,
             expect.any(Function),
         );
+    });
+
+    it('reconciles the domains the compose file declares before it reads the domains of the service', async () => {
+        const order: string[] = [];
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockReconcileComposeDomainsUseCase.mockImplementation(async () => { order.push('reconcile'); });
+        // eslint-disable-next-line @typescript-eslint/require-await
+        mockDomainsRepository.getByService.mockImplementation(async () => { order.push('read'); return []; });
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockDockerExecutor.up.mockResolvedValue(finalCompose);
+
+        await run();
+
+        expect(mockReconcileComposeDomainsUseCase).toHaveBeenCalledTimes(1);
+        expect(mockReconcileComposeDomainsUseCase).toHaveBeenCalledWith(
+            mockDomainsRepository,
+            mockServicesRepository,
+            service.id,
+        );
+        expect(order).toEqual(['reconcile', 'read']);
+    });
+
+    it('fails the run with the reason of the reconciliation, and starts no stack, when a declared host is taken', async () => {
+        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
+        mockReconcileComposeDomainsUseCase.mockRejectedValue(new DomainTakenError('app.example.com'));
+
+        await run();
+
+        expect(mockDomainsRepository.getByService).not.toHaveBeenCalled();
+        expect(mockDockerExecutor.up).not.toHaveBeenCalled();
+        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
+            status: 'failed',
+            error: 'Domain app.example.com is already claimed',
+        });
     });
 
     it('names the stack of the service with its stored compose project, and never with a computed one', async () => {

@@ -10,7 +10,13 @@ import { Service } from '../../domain/models/service.models';
 import { ServicesRepository } from '../../domain/repositories/services.repository';
 
 import { DbServiceEntity } from './db-service.entity';
-import { toDbComposeDomains, toDbComposeEnvironment, toService, toServicePersistenceError } from './db-services.transformer';
+import {
+    toComposeDomainsCache,
+    toDbComposeDomains,
+    toDbComposeEnvironment,
+    toService,
+    toServicePersistenceError,
+} from './db-services.transformer';
 
 /**
  * Services database repository
@@ -75,6 +81,15 @@ export class DatabaseServicesRepository implements ServicesRepository {
 
     public async saveComposeEnvironment(id: string, cache: ComposeEnvironmentCache): Promise<void> {
         await this.repository.update(id, { composeEnvironment: toDbComposeEnvironment(cache) });
+    }
+
+    public async findComposeDomains(id: string): Promise<ComposeDomainsCache | null> {
+        const service = await this.repository.findOne({
+            where: { id },
+            select: { id: true, composeDomains: true },
+        });
+
+        return toComposeDomainsCache(service?.composeDomains ?? null);
     }
 
     public async saveComposeDomains(id: string, cache: ComposeDomainsCache): Promise<void> {

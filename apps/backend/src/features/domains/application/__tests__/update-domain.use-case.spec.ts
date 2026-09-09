@@ -18,6 +18,7 @@ const domain = (overrides: Partial<Domain> = {}): Domain => ({
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
     ...overrides,
 });
 

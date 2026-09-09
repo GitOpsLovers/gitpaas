@@ -59,7 +59,10 @@ describe('DatabaseServicesRepository', () => {
     };
 
     let mockRepository: jest.Mocked<
-        Pick<Repository<DbServiceEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete' | 'update'>
+        Pick<
+            Repository<DbServiceEntity>,
+            'find' | 'findOne' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete' | 'update'
+        >
     >;
     let sut: DatabaseServicesRepository;
 
@@ -68,6 +71,7 @@ describe('DatabaseServicesRepository', () => {
 
         mockRepository = {
             find: jest.fn(),
+            findOne: jest.fn(),
             findOneBy: jest.fn(),
             create: jest.fn(),
             merge: jest.fn(),
@@ -277,6 +281,50 @@ describe('DatabaseServicesRepository', () => {
                 variables: {},
                 refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
             })).rejects.toThrow(error);
+        });
+    });
+
+    describe('findComposeDomains', () => {
+        it('reads the cache of the compose domains of the row of the service alone', async () => {
+            mockRepository.findOne.mockResolvedValue(serviceEntity());
+
+            await sut.findComposeDomains('some-id');
+
+            expect(mockRepository.findOne).toHaveBeenCalledTimes(1);
+            expect(mockRepository.findOne).toHaveBeenCalledWith({
+                where: { id: 'some-id' },
+                select: { id: true, composeDomains: true },
+            });
+        });
+
+        it('maps the cache the row carries into its domain model', async () => {
+            mockRepository.findOne.mockResolvedValue(serviceEntity({
+                composeDomains: {
+                    domains: [{
+                        targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+                    }],
+                    refreshedAt: '2026-09-08T10:00:00.000Z',
+                },
+            }));
+
+            expect(await sut.findComposeDomains('some-id')).toEqual({
+                domains: [{
+                    targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+                }],
+                refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+            });
+        });
+
+        it('returns null when the row of the service carries no cache', async () => {
+            mockRepository.findOne.mockResolvedValue(serviceEntity({ composeDomains: null }));
+
+            expect(await sut.findComposeDomains('some-id')).toBeNull();
+        });
+
+        it('returns null when the service does not exist', async () => {
+            mockRepository.findOne.mockResolvedValue(null);
+
+            expect(await sut.findComposeDomains('some-id')).toBeNull();
         });
     });
 

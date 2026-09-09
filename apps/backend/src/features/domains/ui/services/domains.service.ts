@@ -28,7 +28,7 @@ export class DomainsService {
     }
 
     public claim(serviceId: string, claimDto: ClaimDomainDto): Promise<Domain> {
-        return claimDomainUseCase(this.repository, serviceId, claimDto);
+        return claimDomainUseCase(this.repository, serviceId, claimDto, 'user');
     }
 
     public update(serviceId: string, id: string, updateDto: UpdateDomainDto): Promise<Domain> {
