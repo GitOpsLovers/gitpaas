@@ -73,7 +73,7 @@ features/<feature>/
 
 For example, the `projects` feature fills this shape with a `Project` model, a `ProjectsRepository` port, a `createProjectUseCase`, and a `DbProjectEntity`. A controller usually declares only the path of its own resource; a nested resource is the exception, such as `@Controller('namespaces/:namespaceId/projects')` for a project that never exists outside its namespace.
 
-A feature can have fewer folders than the shape above when it does not need them: `containers` reads from Docker only and keeps no database table, so it has no `infrastructure/database` folder. A feature can also hold more than one technology at the same layer: `networks` reads the networks of a service from Docker alone, but it keeps the private networks of a project in the database, so it holds an `infrastructure/database` folder besides its `infrastructure/docker` folder. The name of an infrastructure sub-folder is the name of the technology or the vendor that it holds (`database`, `docker`, `github`).
+A feature can have fewer folders than the shape above when it does not need them: `containers` and `networks` read from Docker only and keep no database table, so neither has an `infrastructure/database` folder. A feature can also hold more than one technology at the same layer: `authentication` keeps its users in the database, and it also holds a `passport` folder for the strategy of the sign-in and a `security` folder for the hash of the password, besides its `infrastructure/database` folder. The name of an infrastructure sub-folder is the name of the technology or the vendor that it holds (`database`, `docker`, `github`).
 
 ## Module wiring
 
