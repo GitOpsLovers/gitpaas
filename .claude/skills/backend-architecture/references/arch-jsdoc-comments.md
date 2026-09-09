@@ -7,6 +7,7 @@ All the classes, the functions and the interfaces must have a JSDoc comment bloc
 ### Models
 
 - One line that gives the purpose of the model in a short form.
+- The comment is only allowed above the definition of the type or interface; it is never allowed within its properties.
 
 ```typescript
 /**

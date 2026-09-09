@@ -22,3 +22,18 @@ export interface Domain {
     certificateError: string | null;
     origin: DomainOrigin;
 }
+
+/**
+ * A row of the list of the domains of a service: a record of the table, a host that the compose file declares, or both.
+ */
+export interface DomainRow {
+    id: string | null;
+    serviceId: string;
+    host: string;
+    targetService: string;
+    port: number;
+    https: boolean;
+    certificateState: CertificateState;
+    certificateError: string | null;
+    origin: DomainOrigin;
+}

@@ -6,6 +6,7 @@ import { getDomainsByServiceUseCase } from '../../../application/get-domains-by-
 import { removeDomainUseCase } from '../../../application/remove-domain.use-case';
 import { updateDomainUseCase } from '../../../application/update-domain.use-case';
 import { Domain } from '../../../domain/models/domain.models';
+import { DatabaseComposeDomainsCacheAdapter } from '../../../infrastructure/database/db-compose-domains-cache.adapter';
 import { DatabaseDomainsRepository } from '../../../infrastructure/database/db-domains.repository';
 import { TraefikReverseProxyAdapter } from '../../../infrastructure/traefik/traefik-reverse-proxy.adapter';
 import { DomainsService } from '../domains.service';
@@ -40,6 +41,7 @@ const domain: Domain = {
 describe('DomainsService', () => {
     let mockDomainsRepository: jest.Mocked<DatabaseDomainsRepository>;
     let mockReverseProxy: jest.Mocked<TraefikReverseProxyAdapter>;
+    let mockComposeDomainsCache: jest.Mocked<DatabaseComposeDomainsCacheAdapter>;
     let sut: DomainsService;
 
     beforeEach(async () => {
@@ -47,12 +49,14 @@ describe('DomainsService', () => {
 
         mockDomainsRepository = {} as jest.Mocked<DatabaseDomainsRepository>;
         mockReverseProxy = {} as jest.Mocked<TraefikReverseProxyAdapter>;
+        mockComposeDomainsCache = {} as jest.Mocked<DatabaseComposeDomainsCacheAdapter>;
 
         const moduleRef = await Test.createTestingModule({
             providers: [
                 DomainsService,
                 { provide: DatabaseDomainsRepository, useValue: mockDomainsRepository },
                 { provide: TraefikReverseProxyAdapter, useValue: mockReverseProxy },
+                { provide: DatabaseComposeDomainsCacheAdapter, useValue: mockComposeDomainsCache },
             ],
         }).compile();
 
@@ -60,7 +64,7 @@ describe('DomainsService', () => {
     });
 
     describe('getByService', () => {
-        it('delegates to the use case with the repository, the proxy and the service id', async () => {
+        it('delegates to the use case with the repository, the proxy, the store of the cache and the service id', async () => {
             mockGetDomainsByServiceUseCase.mockResolvedValue([domain]);
 
             await sut.getByService(serviceId);
@@ -69,6 +73,7 @@ describe('DomainsService', () => {
             expect(mockGetDomainsByServiceUseCase).toHaveBeenCalledWith(
                 mockDomainsRepository,
                 mockReverseProxy,
+                mockComposeDomainsCache,
                 serviceId,
             );
         });
@@ -132,7 +137,7 @@ describe('DomainsService', () => {
     describe('update', () => {
         const updateDto: UpdateDomainDto = { port: 9090 };
 
-        it('delegates to the use case with the repository, the ids and the body', async () => {
+        it('delegates to the use case with the repository, the ids, the body and the origin of the user', async () => {
             mockUpdateDomainUseCase.mockResolvedValue(domain);
 
             await sut.update(serviceId, domainId, updateDto);
@@ -143,6 +148,7 @@ describe('DomainsService', () => {
                 serviceId,
                 domainId,
                 updateDto,
+                'user',
             );
         });
 

@@ -1,4 +1,11 @@
-import { claimDomainSchema, COMPOSE_DOMAIN_KEY, declaredDomainSchema, domainSchema, updateDomainSchema } from '../domain.contract';
+import {
+    claimDomainSchema,
+    COMPOSE_DOMAIN_KEY,
+    declaredDomainSchema,
+    domainRowSchema,
+    domainSchema,
+    updateDomainSchema,
+} from '../domain.contract';
 
 /** A payload satisfying every rule of `claimDomainSchema`. */
 const validClaim = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
@@ -19,6 +26,7 @@ const validDomain = (overrides: Record<string, unknown> = {}): Record<string, un
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
     ...overrides,
 });
 
@@ -153,6 +161,40 @@ describe('domainSchema', () => {
 
     it('rejects an id that is not a UUID', () => {
         expect(domainSchema.safeParse(validDomain({ id: 'not-a-uuid' })).success).toBe(false);
+    });
+
+    it('accepts a domain that the compose file declares', () => {
+        expect(domainSchema.safeParse(validDomain({ origin: 'compose' })).success).toBe(true);
+    });
+
+    it('rejects an unknown origin', () => {
+        expect(domainSchema.safeParse(validDomain({ origin: 'traefik' })).success).toBe(false);
+    });
+
+    it('rejects a domain that carries no origin', () => {
+        const { origin: _origin, ...withoutOrigin } = validDomain();
+
+        expect(domainSchema.safeParse(withoutOrigin).success).toBe(false);
+    });
+
+    it('rejects a domain of the identifier null', () => {
+        expect(domainSchema.safeParse(validDomain({ id: null })).success).toBe(false);
+    });
+});
+
+describe('domainRowSchema', () => {
+    it('accepts the row of a domain that a record holds', () => {
+        expect(domainRowSchema.safeParse(validDomain()).success).toBe(true);
+    });
+
+    it('accepts the row of a declared host that holds no record yet', () => {
+        const row = validDomain({ id: null, origin: 'compose' });
+
+        expect(domainRowSchema.safeParse(row).success).toBe(true);
+    });
+
+    it('rejects an id that is neither null nor a UUID', () => {
+        expect(domainRowSchema.safeParse(validDomain({ id: 'not-a-uuid' })).success).toBe(false);
     });
 });
 

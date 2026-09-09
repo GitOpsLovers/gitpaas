@@ -1,7 +1,7 @@
 import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import type { Domain } from '@gitpaas/contracts';
+import type { DomainRow } from '@gitpaas/contracts';
 
 import type { DomainDraft } from '../../../domain/models/domain.models';
 
@@ -11,7 +11,7 @@ import { Select2Component, Select2Option } from '@shared/components/select2/sele
 
 interface ServiceDomainsInternals {
     formVisible: () => boolean;
-    editing: () => Domain | null;
+    editing: () => DomainRow | null;
     isEditing: () => boolean;
     canSubmit: () => boolean;
     host: () => string;
@@ -19,7 +19,7 @@ interface ServiceDomainsInternals {
     port: () => number;
     https: () => boolean;
     open: () => void;
-    edit: (domain: Domain) => void;
+    edit: (domain: DomainRow) => void;
     close: () => void;
     reset: () => void;
     onHostChange: (value: string | number) => void;
@@ -29,7 +29,7 @@ interface ServiceDomainsInternals {
 
 const COMPOSE_SERVICES = ['web', 'worker'];
 
-const ready: Domain = {
+const ready: DomainRow = {
     id: 'dm-1',
     serviceId: 'sv-1',
     host: 'api.example.com',
@@ -38,9 +38,10 @@ const ready: Domain = {
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
 };
 
-const failed: Domain = {
+const failed: DomainRow = {
     id: 'dm-2',
     serviceId: 'sv-1',
     host: 'jobs.example.com',
@@ -49,9 +50,10 @@ const failed: Domain = {
     https: true,
     certificateState: 'failed',
     certificateError: 'The challenge HTTP-01 did not resolve',
+    origin: 'user',
 };
 
-const plain: Domain = {
+const plain: DomainRow = {
     id: 'dm-3',
     serviceId: 'sv-1',
     host: 'legacy.example.com',
@@ -60,6 +62,31 @@ const plain: Domain = {
     https: false,
     certificateState: 'none',
     certificateError: null,
+    origin: 'user',
+};
+
+const claimedFromCompose: DomainRow = {
+    id: 'dm-4',
+    serviceId: 'sv-1',
+    host: 'shop.example.com',
+    targetService: 'web',
+    port: 3000,
+    https: true,
+    certificateState: 'pending',
+    certificateError: null,
+    origin: 'compose',
+};
+
+const declared: DomainRow = {
+    id: null,
+    serviceId: 'sv-1',
+    host: 'blog.example.com',
+    targetService: 'worker',
+    port: 4000,
+    https: false,
+    certificateState: 'none',
+    certificateError: null,
+    origin: 'compose',
 };
 
 describe('ServiceDomainsComponent', () => {
@@ -67,10 +94,10 @@ describe('ServiceDomainsComponent', () => {
     let component: ServiceDomainsInternals;
     let claimed: DomainDraft[];
     let changed: DomainChange[];
-    let removed: Domain[];
+    let removed: DomainRow[];
 
     const create = (
-        domains: Domain[] = [],
+        domains: DomainRow[] = [],
         composeServices: string[] = COMPOSE_SERVICES,
         loading = false,
         saving = false,
@@ -174,6 +201,67 @@ describe('ServiceDomainsComponent', () => {
             create([]);
 
             expect(text()).toContain('The changes will take effect with the next service deployment.');
+        });
+    });
+
+    describe('the domain of the compose file', () => {
+        test('shows the badge of the compose file on a row the compose file declares', () => {
+            create([ready, claimedFromCompose]);
+
+            const [first, second] = rows().map((row) => row.textContent ?? '');
+
+            expect(first).not.toContain('Compose');
+            expect(second).toContain('Compose');
+        });
+
+        test('shows the host, the compose service and the port of a declared domain that holds no record yet', () => {
+            create([declared]);
+
+            const [row] = rows().map((current) => current.textContent ?? '');
+
+            expect(row).toContain('blog.example.com');
+            expect(row).toContain('worker');
+            expect(row).toContain('4000');
+            expect(row).toContain('Not saved yet. The values come from the compose file.');
+        });
+
+        test('offers no removal on a declared domain that holds no record yet', () => {
+            create([declared]);
+
+            const buttons = [...(rows()[0]?.querySelectorAll('button') ?? [])] as HTMLButtonElement[];
+
+            expect(buttons).toHaveLength(1);
+
+            buttons[0]?.click();
+
+            expect(component.isEditing()).toBe(true);
+            expect(removed).toEqual([]);
+        });
+
+        test('offers the removal of a domain of the compose file that holds a record', () => {
+            create([claimedFromCompose]);
+
+            const buttons = [...(rows()[0]?.querySelectorAll('button') ?? [])] as HTMLButtonElement[];
+
+            buttons[buttons.length - 1]?.click();
+
+            expect(removed).toEqual([claimedFromCompose]);
+        });
+
+        test('emits the declared domain with the values the form holds, so the container claims it', () => {
+            create([declared]);
+
+            component.edit(declared);
+            component.onPortChange('8080');
+            submit();
+
+            expect(changed).toEqual([{
+                domain: declared,
+                draft: {
+                    host: 'blog.example.com', targetService: 'worker', port: 8080, https: false,
+                },
+            }]);
+            expect(claimed).toEqual([]);
         });
     });
 

@@ -1,6 +1,6 @@
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { ClaimDomainDto, Domain, UpdateDomainDto } from '@gitpaas/contracts';
+import type { ClaimDomainDto, Domain, DomainRow, UpdateDomainDto } from '@gitpaas/contracts';
 import { Observable } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -16,14 +16,14 @@ export class DomainsApiRepository {
     private readonly url = `${environment.apiBaseUrl}/services`;
 
     /**
-     * Resource with the domains a service holds
+     * Resource with the rows of the domains a service holds, of the table and of its compose file
      *
      * @param serviceId Accessor returning the service identifier
      *
-     * @returns Resource that resolves to the domains of the service
+     * @returns Resource that resolves to the rows of the domains of the service
      */
     public domainsByService(serviceId: () => string | undefined) {
-        return httpResource<Domain[]>(() => {
+        return httpResource<DomainRow[]>(() => {
             const id = serviceId();
 
             return id ? `${this.url}/${id}/domains` : undefined;

@@ -244,6 +244,26 @@ describe('DatabaseDomainsRepository', () => {
             });
         });
 
+        it('merges the origin that the caller gives', async () => {
+            const entity = domainEntity({ origin: 'compose' });
+            mockRepository.findOneBy.mockResolvedValue(entity);
+            mockRepository.save.mockResolvedValue(entity);
+
+            await sut.update(domainId, { port: 9090 }, undefined, null, 'user');
+
+            expect(mockRepository.merge).toHaveBeenCalledWith(entity, { port: 9090, origin: 'user' });
+        });
+
+        it('keeps the stored origin when the caller gives none', async () => {
+            const entity = domainEntity({ origin: 'compose' });
+            mockRepository.findOneBy.mockResolvedValue(entity);
+            mockRepository.save.mockResolvedValue(entity);
+
+            await sut.update(domainId, { port: 9090 });
+
+            expect(mockRepository.merge).toHaveBeenCalledWith(entity, { port: 9090 });
+        });
+
         it('saves the merged row and maps it into a domain model', async () => {
             const entity = domainEntity();
             mockRepository.findOneBy.mockResolvedValue(entity);

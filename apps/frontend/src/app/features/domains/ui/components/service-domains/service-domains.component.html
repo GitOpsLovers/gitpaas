@@ -33,7 +33,7 @@
                             </tr>
                         }
                     } @else {
-                        @for (domain of domains(); track domain.id) {
+                        @for (domain of domains(); track domain.host) {
                             <tr class="text-gray-600 dark:text-gray-300">
                                 <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
                                     <span class="inline-flex items-center gap-1.5">
@@ -41,7 +41,21 @@
                                         <span class="block max-w-[16rem] truncate font-mono" [title]="domain.host">
                                             {{ domain.host }}
                                         </span>
+                                        @if (domain.origin === 'compose') {
+                                            <span
+                                                class="inline-flex w-fit items-center rounded-full bg-blue-light-50 px-2.5 py-0.5 text-xs font-medium text-blue-light-500 dark:bg-blue-light-500/15 dark:text-blue-light-400"
+                                                title="The key x-gitpaas-domain of the compose file of this service declares this host."
+                                            >
+                                                Compose
+                                            </span>
+                                        }
                                     </span>
+
+                                    @if (domain.id === null) {
+                                        <span class="mt-1 block text-xs text-gray-400">
+                                            Not saved yet. The values come from the compose file.
+                                        </span>
+                                    }
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap font-mono">{{ domain.targetService }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ domain.port }}</td>
@@ -65,9 +79,11 @@
                                         <app-button variant="outline" size="xs" (btnClick)="edit(domain)">
                                             <svg lucidePencil class="h-4 w-4"></svg>
                                         </app-button>
-                                        <app-button variant="danger" size="xs" (btnClick)="remove.emit(domain)">
-                                            <svg lucideTrash2 class="h-4 w-4"></svg>
-                                        </app-button>
+                                        @if (domain.id !== null) {
+                                            <app-button variant="danger" size="xs" (btnClick)="remove.emit(domain)">
+                                                <svg lucideTrash2 class="h-4 w-4"></svg>
+                                            </app-button>
+                                        }
                                     </div>
                                 </td>
                             </tr>

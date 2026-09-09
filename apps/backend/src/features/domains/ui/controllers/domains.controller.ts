@@ -13,7 +13,7 @@ import {
     Put,
 } from '@nestjs/common';
 
-import { Domain } from '../../domain/models/domain.models';
+import { Domain, DomainRow } from '../../domain/models/domain.models';
 import { DomainsService } from '../services/domains.service';
 
 import { enrichTelemetry } from '@core/infrastructure/telemetry/telemetry.context';
@@ -30,7 +30,7 @@ export class DomainsController {
     @Get()
     public async getByService(
         @Param('serviceId', ParseUUIDPipe) serviceId: string,
-    ): Promise<Domain[]> {
+    ): Promise<DomainRow[]> {
         enrichTelemetry({ 'service.id': serviceId });
 
         try {

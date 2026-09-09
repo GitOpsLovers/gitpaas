@@ -62,11 +62,17 @@ async function reconcileDeclaration(
         return;
     }
 
-    await updateDomainUseCase(domainsRepository, serviceId, existing.id, {
-        targetService: declaration.targetService,
-        port: declaration.port,
-        https: declaration.https,
-    });
+    await updateDomainUseCase(
+        domainsRepository,
+        serviceId,
+        existing.id,
+        {
+            targetService: declaration.targetService,
+            port: declaration.port,
+            https: declaration.https,
+        },
+        'compose',
+    );
 }
 
 /**

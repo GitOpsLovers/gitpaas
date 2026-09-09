@@ -4,7 +4,7 @@ import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 
 import { DomainNotFoundError, DomainTakenError } from '../../../domain/errors/domain.errors';
-import { Domain } from '../../../domain/models/domain.models';
+import { Domain, DomainRow } from '../../../domain/models/domain.models';
 import { DomainsService } from '../../services/domains.service';
 import { DomainsController } from '../domains.controller';
 
@@ -24,6 +24,16 @@ const domain: Domain = {
     certificateState: 'ready',
     certificateError: null,
     origin: 'user',
+};
+
+const declaredRow: DomainRow = {
+    ...domain,
+    id: null,
+    host: 'api.example.com',
+    targetService: 'api',
+    port: 3000,
+    certificateState: 'pending',
+    origin: 'compose',
 };
 
 /**
@@ -118,6 +128,18 @@ describe('DomainsController', () => {
             mockDomainsService.getByService.mockResolvedValue([]);
 
             expect(await sut.getByService(serviceId)).toEqual([]);
+        });
+
+        it('carries the origin of every row', async () => {
+            mockDomainsService.getByService.mockResolvedValue([{ ...domain, origin: 'compose' }]);
+
+            expect(await sut.getByService(serviceId)).toEqual([{ ...domain, origin: 'compose' }]);
+        });
+
+        it('returns the row of a declared host that holds no record, with the identifier null', async () => {
+            mockDomainsService.getByService.mockResolvedValue([declaredRow]);
+
+            expect(await sut.getByService(serviceId)).toEqual([declaredRow]);
         });
 
         it('propagates an error that carries no translation', async () => {

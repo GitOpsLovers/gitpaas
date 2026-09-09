@@ -1,5 +1,5 @@
 import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
-import { type CertificateState, type Domain, DOMAIN_PORT_MAX, DOMAIN_PORT_MIN } from '@gitpaas/contracts';
+import { type CertificateState, type DomainRow, DOMAIN_PORT_MAX, DOMAIN_PORT_MIN } from '@gitpaas/contracts';
 import { LucideGlobe, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
 
 import type { DomainDraft } from '../../../domain/models/domain.models';
@@ -28,10 +28,10 @@ const CERTIFICATE_LABELS: Record<CertificateState, string> = {
 };
 
 /**
- * A change of one claimed domain, with the values the form holds.
+ * A change of one row of the list, with the values the form holds.
  */
 export interface DomainChange {
-    domain: Domain;
+    domain: DomainRow;
     draft: DomainDraft;
 }
 
@@ -58,9 +58,9 @@ export interface DomainChange {
  */
 export class ServiceDomainsComponent {
     /**
-     * Domains the service holds.
+     * Rows the service holds, of the table and of the compose file. A row of the identifier `null` holds no record yet.
      */
-    public readonly domains = input<Domain[]>([]);
+    public readonly domains = input<DomainRow[]>([]);
 
     /**
      * Names of the compose services the last deployment of the service declares.
@@ -88,14 +88,14 @@ export class ServiceDomainsComponent {
     public readonly claim = output<DomainDraft>();
 
     /**
-     * Emitted when the user changes a claimed domain.
+     * Emitted when the user changes a row of the list.
      */
     public readonly update = output<DomainChange>();
 
     /**
-     * Emitted when the user removes a claimed domain.
+     * Emitted when the user removes a row the table holds.
      */
-    public readonly remove = output<Domain>();
+    public readonly remove = output<DomainRow>();
 
     /**
      * The rows the skeleton of the table shows while the list loads.
@@ -111,7 +111,7 @@ export class ServiceDomainsComponent {
      */
     protected readonly formVisible = signal(false);
 
-    protected readonly editing = signal<Domain | null>(null);
+    protected readonly editing = signal<DomainRow | null>(null);
 
     protected readonly host = signal('');
 
@@ -192,11 +192,11 @@ export class ServiceDomainsComponent {
     }
 
     /**
-     * Loads a claimed domain into the form and shows it.
+     * Loads a row of the list into the form and shows it.
      *
-     * @param domain Domain to change
+     * @param domain Row to save or to change
      */
-    protected edit(domain: Domain): void {
+    protected edit(domain: DomainRow): void {
         this.editing.set(domain);
         this.host.set(domain.host);
         this.targetService.set(domain.targetService);
