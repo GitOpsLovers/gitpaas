@@ -21,6 +21,6 @@
     "eslint": "10.4.0",
     "globals": "17.7.0",
     "typescript": "6.0.3",
-    "vitest": "4.1.10"
+    "vitest": "5.0.0"
   }
 }
