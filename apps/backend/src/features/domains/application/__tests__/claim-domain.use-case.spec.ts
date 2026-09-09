@@ -1,7 +1,7 @@
 import type { ClaimDomainDto } from '@gitpaas/contracts';
 
 import { DomainTakenError } from '../../domain/errors/domain.errors';
-import { Domain } from '../../domain/models/domain.models';
+import { Domain, DomainOrigin } from '../../domain/models/domain.models';
 import { DomainsRepository } from '../../domain/repositories/domains.repository';
 import { claimDomainUseCase } from '../claim-domain.use-case';
 
@@ -17,6 +17,7 @@ const domain = (overrides: Partial<Domain> = {}): Domain => ({
     https: true,
     certificateState: 'pending',
     certificateError: null,
+    origin: 'user',
     ...overrides,
 });
 
@@ -39,8 +40,8 @@ describe('claimDomainUseCase', () => {
     });
 
     /** Runs the use case with the mocked repository. */
-    const run = (dto: ClaimDomainDto): Promise<Domain> =>
-        claimDomainUseCase(mockDomainsRepository as unknown as DomainsRepository, serviceId, dto);
+    const run = (dto: ClaimDomainDto, origin: DomainOrigin = 'user'): Promise<Domain> =>
+        claimDomainUseCase(mockDomainsRepository as unknown as DomainsRepository, serviceId, dto, origin);
 
     it('looks the host up across the installation before it writes', async () => {
         mockDomainsRepository.findByHost.mockResolvedValue(null);
@@ -60,7 +61,7 @@ describe('claimDomainUseCase', () => {
         await run(dto);
 
         expect(mockDomainsRepository.create).toHaveBeenCalledTimes(1);
-        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, dto, 'pending');
+        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, dto, 'pending', 'user');
     });
 
     it('starts the certificate as pending when the domain asks for HTTPS', async () => {
@@ -69,7 +70,7 @@ describe('claimDomainUseCase', () => {
 
         await run(claimDto({ https: true }));
 
-        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, expect.anything(), 'pending');
+        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, expect.anything(), 'pending', 'user');
     });
 
     it('asks for no certificate when the domain answers on HTTP alone', async () => {
@@ -78,7 +79,16 @@ describe('claimDomainUseCase', () => {
 
         await run(claimDto({ https: false }));
 
-        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, expect.anything(), 'none');
+        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, expect.anything(), 'none', 'user');
+    });
+
+    it('writes the origin that the caller gives', async () => {
+        mockDomainsRepository.findByHost.mockResolvedValue(null);
+        mockDomainsRepository.create.mockResolvedValue(domain({ origin: 'compose' }));
+
+        await run(claimDto(), 'compose');
+
+        expect(mockDomainsRepository.create).toHaveBeenCalledWith(serviceId, expect.anything(), 'pending', 'compose');
     });
 
     it('returns the domain that the repository created', async () => {

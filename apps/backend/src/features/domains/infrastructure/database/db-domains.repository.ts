@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CertificateState, Domain } from '../../domain/models/domain.models';
+import { CertificateState, Domain, DomainOrigin } from '../../domain/models/domain.models';
 import { DomainsRepository } from '../../domain/repositories/domains.repository';
 
 import { DbDomainEntity } from './db-domain.entity';
@@ -52,6 +52,7 @@ export class DatabaseDomainsRepository implements DomainsRepository {
         serviceId: string,
         claimDto: ClaimDomainDto,
         certificateState: CertificateState,
+        origin: DomainOrigin,
     ): Promise<Domain> {
         const domain = this.repository.create({
             serviceId,
@@ -61,6 +62,7 @@ export class DatabaseDomainsRepository implements DomainsRepository {
             https: claimDto.https,
             certificateState,
             certificateError: null,
+            origin,
         });
 
         const saved = await this.repository.save(domain);

@@ -1,6 +1,7 @@
 import { ServiceNameTakenError } from '../../../domain/errors/service.errors';
 import { DbServiceEntity } from '../db-service.entity';
 import {
+    toComposeDomainsCache,
     toComposeEnvironmentCache,
     toDbComposeDomains,
     toDbComposeEnvironment,
@@ -266,5 +267,27 @@ describe('toDbComposeDomains', () => {
         const cache = { domains: [], refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
 
         expect(toDbComposeDomains(cache)).toEqual({ domains: [], refreshedAt: '2026-09-08T10:00:00.000Z' });
+    });
+});
+
+describe('toComposeDomainsCache', () => {
+    it('maps every declaration of the row and reads its moment as a date', () => {
+        const result = toComposeDomainsCache({
+            domains: [{
+                targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+            }],
+            refreshedAt: '2026-09-08T10:00:00.000Z',
+        });
+
+        expect(result).toEqual({
+            domains: [{
+                targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+            }],
+            refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+        });
+    });
+
+    it('returns null when the row carries no cache', () => {
+        expect(toComposeDomainsCache(null)).toBeNull();
     });
 });

@@ -31,6 +31,7 @@ describe('TraefikReverseProxyAdapter', () => {
         https: false,
         certificateState: 'none',
         certificateError: null,
+        origin: 'user',
         ...overrides,
     });
 

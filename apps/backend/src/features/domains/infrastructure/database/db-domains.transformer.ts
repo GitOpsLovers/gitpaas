@@ -19,5 +19,6 @@ export function toDomain(entity: DbDomainEntity): Domain {
         https: entity.https,
         certificateState: entity.certificateState,
         certificateError: entity.certificateError ?? null,
+        origin: entity.origin,
     };
 }

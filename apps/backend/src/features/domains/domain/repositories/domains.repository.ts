@@ -1,6 +1,6 @@
 import type { ClaimDomainDto, UpdateDomainDto } from '@gitpaas/contracts';
 
-import { CertificateState, Domain } from '../models/domain.models';
+import { CertificateState, Domain, DomainOrigin } from '../models/domain.models';
 
 /**
  * Domains repository
@@ -39,6 +39,7 @@ export interface DomainsRepository {
      * @param serviceId Service the domain belongs to
      * @param claimDto Domain data
      * @param certificateState State the certificate of the new domain starts from
+     * @param origin Where the domain comes from
      *
      * @returns Claimed domain
      */
@@ -46,6 +47,7 @@ export interface DomainsRepository {
         serviceId: string,
         claimDto: ClaimDomainDto,
         certificateState: CertificateState,
+        origin: DomainOrigin,
     ) => Promise<Domain>;
 
     /**

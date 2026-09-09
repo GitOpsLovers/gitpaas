@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
-import type { CertificateState } from '../../domain/models/domain.models';
+import type { CertificateState, DomainOrigin } from '../../domain/models/domain.models';
 
 import { DbServiceEntity } from '@features/services/infrastructure/database/db-service.entity';
 
@@ -33,6 +33,9 @@ export class DbDomainEntity {
 
     @Column({ type: 'text', nullable: true })
     public certificateError!: string | null;
+
+    @Column({ type: 'text', default: 'user' })
+    public origin!: DomainOrigin;
 
     @ManyToOne(() => DbServiceEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'serviceId', foreignKeyConstraintName: 'FK_domains_serviceId' })

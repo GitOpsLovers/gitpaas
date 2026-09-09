@@ -1,7 +1,7 @@
 import type { ClaimDomainDto } from '@gitpaas/contracts';
 
 import { DomainTakenError } from '../domain/errors/domain.errors';
-import { Domain } from '../domain/models/domain.models';
+import { Domain, DomainOrigin } from '../domain/models/domain.models';
 import { DomainsRepository } from '../domain/repositories/domains.repository';
 
 /**
@@ -10,6 +10,7 @@ import { DomainsRepository } from '../domain/repositories/domains.repository';
  * @param repository Domains repository
  * @param serviceId Service the domain belongs to
  * @param claimDto Domain data
+ * @param origin Where the domain comes from
  *
  * @returns Claimed domain
  *
@@ -19,6 +20,7 @@ export async function claimDomainUseCase(
     repository: DomainsRepository,
     serviceId: string,
     claimDto: ClaimDomainDto,
+    origin: DomainOrigin,
 ): Promise<Domain> {
     const existing = await repository.findByHost(claimDto.host);
 
@@ -26,5 +28,5 @@ export async function claimDomainUseCase(
         throw new DomainTakenError(claimDto.host);
     }
 
-    return repository.create(serviceId, claimDto, claimDto.https ? 'pending' : 'none');
+    return repository.create(serviceId, claimDto, claimDto.https ? 'pending' : 'none', origin);
 }

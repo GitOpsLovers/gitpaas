@@ -23,14 +23,14 @@ Out of scope: the middlewares, the rules of the path, and every change of the ge
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/deployments/application/`, `apps/backend/src/features/domains/application/`
 
-- [ ] 2.1 Add the field `origin` (`user` or `compose`) to the entity of the domain, with its migration; every existing record takes `user`.
-- [ ] 2.2 Add a use case that reconciles the declared domains of a service before the routing of the deployment.
-- [ ] 2.3 Create the domain of a declaration that holds no record, and update the record of the origin `compose` when the declaration changed.
-- [ ] 2.4 Keep the record of the origin `user` unchanged, and never overwrite it from the compose file.
-- [ ] 2.5 Delete the record of the origin `compose` when its host left the compose file.
-- [ ] 2.6 Fail the deployment, with the host and the reason in the error, when another service already holds that host.
-- [ ] 2.7 Call the reconciliation from `run-deployment.use-case.ts` before the build of the routing.
-- [ ] 2.8 Write the unit tests of the reconciliation and of the deployment.
+- [x] 2.1 Add the field `origin` (`user` or `compose`) to the entity of the domain, with its migration; every existing record takes `user`.
+- [x] 2.2 Add a use case that reconciles the declared domains of a service before the routing of the deployment.
+- [x] 2.3 Create the domain of a declaration that holds no record, and update the record of the origin `compose` when the declaration changed.
+- [x] 2.4 Keep the record of the origin `user` unchanged, and never overwrite it from the compose file.
+- [x] 2.5 Delete the record of the origin `compose` when its host left the compose file.
+- [x] 2.6 Fail the deployment, with the host and the reason in the error, when another service already holds that host.
+- [x] 2.7 Call the reconciliation from `run-deployment.use-case.ts` before the build of the routing.
+- [x] 2.8 Write the unit tests of the reconciliation and of the deployment.
 
 ## Phase 3 — The tab of the domains
 

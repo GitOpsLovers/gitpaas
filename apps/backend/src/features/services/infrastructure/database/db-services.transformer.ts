@@ -131,3 +131,26 @@ export function toDbComposeDomains(cache: ComposeDomainsCache): DbComposeDomains
         refreshedAt: cache.refreshedAt.toISOString(),
     };
 }
+
+/**
+ * Maps the cache of the compose domains of a row into its domain model.
+ *
+ * @param cache Cache the row of the service carries
+ *
+ * @returns The cache of the domain, or `null` when the row carries none
+ */
+export function toComposeDomainsCache(cache: DbComposeDomains | null): ComposeDomainsCache | null {
+    if (!cache) {
+        return null;
+    }
+
+    return {
+        domains: cache.domains.map((domain) => ({
+            targetService: domain.targetService,
+            host: domain.host,
+            port: domain.port,
+            https: domain.https,
+        })),
+        refreshedAt: new Date(cache.refreshedAt),
+    };
+}

@@ -8,6 +8,7 @@ import { maskSecretValuesUseCase } from './mask-secret-values.use-case';
 import { DomainError } from '@core/domain/errors/domain.error';
 import type { AppLogger } from '@core/domain/ports/app-logger.port';
 import type { SecretCipher } from '@core/domain/ports/secret-cipher.port';
+import { reconcileComposeDomainsUseCase } from '@features/domains/application/reconcile-compose-domains.use-case';
 import { ReverseProxy } from '@features/domains/domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
@@ -145,6 +146,10 @@ export async function runDeploymentUseCase(
         const emit = (line: string): void => {
             logStore.append(payload.deploymentId, maskSecretValuesUseCase(line, secrets)).catch(() => undefined);
         };
+
+        // The compose file of the service declares a domain too, and its record reaches the
+        // routing of this deployment alone when the reconciliation runs before the build.
+        await reconcileComposeDomainsUseCase(domainsRepository, servicesRepository, service.id);
 
         const domains = await domainsRepository.getByService(service.id);
         const routing = reverseProxy.buildRouting(domains);

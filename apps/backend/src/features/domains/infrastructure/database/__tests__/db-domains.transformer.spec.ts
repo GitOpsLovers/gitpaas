@@ -11,6 +11,7 @@ const domainEntity = (overrides: Partial<DbDomainEntity> = {}): DbDomainEntity =
     https: true,
     certificateState: 'ready',
     certificateError: null,
+    origin: 'user',
     ...overrides,
 });
 
@@ -25,6 +26,7 @@ describe('toDomain', () => {
             https: true,
             certificateState: 'ready',
             certificateError: null,
+            origin: 'user',
         });
     });
 
@@ -43,6 +45,12 @@ describe('toDomain', () => {
             certificateState: 'failed',
             certificateError: 'the challenge timed out',
         });
+    });
+
+    it('maps the origin the compose file of the service gave to the domain', () => {
+        const result = toDomain(domainEntity({ origin: 'compose' }));
+
+        expect(result).toMatchObject({ origin: 'compose' });
     });
 
     it('never carries the relation of the service into the domain model', () => {
