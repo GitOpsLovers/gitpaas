@@ -6,8 +6,10 @@ import { deleteServiceUseCase } from '../../application/delete-service.use-case'
 import { findServiceByIdUseCase } from '../../application/find-service-by-id.use-case';
 import { getFinalComposeUseCase } from '../../application/get-final-compose.use-case';
 import { getServicesByProjectUseCase } from '../../application/get-services-by-project.use-case';
+import { refreshComposeDomainsUseCase } from '../../application/refresh-compose-domains.use-case';
 import { refreshComposeEnvironmentUseCase } from '../../application/refresh-compose-environment.use-case';
 import { updateServiceUseCase } from '../../application/update-service.use-case';
+import { ComposeDomainsCache } from '../../domain/models/compose-domains.models';
 import { ComposeEnvironmentCache } from '../../domain/models/compose-environment.models';
 import { FinalCompose } from '../../domain/models/final-compose.models';
 import { Service } from '../../domain/models/service.models';
@@ -88,7 +90,7 @@ export class ServicesService {
     }
 
     /**
-     * Change a service, and refresh the cache of its compose environment when the write names the path of the compose file
+     * Change a service, and refresh the caches of its compose file when the write names the path of that file
      *
      * @param id Service identifier
      * @param updateDto Data for updating the service
@@ -103,13 +105,22 @@ export class ServicesService {
         enrichWithService(service);
 
         if (updateDto.composerPath !== undefined) {
-            // The cache is a convenience of the tab Environment, so a repository that answers no compose file never
-            // fails the write of the service. The former cache stays until the next refresh.
+            // A cache is a convenience of a tab, so a repository that answers no compose file never fails the write of
+            // the service. The former cache stays until the next refresh.
             try {
                 await this.refreshComposeEnvironment(id);
             } catch (error: unknown) {
                 this.logger.warn(
                     `The refresh of the compose environment of the service ${id} failed: ${String(error)}`,
+                    ServicesService.name,
+                );
+            }
+
+            try {
+                await this.refreshComposeDomains(id);
+            } catch (error: unknown) {
+                this.logger.warn(
+                    `The refresh of the compose domains of the service ${id} failed: ${String(error)}`,
                     ServicesService.name,
                 );
             }
@@ -130,6 +141,26 @@ export class ServicesService {
      */
     public refreshComposeEnvironment(id: string): Promise<ComposeEnvironmentCache | null> {
         return refreshComposeEnvironmentUseCase(
+            this.repository,
+            this.providersRepository,
+            this.providerClient,
+            this.repositoryComposeFile,
+            id,
+        );
+    }
+
+    /**
+     * Read the compose file of the repository of a service, and cache the domains its key `x-gitpaas-domain` declares
+     *
+     * @param id Service identifier
+     *
+     * @returns The cache that the refresh wrote, or `null` when it left the cache untouched
+     *
+     * @throws {ServiceNotFoundError} When the service does not exist
+     * @throws {ProviderNotFoundError} When the provider of the service no longer exists
+     */
+    public refreshComposeDomains(id: string): Promise<ComposeDomainsCache | null> {
+        return refreshComposeDomainsUseCase(
             this.repository,
             this.providersRepository,
             this.providerClient,

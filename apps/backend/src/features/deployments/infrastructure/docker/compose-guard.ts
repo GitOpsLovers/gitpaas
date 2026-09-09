@@ -1,3 +1,5 @@
+import { COMPOSE_DOMAIN_KEY, declaredDomainSchema } from '@gitpaas/contracts';
+
 import { isBindMountSource } from './compose-recipe.transformer';
 import type { ComposeRecipe } from './compose-recipe.transformer';
 
@@ -56,6 +58,7 @@ const ALLOWED_SERVICE_KEYS = new Set([
     'user',
     'volumes',
     'working_dir',
+    COMPOSE_DOMAIN_KEY,
 ]);
 
 /**
@@ -140,12 +143,39 @@ function assertSafeVolume(service: string, volume: unknown): void {
 }
 
 /**
+ * Refuses the domain a compose service declares when it breaks the schema of the declared domain.
+ *
+ * @param name Name of the compose service the declaration belongs to
+ * @param definition Definition of the compose service, as the recipe writes it
+ *
+ * @throws {UnsafeComposeRecipeError} When the value of the key `x-gitpaas-domain` carries no valid host, port and flag `https`
+ */
+function assertSafeDeclaredDomain(name: string, definition: Record<string, unknown>): void {
+    // eslint-disable-next-line security/detect-object-injection
+    const declaration = definition[COMPOSE_DOMAIN_KEY];
+
+    if (declaration === undefined) {
+        return;
+    }
+
+    const parsed = declaredDomainSchema.safeParse(declaration);
+
+    if (!parsed.success) {
+        refuse(
+            name,
+            COMPOSE_DOMAIN_KEY,
+            `the declared domain carries the host, the port and the flag "https" alone: ${parsed.error.issues[0].message}`,
+        );
+    }
+}
+
+/**
  * Refuses one compose service that reaches the host.
  *
  * @param name Name of the compose service
  * @param service Definition of the compose service, as the recipe writes it
  *
- * @throws {UnsafeComposeRecipeError} When the service declares a key GitPaaS does not allow
+ * @throws {UnsafeComposeRecipeError} When the service declares a key GitPaaS does not allow, or a domain the schema of the declared domain refuses
  */
 function assertSafeService(name: string, service: unknown): void {
     if (service === null || typeof service !== 'object') {
@@ -175,6 +205,8 @@ function assertSafeService(name: string, service: unknown): void {
             refuse(name, key, `the value "${value}" shares a namespace of outside the stack with the container`);
         }
     }
+
+    assertSafeDeclaredDomain(name, definition);
 
     const volumes = definition.volumes;
 

@@ -26,6 +26,32 @@ describe('assertSafeRecipe', () => {
         }).not.toThrow();
     });
 
+    it('accepts a service that declares its domain in the key x-gitpaas-domain', () => {
+        expect(() => {
+            assertSafeRecipe(recipe({ 'x-gitpaas-domain': { host: 'app.example.com', port: 8080, https: true } }));
+        }).not.toThrow();
+    });
+
+    it.each([
+        ['a host of one label alone', { host: 'localhost', port: 80, https: true }],
+        ['a port outside the range', { host: 'app.example.com', port: 70_000, https: true }],
+        ['a port that is no number', { host: 'app.example.com', port: '80', https: true }],
+        ['no flag https', { host: 'app.example.com', port: 80 }],
+        ['no host', { port: 80, https: true }],
+        ['a key the schema does not know', {
+            host: 'app.example.com', port: 80, https: true, path: '/api',
+        }],
+        ['no block of keys at all', 'app.example.com'],
+    ])('refuses a declared domain that carries %s', (_case, declaration) => {
+        expect(() => { assertSafeRecipe(recipe({ 'x-gitpaas-domain': declaration })); })
+            .toThrow(UnsafeComposeRecipeError);
+    });
+
+    it('names the service and the key x-gitpaas-domain in the message of the error of a declared domain', () => {
+        expect(() => { assertSafeRecipe(recipe({ 'x-gitpaas-domain': { host: 'localhost', port: 80, https: true } })); })
+            .toThrow(/services\.web\.x-gitpaas-domain/);
+    });
+
     it('accepts a recipe that declares no service at all', () => {
         expect(() => { assertSafeRecipe({}); }).not.toThrow();
     });

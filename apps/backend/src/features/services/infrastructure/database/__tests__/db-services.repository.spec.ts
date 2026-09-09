@@ -36,14 +36,17 @@ const serviceEntity = (overrides: Partial<DbServiceEntity> = {}): DbServiceEntit
     deploymentBranch: 'main',
     composerPath: 'services/checkout',
     composeEnvironment: null,
+    composeDomains: null,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
 });
 
 /**
- * The domain shape of a service entity: every column of the row but the cache of the compose environment.
+ * The domain shape of a service entity: every column of the row but the caches of its compose file.
  */
-const domainOf = ({ composeEnvironment: _cache, ...service }: DbServiceEntity): Omit<DbServiceEntity, 'composeEnvironment'> => service;
+const domainOf = (
+    { composeEnvironment: _environment, composeDomains: _domains, ...service }: DbServiceEntity,
+): Omit<DbServiceEntity, 'composeEnvironment' | 'composeDomains'> => service;
 
 describe('DatabaseServicesRepository', () => {
     const projectId = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
@@ -272,6 +275,39 @@ describe('DatabaseServicesRepository', () => {
 
             await expect(sut.saveComposeEnvironment('some-id', {
                 variables: {},
+                refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+            })).rejects.toThrow(error);
+        });
+    });
+
+    describe('saveComposeDomains', () => {
+        it('writes the domains and the moment of the read on the row of the service', async () => {
+            mockRepository.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+            await sut.saveComposeDomains('some-id', {
+                domains: [{
+                    targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+                }],
+                refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+            });
+
+            expect(mockRepository.update).toHaveBeenCalledTimes(1);
+            expect(mockRepository.update).toHaveBeenCalledWith('some-id', {
+                composeDomains: {
+                    domains: [{
+                        targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+                    }],
+                    refreshedAt: '2026-09-08T10:00:00.000Z',
+                },
+            });
+        });
+
+        it('propagates a failure of the write', async () => {
+            const error = new Error('db unreachable');
+            mockRepository.update.mockRejectedValue(error);
+
+            await expect(sut.saveComposeDomains('some-id', {
+                domains: [],
                 refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
             })).rejects.toThrow(error);
         });

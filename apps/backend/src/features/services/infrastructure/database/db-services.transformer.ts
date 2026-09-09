@@ -1,8 +1,9 @@
 import { ServiceNameTakenError } from '../../domain/errors/service.errors';
+import { ComposeDomainsCache } from '../../domain/models/compose-domains.models';
 import { ComposeEnvironmentCache } from '../../domain/models/compose-environment.models';
 import { Service } from '../../domain/models/service.models';
 
-import { DbComposeEnvironment, DbServiceEntity } from './db-service.entity';
+import { DbComposeDomains, DbComposeEnvironment, DbServiceEntity } from './db-service.entity';
 
 import { FOREIGN_KEY_VIOLATION, readSqlState, UNIQUE_VIOLATION } from '@core/infrastructure/database/sql-state';
 import { ProjectNotFoundError } from '@features/projects/domain/errors/project.errors';
@@ -109,5 +110,24 @@ export function toComposeEnvironmentCache(cache: DbComposeEnvironment | null): C
     return {
         variables: cache.variables,
         refreshedAt: new Date(cache.refreshedAt),
+    };
+}
+
+/**
+ * Maps the cache of the compose domains of a service into the shape its row carries.
+ *
+ * @param cache Cache of the key `x-gitpaas-domain` of the compose file of the service
+ *
+ * @returns The cache of the database
+ */
+export function toDbComposeDomains(cache: ComposeDomainsCache): DbComposeDomains {
+    return {
+        domains: cache.domains.map((domain) => ({
+            targetService: domain.targetService,
+            host: domain.host,
+            port: domain.port,
+            https: domain.https,
+        })),
+        refreshedAt: cache.refreshedAt.toISOString(),
     };
 }

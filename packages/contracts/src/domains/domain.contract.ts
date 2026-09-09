@@ -104,3 +104,22 @@ export type ClaimDomainDto = z.infer<typeof claimDomainSchema>;
  * The shape of the body that changes a domain.
  */
 export type UpdateDomainDto = z.infer<typeof updateDomainSchema>;
+
+/**
+ * The key a compose service carries to declare the domain that reaches it.
+ */
+export const COMPOSE_DOMAIN_KEY = 'x-gitpaas-domain';
+
+/**
+ * The domain a compose service declares inside its key `x-gitpaas-domain`. It carries no target service, because the key sits inside the service it targets.
+ */
+export const declaredDomainSchema = z.strictObject({
+    host: domainHost,
+    port: domainPort,
+    https: z.boolean(),
+});
+
+/**
+ * The shape of the domain a compose service declares.
+ */
+export type DeclaredDomain = z.infer<typeof declaredDomainSchema>;

@@ -2,6 +2,7 @@ import { ServiceNameTakenError } from '../../../domain/errors/service.errors';
 import { DbServiceEntity } from '../db-service.entity';
 import {
     toComposeEnvironmentCache,
+    toDbComposeDomains,
     toDbComposeEnvironment,
     toService,
     toServicePersistenceError,
@@ -25,6 +26,7 @@ describe('toService', () => {
             deploymentBranch: 'main',
             composerPath: 'docker-compose.yml',
             composeEnvironment: null,
+            composeDomains: null,
             createdAt,
         };
 
@@ -54,6 +56,7 @@ describe('toService', () => {
             deploymentBranch: '',
             composerPath: '',
             composeEnvironment: null,
+            composeDomains: null,
             createdAt,
         };
 
@@ -83,6 +86,7 @@ describe('toService', () => {
             deploymentBranch: '',
             composerPath: '',
             composeEnvironment: null,
+            composeDomains: null,
             createdAt,
         };
 
@@ -101,6 +105,7 @@ describe('toService', () => {
             deploymentBranch: '',
             composerPath: '',
             composeEnvironment: null,
+            composeDomains: null,
             createdAt,
         };
 
@@ -237,5 +242,29 @@ describe('toComposeEnvironmentCache', () => {
 
     it('returns null when the row carries no cache', () => {
         expect(toComposeEnvironmentCache(null)).toBeNull();
+    });
+});
+
+describe('toDbComposeDomains', () => {
+    it('maps the cache into the shape of the row, with the moment as an ISO string', () => {
+        const cache = {
+            domains: [{
+                targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+            }],
+            refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+        };
+
+        expect(toDbComposeDomains(cache)).toEqual({
+            domains: [{
+                targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+            }],
+            refreshedAt: '2026-09-08T10:00:00.000Z',
+        });
+    });
+
+    it('keeps an empty list of domains', () => {
+        const cache = { domains: [], refreshedAt: new Date('2026-09-08T10:00:00.000Z') };
+
+        expect(toDbComposeDomains(cache)).toEqual({ domains: [], refreshedAt: '2026-09-08T10:00:00.000Z' });
     });
 });

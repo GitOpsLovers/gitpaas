@@ -12,6 +12,24 @@ export interface DbComposeEnvironment {
 }
 
 /**
+ * One domain the compose file of a service declares, as one row of the database carries it.
+ */
+export interface DbComposeDomain {
+    targetService: string;
+    host: string;
+    port: number;
+    https: boolean;
+}
+
+/**
+ * The cache of the key `x-gitpaas-domain` of the compose file of a service, as one row of the database carries it.
+ */
+export interface DbComposeDomains {
+    domains: DbComposeDomain[];
+    refreshedAt: string;
+}
+
+/**
  * Services database entity
  */
 @Entity('services')
@@ -46,6 +64,9 @@ export class DbServiceEntity {
 
     @Column({ type: 'jsonb', nullable: true })
     public composeEnvironment!: DbComposeEnvironment | null;
+
+    @Column({ type: 'jsonb', nullable: true })
+    public composeDomains!: DbComposeDomains | null;
 
     @CreateDateColumn({ type: 'timestamptz' })
     public createdAt!: Date;
