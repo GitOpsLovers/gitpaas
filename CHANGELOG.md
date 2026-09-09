@@ -1,3 +1,9 @@
+## [2.26.1](https://github.com/GitOpsLovers/gitpaas/compare/v2.26.0...v2.26.1) (2026-09-09)
+
+### Bug Fixes
+
+* refresh cache on deployments ([fd5db5f](https://github.com/GitOpsLovers/gitpaas/commit/fd5db5f97a0fc51ac2227ff5f102230a6339f265))
+
 ## [2.26.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.25.0...v2.26.0) (2026-09-09)
 
 ### Features
