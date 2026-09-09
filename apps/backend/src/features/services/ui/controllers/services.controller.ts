@@ -118,6 +118,23 @@ export class ServicesController {
         }
     }
 
+    /**
+     * Read the compose file of the repository of a service again, and cache the domains its key `x-gitpaas-domain` declares.
+     *
+     * @param id Service identifier
+     */
+    @Post(':id/compose-domains/refresh')
+    @HttpCode(204)
+    public async refreshComposeDomains(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        enrichTelemetry({ 'service.id': id });
+
+        try {
+            await this.service.refreshComposeDomains(id);
+        } catch (error) {
+            throw translateError(error);
+        }
+    }
+
     @Delete(':id')
     @HttpCode(204)
     public async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {

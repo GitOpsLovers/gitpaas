@@ -77,7 +77,14 @@ describe('ServicesController', () => {
     let mockServicesService: jest.Mocked<
         Pick<
             ServicesService,
-            'getAllByProject' | 'findById' | 'create' | 'update' | 'delete' | 'getFinalCompose' | 'refreshComposeEnvironment'
+            | 'getAllByProject'
+            | 'findById'
+            | 'create'
+            | 'update'
+            | 'delete'
+            | 'getFinalCompose'
+            | 'refreshComposeEnvironment'
+            | 'refreshComposeDomains'
         >
     >;
     let sut: ServicesController;
@@ -93,6 +100,7 @@ describe('ServicesController', () => {
             delete: jest.fn(),
             getFinalCompose: jest.fn(),
             refreshComposeEnvironment: jest.fn(),
+            refreshComposeDomains: jest.fn(),
         };
 
         const moduleRef = await Test.createTestingModule({
@@ -106,7 +114,7 @@ describe('ServicesController', () => {
     });
 
     describe('parameter validation', () => {
-        it.each(['findById', 'update', 'delete', 'getFinalCompose', 'refreshComposeEnvironment'])(
+        it.each(['findById', 'update', 'delete', 'getFinalCompose', 'refreshComposeEnvironment', 'refreshComposeDomains'])(
             'validates the id path parameter of %s as a UUID',
             (handler) => {
                 expect(pipesFor(handler, 'id')).toContain(ParseUUIDPipe);
@@ -121,7 +129,14 @@ describe('ServicesController', () => {
             expect(pipesFor(handler)).toEqual([expect.any(ZodValidationPipe)]);
         });
 
-        it.each(['getAllByProject', 'findById', 'delete', 'getFinalCompose', 'refreshComposeEnvironment'])(
+        it.each([
+            'getAllByProject',
+            'findById',
+            'delete',
+            'getFinalCompose',
+            'refreshComposeEnvironment',
+            'refreshComposeDomains',
+        ])(
             'never binds a body on %s',
             (handler) => {
                 expect(pipesFor(handler)).toEqual([]);
@@ -405,6 +420,49 @@ describe('ServicesController', () => {
             mockServicesService.delete.mockRejectedValue(error);
 
             await expect(sut.delete(serviceId)).rejects.toBe(error);
+        });
+    });
+
+    describe('refreshComposeDomains', () => {
+        const cache = {
+            domains: [{
+                targetService: 'web', host: 'app.example.com', port: 8080, https: true,
+            }],
+            refreshedAt: new Date('2026-09-08T10:00:00.000Z'),
+        };
+
+        it('delegates to the service with the received id', async () => {
+            mockServicesService.refreshComposeDomains.mockResolvedValue(cache);
+
+            await sut.refreshComposeDomains(serviceId);
+
+            expect(mockServicesService.refreshComposeDomains).toHaveBeenCalledTimes(1);
+            expect(mockServicesService.refreshComposeDomains).toHaveBeenCalledWith(serviceId);
+        });
+
+        it('answers no content when the refresh wrote the cache', async () => {
+            mockServicesService.refreshComposeDomains.mockResolvedValue(cache);
+
+            await expect(sut.refreshComposeDomains(serviceId)).resolves.toBeUndefined();
+        });
+
+        it('answers no content when the refresh left the cache untouched', async () => {
+            mockServicesService.refreshComposeDomains.mockResolvedValue(null);
+
+            await expect(sut.refreshComposeDomains(serviceId)).resolves.toBeUndefined();
+        });
+
+        it('translates the not-found domain error into a NotFoundException', async () => {
+            mockServicesService.refreshComposeDomains.mockRejectedValue(new ServiceNotFoundError(serviceId));
+
+            await expect(sut.refreshComposeDomains(serviceId)).rejects.toBeInstanceOf(NotFoundException);
+        });
+
+        it('propagates errors raised by the service', async () => {
+            const error = new Error('archive not found');
+            mockServicesService.refreshComposeDomains.mockRejectedValue(error);
+
+            await expect(sut.refreshComposeDomains(serviceId)).rejects.toBe(error);
         });
     });
 

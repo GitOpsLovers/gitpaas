@@ -1,4 +1,4 @@
-import { claimDomainSchema, domainSchema, updateDomainSchema } from '../domain.contract';
+import { claimDomainSchema, COMPOSE_DOMAIN_KEY, declaredDomainSchema, domainSchema, updateDomainSchema } from '../domain.contract';
 
 /** A payload satisfying every rule of `claimDomainSchema`. */
 const validClaim = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
@@ -153,5 +153,49 @@ describe('domainSchema', () => {
 
     it('rejects an id that is not a UUID', () => {
         expect(domainSchema.safeParse(validDomain({ id: 'not-a-uuid' })).success).toBe(false);
+    });
+});
+
+describe('declaredDomainSchema', () => {
+    /** A declaration satisfying every rule of `declaredDomainSchema`. */
+    const validDeclaration = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+        host: 'app.example.com',
+        port: 8080,
+        https: true,
+        ...overrides,
+    });
+
+    it('accepts a declaration of a host, a port and the flag https', () => {
+        expect(declaredDomainSchema.safeParse(validDeclaration()).success).toBe(true);
+    });
+
+    it('puts the host into small letters, so one host cannot be declared in two forms', () => {
+        expect(declaredDomainSchema.parse(validDeclaration({ host: 'App.Example.COM' })).host).toBe('app.example.com');
+    });
+
+    it('refuses a host of one label alone', () => {
+        expect(declaredDomainSchema.safeParse(validDeclaration({ host: 'localhost' })).success).toBe(false);
+    });
+
+    it('refuses a port outside the range of the ports', () => {
+        expect(declaredDomainSchema.safeParse(validDeclaration({ port: 70_000 })).success).toBe(false);
+    });
+
+    it.each(['host', 'port', 'https'])('refuses a declaration that carries no %s', (key) => {
+        const declaration = validDeclaration();
+        // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-dynamic-delete
+        delete declaration[key];
+
+        expect(declaredDomainSchema.safeParse(declaration).success).toBe(false);
+    });
+
+    it('refuses the target service, because the key sits inside the service it targets', () => {
+        expect(declaredDomainSchema.safeParse(validDeclaration({ targetService: 'web' })).success).toBe(false);
+    });
+});
+
+describe('COMPOSE_DOMAIN_KEY', () => {
+    it('names the key a compose service carries to declare its domain', () => {
+        expect(COMPOSE_DOMAIN_KEY).toBe('x-gitpaas-domain');
     });
 });

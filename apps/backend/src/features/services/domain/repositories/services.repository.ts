@@ -1,6 +1,7 @@
 import type { UpdateServiceDto } from '@gitpaas/contracts';
 
 import { CreateServiceWithComposeProjectDto } from '../dtos/create-service-with-compose-project.dto';
+import { ComposeDomainsCache } from '../models/compose-domains.models';
 import { ComposeEnvironmentCache } from '../models/compose-environment.models';
 import { Service } from '../models/service.models';
 
@@ -59,6 +60,14 @@ export interface ServicesRepository {
      * @param cache Names, values and moment of the read of the compose file
      */
     saveComposeEnvironment: (id: string, cache: ComposeEnvironmentCache) => Promise<void>;
+
+    /**
+     * Write the cache of the key `x-gitpaas-domain` of the compose file of a service
+     *
+     * @param id Service identifier
+     * @param cache Domains and moment of the read of the compose file
+     */
+    saveComposeDomains: (id: string, cache: ComposeDomainsCache) => Promise<void>;
 
     /**
      * Delete a service
