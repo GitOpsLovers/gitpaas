@@ -1,16 +1,7 @@
-import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import type { Network, ProjectNetwork } from '@gitpaas/contracts';
+import type { Network } from '@gitpaas/contracts';
 
 import { ServiceNetworksComponent } from './service-networks.component';
-
-import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
-
-interface ServiceNetworksInternals {
-    selectedNetworkId: WritableSignal<string>;
-    onJoin: () => void;
-}
 
 const attached: Network = {
     id: 'net-1',
@@ -50,40 +41,13 @@ const leavingNetwork: Network = {
     state: 'leaving',
 };
 
-const backend: ProjectNetwork = {
-    id: 'nw-1',
-    projectId: 'pr-1',
-    name: 'backend',
-    daemonName: 'gitpaas-pr-1-nw-1',
-    state: 'ready',
-};
-
-const cache: ProjectNetwork = {
-    ...backend,
-    id: 'nw-2',
-    name: 'cache',
-    daemonName: 'gitpaas-pr-1-nw-2',
-};
-
 describe('ServiceNetworksComponent', () => {
     let fixture: ComponentFixture<ServiceNetworksComponent>;
-    let component: ServiceNetworksInternals;
-    let joined: ProjectNetwork[];
 
-    const create = (
-        networks: Network[] = [],
-        projectNetworks: ProjectNetwork[] = [],
-        loading = false,
-        joining = false,
-    ): void => {
+    const create = (networks: Network[] = [], loading = false): void => {
         fixture = TestBed.createComponent(ServiceNetworksComponent);
         fixture.componentRef.setInput('networks', networks);
-        fixture.componentRef.setInput('projectNetworks', projectNetworks);
         fixture.componentRef.setInput('loading', loading);
-        fixture.componentRef.setInput('joining', joining);
-        component = fixture.componentInstance as unknown as ServiceNetworksInternals;
-        joined = [];
-        fixture.componentInstance.join.subscribe((network) => joined.push(network));
         fixture.detectChanges();
     };
 
@@ -105,12 +69,6 @@ describe('ServiceNetworksComponent', () => {
 
     const headers = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
-
-    const select = (): Select2Component | undefined =>
-        fixture.debugElement.query(By.directive(Select2Component))?.componentInstance as Select2Component | undefined;
-
-    const joinButton = (): HTMLButtonElement | null =>
-        (fixture.nativeElement as HTMLElement).querySelector('app-button button');
 
     beforeEach(() => {
         TestBed.configureTestingModule({ imports: [ServiceNetworksComponent] });
@@ -172,13 +130,10 @@ describe('ServiceNetworksComponent', () => {
             expect(cells(6)).toEqual(['—']);
         });
 
-        test('describes the list as the declarations, the containers and the networks of the project', () => {
+        test('describes the list as the declarations of the service and the networks of its containers', () => {
             create([]);
 
-            expect(text()).toContain(
-                'The networks this service declares, the networks its containers hold, '
-                + 'and the networks of its project it joins or leaves at the next deployment.',
-            );
+            expect(text()).toContain('The networks this service declares, and the networks its containers hold.');
         });
 
         test('says that the service holds no network when the list is empty', () => {
@@ -188,7 +143,7 @@ describe('ServiceNetworksComponent', () => {
         });
 
         test('keeps the head of the table and shows five skeleton rows while the list arrives', () => {
-            create([], [], true);
+            create([], true);
 
             expect(headers()).toHaveLength(7);
             expect(skeletons()).toHaveLength(5);
@@ -197,55 +152,15 @@ describe('ServiceNetworksComponent', () => {
         });
     });
 
-    describe('the join', () => {
-        test('offers the networks of the project as the options of the select', () => {
-            create([], [backend, cache]);
+    describe('the read-only card', () => {
+        test('offers no control that joins the service to a network', () => {
+            create([attached]);
 
-            expect(select()?.options()).toEqual<Select2Option[]>([
-                { value: 'nw-1', label: 'backend' },
-                { value: 'nw-2', label: 'cache' },
-            ]);
-        });
+            const element = fixture.nativeElement as HTMLElement;
 
-        test('asks for a network of the project when the project holds none', () => {
-            create([], []);
-
-            expect(select()).toBeUndefined();
-            expect(text()).toContain('This project holds no network yet.');
-        });
-
-        test('emits the network the select holds, and empties the select', () => {
-            create([], [backend, cache]);
-
-            component.selectedNetworkId.set('nw-2');
-            component.onJoin();
-
-            expect(joined).toEqual([cache]);
-            expect(component.selectedNetworkId()).toBe('');
-        });
-
-        test('emits nothing while no network is selected', () => {
-            create([], [backend]);
-
-            component.onJoin();
-
-            expect(joined).toEqual([]);
-        });
-
-        test('disables the button while no network is selected', () => {
-            create([], [backend]);
-
-            expect(joinButton()?.disabled).toBe(true);
-        });
-
-        test('disables the button and announces the join while it is in flight', () => {
-            create([], [backend], false, true);
-
-            component.selectedNetworkId.set('nw-1');
-            fixture.detectChanges();
-
-            expect(joinButton()?.disabled).toBe(true);
-            expect(text()).toContain('Joining…');
+            expect(element.querySelector('app-select2')).toBeNull();
+            expect(element.querySelector('app-button')).toBeNull();
+            expect(text()).not.toContain('Join a network of the project');
         });
     });
 });

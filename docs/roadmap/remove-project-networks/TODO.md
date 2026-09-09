@@ -12,12 +12,12 @@ The support of a shared network through `external: true` stays as it is, and it 
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/networks/, apps/frontend/src/app/features/projects/, apps/frontend/src/app/features/services/
 
-- [ ] 1.1 Remove the tab `networks` of `project-detail.component.ts` and of `project-detail.component.html`.
-- [ ] 1.2 Remove every component, store and route of `features/networks/` that serves a network of a project.
-- [ ] 1.3 Remove the interface of the join and of the leave of `service-detail.component.ts` and of `service-networks.component`.
-- [ ] 1.4 Keep the tab of the networks of a service as a read-only list of the networks of the daemon.
-- [ ] 1.5 Remove the methods of the CRUD and of the join of `networks-api.repository.ts`.
-- [ ] 1.6 Update the unit tests of the files above, and run `rtk pnpm run check-types --filter @gitpaas/frontend`.
+- [x] 1.1 Remove the tab `networks` of `project-detail.component.ts` and of `project-detail.component.html`.
+- [x] 1.2 Remove every component, store and route of `features/networks/` that serves a network of a project.
+- [x] 1.3 Remove the interface of the join and of the leave of `service-detail.component.ts` and of `service-networks.component`.
+- [x] 1.4 Keep the tab of the networks of a service as a read-only list of the networks of the daemon.
+- [x] 1.5 Remove the methods of the CRUD and of the join of `networks-api.repository.ts`.
+- [x] 1.6 Update the unit tests of the files above, and run `rtk pnpm run check-types --filter @gitpaas/frontend`.
 
 ## Phase 2 — The backend loses the layer, and the tables go away
 

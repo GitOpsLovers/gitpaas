@@ -1,12 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, input, output, signal } from '@angular/core';
-import type { Network, NetworkState, ProjectNetwork } from '@gitpaas/contracts';
-import { LucidePlus } from '@lucide/angular';
+import { Component, input } from '@angular/core';
+import type { Network, NetworkState } from '@gitpaas/contracts';
 
-import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
-import { LabelComponent } from '@shared/components/label/label.component';
-import { Select2Component, Select2Option } from '@shared/components/select2/select2.component';
 import { SkeletonComponent } from '@shared/components/skeleton/skeleton.component';
 
 /**
@@ -32,13 +28,9 @@ const STATE_HINTS: Partial<Record<NetworkState, string>> = {
     selector: 'app-service-networks',
     templateUrl: './service-networks.component.html',
     imports: [
-        ButtonComponent,
         ComponentCardComponent,
         DatePipe,
-        LabelComponent,
-        Select2Component,
         SkeletonComponent,
-        LucidePlus,
     ],
 })
 
@@ -52,37 +44,14 @@ export class ServiceNetworksComponent {
     public readonly networks = input<Network[]>([]);
 
     /**
-     * Networks the project of the service owns.
-     */
-    public readonly projectNetworks = input<ProjectNetwork[]>([]);
-
-    /**
      * Whether the network list is loading.
      */
     public readonly loading = input(false);
 
     /**
-     * Whether a join is in flight.
-     */
-    public readonly joining = input(false);
-
-    /**
-     * Emitted when the user joins the service to a network of its project.
-     */
-    public readonly join = output<ProjectNetwork>();
-
-    /**
      * The rows the skeleton of the table shows while the list loads.
      */
     protected readonly skeletonRows = [0, 1, 2, 3, 4];
-
-    protected readonly selectedNetworkId = signal('');
-
-    /**
-     * The networks of the project, as the options of the select.
-     */
-    protected readonly projectNetworkOptions = computed<Select2Option[]>(() =>
-        this.projectNetworks().map((network) => ({ value: network.id, label: network.name })));
 
     /**
      * Gives the label of the state of a network.
@@ -143,19 +112,5 @@ export class ServiceNetworksComponent {
         }
 
         return flag ? 'Yes' : 'No';
-    }
-
-    /**
-     * Joins the service to the network the select holds.
-     */
-    protected onJoin(): void {
-        const network = this.projectNetworks().find((candidate) => candidate.id === this.selectedNetworkId());
-
-        if (!network) {
-            return;
-        }
-
-        this.join.emit(network);
-        this.selectedNetworkId.set('');
     }
 }

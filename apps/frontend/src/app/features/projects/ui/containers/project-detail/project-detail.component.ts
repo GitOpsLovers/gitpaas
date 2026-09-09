@@ -7,18 +7,17 @@ import { LucideFolder } from '@lucide/angular';
 import { ProjectsApiRepository } from '../../../infrastructure/api/projects-api.repository';
 
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
-import { ProjectNetworksListComponent } from '@features/networks/ui/containers/project-networks-list/project-networks-list.component';
 import { ServicesListComponent } from '@features/services/ui/containers/services-list/services-list.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
 
-type ProjectTab = 'services' | 'networks';
+type ProjectTab = 'services';
 
 @Component({
     selector: 'app-project-detail',
     templateUrl: './project-detail.component.html',
     providers: [ProjectsApiRepository],
-    imports: [RouterLink, BreadcrumbComponent, ProjectNetworksListComponent, ServicesListComponent, TabsComponent],
+    imports: [RouterLink, BreadcrumbComponent, ServicesListComponent, TabsComponent],
 })
 
 /**
@@ -48,7 +47,6 @@ export class ProjectDetailComponent {
      */
     protected readonly tabs: Array<{ id: ProjectTab; label: string }> = [
         { id: 'services', label: 'Services' },
-        { id: 'networks', label: 'Networks' },
     ];
 
     protected readonly activeTab = computed<ProjectTab>(() => {
