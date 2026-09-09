@@ -118,6 +118,45 @@ The system SHALL fail a deployment, with a message that names the variable and n
 - **WHEN** a deployment starts, and a secret of the service seals under a key that the running key of the encryption does not open
 - **THEN** the system marks the deployment `failed` with a message that names the variable, and it starts no container
 
+## The compose file declares the variables the service already gives to its containers
+
+The system SHALL read the key `environment` of every service of the compose recipe of a service, and it SHALL cache the name and the literal value of every name it declares, together with the moment of that read. A value that holds a reference `${...}` gives an empty value in the cache, because this read resolves no reference.
+
+The system SHALL refresh that cache when the user writes the path of the compose file in the tab "Provider" of the service (see the requirement *The tab "Provider" configures the source* of the capability [providers](./providers.md)). A failure of the download or of the parse of the compose file SHALL leave the cache untouched, and it SHALL NOT fail that write.
+
+The system SHALL also refresh the cache on demand, at `POST /api/v1/services/:id/compose-environment/refresh`.
+
+### Scenario: The user writes the path of the compose file
+
+- **WHEN** the user saves the tab "Provider" with a new path of the compose file
+- **THEN** the system reads that file, and it caches the name and the value of every name its key `environment` declares
+
+### Scenario: The read of the compose file fails
+
+- **WHEN** the download or the parse of the compose file fails, at the write of the tab "Provider" or at the refresh on demand
+- **THEN** the system keeps the former cache, and it does not fail the write
+
+### Scenario: The user refreshes the cache on demand
+
+- **WHEN** a client calls the refresh on demand
+- **THEN** the system reads the compose file again, and it caches the name and the value of every name it declares
+
+## The list of the tab "Environment" unions the stored variables with the names of the cache
+
+The system SHALL show, beside every stored variable, one row for a name that the cache holds and no stored variable carries. Such a row holds no identifier, because the user never saved it. A name of both sides gives one row alone, which keeps the value of the stored variable.
+
+Each row SHALL carry an origin, `user` or `compose`, and, when the cache declares its name, the moment of the last refresh.
+
+### Scenario: The cache declares a name with no stored variable
+
+- **WHEN** the list of the variables of a service reads a name that the compose file declares and no stored variable carries
+- **THEN** the system gives a row of that name, with no identifier, and the origin `compose`
+
+### Scenario: A name is on both sides
+
+- **WHEN** a stored variable carries a name that the cache also declares
+- **THEN** the system gives one row alone, which keeps the value of the stored variable, and the origin `compose`
+
 ## The tab "Environment" lists the variables, and hides the form
 
 The tab `environment` SHALL list every variable of the service. It SHALL hide the form that sets or changes a variable until the user asks for it.
@@ -184,3 +223,46 @@ The system SHALL ask the user to confirm before it removes a variable. The confi
 
 - **WHEN** the user confirms the removal of a variable
 - **THEN** the system removes it, and it shows a message of success that names it
+
+## The badge "Compose" marks a row the compose file declares
+
+The tab SHALL show a badge "Compose" beside the name of every row whose origin is `compose`.
+
+### Scenario: The row comes from the compose file
+
+- **WHEN** a row of the list carries the origin `compose`
+- **THEN** the tab shows the badge "Compose" beside its name
+
+## A row of the compose file that the user never saved shows its value prefilled
+
+The tab SHALL show the value the cache gives to a row the user never saved. The system SHALL let the user open the form of that row, prefilled with its name and its value, so the user saves it as a stored variable.
+
+### Scenario: The user saves a row of the compose file
+
+- **WHEN** the user opens the form of a row of the compose file that the user never saved, and submits it with no change
+- **THEN** the system creates a stored variable with the name and the value of that row
+
+## The removal or the rename of a row of the compose file asks for a confirmation that names its origin
+
+When the user removes a row whose origin is `compose`, the confirmation SHALL state, together with the rule of *The removal of a variable asks for a confirmation* above, that the compose file declares that name, and that the row returns to the list, with no value, at the next refresh.
+
+When the user changes the name of a row whose origin is `compose`, the system SHALL ask for a confirmation before it applies the new name. The confirmation SHALL state that the compose file declares the former name, and that, under the new name, the value no longer reaches the containers.
+
+### Scenario: The user removes a row of the compose file
+
+- **WHEN** the user confirms the removal of a stored variable whose origin is `compose`
+- **THEN** the system removes it, and the confirmation named the compose file and the return of the row at the next refresh
+
+### Scenario: The user renames a row of the compose file
+
+- **WHEN** the user changes the name of a row whose origin is `compose`, and submits the form
+- **THEN** the system asks for a confirmation that names the former name and the new name, before it applies the change
+
+## The button "Refresh from compose" reads the compose file again
+
+The card SHALL show a button "Refresh from compose" in its header. The system SHALL read the compose file of the service again when the user activates it, and it SHALL reload the list of the tab with the result.
+
+### Scenario: The user refreshes the tab
+
+- **WHEN** the user activates the button "Refresh from compose"
+- **THEN** the system reads the compose file again, and it reloads the list of the tab with the names and the values it declares
