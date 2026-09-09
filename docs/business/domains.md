@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This capability gives a service its public address. A domain names one host, one compose service of the service, a port and a choice of HTTPS. The reverse proxy of the runtime reads the domains at each deployment and builds the routing from them; it also gets and renews the certificate of Let's Encrypt by itself. This capability gives the record of a domain, and the tab "Domains" of the detail of a service that claims, changes and removes one.
+This capability gives a service its public address. A domain names one host, one compose service of the service, a port and a choice of HTTPS. The reverse proxy of the runtime reads the domains at each deployment and builds the routing from them; it also gets and renews the certificate of Let's Encrypt by itself. This capability gives the record of a domain, and the tab "Domains" of the detail of a service that claims, changes and removes one. A domain also carries an origin: an operator claims one from the tab, or the compose file of the service declares one that a deployment brings into a record (see *The domain the compose file declares*, below).
 
 ## A host belongs to one service alone
 
-The system SHALL keep one record per domain, and it SHALL refuse a host that another service already claims.
+The system SHALL keep at most one record per host, and it SHALL refuse a host that another service already claims, whether the claim reaches the API from the tab, or reaches the records from the compose file at a deployment.
 
-The record holds the host, the identifier of the service, the compose service it targets, the port, the choice of HTTPS, and the state of the certificate. The system SHALL put the host into small letters before it writes the record, so one host cannot be claimed in two forms.
+The record holds the host, the identifier of the service, the compose service it targets, the port, the choice of HTTPS, the state of the certificate and the origin. The system SHALL put the host into small letters before it writes the record, so one host cannot be claimed in two forms.
 
 ### Scenario: The host is free
 
@@ -24,6 +24,39 @@ The record holds the host, the identifier of the service, the compose service it
 
 - **WHEN** a client changes or removes the identifier of a domain that no record holds
 - **THEN** the system raises `DOMAIN_NOT_FOUND`, and it answers `404 Not Found`
+
+## The domain the compose file declares
+
+The compose file of a service declares the domain of one of its compose services with the key `x-gitpaas-domain` (see the requirement *The gate of the compose file* of the capability [deployments](./deployments.md) for the shape of that key). At each deployment, before it builds the routing, the system SHALL bring the records of the domains of the service to the declarations its compose file carries.
+
+The system SHALL create the record of a declared host that holds no record yet, with the origin `compose`. It SHALL update the record of the origin `compose` when the declaration changed. It SHALL delete the record of the origin `compose` whose host left the compose file. It SHALL leave a record of the origin `user` untouched, and it SHALL NOT overwrite it from a declaration that disagrees with it: the value the user saved always wins.
+
+The system SHALL fail the deployment, with the host and the reason in the error, when a declared host already belongs to another service.
+
+### Scenario: A declared host holds no record
+
+- **WHEN** a deployment starts, and the compose file of the service declares a host that no record holds
+- **THEN** the system creates the record of that host, with the origin `compose`
+
+### Scenario: A declared host changed since the last deployment
+
+- **WHEN** a deployment starts, and the record of the origin `compose` disagrees with the declaration of the same host
+- **THEN** the system updates the record with the declaration, and it keeps the origin `compose`
+
+### Scenario: A declared host left the compose file
+
+- **WHEN** a deployment starts, and a record of the origin `compose` names a host the compose file no longer declares
+- **THEN** the system deletes that record
+
+### Scenario: The user already claimed the declared host
+
+- **WHEN** a deployment starts, and the compose file declares a host whose record carries the origin `user`
+- **THEN** the system leaves that record untouched, even when the declaration disagrees with it
+
+### Scenario: The declared host belongs to another service
+
+- **WHEN** a deployment starts, and the compose file declares a host that a record of another service already holds
+- **THEN** the system fails the deployment, with a message that names the host and the reason, and it starts no stack
 
 ## The rule of the host and of the port
 
@@ -95,3 +128,24 @@ The form offers the compose services of the last deployment of the service as th
 
 - **WHEN** the API answers `409` to a claim or to a change
 - **THEN** the system shows the message that the host belongs to another service, and the user stays on the form
+
+## The badge "Compose" marks a row of the origin `compose`, and a row with no record gives no removal
+
+The list of the tab unions the records of the table with the host of a declaration the compose file gives and that holds no record yet; such a row carries the identifier `null` (see *The domain the compose file declares*, above). The tab SHALL show a badge "Compose" beside the host of every row whose origin is `compose`, and it SHALL give no action to remove a row of the identifier `null`, because no record exists yet to remove.
+
+When the user saves the form of a row of the identifier `null`, or changes a row whose origin is `compose`, the system SHALL turn the origin of the record into `user`, because the user then chose the value over the declaration.
+
+### Scenario: The row comes from the compose file
+
+- **WHEN** a row of the list carries the origin `compose`
+- **THEN** the tab shows the badge "Compose" beside its host
+
+### Scenario: The row holds no record yet
+
+- **WHEN** a row of the list carries the identifier `null`
+- **THEN** the tab gives the form to save it, and no action to remove it
+
+### Scenario: The user saves a row of the origin `compose`
+
+- **WHEN** the user saves the form of a row of the identifier `null`, or changes a row whose origin is `compose`
+- **THEN** the system writes the record with the origin `user`

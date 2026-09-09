@@ -179,6 +179,8 @@ The system SHALL refuse a compose recipe of a service that reaches the host of G
 
 The system SHALL refuse a compose service that declares a key outside a fixed list of the keys GitPaaS allows. A key that reaches the host, such as `privileged`, `cap_add`, `devices`, `security_opt` or `userns_mode`, is not in that list. The system SHALL also refuse `network_mode`, `pid` and `ipc` when the value names a namespace of the host, such as `host`, `shareable` or a namespace of another container. A refusal names the exact key, so the operator can drop it from the recipe.
 
+The key `x-gitpaas-domain` of a compose service is one of the allowed keys, though no operation of Docker Compose itself reads it: it declares the domain that reaches that compose service, with its host, its port and its flag `https`. The system SHALL refuse a value of that key that carries no valid host, no valid port or no flag `https`. See the requirement *The domain the compose file declares* of the capability [domains](./domains.md) for what a valid declaration then does to the records of the domains.
+
 The system SHALL refuse a bind mount of a compose service whose source reaches outside the folder of the repository: an absolute path, a path under the home folder, a path with a segment `..`, or the socket of Docker. An anonymous volume, and a mount of a named volume, carry no such source, and the gate leaves them alone.
 
 The path of the compose file itself, `composerPath`, SHALL stay relative to the repository, and it SHALL hold no segment `..`. The shared contract enforces that rule on the value a caller writes, and the system checks it again where the path joins a folder on the disk: in the executor that resolves the file before it reads it, and in the use case that reads the final compose text.
@@ -192,6 +194,11 @@ The path of the compose file itself, `composerPath`, SHALL stay relative to the 
 
 - **WHEN** a variable of the service interpolates into a key that the gate refuses
 - **THEN** the gate still refuses the recipe, because it runs on the interpolated result and not on the recipe of the repository
+
+### Scenario: The declared domain breaks its schema
+
+- **WHEN** the interpolated recipe declares `x-gitpaas-domain` of a compose service with no valid host, no valid port, or no flag `https`
+- **THEN** the system raises `UNSAFE_COMPOSE_RECIPE` that names the key `x-gitpaas-domain`, and the deployment does not start the stack
 
 ### Scenario: A compose service shares the namespace of the host
 
