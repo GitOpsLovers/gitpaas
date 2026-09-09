@@ -1,8 +1,8 @@
 import {
     Component, computed, effect, input, linkedSignal, output, signal, untracked,
 } from '@angular/core';
-import type { ServiceVariable } from '@gitpaas/contracts';
-import { LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
+import type { ServiceVariableRow } from '@gitpaas/contracts';
+import { LucideLock, LucidePencil, LucidePlus, LucideRefreshCw, LucideTrash2, LucideX } from '@lucide/angular';
 
 import type { ServiceVariableDraft } from '../../../domain/models/service-variable.models';
 
@@ -17,7 +17,7 @@ import { SkeletonComponent } from '@shared/components/skeleton/skeleton.componen
  * A change of one stored variable, with the values the form holds.
  */
 export interface ServiceVariableChange {
-    variable: ServiceVariable;
+    variable: ServiceVariableRow;
     draft: ServiceVariableDraft;
 }
 
@@ -33,6 +33,7 @@ export interface ServiceVariableChange {
         LucideLock,
         LucidePencil,
         LucidePlus,
+        LucideRefreshCw,
         LucideTrash2,
         LucideX,
     ],
@@ -43,9 +44,9 @@ export interface ServiceVariableChange {
  */
 export class ServiceVariablesComponent {
     /**
-     * Variables the service holds. The value of a secret never arrives.
+     * Rows the service holds, of the table and of the compose file. The value of a secret never arrives.
      */
-    public readonly variables = input<ServiceVariable[]>([]);
+    public readonly variables = input<ServiceVariableRow[]>([]);
 
     /**
      * Whether the list is loading.
@@ -56,6 +57,11 @@ export class ServiceVariablesComponent {
      * Whether a set or a change is in flight.
      */
     public readonly saving = input(false);
+
+    /**
+     * Whether the read of the compose file is in flight.
+     */
+    public readonly refreshing = input(false);
 
     /**
      * Reason the API refused the last set or change, such as the rule the name breaks.
@@ -73,9 +79,14 @@ export class ServiceVariablesComponent {
     public readonly update = output<ServiceVariableChange>();
 
     /**
-     * Emitted when the user removes a stored variable.
+     * Emitted when the user removes a row of the list.
      */
-    public readonly remove = output<ServiceVariable>();
+    public readonly remove = output<ServiceVariableRow>();
+
+    /**
+     * Emitted when the user asks for the compose file of the service to be read again.
+     */
+    public readonly refresh = output();
 
     /**
      * The rows the skeleton of the table shows while the list loads.
@@ -87,7 +98,7 @@ export class ServiceVariablesComponent {
      */
     protected readonly formVisible = signal(false);
 
-    protected readonly editing = signal<ServiceVariable | null>(null);
+    protected readonly editing = signal<ServiceVariableRow | null>(null);
 
     protected readonly name = signal('');
 
@@ -112,6 +123,15 @@ export class ServiceVariablesComponent {
      * Whether the form changes a stored variable instead of setting a new one.
      */
     protected readonly isEditing = computed(() => this.editing() !== null);
+
+    /**
+     * Whether the form changes a row the table already holds, whose kind no longer changes.
+     */
+    protected readonly isStored = computed(() => {
+        const editing = this.editing();
+
+        return editing !== null && editing.id !== null;
+    });
 
     /**
      * Hint under the value field, which tells the user that an empty field keeps the stored secret.
@@ -142,9 +162,9 @@ export class ServiceVariablesComponent {
      * Loads a stored variable into the form and shows it. The field of a secret stays empty, because its value
      * never arrives.
      *
-     * @param variable Variable to change
+     * @param variable Row to save or to change
      */
-    protected edit(variable: ServiceVariable): void {
+    protected edit(variable: ServiceVariableRow): void {
         this.reset();
         this.editing.set(variable);
         this.name.set(variable.name);

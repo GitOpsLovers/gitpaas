@@ -80,6 +80,16 @@ export class ServicesApiRepository {
     }
 
     /**
+     * Reads the compose file of the repository of a service again, and caches the names of its key `environment`
+     *
+     * @param id Service identifier
+     */
+    public refreshComposeEnvironment(id: string): Observable<void> {
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+        return this.http.post<void>(`${this.url}/${id}/compose-environment/refresh`, {});
+    }
+
+    /**
      * Deletes a service
      *
      * @param id Service identifier

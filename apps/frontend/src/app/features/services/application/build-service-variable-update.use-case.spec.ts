@@ -1,15 +1,29 @@
-import type { ServiceVariable } from '@gitpaas/contracts';
+import type { ServiceVariableRow } from '@gitpaas/contracts';
 
 import type { ServiceVariableDraft } from '../domain/models/service-variable.models';
 
 import { buildServiceVariableUpdateUseCase } from './build-service-variable-update.use-case';
 
-const secretVariable: ServiceVariable = {
-    id: 'var-1', serviceId: 'sv-1', name: 'API_KEY', secret: true, value: null, valueSet: true,
+const secretVariable: ServiceVariableRow = {
+    id: 'var-1',
+    serviceId: 'sv-1',
+    name: 'API_KEY',
+    secret: true,
+    value: null,
+    valueSet: true,
+    origin: 'user',
+    composeRefreshedAt: null,
 };
 
-const plainVariable: ServiceVariable = {
-    id: 'var-2', serviceId: 'sv-1', name: 'DATABASE_URL', secret: false, value: 'postgres://old', valueSet: true,
+const plainVariable: ServiceVariableRow = {
+    id: 'var-2',
+    serviceId: 'sv-1',
+    name: 'DATABASE_URL',
+    secret: false,
+    value: 'postgres://old',
+    valueSet: true,
+    origin: 'user',
+    composeRefreshedAt: null,
 };
 
 const draft = (name: string, value: string, secret: boolean): ServiceVariableDraft => ({ name, value, secret });

@@ -33,12 +33,12 @@ Out of scope: the key `env_file`, the references `${VAR}` of the rest of the rec
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/features/services/
 
-- [ ] 3.1 Show the badge `Compose` on a row whose origin is the compose file.
-- [ ] 3.2 Show a row of the compose file that the user never saved with its value prefilled, and let the user save it.
-- [ ] 3.3 Ask the user to confirm the delete or the rename of a row of the compose file, and say that the row comes from the compose file.
-- [ ] 3.4 Add the button that refreshes the cache, and refresh the list after it answers.
-- [ ] 3.5 Keep the create, the edit and the delete of a variable working when the service holds no provider or when the path does not resolve.
-- [ ] 3.6 Write the unit tests of the component and of the container.
+- [x] 3.1 Show the badge `Compose` on a row whose origin is the compose file.
+- [x] 3.2 Show a row of the compose file that the user never saved with its value prefilled, and let the user save it.
+- [x] 3.3 Ask the user to confirm the delete or the rename of a row of the compose file, and say that the row comes from the compose file.
+- [x] 3.4 Add the button that refreshes the cache, and refresh the list after it answers.
+- [x] 3.5 Keep the create, the edit and the delete of a variable working when the service holds no provider or when the path does not resolve.
+- [x] 3.6 Write the unit tests of the component and of the container.
 
 ## Phase 4 — The documentation
 
