@@ -12,4 +12,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
-- [compose-environment-variables](./roadmap/compose-environment-variables/TODO.md): the names of the key `environment` of the compose file appear in the tab Environment of a service.

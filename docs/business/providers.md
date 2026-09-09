@@ -520,6 +520,8 @@ If no provider exists, the system SHALL show an empty state with a link to `/pro
 
 The system SHALL send the name of the service together with the four values, because the API asks for the name in every change.
 
+A write that names the path of the compose file also refreshes the cache of the names its key `environment` declares (see the requirement *The compose file declares the variables the service already gives to its containers* of the capability [service-environment](./service-environment.md)).
+
 ### Scenario: The user chooses a provider
 
 - **WHEN** the user chooses a provider

@@ -194,6 +194,8 @@ The name follows the same rule as the name of the creation: it SHALL hold at lea
 
 A caller makes a service deployable with this operation, because it gives the provider, the identifier of the repository and the deployment branch.
 
+A body that holds the path of the compose file also refreshes the cache of the names its key `environment` declares (see the requirement *The compose file declares the variables the service already gives to its containers* of the capability [service-environment](./service-environment.md)). A failure of that refresh SHALL NOT fail the change of the service.
+
 ### Scenario: The service exists
 
 - **WHEN** a client puts a correct body to the identifier of an available service
