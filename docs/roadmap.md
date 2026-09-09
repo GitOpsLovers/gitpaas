@@ -12,3 +12,4 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
+- [remove-volume-creation](./roadmap/remove-volume-creation/TODO.md): the removal of every write of a volume, and the compose file as the one source of truth.
