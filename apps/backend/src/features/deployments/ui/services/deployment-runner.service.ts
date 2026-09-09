@@ -30,8 +30,6 @@ import { DatabaseDomainsRepository } from '@features/domains/infrastructure/data
 import { TraefikReverseProxyAdapter } from '@features/domains/infrastructure/traefik/traefik-reverse-proxy.adapter';
 import type { LogStore } from '@features/logs/domain/ports/log-store.port';
 import { RedisLogStoreAdapter } from '@features/logs/infrastructure/redis/redis-log-store.adapter';
-import type { ServiceNetworksRepository } from '@features/networks/domain/repositories/service-networks.repository';
-import { DatabaseServiceNetworksRepository } from '@features/networks/infrastructure/database/db-service-networks.repository';
 import type { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import type { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
 import { DatabaseProvidersRepository } from '@features/providers/infrastructure/database/db-providers.repository';
@@ -72,8 +70,6 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly serviceVariablesRepository: ServiceVariablesRepository,
         @Inject(DatabaseDomainsRepository)
         private readonly domainsRepository: DomainsRepository,
-        @Inject(DatabaseServiceNetworksRepository)
-        private readonly serviceNetworksRepository: ServiceNetworksRepository,
         @Inject(DatabaseVolumesRepository)
         private readonly volumesRepository: VolumesRepository,
         @Inject(DockerVolumesRepository)
@@ -156,7 +152,6 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.providersRepository,
                     this.serviceVariablesRepository,
                     this.domainsRepository,
-                    this.serviceNetworksRepository,
                     this.volumesRepository,
                     this.daemonVolumesRepository,
                     this.providerClient,

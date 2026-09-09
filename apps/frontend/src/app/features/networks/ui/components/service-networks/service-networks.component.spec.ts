@@ -29,16 +29,10 @@ const connected: Network = {
     state: 'connected',
 };
 
-const joiningNetwork: Network = {
+const bareNetwork: Network = {
     id: 'nw-1',
     name: 'backend',
-    state: 'joining',
-};
-
-const leavingNetwork: Network = {
-    id: 'net-4',
-    name: 'cache',
-    state: 'leaving',
+    state: 'connected',
 };
 
 describe('ServiceNetworksComponent', () => {
@@ -62,10 +56,6 @@ describe('ServiceNetworksComponent', () => {
     const cells = (index: number): string[] =>
         // eslint-disable-next-line security/detect-object-injection
         rows().map((row) => row.querySelectorAll('td')[index]?.textContent?.trim() ?? '');
-
-    const stateHints = (): string[] =>
-        [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('tbody tr td:nth-child(2) p')]
-            .map((element) => element.textContent?.trim() ?? '');
 
     const headers = (): HTMLElement[] =>
         [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('thead th')];
@@ -96,32 +86,8 @@ describe('ServiceNetworksComponent', () => {
             expect(third).toContain('Connected');
         });
 
-        test('shows the two states that wait for a deployment', () => {
-            create([joiningNetwork, leavingNetwork]);
-
-            const [first, second] = rows().map((element) => element.textContent ?? '');
-
-            expect(first).toContain('Joining');
-            expect(second).toContain('Leaving');
-        });
-
-        test('states on a joining row and on a leaving row that the next deployment applies the change', () => {
-            create([joiningNetwork, leavingNetwork]);
-
-            expect(stateHints()).toEqual([
-                'The next deployment connects the container to this network.',
-                'The next deployment disconnects the container from this network.',
-            ]);
-        });
-
-        test('states nothing under the badge of a state the daemon already holds', () => {
-            create([attached, declared, connected]);
-
-            expect(stateHints()).toEqual([]);
-        });
-
         test('shows a dash in every column the daemon does not fill', () => {
-            create([joiningNetwork]);
+            create([bareNetwork]);
 
             expect(cells(2)).toEqual(['—']);
             expect(cells(3)).toEqual(['—']);

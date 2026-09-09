@@ -12,16 +12,6 @@ const STATE_LABELS: Record<NetworkState, string> = {
     attached: 'Attached',
     declared: 'Declared',
     connected: 'Connected',
-    joining: 'Joining',
-    leaving: 'Leaving',
-};
-
-/**
- * The hint a state that waits for a deployment carries under its badge.
- */
-const STATE_HINTS: Partial<Record<NetworkState, string>> = {
-    joining: 'The next deployment connects the container to this network.',
-    leaving: 'The next deployment disconnects the container from this network.',
 };
 
 @Component({
@@ -66,18 +56,6 @@ export class ServiceNetworksComponent {
     }
 
     /**
-     * Gives the hint of the state of a network, which a state that waits for a deployment carries.
-     *
-     * @param state State the record carries
-     *
-     * @returns The hint of that state, or `undefined` when the state waits for nothing
-     */
-    protected stateHint(state: NetworkState): string | undefined {
-        // eslint-disable-next-line security/detect-object-injection
-        return STATE_HINTS[state];
-    }
-
-    /**
      * Gives the colours of the badge of the state of a network.
      *
      * @param state State the record carries
@@ -91,9 +69,6 @@ export class ServiceNetworksComponent {
                 return 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500';
             case 'connected':
                 return 'bg-blue-light-50 text-blue-light-600 dark:bg-blue-light-500/15 dark:text-blue-light-400';
-            case 'joining':
-            case 'leaving':
-                return 'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-500';
             default:
                 return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
         }

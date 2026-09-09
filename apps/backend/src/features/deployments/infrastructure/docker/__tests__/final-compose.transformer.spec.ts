@@ -23,7 +23,6 @@ const asCompose = (fixture: unknown): RuntimeComposeProject => fixture as Runtim
 const baseDir = '/tmp/gitpaas-deploy-a1b2c3';
 
 /** Alias the containers of the stack answer to on the networks of the project. */
-const networkAlias = 'my-service';
 
 describe('final-compose.transformer', () => {
     describe('relativizeBindSource', () => {
@@ -127,24 +126,11 @@ describe('final-compose.transformer', () => {
                 networks: { deploy: {} },
             };
 
-            declareAttachedNetworks(recipe, new Set(['web']), [], networkAlias);
+            declareAttachedNetworks(recipe, new Set(['web']));
 
             expect(recipe.networks).toEqual({ deploy: {}, 'gitpaas-proxy': { external: true } });
             expect(recipe.services?.web.networks).toEqual({ deploy: null, 'gitpaas-proxy': null });
             expect(recipe.services?.cache.networks).toEqual(['deploy']);
-        });
-
-        it('declares every network of the project as external and joins every service to it under the alias of the service', () => {
-            const recipe: ComposeRecipe = {
-                services: { web: { networks: ['deploy'] }, cache: { networks: ['deploy'] } },
-                networks: { deploy: {} },
-            };
-
-            declareAttachedNetworks(recipe, new Set(), ['project-net'], networkAlias);
-
-            expect(recipe.networks).toEqual({ deploy: {}, 'project-net': { external: true } });
-            expect(recipe.services?.web.networks).toEqual({ deploy: null, 'project-net': { aliases: [networkAlias] } });
-            expect(recipe.services?.cache.networks).toEqual({ deploy: null, 'project-net': { aliases: [networkAlias] } });
         });
 
         it('keeps the options a service already declares on a network of the map form', () => {
@@ -153,12 +139,12 @@ describe('final-compose.transformer', () => {
                 networks: { deploy: {} },
             };
 
-            declareAttachedNetworks(recipe, new Set(['web']), ['project-net'], networkAlias);
+            declareAttachedNetworks(recipe, new Set(['web']), { web: ['shared'] });
 
             expect(recipe.services?.web.networks).toEqual({
                 deploy: { aliases: ['web'] },
                 'gitpaas-proxy': null,
-                'project-net': { aliases: [networkAlias] },
+                shared: { aliases: ['web'] },
             });
         });
 
@@ -168,28 +154,26 @@ describe('final-compose.transformer', () => {
                 networks: {},
             };
 
-            declareAttachedNetworks(recipe, new Set(), [], networkAlias, { web: ['shared', 'edge'] });
+            declareAttachedNetworks(recipe, new Set(), { web: ['shared', 'edge'] });
 
             expect(recipe.networks).toEqual({ shared: { external: true }, edge: { external: true } });
             expect(recipe.services?.web.networks).toEqual({ shared: { aliases: ['web'] }, edge: { aliases: ['web'] } });
             expect(recipe.services?.cache.networks).toBeUndefined();
         });
 
-        it('joins a service to the network of the proxy, the network of the project and the external network of the recipe at once', () => {
+        it('joins a service to the network of the proxy and to the external network of the recipe at once', () => {
             const recipe: ComposeRecipe = { services: { web: { networks: ['deploy'] } }, networks: { deploy: {} } };
 
-            declareAttachedNetworks(recipe, new Set(['web']), ['project-net'], networkAlias, { web: ['shared'] });
+            declareAttachedNetworks(recipe, new Set(['web']), { web: ['shared'] });
 
             expect(recipe.networks).toEqual({
                 deploy: {},
                 'gitpaas-proxy': { external: true },
-                'project-net': { external: true },
                 shared: { external: true },
             });
             expect(recipe.services?.web.networks).toEqual({
                 deploy: null,
                 'gitpaas-proxy': null,
-                'project-net': { aliases: [networkAlias] },
                 shared: { aliases: ['web'] },
             });
         });
@@ -197,7 +181,7 @@ describe('final-compose.transformer', () => {
         it('leaves the recipe untouched when the stack joins no network after its start', () => {
             const recipe: ComposeRecipe = { services: { web: { networks: ['deploy'] } }, networks: { deploy: {} } };
 
-            declareAttachedNetworks(recipe, new Set(), [], networkAlias);
+            declareAttachedNetworks(recipe, new Set());
 
             expect(recipe.networks).toEqual({ deploy: {} });
             expect(recipe.services?.web.networks).toEqual(['deploy']);
@@ -220,7 +204,7 @@ describe('final-compose.transformer', () => {
                 },
             });
 
-            const text = toFinalComposeText(compose, baseDir, new Set(['web']), ['project-net'], networkAlias);
+            const text = toFinalComposeText(compose, baseDir, new Set(['web']));
 
             expect(parse(text)).toEqual({
                 services: {
@@ -228,10 +212,10 @@ describe('final-compose.transformer', () => {
                         image: 'nginx:1.27',
                         environment: [`DB_PASSWORD=${MASKED_VALUE}`],
                         volumes: ['./public:/usr/share/nginx/html'],
-                        networks: { deploy: null, 'gitpaas-proxy': null, 'project-net': { aliases: [networkAlias] } },
+                        networks: { deploy: null, 'gitpaas-proxy': null },
                     },
                 },
-                networks: { deploy: {}, 'gitpaas-proxy': { external: true }, 'project-net': { external: true } },
+                networks: { deploy: {}, 'gitpaas-proxy': { external: true } },
             });
         });
 
@@ -240,7 +224,7 @@ describe('final-compose.transformer', () => {
                 recipe: { services: { web: { image: 'nginx:1.27' } }, networks: {} },
             });
 
-            const text = toFinalComposeText(compose, baseDir, new Set(), [], networkAlias, { web: ['shared'] });
+            const text = toFinalComposeText(compose, baseDir, new Set(), { web: ['shared'] });
 
             expect(parse(text)).toEqual({
                 services: { web: { image: 'nginx:1.27', networks: { shared: { aliases: ['web'] } } } },
@@ -260,7 +244,7 @@ describe('final-compose.transformer', () => {
                 networks: { deploy: {} },
             };
 
-            toFinalComposeText(asCompose({ recipe }), baseDir, new Set(['web']), ['project-net'], networkAlias);
+            toFinalComposeText(asCompose({ recipe }), baseDir, new Set(['web']));
 
             expect(recipe).toEqual({
                 services: {

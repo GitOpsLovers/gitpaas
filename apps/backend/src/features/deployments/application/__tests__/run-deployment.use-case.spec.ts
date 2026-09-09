@@ -12,8 +12,6 @@ import type { Domain } from '@features/domains/domain/models/domain.models';
 import { ReverseProxy, RoutingLabels } from '@features/domains/domain/ports/reverse-proxy.port';
 import { DomainsRepository } from '@features/domains/domain/repositories/domains.repository';
 import { LogStore } from '@features/logs/domain/ports/log-store.port';
-import type { ProjectNetwork } from '@features/networks/domain/models/project-network.models';
-import { ServiceNetworksRepository } from '@features/networks/domain/repositories/service-networks.repository';
 import { ProviderCredentials } from '@features/providers/domain/models/provider.models';
 import { ProviderClient } from '@features/providers/domain/ports/provider-client.port';
 import { ProvidersRepository } from '@features/providers/domain/repositories/providers.repository';
@@ -60,7 +58,6 @@ describe('runDeploymentUseCase', () => {
     const target = {
         serviceId: service.id,
         projectName: service.composeProject,
-        networkAlias: 'my-service',
     };
 
     /** Final Compose text the executor answers with, which the successful run stores on the deployment. */
@@ -86,22 +83,12 @@ describe('runDeploymentUseCase', () => {
         ...overrides,
     });
 
-    /** Builds a network of the project the service joined, overriding only the fields under test. */
-    const projectNetwork = (overrides: Partial<ProjectNetwork> = {}): ProjectNetwork => ({
-        id: 'n0n0n0n0-0000-4000-8000-000000000001',
-        projectId: service.projectId,
-        name: 'private',
-        daemonName: `gitpaas-${service.projectId}-n0n0n0n0-0000-4000-8000-000000000001`,
-        ...overrides,
-    });
-
     let mockDeploymentsRepository: jest.Mocked<Pick<DeploymentsRepository, 'update' | 'findById'>>;
     let mockServicesRepository: jest.Mocked<Pick<ServicesRepository, 'findById'>>;
     let mockProvidersRepository: jest.Mocked<Pick<ProvidersRepository, 'getCredentials'>>;
     let mockProviderClient: jest.Mocked<Pick<ProviderClient, 'getRepositoryArchive'>>;
     let mockServiceVariablesRepository: jest.Mocked<Pick<ServiceVariablesRepository, 'getStoredByService'>>;
     let mockDomainsRepository: jest.Mocked<Pick<DomainsRepository, 'getByService'>>;
-    let mockServiceNetworksRepository: jest.Mocked<Pick<ServiceNetworksRepository, 'listByService'>>;
     let mockVolumesRepository: jest.Mocked<Pick<VolumesRepository, 'listByService'>>;
     let mockDaemonVolumesRepository: jest.Mocked<Pick<DaemonVolumesRepository, 'findByName' | 'create' | 'copyData'>>;
     let mockDockerExecutor: jest.Mocked<Pick<DockerExecutor, 'up'>>;
@@ -117,7 +104,6 @@ describe('runDeploymentUseCase', () => {
             mockProvidersRepository as unknown as ProvidersRepository,
             mockServiceVariablesRepository as unknown as ServiceVariablesRepository,
             mockDomainsRepository as unknown as DomainsRepository,
-            mockServiceNetworksRepository as unknown as ServiceNetworksRepository,
             mockVolumesRepository as unknown as VolumesRepository,
             mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
             mockProviderClient as unknown as ProviderClient,
@@ -150,9 +136,6 @@ describe('runDeploymentUseCase', () => {
         };
         mockDomainsRepository = {
             getByService: jest.fn().mockResolvedValue([]),
-        };
-        mockServiceNetworksRepository = {
-            listByService: jest.fn().mockResolvedValue([]),
         };
         mockVolumesRepository = {
             listByService: jest.fn().mockResolvedValue([]),
@@ -248,7 +231,6 @@ describe('runDeploymentUseCase', () => {
             target,
             {},
             {},
-            [],
             expect.any(Function),
         );
     });
@@ -272,7 +254,6 @@ describe('runDeploymentUseCase', () => {
             target,
             {},
             routing,
-            [],
             expect.any(Function),
         );
     });
@@ -289,57 +270,6 @@ describe('runDeploymentUseCase', () => {
         expect(stack.serviceId).toBe(service.id);
     });
 
-    it('gives the containers the short slug of the service as their alias, because the compose project holds an underscore', async () => {
-        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(finalCompose);
-
-        await run();
-
-        const [, , stack] = mockDockerExecutor.up.mock.calls[0];
-
-        expect(stack.networkAlias).toBe('my-service');
-        expect(stack.networkAlias).not.toContain('_');
-        expect(stack.projectName).toContain('_');
-    });
-
-    it('gives the executor the daemon names of the networks of the project the service joined', async () => {
-        const networks = [
-            projectNetwork(),
-            projectNetwork({ id: 'n0n0n0n0-0000-4000-8000-000000000002', name: 'cache', daemonName: 'gitpaas-p-2' }),
-        ];
-
-        mockServiceNetworksRepository.listByService.mockResolvedValue(networks);
-        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockResolvedValue(finalCompose);
-
-        await run();
-
-        expect(mockServiceNetworksRepository.listByService).toHaveBeenCalledTimes(1);
-        expect(mockServiceNetworksRepository.listByService).toHaveBeenCalledWith(service.id);
-        expect(mockDockerExecutor.up).toHaveBeenCalledWith(
-            archive,
-            payload.composerPath,
-            target,
-            {},
-            {},
-            [networks[0].daemonName, 'gitpaas-p-2'],
-            expect.any(Function),
-        );
-    });
-
-    it('fails the run and starts no stack when the networks of the project cannot be read', async () => {
-        mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockServiceNetworksRepository.listByService.mockRejectedValue(new Error('networks unavailable'));
-
-        await run();
-
-        expect(mockDockerExecutor.up).not.toHaveBeenCalled();
-        expect(mockDeploymentsRepository.update).toHaveBeenNthCalledWith(2, payload.deploymentId, {
-            status: 'failed',
-            error: DEPLOYMENT_FAILURE_REASON,
-        });
-    });
-
     it('brings the stack up with an empty routing when the service holds no domain', async () => {
         mockDomainsRepository.getByService.mockResolvedValue([]);
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
@@ -354,7 +284,6 @@ describe('runDeploymentUseCase', () => {
             target,
             {},
             {},
-            [],
             expect.any(Function),
         );
     });
@@ -374,7 +303,7 @@ describe('runDeploymentUseCase', () => {
 
     it('fans executor output out live through the log store', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, onLog) => {
             onLog?.('building service');
 
             return Promise.resolve(finalCompose);
@@ -388,7 +317,7 @@ describe('runDeploymentUseCase', () => {
     it('absorbs a failing log append instead of leaving an unhandled rejection', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
         mockLogStore.append.mockRejectedValue(new Error('log store unavailable'));
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, onLog) => {
             onLog?.('building service');
 
             return Promise.resolve(finalCompose);
@@ -403,7 +332,7 @@ describe('runDeploymentUseCase', () => {
 
     it('marks the deployment successful and completes the log when the stack comes up', async () => {
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, onLog) => {
             onLog?.('building service');
             onLog?.('stack up');
 
@@ -490,7 +419,6 @@ describe('runDeploymentUseCase', () => {
             target,
             { DATABASE_URL: 'postgres://db', API_TOKEN: 'the-token' },
             {},
-            [],
             expect.any(Function),
         );
     });
@@ -509,7 +437,6 @@ describe('runDeploymentUseCase', () => {
             target,
             {},
             {},
-            [],
             expect.any(Function),
         );
     });
@@ -556,7 +483,7 @@ describe('runDeploymentUseCase', () => {
         ]);
         mockSecretCipher.decryptSecret.mockReturnValue('the-token');
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, onLog) => {
             onLog?.('env: API_TOKEN=the-token');
 
             return Promise.resolve(finalCompose);
@@ -603,7 +530,7 @@ describe('runDeploymentUseCase', () => {
             { name: 'DATABASE_URL', secret: false, storedValue: 'postgres://db' },
         ]);
         mockProviderClient.getRepositoryArchive.mockResolvedValue(archive);
-        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, _networks, onLog) => {
+        mockDockerExecutor.up.mockImplementation((_archive, _composePath, _project, _environment, _routing, onLog) => {
             onLog?.('connected to postgres://db');
 
             return Promise.resolve(finalCompose);

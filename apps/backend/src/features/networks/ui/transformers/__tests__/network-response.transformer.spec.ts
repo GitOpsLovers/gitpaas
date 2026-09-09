@@ -46,24 +46,16 @@ describe('toNetworkResponse', () => {
         expect(toNetworkResponse(network({ state: 'connected' })).state).toBe('connected');
     });
 
-    it('carries the state of a network the service joined and no container holds yet', () => {
-        expect(toNetworkResponse(network({ state: 'joining' })).state).toBe('joining');
-    });
-
-    it('carries the state of a network a container still holds after the service left it', () => {
-        expect(toNetworkResponse(network({ state: 'leaving' })).state).toBe('leaving');
-    });
-
     it('leaves the timestamp undefined when the network carries none', () => {
-        const joining: NetworkStatus = { id: 'net-b2c3', name: 'cache', state: 'joining' };
+        const bare: NetworkStatus = { id: 'net-b2c3', name: 'cache', state: 'connected' };
 
-        expect(toNetworkResponse(joining).createdAt).toBeUndefined();
+        expect(toNetworkResponse(bare).createdAt).toBeUndefined();
     });
 
     it('maps a network that carries the identifier, the name and the state alone', () => {
-        const joining: NetworkStatus = { id: 'net-b2c3', name: 'cache', state: 'joining' };
+        const bare: NetworkStatus = { id: 'net-b2c3', name: 'cache', state: 'connected' };
 
-        expect(toNetworkResponse(joining)).toEqual({
+        expect(toNetworkResponse(bare)).toEqual({
             id: 'net-b2c3',
             name: 'cache',
             driver: undefined,
@@ -71,7 +63,7 @@ describe('toNetworkResponse', () => {
             internal: undefined,
             attachable: undefined,
             createdAt: undefined,
-            state: 'joining',
+            state: 'connected',
         });
     });
 
