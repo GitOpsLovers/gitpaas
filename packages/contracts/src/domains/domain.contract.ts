@@ -143,6 +143,16 @@ export const declaredDomainSchema = z.strictObject({
 });
 
 /**
+ * The value of the key `x-gitpaas-domain`: one declaration, or a list of them, so one compose service that listens on two ports carries one host for each port.
+ */
+export const declaredDomainsSchema = z.union([declaredDomainSchema, z.array(declaredDomainSchema)]);
+
+/**
  * The shape of the domain a compose service declares.
  */
 export type DeclaredDomain = z.infer<typeof declaredDomainSchema>;
+
+/**
+ * The shape of the value of the key `x-gitpaas-domain`: one declaration, or a list of them.
+ */
+export type DeclaredDomains = z.infer<typeof declaredDomainsSchema>;

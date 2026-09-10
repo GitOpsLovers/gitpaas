@@ -47,6 +47,43 @@ describe('assertSafeRecipe', () => {
             .toThrow(UnsafeComposeRecipeError);
     });
 
+    it('accepts a service that declares a list of the domains of its two ports', () => {
+        expect(() => {
+            assertSafeRecipe(recipe({
+                'x-gitpaas-domain': [
+                    { host: 's3.example.com', port: 9000, https: true },
+                    { host: 'console.example.com', port: 9001, https: true },
+                ],
+            }));
+        }).not.toThrow();
+    });
+
+    it('accepts a service whose list of domains is empty, because it declares no domain at all', () => {
+        expect(() => { assertSafeRecipe(recipe({ 'x-gitpaas-domain': [] })); }).not.toThrow();
+    });
+
+    it('refuses a list where one entry breaks the schema of the declared domain', () => {
+        expect(() => {
+            assertSafeRecipe(recipe({
+                'x-gitpaas-domain': [
+                    { host: 's3.example.com', port: 9000, https: true },
+                    { host: 'localhost', port: 9001, https: true },
+                ],
+            }));
+        }).toThrow(UnsafeComposeRecipeError);
+    });
+
+    it('names the repeated host in the message of the error of a list that declares it two times', () => {
+        expect(() => {
+            assertSafeRecipe(recipe({
+                'x-gitpaas-domain': [
+                    { host: 's3.example.com', port: 9000, https: true },
+                    { host: 'S3.Example.com', port: 9001, https: false },
+                ],
+            }));
+        }).toThrow(/s3\.example\.com/);
+    });
+
     it('names the service and the key x-gitpaas-domain in the message of the error of a declared domain', () => {
         expect(() => { assertSafeRecipe(recipe({ 'x-gitpaas-domain': { host: 'localhost', port: 80, https: true } })); })
             .toThrow(/services\.web\.x-gitpaas-domain/);

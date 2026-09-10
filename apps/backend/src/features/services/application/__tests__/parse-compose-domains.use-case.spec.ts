@@ -92,6 +92,71 @@ describe('parseComposeDomainsUseCase', () => {
         ]);
     });
 
+    it('reads every declaration of the list of one service, and names that service as the target of each one', () => {
+        const text = [
+            'services:',
+            '  minio:',
+            '    x-gitpaas-domain:',
+            '      - host: s3.example.com',
+            '        port: 9000',
+            '        https: true',
+            '      - host: console.example.com',
+            '        port: 9001',
+            '        https: true',
+        ].join('\n');
+
+        expect(parseComposeDomainsUseCase(text)).toEqual([
+            {
+                targetService: 'minio', host: 's3.example.com', port: 9000, https: true,
+            },
+            {
+                targetService: 'minio', host: 'console.example.com', port: 9001, https: true,
+            },
+        ]);
+    });
+
+    it('reads an empty list as no declaration at all', () => {
+        const text = 'services:\n  web:\n    image: nginx\n    x-gitpaas-domain: []\n';
+
+        expect(parseComposeDomainsUseCase(text)).toEqual([]);
+    });
+
+    it('keeps the first declaration alone when one list repeats a host', () => {
+        const text = [
+            'services:',
+            '  minio:',
+            '    x-gitpaas-domain:',
+            '      - host: s3.example.com',
+            '        port: 9000',
+            '        https: true',
+            '      - host: s3.example.com',
+            '        port: 9001',
+            '        https: false',
+        ].join('\n');
+
+        expect(parseComposeDomainsUseCase(text)).toEqual([
+            {
+                targetService: 'minio', host: 's3.example.com', port: 9000, https: true,
+            },
+        ]);
+    });
+
+    it('skips a whole list where one entry breaks the schema', () => {
+        const text = [
+            'services:',
+            '  minio:',
+            '    x-gitpaas-domain:',
+            '      - host: s3.example.com',
+            '        port: 9000',
+            '        https: true',
+            '      - host: localhost',
+            '        port: 9001',
+            '        https: true',
+        ].join('\n');
+
+        expect(parseComposeDomainsUseCase(text)).toEqual([]);
+    });
+
     it('skips a service that declares no domain at all', () => {
         const text = 'services:\n  web:\n    image: nginx\n';
 

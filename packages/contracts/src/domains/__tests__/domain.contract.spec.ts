@@ -2,6 +2,7 @@ import {
     claimDomainSchema,
     COMPOSE_DOMAIN_KEY,
     declaredDomainSchema,
+    declaredDomainsSchema,
     domainRowSchema,
     domainSchema,
     updateDomainSchema,
@@ -233,6 +234,43 @@ describe('declaredDomainSchema', () => {
 
     it('refuses the target service, because the key sits inside the service it targets', () => {
         expect(declaredDomainSchema.safeParse(validDeclaration({ targetService: 'web' })).success).toBe(false);
+    });
+});
+
+describe('declaredDomainsSchema', () => {
+    /** A declaration of one host, overriding only the fields under test. */
+    const declaration = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+        host: 'app.example.com',
+        port: 9000,
+        https: true,
+        ...overrides,
+    });
+
+    it('accepts one declaration alone, as a compose file writes it today', () => {
+        expect(declaredDomainsSchema.safeParse(declaration()).success).toBe(true);
+    });
+
+    it('accepts a list of the declarations of one compose service', () => {
+        const value = [declaration(), declaration({ host: 'console.example.com', port: 9001 })];
+
+        expect(declaredDomainsSchema.parse(value)).toEqual([
+            { host: 'app.example.com', port: 9000, https: true },
+            { host: 'console.example.com', port: 9001, https: true },
+        ]);
+    });
+
+    it('accepts an empty list, which declares no domain at all', () => {
+        expect(declaredDomainsSchema.parse([])).toEqual([]);
+    });
+
+    it('refuses a list where one entry breaks the schema of the declaration', () => {
+        const value = [declaration(), declaration({ host: 'localhost' })];
+
+        expect(declaredDomainsSchema.safeParse(value).success).toBe(false);
+    });
+
+    it('refuses a value that is neither a declaration nor a list of them', () => {
+        expect(declaredDomainsSchema.safeParse('app.example.com').success).toBe(false);
     });
 });
 
