@@ -27,7 +27,7 @@ The record holds the host, the identifier of the service, the compose service it
 
 ## The domain the compose file declares
 
-The compose file of a service declares the domain of one of its compose services with the key `x-gitpaas-domain` (see the requirement *The gate of the compose file* of the capability [deployments](./deployments.md) for the shape of that key). At each deployment, before it builds the routing, the system SHALL bring the records of the domains of the service to the declarations its compose file carries.
+The compose file of a service declares the domain of one of its compose services with the key `x-gitpaas-domain` (see the requirement *The gate of the compose file* of the capability [deployments](./deployments.md) for the shape of that key). The key holds one declaration, or a list of them, so a compose service that listens on several ports carries one host for each port. An empty list declares no domain, and the service brings no record of it. At each deployment, before it builds the routing, the system SHALL bring the records of the domains of the service to the declarations its compose file carries.
 
 The system SHALL create the record of a declared host that holds no record yet, with the origin `compose`. It SHALL update the record of the origin `compose` when the declaration changed. It SHALL delete the record of the origin `compose` whose host left the compose file. It SHALL leave a record of the origin `user` untouched, and it SHALL NOT overwrite it from a declaration that disagrees with it: the value the user saved always wins.
 
