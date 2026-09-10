@@ -61,24 +61,28 @@ The answer holds the field `connected` and the information that the daemon repor
 
 ## The removal of the unused resources
 
-The system SHALL give three operations that remove the unused resources of the server:
+The system SHALL give five operations that remove the unused resources of the server:
 
-| Endpoint                               | Removes                                  |
-|----------------------------------------|------------------------------------------|
-| `POST /api/v1/server/prune/images`     | The images that no container uses        |
-| `POST /api/v1/server/prune/volumes`    | The local volumes that no container uses |
-| `POST /api/v1/server/prune/containers` | The containers that stopped              |
+| Endpoint                                 | Removes                                                           |
+|-------------------------------------------|--------------------------------------------------------------------|
+| `POST /api/v1/server/prune/images`       | The images of GitPaaS that no container uses                     |
+| `POST /api/v1/server/prune/volumes`      | The local volumes of GitPaaS that no container uses               |
+| `POST /api/v1/server/prune/containers`   | The containers of GitPaaS that stopped                            |
+| `POST /api/v1/server/prune/all`          | Every unused image and every stopped container of the host        |
+| `POST /api/v1/server/prune/build-cache`  | The whole cache of the builder                                    |
+
+The three operations of images, of volumes and of containers remove an artefact of GitPaaS alone: they filter by the label that GitPaaS gives to the resources it creates, so they never touch a third-party image, volume or container that shares the same daemon. The prune of the host removes an artefact of every origin: it carries no filter of the label, so it also removes a stage of a build of several stages, a base image and a stopped container that a third party left on the host. It never removes a volume, whatever its origin. The prune of the build cache always removes the whole cache of the builder, because the cache carries no label to filter by.
 
 Each operation answers `200` with the count of the removed resources and the space of the disk that the removal gives back.
 
 ### Scenario: The removal succeeds
 
-- **WHEN** an authenticated client calls one of the three endpoints
+- **WHEN** an authenticated client calls one of the five endpoints
 - **THEN** the system answers `200` with the count of the removed resources and the space that it gives back
 
 ### Scenario: The daemon is not reachable
 
-- **WHEN** the Docker daemon does not answer during one of the three operations
+- **WHEN** the Docker daemon does not answer during one of the five operations
 - **THEN** the system answers `503 Service Unavailable` with a message that names the resource of that operation
 
 ## The removal of the orphan containers
@@ -171,23 +175,25 @@ The system SHALL refuse to start a second update while one runs. It SHALL also r
 - **WHEN** an administrator calls the endpoint, and the installed version already agrees with the latest version
 - **THEN** the system answers with an error, and it starts no update
 
-## The four actions of the maintenance
+## The six actions of the maintenance
 
-The tab Maintenance SHALL show four actions, each one with a name, a short description and a button, for every user. An administrator SHALL also see the section "Database maintenance" (see below), and, above these four actions, the alert of a new version (see below).
+The tab Maintenance SHALL show six actions, each one with a name, a short description and a button, for every user. An administrator SHALL also see the section "Database maintenance" (see below), and, above these six actions, the alert of a new version (see below).
 
-| Action                     | Description                                                         |
-|----------------------------|---------------------------------------------------------------------|
-| Clear unused images        | Remove the images that no container uses                            |
-| Clear unused volumes       | Remove the volumes that no container uses                           |
-| Clear unused containers    | Remove the containers that stopped                                  |
-| Remove orphaned containers | Stop by force and remove the containers of a service that went away |
+| Action                     | Description                                                                                                       |
+|-----------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Clear unused images        | Remove the images of GitPaaS that no container uses                                                              |
+| Clear unused volumes       | Remove the volumes of GitPaaS that no container uses                                                             |
+| Clear unused containers    | Remove the containers of GitPaaS that stopped                                                                    |
+| Clean the whole host       | Remove every unused image and every stopped container of the host, whatever their origin, and keep every volume |
+| Clear the build cache      | Remove the whole cache of the builder                                                                            |
+| Remove orphaned containers | Stop by force and remove the containers of a service that went away                                              |
 
 The tab SHALL also show the action "Check for updates", with the button that starts the check on demand. This button stays visible even when the platform already runs the latest release, so an administrator can ask for the check at any time.
 
 ### Scenario: The user opens the screen
 
 - **WHEN** a signed-in user opens `/server/maintenance`
-- **THEN** the system shows the four actions with their descriptions, and the button "Check for updates"
+- **THEN** the system shows the six actions with their descriptions, and the button "Check for updates"
 
 ## Database maintenance
 
@@ -232,7 +238,7 @@ The system SHALL warn the administrator, next to these values, that the console 
 
 
 
-The system SHALL ask the user to confirm before it runs any of the four actions.
+The system SHALL ask the user to confirm before it runs any of the six actions.
 
 The question carries the name of the action, and a message that says what goes away and that the action has no way back. The user can confirm or cancel.
 
@@ -248,18 +254,18 @@ The question carries the name of the action, and a message that says what goes a
 
 ## One action at a time
 
-The system SHALL block the buttons of the four actions while an action runs. The question shows the state of the work.
+The system SHALL block the buttons of the six actions while an action runs. The question shows the state of the work.
 
 ### Scenario: An action runs
 
 - **WHEN** the user confirms an action, and the call runs
-- **THEN** the system blocks the four buttons until the call ends
+- **THEN** the system blocks the six buttons until the call ends
 
 ## The report of the result
 
 The system SHALL show a message with the result of the action.
 
-For the three removals of the unused resources:
+For the five removals of the unused resources:
 
 - The action removed nothing: "No unused &lt;resource&gt; to remove."
 - The action removed something: the count and the space of the disk that it gives back, in a compact form such as "1.5 MB".
