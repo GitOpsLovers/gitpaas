@@ -7,6 +7,7 @@ import { toPruneResult } from './docker-server-pruner.transformer';
 
 import type { ContainerRuntime } from '@core/domain/ports/container-runtime.port';
 import { DockerContainerRuntimeAdapter } from '@core/infrastructure/docker/docker-container-runtime.adapter';
+import { HOST_SELECTOR } from '@features/docker/domain/constants/docker-host.constants';
 import { getGitpaasLabels } from '@shared/application/get-gitpaas-labels.use-case';
 
 /**
@@ -33,6 +34,22 @@ export class DockerServerPrunerAdapter implements ServerPruner {
     public async pruneContainers(): Promise<PruneResult> {
         const labels = getGitpaasLabels();
         const result = await this.client.pruneContainers({ labels });
+
+        return toPruneResult(result);
+    }
+
+    public async pruneHost(): Promise<PruneResult> {
+        const images = await this.client.pruneImages(HOST_SELECTOR);
+        const containers = await this.client.pruneContainers(HOST_SELECTOR);
+
+        return {
+            deletedCount: images.deletedCount + containers.deletedCount,
+            spaceReclaimed: images.spaceReclaimed + containers.spaceReclaimed,
+        };
+    }
+
+    public async pruneBuildCache(): Promise<PruneResult> {
+        const result = await this.client.pruneBuildCache();
 
         return toPruneResult(result);
     }

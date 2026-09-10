@@ -24,4 +24,18 @@ export interface ServerPruner {
      * @returns Prune result with the number of containers removed and space reclaimed
      */
     pruneContainers: () => Promise<PruneResult>;
+
+    /**
+     * Removes every unused image and every stopped container of the host, whatever their origin.
+     *
+     * @returns Prune result with the number of resources removed and space reclaimed
+     */
+    pruneHost: () => Promise<PruneResult>;
+
+    /**
+     * Removes the whole build cache of the builder.
+     *
+     * @returns Prune result with the number of cache records removed and space reclaimed
+     */
+    pruneBuildCache: () => Promise<PruneResult>;
 }

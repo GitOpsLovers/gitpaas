@@ -50,6 +50,7 @@ interface FakeDaemon {
     pruneImages: jest.Mock;
     pruneVolumes: jest.Mock;
     pruneContainers: jest.Mock;
+    pruneBuilder: jest.Mock;
     buildImage: jest.Mock;
     pull: jest.Mock;
     createContainer: jest.Mock;
@@ -89,6 +90,7 @@ const buildSut = (): { sut: DockerContainerRuntimeAdapter; daemon: FakeDaemon } 
     daemon.pruneImages = jest.fn().mockResolvedValue({});
     daemon.pruneVolumes = jest.fn().mockResolvedValue({});
     daemon.pruneContainers = jest.fn().mockResolvedValue({});
+    daemon.pruneBuilder = jest.fn().mockResolvedValue({});
     daemon.buildImage = jest.fn().mockResolvedValue(Readable.from([]));
     daemon.pull = jest.fn().mockResolvedValue(Readable.from([]));
     daemon.modem = { followProgress: jest.fn() };
@@ -236,6 +238,22 @@ describe('DockerContainerRuntimeAdapter', () => {
             expect(daemon.pruneImages).toHaveBeenCalledWith({
                 filters: { label: ['io.gitpaas.managed=true'], dangling: ['false'] },
             });
+        });
+
+        it('sends the dangling=false filter and no label at all for an image prune of the whole host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.pruneImages({ host: true });
+
+            expect(daemon.pruneImages).toHaveBeenCalledWith({ filters: { dangling: ['false'] } });
+        });
+
+        it('sends no filter at all for a container prune of the whole host', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.pruneContainers({ host: true });
+
+            expect(daemon.pruneContainers).toHaveBeenCalledWith({ filters: {} });
         });
 
         it('adds the GitPaaS project label to the marker', async () => {
@@ -793,6 +811,29 @@ describe('DockerContainerRuntimeAdapter', () => {
             daemon.pruneContainers.mockResolvedValue({ ContainersDeleted: ['ctr-0'], SpaceReclaimed: 4096 });
 
             await expect(sut.pruneContainers({})).resolves.toEqual({ deletedCount: 1, spaceReclaimed: 4096 });
+        });
+
+        it('reports the build cache records the daemon deleted, reading its own response field', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.pruneBuilder.mockResolvedValue({ CachesDeleted: ['cache-0', 'cache-1'], SpaceReclaimed: 8192 });
+
+            await expect(sut.pruneBuildCache()).resolves.toEqual({ deletedCount: 2, spaceReclaimed: 8192 });
+        });
+
+        it('asks the daemon for the build cache prune with no option at all', async () => {
+            const { sut, daemon } = buildSut();
+
+            await sut.pruneBuildCache();
+
+            expect(daemon.pruneBuilder).toHaveBeenCalledTimes(1);
+            expect(daemon.pruneBuilder).toHaveBeenCalledWith();
+        });
+
+        it('falls back to zeroed counters when the build cache prune reports no record', async () => {
+            const { sut, daemon } = buildSut();
+            daemon.pruneBuilder.mockResolvedValue({ SpaceReclaimed: 0 });
+
+            await expect(sut.pruneBuildCache()).resolves.toEqual({ deletedCount: 0, spaceReclaimed: 0 });
         });
 
         it.each([

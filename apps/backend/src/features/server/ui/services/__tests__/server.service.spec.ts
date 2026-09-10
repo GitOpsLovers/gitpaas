@@ -17,7 +17,9 @@ import { checkReadinessUseCase } from '../../../application/check-readiness.use-
 import { getPlatformSettingsUseCase } from '../../../application/get-platform-settings.use-case';
 import { getPlatformUpdateUseCase } from '../../../application/get-platform-update.use-case';
 import { getServerStatusUseCase } from '../../../application/get-server-status.use-case';
+import { pruneBuildCacheUseCase } from '../../../application/prune-build-cache.use-case';
 import { pruneContainersUseCase } from '../../../application/prune-containers.use-case';
+import { pruneHostUseCase } from '../../../application/prune-host.use-case';
 import { pruneImagesUseCase } from '../../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../../application/remove-orphaned-containers.use-case';
@@ -53,6 +55,8 @@ import { DatabaseServicesRepository } from '@features/services/infrastructure/da
 jest.mock('../../../application/prune-images.use-case');
 jest.mock('../../../application/prune-volumes.use-case');
 jest.mock('../../../application/prune-containers.use-case');
+jest.mock('../../../application/prune-host.use-case');
+jest.mock('../../../application/prune-build-cache.use-case');
 jest.mock('../../../application/remove-orphaned-containers.use-case');
 jest.mock('../../../application/check-readiness.use-case');
 jest.mock('../../../application/check-control-plane-domain.use-case');
@@ -74,6 +78,10 @@ const mockCheckReadinessUseCase = checkReadinessUseCase as jest.MockedFunction<
 const mockPruneImagesUseCase = pruneImagesUseCase as jest.MockedFunction<typeof pruneImagesUseCase>;
 const mockPruneVolumesUseCase = pruneVolumesUseCase as jest.MockedFunction<
     typeof pruneVolumesUseCase
+>;
+const mockPruneHostUseCase = pruneHostUseCase as jest.MockedFunction<typeof pruneHostUseCase>;
+const mockPruneBuildCacheUseCase = pruneBuildCacheUseCase as jest.MockedFunction<
+    typeof pruneBuildCacheUseCase
 >;
 const mockPruneContainersUseCase = pruneContainersUseCase as jest.MockedFunction<
     typeof pruneContainersUseCase
@@ -107,6 +115,8 @@ const mockResolveServiceVersion = resolveServiceVersion as jest.MockedFunction<t
 const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 };
 const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
+const hostResult: PruneResult = { deletedCount: 7, spaceReclaimed: 3_145_728 };
+const buildCacheResult: PruneResult = { deletedCount: 4, spaceReclaimed: 8_192 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
 const runtimeInfo: ContainerRuntimeInfo = {
@@ -377,6 +387,93 @@ describe('ServerService', () => {
             mockPruneContainersUseCase.mockRejectedValue(error);
 
             await expect(sut.pruneContainers()).rejects.toThrow(error);
+        });
+    });
+
+    describe('pruneHost', () => {
+        it('delegates to the prune host use case with the pruner repository', async () => {
+            mockPruneHostUseCase.mockResolvedValue(hostResult);
+
+            await sut.pruneHost();
+
+            expect(mockPruneHostUseCase).toHaveBeenCalledTimes(1);
+            expect(mockPruneHostUseCase).toHaveBeenCalledWith(mockPruner);
+        });
+
+        it('returns the prune result produced by the use case', async () => {
+            mockPruneHostUseCase.mockResolvedValue(hostResult);
+
+            const result = await sut.pruneHost();
+
+            expect(result).toBe(hostResult);
+        });
+
+        it('returns a zeroed result when nothing was reclaimed', async () => {
+            mockPruneHostUseCase.mockResolvedValue(emptyResult);
+
+            const result = await sut.pruneHost();
+
+            expect(result).toEqual({ deletedCount: 0, spaceReclaimed: 0 });
+        });
+
+        it('never touches the prune use cases scoped to the label of GitPaaS', async () => {
+            mockPruneHostUseCase.mockResolvedValue(hostResult);
+
+            await sut.pruneHost();
+
+            expect(mockPruneImagesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneVolumesUseCase).not.toHaveBeenCalled();
+            expect(mockPruneContainersUseCase).not.toHaveBeenCalled();
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('docker daemon unreachable');
+            mockPruneHostUseCase.mockRejectedValue(error);
+
+            await expect(sut.pruneHost()).rejects.toThrow(error);
+        });
+    });
+
+    describe('pruneBuildCache', () => {
+        it('delegates to the prune build cache use case with the pruner repository', async () => {
+            mockPruneBuildCacheUseCase.mockResolvedValue(buildCacheResult);
+
+            await sut.pruneBuildCache();
+
+            expect(mockPruneBuildCacheUseCase).toHaveBeenCalledTimes(1);
+            expect(mockPruneBuildCacheUseCase).toHaveBeenCalledWith(mockPruner);
+        });
+
+        it('returns the prune result produced by the use case', async () => {
+            mockPruneBuildCacheUseCase.mockResolvedValue(buildCacheResult);
+
+            const result = await sut.pruneBuildCache();
+
+            expect(result).toBe(buildCacheResult);
+        });
+
+        it('returns a zeroed result when nothing was reclaimed', async () => {
+            mockPruneBuildCacheUseCase.mockResolvedValue(emptyResult);
+
+            const result = await sut.pruneBuildCache();
+
+            expect(result).toEqual({ deletedCount: 0, spaceReclaimed: 0 });
+        });
+
+        it('never touches the other prune use cases', async () => {
+            mockPruneBuildCacheUseCase.mockResolvedValue(buildCacheResult);
+
+            await sut.pruneBuildCache();
+
+            expect(mockPruneHostUseCase).not.toHaveBeenCalled();
+            expect(mockPruneVolumesUseCase).not.toHaveBeenCalled();
+        });
+
+        it('propagates errors thrown by the use case', async () => {
+            const error = new Error('docker daemon unreachable');
+            mockPruneBuildCacheUseCase.mockRejectedValue(error);
+
+            await expect(sut.pruneBuildCache()).rejects.toThrow(error);
         });
     });
 

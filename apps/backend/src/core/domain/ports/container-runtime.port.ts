@@ -169,6 +169,13 @@ export interface ContainerRuntime {
     pruneContainers: (selector: RuntimeSelector) => Promise<RuntimePruneReport>;
 
     /**
+     * Removes the whole build cache of the builder.
+     *
+     * @returns Number of cache records removed and disk space reclaimed
+     */
+    pruneBuildCache: () => Promise<RuntimePruneReport>;
+
+    /**
      * Builds an image from a local build context.
      *
      * @param context Tarball stream of the build context
