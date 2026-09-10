@@ -74,6 +74,24 @@ export class ServerApiRepository {
     }
 
     /**
+     * Removes every unused image and every stopped container of the host, whatever created them. It keeps the volumes.
+     *
+     * @returns Number of artefacts removed and disk space reclaimed
+     */
+    public pruneHost(): Observable<PruneResult> {
+        return this.http.post<PruneResult>(`${this.url}/prune/all`, {});
+    }
+
+    /**
+     * Removes the whole cache of the builder of the server
+     *
+     * @returns Number of cache records removed and disk space reclaimed
+     */
+    public pruneBuildCache(): Observable<PruneResult> {
+        return this.http.post<PruneResult>(`${this.url}/prune/build-cache`, {});
+    }
+
+    /**
      * Force-removes orphaned GitPaaS containers from the server
      *
      * @returns Number of orphaned containers removed and their names

@@ -4,9 +4,11 @@ import {
     LucideBox,
     LucideBug,
     LucideDatabase,
+    LucideHardDrive,
     LucideLayers,
     LucideLoaderCircle,
     LucideRefreshCw,
+    LucideServer,
     LucideUnplug,
 } from '@lucide/angular';
 import { lastValueFrom } from 'rxjs';
@@ -25,7 +27,7 @@ import { ToastService } from '@shared/services/toast.service';
 /**
  * Prunable Docker resource on the server.
  */
-type PruneResource = 'images' | 'volumes' | 'containers';
+type PruneResource = 'images' | 'volumes' | 'containers' | 'host' | 'build-cache';
 
 /**
  * Static presentation config for a prune action.
@@ -34,8 +36,11 @@ interface PruneAction {
     readonly resource: PruneResource;
     readonly label: string;
     readonly description: string;
-    readonly icon: 'images' | 'volumes' | 'containers';
+    readonly icon: PruneResource;
     readonly confirmMessage: string;
+
+    /** Name of what the action removes, as the summary of the result names it. */
+    readonly noun: string;
 }
 
 /**
@@ -75,6 +80,8 @@ const UPDATE_TIMEOUT_MS = 10 * 60 * 1000;
         LucideBox,
         LucideLayers,
         LucideDatabase,
+        LucideServer,
+        LucideHardDrive,
         LucideBug,
         LucideUnplug,
         LucideRefreshCw,
@@ -107,6 +114,7 @@ export class ServerMaintenanceComponent {
             description: 'Remove dangling images that are no longer referenced by any container.',
             icon: 'images',
             confirmMessage: 'Dangling images on the server will be permanently removed. This action cannot be undone.',
+            noun: 'images',
         },
         {
             resource: 'volumes',
@@ -115,6 +123,7 @@ export class ServerMaintenanceComponent {
             icon: 'volumes',
             confirmMessage:
                 'Unused volumes on the server will be permanently removed. This action cannot be undone.',
+            noun: 'volumes',
         },
         {
             resource: 'containers',
@@ -123,6 +132,29 @@ export class ServerMaintenanceComponent {
             icon: 'containers',
             confirmMessage:
                 'Stopped containers on the server will be permanently removed. This action cannot be undone.',
+            noun: 'containers',
+        },
+        {
+            resource: 'host',
+            label: 'Clean the whole host',
+            description:
+                'Remove every unused image and every stopped container of the host, including the ones GitPaaS '
+                + 'did not create. Every volume is kept.',
+            icon: 'host',
+            confirmMessage:
+                'Every unused image and every stopped container of the host will be permanently removed, including '
+                + 'the ones GitPaaS did not create. Every volume is kept. This action cannot be undone.',
+            noun: 'items',
+        },
+        {
+            resource: 'build-cache',
+            label: 'Clear the build cache',
+            description: 'Remove the whole cache of the builder. The next build of a service starts from scratch.',
+            icon: 'build-cache',
+            confirmMessage:
+                'The whole cache of the builder will be permanently removed. The next build of a service starts '
+                + 'from scratch. This action cannot be undone.',
+            noun: 'build cache records',
         },
     ];
 
@@ -552,6 +584,10 @@ export class ServerMaintenanceComponent {
                 return this.repository.pruneImages();
             case 'volumes':
                 return this.repository.pruneVolumes();
+            case 'host':
+                return this.repository.pruneHost();
+            case 'build-cache':
+                return this.repository.pruneBuildCache();
             default:
                 return this.repository.pruneContainers();
         }
@@ -567,10 +603,10 @@ export class ServerMaintenanceComponent {
      */
     private summarize(action: PruneAction, result: PruneResult): string {
         if (result.deletedCount === 0) {
-            return `No unused ${action.resource} to remove.`;
+            return `No unused ${action.noun} to remove.`;
         }
 
-        return `Removed ${result.deletedCount} ${action.resource}, reclaiming ${this.formatBytes(result.spaceReclaimed)}.`;
+        return `Removed ${result.deletedCount} ${action.noun}, reclaiming ${this.formatBytes(result.spaceReclaimed)}.`;
     }
 
     /**

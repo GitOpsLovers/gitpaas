@@ -12,7 +12,10 @@ import { ServerMaintenanceComponent } from './server-maintenance.component';
 import { ToastService } from '@shared/services/toast.service';
 
 interface PruneAction {
-    resource: 'images' | 'volumes' | 'containers';
+    resource: 'images' | 'volumes' | 'containers' | 'host' | 'build-cache';
+    label: string;
+    description: string;
+    confirmMessage: string;
 }
 
 interface ServerMaintenanceInternals {
@@ -141,6 +144,8 @@ describe('ServerMaintenanceComponent', () => {
         pruneImages: ReturnType<typeof vi.fn>;
         pruneVolumes: ReturnType<typeof vi.fn>;
         pruneContainers: ReturnType<typeof vi.fn>;
+        pruneHost: ReturnType<typeof vi.fn>;
+        pruneBuildCache: ReturnType<typeof vi.fn>;
         removeOrphanedContainers: ReturnType<typeof vi.fn>;
         databaseDebug: ReturnType<typeof vi.fn>;
         startDatabaseDebug: ReturnType<typeof vi.fn>;
@@ -189,6 +194,8 @@ describe('ServerMaintenanceComponent', () => {
             pruneImages: vi.fn().mockReturnValue(of({ deletedCount: 2, spaceReclaimed: 2048 })),
             pruneVolumes: vi.fn(),
             pruneContainers: vi.fn(),
+            pruneHost: vi.fn().mockReturnValue(of({ deletedCount: 7, spaceReclaimed: 1024 })),
+            pruneBuildCache: vi.fn().mockReturnValue(of({ deletedCount: 0, spaceReclaimed: 0 })),
             removeOrphanedContainers: vi.fn(),
             databaseDebug: vi.fn().mockReturnValue({
                 value: debugValue,
@@ -503,6 +510,67 @@ describe('ServerMaintenanceComponent', () => {
 
             expect(repository.pruneImages).toHaveBeenCalledTimes(1);
             expect(toast.success).toHaveBeenCalledWith('Cleanup complete', 'Removed 2 images, reclaiming 2.0 KB.');
+            expect(component.running()).toBe(false);
+        });
+
+        test('prunes the whole host, and reports the items it removed', async () => {
+            create();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const action = component.actions.find((candidate) => candidate.resource === 'host')!;
+
+            component.requestPrune(action);
+            await component.confirmPrune();
+
+            expect(repository.pruneHost).toHaveBeenCalledTimes(1);
+            expect(toast.success).toHaveBeenCalledWith('Cleanup complete', 'Removed 7 items, reclaiming 1.0 KB.');
+            expect(component.running()).toBe(false);
+        });
+
+        test('states that the prune of the host keeps every volume', () => {
+            create();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const action = component.actions.find((candidate) => candidate.resource === 'host')!;
+
+            expect(action.description).toContain('Every volume is kept.');
+            expect(action.confirmMessage).toContain('Every volume is kept.');
+        });
+
+        test('prunes the cache of the builder, and reports that it removed nothing', async () => {
+            create();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const action = component.actions.find((candidate) => candidate.resource === 'build-cache')!;
+
+            component.requestPrune(action);
+            await component.confirmPrune();
+
+            expect(repository.pruneBuildCache).toHaveBeenCalledTimes(1);
+            expect(toast.success).toHaveBeenCalledWith('Cleanup complete', 'No unused build cache records to remove.');
+            expect(component.running()).toBe(false);
+        });
+
+        test('states that the clear of the build cache removes the whole cache of the builder', () => {
+            create();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const action = component.actions.find((candidate) => candidate.resource === 'build-cache')!;
+
+            expect(action.description).toContain('Remove the whole cache of the builder.');
+            expect(action.confirmMessage).toContain('The whole cache of the builder will be permanently removed.');
+        });
+
+        test('reports the failure of the prune of the host, and leaves no action pending', async () => {
+            repository.pruneHost.mockReturnValue(throwError(() => new Error('boom')));
+            create();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const action = component.actions.find((candidate) => candidate.resource === 'host')!;
+
+            component.requestPrune(action);
+            await component.confirmPrune();
+
+            expect(toast.error).toHaveBeenCalledWith(
+                'Cleanup failed',
+                'Could not reach the server Docker daemon. Please verify it is running and try again.',
+            );
+            expect(toast.success).not.toHaveBeenCalled();
             expect(component.running()).toBe(false);
         });
 
