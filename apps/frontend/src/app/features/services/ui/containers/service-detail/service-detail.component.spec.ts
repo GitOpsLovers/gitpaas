@@ -29,15 +29,14 @@ import { DomainChange } from '@features/domains/ui/components/service-domains/se
 import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api/namespaces-api.repository';
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
-import type { VolumeDraft } from '@features/volumes/domain/models/volume.models';
 import { VolumesApiRepository } from '@features/volumes/infrastructure/api/volumes-api.repository';
-import { VolumeAttach, VolumeRename } from '@features/volumes/ui/components/service-volumes/service-volumes.component';
 import { BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ToastService } from '@shared/services/toast.service';
 
 interface ServiceDetailInternals {
     breadcrumb: () => BreadcrumbItem[];
     activeTab: () => string;
+    volumes: { value: () => Volume[] | undefined };
     savingProvider: () => boolean;
     deploying: () => boolean;
     providerSettings: () => ServiceProviderSettings;
@@ -68,12 +67,6 @@ interface ServiceDetailInternals {
     changeDomain: (change: DomainChange) => Promise<void>;
     requestDomainRemoval: (domain: DomainRow) => void;
     confirmDomainRemoval: () => Promise<void>;
-    savingVolume: () => boolean;
-    volumeError: () => string | null;
-    createVolume: (draft: VolumeDraft) => Promise<void>;
-    renameVolume: (change: VolumeRename) => Promise<void>;
-    attachVolume: (change: VolumeAttach) => Promise<void>;
-    detachVolume: (volume: Volume) => Promise<void>;
     logContainerId: WritableSignal<string | null>;
     logTail: WritableSignal<number>;
     logStreaming: () => boolean;
@@ -200,14 +193,9 @@ const volume: Volume = {
     id: 'vl-1',
     name: 'uploads',
     daemonName: 'api-web_gitpaas-uploads',
-    origin: 'gitpaas',
     state: 'mounted',
     mount: { composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false },
     containers: ['api-web-1'],
-};
-
-const volumeDraft: VolumeDraft = {
-    name: 'uploads', composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false,
 };
 
 describe('ServiceDetailComponent', () => {
@@ -255,10 +243,6 @@ describe('ServiceDetailComponent', () => {
     let networksResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let volumesRepository: {
         volumesByService: ReturnType<typeof vi.fn>;
-        create: ReturnType<typeof vi.fn>;
-        rename: ReturnType<typeof vi.fn>;
-        attach: ReturnType<typeof vi.fn>;
-        detach: ReturnType<typeof vi.fn>;
     };
     let volumesResource: { value: ReturnType<typeof signal>; reload: ReturnType<typeof vi.fn> };
     let containersValue: ReturnType<typeof signal<Container[] | undefined>>;
@@ -324,10 +308,6 @@ describe('ServiceDetailComponent', () => {
         volumesResource = { value: signal(undefined), reload: vi.fn() };
         volumesRepository = {
             volumesByService: vi.fn().mockReturnValue(volumesResource),
-            create: vi.fn(),
-            rename: vi.fn(),
-            attach: vi.fn(),
-            detach: vi.fn(),
         };
         variablesResource = { value: signal(undefined), reload: vi.fn() };
         variablesRepository = {
@@ -966,89 +946,11 @@ describe('ServiceDetailComponent', () => {
             expect(accessor()).toBe('sv-1');
         });
 
-        test('creates a volume, reloads the list and announces the next deployment', async () => {
-            volumesRepository.create.mockReturnValue(of(volume));
-            create();
+        test('exposes the volumes the API answers to the read-only tab', () => {
+            create('ns-1', 'pr-1', 'sv-1', 'volumes');
+            volumesResource.value.set([volume]);
 
-            await component.createVolume(volumeDraft);
-
-            expect(volumesRepository.create).toHaveBeenCalledWith('sv-1', volumeDraft);
-            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
-            expect(component.volumeError()).toBeNull();
-            expect(component.savingVolume()).toBe(false);
-        });
-
-        test('names the rule the API refused when the creation fails, and reloads nothing', async () => {
-            volumesRepository.create.mockReturnValue(throwError(() => new HttpErrorResponse({
-                status: 409,
-                error: {
-                    statusCode: 409,
-                    code: 'VOLUME_MOUNT_PATH_TAKEN',
-                    message: 'Another volume of the service already mounts at /var/lib/app/uploads',
-                    error: 'Conflict',
-                    timestamp: '2026-09-04T00:00:00.000Z',
-                    path: '/services/sv-1/volumes',
-                    requestId: 'req-1',
-                },
-            })));
-            create();
-
-            await component.createVolume(volumeDraft);
-
-            expect(component.volumeError()).toBe('Another volume of the service already mounts at /var/lib/app/uploads');
-            expect(volumesResource.reload).not.toHaveBeenCalled();
-            expect(component.savingVolume()).toBe(false);
-        });
-
-        test('renames a volume and reloads the list', async () => {
-            volumesRepository.rename.mockReturnValue(of({ ...volume, name: 'assets' }));
-            create();
-
-            await component.renameVolume({ volume, name: 'assets' });
-
-            expect(volumesRepository.rename).toHaveBeenCalledWith('sv-1', 'vl-1', { name: 'assets' });
-            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
-            expect(toast.success).toHaveBeenCalled();
-        });
-
-        test('attaches a volume to a compose service and reloads the list', async () => {
-            volumesRepository.attach.mockReturnValue(of(undefined));
-            create();
-
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            const draft = { composeServiceName: 'worker', containerPath: '/data', readOnly: true };
-
-            await component.attachVolume({ volume, draft });
-
-            expect(volumesRepository.attach).toHaveBeenCalledWith('sv-1', 'vl-1', draft);
-            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
-            expect(component.volumeError()).toBeNull();
-        });
-
-        test('detaches a volume, reloads the list and announces the next deployment', async () => {
-            volumesRepository.detach.mockReturnValue(of(undefined));
-            create();
-
-            await component.detachVolume(volume);
-
-            expect(volumesRepository.detach).toHaveBeenCalledWith('sv-1', 'vl-1');
-            expect(volumesResource.reload).toHaveBeenCalledTimes(1);
-            expect(toast.success).toHaveBeenCalled();
-            expect(component.savingVolume()).toBe(false);
-        });
-
-        test('announces the failure of a detach in a toast, and reloads nothing', async () => {
-            volumesRepository.detach.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
-            create();
-
-            await component.detachVolume(volume);
-
-            expect(toast.error).toHaveBeenCalledWith(
-                'Could not detach the volume',
-                'Something went wrong. Please try again.',
-            );
-            expect(volumesResource.reload).not.toHaveBeenCalled();
-            expect(component.savingVolume()).toBe(false);
+            expect(component.volumes.value()).toEqual([volume]);
         });
     });
 
@@ -1253,10 +1155,6 @@ describe('ServiceDetailComponent bindings of the child outputs', () => {
                             volumesByService: vi.fn().mockReturnValue({
                                 value: signal([]), isLoading: signal(false), reload: vi.fn(),
                             }),
-                            create: vi.fn(),
-                            rename: vi.fn(),
-                            attach: vi.fn(),
-                            detach: vi.fn(),
                         },
                     },
                 ],

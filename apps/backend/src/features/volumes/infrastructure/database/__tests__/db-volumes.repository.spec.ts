@@ -24,7 +24,7 @@ const volume = (overrides: Partial<Volume> = {}): Volume => ({
 
 describe('DatabaseVolumesRepository', () => {
     let mockRepository: jest.Mocked<
-        Pick<Repository<DbVolumeEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save'>
+        Pick<Repository<DbVolumeEntity>, 'find' | 'findOneBy' | 'create' | 'save'>
     >;
     let sut: DatabaseVolumesRepository;
 
@@ -32,7 +32,7 @@ describe('DatabaseVolumesRepository', () => {
         jest.clearAllMocks();
 
         mockRepository = {
-            find: jest.fn(), findOneBy: jest.fn(), create: jest.fn(), merge: jest.fn(), save: jest.fn(),
+            find: jest.fn(), findOneBy: jest.fn(), create: jest.fn(), save: jest.fn(),
         };
         sut = new DatabaseVolumesRepository(mockRepository as unknown as Repository<DbVolumeEntity>);
     });
@@ -106,27 +106,6 @@ describe('DatabaseVolumesRepository', () => {
 
             await expect(sut.create(volume())).resolves.toEqual(volume());
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
-        });
-    });
-
-    describe('rename', () => {
-        it('merges the new name into the row and saves it', async () => {
-            const entity = volumeEntity();
-
-            mockRepository.findOneBy.mockResolvedValue(entity);
-            mockRepository.save.mockResolvedValue(volumeEntity({ name: 'archive' }));
-
-            await expect(sut.rename(volumeId, 'archive')).resolves.toEqual(volume({ name: 'archive' }));
-            expect(mockRepository.merge).toHaveBeenCalledWith(entity, { name: 'archive' });
-            expect(mockRepository.save).toHaveBeenCalledWith(entity);
-        });
-
-        it('gives null and writes nothing when no row carries that id', async () => {
-            mockRepository.findOneBy.mockResolvedValue(null);
-
-            await expect(sut.rename(volumeId, 'archive')).resolves.toBeNull();
-            expect(mockRepository.merge).not.toHaveBeenCalled();
-            expect(mockRepository.save).not.toHaveBeenCalled();
         });
     });
 });

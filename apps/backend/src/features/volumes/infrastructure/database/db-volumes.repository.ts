@@ -50,18 +50,4 @@ export class DatabaseVolumesRepository implements VolumesRepository {
 
         return toVolume(saved);
     }
-
-    public async rename(id: string, name: string): Promise<Volume | null> {
-        const volume = await this.repository.findOneBy({ id });
-
-        if (!volume) {
-            return null;
-        }
-
-        this.repository.merge(volume, { name });
-
-        const saved = await this.repository.save(volume);
-
-        return toVolume(saved);
-    }
 }
