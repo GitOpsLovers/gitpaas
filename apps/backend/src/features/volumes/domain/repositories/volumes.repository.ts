@@ -30,4 +30,11 @@ export interface VolumesRepository {
      * @returns Created volume
      */
     create: (volume: Volume) => Promise<Volume>;
+
+    /**
+     * Deletes a volume of a service, and the mount the join of the database holds for it
+     *
+     * @param id Volume id
+     */
+    delete: (id: string) => Promise<void>;
 }

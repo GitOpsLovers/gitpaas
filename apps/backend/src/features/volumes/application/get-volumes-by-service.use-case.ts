@@ -34,7 +34,6 @@ function toOrphanVolumes(
                 // The Compose file of the user declares every volume of the stack, so no record of GitPaaS names this one.
                 name: key,
                 daemonName: daemonVolume.name,
-                origin: 'compose',
                 state: 'orphan',
                 driver: daemonVolume.driver,
                 mountpoint: daemonVolume.mountpoint,

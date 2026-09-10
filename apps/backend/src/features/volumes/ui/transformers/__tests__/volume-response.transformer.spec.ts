@@ -7,7 +7,6 @@ describe('toVolumeResponse', () => {
             id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
             name: 'data',
             daemonName: 'api_gitpaas-b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-            origin: 'gitpaas',
             state: 'mounted',
             driver: 'local',
             mountpoint: '/var/lib/docker/volumes/api_data/_data',
@@ -32,7 +31,6 @@ describe('toVolumeResponse', () => {
             id: 'api_pgdata',
             name: 'pgdata',
             daemonName: 'api_pgdata',
-            origin: 'compose',
             state: 'missing',
             containers: [],
         };

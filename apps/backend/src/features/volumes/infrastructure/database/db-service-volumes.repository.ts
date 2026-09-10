@@ -26,4 +26,21 @@ export class DatabaseServiceVolumesRepository implements ServiceVolumesRepositor
 
         return mounts.map(toServiceVolumeMount);
     }
+
+    public async save(serviceId: string, mount: ServiceVolumeMount): Promise<void> {
+        await this.repository.upsert(
+            {
+                serviceId,
+                volumeId: mount.volumeId,
+                composeServiceName: mount.composeServiceName,
+                containerPath: mount.containerPath,
+                readOnly: mount.readOnly,
+            },
+            ['serviceId', 'volumeId'],
+        );
+    }
+
+    public async delete(serviceId: string, volumeId: string): Promise<void> {
+        await this.repository.delete({ serviceId, volumeId });
+    }
 }

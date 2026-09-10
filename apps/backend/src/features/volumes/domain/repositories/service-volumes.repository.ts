@@ -12,4 +12,20 @@ export interface ServiceVolumesRepository {
      * @returns Mounts the service holds
      */
     listByService: (serviceId: string) => Promise<ServiceVolumeMount[]>;
+
+    /**
+     * Writes the mount of one volume of a service, and overwrites the mount the service already holds for it
+     *
+     * @param serviceId Service id
+     * @param mount Mount the Compose file of the service declares
+     */
+    save: (serviceId: string, mount: ServiceVolumeMount) => Promise<void>;
+
+    /**
+     * Deletes the mount of one volume of a service
+     *
+     * @param serviceId Service id
+     * @param volumeId Volume the mount belongs to
+     */
+    delete: (serviceId: string, volumeId: string) => Promise<void>;
 }

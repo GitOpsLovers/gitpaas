@@ -14,13 +14,13 @@ const joinEntity = (overrides: Partial<DbServiceVolumeEntity> = {}): DbServiceVo
 });
 
 describe('DatabaseServiceVolumesRepository', () => {
-    let mockRepository: jest.Mocked<Pick<Repository<DbServiceVolumeEntity>, 'find'>>;
+    let mockRepository: jest.Mocked<Pick<Repository<DbServiceVolumeEntity>, 'find' | 'upsert' | 'delete'>>;
     let sut: DatabaseServiceVolumesRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockRepository = { find: jest.fn() };
+        mockRepository = { find: jest.fn(), upsert: jest.fn(), delete: jest.fn() };
         sut = new DatabaseServiceVolumesRepository(
             mockRepository as unknown as Repository<DbServiceVolumeEntity>,
         );
@@ -48,6 +48,37 @@ describe('DatabaseServiceVolumesRepository', () => {
             mockRepository.find.mockResolvedValue([]);
 
             await expect(sut.listByService(serviceId)).resolves.toEqual([]);
+        });
+    });
+
+    describe('save', () => {
+        it('writes the row of the mount over the pair of the service and the volume', async () => {
+            mockRepository.upsert.mockResolvedValue({ raw: [], identifiers: [], generatedMaps: [] });
+
+            await sut.save(serviceId, { volumeId, ...mount });
+
+            expect(mockRepository.upsert).toHaveBeenCalledTimes(1);
+            expect(mockRepository.upsert).toHaveBeenCalledWith(
+                {
+                    serviceId,
+                    volumeId,
+                    composeServiceName: 'app',
+                    containerPath: '/data',
+                    readOnly: false,
+                },
+                ['serviceId', 'volumeId'],
+            );
+        });
+    });
+
+    describe('delete', () => {
+        it('deletes the row of the mount of that volume of the service', async () => {
+            mockRepository.delete.mockResolvedValue({ raw: [], affected: 1 });
+
+            await sut.delete(serviceId, volumeId);
+
+            expect(mockRepository.delete).toHaveBeenCalledTimes(1);
+            expect(mockRepository.delete).toHaveBeenCalledWith({ serviceId, volumeId });
         });
     });
 });

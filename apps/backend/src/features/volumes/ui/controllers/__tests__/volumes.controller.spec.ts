@@ -15,7 +15,6 @@ const volume: VolumeStatus = {
     id: volumeId,
     name: 'data',
     daemonName: `api_gitpaas-${volumeId}`,
-    origin: 'gitpaas',
     state: 'pending',
     driver: 'local',
     mountpoint: '/var/lib/docker/volumes/api_data/_data',

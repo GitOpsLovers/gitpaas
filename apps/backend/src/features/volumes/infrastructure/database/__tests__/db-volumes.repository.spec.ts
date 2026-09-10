@@ -13,18 +13,17 @@ const volumeEntity = (overrides: Partial<DbVolumeEntity> = {}): DbVolumeEntity =
     serviceId,
     name: 'data',
     daemonKey: `gitpaas-${volumeId}`,
-    origin: 'gitpaas',
     ...overrides,
 });
 
 /** Builds a volume domain fixture, overriding only the fields under test. */
 const volume = (overrides: Partial<Volume> = {}): Volume => ({
-    id: volumeId, serviceId, name: 'data', daemonKey: `gitpaas-${volumeId}`, origin: 'gitpaas', ...overrides,
+    id: volumeId, serviceId, name: 'data', daemonKey: `gitpaas-${volumeId}`, ...overrides,
 });
 
 describe('DatabaseVolumesRepository', () => {
     let mockRepository: jest.Mocked<
-        Pick<Repository<DbVolumeEntity>, 'find' | 'findOneBy' | 'create' | 'save'>
+        Pick<Repository<DbVolumeEntity>, 'find' | 'findOneBy' | 'create' | 'save' | 'delete'>
     >;
     let sut: DatabaseVolumesRepository;
 
@@ -32,7 +31,7 @@ describe('DatabaseVolumesRepository', () => {
         jest.clearAllMocks();
 
         mockRepository = {
-            find: jest.fn(), findOneBy: jest.fn(), create: jest.fn(), save: jest.fn(),
+            find: jest.fn(), findOneBy: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn(),
         };
         sut = new DatabaseVolumesRepository(mockRepository as unknown as Repository<DbVolumeEntity>);
     });
@@ -94,7 +93,6 @@ describe('DatabaseVolumesRepository', () => {
                 serviceId,
                 name: 'data',
                 daemonKey: `gitpaas-${volumeId}`,
-                origin: 'gitpaas',
             });
         });
 
@@ -106,6 +104,23 @@ describe('DatabaseVolumesRepository', () => {
 
             await expect(sut.create(volume())).resolves.toEqual(volume());
             expect(mockRepository.save).toHaveBeenCalledWith(entity);
+        });
+    });
+
+    describe('delete', () => {
+        it('deletes the row of the volume by its id', async () => {
+            mockRepository.delete.mockResolvedValue({ raw: [], affected: 1 });
+
+            await sut.delete(volumeId);
+
+            expect(mockRepository.delete).toHaveBeenCalledTimes(1);
+            expect(mockRepository.delete).toHaveBeenCalledWith(volumeId);
+        });
+
+        it('gives nothing back when no row carries that id', async () => {
+            mockRepository.delete.mockResolvedValue({ raw: [], affected: 0 });
+
+            await expect(sut.delete(volumeId)).resolves.toBeUndefined();
         });
     });
 });

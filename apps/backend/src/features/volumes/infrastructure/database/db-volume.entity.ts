@@ -1,7 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
-import type { VolumeOrigin } from '../../domain/models/volume.models';
-
 import { DbServiceEntity } from '@features/services/infrastructure/database/db-service.entity';
 
 /**
@@ -23,9 +21,6 @@ export class DbVolumeEntity {
 
     @Column('text')
     public daemonKey!: string;
-
-    @Column({ type: 'text', default: 'gitpaas' })
-    public origin!: VolumeOrigin;
 
     @ManyToOne(() => DbServiceEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'serviceId', foreignKeyConstraintName: 'FK_volumes_serviceId' })
