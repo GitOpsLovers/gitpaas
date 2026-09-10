@@ -1,0 +1,37 @@
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.ts
+  s_f0fae03a1d4b1e::t_50240f4b3c46c6 7,11,30,39,41-43,83-84,117,126,135-157,587-590,606,609
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.html
+  s_f0fae03a1d4b1e::t_e0b6e95182373f 168-173
+apps/frontend/src/app/features/server/ui/containers/server-maintenance/server-maintenance.component.spec.ts
+  s_f0fae03a1d4b1e::t_cd5fc62eebb1fd 15-18,147-148,197-198,514-574
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.spec.ts
+  s_eaaa6f952e45f6::t_d94a3dd6823a19 169-194
+docs/roadmap/deep-prune/TODO.md
+  s_f0fae03a1d4b1e::t_333f0e581b52b0 21-25
+apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts
+  s_eaaa6f952e45f6::t_1c3cb242cc7543 76-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dec0c9a040ed499b5ee18831e9ff0382c4c31302",
+  "prompts": {},
+  "sessions": {
+    "s_eaaa6f952e45f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae38cc2574b7fe9d5",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_f0fae03a1d4b1e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2bf471fe-7354-4316-ae8c-dc24714b601e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
