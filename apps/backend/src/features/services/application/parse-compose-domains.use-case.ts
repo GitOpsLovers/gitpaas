@@ -1,4 +1,4 @@
-import { COMPOSE_DOMAIN_KEY, declaredDomainSchema } from '@gitpaas/contracts';
+import { COMPOSE_DOMAIN_KEY, declaredDomainsSchema } from '@gitpaas/contracts';
 import { parse } from 'yaml';
 
 import { ComposeDomainDeclaration } from '../domain/models/compose-domains.models';
@@ -9,27 +9,29 @@ import { ComposeDomainDeclaration } from '../domain/models/compose-domains.model
  * @param name Name of the compose service the key belongs to
  * @param service Compose service of the recipe
  *
- * @returns The domain the service declares, or `null` when it declares none, or when the declaration breaks the schema
+ * @returns Every domain the service declares, and no domain when it declares none, when the list is empty, or when the declaration breaks the schema
  */
-function readServiceDomain(name: string, service: unknown): ComposeDomainDeclaration | null {
+function readServiceDomains(name: string, service: unknown): ComposeDomainDeclaration[] {
     if (typeof service !== 'object' || service === null) {
-        return null;
+        return [];
     }
 
     // eslint-disable-next-line security/detect-object-injection
     const declaration = (service as Record<string, unknown>)[COMPOSE_DOMAIN_KEY];
 
     if (declaration === undefined) {
-        return null;
+        return [];
     }
 
-    const parsed = declaredDomainSchema.safeParse(declaration);
+    const parsed = declaredDomainsSchema.safeParse(declaration);
 
     if (!parsed.success) {
-        return null;
+        return [];
     }
 
-    return { targetService: name, ...parsed.data };
+    const declarations = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+
+    return declarations.map((entry) => ({ targetService: name, ...entry }));
 }
 
 /**
@@ -37,7 +39,7 @@ function readServiceDomain(name: string, service: unknown): ComposeDomainDeclara
  *
  * @param text Text of the compose file
  *
- * @returns Every domain the compose file declares. Two services that claim one host keep the declaration of the first one alone
+ * @returns Every domain the compose file declares. Two declarations that claim one host keep the first one alone
  *
  * @throws {Error} When the text is no valid YAML
  */
@@ -58,14 +60,14 @@ export function parseComposeDomainsUseCase(text: string): ComposeDomainDeclarati
     const hosts = new Set<string>();
 
     for (const [name, service] of Object.entries(services)) {
-        const declaration = readServiceDomain(name, service);
+        for (const declaration of readServiceDomains(name, service)) {
+            if (hosts.has(declaration.host)) {
+                continue;
+            }
 
-        if (declaration === null || hosts.has(declaration.host)) {
-            continue;
+            hosts.add(declaration.host);
+            domains.push(declaration);
         }
-
-        hosts.add(declaration.host);
-        domains.push(declaration);
     }
 
     return domains;

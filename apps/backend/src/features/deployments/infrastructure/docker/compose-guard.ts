@@ -143,12 +143,12 @@ function assertSafeVolume(service: string, volume: unknown): void {
 }
 
 /**
- * Refuses the domain a compose service declares when it breaks the schema of the declared domain.
+ * Refuses the domain a compose service declares when it breaks the schema of the declared domain, or when its list repeats one host.
  *
  * @param name Name of the compose service the declaration belongs to
  * @param definition Definition of the compose service, as the recipe writes it
  *
- * @throws {UnsafeComposeRecipeError} When the value of the key `x-gitpaas-domain` carries no valid host, port and flag `https`
+ * @throws {UnsafeComposeRecipeError} When the value of the key `x-gitpaas-domain` carries no valid host, port and flag `https`, or when its list declares one host two times
  */
 function assertSafeDeclaredDomain(name: string, definition: Record<string, unknown>): void {
     // eslint-disable-next-line security/detect-object-injection
@@ -158,14 +158,25 @@ function assertSafeDeclaredDomain(name: string, definition: Record<string, unkno
         return;
     }
 
-    const parsed = declaredDomainSchema.safeParse(declaration);
+    const declarations = Array.isArray(declaration) ? declaration : [declaration];
+    const hosts = new Set<string>();
 
-    if (!parsed.success) {
-        refuse(
-            name,
-            COMPOSE_DOMAIN_KEY,
-            `the declared domain carries the host, the port and the flag "https" alone: ${parsed.error.issues[0].message}`,
-        );
+    for (const entry of declarations) {
+        const parsed = declaredDomainSchema.safeParse(entry);
+
+        if (!parsed.success) {
+            refuse(
+                name,
+                COMPOSE_DOMAIN_KEY,
+                `the declared domain carries the host, the port and the flag "https" alone: ${parsed.error.issues[0].message}`,
+            );
+        }
+
+        if (hosts.has(parsed.data.host)) {
+            refuse(name, COMPOSE_DOMAIN_KEY, `the host "${parsed.data.host}" is declared two times, and one host reaches one port alone`);
+        }
+
+        hosts.add(parsed.data.host);
     }
 }
 

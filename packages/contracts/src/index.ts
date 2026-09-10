@@ -48,6 +48,7 @@ export {
     claimDomainSchema,
     COMPOSE_DOMAIN_KEY,
     declaredDomainSchema,
+    declaredDomainsSchema,
     DOMAIN_HOST_MAX_LENGTH,
     DOMAIN_HOST_MESSAGE,
     DOMAIN_HOST_PATTERN,
@@ -58,7 +59,9 @@ export {
     domainSchema,
     updateDomainSchema,
 } from './domains/domain.contract';
-export type { CertificateState, ClaimDomainDto, DeclaredDomain, Domain, DomainOrigin, DomainRow, UpdateDomainDto } from './domains/domain.contract';
+export type {
+    CertificateState, ClaimDomainDto, DeclaredDomain, DeclaredDomains, Domain, DomainOrigin, DomainRow, UpdateDomainDto,
+} from './domains/domain.contract';
 
 export { deploymentSchema, deploymentStatusSchema, triggerDeploymentSchema } from './deployments/deployment.contract';
 export type { Deployment, DeploymentStatus, TriggerDeploymentDto } from './deployments/deployment.contract';
