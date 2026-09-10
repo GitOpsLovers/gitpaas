@@ -1,0 +1,23 @@
+docs/architecture/backend/key-flows.md
+  s_91736171623d04::t_bd4e4efa6655f6 113
+docs/business.md
+  s_91736171623d04::t_afe75090343a87 28
+docs/business/volumes.md
+  s_91736171623d04::t_3888cce6564ad1 5,7,9,11,13,15,17-18,20,22-23,25-33,41,56,110,131,133,135,140,147,149-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c090a90c22bd4bb916ec58f6bd38bf7917a019f3",
+  "prompts": {},
+  "sessions": {
+    "s_91736171623d04": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7914c778f08d877e",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
