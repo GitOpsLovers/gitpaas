@@ -12,4 +12,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
-- [deep-prune](./roadmap/deep-prune/TODO.md): the prune of the unused images, of the stopped containers and of the cache of the builder of the whole host.
