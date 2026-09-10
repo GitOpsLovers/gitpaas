@@ -61,6 +61,14 @@ interface ContainerLogsReader {
 }
 
 /**
+ * The answer of the daemon to a prune of the build cache.
+ */
+interface BuildCachePruneAnswer {
+    CachesDeleted?: string[] | null;
+    SpaceReclaimed?: number | null;
+}
+
+/**
  * The end of the run of a container, which Dockerode answers with an untyped payload.
  */
 interface ContainerWaiter {
@@ -188,6 +196,12 @@ export class DockerContainerRuntimeAdapter implements ContainerRuntime {
         const { ContainersDeleted, SpaceReclaimed } = await this.run(() => this.getClient().pruneContainers({ filters }));
 
         return toPruneReport(ContainersDeleted, SpaceReclaimed);
+    }
+
+    public async pruneBuildCache(): Promise<RuntimePruneReport> {
+        const answer = await this.run(() => this.getClient().pruneBuilder()) as BuildCachePruneAnswer;
+
+        return toPruneReport(answer.CachesDeleted, answer.SpaceReclaimed);
     }
 
     public async buildImage(context: NodeJS.ReadableStream, options: RuntimeBuildImageOptions): Promise<RuntimeProgressStream> {

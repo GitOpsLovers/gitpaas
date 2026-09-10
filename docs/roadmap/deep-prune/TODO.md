@@ -6,13 +6,13 @@ The prune of the tab of the maintenance filters by the label `io.gitpaas.managed
 
 **Agent:** implementer
 
-- [ ] 1.1 Add the method `pruneBuildCache` to the port `ContainerRuntime` (`apps/backend/src/core/domain/ports/container-runtime.port.ts`), and implement it in `DockerContainerRuntimeAdapter` with `pruneBuilder()` of Dockerode, which returns a `RuntimePruneReport`.
-- [ ] 1.2 Add the methods `pruneHost` and `pruneBuildCache` to the port `ServerPruner` (`apps/backend/src/features/server/domain/ports/server-pruner.port.ts`).
-- [ ] 1.3 Implement both methods in `DockerServerPrunerAdapter`. `pruneHost` calls `pruneImages` and then `pruneContainers` with `HOST_SELECTOR` of `apps/backend/src/features/docker/domain/constants/docker-host.constants.ts`, and it sums the two reports into one `PruneResult`. It never prunes a volume.
-- [ ] 1.4 Add the use cases `prune-host.use-case.ts` and `prune-build-cache.use-case.ts` to `apps/backend/src/features/server/application/`, with the shape of the three use cases of the prune of today.
-- [ ] 1.5 Add the methods to `ServerService`, and add the endpoints `POST /server/prune/all` and `POST /server/prune/build-cache` to `ServerController`. Both answer a `PruneResult`, and both pass through the private method `prune` that maps a dead daemon to a 503.
-- [ ] 1.6 Write the unit tests of the adapter, of the two use cases, of the service and of the controller. Prove that the prune of the host sends no filter of the label, that it sends `dangling=false` for the images, and that it prunes no volume.
-- [ ] 1.7 Run `rtk pnpm run check-types --filter @gitpaas/backend`, and run the tests of the backend.
+- [x] 1.1 Add the method `pruneBuildCache` to the port `ContainerRuntime` (`apps/backend/src/core/domain/ports/container-runtime.port.ts`), and implement it in `DockerContainerRuntimeAdapter` with `pruneBuilder()` of Dockerode, which returns a `RuntimePruneReport`.
+- [x] 1.2 Add the methods `pruneHost` and `pruneBuildCache` to the port `ServerPruner` (`apps/backend/src/features/server/domain/ports/server-pruner.port.ts`).
+- [x] 1.3 Implement both methods in `DockerServerPrunerAdapter`. `pruneHost` calls `pruneImages` and then `pruneContainers` with `HOST_SELECTOR` of `apps/backend/src/features/docker/domain/constants/docker-host.constants.ts`, and it sums the two reports into one `PruneResult`. It never prunes a volume.
+- [x] 1.4 Add the use cases `prune-host.use-case.ts` and `prune-build-cache.use-case.ts` to `apps/backend/src/features/server/application/`, with the shape of the three use cases of the prune of today.
+- [x] 1.5 Add the methods to `ServerService`, and add the endpoints `POST /server/prune/all` and `POST /server/prune/build-cache` to `ServerController`. Both answer a `PruneResult`, and both pass through the private method `prune` that maps a dead daemon to a 503.
+- [x] 1.6 Write the unit tests of the adapter, of the two use cases, of the service and of the controller. Prove that the prune of the host sends no filter of the label, that it sends `dangling=false` for the images, and that it prunes no volume.
+- [x] 1.7 Run `rtk pnpm run check-types --filter @gitpaas/backend`, and run the tests of the backend.
 
 ## Phase 2 — The two buttons of the tab of the maintenance
 

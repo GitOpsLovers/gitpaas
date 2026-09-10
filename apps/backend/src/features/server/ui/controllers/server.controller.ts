@@ -112,6 +112,28 @@ export class ServerController {
     }
 
     /**
+     * Remove every unused image and every stopped container of the host, whatever their origin
+     *
+     * @returns Number of resources removed and disk space reclaimed
+     */
+    @Post('prune/all')
+    @HttpCode(200)
+    public pruneHost(): Promise<PruneResult> {
+        return this.prune('the host', () => this.service.pruneHost());
+    }
+
+    /**
+     * Remove the whole build cache of the builder
+     *
+     * @returns Number of cache records removed and disk space reclaimed
+     */
+    @Post('prune/build-cache')
+    @HttpCode(200)
+    public pruneBuildCache(): Promise<PruneResult> {
+        return this.prune('the build cache', () => this.service.pruneBuildCache());
+    }
+
+    /**
      * Force-remove orphaned containers from the server
      *
      * @returns Number of orphaned containers removed and their names

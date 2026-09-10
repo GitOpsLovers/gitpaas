@@ -21,7 +21,9 @@ import { getDatabaseDebugStatusUseCase } from '../../application/get-database-de
 import { getPlatformSettingsUseCase } from '../../application/get-platform-settings.use-case';
 import { getPlatformUpdateUseCase } from '../../application/get-platform-update.use-case';
 import { getServerStatusUseCase } from '../../application/get-server-status.use-case';
+import { pruneBuildCacheUseCase } from '../../application/prune-build-cache.use-case';
 import { pruneContainersUseCase } from '../../application/prune-containers.use-case';
+import { pruneHostUseCase } from '../../application/prune-host.use-case';
 import { pruneImagesUseCase } from '../../application/prune-images.use-case';
 import { pruneVolumesUseCase } from '../../application/prune-volumes.use-case';
 import { removeOrphanedContainersUseCase } from '../../application/remove-orphaned-containers.use-case';
@@ -157,6 +159,24 @@ export class ServerService {
      */
     public pruneContainers(): Promise<PruneResult> {
         return pruneContainersUseCase(this.pruner);
+    }
+
+    /**
+     * Removes every unused image and every stopped container of the host, and no volume
+     *
+     * @returns Number of resources removed and disk space reclaimed
+     */
+    public pruneHost(): Promise<PruneResult> {
+        return pruneHostUseCase(this.pruner);
+    }
+
+    /**
+     * Removes the whole build cache of the builder
+     *
+     * @returns Number of cache records removed and disk space reclaimed
+     */
+    public pruneBuildCache(): Promise<PruneResult> {
+        return pruneBuildCacheUseCase(this.pruner);
     }
 
     /**

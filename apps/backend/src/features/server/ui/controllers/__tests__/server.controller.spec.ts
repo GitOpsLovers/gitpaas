@@ -46,6 +46,8 @@ const runtimeInfo: ContainerRuntimeInfo = {
 const imagesResult: PruneResult = { deletedCount: 3, spaceReclaimed: 1_048_576 };
 const volumesResult: PruneResult = { deletedCount: 2, spaceReclaimed: 524_288 };
 const containersResult: PruneResult = { deletedCount: 5, spaceReclaimed: 0 };
+const hostResult: PruneResult = { deletedCount: 7, spaceReclaimed: 3_145_728 };
+const buildCacheResult: PruneResult = { deletedCount: 4, spaceReclaimed: 8_192 };
 const emptyResult: PruneResult = { deletedCount: 0, spaceReclaimed: 0 };
 const orphanResult: OrphanRemovalResult = { removed: 2, names: ['stale-app-1', 'ghost-app-1'] };
 const platformSettings: PlatformSettings = { logRetentionDays: 45 };
@@ -121,6 +123,8 @@ describe('ServerController', () => {
             | 'pruneImages'
             | 'pruneVolumes'
             | 'pruneContainers'
+            | 'pruneHost'
+            | 'pruneBuildCache'
             | 'removeOrphanedContainers'
             | 'checkReadiness'
             | 'getStatus'
@@ -141,6 +145,8 @@ describe('ServerController', () => {
             pruneImages: jest.fn(),
             pruneVolumes: jest.fn(),
             pruneContainers: jest.fn(),
+            pruneHost: jest.fn(),
+            pruneBuildCache: jest.fn(),
             removeOrphanedContainers: jest.fn(),
             checkReadiness: jest.fn(),
             getStatus: jest.fn(),
@@ -520,6 +526,131 @@ describe('ServerController', () => {
             mockServerService.pruneContainers.mockRejectedValue('boom');
 
             await expect(sut.pruneContainers()).rejects.toBe('boom');
+        });
+    });
+
+    describe('pruneHost', () => {
+        it('delegates to the service prune host action', async () => {
+            mockServerService.pruneHost.mockResolvedValue(hostResult);
+
+            await sut.pruneHost();
+
+            expect(mockServerService.pruneHost).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns the prune result produced by the service', async () => {
+            mockServerService.pruneHost.mockResolvedValue(hostResult);
+
+            const result = await sut.pruneHost();
+
+            expect(result).toBe(hostResult);
+        });
+
+        it('returns a zeroed result when nothing was reclaimed', async () => {
+            mockServerService.pruneHost.mockResolvedValue(emptyResult);
+
+            const result = await sut.pruneHost();
+
+            expect(result).toEqual({ deletedCount: 0, spaceReclaimed: 0 });
+        });
+
+        it('never touches the prune actions scoped to the label of GitPaaS', async () => {
+            mockServerService.pruneHost.mockResolvedValue(hostResult);
+
+            await sut.pruneHost();
+
+            expect(mockServerService.pruneImages).not.toHaveBeenCalled();
+            expect(mockServerService.pruneVolumes).not.toHaveBeenCalled();
+            expect(mockServerService.pruneContainers).not.toHaveBeenCalled();
+        });
+
+        it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
+            const original = new ServiceUnavailableException('daemon down');
+            mockServerService.pruneHost.mockRejectedValue(original);
+
+            await expect(sut.pruneHost()).rejects.toBe(original);
+        });
+
+        it('wraps an unexpected error into a ServiceUnavailableException', async () => {
+            mockServerService.pruneHost.mockRejectedValue(daemonFailure());
+
+            await expect(sut.pruneHost()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('names the host resource in the wrapped error message', async () => {
+            mockServerService.pruneHost.mockRejectedValue(daemonFailure());
+
+            await expect(sut.pruneHost()).rejects.toThrow(/Could not prune the host/);
+        });
+
+        it('chains a DaemonUnreachableError as the cause, so the envelope carries its code', async () => {
+            mockServerService.pruneHost.mockRejectedValue(daemonFailure());
+
+            const error = await sut.pruneHost().catch((caught: unknown) => caught);
+
+            expect(envelopeOf(error).code).toBe('DAEMON_UNREACHABLE');
+        });
+    });
+
+    describe('pruneBuildCache', () => {
+        it('delegates to the service prune build cache action', async () => {
+            mockServerService.pruneBuildCache.mockResolvedValue(buildCacheResult);
+
+            await sut.pruneBuildCache();
+
+            expect(mockServerService.pruneBuildCache).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns the prune result produced by the service', async () => {
+            mockServerService.pruneBuildCache.mockResolvedValue(buildCacheResult);
+
+            const result = await sut.pruneBuildCache();
+
+            expect(result).toBe(buildCacheResult);
+        });
+
+        it('returns a zeroed result when nothing was reclaimed', async () => {
+            mockServerService.pruneBuildCache.mockResolvedValue(emptyResult);
+
+            const result = await sut.pruneBuildCache();
+
+            expect(result).toEqual({ deletedCount: 0, spaceReclaimed: 0 });
+        });
+
+        it('never touches the other prune actions', async () => {
+            mockServerService.pruneBuildCache.mockResolvedValue(buildCacheResult);
+
+            await sut.pruneBuildCache();
+
+            expect(mockServerService.pruneHost).not.toHaveBeenCalled();
+            expect(mockServerService.pruneVolumes).not.toHaveBeenCalled();
+        });
+
+        it('rethrows a ServiceUnavailableException raised by the service unchanged', async () => {
+            const original = new ServiceUnavailableException('daemon down');
+            mockServerService.pruneBuildCache.mockRejectedValue(original);
+
+            await expect(sut.pruneBuildCache()).rejects.toBe(original);
+        });
+
+        it('wraps an unexpected error into a ServiceUnavailableException', async () => {
+            mockServerService.pruneBuildCache.mockRejectedValue(daemonFailure());
+
+            await expect(sut.pruneBuildCache()).rejects.toBeInstanceOf(ServiceUnavailableException);
+        });
+
+        it('names the build cache resource in the wrapped error message', async () => {
+            mockServerService.pruneBuildCache.mockRejectedValue(daemonFailure());
+
+            await expect(sut.pruneBuildCache()).rejects.toThrow(/Could not prune the build cache/);
+        });
+
+        it('chains a DaemonUnreachableError as the cause, so the envelope carries its code', async () => {
+            mockServerService.pruneBuildCache.mockRejectedValue(daemonFailure());
+
+            const error = await sut.pruneBuildCache().catch((caught: unknown) => caught);
+
+            expect(envelopeOf(error).code).toBe('DAEMON_UNREACHABLE');
         });
     });
 
