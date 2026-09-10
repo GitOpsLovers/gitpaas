@@ -1,0 +1,21 @@
+docs/roadmap.md
+  s_afabb126f5bdcc::t_a94588bf9a33ce 15
+docs/roadmap/deep-prune/TODO.md
+  s_afabb126f5bdcc::t_d6deb9a5c8a83b 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e6c13591bc2f385bfec942a7459055393bd966d9",
+  "prompts": {},
+  "sessions": {
+    "s_afabb126f5bdcc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "247578b9-6fed-49de-abf3-8ced6f697684",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
