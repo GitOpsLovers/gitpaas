@@ -13,4 +13,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
 - [remove-volume-creation](./roadmap/remove-volume-creation/TODO.md): the removal of every write of a volume, and the compose file as the one source of truth.
-- [multi-domain-compose-key](./roadmap/multi-domain-compose-key/TODO.md): the key `x-gitpaas-domain` that holds a list of domains for one compose service.

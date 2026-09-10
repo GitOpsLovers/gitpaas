@@ -179,7 +179,7 @@ The system SHALL refuse a compose recipe of a service that reaches the host of G
 
 The system SHALL refuse a compose service that declares a key outside a fixed list of the keys GitPaaS allows. A key that reaches the host, such as `privileged`, `cap_add`, `devices`, `security_opt` or `userns_mode`, is not in that list. The system SHALL also refuse `network_mode`, `pid` and `ipc` when the value names a namespace of the host, such as `host`, `shareable` or a namespace of another container. A refusal names the exact key, so the operator can drop it from the recipe.
 
-The key `x-gitpaas-domain` of a compose service is one of the allowed keys, though no operation of Docker Compose itself reads it: it declares the domain that reaches that compose service, with its host, its port and its flag `https`. The system SHALL refuse a value of that key that carries no valid host, no valid port or no flag `https`. See the requirement *The domain the compose file declares* of the capability [domains](./domains.md) for what a valid declaration then does to the records of the domains.
+The key `x-gitpaas-domain` of a compose service is one of the allowed keys, though no operation of Docker Compose itself reads it: it declares the domain that reaches that compose service, with its host, its port and its flag `https`. Its value is one declaration, or a list of them, so a compose service that listens on several ports carries one host for each port. The system SHALL refuse a declaration that carries no valid host, no valid port or no flag `https`, and it SHALL refuse a list that declares one host two times. See the requirement *The domain the compose file declares* of the capability [domains](./domains.md) for what a valid declaration then does to the records of the domains.
 
 The system SHALL refuse a bind mount of a compose service whose source reaches outside the folder of the repository: an absolute path, a path under the home folder, a path with a segment `..`, or the socket of Docker. An anonymous volume, and a mount of a named volume, carry no such source, and the gate leaves them alone.
 
@@ -199,6 +199,11 @@ The path of the compose file itself, `composerPath`, SHALL stay relative to the 
 
 - **WHEN** the interpolated recipe declares `x-gitpaas-domain` of a compose service with no valid host, no valid port, or no flag `https`
 - **THEN** the system raises `UNSAFE_COMPOSE_RECIPE` that names the key `x-gitpaas-domain`, and the deployment does not start the stack
+
+### Scenario: The list of the declared domain repeats a host
+
+- **WHEN** the interpolated recipe declares `x-gitpaas-domain` of a compose service as a list, and two of its entries carry the same host
+- **THEN** the system raises `UNSAFE_COMPOSE_RECIPE` that names the key `x-gitpaas-domain` and the repeated host, and the deployment does not start the stack
 
 ### Scenario: A compose service shares the namespace of the host
 
