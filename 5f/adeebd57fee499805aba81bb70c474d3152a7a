@@ -1,0 +1,41 @@
+apps/backend/src/features/volumes/domain/repositories/service-volumes.repository.ts
+  s_8157935aea6012::t_4f108e9625e3ae 1
+apps/backend/src/features/volumes/infrastructure/database/__tests__/db-service-volumes.repository.spec.ts
+  s_8157935aea6012::t_6f33b67fd33abd 17,23
+apps/backend/src/features/volumes/infrastructure/database/__tests__/db-volumes.repository.spec.ts
+  s_8157935aea6012::t_ae934763b777f4 27,35
+apps/backend/src/features/volumes/infrastructure/database/db-service-volumes.repository.ts
+  s_8157935aea6012::t_ebab3d039512ca 5
+apps/backend/src/features/volumes/ui/controllers/__tests__/volumes.controller.spec.ts
+  s_8157935aea6012::t_f0235ed9b3bbd0 1,27,33
+apps/backend/src/features/volumes/ui/controllers/volumes.controller.ts
+  s_8157935aea6012::t_9001d59f38a2c6 1-2
+docs/roadmap/remove-volume-creation/TODO.md
+  s_8157935aea6012::t_aecee63cbd6ef3 10-15
+packages/contracts/src/volumes/__tests__/volume.contract.spec.ts
+  s_8b15d0ba71c27a::t_8b56e28114adca 1,19,21,24,27-30,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5fadeebd57fee499805aba81bb70c474d3152a7a",
+  "prompts": {},
+  "sessions": {
+    "s_8157935aea6012": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6019a033-3d28-453a-b42d-8b2da0279e25",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    },
+    "s_8b15d0ba71c27a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abe188024614f8158",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
