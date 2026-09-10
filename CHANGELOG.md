@@ -1,3 +1,9 @@
+## [2.28.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.27.0...v2.28.0) (2026-09-10)
+
+### Features
+
+* **volumes:** reconcile volumes with compose file ([#299](https://github.com/GitOpsLovers/gitpaas/issues/299)) ([bf49762](https://github.com/GitOpsLovers/gitpaas/commit/bf49762cac0e5e9a41d7074a38fffc2658b4cf3d))
+
 ## [2.27.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.26.1...v2.27.0) (2026-09-10)
 
 ### Features
