@@ -14,22 +14,13 @@ const joinEntity = (overrides: Partial<DbServiceVolumeEntity> = {}): DbServiceVo
 });
 
 describe('DatabaseServiceVolumesRepository', () => {
-    let mockRepository: jest.Mocked<
-        Pick<Repository<DbServiceVolumeEntity>, 'find' | 'findOneBy' | 'create' | 'merge' | 'save' | 'delete'>
-    >;
+    let mockRepository: jest.Mocked<Pick<Repository<DbServiceVolumeEntity>, 'find'>>;
     let sut: DatabaseServiceVolumesRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockRepository = {
-            find: jest.fn(),
-            findOneBy: jest.fn(),
-            create: jest.fn(),
-            merge: jest.fn(),
-            save: jest.fn(),
-            delete: jest.fn(),
-        };
+        mockRepository = { find: jest.fn() };
         sut = new DatabaseServiceVolumesRepository(
             mockRepository as unknown as Repository<DbServiceVolumeEntity>,
         );
@@ -57,66 +48,6 @@ describe('DatabaseServiceVolumesRepository', () => {
             mockRepository.find.mockResolvedValue([]);
 
             await expect(sut.listByService(serviceId)).resolves.toEqual([]);
-        });
-    });
-
-    describe('attach', () => {
-        it('creates the join when the service does not mount that volume yet', async () => {
-            const entity = joinEntity();
-
-            mockRepository.findOneBy.mockResolvedValue(null);
-            mockRepository.create.mockReturnValue(entity);
-            mockRepository.save.mockResolvedValue(entity);
-
-            await sut.attach(serviceId, volumeId, mount);
-
-            expect(mockRepository.create).toHaveBeenCalledWith({
-                serviceId, volumeId, composeServiceName: 'app', containerPath: '/data', readOnly: false,
-            });
-            expect(mockRepository.save).toHaveBeenCalledWith(entity);
-        });
-
-        it('replaces the mount the service already holds for that volume', async () => {
-            const entity = joinEntity();
-
-            mockRepository.findOneBy.mockResolvedValue(entity);
-            mockRepository.save.mockResolvedValue(entity);
-
-            await sut.attach(serviceId, volumeId, { ...mount, containerPath: '/files', readOnly: true });
-
-            expect(mockRepository.merge).toHaveBeenCalledWith(entity, {
-                composeServiceName: 'app', containerPath: '/files', readOnly: true,
-            });
-            expect(mockRepository.save).toHaveBeenCalledWith(entity);
-            expect(mockRepository.create).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('detach', () => {
-        it('deletes the join of the service and of the volume', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: 1, raw: [] });
-
-            await sut.detach(serviceId, volumeId);
-
-            expect(mockRepository.delete).toHaveBeenCalledWith({ serviceId, volumeId });
-        });
-
-        it('gives true when a row was deleted', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: 1, raw: [] });
-
-            await expect(sut.detach(serviceId, volumeId)).resolves.toBe(true);
-        });
-
-        it('gives false when no row was deleted', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: 0, raw: [] });
-
-            await expect(sut.detach(serviceId, volumeId)).resolves.toBe(false);
-        });
-
-        it('gives false when the driver reports no count', async () => {
-            mockRepository.delete.mockResolvedValue({ affected: undefined, raw: [] });
-
-            await expect(sut.detach(serviceId, volumeId)).resolves.toBe(false);
         });
     });
 });

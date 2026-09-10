@@ -33,9 +33,8 @@ import { NamespacesApiRepository } from '@features/namespaces/infrastructure/api
 import { NetworksApiRepository } from '@features/networks/infrastructure/api/networks-api.repository';
 import { ServiceNetworksComponent } from '@features/networks/ui/components/service-networks/service-networks.component';
 import { ProjectsApiRepository } from '@features/projects/infrastructure/api/projects-api.repository';
-import type { VolumeDraft } from '@features/volumes/domain/models/volume.models';
 import { VolumesApiRepository } from '@features/volumes/infrastructure/api/volumes-api.repository';
-import { ServiceVolumesComponent, VolumeAttach, VolumeRename } from '@features/volumes/ui/components/service-volumes/service-volumes.component';
+import { ServiceVolumesComponent } from '@features/volumes/ui/components/service-volumes/service-volumes.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '@layout/ui/components/breadcrumb/breadcrumb.component';
 import { ConfirmModalComponent } from '@shared/components/confirm-modal/confirm-modal.component';
 import { TabsComponent } from '@shared/components/tabs/tabs.component';
@@ -176,10 +175,6 @@ export class ServiceDetailComponent {
     protected readonly pendingDomainRemoval = signal<DomainRow | null>(null);
 
     protected readonly removingDomain = signal(false);
-
-    protected readonly savingVolume = signal(false);
-
-    protected readonly volumeError = signal<string | null>(null);
 
     /**
      * Container whose output the tab Logs shows, seeded with the first container that runs.
@@ -623,93 +618,6 @@ export class ServiceDetailComponent {
         } finally {
             this.removingDomain.set(false);
             this.pendingDomainRemoval.set(null);
-        }
-    }
-
-    /**
-     * Creates a volume of the service, which the same call attaches to one service of its Compose file.
-     *
-     * @param draft Name, compose service, mount path and mode the form holds
-     */
-    protected async createVolume(draft: VolumeDraft): Promise<void> {
-        this.savingVolume.set(true);
-        this.volumeError.set(null);
-
-        try {
-            await lastValueFrom(this.volumesRepository.create(this.serviceId(), draft));
-
-            this.volumes.reload();
-            this.toast.success('Volume created', `“${draft.name}” mounts after the next deployment.`);
-        } catch (error) {
-            this.volumeError.set(readServiceVariableErrorUseCase(error, 'The volume could not be created. Please try again.'));
-        } finally {
-            this.savingVolume.set(false);
-        }
-    }
-
-    /**
-     * Renames a volume the service already holds.
-     *
-     * @param change Volume of the service and the name the form holds
-     */
-    protected async renameVolume(change: VolumeRename): Promise<void> {
-        this.savingVolume.set(true);
-        this.volumeError.set(null);
-
-        try {
-            await lastValueFrom(this.volumesRepository.rename(this.serviceId(), change.volume.id, { name: change.name }));
-
-            this.volumes.reload();
-            this.toast.success('Volume saved', `“${change.name}” keeps the data of this service.`);
-        } catch (error) {
-            this.volumeError.set(readServiceVariableErrorUseCase(error, 'The volume could not be saved. Please try again.'));
-        } finally {
-            this.savingVolume.set(false);
-        }
-    }
-
-    /**
-     * Attaches a volume of the service to one service of its Compose file.
-     *
-     * @param change Volume of the service and the mount the form holds
-     */
-    protected async attachVolume(change: VolumeAttach): Promise<void> {
-        this.savingVolume.set(true);
-        this.volumeError.set(null);
-
-        try {
-            await lastValueFrom(this.volumesRepository.attach(this.serviceId(), change.volume.id, change.draft));
-
-            this.volumes.reload();
-            this.toast.success('Volume attached', `“${change.volume.name}” mounts after the next deployment.`);
-        } catch (error) {
-            this.volumeError.set(readServiceVariableErrorUseCase(error, 'The volume could not be attached. Please try again.'));
-        } finally {
-            this.savingVolume.set(false);
-        }
-    }
-
-    /**
-     * Detaches a volume from the service of the Compose file that mounts it.
-     *
-     * @param volume Volume the service stops mounting
-     */
-    protected async detachVolume(volume: Volume): Promise<void> {
-        this.savingVolume.set(true);
-        this.volumeError.set(null);
-
-        try {
-            await lastValueFrom(this.volumesRepository.detach(this.serviceId(), volume.id));
-
-            this.volumes.reload();
-            this.toast.success('Volume detached', `“${volume.name}” stops mounting after the next deployment.`);
-        } catch (error) {
-            this.toast.error(
-                'Could not detach the volume',
-                readServiceVariableErrorUseCase(error, 'Something went wrong. Please try again.'),
-            );
-        } finally {
-            this.savingVolume.set(false);
         }
     }
 

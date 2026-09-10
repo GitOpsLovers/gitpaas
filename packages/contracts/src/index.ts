@@ -227,31 +227,17 @@ export { networkSchema, networkStateSchema } from './networks/network.contract';
 export type { Network, NetworkState } from './networks/network.contract';
 
 export {
-    attachVolumeSchema,
-    COMPOSE_SERVICE_NAME_MESSAGE,
-    COMPOSE_SERVICE_NAME_PATTERN,
-    composeServiceName,
-    createVolumeSchema,
     isSystemMountPath,
     SYSTEM_MOUNT_PATHS,
-    updateVolumeSchema,
-    VOLUME_CONTAINER_PATH_MESSAGE,
     VOLUME_CONTAINER_PATH_PATTERN,
-    VOLUME_CONTAINER_PATH_SYSTEM_MESSAGE,
     VOLUME_NAME_MAX_LENGTH,
-    VOLUME_NAME_MESSAGE,
     VOLUME_NAME_PATTERN,
-    volumeContainerPath,
     volumeMountSchema,
-    volumeName,
     volumeOriginSchema,
     volumeSchema,
     volumeStateSchema,
 } from './volumes/volume.contract';
 export type {
-    AttachVolumeDto,
-    CreateVolumeDto,
-    UpdateVolumeDto,
     Volume,
     VolumeMount,
     VolumeOrigin,

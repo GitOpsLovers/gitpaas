@@ -30,14 +30,4 @@ export interface VolumesRepository {
      * @returns Created volume
      */
     create: (volume: Volume) => Promise<Volume>;
-
-    /**
-     * Changes the display name of a volume
-     *
-     * @param id Volume id
-     * @param name New display name
-     *
-     * @returns Renamed volume, or `null` when no volume carries that id
-     */
-    rename: (id: string, name: string) => Promise<Volume | null>;
 }

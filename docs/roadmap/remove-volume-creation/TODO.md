@@ -7,12 +7,12 @@ The tab "Volumes" of a service lets a user create a volume, rename it, attach it
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/volumes/`, `packages/contracts/src/volumes/`
 
-- [ ] 1.1 Remove the routes of the creation, of the rename, of the mount and of the unmount from the controller of the volumes, and their methods of the service.
-- [ ] 1.2 Delete the use cases of the creation, of the rename, of the attach and of the detach, with their tests.
-- [ ] 1.3 Delete the helpers that assert that the path of the mount is free and safe, with their tests.
-- [ ] 1.4 Remove the schemas of the creation, of the rename and of the attach from the package of the contracts, and the field of the origin from the schema of the volume.
-- [ ] 1.5 Remove the write methods from the repository of the volumes and from its port, and keep the reads.
-- [ ] 1.6 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the unit tests of the backend.
+- [x] 1.1 Remove the routes of the creation, of the rename, of the mount and of the unmount from the controller of the volumes, and their methods of the service.
+- [x] 1.2 Delete the use cases of the creation, of the rename, of the attach and of the detach, with their tests.
+- [x] 1.3 Delete the helpers that assert that the path of the mount is free and safe, with their tests.
+- [x] 1.4 Remove the schemas of the creation, of the rename and of the attach from the package of the contracts, and the field of the origin from the schema of the volume.
+- [x] 1.5 Remove the write methods from the repository of the volumes and from its port, and keep the reads.
+- [x] 1.6 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the unit tests of the backend.
 
 ## Phase 2 — The reconciliation of the volumes of the compose file
 
@@ -31,12 +31,12 @@ The tab "Volumes" of a service lets a user create a volume, rename it, attach it
 **Agent:** implementer
 **Paths:** `apps/frontend/src/app/features/volumes/`, `apps/frontend/src/app/features/services/ui/containers/service-detail/`
 
-- [ ] 3.1 Remove the form and the three modes from the component of the volumes of the service, and its four outputs.
-- [ ] 3.2 Remove the handlers of the creation, of the rename, of the attach and of the detach from the container of the detail of the service.
-- [ ] 3.3 Remove the write methods and the drafts from the repository of the API of the volumes and from its models.
-- [ ] 3.4 Show the path of the mount of the compose file in the table, and remove the display of the origin.
-- [ ] 3.5 Update the tests of the component and of the container, and delete the cases of the writes.
-- [ ] 3.6 Run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend.
+- [x] 3.1 Remove the form and the three modes from the component of the volumes of the service, and its four outputs.
+- [x] 3.2 Remove the handlers of the creation, of the rename, of the attach and of the detach from the container of the detail of the service.
+- [x] 3.3 Remove the write methods and the drafts from the repository of the API of the volumes and from its models.
+- [x] 3.4 Show the path of the mount of the compose file in the table, and remove the display of the origin.
+- [x] 3.5 Update the tests of the component and of the container, and delete the cases of the writes.
+- [x] 3.6 Run `rtk pnpm run check-types --filter @gitpaas/frontend` and the unit tests of the frontend.
 
 ## Phase 4 — The documentation
 

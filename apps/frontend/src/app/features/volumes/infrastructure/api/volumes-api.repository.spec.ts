@@ -18,7 +18,6 @@ const mountedVolume: Volume = {
     id: VOLUME_ID,
     name: 'uploads',
     daemonName: 'api-web_gitpaas-uploads',
-    origin: 'gitpaas',
     state: 'mounted',
     driver: 'local',
     mountpoint: '/var/lib/docker/volumes/api-web_gitpaas-uploads/_data',
@@ -30,7 +29,6 @@ const orphanVolume: Volume = {
     id: 'api-web_cache',
     name: 'cache',
     daemonName: 'api-web_cache',
-    origin: 'compose',
     state: 'orphan',
     containers: [],
 };
@@ -109,66 +107,6 @@ describe('VolumesApiRepository', () => {
 
             httpMock.expectNone(() => true);
             expect(resource.value()).toBeUndefined();
-        });
-    });
-
-    describe('create', () => {
-        test('POSTs the name and the mount to the volumes URL of the given service', () => {
-            let result: Volume | undefined;
-
-            repository.create(SERVICE_ID, {
-                name: 'uploads', composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false,
-            }).subscribe((value) => { result = value; });
-
-            const req = httpMock.expectOne(VOLUMES_URL);
-            expect(req.request.method).toBe('POST');
-            expect(req.request.body).toEqual({
-                name: 'uploads', composeServiceName: 'web', containerPath: '/var/lib/app/uploads', readOnly: false,
-            });
-            req.flush(mountedVolume);
-
-            expect(result).toEqual(mountedVolume);
-        });
-    });
-
-    describe('rename', () => {
-        test('PUTs the name to the URL of that volume', () => {
-            let result: Volume | undefined;
-
-            repository.rename(SERVICE_ID, VOLUME_ID, { name: 'assets' })
-                .subscribe((value) => { result = value; });
-
-            const req = httpMock.expectOne(`${VOLUMES_URL}/${VOLUME_ID}`);
-            expect(req.request.method).toBe('PUT');
-            expect(req.request.body).toEqual({ name: 'assets' });
-            req.flush({ ...mountedVolume, name: 'assets' });
-
-            expect(result).toEqual({ ...mountedVolume, name: 'assets' });
-        });
-    });
-
-    describe('attach', () => {
-        test('PUTs the mount to the mount URL of that volume', () => {
-            repository.attach(SERVICE_ID, VOLUME_ID, {
-                composeServiceName: 'worker', containerPath: '/data', readOnly: true,
-            }).subscribe();
-
-            const req = httpMock.expectOne(`${VOLUMES_URL}/${VOLUME_ID}/mount`);
-            expect(req.request.method).toBe('PUT');
-            expect(req.request.body).toEqual({
-                composeServiceName: 'worker', containerPath: '/data', readOnly: true,
-            });
-            req.flush(null);
-        });
-    });
-
-    describe('detach', () => {
-        test('DELETEs the mount URL of that volume', () => {
-            repository.detach(SERVICE_ID, VOLUME_ID).subscribe();
-
-            const req = httpMock.expectOne(`${VOLUMES_URL}/${VOLUME_ID}/mount`);
-            expect(req.request.method).toBe('DELETE');
-            req.flush(null);
         });
     });
 });

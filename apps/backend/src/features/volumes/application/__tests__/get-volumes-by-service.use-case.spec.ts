@@ -71,7 +71,7 @@ describe('getVolumesByServiceUseCase', () => {
     const run = () => getVolumesByServiceUseCase(
         mockServicesRepository as unknown as ServicesRepository,
         mockVolumesRepository as unknown as VolumesRepository,
-        mockServiceVolumesRepository as unknown as ServiceVolumesRepository,
+        mockServiceVolumesRepository,
         mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
         serviceId,
     );

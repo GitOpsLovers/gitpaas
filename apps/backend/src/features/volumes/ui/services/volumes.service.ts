@@ -1,11 +1,6 @@
-import type { AttachVolumeDto, CreateVolumeDto, UpdateVolumeDto } from '@gitpaas/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 
-import { attachVolumeUseCase } from '../../application/attach-volume.use-case';
-import { createVolumeUseCase } from '../../application/create-volume.use-case';
-import { detachVolumeUseCase } from '../../application/detach-volume.use-case';
 import { getVolumesByServiceUseCase } from '../../application/get-volumes-by-service.use-case';
-import { renameVolumeUseCase } from '../../application/rename-volume.use-case';
 import { VolumeStatus } from '../../domain/models/volume.models';
 import type { DaemonVolumesRepository } from '../../domain/repositories/daemon-volumes.repository';
 import type { ServiceVolumesRepository } from '../../domain/repositories/service-volumes.repository';
@@ -48,71 +43,5 @@ export class VolumesService {
             this.daemonVolumesRepository,
             serviceId,
         );
-    }
-
-    /**
-     * Create a volume of a service, and attach it in the same call.
-     *
-     * @param serviceId Service identifier
-     * @param createDto Volume data, with the mount it takes
-     *
-     * @returns Created volume
-     */
-    public create(serviceId: string, createDto: CreateVolumeDto): Promise<VolumeStatus> {
-        return createVolumeUseCase(
-            this.servicesRepository,
-            this.volumesRepository,
-            this.serviceVolumesRepository,
-            serviceId,
-            createDto,
-        );
-    }
-
-    /**
-     * Change the display name of a volume of a service.
-     *
-     * @param serviceId Service identifier
-     * @param volumeId Volume identifier
-     * @param updateDto New volume data
-     *
-     * @returns Renamed volume
-     */
-    public rename(serviceId: string, volumeId: string, updateDto: UpdateVolumeDto): Promise<VolumeStatus> {
-        return renameVolumeUseCase(
-            this.servicesRepository,
-            this.volumesRepository,
-            this.serviceVolumesRepository,
-            this.daemonVolumesRepository,
-            serviceId,
-            volumeId,
-            updateDto,
-        );
-    }
-
-    /**
-     * Attach a volume to one service of the Compose file of the stack.
-     *
-     * @param serviceId Service identifier
-     * @param volumeId Volume identifier
-     * @param attachDto Mount the volume takes inside the container
-     */
-    public attach(serviceId: string, volumeId: string, attachDto: AttachVolumeDto): Promise<void> {
-        return attachVolumeUseCase(
-            this.volumesRepository,
-            this.serviceVolumesRepository,
-            serviceId,
-            volumeId,
-            attachDto,
-        );
-    }
-
-    /**
-     * Detach a volume from the service of the Compose file that mounts it.
-     *
-     * @param serviceId Service identifier
-     * @param volumeId Volume identifier
-     */
-    public detach(serviceId: string, volumeId: string): Promise<void> {
-        return detachVolumeUseCase(this.volumesRepository, this.serviceVolumesRepository, serviceId, volumeId);
     }
 }
