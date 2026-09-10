@@ -2,28 +2,35 @@
 
 ## Purpose
 
-This capability keeps the data of a service, so a container writes files that survive its removal and its redeploy. GitPaaS creates the volume of its own record and the volume that the Compose file of the service declares under one table, and it marks the origin of each row. The tab "Volumes" of the detail of a service lists them, and it creates, renames, attaches and detaches one.
+This capability keeps the data of a service, so a container writes files that survive its removal and its redeploy. The Compose file of a service is the one source of truth of its volumes: a service declares a named volume with an entry of the block `volumes`, and it mounts that volume into one of its compose services. The tab "Volumes" of the detail of a service is a read-only view of what its Compose file declares, and of the state each volume holds on the daemon; it creates no volume, and it renames, attaches or detaches none.
 
-## The origin of a volume
+Docker Compose alone creates the volume on the daemon, from the key it carries inside the Compose file of the user; GitPaaS creates no volume on the daemon. The name a volume carries on the daemon is the key of the Compose file, with the prefix of the Compose project of the service, because Compose always prefixes the volume of a project with its name.
 
-The system SHALL mark each volume of a service with one of two origins:
+## The reconciliation of the volumes of a service
 
-1. **`gitpaas`.** A client of GitPaaS created the record of the volume.
-2. **`compose`.** The Compose file of the service declares the volume, and no client of GitPaaS created its record; the adoption after a deployment recorded it.
+The system SHALL bring the record of the volumes of a service to the named volumes its Compose file declares, after every deployment that reads a Compose file: it SHALL record a named volume the Compose file adds, it SHALL update the mount of a named volume whose compose service, mount path or mode changed, and it SHALL delete the record of a named volume the Compose file no longer declares. The Compose file stays the one source of truth; the record never gains a volume of its own accord, and it never keeps one the Compose file dropped.
 
-Docker Compose alone creates the volume on the daemon, from the key it carries inside the Compose file of the user; GitPaaS creates no volume on the daemon, of either origin. The name a volume carries on the daemon is the key of the Compose file, with the prefix of the Compose project of the service, because Compose always prefixes the volume of a project with its name.
+A failure of the reconciliation SHALL NOT fail the deployment. The reconciliation reads the same Compose text the deployment already read, after the daemon brought the stack up, and the record of the volumes keeps the state of the last reconciliation that succeeded.
 
-After a deployment, the system SHALL read the volumes of the Compose project on the daemon, and it SHALL record, with the origin `compose`, every key that the database does not hold yet. A volume that already exists, of either origin, keeps its data; the system never recreates it.
+### Scenario: A deployment adds a named volume
 
-### Scenario: A deployment brings up a volume the database does not hold
+- **WHEN** a deployment reads a Compose file that declares a named volume the database does not hold yet
+- **THEN** the system records that volume, with the mount its Compose file declares
 
-- **WHEN** a deployment finishes, and the daemon holds a volume of the Compose project that no record of GitPaaS names
-- **THEN** the system records that volume with the origin `compose`
+### Scenario: A deployment changes the mount of a named volume
 
-### Scenario: A deployment brings up a volume the database already holds
+- **WHEN** a deployment reads a Compose file where a named volume already recorded takes a different compose service, mount path or mode than the record holds
+- **THEN** the system updates the mount of that record
 
-- **WHEN** a deployment finishes, and the daemon holds a volume of a key the database already holds for the service
-- **THEN** the system records no new volume, and the data of the existing volume stays
+### Scenario: A deployment removes a named volume from the Compose file
+
+- **WHEN** a deployment reads a Compose file that no longer declares a named volume the database holds
+- **THEN** the system deletes the record of that volume, and its mount goes with it
+
+### Scenario: The reconciliation fails
+
+- **WHEN** the reconciliation of the volumes of a deployment fails
+- **THEN** the deployment still completes, and the record of the volumes keeps the state of the last reconciliation that succeeded
 
 ## The bind mount of a Compose file
 
@@ -31,7 +38,7 @@ The system SHALL mount a folder of the repository into a container when the Comp
 
 An entry of the block `volumes` of a Compose service declares a bind mount when its source holds a slash, and a named volume otherwise. The system SHALL make a relative source absolute against the folder of the Compose file, inside the extracted repository, so `./config:/etc/app` reaches the container with the files of the repository at the commit of the deployment. The system SHALL keep every option of the entry, such as `:ro`, and it SHALL read the short form `source:target` and the long form with the key `type` alike. A source that already starts with the slash names a path of the host, and the system SHALL pass it unchanged.
 
-A bind mount carries no record of the capability, because it holds no data of its own: the folder of the repository is its content, and the next deployment brings that folder again. A named volume keeps the origin, the state and the tab of this page.
+A bind mount carries no record of the capability, because it holds no data of its own: the folder of the repository is its content, and the next deployment brings that folder again. A named volume keeps the record, the state and the tab of this page.
 
 ### Scenario: The Compose file declares a relative source
 
@@ -46,7 +53,7 @@ A bind mount carries no record of the capability, because it holds no data of it
 ### Scenario: The Compose file declares a named volume
 
 - **WHEN** a Compose service declares the volume `data:/var/lib/app`, and the source holds no slash
-- **THEN** the deployment leaves the entry unchanged, and the volume follows the requirement *The origin of a volume*
+- **THEN** the deployment leaves the entry unchanged, and the volume follows the requirement *The reconciliation of the volumes of a service*
 
 ## The source of the home folder is not supported
 
@@ -100,7 +107,7 @@ A container that holds the volume gives it the state `mounted` before any other 
 
 The system SHALL answer with the volumes of one service at `GET /api/v1/services/:serviceId/volumes`.
 
-Each volume of the answer holds the identifier, the name, the name on the daemon, the origin, the state, the containers that hold it right now, and, when GitPaaS holds a mount for it, the compose service, the mount path and the mode of that mount. A volume in the state `orphan` carries no mount.
+Each volume of the answer holds the identifier, the name, the name on the daemon, the state, the containers that hold it right now, and, when GitPaaS holds a mount for it, the compose service, the mount path and the mode of that mount. A volume in the state `orphan` carries no mount.
 
 The system SHALL answer `503 Service Unavailable` only when the read fails because the daemon is not reachable. A read that fails for another reason, such as a failure of the database, SHALL answer `500 Internal Server Error` with the code `SERVER_ERROR`, so a `503` states an outage of the server alone and never hides a fault of the platform.
 
@@ -119,113 +126,25 @@ The system SHALL answer `503 Service Unavailable` only when the read fails becau
 - **WHEN** the read of the volumes of a service fails for a reason other than a daemon that is not reachable
 - **THEN** the system answers `500 Internal Server Error` with the code `SERVER_ERROR`
 
-## Creation of a volume
-
-The system SHALL create a volume of a service, and attach it to one service of its Compose file in the same call, at `POST /api/v1/services/:serviceId/volumes`.
-
-The body holds the display name of the volume, the compose service it mounts into, the mount path and the mode. The system SHALL create the volume on the daemon, and it SHALL give it the state `pending`, because the mount reaches the container at the next deployment.
-
-### Scenario: The creation succeeds
-
-- **WHEN** a client posts a name that no other volume of the service carries, and a mount path that no other volume of the service holds
-- **THEN** the system creates the volume on the daemon, writes the record and its mount, and answers `201` with the volume in the state `pending`
-
-### Scenario: The name is already in use in the service
-
-- **WHEN** a client posts a name that another volume of the service already carries
-- **THEN** the system raises `VOLUME_NAME_TAKEN`, and it answers `409 Conflict`
-
-### Scenario: The mount path is already in use in the service
-
-- **WHEN** a client posts a mount path that another volume of the service already holds
-- **THEN** the system raises `VOLUME_MOUNT_PATH_TAKEN`, and it answers `409 Conflict`
-
-## The rule of the mount path
-
-The system SHALL keep one mount path for one volume alone inside a service. The mount path starts with the slash, it holds no space and no empty segment, it does not end with the slash, and it names no path of the system, such as `/etc` or `/usr`.
-
-### Scenario: A second volume asks for the same mount path
-
-- **WHEN** a client attaches or creates a volume with a mount path that another volume of the same service already holds
-- **THEN** the system raises `VOLUME_MOUNT_PATH_TAKEN`, and it answers `409 Conflict`
-
-### Scenario: The mount path names a path of the system
-
-- **WHEN** a client attaches or creates a volume with a mount path such as `/etc` or `/usr`
-- **THEN** the system answers `400 Bad Request`
-
-## Rename of a volume
-
-The system SHALL rename a volume of a service at `PUT /api/v1/services/:serviceId/volumes/:id`, without any change on the daemon.
-
-### Scenario: The rename succeeds
-
-- **WHEN** a client renames a volume of a service with a name that no other volume of that service carries
-- **THEN** the system writes the new name, and it answers `200` with the renamed volume
-
-### Scenario: The name is already in use in the service
-
-- **WHEN** a client renames a volume with a name that another volume of the same service already carries
-- **THEN** the system raises `VOLUME_NAME_TAKEN`, and it answers `409 Conflict`
-
-## Attach of a volume
-
-The system SHALL attach a volume of a service to one service of its Compose file at `PUT /api/v1/services/:serviceId/volumes/:id/mount`, and it SHALL answer `204 No Content`.
-
-The mount reaches the container only at the next deployment of the service, because Docker fixes the mounts of a container at its creation, and it never changes them while the container runs.
-
-### Scenario: The attach succeeds
-
-- **WHEN** a client attaches an available volume of a service to a compose service, with a mount path that no other volume of the service holds
-- **THEN** the system writes the mount, and it answers `204`
-
-### Scenario: The volume does not exist in the service
-
-- **WHEN** a client attaches a volume with an identifier that the service does not hold
-- **THEN** the system raises `VOLUME_NOT_FOUND`, and it answers `404 Not Found`
-
-## Detach of a volume
-
-The system SHALL detach a volume from the service of the Compose file that mounts it, at `DELETE /api/v1/services/:serviceId/volumes/:id/mount`, and it SHALL answer `204 No Content`.
-
-The container of the service still holds the volume until the next deployment removes the mount from the Compose file. The volume record itself stays; this operation removes the mount alone, and it removes no volume.
-
-### Scenario: The detach succeeds
-
-- **WHEN** a client detaches an available volume that a service holds a mount for
-- **THEN** the system removes the mount, and it answers `204`
-
-### Scenario: The volume holds no mount
-
-- **WHEN** a client detaches a volume that the service holds no mount for
-- **THEN** the system raises `VOLUME_NOT_ATTACHED`, and it answers `404 Not Found`
-
 ## The removal of a service removes every volume it holds
 
-The removal of a service SHALL remove, on the daemon, every volume that carries the label of the service, whatever its origin. GitPaaS stamps that label on every volume its recipe declares, of the origin `gitpaas` and of the origin `compose` alike, so the removal reaches every volume of the service, and none of a sibling service. See the requirement *Removal of a service* of the capability [services](./services.md) for the order of the cleanup of the server.
+The removal of a service SHALL remove, on the daemon, every volume that carries the label of the service. GitPaaS stamps that label on every volume its recipe declares, so the removal reaches every volume of the service, and none of a sibling service. See the requirement *Removal of a service* of the capability [services](./services.md) for the order of the cleanup of the server.
 
-### Scenario: The service holds a volume of GitPaaS
+### Scenario: The service holds a named volume
 
-- **WHEN** a client removes a service that holds a volume of the origin `gitpaas`
+- **WHEN** a client removes a service that holds a named volume its Compose file declares
 - **THEN** the system removes that volume on the daemon
-
-### Scenario: The service holds a volume the Compose file declares
-
-- **WHEN** a client removes a service that holds a volume of the origin `compose`
-- **THEN** the system removes that volume on the daemon as well
 
 ## The tab "Volumes" of a service
 
-The tab `volumes` SHALL show the volumes of the service, and it SHALL let the user create a volume, rename a volume, attach a volume to one service of the Compose file, and detach a volume. It offers no action that removes a volume alone; a volume goes away only with the service that owns it. See the requirement *The nine tabs of the screen* of the capability [services](./services.md) for the place of this tab among the others.
-
-The tab warns that an attach and a detach take effect at the next deployment of the service, because Docker fixes the mounts of a container at its creation.
+The tab `volumes` SHALL show the volumes of the service, as a read-only view: the name, the state, and, when the Compose file mounts it, the compose service, the mount path and the mode of that mount, and the containers that hold each volume right now. It offers no action that creates, renames, attaches or detaches a volume; the Compose file of the service is the one place that changes a volume. See the requirement *The nine tabs of the screen* of the capability [services](./services.md) for the place of this tab among the others.
 
 ### Scenario: The user opens the tab of the volumes
 
 - **WHEN** the user opens the tab `volumes`
 - **THEN** the system shows the volumes of the service, or the state of the reading
 
-### Scenario: A write waits for the next deployment
+### Scenario: A change of the Compose file reaches the tab
 
-- **WHEN** the user attaches or detaches a volume
-- **THEN** the system shows that the change reaches the container at the next deployment
+- **WHEN** a deployment of the service reconciles a named volume its Compose file changed
+- **THEN** the tab shows that change after the deployment completes
