@@ -1,3 +1,10 @@
+## [2.29.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.28.0...v2.29.0) (2026-09-10)
+
+### Features
+
+* **frontend:** add prune host and cache buttons ([#302](https://github.com/GitOpsLovers/gitpaas/issues/302)) ([07138f6](https://github.com/GitOpsLovers/gitpaas/commit/07138f6c2667a93902e95c75c40a5fabc2588d94))
+* **server:** add host and cache prune to backend ([#301](https://github.com/GitOpsLovers/gitpaas/issues/301)) ([5279a89](https://github.com/GitOpsLovers/gitpaas/commit/5279a891d1eb471085960f7dc501c9b560771a85))
+
 ## [2.28.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.27.0...v2.28.0) (2026-09-10)
 
 ### Features
