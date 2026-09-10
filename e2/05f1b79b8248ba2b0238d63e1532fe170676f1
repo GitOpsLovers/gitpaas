@@ -1,0 +1,35 @@
+docs/roadmap.md
+  s_ac399fc7489c0d::t_ea7065b1752088 16
+apps/backend/src/features/deployments/infrastructure/docker/__tests__/compose-guard.spec.ts
+  s_ac399fc7489c0d::t_b2bcf8edacd522 50-86
+packages/contracts/src/index.ts
+  s_ac399fc7489c0d::t_ce8c3de26da582 51,62-64
+packages/contracts/src/domains/__tests__/domain.contract.spec.ts
+  s_ac399fc7489c0d::t_993ae8f7d2c3ef 5,240-276
+apps/backend/src/features/services/application/parse-compose-domains.use-case.ts
+  s_ac399fc7489c0d::t_ab6e1ff6dff590 1,12,14,16,23,26,29,32-34,42,63-66,68-69
+packages/contracts/src/domains/domain.contract.ts
+  s_ac399fc7489c0d::t_ce5da02d7375bb 145-149,154-158
+apps/backend/src/features/services/application/__tests__/parse-compose-domains.use-case.spec.ts
+  s_ac399fc7489c0d::t_69ee9e852fab42 95-159
+docs/roadmap/multi-domain-compose-key/TODO.md
+  s_ac399fc7489c0d::t_1f3c330eb89334 1-25
+apps/backend/src/features/deployments/infrastructure/docker/compose-guard.ts
+  s_ac399fc7489c0d::t_4a5eb20d7e9ca4 146,151,161-162,164-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e205f1b79b8248ba2b0238d63e1532fe170676f1",
+  "prompts": {},
+  "sessions": {
+    "s_ac399fc7489c0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8baca738-1516-403d-b045-a16e716df20e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
