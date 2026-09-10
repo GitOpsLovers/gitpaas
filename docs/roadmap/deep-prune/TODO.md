@@ -18,11 +18,11 @@ The prune of the tab of the maintenance filters by the label `io.gitpaas.managed
 
 **Agent:** implementer
 
-- [ ] 2.1 Add the methods `pruneHost` and `pruneBuildCache` to `ServerApiRepository` (`apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts`), which call the two new endpoints.
-- [ ] 2.2 Add the two actions to the list `actions` of `server-maintenance.component.ts`, so the two buttons take the loop, the confirm modal and the message of the result of the three buttons of today.
-- [ ] 2.3 Write the text of each button and of its confirmation. The first one states that it removes every unused image and every stopped container of the host, and that it keeps every volume. The second one states that it removes the whole cache of the builder.
-- [ ] 2.4 Write the unit tests of the repository and of the component.
-- [ ] 2.5 Run `rtk pnpm run check-types --filter @gitpaas/frontend`, and run the tests of the frontend.
+- [x] 2.1 Add the methods `pruneHost` and `pruneBuildCache` to `ServerApiRepository` (`apps/frontend/src/app/features/server/infrastructure/api/server-api.repository.ts`), which call the two new endpoints.
+- [x] 2.2 Add the two actions to the list `actions` of `server-maintenance.component.ts`, so the two buttons take the loop, the confirm modal and the message of the result of the three buttons of today.
+- [x] 2.3 Write the text of each button and of its confirmation. The first one states that it removes every unused image and every stopped container of the host, and that it keeps every volume. The second one states that it removes the whole cache of the builder.
+- [x] 2.4 Write the unit tests of the repository and of the component.
+- [x] 2.5 Run `rtk pnpm run check-types --filter @gitpaas/frontend`, and run the tests of the frontend.
 
 ## Phase 3 — The documentation
 

@@ -170,6 +170,32 @@ describe('ServerApiRepository', () => {
             expect(result).toEqual(pruned);
         });
 
+        test('prunes the whole host', () => {
+            let result: PruneResult | undefined;
+
+            repository.pruneHost().subscribe((value) => { result = value; });
+
+            const req = httpMock.expectOne(`${BASE_URL}/prune/all`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toEqual({});
+            req.flush(pruned);
+
+            expect(result).toEqual(pruned);
+        });
+
+        test('prunes the cache of the builder', () => {
+            let result: PruneResult | undefined;
+
+            repository.pruneBuildCache().subscribe((value) => { result = value; });
+
+            const req = httpMock.expectOne(`${BASE_URL}/prune/build-cache`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toEqual({});
+            req.flush(pruned);
+
+            expect(result).toEqual(pruned);
+        });
+
         test('removes the containers that are orphaned', () => {
             let result: OrphanRemovalResult | undefined;
 
