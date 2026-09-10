@@ -40,10 +40,10 @@ import type { RepositoryComposeFile } from '@features/services/domain/ports/repo
 import type { ServicesRepository } from '@features/services/domain/repositories/services.repository';
 import { TarRepositoryComposeFileAdapter } from '@features/services/infrastructure/archive/tar-repository-compose-file.adapter';
 import { DatabaseServicesRepository } from '@features/services/infrastructure/database/db-services.repository';
-import type { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
+import type { ServiceVolumesRepository } from '@features/volumes/domain/repositories/service-volumes.repository';
 import type { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
+import { DatabaseServiceVolumesRepository } from '@features/volumes/infrastructure/database/db-service-volumes.repository';
 import { DatabaseVolumesRepository } from '@features/volumes/infrastructure/database/db-volumes.repository';
-import { DockerVolumesRepository } from '@features/volumes/infrastructure/docker/docker-volumes.repository';
 
 /**
  * Nanoseconds in one millisecond, used to turn the monotonic clock into a duration.
@@ -74,8 +74,8 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
         private readonly domainsRepository: DomainsRepository,
         @Inject(DatabaseVolumesRepository)
         private readonly volumesRepository: VolumesRepository,
-        @Inject(DockerVolumesRepository)
-        private readonly daemonVolumesRepository: DaemonVolumesRepository,
+        @Inject(DatabaseServiceVolumesRepository)
+        private readonly serviceVolumesRepository: ServiceVolumesRepository,
         @Inject(GithubProviderClientAdapter)
         private readonly providerClient: ProviderClient,
         @Inject(TarRepositoryComposeFileAdapter)
@@ -157,7 +157,7 @@ export class DeploymentRunnerService implements OnModuleInit, OnModuleDestroy {
                     this.serviceVariablesRepository,
                     this.domainsRepository,
                     this.volumesRepository,
-                    this.daemonVolumesRepository,
+                    this.serviceVolumesRepository,
                     this.providerClient,
                     this.repositoryComposeFile,
                     this.dockerExecutor,

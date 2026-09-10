@@ -15,6 +15,5 @@ export function toVolume(entity: DbVolumeEntity): Volume {
         serviceId: entity.serviceId,
         name: entity.name,
         daemonKey: entity.daemonKey,
-        origin: entity.origin,
     };
 }

@@ -43,11 +43,14 @@ export class DatabaseVolumesRepository implements VolumesRepository {
             serviceId: volume.serviceId,
             name: volume.name,
             daemonKey: volume.daemonKey,
-            origin: volume.origin,
         });
 
         const saved = await this.repository.save(created);
 
         return toVolume(saved);
+    }
+
+    public async delete(id: string): Promise<void> {
+        await this.repository.delete(id);
     }
 }

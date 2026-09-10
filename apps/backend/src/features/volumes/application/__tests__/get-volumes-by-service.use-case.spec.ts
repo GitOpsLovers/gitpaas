@@ -31,7 +31,7 @@ const service = (overrides: Partial<Service> = {}): Service => ({
 
 /** Builds a volume of the database fixture, overriding only the fields under test. */
 const volume = (overrides: Partial<Volume> = {}): Volume => ({
-    id: volumeId, serviceId, name: 'data', daemonKey, origin: 'gitpaas', ...overrides,
+    id: volumeId, serviceId, name: 'data', daemonKey, ...overrides,
 });
 
 /** Builds a volume of the daemon fixture, overriding only the fields under test. */
@@ -71,7 +71,7 @@ describe('getVolumesByServiceUseCase', () => {
     const run = () => getVolumesByServiceUseCase(
         mockServicesRepository as unknown as ServicesRepository,
         mockVolumesRepository as unknown as VolumesRepository,
-        mockServiceVolumesRepository,
+        mockServiceVolumesRepository as unknown as ServiceVolumesRepository,
         mockDaemonVolumesRepository as unknown as DaemonVolumesRepository,
         serviceId,
     );
@@ -154,7 +154,6 @@ describe('getVolumesByServiceUseCase', () => {
             id: 'gitpaas_web_uploads',
             name: 'uploads',
             daemonName: 'gitpaas_web_uploads',
-            origin: 'compose',
             state: 'orphan',
             driver: 'local',
             mountpoint: `/var/lib/docker/volumes/${daemonName}/_data`,
@@ -162,12 +161,12 @@ describe('getVolumesByServiceUseCase', () => {
         });
     });
 
-    it('gives an orphan the origin compose, because the Compose file of the user declares every volume', async () => {
+    it('names an orphan by the key its name of the daemon carries, with no prefix of the project', async () => {
         mockDaemonVolumesRepository.listByService.mockResolvedValue([daemonVolume({ name: 'gitpaas_web_uploads' })]);
 
         const [result] = await run();
 
-        expect(result?.origin).toBe('compose');
+        expect(result?.name).toBe('uploads');
     });
 
     it('never gives the state orphan to a volume the database holds', async () => {

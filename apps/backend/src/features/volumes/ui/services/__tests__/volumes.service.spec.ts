@@ -22,7 +22,6 @@ const volume: VolumeStatus = {
     id: volumeId,
     name: 'data',
     daemonName: `api_gitpaas-${volumeId}`,
-    origin: 'gitpaas',
     state: 'pending',
     containers: [],
 };

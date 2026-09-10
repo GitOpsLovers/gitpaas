@@ -34,7 +34,6 @@ const volume = (overrides: Partial<Volume> = {}): Volume => ({
     serviceId,
     name: 'data',
     daemonKey: 'gitpaas-b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-    origin: 'gitpaas',
     ...overrides,
 });
 
@@ -145,7 +144,6 @@ describe('getVolumeStatusUseCase', () => {
             id: volume().id,
             name: 'data',
             daemonName,
-            origin: 'gitpaas',
             state: 'pending',
             driver: 'local',
             mountpoint: `/var/lib/docker/volumes/${daemonName}/_data`,

@@ -23,8 +23,9 @@ import { ServiceNotFoundError } from '@features/services/domain/errors/service.e
 import { Service } from '@features/services/domain/models/service.models';
 import { RepositoryComposeFile } from '@features/services/domain/ports/repository-compose-file.port';
 import { ServicesRepository } from '@features/services/domain/repositories/services.repository';
-import { adoptComposeVolumesUseCase } from '@features/volumes/application/adopt-compose-volumes.use-case';
-import { DaemonVolumesRepository } from '@features/volumes/domain/repositories/daemon-volumes.repository';
+import { parseComposeVolumesUseCase } from '@features/volumes/application/parse-compose-volumes.use-case';
+import { reconcileComposeVolumesUseCase } from '@features/volumes/application/reconcile-compose-volumes.use-case';
+import { ServiceVolumesRepository } from '@features/volumes/domain/repositories/service-volumes.repository';
 import { VolumesRepository } from '@features/volumes/domain/repositories/volumes.repository';
 
 /**
@@ -86,25 +87,42 @@ async function loadServiceContext(
 }
 
 /**
- * Writes the cache of the domains the compose file of the deployment declares, out of the archive the run already holds.
+ * Reads the compose file of the deployment out of the archive the run already holds, which the caches of the run share.
  *
- * @param servicesRepository Services repository, which holds the cache of the compose file
  * @param repositoryComposeFile Reader of the Compose file of a repository
  * @param archive Gzipped tarball of the repository of the deployment
  * @param composerPath Path of the Compose file inside the repository
+ * @param emit Sink of one line of the log of the deployment
+ *
+ * @returns The text of the compose file, or `null` when the archive carries none and when the read fails
+ */
+function readComposeText(
+    repositoryComposeFile: RepositoryComposeFile,
+    archive: Buffer,
+    composerPath: string,
+    emit: (line: string) => void,
+): Promise<string | null> {
+    return repositoryComposeFile.read(archive, composerPath).catch(() => {
+        emit('▹ The Compose file could not be read.');
+
+        return null;
+    });
+}
+
+/**
+ * Writes the cache of the domains the compose file of the deployment declares.
+ *
+ * @param servicesRepository Services repository, which holds the cache of the compose file
+ * @param text Text of the compose file of the deployment, or `null` when the run read none
  * @param serviceId Service the compose file belongs to
  *
  * @throws {Error} When the text of the compose file is no valid YAML
  */
 async function cacheComposeDomains(
     servicesRepository: ServicesRepository,
-    repositoryComposeFile: RepositoryComposeFile,
-    archive: Buffer,
-    composerPath: string,
+    text: string | null,
     serviceId: string,
 ): Promise<void> {
-    const text = await repositoryComposeFile.read(archive, composerPath);
-
     if (text === null) {
         return;
     }
@@ -113,6 +131,34 @@ async function cacheComposeDomains(
         domains: parseComposeDomainsUseCase(text),
         refreshedAt: new Date(),
     });
+}
+
+/**
+ * Brings the volumes of a service to the named volumes its compose file declares.
+ *
+ * @param volumesRepository Volumes repository
+ * @param serviceVolumesRepository Service volumes repository, which caches the mount of the compose file
+ * @param text Text of the compose file of the deployment, or `null` when the run read none
+ * @param serviceId Service the compose file belongs to
+ *
+ * @throws {Error} When the text of the compose file is no valid YAML
+ */
+async function reconcileComposeVolumes(
+    volumesRepository: VolumesRepository,
+    serviceVolumesRepository: ServiceVolumesRepository,
+    text: string | null,
+    serviceId: string,
+): Promise<void> {
+    if (text === null) {
+        return;
+    }
+
+    await reconcileComposeVolumesUseCase(
+        volumesRepository,
+        serviceVolumesRepository,
+        serviceId,
+        parseComposeVolumesUseCase(text),
+    );
 }
 
 /**
@@ -133,8 +179,8 @@ export const RUN_DEPLOYMENT_LOG_CONTEXT = 'runDeploymentUseCase';
  * @param providersRepository Providers repository
  * @param serviceVariablesRepository Service variables repository
  * @param domainsRepository Domains repository
- * @param volumesRepository Volumes repository, which holds the volumes the service declares
- * @param daemonVolumesRepository Daemon volumes repository, which reads the volumes the Compose project holds
+ * @param volumesRepository Volumes repository, which holds the volumes the compose file of the service declares
+ * @param serviceVolumesRepository Service volumes repository, which caches the mount the compose file declares
  * @param providerClient Provider client port
  * @param repositoryComposeFile Reader of the Compose file of a repository, which the cache of the declared domains reads
  * @param dockerExecutor Docker executor
@@ -151,7 +197,7 @@ export async function runDeploymentUseCase(
     serviceVariablesRepository: ServiceVariablesRepository,
     domainsRepository: DomainsRepository,
     volumesRepository: VolumesRepository,
-    daemonVolumesRepository: DaemonVolumesRepository,
+    serviceVolumesRepository: ServiceVolumesRepository,
     providerClient: ProviderClient,
     repositoryComposeFile: RepositoryComposeFile,
     dockerExecutor: DockerExecutor,
@@ -183,8 +229,11 @@ export async function runDeploymentUseCase(
 
         // The cache of the declared domains carries the compose file of this commit, and the
         // reconciliation reads it alone, so a recipe of no valid YAML keeps the last cache and
-        // never fails a deployment the executor would otherwise bring up.
-        await cacheComposeDomains(servicesRepository, repositoryComposeFile, archive, payload.composerPath, service.id)
+        // never fails a deployment the executor would otherwise bring up. The reconciliation of
+        // the volumes reads the same text, so the run opens the archive one time alone.
+        const composeText = await readComposeText(repositoryComposeFile, archive, payload.composerPath, emit);
+
+        await cacheComposeDomains(servicesRepository, composeText, service.id)
             .catch(() => { emit('▹ The domains of the Compose file could not be read.'); });
 
         // The compose file of the service declares a domain too, and its record reaches the
@@ -202,9 +251,10 @@ export async function runDeploymentUseCase(
         // value of a secret that survived that mask never reaches the text the store keeps.
         const finalCompose = maskSecretValuesUseCase(deployed, secrets);
 
-        // The record of a volume Compose created never fails a deployment the daemon already brought up.
-        await adoptComposeVolumesUseCase(volumesRepository, daemonVolumesRepository, service)
-            .catch(() => { emit('▹ The volumes of the Compose file could not be recorded.'); });
+        // The compose file is the one source of truth of the volumes of the service, and no record of
+        // a volume ever fails a deployment the daemon already brought up.
+        await reconcileComposeVolumes(volumesRepository, serviceVolumesRepository, composeText, service.id)
+            .catch(() => { emit('▹ The volumes of the Compose file could not be reconciled.'); });
 
         await deploymentsRepository.update(payload.deploymentId, { status: 'success', finalCompose });
         await logStore.complete(payload.deploymentId, 'success');

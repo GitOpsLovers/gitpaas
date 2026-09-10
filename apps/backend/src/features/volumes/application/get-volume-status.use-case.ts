@@ -86,7 +86,6 @@ export function getVolumeStatusUseCase(
         id: volume.id,
         name: volume.name,
         daemonName,
-        origin: volume.origin,
         state: getVolumeStateUseCase(daemonVolume, mount, containers),
         driver: daemonVolume?.driver,
         mountpoint: daemonVolume?.mountpoint,

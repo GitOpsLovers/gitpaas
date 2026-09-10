@@ -1,9 +1,4 @@
 /**
- * Who declared a volume of a service.
- */
-export type VolumeOrigin = 'gitpaas' | 'compose';
-
-/**
  * Where a volume of a service stands.
  */
 export type VolumeState = 'mounted' | 'pending' | 'missing' | 'declared' | 'orphan';
@@ -16,7 +11,6 @@ export interface Volume {
     serviceId: string;
     name: string;
     daemonKey: string;
-    origin: VolumeOrigin;
 }
 
 /**
@@ -42,10 +36,17 @@ export interface VolumeStatus {
     id: string;
     name: string;
     daemonName: string;
-    origin: VolumeOrigin;
     state: VolumeState;
     driver?: string;
     mountpoint?: string;
     mount?: VolumeMount;
     containers: string[];
+}
+
+/**
+ * One volume the Compose file of a service declares, with the mount it takes inside the stack.
+ */
+export interface ComposeVolumeDeclaration {
+    daemonKey: string;
+    mount: VolumeMount | null;
 }

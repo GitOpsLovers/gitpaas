@@ -19,12 +19,12 @@ The tab "Volumes" of a service lets a user create a volume, rename it, attach it
 **Agent:** implementer
 **Paths:** `apps/backend/src/features/volumes/`, the use case of the deployment that adopts the volumes, `iac/production/migrations/`
 
-- [ ] 2.1 Turn the adoption of the volumes of the compose file into a full reconciliation, which inserts, updates and prunes, as the reconciliation of the domains does.
-- [ ] 2.2 Cache the path of the mount that the compose file declares for the service, so the tab reads it without the compose file.
-- [ ] 2.3 Remove the column of the origin from the entity of the volume and from its mapper.
-- [ ] 2.4 Write the migration SQL that deletes every row of the join table of the mounts, that deletes every volume row that the reconciliation does not own, and that drops the column of the origin.
-- [ ] 2.5 Write the unit tests of the reconciliation, for the insert, for the update and for the prune.
-- [ ] 2.6 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the unit tests of the backend.
+- [x] 2.1 Turn the adoption of the volumes of the compose file into a full reconciliation, which inserts, updates and prunes, as the reconciliation of the domains does.
+- [x] 2.2 Cache the path of the mount that the compose file declares for the service, so the tab reads it without the compose file.
+- [x] 2.3 Remove the column of the origin from the entity of the volume and from its mapper.
+- [x] 2.4 Write the migration SQL that deletes every row of the join table of the mounts, that deletes every volume row that the reconciliation does not own, and that drops the column of the origin.
+- [x] 2.5 Write the unit tests of the reconciliation, for the insert, for the update and for the prune.
+- [x] 2.6 Run `rtk pnpm run check-types --filter @gitpaas/backend` and the unit tests of the backend.
 
 ## Phase 3 — The tab read-only
 
