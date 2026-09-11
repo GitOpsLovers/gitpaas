@@ -1,3 +1,9 @@
+## [2.30.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.29.0...v2.30.0) (2026-09-11)
+
+### Features
+
+* improve clear buttons UI ([a6302b9](https://github.com/GitOpsLovers/gitpaas/commit/a6302b9afaccf72f4f3e3ed94f510ddea3ca5308))
+
 ## [2.29.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.28.0...v2.29.0) (2026-09-10)
 
 ### Features
