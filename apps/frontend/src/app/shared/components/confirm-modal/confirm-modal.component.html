@@ -43,6 +43,9 @@
             </app-button>
 
             <app-button [variant]="confirmVariant()" size="sm" [disabled]="loading()" (btnClick)="confirmed.emit()">
+                @if (loading()) {
+                    <svg lucideLoaderCircle class="h-4 w-4 animate-spin"></svg>
+                }
                 {{ confirmText() }}
             </app-button>
         </div>

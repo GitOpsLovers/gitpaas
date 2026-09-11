@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import { LucideCircleCheck, LucideCircleHelp, LucideInfo, LucideRocket, LucideTrash2, LucideTriangleAlert } from '@lucide/angular';
+import { LucideCircleCheck, LucideCircleHelp, LucideInfo, LucideLoaderCircle, LucideRocket, LucideTrash2, LucideTriangleAlert } from '@lucide/angular';
 
 import { ButtonComponent } from '../button/button.component';
 import { ModalComponent } from '../modal/modal.component';
@@ -38,6 +38,7 @@ export type ConfirmIcon = 'help' | 'warning' | 'rocket' | 'trash' | 'info' | 'su
         LucideTrash2,
         LucideInfo,
         LucideCircleCheck,
+        LucideLoaderCircle,
     ],
 })
 
