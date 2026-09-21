@@ -38,15 +38,18 @@ A form lives in a component `*-form`, never in a container.
 
 ## The shape of a table
 
-Ten templates repeat one shape — the four of `features/docker/ui/components/docker-*-table/`, and
-`service-domains`, `service-networks`, `service-volumes`, `service-containers`, `service-variables`,
-`project-networks`. Copy it from
+Nine templates repeat one shape — the four of `features/docker/ui/components/docker-*-table/`, and
+`service-domains`, `service-networks`, `service-volumes`, `service-containers`, `service-variables`.
+Copy it from
 `features/docker/ui/components/docker-images-table/docker-images-table.component.html:12-51`:
 
 - `<div class="overflow-x-auto">` wraps `<table class="min-w-full text-left text-sm">`.
 - The row of the head: `border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400 dark:border-gray-800`.
 - The body: `divide-y divide-gray-100 dark:divide-gray-800`, and each cell `px-4 py-3`.
 - While it loads, each row holds one `<app-skeleton variant="row" />`.
+- The name cell never truncates: it wraps with `break-words`, and never `max-w-* truncate`, so the
+  full name reads even when it is long, as
+  `features/docker/ui/components/docker-images-table/docker-images-table.component.html:37` shows.
 
 ## The triad of a screen
 
