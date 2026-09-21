@@ -17,9 +17,9 @@ The list of the deployments of a service does not tell whether our deployment pr
 **Agent:** implementer
 **Paths:** apps/frontend/src/app/
 
-- [ ] 2.1 Write a pure function that gives the rounded change of each entry against the nearest older successful entry with a `startedAt`, or nothing when a rule of the introduction hides the badge.
-- [ ] 2.2 Show the badge in each entry of the deployment list, green with "X% faster" and red with "X% slower", in the style of the existing status badge.
-- [ ] 2.3 Cover every rule of the introduction with unit tests of the function, and pass `check-types` of `@gitpaas/frontend`.
+- [x] 2.1 Write a pure function that gives the rounded change of each entry against the nearest older successful entry with a `startedAt`, or nothing when a rule of the introduction hides the badge.
+- [x] 2.2 Show the badge in each entry of the deployment list, green with "X% faster" and red with "X% slower", in the style of the existing status badge.
+- [x] 2.3 Cover every rule of the introduction with unit tests of the function, and pass `check-types` of `@gitpaas/frontend`.
 
 ## Phase 3 — The documentation
 

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import type { Deployment, DeploymentStatus } from '@gitpaas/contracts';
 import {
     LucideCalendar,
@@ -10,6 +10,8 @@ import {
     LucideRocket,
     LucideTrash2,
 } from '@lucide/angular';
+
+import { compareDeploymentDurationsUseCase } from '../../../application/compare-deployment-durations.use-case';
 
 import { ButtonComponent } from '@shared/components/button/button.component';
 import { ComponentCardComponent } from '@shared/components/component-card/component-card.component';
@@ -70,6 +72,11 @@ export class ServiceDeploymentsComponent {
     protected readonly confirmOpen = signal(false);
 
     /**
+     * Rounded change in percent of the run of each successful deployment against the previous successful run.
+     */
+    protected readonly durationChanges = computed(() => compareDeploymentDurationsUseCase(this.deployments()));
+
+    /**
      * Opens the deployment confirmation modal
      */
     protected requestDeploy(): void {
@@ -105,6 +112,30 @@ export class ServiceDeploymentsComponent {
             default:
                 return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
         }
+    }
+
+    /**
+     * Builds the label of the badge that compares a run with the previous successful run.
+     *
+     * @param change Rounded change in percent, positive when the run is faster
+     *
+     * @returns Label such as `25% faster` or `10% slower`
+     */
+    protected durationChangeLabel(change: number): string {
+        return change > 0 ? `${change}% faster` : `${Math.abs(change)}% slower`;
+    }
+
+    /**
+     * Picks the colors of the badge that compares a run with the previous successful run.
+     *
+     * @param change Rounded change in percent, positive when the run is faster
+     *
+     * @returns Classes of Tailwind, green when faster and red when slower
+     */
+    protected durationChangeClass(change: number): string {
+        return change > 0
+            ? 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500'
+            : 'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500';
     }
 
     /**

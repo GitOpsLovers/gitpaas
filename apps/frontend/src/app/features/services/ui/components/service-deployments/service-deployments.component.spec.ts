@@ -145,4 +145,32 @@ describe('ServiceDeploymentsComponent', () => {
             expect(text()).toContain('Loading deployments…');
         });
     });
+
+    describe('the badge of the duration', () => {
+        const older: Deployment = {
+            ...deployment,
+            id: 'dp-0',
+            createdAt: '2026-01-01T09:00:00.000Z',
+            startedAt: '2026-01-01T09:00:02.000Z',
+            finishedAt: '2026-01-01T09:00:22.000Z',
+        };
+
+        test('shows a faster run against the previous successful run', () => {
+            create([deployment, older]);
+
+            expect(text()).toContain('50% faster');
+        });
+
+        test('shows a slower run against the previous successful run', () => {
+            create([{ ...deployment, finishedAt: '2026-01-01T10:00:32.000Z' }, older]);
+
+            expect(text()).toContain('50% slower');
+        });
+
+        test('shows no badge when no previous successful run exists', () => {
+            create([deployment]);
+
+            expect(text()).not.toMatch(/% (faster|slower)/u);
+        });
+    });
 });
