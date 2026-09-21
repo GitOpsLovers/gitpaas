@@ -1,0 +1,23 @@
+.claude/skills/frontend-design/references/rules.md
+  s_da4db60e334bb3::t_775a282d27b925 41-43,50-52
+.claude/skills/frontend-design/references/tailwind-playbook.md
+  s_da4db60e334bb3::t_1779b2962ad56c 14-15
+docs/business/docker.md
+  s_da4db60e334bb3::t_560d708c6d2806 71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5712927b0d3c5b4665ed44fa0e916f9645ba9dda",
+  "prompts": {},
+  "sessions": {
+    "s_da4db60e334bb3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abd5aa13cd6355782",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
