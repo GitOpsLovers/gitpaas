@@ -11,8 +11,8 @@ across components, because a token costs a name that every agent must then learn
 
 ## 2. The arbitrary value
 
-The syntax is the square bracket: `max-w-[24rem]`
-(`features/docker/ui/components/docker-images-table/docker-images-table.component.html:37`) and
+The syntax is the square bracket: `max-w-[16rem]`
+(`features/docker/ui/components/docker-volumes-table/docker-volumes-table.component.html:44`) and
 `dark:bg-white/[0.03]`, which is how every panel of the dark theme states its surface. An arbitrary
 value of a variable of CSS takes the parenthesis in v4 — `bg-(--brand-color)` — not the bracket.
 

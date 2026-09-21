@@ -68,7 +68,7 @@ The `503` belongs to that failure alone. A read that fails for another reason SH
 
 The system SHALL give a section "Docker" at the route `/docker/:tab`, with one tab for each resource: Containers, Images, Volumes and Networks. The route with no tab, or with a tab it does not know, opens the tab Containers.
 
-Each tab SHALL show its resource in a table, with a button of manual refresh, and it SHALL show its own state of the reading: loading, error or empty. A row of a table opens no view of detail.
+Each tab SHALL show its resource in a table, with a button of manual refresh, and it SHALL show its own state of the reading: loading, error or empty. A row of a table opens no view of detail. The name column of a table SHALL show the full name; it never cuts it, and it wraps to a new line when the name does not fit on one.
 
 ### Scenario: The user opens the section
 

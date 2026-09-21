@@ -12,4 +12,3 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
-- [full-resource-names-in-tables](./roadmap/full-resource-names-in-tables/TODO.md): the full name of a resource in every table of the frontend.
