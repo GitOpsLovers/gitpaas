@@ -1,3 +1,9 @@
+## [2.31.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.30.0...v2.31.0) (2026-09-21)
+
+### Features
+
+* **frontend:** show full names in table columns ([#310](https://github.com/GitOpsLovers/gitpaas/issues/310)) ([d8d2d3d](https://github.com/GitOpsLovers/gitpaas/commit/d8d2d3df28fc3b366a718ffd180a093d5d9d200e))
+
 ## [2.30.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.29.0...v2.30.0) (2026-09-11)
 
 ### Features
