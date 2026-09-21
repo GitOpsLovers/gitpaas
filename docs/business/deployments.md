@@ -6,14 +6,14 @@ This capability starts and records each attempt to run the Docker Compose stack 
 
 ## The deployment record
 
-The system SHALL keep one record per deployment. The record holds the identifier, the identifier of the service, the status, the branch, the commit, the first line of the message of the commit, the path of the compose file, the origin of the trigger, the message of the error, the date of the creation and the date of the end.
+The system SHALL keep one record per deployment. The record holds the identifier, the identifier of the service, the status, the branch, the commit, the first line of the message of the commit, the path of the compose file, the origin of the trigger, the message of the error, the date of the creation, the date of the start of the run and the date of the end.
 
 The status is `pending`, `running`, `success` or `failed`.
 
 ### Scenario: The system gives a deployment
 
 - **WHEN** a client reads a deployment
-- **THEN** the system gives all these fields, and the fields of the commit, of the error and of the end date hold `null` while no value applies
+- **THEN** the system gives all these fields, and the fields of the commit, of the error, of the start date and of the end date hold `null` while no value applies
 
 ## The final Compose text of a deployment
 
@@ -36,6 +36,8 @@ This text is not a field of the answer of a deployment. A client reads it throug
 The system SHALL move a deployment through the states `pending`, `running` and then `success` or `failed`.
 
 A deployment SHALL NOT stay in the state `pending`. If the run cannot start or cannot finish, the system gives the deployment the status `failed`.
+
+The system SHALL stamp `startedAt` the moment the deployment reaches the state `running`, and it SHALL stamp `finishedAt` the moment the deployment reaches `success` or `failed`. A deployment that existed before this rule keeps `startedAt` at `null`, because no start was ever stamped for it.
 
 ### Scenario: The run succeeds
 
@@ -333,3 +335,36 @@ While the reading runs and the list is empty, the tab says "Loading deploymentsâ
 
 - **WHEN** the reading ends, and the service holds no deployment
 - **THEN** the tab says "No deployments yet."
+
+## The badge that compares the duration of a run
+
+The tab `deployments` SHALL show, on a successful entry, a badge that compares the duration of its run with the duration of the run of the nearest older successful deployment. The duration of a run is the time from `startedAt` to `finishedAt`, and it excludes the wait of the deployment in the queue.
+
+The badge holds the rounded change in percent, with the formula `(previous - current) / previous`, where `previous` is the duration of the nearest older successful deployment and `current` is the duration of this entry. A green badge with "X% faster" shows a positive change, and a red badge with "X% slower" shows a negative change.
+
+An entry SHALL show no badge in any of these cases: the deployment is not `success`; the deployment holds no `startedAt`; no older successful deployment with a `startedAt` exists; the duration of that older deployment is 0 seconds; or the rounded change is 0%. A deployment with the status `failed`, `pending` or `running`, and a deployment the system removed, is never the reference of another entry's badge. A deployment made before this rule exists shows no badge, because it holds no `startedAt`.
+
+### Scenario: A deployment is faster than the previous one
+
+- **WHEN** a successful entry holds a `startedAt`, and its run takes less time than the run of the nearest older successful deployment with a `startedAt`
+- **THEN** the tab shows a green badge with the rounded percent, as "X% faster"
+
+### Scenario: A deployment is slower than the previous one
+
+- **WHEN** a successful entry holds a `startedAt`, and its run takes longer than the run of the nearest older successful deployment with a `startedAt`
+- **THEN** the tab shows a red badge with the rounded percent, as "X% slower"
+
+### Scenario: The deployment did not succeed
+
+- **WHEN** an entry holds the status `failed`, `pending` or `running`
+- **THEN** the tab shows no badge on that entry, and the entry is never the reference of another entry's badge
+
+### Scenario: No older successful deployment has a duration
+
+- **WHEN** a successful entry holds a `startedAt`, and no older successful deployment of the service holds a `startedAt`
+- **THEN** the tab shows no badge on that entry
+
+### Scenario: The change rounds to 0%
+
+- **WHEN** the rounded change between a run and the run of the nearest older successful deployment is 0%
+- **THEN** the tab shows no badge on that entry
