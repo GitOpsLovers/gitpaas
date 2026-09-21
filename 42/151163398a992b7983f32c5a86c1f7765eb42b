@@ -1,0 +1,29 @@
+apps/frontend/src/app/features/services/application/compare-deployment-durations.use-case.spec.ts
+  s_162fa68930d10e::t_0aff2deb5e897d 1-130
+apps/frontend/src/app/features/services/application/compare-deployment-durations.use-case.ts
+  s_162fa68930d10e::t_749b48b52f520c 1-58
+apps/frontend/src/app/features/services/ui/components/service-deployments/service-deployments.component.html
+  s_162fa68930d10e::t_babe5af7692a52 16-32
+apps/frontend/src/app/features/services/ui/components/service-deployments/service-deployments.component.spec.ts
+  s_162fa68930d10e::t_523e96c8f3f484 148-175
+apps/frontend/src/app/features/services/ui/components/service-deployments/service-deployments.component.ts
+  s_162fa68930d10e::t_5d10ab696fc117 2,14-15,74-78,117-140
+docs/roadmap/deployment-duration-comparison/TODO.md
+  s_162fa68930d10e::t_01cad868de2414 20-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "42151163398a992b7983f32c5a86c1f7765eb42b",
+  "prompts": {},
+  "sessions": {
+    "s_162fa68930d10e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40908652-75dc-429d-9e40-1229c5eac6b3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
