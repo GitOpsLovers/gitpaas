@@ -1,0 +1,19 @@
+docs/business/deployments.md
+  s_e8cef07e417714::t_47f8e97f1155ba 9,16,40-41,338-370
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3615841f6853711c6f805e512526c182eb10f4db",
+  "prompts": {},
+  "sessions": {
+    "s_e8cef07e417714": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa8ad9ef40fad2159",
+        "model": "unknown"
+      },
+      "human_author": "Marc Fernandez <mcfdez87@gmail.com>"
+    }
+  }
+}
