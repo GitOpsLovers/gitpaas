@@ -35,13 +35,13 @@
                         @for (volume of volumes(); track volume.name) {
                             <tr class="text-gray-600 dark:text-gray-300">
                                 <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
-                                    <span class="block max-w-[20rem] truncate font-mono" [title]="volume.name">
+                                    <span class="block break-words font-mono">
                                         {{ volume.name }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ volume.driver }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="block max-w-[24rem] truncate font-mono" [title]="volume.mountpoint">
+                                    <span class="block max-w-[16rem] truncate font-mono" [title]="volume.mountpoint">
                                         {{ volume.mountpoint }}
                                     </span>
                                 </td>

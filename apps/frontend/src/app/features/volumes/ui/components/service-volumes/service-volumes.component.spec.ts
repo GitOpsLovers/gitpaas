@@ -82,6 +82,17 @@ describe('ServiceVolumesComponent', () => {
             expect(second).toContain('Read-only');
         });
 
+        test('shows the name of the daemon of each volume in its name cell', () => {
+            create([mounted, orphan]);
+
+            const names = rows().map((row) => row.querySelector('td')?.textContent ?? '');
+
+            expect(names[0]).toContain('uploads');
+            expect(names[0]).toContain('api-web_gitpaas-uploads');
+            expect(names[1]).toContain('legacy');
+            expect(names[1]).toContain('api-web_legacy');
+        });
+
         test('names the five columns of the table, and no column of the origin', () => {
             create([mounted]);
 

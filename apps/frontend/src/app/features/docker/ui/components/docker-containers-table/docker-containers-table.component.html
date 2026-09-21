@@ -38,12 +38,12 @@
                         @for (container of containers(); track container.id) {
                             <tr class="text-gray-600 dark:text-gray-300">
                                 <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
-                                    <span class="block max-w-[16rem] truncate" [title]="formatName(container.names)">
+                                    <span class="block break-words">
                                         {{ formatName(container.names) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="block max-w-[16rem] truncate" [title]="container.image">
+                                    <span class="block max-w-[12rem] truncate" [title]="container.image">
                                         {{ container.image }}
                                     </span>
                                 </td>
@@ -55,11 +55,11 @@
                                         {{ container.state }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ container.status }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">{{ formatPorts(container.ports) }}</td>
+                                <td class="px-4 py-3">{{ container.status }}</td>
+                                <td class="px-4 py-3">{{ formatPorts(container.ports) }}</td>
                                 <td class="px-4 py-3">
                                     <span
-                                        class="block max-w-[14rem] truncate"
+                                        class="block max-w-[10rem] truncate"
                                         [title]="formatNetworks(container.networks)"
                                     >
                                         {{ formatNetworks(container.networks) }}
@@ -67,7 +67,7 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <span
-                                        class="block max-w-[14rem] truncate font-mono"
+                                        class="block max-w-[10rem] truncate font-mono"
                                         [title]="formatMounts(container.mounts)"
                                     >
                                         {{ formatMounts(container.mounts) }}

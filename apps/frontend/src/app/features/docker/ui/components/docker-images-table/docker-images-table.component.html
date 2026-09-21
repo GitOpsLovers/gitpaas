@@ -34,7 +34,7 @@
                         @for (image of images(); track image.id) {
                             <tr class="text-gray-600 dark:text-gray-300">
                                 <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
-                                    <span class="block max-w-[24rem] truncate" [title]="formatTags(image.tags)">
+                                    <span class="block break-words">
                                         {{ formatTags(image.tags) }}
                                     </span>
                                 </td>
