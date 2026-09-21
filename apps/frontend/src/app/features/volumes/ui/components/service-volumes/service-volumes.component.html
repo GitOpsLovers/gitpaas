@@ -35,12 +35,10 @@
                                 <td class="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
                                     <span class="inline-flex items-center gap-1.5">
                                         <svg lucideHardDrive class="h-3.5 w-3.5 shrink-0 text-gray-400"></svg>
-                                        <span
-                                            class="block max-w-[14rem] truncate font-mono"
-                                            [title]="volume.daemonName"
-                                        >
-                                            {{ volume.name }}
-                                        </span>
+                                        <span class="min-w-0 break-words font-mono">{{ volume.name }}</span>
+                                    </span>
+                                    <span class="mt-1 block break-words font-mono text-xs font-normal text-gray-400">
+                                        {{ volume.daemonName }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
@@ -51,18 +49,21 @@
                                         {{ stateLabel(volume.state) }}
                                     </span>
                                     @if (stateHint(volume.state); as hint) {
-                                        <p class="mt-1.5 max-w-[18rem] text-xs text-gray-500 dark:text-gray-400">
+                                        <p class="mt-1.5 max-w-[14rem] text-xs text-gray-500 dark:text-gray-400">
                                             {{ hint }}
                                         </p>
                                     }
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap font-mono">
+                                <td class="px-4 py-3 break-words font-mono">
                                     {{ volume.mount?.containerPath ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">{{ modeLabel(volume) }}</td>
                                 <td class="px-4 py-3">
                                     @if (volume.containers.length > 0) {
-                                        <span class="block max-w-[14rem] truncate font-mono">
+                                        <span
+                                            class="block max-w-[10rem] truncate font-mono"
+                                            [title]="volume.containers.join(', ')"
+                                        >
                                             {{ volume.containers.join(', ') }}
                                         </span>
                                     } @else {
