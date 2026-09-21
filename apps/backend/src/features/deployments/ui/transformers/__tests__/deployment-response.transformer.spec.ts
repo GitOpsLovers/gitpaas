@@ -14,6 +14,7 @@ const deployment = (overrides: Partial<Deployment> = {}): Deployment => ({
     error: null,
     finalCompose: null,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
+    startedAt: new Date('2026-07-11T00:00:30.000Z'),
     finishedAt: new Date('2026-07-11T00:01:00.000Z'),
     ...overrides,
 });
@@ -31,6 +32,7 @@ describe('toDeploymentResponse', () => {
             triggeredBy: 'marc',
             error: null,
             createdAt: '2026-07-11T00:00:00.000Z',
+            startedAt: '2026-07-11T00:00:30.000Z',
             finishedAt: '2026-07-11T00:01:00.000Z',
         });
     });
@@ -39,6 +41,7 @@ describe('toDeploymentResponse', () => {
         const response = toDeploymentResponse(deployment());
 
         expect(typeof response.createdAt).toBe('string');
+        expect(typeof response.startedAt).toBe('string');
         expect(typeof response.finishedAt).toBe('string');
     });
 
@@ -46,6 +49,10 @@ describe('toDeploymentResponse', () => {
         const response = toDeploymentResponse(deployment());
 
         expect((Object.values(response) as unknown[]).some((value) => value instanceof Date)).toBe(false);
+    });
+
+    it('keeps a start that has not happened as null', () => {
+        expect(toDeploymentResponse(deployment({ startedAt: null })).startedAt).toBeNull();
     });
 
     it('keeps a finish that has not happened as null', () => {

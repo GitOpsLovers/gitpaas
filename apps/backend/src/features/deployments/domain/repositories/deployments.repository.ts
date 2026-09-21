@@ -34,7 +34,7 @@ export interface DeploymentsRepository {
     create: (createDto: CreateDeploymentDto) => Promise<Deployment>;
 
     /**
-     * Update a deployment's status, stamping `finishedAt` on terminal states
+     * Update a deployment's status, stamping `startedAt` on `running` and `finishedAt` on terminal states
      *
      * @param id Deployment identifier
      * @param updateDto New status (and failure message, when the status is `failed`)

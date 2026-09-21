@@ -73,7 +73,7 @@ export class DatabaseDeploymentsRepository implements DeploymentsRepository {
     }
 
     /**
-     * Update a deployment's status, stamping `finishedAt` on terminal states
+     * Update a deployment's status, stamping `startedAt` on `running` and `finishedAt` on terminal states
      *
      * @param id Deployment identifier
      * @param updateDto New status (and failure message, when the status is `failed`)
@@ -90,6 +90,11 @@ export class DatabaseDeploymentsRepository implements DeploymentsRepository {
         deployment.status = updateDto.status;
         deployment.error = updateDto.error ?? null;
         deployment.finishedAt = TERMINAL_STATUSES.has(updateDto.status) ? new Date() : null;
+
+        // The run starts when the deployment leaves the queue, and a later status keeps that moment.
+        if (updateDto.status === 'running') {
+            deployment.startedAt = new Date();
+        }
 
         // The text arrives on the update of one status alone, and a later update never wipes it.
         if (updateDto.finalCompose !== undefined) {

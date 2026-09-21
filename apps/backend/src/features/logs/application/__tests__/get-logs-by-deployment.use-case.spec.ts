@@ -30,6 +30,7 @@ describe('getLogsByDeploymentUseCase', () => {
         error: null,
         finalCompose: null,
         createdAt,
+        startedAt: null,
         finishedAt,
     });
 

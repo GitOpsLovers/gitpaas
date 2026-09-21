@@ -19,6 +19,7 @@ export const deploymentSchema = z.object({
     triggeredBy: z.string(),
     error: z.string().nullable(),
     createdAt: z.iso.datetime(),
+    startedAt: z.iso.datetime().nullable(),
     finishedAt: z.iso.datetime().nullable(),
 });
 

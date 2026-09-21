@@ -29,6 +29,7 @@ const deployment: Deployment = {
     triggeredBy: 'user',
     error: null,
     createdAt: '2026-01-01T00:00:00.000Z',
+    startedAt: '2026-01-01T00:00:03.000Z',
     finishedAt: null,
 };
 

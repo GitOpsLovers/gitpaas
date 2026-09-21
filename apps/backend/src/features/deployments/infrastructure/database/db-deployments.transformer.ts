@@ -22,6 +22,7 @@ export function toDeployment(entity: DbDeploymentEntity): Deployment {
         error: entity.error,
         finalCompose: entity.finalCompose,
         createdAt: entity.createdAt,
+        startedAt: entity.startedAt,
         finishedAt: entity.finishedAt,
     };
 }

@@ -59,6 +59,7 @@ const deployment: Deployment = {
     error: null,
     finalCompose: null,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
+    startedAt: new Date('2026-07-11T00:00:30.000Z'),
     finishedAt: new Date('2026-07-11T00:01:00.000Z'),
 };
 

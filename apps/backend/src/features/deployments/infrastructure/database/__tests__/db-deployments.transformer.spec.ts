@@ -4,6 +4,7 @@ import { toDeployment } from '../db-deployments.transformer';
 describe('toDeployment', () => {
     it('maps every deployment entity field into the domain model', () => {
         const createdAt = new Date('2026-07-11T00:00:00.000Z');
+        const startedAt = new Date('2026-07-11T00:00:30.000Z');
         const finishedAt = new Date('2026-07-11T00:05:00.000Z');
         const entity: DbDeploymentEntity = {
             id: 'd-1',
@@ -17,6 +18,7 @@ describe('toDeployment', () => {
             error: null,
             finalCompose: 'services:\n  web:\n    image: nginx\n',
             createdAt,
+            startedAt,
             finishedAt,
         };
 
@@ -32,11 +34,12 @@ describe('toDeployment', () => {
             error: null,
             finalCompose: 'services:\n  web:\n    image: nginx\n',
             createdAt,
+            startedAt,
             finishedAt,
         });
     });
 
-    it('preserves nullable commit, commitMessage, error, finalCompose and finishedAt fields', () => {
+    it('preserves nullable commit, commitMessage, error, finalCompose, startedAt and finishedAt fields', () => {
         const createdAt = new Date('2026-07-11T00:00:00.000Z');
         const entity: DbDeploymentEntity = {
             id: 'd-2',
@@ -50,6 +53,7 @@ describe('toDeployment', () => {
             error: 'deploy crashed',
             finalCompose: null,
             createdAt,
+            startedAt: null,
             finishedAt: null,
         };
 
@@ -65,6 +69,7 @@ describe('toDeployment', () => {
             error: 'deploy crashed',
             finalCompose: null,
             createdAt,
+            startedAt: null,
             finishedAt: null,
         });
     });
