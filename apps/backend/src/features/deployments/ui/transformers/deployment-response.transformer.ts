@@ -21,6 +21,7 @@ export function toDeploymentResponse(deployment: Deployment): DeploymentResponse
         triggeredBy: deployment.triggeredBy,
         error: deployment.error,
         createdAt: deployment.createdAt.toISOString(),
+        startedAt: deployment.startedAt ? deployment.startedAt.toISOString() : null,
         finishedAt: deployment.finishedAt ? deployment.finishedAt.toISOString() : null,
     };
 }

@@ -12,3 +12,4 @@ The folder holds that one file, and no other. `/research` reads the code and rep
 ## The features
 
 - [complexity-reduction](./roadmap/complexity-reduction/TODO.md): the reduction of the complexity of the code of the three areas.
+- [deployment-duration-comparison](./roadmap/deployment-duration-comparison/TODO.md): a badge that compares the run of a deployment with the run of the previous successful one.

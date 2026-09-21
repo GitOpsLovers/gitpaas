@@ -20,6 +20,7 @@ const deploymentEntity = (overrides: Partial<DbDeploymentEntity> = {}): DbDeploy
     error: null,
     finalCompose: null,
     createdAt: new Date('2026-07-11T00:00:00.000Z'),
+    startedAt: null,
     finishedAt: null,
     ...overrides,
 });
@@ -149,6 +150,49 @@ describe('DatabaseDeploymentsRepository', () => {
 
             expect(existing.error).toBeNull();
             expect(existing.finishedAt).toBeNull();
+        });
+
+        it('sets startedAt to a Date when the status changes to "running"', async () => {
+            const existing = deploymentEntity();
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
+
+            const result = await sut.update(existing.id, { status: 'running' });
+
+            expect(existing.startedAt).toBeInstanceOf(Date);
+            expect(result?.startedAt).toBe(existing.startedAt);
+        });
+
+        it('keeps the startedAt of the run for the terminal "success" status', async () => {
+            const startedAt = new Date('2026-07-11T00:00:30.000Z');
+            const existing = deploymentEntity({ status: 'running', startedAt });
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
+
+            await sut.update(existing.id, { status: 'success' });
+
+            expect(existing.startedAt).toBe(startedAt);
+        });
+
+        it('keeps the startedAt of the run for the terminal "failed" status', async () => {
+            const startedAt = new Date('2026-07-11T00:00:30.000Z');
+            const existing = deploymentEntity({ status: 'running', startedAt });
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
+
+            await sut.update(existing.id, { status: 'failed', error: 'deploy crashed' });
+
+            expect(existing.startedAt).toBe(startedAt);
+        });
+
+        it('leaves startedAt null for a deployment that fails before it runs', async () => {
+            const existing = deploymentEntity();
+            mockRepository.findOneBy.mockResolvedValue(existing);
+            mockRepository.save.mockImplementation((entity) => Promise.resolve(entity as DbDeploymentEntity));
+
+            await sut.update(existing.id, { status: 'failed', error: 'queue gave up' });
+
+            expect(existing.startedAt).toBeNull();
         });
 
         it('sets finishedAt to a Date for the terminal "success" status', async () => {

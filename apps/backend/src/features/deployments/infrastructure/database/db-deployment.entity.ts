@@ -43,6 +43,9 @@ export class DbDeploymentEntity {
     public createdAt!: Date;
 
     @Column({ type: 'timestamptz', nullable: true })
+    public startedAt!: Date | null;
+
+    @Column({ type: 'timestamptz', nullable: true })
     public finishedAt!: Date | null;
 
     @ManyToOne(() => DbServiceEntity, { onDelete: 'CASCADE' })

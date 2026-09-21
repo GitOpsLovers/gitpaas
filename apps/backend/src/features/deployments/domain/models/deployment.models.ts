@@ -18,5 +18,6 @@ export interface Deployment {
     error: string | null;
     finalCompose: string | null;
     createdAt: Date;
+    startedAt: Date | null;
     finishedAt: Date | null;
 }
