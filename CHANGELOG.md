@@ -1,3 +1,10 @@
+## [2.32.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.31.0...v2.32.0) (2026-09-21)
+
+### Features
+
+* **deployments:** add startedAt field and migration ([#312](https://github.com/GitOpsLovers/gitpaas/issues/312)) ([2f3ce44](https://github.com/GitOpsLovers/gitpaas/commit/2f3ce440c3f1c3a3dc4f206894c419335b26d620))
+* **frontend:** add deployment duration comparison badge ([#313](https://github.com/GitOpsLovers/gitpaas/issues/313)) ([499740c](https://github.com/GitOpsLovers/gitpaas/commit/499740c12e663896cad40477f8d728f1f9a6e5de))
+
 ## [2.31.0](https://github.com/GitOpsLovers/gitpaas/compare/v2.30.0...v2.31.0) (2026-09-21)
 
 ### Features
