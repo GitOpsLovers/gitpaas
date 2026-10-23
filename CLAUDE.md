@@ -1,6 +1,6 @@
 # Guide for AI agents working on GitPaaS
 
-This file holds three things alone: your role, the stack, and the rules that every agent obeys.
+This file holds three things alone: your role, the facts of the project, and the rules that every agent obeys.
 Everything else lives in the skill or in the agent file that owns it.
 
 ## Find your role
@@ -21,15 +21,27 @@ You do the one job of your prompt, and you report. Never load the skill `agent-o
 
 ---
 
-## 1. Stack
+## 1. The project
 
-- **Monorepo:** Turborepo
-- **Package manager:** pNPM
-- **Backend:** NestJS
-- **Frontend:** Angular
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Database:** PostgreSQL via TypeORM
+These items give the facts of GitPaaS that every agent needs. A global configuration of the agents reads the same items.
+
+- **Stack:** a Turborepo monorepo with pNPM. The backend uses NestJS, the frontend uses Angular with Tailwind CSS, the language is TypeScript, and the database is PostgreSQL via TypeORM.
+- **Layout:** `apps/backend` (`@gitpaas/backend`), `apps/frontend` (`@gitpaas/frontend`) and `packages/contracts` (`@gitpaas/contracts`).
+- **Verify:** `rtk pnpm run check-types --filter @gitpaas/<package>`.
+- **Test:** `rtk pnpm --filter @gitpaas/<package> test`.
+- **Skills:**
+
+  | The area or the kind of file            | The skill                                                    |
+  |-----------------------------------------|--------------------------------------------------------------|
+  | `apps/backend`                          | `backend-architecture`; `backend-feature` for a new resource |
+  | The specs of `apps/backend`             | `backend-unit-testing`                                       |
+  | `apps/frontend`                         | `frontend-architecture`                                      |
+  | A template of `apps/frontend`           | `frontend-design`                                            |
+  | The specs of `apps/frontend`            | `frontend-unit-testing`                                      |
+  | A file `.ts` of `apps/` or `packages/`  | `typescript`                                                 |
+  | A question about Turborepo (reference)  | `turborepo`                                                  |
+
+- **Docs areas:** `monorepo`, `backend`, `frontend`, `infrastructure` and `agents`.
 
 ---
 

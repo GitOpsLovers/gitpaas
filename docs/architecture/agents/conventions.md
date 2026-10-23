@@ -17,7 +17,7 @@ The `description` of the frontmatter states the triggers of the agent and the ne
 
 ## The rule of the source
 
-`CLAUDE.md` holds three things alone: the role of an agent, the stack, and the rule that every agent obeys. An agent file holds no copy of a rule that `CLAUDE.md` already states; it links the section of `CLAUDE.md` instead. This is why every file of `.claude/agents/` reads "Section 2 of `CLAUDE.md` gives the rule of the two tiers", and not a restatement of that rule. The same border holds between a skill of the job and the page of `docs/architecture/` that it routes to: the skill carries the table of pointers, and the page of `docs/architecture/` carries the rule.
+`CLAUDE.md` holds three things alone: the role of an agent, the facts of the project (its section 1: the stack, the layout, the commands, the skills and the areas of the documentation), and the rule that every agent obeys. An agent file holds no copy of a rule that `CLAUDE.md` already states; it links the section of `CLAUDE.md` instead. This is why every file of `.claude/agents/` reads "Section 2 of `CLAUDE.md` gives the rule of the two tiers", and not a restatement of that rule. The same border holds between a skill of the job and the page of `docs/architecture/` that it routes to: the skill carries the table of pointers, and the page of `docs/architecture/` carries the rule.
 
 ## The rule of the skill
 
