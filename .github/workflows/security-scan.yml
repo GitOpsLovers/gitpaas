@@ -53,7 +53,7 @@ jobs:
           output: trivy-dependencies.sarif
 
       - name: Upload the findings of the dependencies
-        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: trivy-dependencies.sarif
           category: trivy-dependencies
@@ -75,7 +75,7 @@ jobs:
             image: ghcr.io/gitopslovers/gitpaas-frontend:latest
     steps:
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -92,7 +92,7 @@ jobs:
           output: trivy-image-${{ matrix.name }}.sarif
 
       - name: Upload the findings of the image
-        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: trivy-image-${{ matrix.name }}.sarif
           category: trivy-image-${{ matrix.name }}
